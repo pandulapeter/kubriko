@@ -31,9 +31,18 @@ internal fun CommandContext.validatePage(name: String): Rejection? = if (screenp
 /**
  * Why [name] can't be the name of a new page (or of [renamed] moved), or null if it can.
  */
-internal fun CommandContext.validateNewPageName(name: String, renamed: String? = null): Rejection? = PageNaming.validate(name)?.let(::Rejection) ?: when {
+internal fun CommandContext.validateNewPageName(name: String, renamed: String? = null): Rejection? = validatePageName(name) ?: when {
     screenplay.existingName(name)?.let { it != renamed } == true -> Rejection(CommandProblem.PAGE_TAKEN, name)
     else -> null
+}
+
+/**
+ * Why [name] can't be a page's name (or a folder of pages), or null if it can.
+ */
+internal fun validatePageName(name: String): Rejection? = if (name.length > PageNaming.MAXIMUM_LENGTH) {
+    Rejection(CommandProblem.PAGE_NAME_TOO_LONG, PageNaming.MAXIMUM_LENGTH.toString())
+} else {
+    PageNaming.validate(name)?.let(::Rejection)
 }
 
 internal fun validatePageText(text: String): Rejection? = if (text.length > PAGE_MAXIMUM_LENGTH) Rejection(CommandProblem.PAGE_TOO_LONG, PAGE_MAXIMUM_LENGTH.toString()) else null

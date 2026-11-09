@@ -20,23 +20,21 @@ import com.pandulapeter.kubrikoCreator.project.ResourceScanner
  */
 public object DocumentNaming {
 
-    internal const val MAXIMUM_LENGTH = 200
+    public const val MAXIMUM_LENGTH: Int = 200
 
     /**
      * Whether Kubriko Creator may create a document at [path]: a Markdown file (`.md` in any case) outside the screenplay and outside every
      * folder the project walk leaves out, each part starting with a letter or a digit, so it is never hidden, and ending
      * in neither a space nor a dot, which Windows drops.
      */
-    public fun isValid(path: String): Boolean = validate(path) == null
+    public fun isValid(path: String): Boolean = path.length <= MAXIMUM_LENGTH && validate(path) == null
 
     /**
-     * Why Kubriko Creator may not create a document at [path], or null if it may ([isValid]).
+     * Why Kubriko Creator may not create a document at [path] whatever its length, or null if it may; how long it may be
+     * is [MAXIMUM_LENGTH].
      */
-    public fun validate(path: String): NameProblem? = when {
-        path.length > MAXIMUM_LENGTH -> NameProblem.DOCUMENT_PATH_TOO_LONG
-        else -> kindProblemOf(path) ?: path.split('/').let { parts ->
-            parts.firstNotNullOfOrNull(::partProblemOf) ?: if (parts.dropLast(1).any(ProjectTree::isLeftOut)) NameProblem.DOCUMENT_IN_LEFT_OUT_FOLDER else null
-        }
+    public fun validate(path: String): NameProblem? = kindProblemOf(path) ?: path.split('/').let { parts ->
+        parts.firstNotNullOfOrNull(::partProblemOf) ?: if (parts.dropLast(1).any(ProjectTree::isLeftOut)) NameProblem.DOCUMENT_IN_LEFT_OUT_FOLDER else null
     }
 
     /**

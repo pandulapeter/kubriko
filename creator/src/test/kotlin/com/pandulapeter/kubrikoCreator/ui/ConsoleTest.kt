@@ -18,7 +18,7 @@ import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubrikoCreator.commands.CommandProblem
+import com.pandulapeter.kubrikoCreator.commands.PlacementProblem
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.console.ConsoleLines
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
@@ -75,17 +75,17 @@ class ConsoleTest {
     @Test
     fun rejectionsNameEventsAndBlocksAsTheEditorDoes() = uiTest {
         val rejections = listOf(
-            ConsoleEntry.Status(CommandProblem.EVENT_GAME_STARTED_IN_ACTOR_TYPE, isError = true),
-            ConsoleEntry.Status(CommandProblem.KEY_NOT_ALLOWED, isError = true),
-            ConsoleEntry.Status(CommandProblem.BLOCK_REMOVE_OTHER_OUTSIDE_COLLISION, isError = true),
-            ConsoleEntry.Status(CommandProblem.TOGGLE_PROPERTY_MISSING, isError = true, arguments = listOf("isOver", "Game")),
+            ConsoleEntry.Status(PlacementProblem.EVENT_GAME_STARTED_IN_ACTOR_TYPE, isError = true),
+            ConsoleEntry.Status(PlacementProblem.KEY_NOT_ALLOWED, isError = true),
+            ConsoleEntry.Status(PlacementProblem.BLOCK_ONLY_IN_COLLISION, isError = true),
+            ConsoleEntry.Status(PlacementProblem.TOGGLE_PROPERTY_MISSING, isError = true, arguments = listOf("isOver", "Game")),
         )
         showing {
             Console(lines = ConsoleLines(1, rejections), isExpanded = true, onExpandedChange = {}, onClear = {}, listHeight = 200.dp)
         }
         onNodeWithText("Use When added to the Scene instead", substring = true).assertIsDisplayed()
         onNodeWithText("Only a When a key is pressed Event has a key.").assertIsDisplayed()
-        onNodeWithText("Remove the other Actor works only in a When it collides with Event", substring = true).assertIsDisplayed()
+        onNodeWithText("That Block works only in a When it collides with Event", substring = true).assertIsDisplayed()
         onNodeWithText("Game has no toggle Property called isOver.").assertIsDisplayed()
         listOf("gameStarted", "keyPressed", "collision)", "removeOther").forEach { onNodeWithText(it, substring = true).assertDoesNotExist() }
         saveSnapshot("console-rejections")

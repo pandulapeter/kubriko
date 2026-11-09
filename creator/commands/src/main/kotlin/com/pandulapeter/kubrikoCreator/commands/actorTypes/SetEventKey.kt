@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.PlacementProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
@@ -36,7 +37,7 @@ public object SetEventKey : WriteCommand<SetEventKey.Input> {
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex)
         ?: when {
-            context.requireType(input.actorType).events[input.eventIndex].type != EventType.KEY_PRESSED -> Rejection(CommandProblem.KEY_NOT_ALLOWED)
+            context.requireType(input.actorType).events[input.eventIndex].type != EventType.KEY_PRESSED -> Rejection(PlacementProblem.KEY_NOT_ALLOWED)
             !input.key.isKnown -> Rejection(CommandProblem.GAME_KEY_UNKNOWN, input.key.composeKeyName)
             else -> null
         }

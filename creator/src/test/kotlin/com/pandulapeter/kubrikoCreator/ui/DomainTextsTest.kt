@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ui
 
 import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
+import com.pandulapeter.kubrikoCreator.commands.PlacementProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.foundation.DomainText
 import com.pandulapeter.kubrikoCreator.git.GitStatus
@@ -45,6 +46,7 @@ class DomainTextsTest {
         SceneStatus::class to SceneStatus.entries,
         GitStatus::class to GitStatus.entries,
         CommandProblem::class to CommandProblem.entries,
+        PlacementProblem::class to PlacementProblem.entries,
         WorkspaceStatus::class to WorkspaceStatus.entries,
         ScreenplayStyle.Rule::class to ScreenplayStyle.Rule.entries,
     )

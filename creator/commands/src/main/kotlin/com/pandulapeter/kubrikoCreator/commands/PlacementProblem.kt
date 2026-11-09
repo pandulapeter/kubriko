@@ -1,0 +1,40 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubrikoCreator.commands
+
+import com.pandulapeter.kubrikoCreator.foundation.DomainText
+
+/**
+ * Why an Event, a Block, or what they name doesn't fit where it was put. Events and Blocks are named by their titles in
+ * the editor, with their IDs in brackets for the AI.
+ */
+public enum class PlacementProblem(override val english: String) : DomainText {
+    EVENT_GAME_STARTED_IN_ACTOR_TYPE("Only a Manager type can have a When the game starts (gameStarted) Event, since an Actor type's Actors come into Scenes after the game started. Use When added to the Scene (addedToScene) instead."),
+    EVENT_ADDED_TO_SCENE_IN_MANAGER_TYPE("A Manager type is never added to a Scene, so it can't have a When added to the Scene (addedToScene) Event. Use When the game starts (gameStarted) instead."),
+    EVENT_EDGE_TOUCHED_IN_MANAGER_TYPE("A Manager type isn't in a Scene, so it can't have a When an edge of the screen is touched (edgeTouched) Event."),
+    EVENT_COLLISION_IN_MANAGER_TYPE("A Manager type isn't in a Scene, so it can't have a When it collides with (collision) Event."),
+    EVENT_ONLY_IN_ACTOR_TYPE("Only an Actor type can have that Event."),
+    EVENT_ONLY_IN_MANAGER_TYPE("Only a Manager type can have that Event."),
+    BLOCK_ONLY_IN_EDGE_TOUCHED("That Block works only in a When an edge of the screen is touched (edgeTouched) Event, the only one that knows which edge was touched."),
+    BLOCK_ONLY_IN_COLLISION("That Block works only in a When it collides with (collision) Event, the only one that knows the other Actor."),
+    BLOCK_ONLY_IN_ANOTHER_EVENT("That Block doesn't work in this kind of Event."),
+    BLOCK_MOVEMENT_IN_MANAGER_TYPE("A Manager type isn't in a Scene, so it has nothing for the Movement Blocks (setVelocity, addToVelocity, stop, jumpTo, moveTowardsNearest, bounceOffEdge, and bounceOffOther) to move. They belong in an Actor type."),
+    BLOCK_REMOVE_SELF_IN_MANAGER_TYPE("A Manager type isn't in a Scene, so it can't have a Remove this Actor (removeSelf) Block."),
+    BLOCK_REMOVE_OTHER_IN_MANAGER_TYPE("A Manager type isn't in a Scene, so it can't have a Remove the other Actor (removeOther) Block."),
+    BLOCK_RUN_PARENT_EVENT_IN_MANAGER_TYPE("Only Actor types have parents, so a Manager type can't have a Run the parent's Event (runParentEvent) Block."),
+    BLOCK_NEEDS_ACTOR_IN_MANAGER_TYPE("A Manager type isn't in a Scene, so it can't have that Block, which needs an Actor."),
+    CONDITION_NOT_ALLOWED("Only an Actor type has a velocity, so only its If Blocks can check it (the velocity condition)."),
+    KEY_NOT_ALLOWED("Only a When a key is pressed (keyPressed) Event has a key."),
+    OTHER_ACTOR_TYPE_NOT_ALLOWED("Only a When it collides with (collision) Event has another Actor type."),
+    TIMER_NOT_ALLOWED("Only a When a Timer finishes (timerFinished) Event has a Timer."),
+    NUMBER_PROPERTY_MISSING("%2\$s has no number Property called %1\$s."),
+    TEXT_PROPERTY_MISSING("%2\$s has no text Property called %1\$s."),
+    TOGGLE_PROPERTY_MISSING("%2\$s has no toggle Property called %1\$s."),
+}

@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class DocumentNamingTest {
@@ -45,14 +46,13 @@ class DocumentNamingTest {
             "notes.txt" to NameProblem.DOCUMENT_NOT_MARKDOWN,
             "screenplay/hero.md" to NameProblem.DOCUMENT_IN_SCREENPLAY,
             "app/build/notes.md" to NameProblem.DOCUMENT_IN_LEFT_OUT_FOLDER,
-            "a".repeat(DocumentNaming.MAXIMUM_LENGTH) + ".md" to NameProblem.DOCUMENT_PATH_TOO_LONG,
             "docs/.hidden.md" to NameProblem.DOCUMENT_FIRST_CHARACTER,
             "docs/a!b.md" to NameProblem.DOCUMENT_CHARACTERS,
             "docs./notes.md" to NameProblem.DOCUMENT_END,
             "docs//notes.md" to NameProblem.PATH_PART_EMPTY,
             "jegyzetek/ötletek.md" to NameProblem.NAME_LETTER_BEYOND_A_TO_Z,
         ).forEach { (path, problem) -> assertEquals(problem, DocumentNaming.validate(path), path) }
-        assertTrue(DocumentNaming.MAXIMUM_LENGTH.toString() in NameProblem.DOCUMENT_PATH_TOO_LONG.english)
+        assertNull(DocumentNaming.validate("a".repeat(DocumentNaming.MAXIMUM_LENGTH) + ".md"))
     }
 
     @Test

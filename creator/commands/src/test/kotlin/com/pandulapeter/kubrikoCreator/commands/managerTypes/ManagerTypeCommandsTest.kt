@@ -24,6 +24,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
+import com.pandulapeter.kubrikoCreator.commands.PlacementProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddEvent
@@ -80,17 +81,17 @@ class ManagerTypeCommandsTest {
     @Test
     fun aManagerOnlyGetsEventsAndBlocksThatNeedNoActor() = runTest {
         val context = commandContext(game)
-        assertEquals(Rejection(CommandProblem.EVENT_COLLISION_IN_MANAGER_TYPE), Invocation(AddEvent, AddEvent.Input("Game", EventType.COLLISION)).validate(context))
-        assertEquals(Rejection(CommandProblem.EVENT_ADDED_TO_SCENE_IN_MANAGER_TYPE), Invocation(AddEvent, AddEvent.Input("Game", EventType.ADDED_TO_SCENE)).validate(context))
-        assertEquals(Rejection(CommandProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE), Invocation(AddBlock, AddBlock.Input("Game", 0, BlockDefinition.SetVelocity())).validate(context))
-        assertEquals(Rejection(CommandProblem.CONDITION_NOT_ALLOWED), Invocation(AddBlock, AddBlock.Input("Game", 0, BlockDefinition.If(ConditionDefinition.Velocity()))).validate(context))
+        assertEquals(Rejection(PlacementProblem.EVENT_COLLISION_IN_MANAGER_TYPE), Invocation(AddEvent, AddEvent.Input("Game", EventType.COLLISION)).validate(context))
+        assertEquals(Rejection(PlacementProblem.EVENT_ADDED_TO_SCENE_IN_MANAGER_TYPE), Invocation(AddEvent, AddEvent.Input("Game", EventType.ADDED_TO_SCENE)).validate(context))
+        assertEquals(Rejection(PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE), Invocation(AddBlock, AddBlock.Input("Game", 0, BlockDefinition.SetVelocity())).validate(context))
+        assertEquals(Rejection(PlacementProblem.CONDITION_NOT_ALLOWED), Invocation(AddBlock, AddBlock.Input("Game", 0, BlockDefinition.If(ConditionDefinition.Velocity()))).validate(context))
         assertNull(Invocation(AddEvent, AddEvent.Input("Game", EventType.GAME_STARTED, blocks = listOf(BlockDefinition.SetNumber("score")))).validate(context))
         assertNull(Invocation(AddBlock, AddBlock.Input("Game", 0, BlockDefinition.ChangeNumber("score", manager = "Game"))).validate(context))
     }
 
     @Test
     fun anActorDoesNotGetTheGameStartedEvent() = runTest {
-        assertEquals(Rejection(CommandProblem.EVENT_GAME_STARTED_IN_ACTOR_TYPE), Invocation(AddEvent, AddEvent.Input("Brick", EventType.GAME_STARTED)).validate(commandContext(brick)))
+        assertEquals(Rejection(PlacementProblem.EVENT_GAME_STARTED_IN_ACTOR_TYPE), Invocation(AddEvent, AddEvent.Input("Brick", EventType.GAME_STARTED)).validate(commandContext(brick)))
     }
 
     @Test
@@ -100,7 +101,7 @@ class ManagerTypeCommandsTest {
         assertNull(Invocation(AddBlock, AddBlock.Input("Brick", 0, BlockDefinition.SetToggle(manager = "Game"))).validate(context))
         assertEquals(Rejection(CommandProblem.MANAGER_TYPE_MISSING, "Level"), Invocation(AddBlock, AddBlock.Input("Brick", 0, BlockDefinition.SetToggle("isOver", manager = "Level"))).validate(context))
         assertEquals(Rejection(CommandProblem.MANAGER_TYPE_MISSING, "Brick"), Invocation(AddBlock, AddBlock.Input("Brick", 0, BlockDefinition.SetToggle("isOver", manager = "Brick"))).validate(context))
-        assertEquals(Rejection(CommandProblem.TOGGLE_PROPERTY_MISSING, "score", "Game"), Invocation(AddBlock, AddBlock.Input("Brick", 0, BlockDefinition.SetToggle("score", manager = "Game"))).validate(context))
+        assertEquals(Rejection(PlacementProblem.TOGGLE_PROPERTY_MISSING, "score", "Game"), Invocation(AddBlock, AddBlock.Input("Brick", 0, BlockDefinition.SetToggle("score", manager = "Game"))).validate(context))
     }
 
     @Test

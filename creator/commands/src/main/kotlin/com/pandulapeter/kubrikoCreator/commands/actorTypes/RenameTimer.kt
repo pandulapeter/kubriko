@@ -41,9 +41,7 @@ public object RenameTimer : WriteCommand<RenameTimer.Input> {
         val timerNames = context.familyOf(input.actorType).flatMap { context.requireType(it).timerNames }
         when {
             input.oldName !in timerNames -> Rejection(CommandProblem.TIMER_UNKNOWN, input.actorType, input.oldName)
-            TimerNaming.validate(input.newName) != null -> Rejection(checkNotNull(TimerNaming.validate(input.newName)))
-            input.newName in timerNames -> Rejection(CommandProblem.TIMER_TAKEN)
-            else -> null
+            else -> TimerNaming.validate(input.newName)?.let(::Rejection) ?: if (input.newName in timerNames) Rejection(CommandProblem.TIMER_TAKEN) else null
         }
     }
 

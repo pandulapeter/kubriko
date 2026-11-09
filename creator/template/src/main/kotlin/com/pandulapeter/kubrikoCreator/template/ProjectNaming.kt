@@ -30,8 +30,8 @@ internal object ProjectNaming {
     fun validateName(name: String): TemplateProblem? = name.trim().let { trimmed ->
         when {
             trimmed.isEmpty() -> TemplateProblem.NAME_EMPTY
-            !trimmed.first().isLetter() -> TemplateProblem.NAME_FIRST_CHARACTER
-            trimmed.any { !it.isLetterOrDigit() && it !in " _-" && it.category != CharCategory.NON_SPACING_MARK } -> TemplateProblem.NAME_CHARACTERS
+            !Character.isLetter(trimmed.codePointAt(0)) -> TemplateProblem.NAME_FIRST_CHARACTER
+            trimmed.codePoints().anyMatch { !Character.isLetterOrDigit(it) && it.toChar() !in " _-" && !NameFlaw.isMark(it) } -> TemplateProblem.NAME_CHARACTERS
             else -> null
         }
     }
@@ -39,7 +39,7 @@ internal object ProjectNaming {
     /**
      * Why [packageName] can't be a project's package, or null if it can.
      */
-    fun validatePackageName(packageName: String): TemplateProblem? = packageName.split('.').let { segments ->
+    fun validatePackageName(packageName: String): TemplateProblem? = if (packageName.isEmpty()) TemplateProblem.PACKAGE_NAME_PARTS else packageName.split('.').let { segments ->
         segments.firstNotNullOfOrNull { segment ->
             when (NameFlaw.of(segment, isFirstAllowed = { it in 'a'..'z' }, isAllowed = { it in 'a'..'z' || it in '0'..'9' || it == '_' })) {
                 NameFlaw.EMPTY -> TemplateProblem.PACKAGE_NAME_PART_EMPTY
@@ -75,7 +75,7 @@ internal object ProjectNaming {
      * [name] in lowercase, with every letter that has an accent written without it.
      */
     private fun folded(name: String) = Normalizer.normalize(name.trim().lowercase(), Normalizer.Form.NFD)
-        .filter { it.category != CharCategory.NON_SPACING_MARK }
+        .filter { !NameFlaw.isMark(it.code) }
         .fold(StringBuilder()) { result, character -> result.append(foldedLetters[character] ?: character) }
         .toString()
 }

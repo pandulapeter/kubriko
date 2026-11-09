@@ -39,7 +39,10 @@ public object RenameScene : WriteCommand<RenameScene.Input> {
 
     override fun validate(context: CommandContext, input: Input): Rejection? = when {
         !context.scenes.exists(input.scene) -> Rejection(CommandProblem.SCENE_MISSING, input.scene)
-        SceneNaming.validate(input.newName) != null -> Rejection(checkNotNull(SceneNaming.validate(input.newName)))
+        else -> SceneNaming.validate(input.newName)?.let(::Rejection) ?: validateFreeName(context, input)
+    }
+
+    private fun validateFreeName(context: CommandContext, input: Input): Rejection? = when {
         SceneNaming.reservedFolderOf(input.newName) != null -> Rejection(CommandProblem.SCENE_FOLDER_RESERVED, SceneNaming.reservedFolderOf(input.newName).orEmpty())
         context.scenes.names().any { it != input.scene && it.equals(input.newName, ignoreCase = true) } -> Rejection(CommandProblem.SCENE_NAME_TAKEN)
         else -> null

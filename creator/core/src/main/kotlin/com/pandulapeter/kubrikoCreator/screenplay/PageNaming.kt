@@ -30,7 +30,7 @@ public object PageNaming {
 
     public const val EXTENSION: String = "md"
 
-    internal const val MAXIMUM_LENGTH = 120
+    public const val MAXIMUM_LENGTH: Int = 120
 
     /**
      * The path of the page [name] from the project's root.
@@ -42,12 +42,12 @@ public object PageNaming {
      */
     public fun nameOf(path: String): String? = path.removePrefix("$FOLDER/").takeIf { it != path && it.endsWith(".$EXTENSION") }?.removeSuffix(".$EXTENSION")
 
-    public fun isValid(name: String): Boolean = validate(name) == null
+    public fun isValid(name: String): Boolean = name.length <= MAXIMUM_LENGTH && validate(name) == null
 
     /**
-     * Why [name] can't be a page's name, or null if it can.
+     * Why the parts of [name] can't make a page's name, or null if they can; how long it may be is [MAXIMUM_LENGTH].
      */
-    public fun validate(name: String): NameProblem? = if (name.length > MAXIMUM_LENGTH) NameProblem.PAGE_NAME_TOO_LONG else FolderPaths.validatePath(name)
+    public fun validate(name: String): NameProblem? = FolderPaths.validatePath(name)
 
     /**
      * The folder [name] is in, or an empty string for one at the top.

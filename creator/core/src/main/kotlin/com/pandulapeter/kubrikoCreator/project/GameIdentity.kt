@@ -38,9 +38,8 @@ public data class GameIdentity(
         name.length > MAXIMUM_NAME_LENGTH || name.hasLineBreak() -> IdentityProblem.NAME_INVALID to listOf(MAXIMUM_NAME_LENGTH.toString())
         !versionNamePattern.matches(versionName) -> IdentityProblem.VERSION_NAME_INVALID to listOf(versionName)
         versionNumber !in 1..MAXIMUM_VERSION_NUMBER -> IdentityProblem.VERSION_NUMBER_INVALID to listOf(MAXIMUM_VERSION_NUMBER.toString())
-        applicationIdProblemOf(applicationId) != null -> checkNotNull(applicationIdProblemOf(applicationId)) to listOf(applicationId)
-        listOf(vendor, description).any { it.length > MAXIMUM_TEXT_LENGTH || it.hasLineBreak() } -> IdentityProblem.TEXT_INVALID to listOf(MAXIMUM_TEXT_LENGTH.toString())
-        else -> null
+        else -> applicationIdProblemOf(applicationId)?.let { it to listOf(applicationId) }
+            ?: if (listOf(vendor, description).any { it.length > MAXIMUM_TEXT_LENGTH || it.hasLineBreak() }) IdentityProblem.TEXT_INVALID to listOf(MAXIMUM_TEXT_LENGTH.toString()) else null
     }
 
     /**
@@ -77,7 +76,7 @@ public data class GameIdentity(
         /**
          * Why [value] isn't an application ID, or null if it is one.
          */
-        internal fun applicationIdProblemOf(value: String): IdentityProblem? = value.split('.').let { segments ->
+        internal fun applicationIdProblemOf(value: String): IdentityProblem? = if (value.isEmpty()) IdentityProblem.APPLICATION_ID_PARTS else value.split('.').let { segments ->
             segments.firstNotNullOfOrNull { segment ->
                 when (NameFlaw.of(segment, isFirstAllowed = Char::isLetter) { NameFlaw.isLetterOrDigitAToZ(it) || it == '_' }) {
                     NameFlaw.EMPTY -> IdentityProblem.APPLICATION_ID_PART_EMPTY

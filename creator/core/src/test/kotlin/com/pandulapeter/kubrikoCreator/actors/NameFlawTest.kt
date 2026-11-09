@@ -13,8 +13,8 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneNaming
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 class NameFlawTest {
 
@@ -31,7 +31,8 @@ class NameFlawTest {
 
     @Test
     fun lettersBeyondAToZAreAFlawOfTheirOwnWhereverTheyAre() {
-        listOf("élet", "Kalandjáték", "straße", "ninja忍者", "e\u0301let").forEach { assertEquals(NameFlaw.LETTER_BEYOND_A_TO_Z, flawOf(it), it) }
+        listOf("élet", "Kalandjáték", "straße", "ninja忍者", "e\u0301let", "gaana\u093E", "a\uD840\uDC00").forEach { assertEquals(NameFlaw.LETTER_BEYOND_A_TO_Z, flawOf(it), it) }
+        assertEquals(NameFlaw.CHARACTER, flawOf("game\uD83C\uDFAE"))
     }
 
     @Test
@@ -60,7 +61,7 @@ class NameFlawTest {
         assertNull(PageNaming.validate("worlds/the cave"))
         assertEquals(NameProblem.NAME_EMPTY, PageNaming.validate(""))
         assertEquals(NameProblem.FOLDER_CHARACTERS, PageNaming.validate("hero.md"))
-        assertEquals(NameProblem.PAGE_NAME_TOO_LONG, PageNaming.validate("a".repeat(PageNaming.MAXIMUM_LENGTH + 1)))
-        assertTrue(PageNaming.MAXIMUM_LENGTH.toString() in NameProblem.PAGE_NAME_TOO_LONG.english)
+        assertNull(PageNaming.validate("a".repeat(PageNaming.MAXIMUM_LENGTH + 1)))
+        assertFalse(PageNaming.isValid("a".repeat(PageNaming.MAXIMUM_LENGTH + 1)))
     }
 }

@@ -20,7 +20,7 @@ package com.pandulapeter.kubrikoCreator.actors
 public enum class BlockKind(
     public val createDefault: () -> BlockDefinition,
     public val needsActor: Boolean,
-    internal val onlyIn: EventType? = null,
+    public val onlyIn: EventType? = null,
     internal val misplacedComment: String? = null,
 ) {
     SET_VELOCITY({ BlockDefinition.SetVelocity(x = 200f, y = 0f) }, needsActor = true),

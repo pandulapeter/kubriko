@@ -40,8 +40,7 @@ public object RenameFolder : WriteCommand<RenameFolder.Input> {
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateFolder(input.group, input.path) ?: when {
         input.path.isEmpty() -> Rejection(CommandProblem.FOLDER_TOP)
-        FolderPaths.validateName(input.newName) != null -> Rejection(checkNotNull(FolderPaths.validateName(input.newName)))
-        else -> context.validateNewFolder(input.group, renamed(input))
+        else -> FolderPaths.validateName(input.newName)?.let(::Rejection) ?: context.validateNewFolder(input.group, renamed(input))
     }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {

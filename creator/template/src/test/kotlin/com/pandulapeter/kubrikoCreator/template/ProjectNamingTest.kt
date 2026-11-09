@@ -17,7 +17,7 @@ class ProjectNamingTest {
 
     @Test
     fun namesStartWithALetterAndUseOnlySafeCharacters() {
-        listOf("Game", "My Game 2", "space_shooter", "Kubriko-Demo", "  Padded  ", "Café", "Kalandjáték", "Kalandja\u0301te\u0301k", "Игра", "冒険").forEach {
+        listOf("Game", "My Game 2", "space_shooter", "Kubriko-Demo", "  Padded  ", "Café", "Kalandjáték", "Kalandja\u0301te\u0301k", "Игра", "冒険", "गाना", "\uD840\uDC00\uD840\uDC01").forEach {
             assertNull(ProjectNaming.validateName(it), it)
         }
         assertEquals(TemplateProblem.NAME_EMPTY, ProjectNaming.validateName("   "))
@@ -29,6 +29,7 @@ class ProjectNamingTest {
     fun packagesNeedTwoLowercaseSegmentsThatArentKeywords() {
         listOf("com.example.game", "io.github.me.game_2").forEach { assertNull(ProjectNaming.validatePackageName(it), it) }
         mapOf(
+            "" to TemplateProblem.PACKAGE_NAME_PARTS,
             "game" to TemplateProblem.PACKAGE_NAME_PARTS,
             "com.Example" to TemplateProblem.PACKAGE_NAME_FIRST_CHARACTER,
             "com.exAmple" to TemplateProblem.PACKAGE_NAME_CHARACTERS,

@@ -34,6 +34,7 @@ import com.pandulapeter.kubrikoCreator.actors.store.BlockTypes
 import com.pandulapeter.kubrikoCreator.actors.timerName
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
+import com.pandulapeter.kubrikoCreator.commands.PlacementProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 
 /**
@@ -109,13 +110,14 @@ internal fun validateEvent(event: EventDefinition, scope: BlockScope): Rejection
     val otherActorType = event.otherActorType
     event.type.problemIn(scope.kind)?.let { return Rejection(it) }
     return when {
-        key != null && event.type != EventType.KEY_PRESSED -> Rejection(CommandProblem.KEY_NOT_ALLOWED)
+        key != null && event.type != EventType.KEY_PRESSED -> Rejection(PlacementProblem.KEY_NOT_ALLOWED)
         key?.isKnown == false -> Rejection(CommandProblem.GAME_KEY_UNKNOWN, key.composeKeyName)
-        otherActorType != null && event.type != EventType.COLLISION -> Rejection(CommandProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED)
-        timer != null && event.type != EventType.TIMER_FINISHED -> Rejection(CommandProblem.TIMER_NOT_ALLOWED)
-        timer?.let(TimerNaming::validate) != null -> Rejection(checkNotNull(timer?.let(TimerNaming::validate)))
-        otherActorType != null && otherActorType !in scope.actorTypeNames -> Rejection(CommandProblem.ACTOR_TYPE_MISSING, otherActorType)
-        else -> event.blocks.firstNotNullOfOrNull { validateBlock(it, event.type, scope) }
+        otherActorType != null && event.type != EventType.COLLISION -> Rejection(PlacementProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED)
+        timer != null && event.type != EventType.TIMER_FINISHED -> Rejection(PlacementProblem.TIMER_NOT_ALLOWED)
+        else -> timer?.let(TimerNaming::validate)?.let(::Rejection) ?: when {
+            otherActorType != null && otherActorType !in scope.actorTypeNames -> Rejection(CommandProblem.ACTOR_TYPE_MISSING, otherActorType)
+            else -> event.blocks.firstNotNullOfOrNull { validateBlock(it, event.type, scope) }
+        }
     }
 }
 
@@ -123,11 +125,17 @@ internal fun validateEvent(event: EventDefinition, scope: BlockScope): Rejection
  * Why [block] can't be in an Event of [eventType] of the type [scope] is about. A Block may leave its Property or Actor
  * type unchosen, but not name one that doesn't exist.
  */
-internal fun validateBlock(block: BlockDefinition, eventType: EventType, scope: BlockScope): Rejection? = BlockKind.of(block).problemIn(eventType, scope.kind)?.let(::Rejection) ?: when {
-    block is BlockDefinition.If && !ConditionKind.of(block.condition).isAvailableIn(scope.kind) -> Rejection(CommandProblem.CONDITION_NOT_ALLOWED)
+internal fun validateBlock(block: BlockDefinition, eventType: EventType, scope: BlockScope): Rejection? = BlockKind.of(block).problemIn(eventType, scope.kind)?.let(::Rejection)
+    ?: validateBlockValues(block, scope)
+
+private fun validateBlockValues(block: BlockDefinition, scope: BlockScope): Rejection? = when {
+    block is BlockDefinition.If && !ConditionKind.of(block.condition).isAvailableIn(scope.kind) -> Rejection(PlacementProblem.CONDITION_NOT_ALLOWED)
     !block.areNumbersFinite -> Rejection(CommandProblem.NUMBER_INVALID)
     ((block as? BlockDefinition.If)?.condition as? ConditionDefinition.KeyHeld)?.key?.isKnown == false -> Rejection(CommandProblem.GAME_KEY_UNKNOWN, (block.condition as ConditionDefinition.KeyHeld).key.composeKeyName)
-    block.timerName?.let(TimerNaming::validate) != null -> Rejection(checkNotNull(block.timerName?.let(TimerNaming::validate)))
+    else -> block.timerName?.let(TimerNaming::validate)?.let(::Rejection) ?: validateBlockReferences(block, scope)
+}
+
+private fun validateBlockReferences(block: BlockDefinition, scope: BlockScope): Rejection? = when {
     block.actorTypeReference?.let { it !in scope.actorTypeNames } == true -> Rejection(CommandProblem.ACTOR_TYPE_MISSING, block.actorTypeReference.orEmpty())
     block is BlockDefinition.GoToScene && block.scene.isNotEmpty() && scope.sceneNames?.contains(block.scene) == false -> Rejection(CommandProblem.SCENE_MISSING, block.scene)
     block is BlockDefinition.PlaySound && block.sound.isNotEmpty() && scope.audioFiles?.sounds?.contains(block.sound) == false -> Rejection(CommandProblem.SOUND_MISSING, block.sound)

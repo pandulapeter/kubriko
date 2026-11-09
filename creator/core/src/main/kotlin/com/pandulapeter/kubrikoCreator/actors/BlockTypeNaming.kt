@@ -15,8 +15,6 @@ package com.pandulapeter.kubrikoCreator.actors
  */
 public object BlockTypeNaming {
 
-    private val namePattern = Regex("[A-Z][A-Za-z0-9]*")
-
     /**
      * What the base class of an Actor type with children is named after it (`EnemyBase`), so no type can end with it.
      */
@@ -47,7 +45,9 @@ public object BlockTypeNaming {
     /**
      * Whether [name] can be a Kotlin class name the way a type's name has to be.
      */
-    internal fun isWellFormed(name: String) = namePattern.matches(name)
+    internal fun isWellFormed(name: String) = flawOf(name) == null
+
+    private fun flawOf(name: String) = NameFlaw.of(name, isFirstAllowed = { it in 'A'..'Z' }, isAllowed = NameFlaw::isLetterOrDigitAToZ)
 
     /**
      * Whether [name] is used by Kubriko or by the code Kubriko Creator generates, so a type of that name wouldn't compile.
@@ -58,16 +58,16 @@ public object BlockTypeNaming {
      * Why [name] can't be a new Actor type's or Manager type's name, or null if it can. Names that differ only in case
      * are taken too, since they would clash on case-insensitive file systems.
      */
-    public fun validate(name: String, existingNames: Collection<String>, kind: BlockTypeKind = BlockTypeKind.ACTOR): NameProblem? = when {
-        !isWellFormed(name) -> when (NameFlaw.of(name, isFirstAllowed = { it in 'A'..'Z' }, isAllowed = NameFlaw::isLetterOrDigitAToZ)) {
-            NameFlaw.EMPTY -> NameProblem.NAME_EMPTY
-            NameFlaw.LETTER_BEYOND_A_TO_Z -> NameProblem.NAME_LETTER_BEYOND_A_TO_Z
-            NameFlaw.FIRST_CHARACTER -> NameProblem.TYPE_FIRST_CHARACTER
-            NameFlaw.CHARACTER, null -> NameProblem.TYPE_CHARACTERS
+    public fun validate(name: String, existingNames: Collection<String>, kind: BlockTypeKind = BlockTypeKind.ACTOR): NameProblem? = when (flawOf(name)) {
+        NameFlaw.EMPTY -> NameProblem.NAME_EMPTY
+        NameFlaw.LETTER_BEYOND_A_TO_Z -> NameProblem.NAME_LETTER_BEYOND_A_TO_Z
+        NameFlaw.FIRST_CHARACTER -> NameProblem.TYPE_FIRST_CHARACTER
+        NameFlaw.CHARACTER -> NameProblem.TYPE_CHARACTERS
+        null -> when {
+            isReserved(name, kind) -> NameProblem.TYPE_RESERVED
+            name.endsWith(BASE_SUFFIX) -> NameProblem.TYPE_BASE_SUFFIX
+            existingNames.any { it.equals(name, ignoreCase = true) } -> NameProblem.TYPE_TAKEN
+            else -> null
         }
-        isReserved(name, kind) -> NameProblem.TYPE_RESERVED
-        name.endsWith(BASE_SUFFIX) -> NameProblem.TYPE_BASE_SUFFIX
-        existingNames.any { it.equals(name, ignoreCase = true) } -> NameProblem.TYPE_TAKEN
-        else -> null
     }
 }

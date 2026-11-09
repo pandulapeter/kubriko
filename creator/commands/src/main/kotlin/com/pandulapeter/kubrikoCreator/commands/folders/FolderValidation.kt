@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.actors.withParents
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.screenplay.validatePageName
 import com.pandulapeter.kubrikoCreator.scenes.SceneNaming
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 
@@ -51,19 +52,27 @@ internal fun CommandContext.validateFolder(group: FolderGroup, path: String): Re
 internal fun CommandContext.validateNewFolder(group: FolderGroup, path: String): Rejection? = when {
     group.kind != null && blockTypes == null -> Rejection(CommandProblem.NO_ACTOR_TYPES)
     path.isEmpty() -> Rejection(NameProblem.NAME_EMPTY)
-    // A Scene's folders are part of its name, and so are a page's.
-    folderNameProblem(group, path) != null -> Rejection(checkNotNull(folderNameProblem(group, path)))
+    else -> folderNameRejection(group, path) ?: validateFreeFolder(group, path)
+}
+
+/**
+ * Why [path], whose name can be a folder's in [group], can't be a new folder there.
+ */
+private fun CommandContext.validateFreeFolder(group: FolderGroup, path: String): Rejection? = when {
     group == FolderGroup.SCENES && SceneNaming.reservedFolderOf(path, isFolder = true) != null ->
         Rejection(CommandProblem.SCENE_FOLDER_RESERVED, SceneNaming.reservedFolderOf(path, isFolder = true).orEmpty())
     foldersOf(group).any { it.equals(path, ignoreCase = true) } -> Rejection(CommandProblem.FOLDER_EXISTS, path)
     else -> validateFolder(group, FolderPaths.parentOf(path))
 }
 
-private fun folderNameProblem(group: FolderGroup, path: String) = when (group) {
-    FolderGroup.SCENES -> SceneNaming.validate(path)
-    FolderGroup.PAGES -> PageNaming.validate(path)
+/**
+ * Why [path] can't name a folder of [group]: a Scene's folders are part of its name, and so are a page's.
+ */
+private fun folderNameRejection(group: FolderGroup, path: String): Rejection? = when (group) {
+    FolderGroup.SCENES -> SceneNaming.validate(path)?.let(::Rejection)
+    FolderGroup.PAGES -> validatePageName(path)
     FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> null
-} ?: FolderPaths.validatePath(path)
+} ?: FolderPaths.validatePath(path)?.let(::Rejection)
 
 /**
  * Whether anything (a type, a Scene, or a folder) is in the folder at [path] of [group].

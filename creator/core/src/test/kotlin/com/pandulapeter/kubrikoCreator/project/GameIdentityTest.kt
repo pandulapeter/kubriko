@@ -40,6 +40,7 @@ class GameIdentityTest {
         }
         assertEquals(IdentityProblem.VERSION_NUMBER_INVALID, identity.copy(versionNumber = 0).validate()?.first)
         mapOf(
+            "" to IdentityProblem.APPLICATION_ID_PARTS,
             "game" to IdentityProblem.APPLICATION_ID_PARTS,
             "com.1game" to IdentityProblem.APPLICATION_ID_FIRST_CHARACTER,
             "com..game" to IdentityProblem.APPLICATION_ID_PART_EMPTY,
