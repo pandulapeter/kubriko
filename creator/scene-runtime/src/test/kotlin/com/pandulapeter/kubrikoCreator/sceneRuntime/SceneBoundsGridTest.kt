@@ -32,6 +32,17 @@ class SceneBoundsGridTest {
     }
 
     @Test
+    fun aLaterLayerIsPickedBeforeALowerDrawingOrderAndALaterRankBeforeALaterIndex() {
+        val front = SceneHitTest.Bounds(0, 0f, 0f, 10f, 10f, layerIndex = 1)
+        val behind = SceneHitTest.Bounds(1, 0f, 0f, 10f, 10f, drawingOrder = -5f)
+        val unlayered = SceneHitTest.Bounds(2, 0f, 0f, 10f, 10f, drawingOrder = -10f, layerIndex = Int.MIN_VALUE)
+        assertEquals(0, gridOf(front, behind, unlayered).pick(5f, 5f))
+        assertEquals(1, gridOf(behind, unlayered).pick(5f, 5f))
+        val readded = SceneHitTest.Bounds(0, 0f, 0f, 10f, 10f, drawnRank = 5)
+        assertEquals(0, gridOf(readded, SceneHitTest.Bounds(1, 0f, 0f, 10f, 10f)).pick(5f, 5f))
+    }
+
+    @Test
     fun theBackgroundIsOnlyPickedWhereNothingElseIs() {
         assertEquals(0, gridOf(settings, ball).pick(200f, 200f))
         assertEquals(1, gridOf(ball, settings).pick(0f, 0f))

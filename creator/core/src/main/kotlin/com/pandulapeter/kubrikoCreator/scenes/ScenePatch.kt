@@ -22,13 +22,7 @@ public class ScenePatch(
      * Whether an entry is new, or at another index than before, so that what is kept by index (such as where each
      * Actor can be picked) has to be built again rather than updated.
      */
-    public val hasNewIndices: Boolean = actions.withIndex().any { (index, action) ->
-        when (action) {
-            Action.Add -> true
-            is Action.Kept -> action.previousIndex != index
-            is Action.Replace -> action.previousIndex != index
-        }
-    }
+    public val hasNewIndices: Boolean = actions.withIndex().any { (index, action) -> action !is Action.Staying || action.previousIndex != index }
 
     /**
      * What happens to the Actor shown for one entry of the new version.
@@ -36,11 +30,16 @@ public class ScenePatch(
     public sealed interface Action {
 
         /**
-         * An action whose Actor stays the one shown for the old entry at [previousIndex].
+         * An action for an entry that was in the old version too, at [previousIndex].
          */
-        public sealed interface Kept : Action {
+        public sealed interface Staying : Action {
             public val previousIndex: Int
         }
+
+        /**
+         * An action whose Actor stays the one shown for the old entry at [previousIndex].
+         */
+        public sealed interface Kept : Staying
 
         /**
          * The Actor shown for the old entry at [previousIndex] stays as it is.
@@ -55,7 +54,7 @@ public class ScenePatch(
         /**
          * The Actor shown for the old entry at [previousIndex] is created again from the new state.
          */
-        public data class Replace(val previousIndex: Int) : Action
+        public data class Replace(override val previousIndex: Int) : Staying
 
         /**
          * A new Actor is created for the entry.
@@ -118,28 +117,21 @@ public class ScenePatch(
             var firstAdded = -1
             var firstUnsafe = -1
             actions.forEachIndexed { index, action ->
-                val previousIndex = when (action) {
-                    is Action.Kept -> action.previousIndex
-                    is Action.Replace -> action.previousIndex
-                    Action.Add -> -1
-                }
-                if (previousIndex >= 0 && (firstAdded >= 0 || previousIndex < lastPreviousIndex)) {
-                    return if (firstUnsafe >= 0) firstUnsafe else index
-                }
                 when (action) {
-                    is Action.Kept -> {
-                        val rank = drawnRankOf(previousIndex)
-                        if (rank < lastRank) {
-                            if (firstUnsafe < 0) firstUnsafe = index
-                        } else {
-                            lastRank = rank
+                    is Action.Staying -> {
+                        if (firstAdded >= 0 || action.previousIndex < lastPreviousIndex) return if (firstUnsafe >= 0) firstUnsafe else index
+                        lastPreviousIndex = action.previousIndex
+                        if (action is Action.Kept && drawnRankOf(action.previousIndex) >= lastRank) {
+                            lastRank = drawnRankOf(action.previousIndex)
+                        } else if (firstUnsafe < 0) {
+                            firstUnsafe = index
                         }
                     }
-                    Action.Add -> if (firstAdded < 0) firstAdded = index
-                    is Action.Replace -> Unit
+                    Action.Add -> {
+                        if (firstAdded < 0) firstAdded = index
+                        if (firstUnsafe < 0) firstUnsafe = index
+                    }
                 }
-                if (action !is Action.Kept && firstUnsafe < 0) firstUnsafe = index
-                if (previousIndex >= 0) lastPreviousIndex = previousIndex
             }
             return actions.size
         }

@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.sceneRuntime
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.kubriko.actor.body.BoxBody
+import com.pandulapeter.kubriko.actor.traits.Disposable
 import com.pandulapeter.kubriko.creator.CreatorEntryPoint
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.sceneEditor.Editable
@@ -28,6 +29,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.float
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import java.util.Collections
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -35,6 +37,7 @@ import kotlin.test.assertIs
 import kotlin.test.assertNotSame
 import kotlin.test.assertNull
 import kotlin.test.assertSame
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SceneViewTest {
@@ -182,6 +185,23 @@ class SceneViewTest {
     }
 
     @Test
+    fun aCancelledLoadDisposesTheActorsItCreated() = runTest {
+        view.load(listOf(box("a", 0f, 0f)))
+        createdBoxes.clear()
+        val cancelled = launch { view.load(listOf(box("a", 0f, 0f), box("b", 100f, 0f), box("c", 200f, 0f))) }
+        runCurrent()
+        val deadline = System.nanoTime() + 5_000_000_000L
+        while (createdBoxes.size < 2 && System.nanoTime() < deadline) Thread.yield()
+        cancelled.cancel()
+        cancelled.join()
+        assertEquals(listOf("a"), view.entries.map { it.id })
+        synchronized(createdBoxes) {
+            assertEquals(2, createdBoxes.size)
+            createdBoxes.forEach { assertTrue(it.isDisposed) }
+        }
+    }
+
+    @Test
     fun anActorOfATypeWithoutClassesYetIsDrawnFromItsLook() = runTest {
         val look = ActorTypeLook(ActorShape.RECTANGLE, color = 0xFF112233, width = 50f, height = 30f)
         view.load(listOf(SceneActorEntry("New", SceneDocument.blockBuiltState(10f, 20f, 50f, 30f), "n")), previews = mapOf("New" to look))
@@ -192,8 +212,17 @@ class SceneViewTest {
 
     private fun box(id: String, x: Float, y: Float) = SceneActorEntry(TYPE_ID, SceneDocument.blockBuiltState(x, y, SIZE, SIZE), id)
 
-    private class Box(position: SceneOffset, size: Float) : Editable<Box> {
+    private class Box(position: SceneOffset, size: Float) : Editable<Box>, Disposable {
         override val body = BoxBody(initialPosition = position, initialSize = SceneSize(size.sceneUnit, size.sceneUnit))
+        var isDisposed = false
+
+        init {
+            createdBoxes += this
+        }
+
+        override fun dispose() {
+            isDisposed = true
+        }
 
         override fun save() = BoxState(SceneDocument.blockBuiltState(body.position.x.raw, body.position.y.raw, body.size.width.raw, body.size.height.raw))
     }
@@ -212,6 +241,7 @@ class SceneViewTest {
     private companion object {
         const val TYPE_ID = "Box"
         const val SIZE = 20f
+        val createdBoxes: MutableList<Box> = Collections.synchronizedList(ArrayList())
     }
 
     @Test

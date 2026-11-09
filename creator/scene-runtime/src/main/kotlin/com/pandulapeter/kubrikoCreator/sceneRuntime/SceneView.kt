@@ -14,6 +14,8 @@ import androidx.compose.ui.graphics.toComposeImageBitmap
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.body.BoxBody
+import com.pandulapeter.kubriko.actor.traits.Disposable
+import com.pandulapeter.kubriko.actor.traits.LayerAware
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.creator.CreatorEntryPoint
 import com.pandulapeter.kubriko.helpers.TickSource
@@ -31,7 +33,9 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.ScenePatch
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -128,23 +132,31 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
     /**
      * Shows the Scene's [next] Actors, its new and changed ones created off the main thread. Only what changed
      * since the last [load] changes in the Kubriko instance ([ScenePatch]): a moved Actor is moved, a changed one is
-     * created again (so it is drawn after others of its drawing order until the Scene is opened again), and the rest
-     * stay, apart from those from where their order changed on, which are created again in the new order. The Actors of
-     * the types in [previews] are drawn from those looks instead of their classes, and are created again when their
-     * type's look changes.
+     * created again (so it is drawn after others of its drawing order until their order changes), and the rest stay,
+     * apart from those from where their order changed on, which are created again in the new order. The Actors of the
+     * types in [previews] (the last load's if null) are drawn from those looks instead of their classes, and are created
+     * again when their type's look changes. Loads run one at a time, and one cancelled disposes what it created.
      */
-    public suspend fun load(next: List<SceneActorEntry>, previews: Map<String, ActorTypeLook> = this.previews): Unit = loading.withLock {
-        apply(ScenePatch.between(entries, next, drawnRanks) { entry -> this.previews[entry.typeId] != previews[entry.typeId] }, next, previews)
+    public suspend fun load(next: List<SceneActorEntry>, previews: Map<String, ActorTypeLook>? = null): Unit = loading.withLock {
+        val nextPreviews = previews ?: this.previews
+        apply(ScenePatch.between(entries, next, drawnRanks) { entry -> this.previews[entry.typeId] != nextPreviews[entry.typeId] }, next, nextPreviews)
         indicesById = entries.withIndex().associate { (index, entry) -> entry.id to index }
         uncreatedIds = uncreatedIdsOf(entries, actors)
         _loadRevision.update { it + 1 }
     }
 
     private suspend fun apply(patch: ScenePatch, next: List<SceneActorEntry>, previews: Map<String, ActorTypeLook>) {
-        val created = withContext(Dispatchers.Default) {
-            arrayOfNulls<Editable<*>>(next.size).also { created ->
-                patch.actions.forEachIndexed { index, action -> if (action !is ScenePatch.Action.Kept) created[index] = createActor(next[index], previews) }
+        val created = arrayOfNulls<Editable<*>>(next.size)
+        try {
+            withContext(Dispatchers.Default) {
+                patch.actions.forEachIndexed { index, action ->
+                    ensureActive()
+                    if (action !is ScenePatch.Action.Kept) created[index] = createActor(next[index], previews)
+                }
             }
+        } catch (exception: CancellationException) {
+            created.forEach { (it as? Disposable)?.dispose() }
+            throw exception
         }
         this.previews = previews
         val removed = ArrayList<Actor>()
@@ -295,12 +307,13 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
         public fun boundsOf(index: Int, actor: Editable<*>, isBackground: Boolean = false, drawnRank: Int = index): SceneHitTest.Bounds {
             val body = actor.body
             val drawingOrder = (actor as? Visible)?.drawingOrder ?: 0f
+            val layerIndex = if (actor is LayerAware) actor.layerIndex ?: Int.MIN_VALUE else 0
             return if (body is BoxBody) {
                 val box = body.axisAlignedBoundingBox
-                SceneHitTest.Bounds(index, box.min.x.raw, box.min.y.raw, box.max.x.raw, box.max.y.raw, drawingOrder, isBackground, drawnRank)
+                SceneHitTest.Bounds(index, box.min.x.raw, box.min.y.raw, box.max.x.raw, box.max.y.raw, drawingOrder, isBackground, layerIndex, drawnRank)
             } else {
                 val (x, y) = body.position.x.raw to body.position.y.raw
-                SceneHitTest.Bounds(index, x - POINT_SIZE, y - POINT_SIZE, x + POINT_SIZE, y + POINT_SIZE, drawingOrder, isBackground, drawnRank)
+                SceneHitTest.Bounds(index, x - POINT_SIZE, y - POINT_SIZE, x + POINT_SIZE, y + POINT_SIZE, drawingOrder, isBackground, layerIndex, drawnRank)
             }
         }
 
