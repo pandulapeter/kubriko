@@ -22,7 +22,6 @@ import io.modelcontextprotocol.kotlin.sdk.types.CallToolResult
 import io.modelcontextprotocol.kotlin.sdk.types.ImageContent
 import io.modelcontextprotocol.kotlin.sdk.types.Implementation
 import io.modelcontextprotocol.kotlin.sdk.types.McpException
-import io.modelcontextprotocol.kotlin.sdk.types.RPCError
 import io.modelcontextprotocol.kotlin.sdk.types.TextContent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
@@ -53,21 +52,25 @@ internal class CreatorTools(
     private var client: Client? = null
 
     /**
-     * Calls [tool] with [arguments], waiting at most [timeout] for its answer, and connecting first if needed. A call that
-     * fails on the way drops the connection, so the next one opens a new one rather than failing alike; one that only
-     * took too long keeps it, since the server may still be answering it.
+     * Calls [tool] with [arguments], waiting at most [timeout] for its answer, and connecting first if needed. A call the
+     * server never answered drops the connection, so the next one opens a new one rather than failing alike; one it
+     * answered with an error, or that timed out (which the SDK cancels on the server), keeps it, since it works.
      */
     fun call(tool: String, arguments: Map<String, Any?> = emptyMap(), timeout: Duration = DEFAULT_TIMEOUT): ToolResult {
         val result = try {
-            runBlocking { connected().callTool(name = tool, arguments = arguments, options = RequestOptions(timeout = timeout)) }
+            runBlocking { request(tool, arguments, timeout) }
         } catch (exception: Exception) {
-            if (!exception.isRequestTimeout()) dropConnection()
+            if (exception !is McpException) {
+                try {
+                    dropConnection()
+                } catch (dropFailure: Exception) {
+                    exception.addSuppressed(dropFailure)
+                }
+            }
             throw exception
         }
         return result.toToolResult()
     }
-
-    private fun Exception.isRequestTimeout() = this is McpException && code == RPCError.ErrorCode.REQUEST_TIMEOUT
 
     /**
      * Closes the connection from a thread that may have been interrupted, which [runBlocking] refuses to wait on, keeping
@@ -113,8 +116,10 @@ internal class CreatorTools(
         check(isOpen == true) { "Kubriko Creator didn't open the project within $timeout. $lastProblem" }
     }
 
-    private suspend fun answer(tool: String, arguments: Map<String, Any?>, timeout: Duration): ToolResult =
-        connected().callTool(name = tool, arguments = arguments, options = RequestOptions(timeout = timeout)).toToolResult()
+    private suspend fun answer(tool: String, arguments: Map<String, Any?>, timeout: Duration): ToolResult = request(tool, arguments, timeout).toToolResult()
+
+    private suspend fun request(tool: String, arguments: Map<String, Any?>, timeout: Duration) =
+        connected().callTool(name = tool, arguments = arguments, options = RequestOptions(timeout = timeout))
 
     private fun CallToolResult.toToolResult() = ToolResult(
         text = content.filterIsInstance<TextContent>().joinToString("\n") { it.text },
