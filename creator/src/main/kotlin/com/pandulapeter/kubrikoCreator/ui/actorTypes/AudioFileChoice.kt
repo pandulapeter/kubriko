@@ -53,7 +53,8 @@ internal fun audioFileLabel(path: String) = path.removePrefix("files/")
 
 /**
  * What the menu of [paths] says besides its options: how to add files ([noneYet]) when the project has none, and that
- * they are still being looked for while they aren't known, rather than that there are none.
+ * the project's files haven't been read while they aren't known (before the first scan, or after one failed), rather
+ * than that there are none.
  */
 internal fun audioFilesHint(paths: List<String>?, noneYet: StringResource): StringResource? = when {
     paths == null -> Res.string.audio_files_not_read

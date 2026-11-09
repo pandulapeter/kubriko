@@ -118,42 +118,43 @@ private fun ChoicePanel(
                 onDismissed = onDismissed,
             )
         }
-        if (matches.isEmpty() && hint == null) {
-            Text(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                text = stringResource(Res.string.choice_none_found),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        if (matches.isEmpty() && (hint == null || titles.isNotEmpty())) {
+            PanelMessage(stringResource(Res.string.choice_none_found), Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
         }
-        val listState = rememberLazyListState()
-        LazyColumn(
-            modifier = Modifier.fillMaxWidth().scrollEdgeFades(listState, MenuStyle.color),
-            state = listState,
-            contentPadding = PaddingValues(vertical = 4.dp),
-        ) {
-            items(matches, key = { it }) { index ->
-                Text(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onSelected(index) }
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                    text = titles[index],
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (titles[index] == label) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                )
+        if (titles.isNotEmpty()) {
+            val listState = rememberLazyListState()
+            LazyColumn(
+                modifier = Modifier.weight(1f, fill = false).fillMaxWidth().scrollEdgeFades(listState, MenuStyle.color),
+                state = listState,
+                contentPadding = PaddingValues(vertical = 4.dp),
+            ) {
+                items(matches, key = { it }) { index ->
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelected(index) }
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        text = titles[index],
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (titles[index] == label) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    )
+                }
             }
         }
-        hint?.let {
-            Text(
-                modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = if (titles.isEmpty()) 8.dp else 0.dp, bottom = 8.dp),
-                text = it,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+        hint?.let { PanelMessage(it, Modifier.padding(start = 12.dp, end = 12.dp, top = if (titles.isEmpty()) 8.dp else 0.dp, bottom = 8.dp)) }
     }
 }
+
+@Composable
+private fun PanelMessage(
+    text: String,
+    modifier: Modifier,
+) = Text(
+    modifier = modifier,
+    text = text,
+    style = MaterialTheme.typography.bodySmall,
+    color = MaterialTheme.colorScheme.onSurfaceVariant,
+)
 
 @Composable
 private fun ChoiceSearchField(

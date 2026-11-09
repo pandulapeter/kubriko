@@ -16,6 +16,7 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.onNodeWithText
@@ -115,6 +116,22 @@ class SearchableChoiceButtonTest {
         waitForIdle()
         onNodeWithText("None").assertExists()
         onNodeWithText("Add some first.").assertExists()
+    }
+
+    @Test
+    fun aSearchMatchingNothingSaysSoEvenWithAHint() = uiTest(width = 400, height = 500) {
+        showChoice(options = { longList }, hint = "Add some first.") {}
+        onNodeWithText("Choose").performClick()
+        onNode(hasSetTextAction()).performTextInput("zzz")
+        onNodeWithText("Nothing matches.").assertExists()
+    }
+
+    @Test
+    fun aHintStaysInSightBelowAListTallerThanTheWindow() = uiTest(width = 400, height = 300) {
+        showChoice(options = { (1..60).map { "Option$it" } }, hint = "Add some first.") {}
+        onNodeWithText("Choose").performClick()
+        onNodeWithText("Add some first.").assertIsDisplayed()
+        saveSnapshot("searchable-choice-hint-long")
     }
 
     private fun ComposeUiTest.showChoice(options: List<String>, onSelected: (String) -> Unit) = showChoice({ options }, hint = null, onSelected)

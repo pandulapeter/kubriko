@@ -27,7 +27,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.actor_type_height
 import kubriko.creator.generated.resources.actor_type_width
-import kubriko.creator.generated.resources.block_music_none_yet
+import kubriko.creator.generated.resources.audio_music_none_yet
 import kubriko.creator.generated.resources.scene_settings_camera_x
 import kubriko.creator.generated.resources.scene_settings_camera_y
 import kubriko.creator.generated.resources.scene_settings_center_x
@@ -81,7 +81,7 @@ internal fun SceneSettingsFields(
             path = values.music,
             paths = music,
             placeholder = Res.string.scene_settings_music_none,
-            noneYet = Res.string.block_music_none_yet,
+            noneYet = Res.string.audio_music_none_yet,
             onSelected = { path -> onChange { copy(music = path) } },
             canChooseNone = true,
         )

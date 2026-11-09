@@ -118,7 +118,7 @@ class BlockRowTest {
     fun anAudioMenuBeforeTheProjectIsReadSaysSoRatherThanThatThereAreNone() = uiTest(width = 520, height = 360) {
         showAudioBlock(BlockDefinition.PlayMusic(), audioFiles = null)
         onNodeWithText("Choose music").performClick()
-        onNodeWithText("The project's files are still being read.").assertExists()
+        onNodeWithText("Kubriko Creator hasn't read the project's files yet.").assertExists()
         onNodeWithText("No music yet", substring = true).assertDoesNotExist()
     }
 
