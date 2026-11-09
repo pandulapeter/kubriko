@@ -43,7 +43,10 @@ their own:
   (`ScenePatch`). `SceneView` tracks the order Kubriko draws its Actors in (`drawnRanks`), so a reorder also takes in a
   changed Actor drawn out of order before it, and the picking grid is built again whenever an index changes
   (`ScenePatch.hasNewIndices`). Re-adding the same Actors instead isn't safe: `ActorManager` may split the removal and
-  the addition into two batches, disposing Actors that stay.
+  the addition into two batches, disposing Actors that stay. A cancelled load disposes what it created before it
+  returns (`createEachDisposingIfCancelled`), so the next load waits for it; that `ActorManager` disposes replaced Actors
+  on its own thread while the next load creates others is accepted (the user, 2026-11-09), since games live with the
+  same and Principle 4 rules out an engine change for it.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 

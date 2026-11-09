@@ -132,7 +132,11 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
      * created again (so it is drawn after others of its drawing order until their order changes), and the rest stay,
      * apart from those from where their order changed on, which are created again in the new order. The Actors of the
      * types in [previews] (the last load's if null) are drawn from those looks instead of their classes, and are created
-     * again when their type's look changes. Loads run one at a time, and one cancelled disposes what it created.
+     * again when their type's look changes. Loads run one at a time, and one cancelled disposes what it created before
+     * it returns, so the next waits for that rather than creating Actors while they are disposed. The Actors a load
+     * replaces or removes are disposed by `ActorManager` on its own thread, as in the game, so the project's code may
+     * still be disposing those while the next load creates others; only an engine change could order that, which the
+     * editor doesn't make for its own sake.
      */
     public suspend fun load(next: List<SceneActorEntry>, previews: Map<String, ActorTypeLook>? = null): Unit = loading.withLock {
         val nextPreviews = previews ?: this.previews

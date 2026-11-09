@@ -31,8 +31,9 @@ public suspend fun <T : Any> createDisposingIfCancelled(
 /**
  * Runs [create] for each index below [count] on [dispatcher], one after the other, stopping as soon as the caller is
  * cancelled. If it stops, or [create] throws, what it created by then is disposed on [dispatcher] ([disposeEach])
- * before the failure goes on, so it is gone before anything the caller does next; a [VirtualMachineError] leaves it as
- * it is, since running more of the project's code could only make that worse.
+ * before the failure goes on, so it is gone before anything the caller does next: ordered and accounted for, at the
+ * cost of the caller waiting for the project's `dispose`. A [VirtualMachineError] leaves it as it is, since running
+ * more of the project's code could only make that worse.
  *
  * @return What [create] made for each index, null where it made nothing.
  */
