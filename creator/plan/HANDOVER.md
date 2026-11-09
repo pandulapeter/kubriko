@@ -25,7 +25,7 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `01-known-issues.md` at its first item (messages in code words) and go through it in order, then `02`.
+Continue `01-known-issues.md` at its first item (the git panel) and go through it in order, then `02`.
 
 This session works through Mistakes and failures in the first hour, each item reviewed with `/code-review` and its findings
 fixed in commits of their own:
@@ -49,6 +49,15 @@ fixed in commits of their own:
   `GradleProjectConnection` uses too), at most 30 seconds after a cancel; past that the connection is left open, since
   closing it would wait too. Each operation waits for the one before it (a cancelled creation may still be removing the
   folder the next writes), and quitting waits for both through `AppController.allOf`, which belongs to no scope.
+- Rejections name one reason each, in the editor's words: Events and Blocks by their titles (`english` adds their IDs in
+  brackets for the AI), each `BlockKind` and `EventType` carrying the `PlacementProblem` that says why a Manager type
+  or another Event can't have it; names (types, Properties, Timers, Scenes, folders, pages, documents, Actor IDs,
+  packages, and application IDs) through `NameFlaw`, which tells a letter beyond a to z or an accent, a Kotlin word, an
+  empty part, a bad first character, and any other character apart, by code point. A project's name may hold any
+  letters (`Kalandjáték`); its folder, Gradle name, and package are folded to a to z (`kalandjatek`), which the
+  integration test now builds. Declined from the review: packaging a game whose name has letters some installers'
+  code pages lack, since a game name with any letters could already be set in Project settings; it stays on Before a
+  release.
 
 The last session finished every item of Costs that grow with the project, each reviewed with `/code-review` and its findings fixed in commits of
 their own:
@@ -98,7 +107,7 @@ never item by item.
 
 - Every frame the display shows (Project settings → Game) on a 120 Hz screen.
 - The macOS title bar's controls following Creator's light and dark theme.
-- The packaged game and its installers on macOS and Windows: the version, vendor, and a name with an accent reaching them.
+- The packaged game and its installers on macOS, Windows, and Linux: the version, vendor, and a name with an accent, and one in another script (Игра), reaching them.
 - The web build in a browser (`wasmJsBrowserDevelopmentRun`): the page's title from `game.name`, a fixed aspect ratio, and web
   audio; and Play in the browser opening the system's browser on macOS, Windows, and Linux (`xdg-open`).
 - Hearing a played game: music and sounds from Blocks, music pausing and resuming with the window's focus, a non-looping music
