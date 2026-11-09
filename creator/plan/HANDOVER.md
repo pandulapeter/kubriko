@@ -25,7 +25,7 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `01-known-issues.md` at its first item (the git panel) and go through it in order, then `02`.
+Continue `01-known-issues.md` at its first item (undoing an Actor's removal) and go through it in order, then `02`.
 
 This session works through Mistakes and failures in the first hour, each item reviewed with `/code-review` and its findings
 fixed in commits of their own:
@@ -58,6 +58,12 @@ fixed in commits of their own:
   integration test now builds. Declined from the review: packaging a game whose name has letters some installers'
   code pages lack, since a game name with any letters could already be set in Project settings; it stays on Before a
   release.
+- The git panel's commit form comes first and stays in sight while the changes and the history scroll under it, taking
+  at most half of the panel's height (`atMostHalfTheHeight`, scrolling within it in a short window; the message field
+  scrolls past five lines or so), and its button counts the changes. The changes and the history each have a sticky
+  heading, and their rows are keyed (`changeKeyOf` by title, since a type's paths change as its code is generated;
+  `commitKeyOf` by the abbreviated ID and the time). Declined from the review: duplicate change keys, since
+  `JGitRepository.status` lists each path once (`distinctBy { it.path }`).
 
 The last session finished every item of Costs that grow with the project, each reviewed with `/code-review` and its findings fixed in commits of
 their own:
