@@ -23,6 +23,8 @@ import com.pandulapeter.kubrikoCreator.sceneRuntime.createDisposingIfCancelled
 import com.pandulapeter.kubrikoCreator.sceneRuntime.disposeEach
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 
 /**
  * The view that draws [state]'s Scene, or null while the first one is being created. Creating a view runs the project's
@@ -60,7 +62,8 @@ internal fun rememberSceneView(
                 next.camera = previous.camera
             }
         } catch (exception: CancellationException) {
-            disposeEach(listOf(next), SceneView::dispose)
+            // Never shown, so no viewport ticks it on the main thread, which the shown one is disposed on.
+            withContext(NonCancellable + Dispatchers.Default) { disposeEach(listOf(next), SceneView::dispose) }
             throw exception
         }
         shown = next

@@ -10,16 +10,14 @@
 package com.pandulapeter.kubrikoCreator.sceneRuntime
 
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
  * Runs [create] on [dispatcher] (off the main thread, where what the project's code throws can't take the user
- * interface down with it), and if the caller was cancelled meanwhile, disposes what it created before the cancellation
- * goes on, rather than throwing it away undisposed ([createEachDisposingIfCancelled] for one value).
+ * interface down with it), and if the caller was cancelled meanwhile, disposes what it created on [dispatcher] before
+ * the cancellation goes on, rather than throwing it away undisposed ([createEachDisposingIfCancelled] for one value).
  *
  * @throws Exception What [create] threw, and [LinkageError]s too (a project class that is gone or changed since).
  */
@@ -31,10 +29,9 @@ public suspend fun <T : Any> createDisposingIfCancelled(
 
 /**
  * Runs [create] for each index below [count] on [dispatcher], one after the other, stopping as soon as the caller is
- * cancelled. If it stops, or [create] throws, what it created by then is disposed ([disposeEach]): in [disposalScope]
- * without waiting for it, or before the failure goes on if that is null (in the caller's context, as the values would
- * have been disposed had they been handed over). A [VirtualMachineError] leaves them as they are, since running more of
- * the project's code could only make it worse.
+ * cancelled. If it stops, or [create] throws, what it created by then is disposed on [dispatcher] ([disposeEach])
+ * before the failure goes on, so it is gone before anything the caller does next; a [VirtualMachineError] leaves it as
+ * it is, since running more of the project's code could only make that worse.
  *
  * @return What [create] made for each index, null where it made nothing.
  */
@@ -43,7 +40,6 @@ public suspend fun <T : Any> createEachDisposingIfCancelled(
     count: Int,
     create: (index: Int) -> T?,
     dispose: (T) -> Unit,
-    disposalScope: CoroutineScope? = null,
 ): List<T?> {
     val created = ArrayList<T?>(count)
     try {
@@ -57,25 +53,24 @@ public suspend fun <T : Any> createEachDisposingIfCancelled(
         throw error
     } catch (throwable: Throwable) {
         val leftOver = created.filterNotNull()
-        if (disposalScope == null) {
-            withContext(NonCancellable) { disposeEach(leftOver, dispose) }
-        } else if (leftOver.isNotEmpty()) {
-            disposalScope.launch { disposeEach(leftOver, dispose) }
-        }
+        if (leftOver.isNotEmpty()) withContext(NonCancellable + dispatcher) { disposeEach(leftOver, dispose) }
         throw throwable
     }
     return created
 }
 
 /**
- * Disposes each of [values], going on with the rest whatever one of them throws, since nothing waits for them any
- * more and what disposing them throws mustn't take the place of why they were left; only a [VirtualMachineError] stops it.
+ * Disposes each of [values], going on with the rest whatever one of them throws, since nothing uses them any more and
+ * what disposing them throws mustn't take the place of why they were left. A [VirtualMachineError] stops it without
+ * going further, as running more of the project's code could only make it worse.
  */
-public fun <T> disposeEach(values: List<T>, dispose: (T) -> Unit): Unit = values.forEach { value ->
-    try {
-        dispose(value)
-    } catch (error: VirtualMachineError) {
-        throw error
-    } catch (_: Throwable) {
+public fun <T> disposeEach(values: List<T>, dispose: (T) -> Unit) {
+    for (value in values) {
+        try {
+            dispose(value)
+        } catch (_: VirtualMachineError) {
+            return
+        } catch (_: Throwable) {
+        }
     }
 }

@@ -68,14 +68,18 @@ class CreateDisposingIfCancelledTest {
     }
 
     @Test
-    fun eachValueIsDisposedWhateverTheOthersThrow() {
+    fun eachValueIsDisposedWhateverTheOthersThrowUntilAVirtualMachineError() {
         disposeEach(listOf("a", "b", "c")) {
             disposed += it
             if (it == "a") throw AssertionError()
             if (it == "b") error("Broken.")
         }
         assertEquals(listOf("a", "b", "c"), disposed.toList())
-        assertFailsWith<StackOverflowError> { disposeEach(listOf("d")) { throw StackOverflowError() } }
+        disposeEach(listOf("d", "e")) {
+            disposed += it
+            throw StackOverflowError()
+        }
+        assertEquals(listOf("a", "b", "c", "d"), disposed.toList())
     }
 
     @Test
@@ -87,15 +91,14 @@ class CreateDisposingIfCancelledTest {
     }
 
     @Test
-    fun creatingEachStopsWhenTheCallerIsCancelledAndDisposesWhatItCreatedInTheDisposalScope(): Unit = runBlocking {
-        val executor = Executors.newSingleThreadExecutor { Thread(it, "disposing") }
+    fun creatingEachStopsWhenTheCallerIsCancelledAndDisposesWhatItCreatedBeforeTheCancellationGoesOn(): Unit = runBlocking {
+        val executor = Executors.newSingleThreadExecutor { Thread(it, "creating") }
         try {
             val created: MutableList<Int> = Collections.synchronizedList(ArrayList())
-            val isDisposed = CountDownLatch(1)
             var disposingThread: String? = null
             val creation = cancelledWhileCreating { mayFinish ->
                 createEachDisposingIfCancelled(
-                    Dispatchers.IO,
+                    executor.asCoroutineDispatcher(),
                     count = 3,
                     create = { index ->
                         created += index
@@ -105,16 +108,13 @@ class CreateDisposingIfCancelledTest {
                     dispose = {
                         disposed += it
                         disposingThread = Thread.currentThread().name
-                        isDisposed.countDown()
                     },
-                    disposalScope = CoroutineScope(executor.asCoroutineDispatcher()),
                 )
             }
             assertFailsWith<CancellationException> { creation.await() }
-            assertTrue(isDisposed.await(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS))
             assertEquals(listOf(0), created.toList())
             assertEquals(listOf("0"), disposed.toList())
-            assertTrue(disposingThread?.startsWith("disposing") == true, "disposed on $disposingThread")
+            assertTrue(disposingThread?.startsWith("creating") == true, "disposed on $disposingThread")
         } finally {
             executor.shutdown()
         }

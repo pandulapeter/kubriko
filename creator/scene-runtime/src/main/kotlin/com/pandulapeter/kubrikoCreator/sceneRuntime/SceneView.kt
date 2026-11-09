@@ -33,10 +33,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.ScenePatch
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -103,15 +100,6 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
     private val loading = Mutex()
 
     /**
-     * Where the project's Actors are created, and the ones a cancelled load left over disposed, one task at a time and
-     * in order: a load waits for nothing but the lock, while its Actors are still never created as earlier ones are
-     * disposed, which the project's code can't be expected to bear.
-     */
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val projectCode = Dispatchers.Default.limitedParallelism(1)
-    private val leftOverDisposals = CoroutineScope(SupervisorJob() + projectCode)
-
-    /**
      * The IDs of the Actors that couldn't be created from their states (of a type whose class is gone, for example),
      * which are neither drawn nor selectable on the canvas.
      */
@@ -156,11 +144,10 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
 
     private suspend fun apply(patch: ScenePatch, next: List<SceneActorEntry>, previews: Map<String, ActorTypeLook>) {
         val created = createEachDisposingIfCancelled(
-            dispatcher = projectCode,
+            dispatcher = Dispatchers.Default,
             count = next.size,
             create = { index -> if (patch.actions[index] is ScenePatch.Action.Kept) null else createActor(next[index], previews) },
             dispose = { (it as? Disposable)?.dispose() },
-            disposalScope = leftOverDisposals,
         )
         this.previews = previews
         val removed = ArrayList<Actor>()

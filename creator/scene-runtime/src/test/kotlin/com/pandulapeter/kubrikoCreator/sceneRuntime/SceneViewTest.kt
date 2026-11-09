@@ -191,7 +191,7 @@ class SceneViewTest {
     }
 
     @Test
-    fun aLoadCancelledMidwayStopsCreatingAndDisposesWhatItCreated() = runTest {
+    fun aLoadCancelledMidwayStopsCreatingAndDisposesWhatItCreatedBeforeItReturns() = runTest {
         view.load(listOf(box("a", 0f, 0f)))
         createdBoxes.clear()
         val isCreating = CountDownLatch(1)
@@ -212,7 +212,7 @@ class SceneViewTest {
         assertEquals(listOf("a"), view.entries.map { it.id })
         val created = synchronized(createdBoxes) { createdBoxes.toList() }
         assertEquals(1, created.size, "nothing is created once the load is cancelled")
-        assertTrue(created.single().isDisposed.await(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS))
+        assertEquals(0L, created.single().isDisposed.count, "disposed before the cancelled load returns, so before the next one starts")
     }
 
     @Test
