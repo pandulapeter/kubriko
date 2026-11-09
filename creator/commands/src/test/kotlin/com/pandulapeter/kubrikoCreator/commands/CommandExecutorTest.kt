@@ -440,9 +440,7 @@ class CommandExecutorTest {
         val executor = with(delivery) { executorOver(context) }
         val changeFailure = assertFailsWith<AssertionError> { executor.execute(Invocation(context.breaking(), NoInput)) }
         assertEquals(listOf("Not delivered."), changeFailure.suppressed.map { it.message })
-        delivery.failures = 0
         executor.execute(Invocation(command("revertedByBreaking") { Applied(inverse = Invocation(context.breaking(), NoInput)) }, NoInput))
-        delivery.failures = 1
         val stepFailure = assertFailsWith<AssertionError> { executor.step(isUndo = true) }
         assertEquals(listOf("Not delivered."), stepFailure.suppressed.map { it.message })
         assertEquals(emptyList(), delivery.reported)
@@ -462,38 +460,49 @@ class CommandExecutorTest {
     }
 
     @Test
-    fun aFailedDeliveryOfACancelledChangeIsReported() = runTest {
+    fun aFailedDeliveryOfACancelledChangeIsReportedUnlessItIsCancelledToo() = runTest {
         val context = commandContext()
         val delivery = FailingDelivery().apply { failures = 1 }
         val executor = with(delivery) { executorOver(context) }
         assertFailsWith<CancellationException> { executor.execute(Invocation(context.breaking(CancellationException("Stopped.")), NoInput)) }
         assertEquals(listOf("Not delivered."), delivery.reported.map { it.message })
+        delivery.failures = 1
+        delivery.failure = CancellationException("Also stopped.")
+        assertFailsWith<CancellationException> { executor.execute(Invocation(context.breaking(CancellationException("Stopped.")), NoInput)) }
+        assertEquals(1, delivery.reported.size)
     }
 
     @Test
-    fun aFailedDeliveryOfAChangeThatWasMadeIsReportedOnceAndItsSceneChangesDeliveredOnceWithTheNextOnes() = runTest {
+    fun aReportThatThrowsDoesntHideTheCancellation() = runTest {
         val context = commandContext()
-        val delivery = FailingDelivery().apply { failures = 4 }
+        val executor = CommandExecutor(
+            context = context,
+            scope = testScope(),
+            onSceneChanges = { throw IllegalStateException("Not delivered.") },
+            reportProblem = { throw IllegalStateException("Not reported.") },
+        )
+        val cancellation = assertFailsWith<CancellationException> { executor.execute(Invocation(context.breaking(CancellationException("Stopped.")), NoInput)) }
+        assertEquals(listOf("Not reported."), cancellation.suppressed.map { it.message })
+    }
+
+    @Test
+    fun aFailedDeliveryOfAChangeThatWasMadeIsReportedRatherThanThrown() = runTest {
+        val context = commandContext()
+        val delivery = FailingDelivery().apply { failures = 1 }
         val executor = with(delivery) { executorOver(context) }
         assertIs<CommandOutcome.Success>(executor.execute(Invocation(CreateScene, CreateScene.Input("a"))))
         assertEquals("create_scene", executor.history.value.nextUndoCommandName)
-        assertIs<CommandOutcome.Success>(executor.execute(Invocation(CreateScene, CreateScene.Input("b"))))
-        executor.step(isUndo = true)
-        executor.step(isUndo = false)
         assertEquals(listOf("Not delivered."), delivery.reported.map { it.message })
-        assertEquals(emptyList(), delivery.delivered)
-        executor.execute(Invocation(CreateScene, CreateScene.Input("c")))
-        assertEquals<List<List<SceneChange>>>(
-            listOf(listOf(SceneChange.Written("a", isNew = true), SceneChange.Deleted("b"), SceneChange.Written("b", isNew = true), SceneChange.Written("c", isNew = true))),
-            delivery.delivered,
-        )
+        executor.execute(Invocation(CreateScene, CreateScene.Input("b")))
+        assertEquals<List<List<SceneChange>>>(listOf(listOf(SceneChange.Written("b", isNew = true))), delivery.delivered)
         delivery.failures = 1
-        executor.execute(Invocation(CreateScene, CreateScene.Input("d")))
-        assertEquals(2, delivery.reported.size)
+        delivery.failure = CancellationException("Stopped.")
+        assertFailsWith<CancellationException> { executor.execute(Invocation(CreateScene, CreateScene.Input("c"))) }
+        assertEquals(1, delivery.reported.size)
     }
 
     @Test
-    fun theUsersUndoTellsWhatItBroughtBackOnceItsSceneIsDelivered() = runTest {
+    fun theUsersUndoWhoseSceneIsNotDeliveredDoesntTellWhatItBroughtBack() = runTest {
         val context = commandContext()
         val wall = SceneActorEntry("Wall", """{"body":{"position":{"x":1.0,"y":2.0}}}""", "wall")
         @OptIn(EditorMutation::class)
@@ -508,10 +517,9 @@ class CommandExecutorTest {
         runCurrent()
         assertEquals(SceneDocument.format(listOf(wall)), context.scenes.read("main"))
         assertEquals(listOf("Not delivered."), delivery.reported.map { it.message })
-        assertEquals(emptyList(), broughtBack)
         executor.execute(Invocation(CreateScene, CreateScene.Input("other")))
         runCurrent()
-        assertEquals(listOf(ActorsBroughtBack("main", listOf(wall))), broughtBack)
+        assertEquals(emptyList(), broughtBack)
     }
 
     @Test

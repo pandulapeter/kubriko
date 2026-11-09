@@ -39,7 +39,7 @@ import kotlinx.coroutines.launch
  * @param onCodeChanged Tells the playing game that the project's code changed.
  */
 internal class ProjectChanges(
-    scope: CoroutineScope,
+    private val scope: CoroutineScope,
     private val scanResources: suspend (snapshot: ProjectSnapshot?) -> Unit,
     private val onScenesChanged: (names: Collection<String>) -> Unit,
     private val onSceneRenamed: (oldName: String, newName: String) -> Unit,
@@ -81,16 +81,25 @@ internal class ProjectChanges(
     }
 
     /**
-     * Follows what one command, undo, or redo changed in the Scene files, and those of a delivery that failed again, so a
-     * change it already followed may come again: a rename only moves a Scene still open under its old name.
+     * Follows what one command, undo, or redo changed in the Scene files, which it is handed only once, so every part
+     * that follows them does so whatever another one throws, and what one throws goes to the scope's handler.
      */
     fun onSceneChanges(changes: List<SceneChange>) {
-        if (changes.any { it !is SceneChange.Written || it.isNew }) refreshResources()
-        changes.forEach { if (it is SceneChange.Moved) onSceneRenamed(it.oldName, it.newName) }
-        onScenesChanged(changes.flatMapTo(LinkedHashSet()) { it.names() })
-        regenerate()
-        onCodeChanged()
-        refreshGit()
+        following { if (changes.any { it !is SceneChange.Written || it.isNew }) refreshResources() }
+        changes.forEach { if (it is SceneChange.Moved) following { onSceneRenamed(it.oldName, it.newName) } }
+        following { onScenesChanged(changes.flatMapTo(LinkedHashSet()) { it.names() }) }
+        following(regenerate)
+        following(onCodeChanged)
+        following(refreshGit)
+    }
+
+    private inline fun following(follower: () -> Unit) {
+        try {
+            follower()
+        } catch (exception: Exception) {
+            if (exception is CancellationException) throw exception
+            scope.coroutineContext[CoroutineExceptionHandler]?.handleException(scope.coroutineContext, exception)
+        }
     }
 
     /**

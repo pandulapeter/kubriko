@@ -42,11 +42,10 @@ import kotlinx.serialization.json.JsonObject
  * there for tool calls.
  *
  * @param onSceneChanges Receives what each command, undo, or redo changed in the Scene files, as the Scenes recorded it,
- *   once it finished (whether it succeeded or not), still holding the change lock. Changes it throws on are handed to it
- *   again with the next ones (each once, at its last place), so it must take a change it already followed again. Its
- *   failure never hides what the command threw, nor fails one that succeeded.
- * @param reportProblem Receives what [onSceneChanges] threw when the command can't carry it (it succeeded or was
- *   cancelled), once until a delivery succeeds again.
+ *   once it finished (whether it succeeded or not), still holding the change lock. Each change is handed over once, so
+ *   it follows every one even when a part of it fails. What it throws never hides what the command threw, nor fails
+ *   one that succeeded, unless it is a cancellation.
+ * @param reportProblem Receives what [onSceneChanges] threw when the command can't carry it: it succeeded, or was cancelled.
  */
 public class CommandExecutor(
     public val context: CommandContext,
@@ -54,7 +53,7 @@ public class CommandExecutor(
     private val onRejected: (Rejection) -> Unit = {},
     private val registry: CommandRegistry = CommandRegistry.editor,
     private val onSceneChanges: (List<SceneChange>) -> Unit = {},
-    private val reportProblem: (Throwable) -> Unit = { throw it },
+    private val reportProblem: (Throwable) -> Unit = {},
 ) {
     private val _history = MutableStateFlow(CommandHistory())
     public val history: StateFlow<CommandHistory> = _history.asStateFlow()
@@ -65,9 +64,6 @@ public class CommandExecutor(
      */
     public val aiSteps: StateFlow<List<AiStep>> = _aiSteps.asStateFlow()
     private var nextAiStepId = 0
-    private var undeliveredSceneChanges = emptyList<SceneChange>()
-    private var unannouncedBroughtBack = emptyList<ActorsBroughtBack>()
-    private var isDeliveryFailing = false
     private val _broughtBack = MutableSharedFlow<ActorsBroughtBack>(extraBufferCapacity = BROUGHT_BACK_BUFFER, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     /**
@@ -176,8 +172,8 @@ public class CommandExecutor(
 
     /**
      * @param isUsers Whether the user stepped ([undo], [redo]), whose step announces what it brought back ([broughtBack])
-     *   once its Scenes are delivered (with a later delivery when they couldn't be), still holding the change lock, so a
-     *   later step's announcement can't come first.
+     *   once its Scenes are delivered (and not when they couldn't be), still holding the change lock, so a later step's
+     *   announcement can't come first.
      */
     private suspend fun step(isUndo: Boolean, isUsers: Boolean): CommandOutcome? = changes.withLock {
         deliveringSceneChanges(broughtBackOf = { stepped -> stepped?.broughtBack?.takeIf { isUsers } }) { stepHistory(isUndo) }?.outcome
@@ -311,48 +307,41 @@ public class CommandExecutor(
     }
 
     /**
-     * Runs [change], then hands over the Scene changes it made, even when it throws, and what [broughtBackOf] says it
-     * brought back. A delivery that fails is added to the change's own failure as suppressed rather than hiding it, and
-     * reported when the change was made all the same or was cancelled, since a cancellation's suppressed are never read.
+     * Runs [change], then hands over the Scene changes it made, even when it throws, and announces what [broughtBackOf]
+     * says it brought back once they were handed over. A delivery that fails is added to the change's own failure as
+     * suppressed rather than hiding it, and reported when the change was made all the same or was cancelled, since a
+     * cancellation's suppressed are never read. A delivery cancelled after a change that was made is thrown on.
      */
     private inline fun <T> deliveringSceneChanges(broughtBackOf: (T) -> ActorsBroughtBack? = { null }, change: () -> T): T {
         val result = try {
             change()
         } catch (throwable: Throwable) {
-            deliverSceneChanges()?.let { failure ->
-                when {
-                    failure === throwable -> Unit
-                    throwable is CancellationException -> reportProblem(failure)
-                    else -> throwable.addSuppressed(failure)
-                }
+            val failure = deliverSceneChanges()
+            when {
+                failure == null || failure === throwable -> Unit
+                throwable !is CancellationException -> throwable.addSuppressed(failure)
+                failure !is CancellationException -> runCatching { reportProblem(failure) }.exceptionOrNull()?.let(throwable::addSuppressed)
             }
             throw throwable
         }
-        deliverSceneChanges(broughtBackOf(result))?.let(reportProblem)
+        when (val failure = deliverSceneChanges()) {
+            null -> broughtBackOf(result)?.let(_broughtBack::tryEmit)
+            is CancellationException -> throw failure
+            else -> reportProblem(failure)
+        }
         return result
     }
 
     /**
-     * Hands over the Scene changes not delivered yet, then announces what was brought back with them ([broughtBack] too),
-     * keeping both for the next delivery when [onSceneChanges] throws.
+     * Hands over the Scene changes made since the last call.
      *
-     * @return What it threw, unless the delivery before failed too, which already told.
+     * @return What [onSceneChanges] threw, if it did.
      */
-    private fun deliverSceneChanges(broughtBack: ActorsBroughtBack? = null): Throwable? {
-        val changes = undeliveredSceneChanges + context.scenes.takeChanges()
-        val announcements = unannouncedBroughtBack + listOfNotNull(broughtBack)
-        try {
-            if (changes.isNotEmpty()) onSceneChanges(changes)
-        } catch (failure: Throwable) {
-            undeliveredSceneChanges = changes.asReversed().distinct().asReversed()
-            unannouncedBroughtBack = announcements.takeLast(BROUGHT_BACK_BUFFER)
-            return failure.takeUnless { isDeliveryFailing }.also { isDeliveryFailing = true }
-        }
-        undeliveredSceneChanges = emptyList()
-        unannouncedBroughtBack = emptyList()
-        isDeliveryFailing = false
-        announcements.forEach(_broughtBack::tryEmit)
-        return null
+    private fun deliverSceneChanges(): Throwable? = try {
+        context.scenes.takeChanges().takeIf { it.isNotEmpty() }?.let(onSceneChanges)
+        null
+    } catch (failure: Throwable) {
+        failure
     }
 
     private fun rejectInput(name: String, command: EditorCommand<*>, exception: Exception, origin: AiStepOrigin?, clientName: String?): CommandOutcome {

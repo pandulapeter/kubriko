@@ -47,7 +47,7 @@ class ProjectChangesTest {
         onSceneRenamed = { oldName, newName -> calls += "renamed $oldName to $newName" },
         onScenesChangedOnDisk = { calls += "scenes changed on disk" },
         markSceneOutdated = { calls += "scene outdated" },
-        regenerate = { calls += "regenerate" },
+        regenerate = { regenerate() },
         onCodeChanged = { calls += "code changed" },
         refreshGit = { calls += "git" },
         refreshFormatStatus = { calls += "format" },
@@ -55,7 +55,18 @@ class ProjectChangesTest {
         refreshProjectUpgrade = { calls += "upgrade" },
     )
 
+    private var regenerate: () -> Unit = { calls += "regenerate" }
     private val afterSceneChange = listOf("regenerate", "code changed", "git")
+
+    @Test
+    fun aPartFollowingSceneChangesThatThrowsLeavesTheOthersFollowingThem() = runTest {
+        val broken = IllegalStateException("Broken.")
+        regenerate = { throw broken }
+        router().onSceneChanges(listOf(SceneChange.Moved("a", "b")))
+        assertEquals(listOf("renamed a to b", "scenes changed [a, b]", "code changed", "git"), calls)
+        assertEquals(listOf<Throwable>(broken), problems)
+        assertEquals(1, scanCount)
+    }
 
     @Test
     fun aSceneEditRefreshesTheSceneViewButNotTheResources() = runTest {
