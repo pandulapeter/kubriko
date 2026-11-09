@@ -13,9 +13,14 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class UnexpectedProblemHandlerTest {
     private val reported = mutableListOf<Throwable>()
@@ -37,8 +42,16 @@ class UnexpectedProblemHandlerTest {
     }
 
     @Test
+    fun aTimeoutIsAProblem() = runTest {
+        val timeout = assertFailsWith<TimeoutCancellationException> { withTimeout(1) { awaitCancellation() } }
+        scope.reportProblem(timeout)
+        assertEquals(listOf<Throwable>(timeout), reported)
+    }
+
+    @Test
     fun aScopeWithoutAHandlerOrAHandlerThatThrowsLeavesOnlyTheErrorStream() {
         CoroutineScope(Job()).reportProblem(IllegalStateException("Broken."))
         CoroutineScope(Job() + CoroutineExceptionHandler { _, _ -> error("Not reported.") }).reportProblem(IllegalStateException("Broken."))
+        CoroutineScope(Job() + CoroutineExceptionHandler { _, problem -> throw problem }).reportProblem(IllegalStateException("Thrown back."))
     }
 }

@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.foundation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.TimeoutCancellationException
 
 /**
  * Catches what a coroutine of Kubriko Creator throws and nothing caught (an unexpected exception from JGit, Gradle, or a
@@ -24,16 +25,17 @@ public fun unexpectedProblemHandler(report: (Throwable) -> Unit): CoroutineExcep
 
 /**
  * Reports [problem], caught where it can't go on, through this scope's handler ([unexpectedProblemHandler]), so the rest
- * keeps working; it never throws. A cancellation is no problem and is left out: whoever was cancelled stops by checking
- * that itself. Without a handler, or when it throws, only the error stream is left, with [problem] as suppressed.
+ * keeps working; it never throws. A cancellation is no problem and is left out, since whoever was cancelled stops by
+ * checking that itself, except a timeout, which is one. Without a handler, or when it throws, only the error stream is
+ * left, with [problem] as suppressed.
  */
 public fun CoroutineScope.reportProblem(problem: Throwable) {
-    if (problem is CancellationException) return
+    if (problem is CancellationException && problem !is TimeoutCancellationException) return
     val handler = coroutineContext[CoroutineExceptionHandler] ?: return problem.printStackTrace()
     try {
         handler.handleException(coroutineContext, problem)
     } catch (handlerFailure: Throwable) {
-        handlerFailure.addSuppressed(problem)
+        if (handlerFailure !== problem) handlerFailure.addSuppressed(problem)
         handlerFailure.printStackTrace()
     }
 }

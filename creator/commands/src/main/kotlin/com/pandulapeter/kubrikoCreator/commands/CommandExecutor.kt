@@ -331,6 +331,7 @@ public class CommandExecutor(
         }
         deliverSceneChanges()?.let { failure ->
             if (failure is CancellationException) currentCoroutineContext().ensureActive()
+            // A cancellation the caller didn't share is no problem, unless it is a timeout.
             scope.reportProblem(failure)
         }
         return result

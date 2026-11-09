@@ -59,9 +59,6 @@ internal class ProjectChanges(
 
     init {
         checkNotNull(scope.coroutineContext[CoroutineExceptionHandler]) { "ProjectChanges reports what fails through its scope's handler, which it lacks." }
-    }
-
-    init {
         scope.launch {
             for (first in resourceRefreshes) {
                 // A refresh queued before the scope was cancelled is received without a check, so no scan starts after it.
