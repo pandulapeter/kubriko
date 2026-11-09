@@ -180,8 +180,11 @@ public class CommandExecutor(
             stepped = stepHistory(isUndo)
             stepped?.outcome
         } finally {
-            deliverSceneChanges()
-            if (isUsers) stepped?.broughtBack?.let(_broughtBack::tryEmit)
+            try {
+                deliverSceneChanges()
+            } finally {
+                if (isUsers) stepped?.broughtBack?.let(_broughtBack::tryEmit)
+            }
         }
     }
 

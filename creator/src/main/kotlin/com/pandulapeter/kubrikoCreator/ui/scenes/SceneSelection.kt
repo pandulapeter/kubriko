@@ -22,15 +22,29 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 
 /**
- * The Actor selected in the Scene editor, and the one an undo or redo brought back, which is selected once the Scene shows
- * it, as a placed one is.
+ * The Actor selected in the Scene editor, and the one an undo or redo brought back ([restore]), which is selected once the
+ * Scene shows it, as a placed one is. Selecting an Actor cancels a restored one still waiting.
  */
 internal class SceneSelection {
     var selectedId by mutableStateOf<String?>(null)
         private set
-    internal var restoredId by mutableStateOf<String?>(null)
+    var restoredId by mutableStateOf<String?>(null)
+        private set
 
     fun select(actorId: String?) {
+        selectedId = actorId
+        if (actorId != null) restoredId = null
+    }
+
+    fun restore(actorId: String) {
+        restoredId = actorId
+    }
+
+    fun dropRestored() {
+        restoredId = null
+    }
+
+    fun selectRestored(actorId: String) {
         selectedId = actorId
         restoredId = null
     }
@@ -44,21 +58,28 @@ internal class SceneSelection {
 internal fun rememberSceneSelection(state: SceneEditingState.Open, broughtBack: Flow<ActorsBroughtBack>): SceneSelection {
     val selection = remember(state.scene.file) { SceneSelection() }
     LaunchedEffect(selection, broughtBack, state.sceneName) {
-        broughtBack.collect { actors -> restoredSelectionOf(actors, state.sceneName)?.let { selection.restoredId = it } }
+        broughtBack.collect { actors -> restoredSelectionOf(actors, state.sceneName)?.let(selection::restore) }
     }
     return selection
 }
 
 /**
  * Selects the Actor brought back into [view] once it shows it, unless it is the Scene settings, which are never selected.
+ * One the Scene doesn't show by its next load (removed again meanwhile) is dropped, so it can't take the selection later.
  */
 @Composable
 internal fun SelectingRestoredActor(selection: SceneSelection, view: SceneView) {
     val restoredId = selection.restoredId
     LaunchedEffect(view, restoredId) {
         if (restoredId == null) return@LaunchedEffect
-        view.loadRevision.first { view.entryOf(restoredId) != null }
-        selection.select(restoredId.takeUnless(view::isBackground) ?: selection.selectedId)
+        if (view.entryOf(restoredId) == null) {
+            val revision = view.loadRevision.value
+            view.loadRevision.first { it != revision }
+        }
+        when {
+            view.entryOf(restoredId) == null || view.isBackground(restoredId) -> selection.dropRestored()
+            else -> selection.selectRestored(restoredId)
+        }
     }
 }
 

@@ -148,6 +148,8 @@ class CommandExecutorTest {
         assertEquals(ActorsBroughtBack("main", listOf(ballEntry, wallEntry)), ActorsBroughtBack.merged(listOf(ActorsBroughtBack("main", listOf(ballEntry)), ActorsBroughtBack("main", listOf(wallEntry)))))
         assertNull(ActorsBroughtBack.merged(listOf(ActorsBroughtBack("main", listOf(ballEntry)), ActorsBroughtBack("other", listOf(wallEntry)))))
         assertNull(ActorsBroughtBack.merged(emptyList()))
+        val ballAgain = ballEntry.copy(state = "{\"x\":1}")
+        assertEquals(ActorsBroughtBack("main", listOf(ballAgain)), ActorsBroughtBack.merged(listOf(ActorsBroughtBack("main", listOf(ballEntry)), ActorsBroughtBack("main", listOf(ballAgain)))))
     }
 
     @Test

@@ -21,10 +21,11 @@ public data class ActorsBroughtBack(
     internal companion object {
 
         /**
-         * What several parts of one change brought back, together, if they brought Actors back into one Scene only.
+         * What several parts of one change brought back, together (each Actor once, as the last part brought it back), if
+         * they brought Actors back into one Scene only. A later part may have removed one again, which the editor checks.
          */
         fun merged(parts: List<ActorsBroughtBack>): ActorsBroughtBack? = parts.firstOrNull()?.scene
             ?.takeIf { scene -> parts.all { it.scene == scene } }
-            ?.let { scene -> ActorsBroughtBack(scene, parts.flatMap { it.actors }) }
+            ?.let { scene -> ActorsBroughtBack(scene, parts.flatMap { it.actors }.asReversed().distinctBy { it.id }.asReversed()) }
     }
 }

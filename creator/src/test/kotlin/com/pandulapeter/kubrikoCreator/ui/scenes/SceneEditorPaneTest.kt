@@ -93,6 +93,33 @@ class SceneEditorPaneTest {
     }
 
     @Test
+    fun anActorBroughtBackThatTheNextLoadDoesntShowIsDroppedRatherThanSelectedLater() = uiTest(width = 900, height = 600) {
+        val broughtBack = MutableSharedFlow<ActorsBroughtBack>(extraBufferCapacity = 4)
+        val wall = ball.copy(id = "wall")
+        var actors by mutableStateOf(emptyList<SceneActorEntry>())
+        showPane(broughtBack, actors = { actors })
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText(INSPECTOR_HINT)).fetchSemanticsNodes().isNotEmpty() }
+        broughtBack.tryEmit(ballBack)
+        waitForIdle()
+        actors = listOf(wall)
+        waitForIdle()
+        actors = listOf(wall, ball)
+        waitForIdle()
+        onNodeWithText(INSPECTOR_HINT).assertExists()
+    }
+
+    @Test
+    fun selectingAnActorCancelsARestoredOneButClearingTheSelectionDoesnt() {
+        val selection = SceneSelection()
+        selection.restore("ball")
+        selection.select(null)
+        assertEquals("ball", selection.restoredId)
+        selection.select("wall")
+        assertNull(selection.restoredId)
+        assertEquals("wall", selection.selectedId)
+    }
+
+    @Test
     fun theSceneSettingsBroughtBackAreNeverSelected() = uiTest(width = 900, height = 600) {
         val broughtBack = MutableSharedFlow<ActorsBroughtBack>(extraBufferCapacity = 4)
         val settings = SceneActorEntry(SceneSettingsCodeGenerator.SETTINGS_NAME, "{}", "settings")
