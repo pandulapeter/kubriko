@@ -18,11 +18,6 @@ Creator has to hold up for games the size GameMaker made (hundreds of Actor type
 user builds is capped in number. Each of these was found in review rather than measured, but grows with the project and runs often
 enough to matter:
 
-- **The Block editor rebuilds the project's scope per keystroke.** `WorkspaceCenter` remembers the `ActorTypeFamily`,
-  `BlockScope.of(…)`, and `Inheritance.of`, and `rememberFolderTreeGroups` the folder groups, on the whole `blockTypes` list,
-  which changes with every character typed into a Block, on the main thread. Fix: remember them on a structural projection
-  (names, parents, Properties, Timers), or derive them off the main thread in a state holder beside `WorkspaceUiState` (as
-  `GameMapState` derives the Game map), and add a UI-latency case to `CreatorBenchmarkTest`.
 - **Renaming rewrites Scenes per keystroke.** `EditProperty` renames a Property's values in every Scene (`changeSceneStates`) on each
   keystroke of the name field, so a type placed in 50 Scenes rewrites up to 50 files per character; and renaming a Scene folder calls
   `renameScene` per Scene, each walking the whole project and reading every `.kt` file (`SceneRenaming.kt`). Fix: rename in Scenes

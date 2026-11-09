@@ -25,13 +25,15 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `01-known-issues.md` at its first item (the Block editor rebuilding the project's scope per keystroke) and go through
-it in order, then `02`.
+Continue `01-known-issues.md` at its first item (renaming rewriting Scenes per keystroke) and go through it in order,
+then `02`.
 
-The last session fixed wide families regenerating quadratically (`GeneratedFamilies`, a children map in `ActorTypeFamily`, and a
-family of 100 in `BenchmarkProject`: an edit's regeneration went from about 1.3 s to 40 ms, opening the benchmark project from
-2.4 s to 0.15 s), reviewed with `/code-review` (each family's scopes are now built from what they share, through
-`BlockScope.ofFamily`; two findings changed no behavior and were left), and added `renumber_creator_plans.py` to the plan process (`README.md`).
+The last session stopped the type editor from rebuilding the project's family, scope, and inheritance per keystroke
+(`TypeEditorContextCache`, keyed on each type's `TypeOutline`, with the family and the scope's Manager types built from the
+outlines so nothing kept holds Events; the sidebar's groups keyed on `SidebarType`). `CreatorBenchmarkTest` gained the
+type editor's steps: selecting a member of the wide family takes about 1.4 ms, ten keystrokes about 1 ms together. The
+`/code-review` ran; its findings were fixed in their own commit, except that the cache, remembered per workspace, keeps the
+last types until it is used again (the controller holds the same definitions, so nothing extra stays alive).
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
