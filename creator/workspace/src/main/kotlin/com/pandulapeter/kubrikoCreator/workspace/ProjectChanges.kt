@@ -52,6 +52,7 @@ internal class ProjectChanges(
     private val reloadTypes: () -> Unit,
     private val refreshProjectUpgrade: () -> Unit,
 ) {
+    private val problemHandler = checkNotNull(scope.coroutineContext[CoroutineExceptionHandler]) { "ProjectChanges reports what fails through its scope's handler, which it lacks." }
     private val resourceRefreshes = Channel<ResourceRefresh>(Channel.UNLIMITED)
 
     init {
@@ -65,9 +66,8 @@ internal class ProjectChanges(
                 }
                 try {
                     scanResources(if (isWalkNeeded) null else snapshot)
-                } catch (exception: Exception) {
-                    if (exception is CancellationException) throw exception
-                    isReported(exception)
+                } catch (throwable: Throwable) {
+                    handle(throwable)
                 }
             }
         }
@@ -82,8 +82,7 @@ internal class ProjectChanges(
 
     /**
      * Follows what one command, undo, or redo changed in the Scene files, which it is handed only once, so every part
-     * that follows them does so whatever another one throws, and what one throws goes to the scope's handler. Only a
-     * cancellation of the scope, or a failure without a handler to go to, is thrown on.
+     * that follows them does so whatever another one throws ([handle]).
      */
     fun onSceneChanges(changes: List<SceneChange>) {
         following { if (changes.any { it !is SceneChange.Written || it.isNew }) refreshResources() }
@@ -98,19 +97,26 @@ internal class ProjectChanges(
         try {
             follower()
         } catch (throwable: Throwable) {
-            if ((throwable is CancellationException && !scope.isActive) || !isReported(throwable)) throw throwable
+            handle(throwable)
         }
     }
 
     /**
-     * Hands [throwable] to the scope's handler.
-     *
-     * @return Whether the scope has one.
+     * Hands what a part following a change threw to the scope's handler, so the rest still follow it. A cancellation is
+     * thrown on while the scope is cancelled, and is no problem otherwise (a read that timed out); what the handler
+     * throws has nowhere else to go than the error stream.
      */
-    private fun isReported(throwable: Throwable): Boolean {
-        val handler = scope.coroutineContext[CoroutineExceptionHandler] ?: return false
-        handler.handleException(scope.coroutineContext, throwable)
-        return true
+    private fun handle(throwable: Throwable) {
+        if (throwable is CancellationException) {
+            if (!scope.isActive) throw throwable
+            return
+        }
+        try {
+            problemHandler.handleException(scope.coroutineContext, throwable)
+        } catch (handlerFailure: Throwable) {
+            handlerFailure.addSuppressed(throwable)
+            handlerFailure.printStackTrace()
+        }
     }
 
     /**

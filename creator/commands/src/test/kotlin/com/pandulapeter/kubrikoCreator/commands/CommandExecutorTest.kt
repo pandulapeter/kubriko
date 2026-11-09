@@ -36,7 +36,9 @@ import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -484,6 +486,26 @@ class CommandExecutorTest {
         val cancellation = CancellationException("Stopped.")
         assertEquals(cancellation, assertFailsWith<CancellationException> { executor.execute(Invocation(context.breaking(cancellation), NoInput)) })
         assertIs<CommandOutcome.Success>(executor.execute(Invocation(CreateScene, CreateScene.Input("a"))))
+    }
+
+    @Test
+    fun aDeliveryCancelledWithItsCallerCancelsAChangeThatWasMade() = runTest {
+        val context = commandContext()
+        lateinit var caller: Job
+        val executor = CommandExecutor(
+            context = context,
+            scope = testScope(),
+            onSceneChanges = {
+                caller.cancel()
+                throw CancellationException("Closing.")
+            },
+        )
+        var outcome: CommandOutcome? = null
+        caller = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler), start = CoroutineStart.LAZY) { outcome = executor.execute(Invocation(CreateScene, CreateScene.Input("a"))) }
+        caller.start()
+        assertTrue(caller.isCancelled)
+        assertNull(outcome)
+        assertEquals("create_scene", executor.history.value.nextUndoCommandName)
     }
 
     @Test

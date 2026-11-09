@@ -65,26 +65,36 @@ class ProjectChangesTest {
 
     @Test
     fun aPartFollowingSceneChangesThatThrowsLeavesTheOthersFollowingThem() = runTest {
-        val failures = listOf(IllegalStateException("Broken."), NotImplementedError("Missing."), CancellationException("A cancelled read."))
-        failures.forEach { failure ->
+        val problemsFound = listOf(IllegalStateException("Broken."), NotImplementedError("Missing."))
+        (problemsFound + CancellationException("A read that timed out.")).forEach { failure ->
             calls.clear()
             regenerate = { throw failure }
             router().onSceneChanges(listOf(SceneChange.Moved("a", "b")))
             assertEquals(listOf("renamed a to b", "scenes changed [a, b]", "code changed", "git"), calls)
         }
-        assertEquals<List<Throwable>>(failures, problems)
+        assertEquals<List<Throwable>>(problemsFound, problems)
     }
 
     @Test
-    fun aFailureFollowingSceneChangesIsThrownWhenTheScopeIsCancelledOrCantReportIt() = runTest {
+    fun aHandlerThatThrowsLeavesTheOthersFollowingSceneChanges() = runTest {
+        regenerate = { error("Broken.") }
+        val scope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler) + CoroutineExceptionHandler { _, _ -> error("Not reported.") })
+        router(scope = scope).onSceneChanges(listOf(SceneChange.Written("main", isNew = false)))
+        assertEquals(listOf("scenes changed [main]", "code changed", "git"), calls)
+    }
+
+    @Test
+    fun onlyTheScopesCancellationIsThrownWhileFollowingSceneChanges() = runTest {
         val cancellation = CancellationException("Closing.")
         regenerate = { throw cancellation }
         val closing = CoroutineScope(Job().apply { cancel() } + CoroutineExceptionHandler { _, exception -> problems += exception })
         assertEquals(cancellation, assertFailsWith<CancellationException> { router(scope = closing).onSceneChanges(listOf(SceneChange.Written("main", isNew = false))) })
-        val broken = IllegalStateException("Broken.")
-        regenerate = { throw broken }
-        assertEquals(broken, assertFailsWith<IllegalStateException> { router(scope = CoroutineScope(Job())).onSceneChanges(listOf(SceneChange.Written("main", isNew = false))) })
         assertEquals(emptyList(), problems)
+    }
+
+    @Test
+    fun aScopeWithoutAHandlerIsRefused() = runTest {
+        assertFailsWith<IllegalStateException> { router(scope = CoroutineScope(Job().apply { cancel() })) }
     }
 
     @Test
@@ -225,5 +235,17 @@ class ProjectChangesTest {
         router.refreshResources()
         assertEquals(2, scanCount)
         assertEquals(listOf("Broken."), problems.map { it.message })
+    }
+
+    @Test
+    fun anErrorOrAStrayCancellationInAScanDoesntEndTheScans() = runTest {
+        val failures = mutableListOf<Throwable>(NotImplementedError("Missing."), CancellationException("A read that timed out."))
+        val router = router {
+            scanCount++
+            failures.removeFirstOrNull()?.let { throw it }
+        }
+        repeat(3) { router.refreshResources() }
+        assertEquals(3, scanCount)
+        assertEquals(listOf("Missing."), problems.map { it.message })
     }
 }

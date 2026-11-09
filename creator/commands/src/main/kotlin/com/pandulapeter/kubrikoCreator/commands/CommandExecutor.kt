@@ -19,6 +19,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -46,7 +48,7 @@ import kotlinx.serialization.json.JsonObject
  *   it follows every one even when a part of it fails. What it throws never hides what the command threw, nor fails
  *   one that succeeded.
  * @param reportProblem Receives what [onSceneChanges] threw when the command can't carry it: it succeeded, or was
- *   cancelled. A cancellation isn't reported.
+ *   cancelled. A cancellation isn't reported. Prints it by default.
  */
 public class CommandExecutor(
     public val context: CommandContext,
@@ -54,7 +56,7 @@ public class CommandExecutor(
     private val onRejected: (Rejection) -> Unit = {},
     private val registry: CommandRegistry = CommandRegistry.editor,
     private val onSceneChanges: (List<SceneChange>) -> Unit = {},
-    private val reportProblem: (Throwable) -> Unit = {},
+    private val reportProblem: (Throwable) -> Unit = Throwable::printStackTrace,
 ) {
     private val _history = MutableStateFlow(CommandHistory())
     public val history: StateFlow<CommandHistory> = _history.asStateFlow()
@@ -311,9 +313,9 @@ public class CommandExecutor(
      * Runs [change], then hands over the Scene changes it made, even when it throws, and announces what [broughtBackOf]
      * says it brought back once they were handed over. A delivery that fails never fails a change that was made, nor hides
      * what one threw: it is added to that as suppressed, or reported when the change was made or cancelled, since a
-     * cancellation's suppressed are never read.
+     * cancellation's suppressed are never read. A cancelled delivery is no problem, unless this coroutine was cancelled.
      */
-    private inline fun <T> deliveringSceneChanges(broughtBackOf: (T) -> ActorsBroughtBack? = { null }, change: () -> T): T {
+    private suspend inline fun <T> deliveringSceneChanges(broughtBackOf: (T) -> ActorsBroughtBack? = { null }, change: () -> T): T {
         val result = try {
             change()
         } catch (throwable: Throwable) {
@@ -324,17 +326,24 @@ public class CommandExecutor(
         }
         when (val failure = deliverSceneChanges()) {
             null -> broughtBackOf(result)?.let(_broughtBack::tryEmit)
+            is CancellationException -> currentCoroutineContext().ensureActive()
             else -> report(failure)
         }
         return result
     }
 
     /**
-     * Hands [failure] to [reportProblem], unless it is a cancellation, which only says the workspace is closing. What
-     * reporting throws has nowhere else to go.
+     * Hands [failure] to [reportProblem], unless it is a cancellation. What reporting throws has nowhere else to go than
+     * the error stream.
      */
     private fun report(failure: Throwable) {
-        if (failure !is CancellationException) runCatching { reportProblem(failure) }
+        if (failure is CancellationException) return
+        try {
+            reportProblem(failure)
+        } catch (reportFailure: Throwable) {
+            reportFailure.addSuppressed(failure)
+            reportFailure.printStackTrace()
+        }
     }
 
     /**
