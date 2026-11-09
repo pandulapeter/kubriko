@@ -25,10 +25,10 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `01-known-issues.md` at its first item (the sidebar rows rebuilt on every AI step's flash) and go through it
-in order, then `02`.
+Continue `01-known-issues.md` at its first item (an unreadable project file reading as any other opening failure) and go
+through it in order, then `02`.
 
-The last session finished the first five items, each reviewed with `/code-review` and its findings fixed in commits of
+The last session finished every item of Costs that grow with the project, each reviewed with `/code-review` and its findings fixed in commits of
 their own:
 
 - The type editor no longer rebuilds the project's family, scope, and inheritance per keystroke (`TypeEditorContextCache`,
@@ -55,6 +55,9 @@ their own:
 - The Scene settings' music and a type's further children are `SearchableChoiceButton`s (music through `AudioFileChoice`,
   which can offer none). A Scene's music that is gone is a missing reference (`sceneMusic`), and no audio file counts as
   missing before the project is scanned (`AudioFiles.ofScanned`).
+- The sidebar's folder-tree rows are worked out in a `derivedStateOf` (`SidebarRows`) from the modules without their
+  selection and the open folders, and an AI step's flash reaches only the rows (`SidebarFlash`), so neither a selection
+  nor a flash works them out again.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 

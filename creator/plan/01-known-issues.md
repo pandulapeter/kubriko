@@ -12,15 +12,6 @@
 Problems found in review that need no other plan, fixed before any new feature. Each one gets its fix, a test that would have
 caught it, and the review (`README.md`).
 
-## Costs that grow with the project
-
-Creator has to hold up for games the size GameMaker made (hundreds of Actor types, Scenes with thousands of Actors), and nothing a
-user builds is capped in number. Each of these was found in review rather than measured, but grows with the project and runs often
-enough to matter:
-
-- **Sidebar rows** are rebuilt inside the lazy list's builder on every AI step's flash (`folderTreeSection` calls `folderTreeRows`
-  each time). Fix: remember the rows per group.
-
 ## Mistakes and failures in the first hour
 
 What someone who knows neither Kotlin nor Gradle meets when something goes wrong:
@@ -54,4 +45,4 @@ What someone who knows neither Kotlin nor Gradle meets when something goes wrong
 
 ## Order
 
-As listed: the costs first, since every later plan adds to the project sizes they grow with.
+As listed: the first hour's mistakes, then the missing checks.
