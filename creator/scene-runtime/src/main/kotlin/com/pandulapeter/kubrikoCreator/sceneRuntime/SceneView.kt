@@ -33,9 +33,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.ScenePatch
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -145,7 +143,12 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
     }
 
     private suspend fun apply(patch: ScenePatch, next: List<SceneActorEntry>, previews: Map<String, ActorTypeLook>) {
-        val created = createDisposingIfCancelled(Dispatchers.Default, create = { createActors(patch, next, previews) }, dispose = ::disposeAll)
+        val created = createEachDisposingIfCancelled(
+            dispatcher = Dispatchers.Default,
+            count = next.size,
+            create = { index -> if (patch.actions[index] is ScenePatch.Action.Kept) null else createActor(next[index], previews) },
+            dispose = { (it as? Disposable)?.dispose() },
+        )
         this.previews = previews
         val removed = ArrayList<Actor>()
         val added = ArrayList<Actor>()
@@ -178,38 +181,6 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
         }
         if (removed.isNotEmpty()) actorManager.remove(removed)
         if (added.isNotEmpty()) actorManager.add(added)
-    }
-
-    /**
-     * The Actors [patch] creates for [next], at their indices, stopping as soon as the load is cancelled; what it
-     * created by then is disposed if it stops, or fails, midway.
-     */
-    private fun CoroutineScope.createActors(patch: ScenePatch, next: List<SceneActorEntry>, previews: Map<String, ActorTypeLook>): Array<Editable<*>?> {
-        val created = arrayOfNulls<Editable<*>>(next.size)
-        try {
-            patch.actions.forEachIndexed { index, action ->
-                ensureActive()
-                if (action !is ScenePatch.Action.Kept) created[index] = createActor(next[index], previews)
-            }
-        } catch (throwable: Throwable) {
-            disposeAll(created)
-            throw throwable
-        }
-        return created
-    }
-
-    /**
-     * Disposes the [actors] a load created but never showed, each on its own, since the project's code may throw: they
-     * were never added, so their `dispose` may find what `onAdded` sets up missing.
-     */
-    private fun disposeAll(actors: Array<Editable<*>?>) = actors.forEach { actor ->
-        if (actor is Disposable) {
-            try {
-                actor.dispose()
-            } catch (_: Exception) {
-            } catch (_: LinkageError) {
-            }
-        }
     }
 
     /**

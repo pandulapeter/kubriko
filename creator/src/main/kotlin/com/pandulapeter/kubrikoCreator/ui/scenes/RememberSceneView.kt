@@ -20,6 +20,7 @@ import androidx.compose.runtime.setValue
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneView
 import com.pandulapeter.kubrikoCreator.sceneRuntime.createDisposingIfCancelled
+import com.pandulapeter.kubrikoCreator.sceneRuntime.disposeInBackground
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 
@@ -59,7 +60,7 @@ internal fun rememberSceneView(
                 next.camera = previous.camera
             }
         } catch (exception: CancellationException) {
-            next.dispose()
+            disposeInBackground(Dispatchers.Default, listOf(next), SceneView::dispose)
             throw exception
         }
         shown = next

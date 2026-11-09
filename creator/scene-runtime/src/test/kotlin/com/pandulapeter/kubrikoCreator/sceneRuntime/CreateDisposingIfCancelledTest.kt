@@ -10,22 +10,24 @@
 package com.pandulapeter.kubrikoCreator.sceneRuntime
 
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
+import java.util.Collections
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class CreateDisposingIfCancelledTest {
-    private val disposed = mutableListOf<String>()
+    private val disposed: MutableList<String> = Collections.synchronizedList(ArrayList())
 
     @Test
     fun whatIsCreatedIsReturned() = runTest {
@@ -41,50 +43,26 @@ class CreateDisposingIfCancelledTest {
     }
 
     @Test
-    fun whatIsCreatedAfterTheCallerWasCancelledIsDisposed() = runBlocking {
-        val isCreating = CountDownLatch(1)
-        val mayFinish = CountDownLatch(1)
-        val creation = async(Dispatchers.Default) {
-            createDisposingIfCancelled(
-                Dispatchers.IO,
-                create = {
-                    isCreating.countDown()
-                    mayFinish.await()
-                    "view"
-                },
-                dispose = { synchronized(disposed) { disposed += it } },
-            )
-        }
-        isCreating.await()
-        creation.cancel()
-        mayFinish.countDown()
-        runCatching { creation.await() }
-        assertEquals(listOf("view"), synchronized(disposed) { disposed.toList() })
-    }
-
-    @Test
-    fun whatIsCreatedAfterTheCallerWasCancelledIsDisposedOnTheCreatingDispatcher() = runBlocking {
+    fun whatIsCreatedAfterTheCallerWasCancelledIsDisposedInTheBackgroundOnTheCreatingDispatcher(): Unit = runBlocking {
         val executor = Executors.newSingleThreadExecutor { Thread(it, "creating") }
         try {
-            val dispatcher = executor.asCoroutineDispatcher()
-            val isCreating = CountDownLatch(1)
-            val mayFinish = CountDownLatch(1)
+            val isDisposed = CountDownLatch(1)
             var disposingThread: String? = null
-            val creation = async(Dispatchers.Default) {
+            val creation = cancelledWhileCreating { mayFinish ->
                 createDisposingIfCancelled(
-                    dispatcher,
+                    executor.asCoroutineDispatcher(),
                     create = {
-                        isCreating.countDown()
-                        mayFinish.await()
+                        mayFinish()
                         "view"
                     },
-                    dispose = { disposingThread = Thread.currentThread().name },
+                    dispose = {
+                        disposingThread = Thread.currentThread().name
+                        isDisposed.countDown()
+                    },
                 )
             }
-            isCreating.await()
-            creation.cancel()
-            mayFinish.countDown()
-            runCatching { creation.await() }
+            assertFailsWith<CancellationException> { creation.await() }
+            assertTrue(isDisposed.await(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS))
             assertTrue(disposingThread?.startsWith("creating") == true, "disposed on $disposingThread")
         } finally {
             executor.shutdown()
@@ -92,25 +70,100 @@ class CreateDisposingIfCancelledTest {
     }
 
     @Test
-    fun aCreationThatStopsBecauseTheCallerWasCancelledDisposesNothingItself() = runBlocking {
+    fun aDisposalThatThrowsLeavesTheCancellationAsItIs(): Unit = runBlocking {
+        val creation = cancelledWhileCreating { mayFinish ->
+            createDisposingIfCancelled(Dispatchers.IO, create = { mayFinish().let { "view" } }, dispose = { error("Broken.") })
+        }
+        assertFailsWith<CancellationException> { creation.await() }
+    }
+
+    @Test
+    fun eachValueIsCreatedInOrder() = runTest {
+        assertEquals(
+            listOf("0", null, "2"),
+            createEachDisposingIfCancelled(StandardTestDispatcher(testScheduler), 3, create = { index -> index.toString().takeIf { index != 1 } }, dispose = { disposed += it }),
+        )
+    }
+
+    @Test
+    fun creatingEachStopsWhenTheCallerIsCancelledAndDisposesWhatItCreated(): Unit = runBlocking {
+        val created: MutableList<Int> = Collections.synchronizedList(ArrayList())
+        val isDisposed = CountDownLatch(1)
+        val creation = cancelledWhileCreating { mayFinish ->
+            createEachDisposingIfCancelled(
+                Dispatchers.IO,
+                count = 3,
+                create = { index ->
+                    created += index
+                    if (index == 0) mayFinish()
+                    index.toString()
+                },
+                dispose = {
+                    disposed += it
+                    isDisposed.countDown()
+                },
+            )
+        }
+        assertFailsWith<CancellationException> { creation.await() }
+        assertTrue(isDisposed.await(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS))
+        assertEquals(listOf(0), created.toList())
+        assertEquals(listOf("0"), disposed.toList())
+    }
+
+    @Test
+    fun creatingEachDisposesWhatItCreatedWhenOneThrows(): Unit = runBlocking {
+        val isDisposed = CountDownLatch(2)
+        assertFailsWith<IllegalStateException> {
+            createEachDisposingIfCancelled(
+                Dispatchers.IO,
+                count = 3,
+                create = { index -> if (index == 2) error("Broken.") else index.toString() },
+                dispose = {
+                    disposed += it
+                    isDisposed.countDown()
+                },
+            )
+        }
+        assertTrue(isDisposed.await(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS))
+        assertEquals(setOf("0", "1"), disposed.toSet())
+    }
+
+    @Test
+    fun aVirtualMachineErrorLeavesWhatWasCreatedAlone(): Unit = runBlocking {
+        val executor = Executors.newSingleThreadExecutor()
+        try {
+            assertFailsWith<StackOverflowError> {
+                createEachDisposingIfCancelled(executor.asCoroutineDispatcher(), count = 2, create = { index -> if (index == 1) throw StackOverflowError() else "0" }, dispose = { disposed += it })
+            }
+            executor.submit {}.get(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)
+            assertTrue(disposed.isEmpty())
+        } finally {
+            executor.shutdown()
+        }
+    }
+
+    /**
+     * Starts [create], handing it a function that waits until the creation is cancelled, and cancels it once it waits.
+     */
+    private fun <T> CoroutineScope.cancelledWhileCreating(create: suspend (mayFinish: () -> Unit) -> T) = run {
         val isCreating = CountDownLatch(1)
         val mayFinish = CountDownLatch(1)
         val creation = async(Dispatchers.Default) {
-            createDisposingIfCancelled(
-                Dispatchers.IO,
-                create = {
-                    isCreating.countDown()
-                    mayFinish.await()
-                    ensureActive()
-                    "view"
-                },
-                dispose = { synchronized(disposed) { disposed += it } },
-            )
+            create {
+                isCreating.countDown()
+                mayFinish.await(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)
+            }
         }
-        isCreating.await()
-        creation.cancel()
-        mayFinish.countDown()
-        assertFailsWith<CancellationException> { creation.await() }
-        assertTrue(synchronized(disposed) { disposed.isEmpty() })
+        try {
+            assertTrue(isCreating.await(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS))
+            creation.cancel()
+        } finally {
+            mayFinish.countDown()
+        }
+        creation
+    }
+
+    private companion object {
+        const val TIMEOUT_IN_SECONDS = 5L
     }
 }

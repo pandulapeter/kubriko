@@ -121,12 +121,14 @@ public class ScenePatch(
                     is Action.Staying -> {
                         if (firstAdded >= 0 || action.previousIndex < lastPreviousIndex) return if (firstUnsafe >= 0) firstUnsafe else index
                         lastPreviousIndex = action.previousIndex
-                        val rank = if (action is Action.Kept) drawnRankOf(action.previousIndex) else Int.MIN_VALUE
-                        if (action is Action.Kept && rank >= lastRank) {
-                            lastRank = rank
-                        } else if (firstUnsafe < 0) {
-                            firstUnsafe = index
+                        if (action is Action.Kept) {
+                            val rank = drawnRankOf(action.previousIndex)
+                            if (rank >= lastRank) {
+                                lastRank = rank
+                                return@forEachIndexed
+                            }
                         }
+                        if (firstUnsafe < 0) firstUnsafe = index
                     }
                     Action.Add -> {
                         if (firstAdded < 0) firstAdded = index

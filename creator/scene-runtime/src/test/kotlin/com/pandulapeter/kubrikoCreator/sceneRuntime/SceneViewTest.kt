@@ -198,18 +198,21 @@ class SceneViewTest {
         val mayFinish = CountDownLatch(1)
         onBoxCreated = {
             isCreating.countDown()
-            mayFinish.await()
+            mayFinish.await(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)
         }
         val cancelled = launch { view.load(listOf(box("a", 0f, 0f), box("b", 100f, 0f), box("c", 200f, 0f))) }
         runCurrent()
-        assertTrue(isCreating.await(5, TimeUnit.SECONDS))
-        cancelled.cancel()
-        mayFinish.countDown()
+        try {
+            assertTrue(isCreating.await(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS))
+            cancelled.cancel()
+        } finally {
+            mayFinish.countDown()
+        }
         cancelled.join()
         assertEquals(listOf("a"), view.entries.map { it.id })
         val created = synchronized(createdBoxes) { createdBoxes.toList() }
         assertEquals(1, created.size, "nothing is created once the load is cancelled")
-        assertTrue(created.single().isDisposed)
+        assertTrue(created.single().isDisposed.await(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS))
     }
 
     @Test
@@ -225,16 +228,14 @@ class SceneViewTest {
 
     private class Box(position: SceneOffset, size: Float) : Editable<Box>, Disposable {
         override val body = BoxBody(initialPosition = position, initialSize = SceneSize(size.sceneUnit, size.sceneUnit))
-        var isDisposed = false
+        val isDisposed = CountDownLatch(1)
 
         init {
             createdBoxes += this
             onBoxCreated()
         }
 
-        override fun dispose() {
-            isDisposed = true
-        }
+        override fun dispose() = isDisposed.countDown()
 
         override fun save() = BoxState(SceneDocument.blockBuiltState(body.position.x.raw, body.position.y.raw, body.size.width.raw, body.size.height.raw))
     }
@@ -253,6 +254,7 @@ class SceneViewTest {
     private companion object {
         const val TYPE_ID = "Box"
         const val SIZE = 20f
+        const val TIMEOUT_IN_SECONDS = 5L
         val createdBoxes: MutableList<Box> = Collections.synchronizedList(ArrayList())
 
         @Volatile
