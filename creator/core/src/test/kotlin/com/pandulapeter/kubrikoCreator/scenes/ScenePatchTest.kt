@@ -68,6 +68,33 @@ class ScenePatchTest {
     }
 
     @Test
+    fun aChangedActorBeforeANewOrderIsCreatedAgainWithTheRest() {
+        assertEquals(
+            listOf(Action.Replace(0), Action.Replace(2), Action.Replace(1)),
+            ScenePatch.between(scene, listOf(actor("a", width = 20f), actor("c"), actor("b"))).actions,
+        )
+        assertEquals(listOf(Action.Replace(0), Action.Keep(1), Action.Keep(2)), ScenePatch.between(scene, listOf(actor("a", width = 20f), actor("b"), actor("c"))).actions)
+    }
+
+    @Test
+    fun aNewOrderAlsoCreatesAgainWhatWasDrawnOutOfOrderBeforeIt() {
+        val drawnRanks = intArrayOf(3, 1, 2)
+        assertEquals(listOf(Action.Keep(0), Action.Keep(1), Action.Keep(2)), ScenePatch.between(scene, scene, drawnRanks).actions)
+        assertEquals(
+            listOf(Action.Keep(0), Action.Replace(2), Action.Replace(1)),
+            ScenePatch.between(scene, listOf(actor("a"), actor("c"), actor("b")), drawnRanks).actions,
+        )
+    }
+
+    @Test
+    fun onlyEntriesAtTheirOldIndicesHaveNoNewIndices() {
+        assertEquals(false, ScenePatch.between(scene, listOf(actor("a", x = 5f), actor("b", width = 20f), actor("c"))).hasNewIndices)
+        assertEquals(true, ScenePatch.between(scene, listOf(actor("a"), actor("c"), actor("b"))).hasNewIndices)
+        assertEquals(true, ScenePatch.between(scene, listOf(actor("b"), actor("c"))).hasNewIndices)
+        assertEquals(true, ScenePatch.between(scene, scene + actor("d")).hasNewIndices)
+    }
+
+    @Test
     fun newActorsAtTheEndOfAReorderedSceneAreStillOnlyAdded() {
         val patch = ScenePatch.between(scene, listOf(actor("b"), actor("a"), actor("d")))
         assertEquals(listOf(Action.Keep(1), Action.Replace(0), Action.Add), patch.actions)

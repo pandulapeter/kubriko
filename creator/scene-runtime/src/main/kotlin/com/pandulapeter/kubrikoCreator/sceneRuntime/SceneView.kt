@@ -86,6 +86,12 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
     private var indicesById: Map<String, Int> = emptyMap()
 
     /**
+     * Where each of [actors] is in the order Kubriko draws them (the order they were added in), increasing with it.
+     */
+    private var drawnRanks = IntArray(0)
+    private var nextDrawnRank = 0
+
+    /**
      * The IDs of the Actors that couldn't be created from their states (of a type whose class is gone, for example),
      * which are neither drawn nor selectable on the canvas.
      */
@@ -121,7 +127,7 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
      * type's look changes.
      */
     public suspend fun load(next: List<SceneActorEntry>, previews: Map<String, ActorTypeLook> = this.previews) {
-        apply(ScenePatch.between(entries, next) { entry -> this.previews[entry.typeId] != previews[entry.typeId] }, next, previews)
+        apply(ScenePatch.between(entries, next, drawnRanks) { entry -> this.previews[entry.typeId] != previews[entry.typeId] }, next, previews)
         indicesById = entries.withIndex().associate { (index, entry) -> entry.id to index }
         uncreatedIds = uncreatedIdsOf(entries, actors)
         _loadRevision.update { it + 1 }
@@ -129,29 +135,39 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
 
     private suspend fun apply(patch: ScenePatch, next: List<SceneActorEntry>, previews: Map<String, ActorTypeLook>) {
         val created = withContext(Dispatchers.Default) {
-            next.indices.filter { patch.actions[it] is ScenePatch.Action.Replace || patch.actions[it] == ScenePatch.Action.Add }.associateWith { createActor(next[it], previews) }
+            arrayOfNulls<Editable<*>>(next.size).also { created ->
+                patch.actions.forEachIndexed { index, action -> if (action !is ScenePatch.Action.Kept) created[index] = createActor(next[index], previews) }
+            }
         }
         this.previews = previews
         val removed = ArrayList<Actor>()
         val added = ArrayList<Actor>()
+        val nextDrawnRanks = IntArray(next.size)
         val nextActors = next.indices.map { index ->
             when (val action = patch.actions[index]) {
-                is ScenePatch.Action.Keep -> actors[action.previousIndex]
-                is ScenePatch.Action.Move -> actors[action.previousIndex]?.also { it.body.position = SceneOffset(action.x.sceneUnit, action.y.sceneUnit) }
+                is ScenePatch.Action.Kept -> {
+                    nextDrawnRanks[index] = drawnRanks[action.previousIndex]
+                    actors[action.previousIndex]?.also { if (action is ScenePatch.Action.Move) it.body.position = SceneOffset(action.x.sceneUnit, action.y.sceneUnit) }
+                }
                 is ScenePatch.Action.Replace -> {
                     actors[action.previousIndex]?.let(removed::add)
+                    nextDrawnRanks[index] = nextDrawnRank++
                     created[index]?.also(added::add)
                 }
-                ScenePatch.Action.Add -> created[index]?.also(added::add)
+                ScenePatch.Action.Add -> {
+                    nextDrawnRanks[index] = nextDrawnRank++
+                    created[index]?.also(added::add)
+                }
             }
         }
         patch.removedIndices.forEach { index -> actors[index]?.let(removed::add) }
         entries = next
         actors = nextActors
-        if (patch.removedIndices.isNotEmpty() || ScenePatch.Action.Add in patch.actions) {
+        drawnRanks = nextDrawnRanks
+        if (patch.removedIndices.isNotEmpty() || patch.hasNewIndices) {
             isBoundsGridOutdated = true
         } else if (!isBoundsGridOutdated) {
-            patch.actions.forEachIndexed { index, action -> if (action is ScenePatch.Action.Move || action is ScenePatch.Action.Replace) boundsGrid.update(index, boundsAt(index)) }
+            patch.actions.forEachIndexed { index, action -> if (action !is ScenePatch.Action.Keep) boundsGrid.update(index, boundsAt(index)) }
         }
         if (removed.isNotEmpty()) actorManager.remove(removed)
         if (added.isNotEmpty()) actorManager.add(added)

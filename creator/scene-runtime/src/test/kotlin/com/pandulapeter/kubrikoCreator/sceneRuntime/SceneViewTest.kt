@@ -109,13 +109,28 @@ class SceneViewTest {
     @Test
     fun aNewOrderCreatesOnlyTheActorsFromWhereItChangedAgain() = runTest {
         view.load(listOf(box("a", 0f, 0f), box("b", 100f, 0f), box("c", 200f, 0f), box("d", 300f, 0f)))
+        assertEquals("a", pickAt(0f, 0f))
         val before = listOf("a", "b", "c", "d").associateWith { view.actorOf(it) }
         view.load(listOf(box("a", 0f, 0f), box("c", 200f, 0f), box("b", 100f, 0f), box("d", 300f, 0f)))
         assertSame(before["a"], view.actorOf("a"))
         assertSame(before["c"], view.actorOf("c"))
         listOf("b", "d").forEach { assertNotSame(before[it], view.actorOf(it)) }
+        assertEquals("a", pickAt(0f, 0f))
         assertEquals("b", pickAt(100f, 0f))
+        assertEquals("c", pickAt(200f, 0f))
         assertEquals("d", pickAt(300f, 0f))
+    }
+
+    @Test
+    fun aReorderAlsoCreatesAgainAnActorDrawnOutOfOrderSinceItChanged() = runTest {
+        view.load(listOf(box("a", 0f, 0f), box("b", 100f, 0f), box("c", 200f, 0f)))
+        view.load(listOf(box("a", 50f, 50f).copy(state = SceneDocument.blockBuiltState(0f, 0f, SIZE * 2, SIZE)), box("b", 100f, 0f), box("c", 200f, 0f)))
+        val changed = view.actorOf("a")
+        val b = view.actorOf("b")
+        view.load(listOf(view.entryOf("a")!!, box("c", 200f, 0f), box("b", 100f, 0f)))
+        assertSame(changed, view.actorOf("a"))
+        assertNotSame(b, view.actorOf("b"))
+        assertEquals("c", pickAt(200f, 0f))
     }
 
     @Test

@@ -19,19 +19,38 @@ public class ScenePatch(
     public val removedIndices: List<Int>,
 ) {
     /**
+     * Whether an entry is new, or at another index than before, so that what is kept by index (such as where each
+     * Actor can be picked) has to be built again rather than updated.
+     */
+    public val hasNewIndices: Boolean = actions.withIndex().any { (index, action) ->
+        when (action) {
+            Action.Add -> true
+            is Action.Kept -> action.previousIndex != index
+            is Action.Replace -> action.previousIndex != index
+        }
+    }
+
+    /**
      * What happens to the Actor shown for one entry of the new version.
      */
     public sealed interface Action {
 
         /**
+         * An action whose Actor stays the one shown for the old entry at [previousIndex].
+         */
+        public sealed interface Kept : Action {
+            public val previousIndex: Int
+        }
+
+        /**
          * The Actor shown for the old entry at [previousIndex] stays as it is.
          */
-        public data class Keep(val previousIndex: Int) : Action
+        public data class Keep(override val previousIndex: Int) : Kept
 
         /**
          * The Actor shown for the old entry at [previousIndex] only moves to [x], [y].
          */
-        public data class Move(val previousIndex: Int, val x: Float, val y: Float) : Action
+        public data class Move(override val previousIndex: Int, val x: Float, val y: Float) : Kept
 
         /**
          * The Actor shown for the old entry at [previousIndex] is created again from the new state.
@@ -48,53 +67,77 @@ public class ScenePatch(
 
         /**
          * The patch from [previous] to [next]. Kubriko draws Actors of the same drawing order in the order they were
-         * added, and new ones always go last, so where the order of the Actors that stay changes, or new ones come
-         * before old ones, the Actors from there on are created again ([orderedTailStart]), and the ones before it stay.
+         * added, and created ones always go last, so a changed Actor is drawn after the others for a while. Where the
+         * order of the Actors that stay changes, or new ones come before them, the Actors from there on are created
+         * again ([orderedTailStart]), and the ones before it stay, so the Scene is drawn in its order again.
          *
+         * @param previousDrawnRanks Where each of [previous]'s Actors is in the order Kubriko draws them (any increasing
+         *   numbers), or null if that is [previous]'s own order.
          * @param isRecreated Whether the Actor of an entry that stays is created again even if its state didn't change,
          *   because what it is created as did.
          */
         public fun between(
             previous: List<SceneActorEntry>,
             next: List<SceneActorEntry>,
+            previousDrawnRanks: IntArray? = null,
             isRecreated: (SceneActorEntry) -> Boolean = { false },
         ): ScenePatch {
             val previousIndices = HashMap<String, Int>(previous.size * 2)
             previous.forEachIndexed { index, entry -> previousIndices[entry.id] = index }
-            val tailStart = orderedTailStart(next) { previousIndices[it.id] }
-            val actions = next.mapIndexed { index, entry ->
-                val previousIndex = previousIndices[entry.id] ?: return@mapIndexed Action.Add
+            val actions = next.map { entry ->
+                val previousIndex = previousIndices[entry.id] ?: return@map Action.Add
                 val old = previous[previousIndex]
                 when {
-                    index >= tailStart || isRecreated(entry) -> Action.Replace(previousIndex)
+                    isRecreated(entry) -> Action.Replace(previousIndex)
                     old == entry -> Action.Keep(previousIndex)
                     old.typeId == entry.typeId && SceneDocument.isOnlyMoved(old.state, entry.state) ->
                         SceneDocument.positionOf(entry.state)?.let { (x, y) -> Action.Move(previousIndex, x, y) } ?: Action.Replace(previousIndex)
                     else -> Action.Replace(previousIndex)
                 }
             }
+            val tailStart = orderedTailStart(actions) { previousIndex -> previousDrawnRanks?.get(previousIndex) ?: previousIndex }
             val nextIds = next.mapTo(HashSet(next.size * 2)) { it.id }
-            return ScenePatch(actions, previous.indices.filter { previous[it].id !in nextIds })
+            return ScenePatch(
+                actions = actions.mapIndexed { index, action -> if (index >= tailStart && action is Action.Kept) Action.Replace(action.previousIndex) else action },
+                removedIndices = previous.indices.filter { previous[it].id !in nextIds },
+            )
         }
 
         /**
-         * The index of [next] from which its Actors are created again so that they end up in its order: the first new
-         * entry or the first one out of order ([previousIndexOf] smaller than one before it), whichever comes first,
-         * if an Actor that stays comes after it; [next]'s size if none does.
+         * The index of [actions] from which the Actors are created again so that they end up drawn in their new order.
+         * Only a new order (an Actor that stays coming before one it came after, or after a new one) needs it, and then
+         * it starts at that Actor, or earlier at the first new or changed one, or at the first one drawn out of its order
+         * ([drawnRankOf] its previous index smaller than one before it), so that what stays is drawn in order and what
+         * is created goes after it. Without a new order, it is [actions]' size.
          */
-        private fun orderedTailStart(next: List<SceneActorEntry>, previousIndexOf: (SceneActorEntry) -> Int?): Int {
+        private inline fun orderedTailStart(actions: List<Action>, drawnRankOf: (Int) -> Int): Int {
             var lastPreviousIndex = -1
+            var lastRank = Int.MIN_VALUE
             var firstAdded = -1
-            next.forEachIndexed { index, entry ->
-                val previousIndex = previousIndexOf(entry)
-                when {
-                    previousIndex == null -> if (firstAdded < 0) firstAdded = index
-                    firstAdded >= 0 -> return firstAdded
-                    previousIndex < lastPreviousIndex -> return index
-                    else -> lastPreviousIndex = previousIndex
+            var firstCreated = -1
+            var firstOutOfDrawnOrder = -1
+            actions.forEachIndexed { index, action ->
+                when (action) {
+                    is Action.Kept -> {
+                        if (firstAdded >= 0 || action.previousIndex < lastPreviousIndex) {
+                            return listOf(index, firstCreated, firstOutOfDrawnOrder).filter { it >= 0 }.min()
+                        }
+                        lastPreviousIndex = action.previousIndex
+                        val rank = drawnRankOf(action.previousIndex)
+                        if (rank < lastRank) {
+                            if (firstOutOfDrawnOrder < 0) firstOutOfDrawnOrder = index
+                        } else {
+                            lastRank = rank
+                        }
+                    }
+                    Action.Add -> {
+                        if (firstAdded < 0) firstAdded = index
+                        if (firstCreated < 0) firstCreated = index
+                    }
+                    is Action.Replace -> if (firstCreated < 0) firstCreated = index
                 }
             }
-            return next.size
+            return actions.size
         }
     }
 }
