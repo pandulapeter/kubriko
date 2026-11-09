@@ -16,7 +16,6 @@ caught it, and the review (`README.md`).
 
 What someone who knows neither Kotlin nor Gradle meets when something goes wrong:
 
-- **Undoing an Actor's removal** clears the Scene editor's selection. Fix: select the Actor again, as placing one does.
 - **The audio Blocks' file menus** are empty when the project has no sounds or music. Fix: say how to add some instead.
 
 ## Missing checks

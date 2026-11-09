@@ -25,7 +25,7 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `01-known-issues.md` at its first item (undoing an Actor's removal) and go through it in order, then `02`.
+Continue `01-known-issues.md` at its first item (the audio Blocks' file menus) and go through it in order, then `02`.
 
 This session works through Mistakes and failures in the first hour, each item reviewed with `/code-review` and its findings
 fixed in commits of their own:
@@ -64,6 +64,12 @@ fixed in commits of their own:
   heading, and their rows are keyed (`changeKeyOf` by title, since a type's paths change as its code is generated;
   `commitKeyOf` by the abbreviated ID and the time). Declined from the review: duplicate change keys, since
   `JGitRepository.status` lists each path once (`distinctBy { it.path }`).
+- An Actor the user's undo or redo brings back is selected in the Scene editor, as a placed one is: `RestoreActor` and
+  `RestoreActors` (and a composite holding them) report it in `Applied.broughtBack`, `CommandExecutor.broughtBack`
+  announces it for `undo` and `redo` only (an AI turn's undo leaves the selection alone), inside the change lock after
+  the Scenes are delivered, and `SceneSelection` selects it once the Scene shows it, dropping it if the next load
+  doesn't or it is the Scene settings. Declined from the review: redoing a placement not selecting, since its redo
+  applies `RestoreActor` (`redoingAPlacementTellsWhichActorItBroughtBack`).
 
 The last session finished every item of Costs that grow with the project, each reviewed with `/code-review` and its findings fixed in commits of
 their own:
