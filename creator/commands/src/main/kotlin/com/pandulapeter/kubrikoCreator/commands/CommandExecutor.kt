@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneChange
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -313,7 +314,7 @@ public class CommandExecutor(
      * Runs [change], then hands over the Scene changes it made, even when it throws. A delivery that fails never hides
      * what the change threw, nor fails one that was made: it is added to what the change threw as suppressed, or
      * reported when the change was made or cancelled, since a cancellation's suppressed are never read. A cancelled
-     * delivery is no problem; after a change that was made, it stops only a caller that was cancelled.
+     * delivery is no problem, unless it timed out; after a change that was made, it stops only a caller that was cancelled.
      */
     private suspend inline fun <T> deliveringSceneChanges(change: () -> T): T {
         val result = try {
@@ -322,7 +323,7 @@ public class CommandExecutor(
             // The coroutine's own cancellation may come back from the delivery, and can't suppress itself.
             deliverSceneChanges()?.takeIf { it !== throwable }?.let { failure ->
                 when {
-                    failure is CancellationException -> Unit
+                    failure is CancellationException && failure !is TimeoutCancellationException -> Unit
                     throwable is CancellationException -> scope.reportProblem(failure)
                     else -> throwable.addSuppressed(failure)
                 }

@@ -41,12 +41,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -519,6 +522,19 @@ class CommandExecutorTest {
         val changeFailure = assertFailsWith<AssertionError> { executor.execute(Invocation(context.breaking(), NoInput)) }
         assertEquals(emptyList(), changeFailure.suppressed.toList())
         assertEquals(emptyList(), delivery.reported)
+    }
+
+    @Test
+    fun aTimedOutDeliveryIsSuppressedIntoWhatTheChangeThrew() = runTest {
+        val context = commandContext()
+        val timeout = assertFailsWith<TimeoutCancellationException> { withTimeout(1) { awaitCancellation() } }
+        val delivery = FailingDelivery().apply {
+            failures = 1
+            failure = timeout
+        }
+        val executor = with(delivery) { executorOver(context) }
+        val changeFailure = assertFailsWith<AssertionError> { executor.execute(Invocation(context.breaking(), NoInput)) }
+        assertEquals(listOf<Throwable>(timeout), changeFailure.suppressed.toList())
     }
 
     @Test
