@@ -22,3 +22,8 @@ public data class Rejection(
 ) {
     public constructor(reason: DomainText, vararg arguments: String) : this(reason, arguments.toList())
 }
+
+/**
+ * This reason, with the arguments of its message, as a rejection.
+ */
+internal fun Pair<DomainText, List<String>>.toRejection(): Rejection = Rejection(first, second)

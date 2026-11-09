@@ -12,49 +12,60 @@ package com.pandulapeter.kubrikoCreator.actors
 /**
  * The palette of Blocks, in the order the editor offers them, with every fact that is the same for each Block of a kind.
  *
- * @param needsActor Whether the Block moves or removes the Actor, which a Manager type doesn't have.
+ * @param managerTypeProblem Why a Manager type can't have the Block, if it moves or removes the Actor (or runs its parent's
+ *   Event), which a Manager type doesn't have; set exactly when the Block [needsActor].
  * @param onlyIn The only Event the Block works in, if it needs what only that Event knows: which edge was touched, or
  *   which Actor was collided with.
  * @param misplacedComment The comment the Block's code becomes in any other Event; set exactly when [onlyIn] is.
+ * @param otherEventProblem Why the Block can't be in any other Event; set exactly when [onlyIn] is.
  */
 public enum class BlockKind(
     public val createDefault: () -> BlockDefinition,
-    public val needsActor: Boolean,
+    public val managerTypeProblem: PlacementProblem?,
     public val onlyIn: EventType? = null,
     internal val misplacedComment: String? = null,
+    public val otherEventProblem: PlacementProblem? = null,
 ) {
-    SET_VELOCITY({ BlockDefinition.SetVelocity(x = 200f, y = 0f) }, needsActor = true),
-    ADD_TO_VELOCITY({ BlockDefinition.AddToVelocity(x = 50f, y = 0f) }, needsActor = true),
-    STOP({ BlockDefinition.Stop }, needsActor = true),
-    RUN_PARENT_EVENT({ BlockDefinition.RunParentEvent }, needsActor = true),
-    JUMP_TO({ BlockDefinition.JumpTo() }, needsActor = true),
-    BOUNCE_OFF_EDGE({ BlockDefinition.BounceOffEdge }, needsActor = true, onlyIn = EventType.EDGE_TOUCHED, misplacedComment = "// Bounce off the edge only works in the Edge touched Event."),
-    REMOVE_SELF({ BlockDefinition.RemoveSelf }, needsActor = true),
-    BOUNCE_OFF_OTHER({ BlockDefinition.BounceOffOther }, needsActor = true, onlyIn = EventType.COLLISION, misplacedComment = "// Bounce off it only works in a collision Event."),
-    REMOVE_OTHER({ BlockDefinition.RemoveOther }, needsActor = true, onlyIn = EventType.COLLISION, misplacedComment = "// Remove the other Actor only works in a collision Event."),
-    SET_NUMBER({ BlockDefinition.SetNumber() }, needsActor = false),
-    CHANGE_NUMBER({ BlockDefinition.ChangeNumber() }, needsActor = false),
-    SET_TEXT({ BlockDefinition.SetText() }, needsActor = false),
-    SET_TOGGLE({ BlockDefinition.SetToggle() }, needsActor = false),
-    ADD_ACTOR({ BlockDefinition.AddActor() }, needsActor = false),
-    MOVE_TOWARDS_NEAREST({ BlockDefinition.MoveTowardsNearest() }, needsActor = true),
-    START_TIMER({ BlockDefinition.StartTimer() }, needsActor = false),
-    STOP_TIMER({ BlockDefinition.StopTimer() }, needsActor = false),
-    GO_TO_SCENE({ BlockDefinition.GoToScene() }, needsActor = false),
-    RESTART_SCENE({ BlockDefinition.RestartScene }, needsActor = false),
-    PAUSE_GAME({ BlockDefinition.PauseGame() }, needsActor = false),
-    PLAY_SOUND({ BlockDefinition.PlaySound() }, needsActor = false),
-    PLAY_MUSIC({ BlockDefinition.PlayMusic() }, needsActor = false),
-    STOP_MUSIC({ BlockDefinition.StopMusic }, needsActor = false),
-    IF({ BlockDefinition.If() }, needsActor = false),
-    ELSE({ BlockDefinition.Else }, needsActor = false),
-    REPEAT({ BlockDefinition.Repeat() }, needsActor = false),
-    END({ BlockDefinition.End }, needsActor = false),
-    LOG({ BlockDefinition.Log() }, needsActor = false),
-    KOTLIN({ BlockDefinition.Kotlin() }, needsActor = false);
+
+    SET_VELOCITY({ BlockDefinition.SetVelocity(x = 200f, y = 0f) }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE),
+    ADD_TO_VELOCITY({ BlockDefinition.AddToVelocity(x = 50f, y = 0f) }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE),
+    STOP({ BlockDefinition.Stop }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE),
+    RUN_PARENT_EVENT({ BlockDefinition.RunParentEvent }, managerTypeProblem = PlacementProblem.BLOCK_RUN_PARENT_EVENT_IN_MANAGER_TYPE),
+    JUMP_TO({ BlockDefinition.JumpTo() }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE),
+    BOUNCE_OFF_EDGE({ BlockDefinition.BounceOffEdge }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE, onlyIn = EventType.EDGE_TOUCHED, misplacedComment = "// Bounce off the edge only works in the Edge touched Event.", otherEventProblem = PlacementProblem.BLOCK_BOUNCE_OFF_EDGE_OUTSIDE_EDGE_TOUCHED),
+    REMOVE_SELF({ BlockDefinition.RemoveSelf }, managerTypeProblem = PlacementProblem.BLOCK_REMOVE_SELF_IN_MANAGER_TYPE),
+    BOUNCE_OFF_OTHER({ BlockDefinition.BounceOffOther }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE, onlyIn = EventType.COLLISION, misplacedComment = "// Bounce off it only works in a collision Event.", otherEventProblem = PlacementProblem.BLOCK_BOUNCE_OFF_OTHER_OUTSIDE_COLLISION),
+    REMOVE_OTHER({ BlockDefinition.RemoveOther }, managerTypeProblem = PlacementProblem.BLOCK_REMOVE_OTHER_IN_MANAGER_TYPE, onlyIn = EventType.COLLISION, misplacedComment = "// Remove the other Actor only works in a collision Event.", otherEventProblem = PlacementProblem.BLOCK_REMOVE_OTHER_OUTSIDE_COLLISION),
+    SET_NUMBER({ BlockDefinition.SetNumber() }, managerTypeProblem = null),
+    CHANGE_NUMBER({ BlockDefinition.ChangeNumber() }, managerTypeProblem = null),
+    SET_TEXT({ BlockDefinition.SetText() }, managerTypeProblem = null),
+    SET_TOGGLE({ BlockDefinition.SetToggle() }, managerTypeProblem = null),
+    ADD_ACTOR({ BlockDefinition.AddActor() }, managerTypeProblem = null),
+    MOVE_TOWARDS_NEAREST({ BlockDefinition.MoveTowardsNearest() }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE),
+    START_TIMER({ BlockDefinition.StartTimer() }, managerTypeProblem = null),
+    STOP_TIMER({ BlockDefinition.StopTimer() }, managerTypeProblem = null),
+    GO_TO_SCENE({ BlockDefinition.GoToScene() }, managerTypeProblem = null),
+    RESTART_SCENE({ BlockDefinition.RestartScene }, managerTypeProblem = null),
+    PAUSE_GAME({ BlockDefinition.PauseGame() }, managerTypeProblem = null),
+    PLAY_SOUND({ BlockDefinition.PlaySound() }, managerTypeProblem = null),
+    PLAY_MUSIC({ BlockDefinition.PlayMusic() }, managerTypeProblem = null),
+    STOP_MUSIC({ BlockDefinition.StopMusic }, managerTypeProblem = null),
+    IF({ BlockDefinition.If() }, managerTypeProblem = null),
+    ELSE({ BlockDefinition.Else }, managerTypeProblem = null),
+    REPEAT({ BlockDefinition.Repeat() }, managerTypeProblem = null),
+    END({ BlockDefinition.End }, managerTypeProblem = null),
+    LOG({ BlockDefinition.Log() }, managerTypeProblem = null),
+    KOTLIN({ BlockDefinition.Kotlin() }, managerTypeProblem = null);
+
+    /**
+     * Whether the Block needs the Actor, which a Manager type doesn't have.
+     */
+    public val needsActor: Boolean get() = managerTypeProblem != null
 
     init {
-        require((onlyIn == null) == (misplacedComment == null)) { "$name needs both onlyIn and misplacedComment, or neither." }
+        require((onlyIn == null) == (misplacedComment == null) && (onlyIn == null) == (otherEventProblem == null)) {
+            "$name needs onlyIn, misplacedComment, and otherEventProblem, or none of them."
+        }
     }
 
     /**

@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
+import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
@@ -27,7 +28,6 @@ import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
-import com.pandulapeter.kubrikoCreator.commands.PlacementProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip

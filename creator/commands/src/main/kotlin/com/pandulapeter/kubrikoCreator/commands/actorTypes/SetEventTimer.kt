@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.withEventTimer
 import com.pandulapeter.kubrikoCreator.commands.Applied
@@ -17,7 +18,6 @@ import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
-import com.pandulapeter.kubrikoCreator.commands.PlacementProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation

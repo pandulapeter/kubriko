@@ -15,18 +15,21 @@ import kotlinx.serialization.Serializable
 
 /**
  * When an Event's Blocks run.
+ *
+ * @param misplacedProblem Why a type that can't react to this Event ([isAvailableIn]) can't have it; set exactly for
+ *   the Events some kind of type can't have (`EventTypeTest` holds them to it).
  */
 @Serializable
 @Description("When an Event happens.")
-public enum class EventType {
+public enum class EventType(public val misplacedProblem: PlacementProblem? = null) {
 
     @Description("Once, when the game starts. Only Manager types have it.")
     @SerialName("gameStarted")
-    GAME_STARTED,
+    GAME_STARTED(PlacementProblem.EVENT_GAME_STARTED_IN_ACTOR_TYPE),
 
     @Description("Once, when the Actor is added to the Scene. Only Actor types have it.")
     @SerialName("addedToScene")
-    ADDED_TO_SCENE,
+    ADDED_TO_SCENE(PlacementProblem.EVENT_ADDED_TO_SCENE_IN_MANAGER_TYPE),
 
     @Description("On every frame (in an Actor type, before the Actor moves).")
     @SerialName("everyFrame")
@@ -38,11 +41,11 @@ public enum class EventType {
 
     @Description("When the Actor reaches an edge of the screen. It is kept inside the screen either way. Only Actor types have it.")
     @SerialName("edgeTouched")
-    EDGE_TOUCHED,
+    EDGE_TOUCHED(PlacementProblem.EVENT_EDGE_TOUCHED_IN_MANAGER_TYPE),
 
     @Description("On every frame the Actor overlaps an Actor of the Event's other Actor type, once per overlapping Actor. Only Actor types have it.")
     @SerialName("collision")
-    COLLISION,
+    COLLISION(PlacementProblem.EVENT_COLLISION_IN_MANAGER_TYPE),
 
     @Description("When the Event's Timer, started by a startTimer Block, finishes (each time, if it repeats).")
     @SerialName("timerFinished")

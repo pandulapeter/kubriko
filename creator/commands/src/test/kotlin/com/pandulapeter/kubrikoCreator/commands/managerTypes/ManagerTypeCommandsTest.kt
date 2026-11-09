@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.NameProblem
+import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
@@ -24,7 +25,6 @@ import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
-import com.pandulapeter.kubrikoCreator.commands.PlacementProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddEvent

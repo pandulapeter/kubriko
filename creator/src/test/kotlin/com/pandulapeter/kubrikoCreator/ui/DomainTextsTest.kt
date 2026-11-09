@@ -10,8 +10,8 @@
 package com.pandulapeter.kubrikoCreator.ui
 
 import com.pandulapeter.kubrikoCreator.actors.NameProblem
+import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
-import com.pandulapeter.kubrikoCreator.commands.PlacementProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.foundation.DomainText
 import com.pandulapeter.kubrikoCreator.git.GitStatus

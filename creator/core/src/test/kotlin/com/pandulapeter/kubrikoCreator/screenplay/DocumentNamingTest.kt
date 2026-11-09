@@ -12,15 +12,14 @@ package com.pandulapeter.kubrikoCreator.screenplay
 import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 class DocumentNamingTest {
 
     @Test
     fun documentsCreatorMakesAreMarkdownOutsideTheScreenplayAndTheBuildFolders() {
-        listOf("README.md", "docs/combat.md", "editor/docs/v1.2 notes.md", "CHANGELOG.md", "NOTES.MD").forEach { assertTrue(DocumentNaming.isValid(it), it) }
+        listOf("README.md", "docs/combat.md", "editor/docs/v1.2 notes.md", "CHANGELOG.md", "NOTES.MD").forEach { assertNull(DocumentNaming.validate(it), it) }
         listOf(
             "notes.txt",
             ".md",
@@ -37,7 +36,7 @@ class DocumentNamingTest {
             "docs./notes.md",
             "a\\b.md",
             "a".repeat(200) + ".md",
-        ).forEach { assertFalse(DocumentNaming.isValid(it), it) }
+        ).forEach { assertNotNull(DocumentNaming.validate(it), it) }
     }
 
     @Test
@@ -70,7 +69,7 @@ class DocumentNamingTest {
     fun aDocumentBecomesAPageOfItsOwnNameAsAPageCanHoldIt() {
         listOf("docs/combat.md" to "combat", "v1.2 notes.md" to "v1-2 notes", "_draft.md" to "draft", "....md" to "document").forEach { (path, page) ->
             assertEquals(page, DocumentNaming.pageNameOf(path))
-            assertTrue(PageNaming.isValid(page), page)
+            assertNull(PageNaming.validate(page), page)
         }
     }
 }

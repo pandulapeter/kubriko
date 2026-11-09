@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.texts
 
-import com.pandulapeter.kubrikoCreator.commands.PlacementProblem
+import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_placement_block_bounce_off_edge_outside_edge_touched
 import kubriko.creator.generated.resources.error_placement_block_bounce_off_other_outside_collision

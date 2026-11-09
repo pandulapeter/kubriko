@@ -22,6 +22,7 @@ import com.pandulapeter.kubrikoCreator.actors.ConditionKind
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyNaming
@@ -34,7 +35,6 @@ import com.pandulapeter.kubrikoCreator.actors.store.BlockTypes
 import com.pandulapeter.kubrikoCreator.actors.timerName
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
-import com.pandulapeter.kubrikoCreator.commands.PlacementProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 
 /**

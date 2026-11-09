@@ -12,8 +12,8 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
-import com.pandulapeter.kubrikoCreator.commands.PlacementProblem
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -49,14 +49,6 @@ class PlacementsTest {
                     assertTrue(problem == null || (problem.name.endsWith("IN_MANAGER_TYPE") == (kind == BlockTypeKind.MANAGER && blockKind.needsActor)), "$blockKind in $eventType of $kind")
                 }
             }
-        }
-    }
-
-    @Test
-    fun everyBlockHasAReasonOfItsOwnExactlyWhereItNeedsOne() {
-        BlockKind.entries.forEach { blockKind ->
-            assertEquals(blockKind.needsActor, blockKind.managerTypeProblem != null, "$blockKind in a Manager type")
-            assertEquals(blockKind.onlyIn != null, blockKind.otherEventProblem != null, "$blockKind outside its Event")
         }
     }
 

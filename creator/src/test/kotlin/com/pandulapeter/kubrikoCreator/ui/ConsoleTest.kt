@@ -18,7 +18,7 @@ import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubrikoCreator.commands.PlacementProblem
+import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.console.ConsoleLines
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot

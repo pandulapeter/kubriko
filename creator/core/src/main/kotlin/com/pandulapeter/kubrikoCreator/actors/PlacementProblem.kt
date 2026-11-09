@@ -7,7 +7,7 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubrikoCreator.commands
+package com.pandulapeter.kubrikoCreator.actors
 
 import com.pandulapeter.kubrikoCreator.foundation.DomainText
 

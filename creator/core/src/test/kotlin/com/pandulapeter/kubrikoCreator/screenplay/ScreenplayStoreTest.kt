@@ -15,7 +15,7 @@ import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -62,8 +62,8 @@ class ScreenplayStoreTest {
 
     @Test
     fun namesAreValidatedPartByPart() {
-        listOf("hero", "levels/cave", "Level 1-2", "a_b").forEach { assertTrue(PageNaming.isValid(it), it) }
-        listOf("", "/hero", "levels/", "../x", "a\\b", "hero.md", " lead", "trail ", "x".repeat(121)).forEach { assertFalse(PageNaming.isValid(it), it) }
+        listOf("hero", "levels/cave", "Level 1-2", "a_b").forEach { assertNull(PageNaming.validate(it), it) }
+        listOf("", "/hero", "levels/", "../x", "a\\b", "hero.md", " lead", "trail ", "x".repeat(121)).forEach { assertNotNull(PageNaming.validate(it), it) }
     }
 
     @Test

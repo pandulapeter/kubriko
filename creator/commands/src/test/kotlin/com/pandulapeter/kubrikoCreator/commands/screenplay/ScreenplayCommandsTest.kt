@@ -119,6 +119,14 @@ class ScreenplayCommandsTest {
     }
 
     @Test
+    fun aFolderIsntRenamedSoThatAPageInItsNameGrowsPastTheLimit() = runTest {
+        val context = commandContext()
+        CreatePage.apply(context, CreatePage.Input("a/" + "p".repeat(110), hero))
+        assertEquals(Rejection(NameProblem.PAGE_NAME_TOO_LONG, "120"), RenameFolder.validate(context, RenameFolder.Input(FolderGroup.PAGES, "a", "b".repeat(15))))
+        assertNull(RenameFolder.validate(context, RenameFolder.Input(FolderGroup.PAGES, "a", "b".repeat(9))))
+    }
+
+    @Test
     fun aPageNamedOrSizedAsOnlyTheUserCanMakeOneComesBackOnUndo() = runTest {
         val context = commandContext()
         val long = "# Long\n\n" + "x".repeat(PAGE_MAXIMUM_LENGTH)

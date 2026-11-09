@@ -33,6 +33,7 @@ class NameFlawTest {
         listOf("élet", "Kalandjáték", "straße", "ninja忍者", "e\u0301let", "gaana\u093E", "a\uD840\uDC00").forEach { assertEquals(NameFlaw.LETTER_BEYOND_A_TO_Z, flawOf(it), it) }
         assertEquals(NameFlaw.CHARACTER, flawOf("game\uD83C\uDFAE"))
         assertEquals(NameFlaw.CHARACTER, flawOf("game \u20DD"))
+        listOf("ball\uFE0F", "ball\u034F", "ball\uDB40\uDD00").forEach { assertEquals(NameFlaw.CHARACTER, flawOf(it), it) }
     }
 
     @Test

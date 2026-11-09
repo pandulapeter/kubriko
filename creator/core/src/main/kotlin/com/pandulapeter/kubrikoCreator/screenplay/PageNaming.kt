@@ -42,8 +42,6 @@ public object PageNaming {
      */
     public fun nameOf(path: String): String? = path.removePrefix("$FOLDER/").takeIf { it != path && it.endsWith(".$EXTENSION") }?.removeSuffix(".$EXTENSION")
 
-    public fun isValid(name: String): Boolean = validate(name) == null
-
     /**
      * Why [name] can't be a page's name, with the arguments of the message, or null if it can.
      */

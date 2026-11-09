@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.toRejection
 import com.pandulapeter.kubrikoCreator.screenplay.Mention
 import com.pandulapeter.kubrikoCreator.screenplay.PageLinks
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
@@ -39,7 +40,7 @@ internal fun CommandContext.validateNewPageName(name: String, renamed: String? =
 /**
  * Why [name] can't be a page's name (or a folder of pages), or null if it can.
  */
-internal fun validatePageName(name: String): Rejection? = PageNaming.validate(name)?.let { (problem, arguments) -> Rejection(problem, arguments) }
+internal fun validatePageName(name: String): Rejection? = PageNaming.validate(name)?.toRejection()
 
 internal fun validatePageText(text: String): Rejection? = if (text.length > PAGE_MAXIMUM_LENGTH) Rejection(CommandProblem.PAGE_TOO_LONG, PAGE_MAXIMUM_LENGTH.toString()) else null
 

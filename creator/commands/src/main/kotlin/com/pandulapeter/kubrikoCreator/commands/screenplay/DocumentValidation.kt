@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.screenplay
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.toRejection
 import com.pandulapeter.kubrikoCreator.screenplay.DocumentNaming
 
 /**
@@ -28,7 +29,7 @@ internal fun CommandContext.validateDocument(path: String): Rejection? = if (doc
  * Why no new document can go to [path] (or [moved] be moved there), or null if one can.
  */
 internal fun CommandContext.validateNewDocumentPath(path: String, moved: String? = null): Rejection? =
-    DocumentNaming.validate(path)?.let { (problem, arguments) -> Rejection(problem, arguments) } ?: validateFreeDocumentPath(path, moved)
+    DocumentNaming.validate(path)?.toRejection() ?: validateFreeDocumentPath(path, moved)
 
 /**
  * Why [path] is taken by another document than [moved], or null if it is free: all that undoing a delete or a move

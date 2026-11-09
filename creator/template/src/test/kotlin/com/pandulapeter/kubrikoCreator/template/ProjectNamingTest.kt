@@ -22,7 +22,7 @@ class ProjectNamingTest {
         }
         assertEquals(TemplateProblem.NAME_EMPTY, ProjectNaming.validateName("   "))
         listOf("2048", "-dash", "_game").forEach { assertEquals(TemplateProblem.NAME_FIRST_CHARACTER, ProjectNaming.validateName(it), it) }
-        listOf("My \"Game\"", "a/b", "a\\b", "Game: Reloaded", "Game\uDB40\uDC20", "Game\uDB80\uDC5F", "Game \u0301").forEach { assertEquals(TemplateProblem.NAME_CHARACTERS, ProjectNaming.validateName(it), it) }
+        listOf("My \"Game\"", "a/b", "a\\b", "Game: Reloaded", "Game\uDB40\uDC20", "Game\uDB80\uDC5F", "Game \u0301", "Game\uFE0F", "Game\u034F").forEach { assertEquals(TemplateProblem.NAME_CHARACTERS, ProjectNaming.validateName(it), it) }
     }
 
     @Test

@@ -37,16 +37,11 @@ internal object ProjectNaming {
     }
 
     /**
-     * Whether every character of [name] is a letter, a digit, a space, a dash, an underscore, or a mark written on a
+     * Whether every character of [name] is a letter, a digit, a space, a dash, an underscore, or an accent written on a
      * letter, read by code point.
      */
-    private fun areAllowed(name: String): Boolean {
-        var followsLetter = false
-        return name.codePoints().allMatch { codePoint ->
-            val isMarkOnLetter = NameFlaw.isMark(codePoint) && followsLetter
-            followsLetter = Character.isLetter(codePoint) || isMarkOnLetter
-            isMarkOnLetter || Character.isLetterOrDigit(codePoint) || codePoint == ' '.code || codePoint == '_'.code || codePoint == '-'.code
-        }
+    private fun areAllowed(name: String): Boolean = !NameFlaw.anyCodePoint(name) { codePoint, isAccentOnLetter ->
+        !isAccentOnLetter && !Character.isLetterOrDigit(codePoint) && codePoint != ' '.code && codePoint != '_'.code && codePoint != '-'.code
     }
 
     /**
@@ -88,7 +83,7 @@ internal object ProjectNaming {
      * [name] in lowercase, with every letter that has an accent written without it.
      */
     private fun folded(name: String) = Normalizer.normalize(name.trim().lowercase(), Normalizer.Form.NFD)
-        .filter { !NameFlaw.isMark(it.code) }
+        .filter { it.category != CharCategory.NON_SPACING_MARK }
         .fold(StringBuilder()) { result, character -> result.append(foldedLetters[character] ?: character) }
         .toString()
 }

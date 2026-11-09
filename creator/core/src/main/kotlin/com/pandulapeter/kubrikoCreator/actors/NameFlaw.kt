@@ -45,25 +45,41 @@ public enum class NameFlaw {
         public fun isLetterOrDigitAToZ(character: Char): Boolean = character in 'a'..'z' || character in 'A'..'Z' || character in '0'..'9'
 
         /**
-         * Whether [text] holds a letter outside a to z, or a mark written on a letter (an accent typed as a character of
-         * its own, or a vowel sign of a script such as Devanagari), read by code point, so letters beyond the Basic
-         * Multilingual Plane count too. A mark that follows no letter is no letter, so it is left to the other rules.
+         * Whether [text] holds a letter outside a to z, or an accent written on a letter (typed as a character of its own,
+         * or a vowel sign of a script such as Devanagari), read by code point, so letters beyond the Basic Multilingual
+         * Plane count too. Marks that follow no letter, and invisible selectors, are left to the other rules.
          */
-        public fun hasLetterBeyondAToZ(text: String): Boolean {
-            var followsLetter = false
-            return text.codePoints().anyMatch { codePoint ->
-                val isMarkOnLetter = isMark(codePoint) && followsLetter
-                followsLetter = Character.isLetter(codePoint) || isMarkOnLetter
-                isMarkOnLetter || (Character.isLetter(codePoint) && codePoint !in 'a'.code..'z'.code && codePoint !in 'A'.code..'Z'.code)
-            }
+        public fun hasLetterBeyondAToZ(text: String): Boolean = anyCodePoint(text) { codePoint, isAccentOnLetter ->
+            isAccentOnLetter || (Character.isLetter(codePoint) && codePoint !in 'a'.code..'z'.code && codePoint !in 'A'.code..'Z'.code)
         }
 
         /**
-         * Whether [codePoint] is a mark, which is written on the character before it.
+         * Whether [predicate] holds for any code point of [text], told whether that code point is an accent written on the
+         * letter before it (directly, or after other accents on it).
          */
-        public fun isMark(codePoint: Int): Boolean = when (Character.getType(codePoint).toByte()) {
-            Character.NON_SPACING_MARK, Character.COMBINING_SPACING_MARK, Character.ENCLOSING_MARK -> true
-            else -> false
+        public fun anyCodePoint(text: String, predicate: (codePoint: Int, isAccentOnLetter: Boolean) -> Boolean): Boolean {
+            var followsLetter = false
+            var index = 0
+            while (index < text.length) {
+                val codePoint = text.codePointAt(index)
+                val isAccentOnLetter = followsLetter && isAccent(codePoint)
+                if (predicate(codePoint, isAccentOnLetter)) return true
+                followsLetter = Character.isLetter(codePoint) || isAccentOnLetter
+                index += Character.charCount(codePoint)
+            }
+            return false
+        }
+
+        /**
+         * Whether [codePoint] is a mark written on the character before it, other than the invisible ones that only choose
+         * how it is shown (variation selectors) or how it sorts (the combining grapheme joiner).
+         */
+        private fun isAccent(codePoint: Int): Boolean = when {
+            codePoint in 0xFE00..0xFE0F || codePoint in 0xE0100..0xE01EF || codePoint == 0x034F -> false
+            else -> when (Character.getType(codePoint).toByte()) {
+                Character.NON_SPACING_MARK, Character.COMBINING_SPACING_MARK, Character.ENCLOSING_MARK -> true
+                else -> false
+            }
         }
     }
 }

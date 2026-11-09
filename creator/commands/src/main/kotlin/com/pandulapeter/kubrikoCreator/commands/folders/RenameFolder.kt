@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.commands.screenplay.projectPathOf
+import com.pandulapeter.kubrikoCreator.commands.screenplay.validatePageName
 import com.pandulapeter.kubrikoCreator.commands.screenplay.withMentionsFollowed
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
@@ -40,7 +41,19 @@ public object RenameFolder : WriteCommand<RenameFolder.Input> {
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateFolder(input.group, input.path) ?: when {
         input.path.isEmpty() -> Rejection(CommandProblem.FOLDER_TOP)
-        else -> FolderPaths.validateName(input.newName)?.let(::Rejection) ?: context.validateNewFolder(input.group, renamed(input))
+        else -> FolderPaths.validateName(input.newName)?.let(::Rejection) ?: context.validateNewFolder(input.group, renamed(input)) ?: validateMovedPages(context, input)
+    }
+
+    /**
+     * Why a page in the folder can't be named as it would be after the rename (its name, with its folders, grows past
+     * the limit), or null if every one can.
+     */
+    private fun validateMovedPages(context: CommandContext, input: Input): Rejection? = if (input.group == FolderGroup.PAGES) {
+        context.itemsOf(FolderGroup.PAGES)
+            .filter { (_, folder) -> FolderPaths.isWithin(folder, input.path) }
+            .firstNotNullOfOrNull { (page, _) -> validatePageName(renamed(input) + page.removePrefix(input.path)) }
+    } else {
+        null
     }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
