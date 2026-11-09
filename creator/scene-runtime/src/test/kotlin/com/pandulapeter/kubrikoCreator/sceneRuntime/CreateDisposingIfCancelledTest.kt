@@ -43,38 +43,39 @@ class CreateDisposingIfCancelledTest {
     }
 
     @Test
-    fun whatIsCreatedAfterTheCallerWasCancelledIsDisposedInTheBackgroundOnTheCreatingDispatcher(): Unit = runBlocking {
-        val executor = Executors.newSingleThreadExecutor { Thread(it, "creating") }
-        try {
-            val isDisposed = CountDownLatch(1)
-            var disposingThread: String? = null
-            val creation = cancelledWhileCreating { mayFinish ->
-                createDisposingIfCancelled(
-                    executor.asCoroutineDispatcher(),
-                    create = {
-                        mayFinish()
-                        "view"
-                    },
-                    dispose = {
-                        disposingThread = Thread.currentThread().name
-                        isDisposed.countDown()
-                    },
-                )
-            }
-            assertFailsWith<CancellationException> { creation.await() }
-            assertTrue(isDisposed.await(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS))
-            assertTrue(disposingThread?.startsWith("creating") == true, "disposed on $disposingThread")
-        } finally {
-            executor.shutdown()
+    fun whatIsCreatedAfterTheCallerWasCancelledIsDisposedBeforeTheCancellationGoesOn(): Unit = runBlocking {
+        val creation = cancelledWhileCreating { mayFinish ->
+            createDisposingIfCancelled(Dispatchers.IO, create = { mayFinish().let { "view" } }, dispose = { disposed += it })
         }
+        assertFailsWith<CancellationException> { creation.await() }
+        assertEquals(listOf("view"), disposed.toList())
     }
 
     @Test
     fun aDisposalThatThrowsLeavesTheCancellationAsItIs(): Unit = runBlocking {
         val creation = cancelledWhileCreating { mayFinish ->
-            createDisposingIfCancelled(Dispatchers.IO, create = { mayFinish().let { "view" } }, dispose = { error("Broken.") })
+            createDisposingIfCancelled(
+                Dispatchers.IO,
+                create = { mayFinish().let { "view" } },
+                dispose = {
+                    disposed += it
+                    error("Broken.")
+                },
+            )
         }
         assertFailsWith<CancellationException> { creation.await() }
+        assertEquals(listOf("view"), disposed.toList())
+    }
+
+    @Test
+    fun eachValueIsDisposedWhateverTheOthersThrow() {
+        disposeEach(listOf("a", "b", "c")) {
+            disposed += it
+            if (it == "a") throw AssertionError()
+            if (it == "b") error("Broken.")
+        }
+        assertEquals(listOf("a", "b", "c"), disposed.toList())
+        assertFailsWith<StackOverflowError> { disposeEach(listOf("d")) { throw StackOverflowError() } }
     }
 
     @Test
@@ -86,60 +87,53 @@ class CreateDisposingIfCancelledTest {
     }
 
     @Test
-    fun creatingEachStopsWhenTheCallerIsCancelledAndDisposesWhatItCreated(): Unit = runBlocking {
-        val created: MutableList<Int> = Collections.synchronizedList(ArrayList())
-        val isDisposed = CountDownLatch(1)
-        val creation = cancelledWhileCreating { mayFinish ->
-            createEachDisposingIfCancelled(
-                Dispatchers.IO,
-                count = 3,
-                create = { index ->
-                    created += index
-                    if (index == 0) mayFinish()
-                    index.toString()
-                },
-                dispose = {
-                    disposed += it
-                    isDisposed.countDown()
-                },
-            )
+    fun creatingEachStopsWhenTheCallerIsCancelledAndDisposesWhatItCreatedInTheDisposalScope(): Unit = runBlocking {
+        val executor = Executors.newSingleThreadExecutor { Thread(it, "disposing") }
+        try {
+            val created: MutableList<Int> = Collections.synchronizedList(ArrayList())
+            val isDisposed = CountDownLatch(1)
+            var disposingThread: String? = null
+            val creation = cancelledWhileCreating { mayFinish ->
+                createEachDisposingIfCancelled(
+                    Dispatchers.IO,
+                    count = 3,
+                    create = { index ->
+                        created += index
+                        if (index == 0) mayFinish()
+                        index.toString()
+                    },
+                    dispose = {
+                        disposed += it
+                        disposingThread = Thread.currentThread().name
+                        isDisposed.countDown()
+                    },
+                    disposalScope = CoroutineScope(executor.asCoroutineDispatcher()),
+                )
+            }
+            assertFailsWith<CancellationException> { creation.await() }
+            assertTrue(isDisposed.await(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS))
+            assertEquals(listOf(0), created.toList())
+            assertEquals(listOf("0"), disposed.toList())
+            assertTrue(disposingThread?.startsWith("disposing") == true, "disposed on $disposingThread")
+        } finally {
+            executor.shutdown()
         }
-        assertFailsWith<CancellationException> { creation.await() }
-        assertTrue(isDisposed.await(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS))
-        assertEquals(listOf(0), created.toList())
-        assertEquals(listOf("0"), disposed.toList())
     }
 
     @Test
     fun creatingEachDisposesWhatItCreatedWhenOneThrows(): Unit = runBlocking {
-        val isDisposed = CountDownLatch(2)
         assertFailsWith<IllegalStateException> {
-            createEachDisposingIfCancelled(
-                Dispatchers.IO,
-                count = 3,
-                create = { index -> if (index == 2) error("Broken.") else index.toString() },
-                dispose = {
-                    disposed += it
-                    isDisposed.countDown()
-                },
-            )
+            createEachDisposingIfCancelled(Dispatchers.IO, count = 3, create = { index -> if (index == 2) error("Broken.") else index.toString() }, dispose = { disposed += it })
         }
-        assertTrue(isDisposed.await(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS))
-        assertEquals(setOf("0", "1"), disposed.toSet())
+        assertEquals(listOf("0", "1"), disposed.toList())
     }
 
     @Test
     fun aVirtualMachineErrorLeavesWhatWasCreatedAlone(): Unit = runBlocking {
-        val executor = Executors.newSingleThreadExecutor()
-        try {
-            assertFailsWith<StackOverflowError> {
-                createEachDisposingIfCancelled(executor.asCoroutineDispatcher(), count = 2, create = { index -> if (index == 1) throw StackOverflowError() else "0" }, dispose = { disposed += it })
-            }
-            executor.submit {}.get(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)
-            assertTrue(disposed.isEmpty())
-        } finally {
-            executor.shutdown()
+        assertFailsWith<StackOverflowError> {
+            createEachDisposingIfCancelled(Dispatchers.IO, count = 2, create = { index -> if (index == 1) throw StackOverflowError() else "0" }, dispose = { disposed += it })
         }
+        assertTrue(disposed.isEmpty())
     }
 
     /**
