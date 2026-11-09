@@ -98,8 +98,10 @@ internal fun ProjectSidebar(
     val shownModules = remember(query, modules) { if (isFiltering) filteredModules(modules, query) else modules }
     val tree = remember(outline, expansion, isFiltering) { SidebarTree(outline, expansion, isFiltering) }
     val listState = rememberLazyListState()
-    val shownStructure = remember(query, structure) { if (isFiltering) filteredModules(structure, query) else structure }
-    val rows by remember(shownStructure, tree) { derivedStateOf { SidebarRows.of(shownStructure, tree) } }
+    val previousRows = remember { arrayOfNulls<SidebarRows>(1) }
+    val rows by remember(shownModules, isGrouped, tree) {
+        derivedStateOf { SidebarRows.of(shownModules, isGrouped, tree, previousRows[0]).also { previousRows[0] = it } }
+    }
     val currentFlash by rememberUpdatedState(SidebarFlash(flashedName, flashKey))
     val flash = remember { { currentFlash } }
     var revealedKey by remember { mutableStateOf<String?>(null) }
@@ -215,7 +217,7 @@ private fun LazyListScope.moduleSections(
             flash = flash,
         )
     }
-    module.resourceGroups.forEach { group -> resourceGroupSection(module, group, tree) }
+    module.resourceGroups.forEach { group -> resourceGroupSection(module, group, tree, rows) }
 }
 
 /**

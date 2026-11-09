@@ -166,7 +166,7 @@ internal fun LazyListScope.folderTreeSection(
             )
         }
     }
-    val groupRows = rows.of(module.path, group) ?: return
+    val groupRows = rows.groupOf(module, group, tree) ?: return
     val folderOfItem = groupRows.folderOfItem
     items(
         groupRows.rows,

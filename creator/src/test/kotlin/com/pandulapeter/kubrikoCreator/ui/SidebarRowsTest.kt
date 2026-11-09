@@ -14,6 +14,8 @@ import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.workspace.ProjectLayout
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotSame
+import kotlin.test.assertSame
 
 class SidebarRowsTest {
     private val modules = sidebarModules(
@@ -31,7 +33,8 @@ class SidebarRowsTest {
     private val expansion = SidebarExpansion()
     private val outline = SidebarOutline(modules.flatMap { it.outlineNodes(isGrouped = false) })
     private val tree = SidebarTree(outline, expansion, isFiltering = false)
-    private val module = modules.single().path
+    private val module = modules.single()
+    private val enemiesKey = SidebarKeys.folder(SidebarKeys.folderGroup(module.path, FolderGroup.ACTOR_TYPES), "enemies")
 
     private fun names(rows: List<FolderTreeRow>) = rows.map { row ->
         when (row) {
@@ -40,12 +43,27 @@ class SidebarRowsTest {
         }
     }
 
+    private fun SidebarRows.actorTypes() = checkNotNull(groupOf(module, FolderGroup.ACTOR_TYPES, tree))
+
     @Test
     fun eachGroupsRowsFollowWhichFoldersAreOpen() {
-        val rows = SidebarRows.of(modules, tree)
-        assertEquals(listOf("enemies/", "Bat", "Ball"), names(checkNotNull(rows.of(module, FolderGroup.ACTOR_TYPES)).rows))
-        assertEquals("enemies", rows.of(module, FolderGroup.ACTOR_TYPES)?.folderOfItem?.get("Bat"))
-        tree.toggle(SidebarKeys.folder(SidebarKeys.folderGroup(module, FolderGroup.ACTOR_TYPES), "enemies"))
-        assertEquals(listOf("enemies/", "Ball"), names(checkNotNull(SidebarRows.of(modules, tree).of(module, FolderGroup.ACTOR_TYPES)).rows))
+        val rows = SidebarRows.of(modules, isGrouped = false, tree, previous = null)
+        assertEquals(listOf("enemies/", "Bat", "Ball"), names(rows.actorTypes().rows))
+        assertEquals("enemies", rows.actorTypes().folderOfItem["Bat"])
+        tree.toggle(enemiesKey)
+        assertEquals(listOf("enemies/", "Ball"), names(SidebarRows.of(modules, isGrouped = false, tree, previous = rows).actorTypes().rows))
+    }
+
+    @Test
+    fun aTreeMadeOfTheSameKeepsItsRowsAndOnlyAChangedOneIsWorkedOutAgain() {
+        val first = SidebarRows.of(modules, isGrouped = false, tree, previous = null)
+        val selected = modules.map { module -> module.copy(folderGroups = module.folderGroups.mapValues { (_, state) -> state.copy(selectedName = "Ball", items = state.items.toList()) }) }
+        val afterSelection = SidebarRows.of(selected, isGrouped = false, tree, previous = first)
+        assertSame(first.actorTypes(), afterSelection.actorTypes(), "selecting an item works out no rows")
+        val scenes = checkNotNull(first.groupOf(module, FolderGroup.SCENES, tree))
+        tree.toggle(enemiesKey)
+        val afterToggle = SidebarRows.of(modules, isGrouped = false, tree, previous = afterSelection)
+        assertNotSame(first.actorTypes(), afterToggle.actorTypes())
+        assertSame(scenes, afterToggle.groupOf(module, FolderGroup.SCENES, tree), "opening a folder works out only its own tree")
     }
 }

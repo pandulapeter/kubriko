@@ -38,11 +38,14 @@ import org.jetbrains.compose.resources.stringResource
  * The header of a group of [module]'s files that aren't types or Scenes, then, while it is open in [tree], its files: the
  * Kotlin files as a tree, the rest by name. A group with none is only its header, faded, which says where such files go
  * without a line of its own for each.
+ *
+ * @param rows The Kotlin tree's rows ([SidebarRows]), worked out outside the list's builder.
  */
 internal fun LazyListScope.resourceGroupSection(
     module: SidebarModule,
     group: ResourceGroup,
     tree: SidebarTree,
+    rows: SidebarRows,
 ) {
     val groupKey = SidebarKeys.resourceGroup(module.path, group)
     val isExpanded = tree.isExpanded(groupKey)
@@ -62,7 +65,7 @@ internal fun LazyListScope.resourceGroupSection(
         !isExpanded || groupResources.isEmpty() -> Unit
         group == ResourceGroup.KOTLIN -> kotlinTreeItems(
             groupKey = groupKey,
-            rows = kotlinTreeRows(groupResources, module.kotlinRootPackage, tree.toggledKotlinRows(groupKey), isEverythingOpen = tree.isFiltering),
+            rows = rows.kotlinOf(module, tree),
             indent = module.depth,
             tree = tree,
         )

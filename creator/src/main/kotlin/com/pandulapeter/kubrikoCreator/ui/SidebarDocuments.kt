@@ -83,7 +83,7 @@ internal fun LazyListScope.documentRows(
     }
     if (module.documents.isEmpty()) return
     items(
-        rows.documentsOf(module.path),
+        rows.documentsOf(module, tree),
         key = { row ->
             when (row) {
                 is FolderTreeRow.Folder -> "$documentsKey-folder-${row.path}"
