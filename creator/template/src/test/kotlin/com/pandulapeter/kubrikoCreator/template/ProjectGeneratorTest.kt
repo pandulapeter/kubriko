@@ -136,6 +136,12 @@ class ProjectGeneratorTest {
     }
 
     @Test
+    fun aRepositoryAnsweringWithAnErrorIsToldApartFromAMissingNetwork() {
+        val generator = ProjectGenerator(configuration, { _, _ -> }, loadTemplate = { template }, lookUpKubriko = { KubrikoAvailability.Lookup.REFUSED })
+        assertEquals(TemplateProblem.KUBRIKO_REFUSED, assertFailsWith<ProjectCreationException> { generator.create(request) }.reason)
+    }
+
+    @Test
     fun aLocationKubrikoCreatorMayNotWriteInIsNamedBeforeAnythingIsWritten() {
         val location = File(parentDirectory, "locked").apply { mkdirs() }
         location.setWritable(false)

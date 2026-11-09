@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.template.TemplateProblem
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_package_name_invalid
 import kubriko.creator.generated.resources.error_project_folder_not_empty
+import kubriko.creator.generated.resources.error_project_kubriko_refused
 import kubriko.creator.generated.resources.error_project_kubriko_unavailable
 import kubriko.creator.generated.resources.error_project_name_empty
 import kubriko.creator.generated.resources.error_project_name_invalid
@@ -33,6 +34,7 @@ internal fun TemplateProblem.toResource(): StringResource = when (this) {
     TemplateProblem.NAME_INVALID -> Res.string.error_project_name_invalid
     TemplateProblem.NOT_CREATED -> Res.string.error_project_not_created
     TemplateProblem.NOT_CREATED_OFFLINE -> Res.string.error_project_not_created_offline
+    TemplateProblem.KUBRIKO_REFUSED -> Res.string.error_project_kubriko_refused
     TemplateProblem.NOT_CREATED_DISK_FULL -> Res.string.error_project_not_created_disk_full
     TemplateProblem.NOT_CREATED_NOT_ALLOWED -> Res.string.error_project_not_created_not_allowed
     TemplateProblem.KUBRIKO_UNAVAILABLE -> Res.string.error_project_kubriko_unavailable

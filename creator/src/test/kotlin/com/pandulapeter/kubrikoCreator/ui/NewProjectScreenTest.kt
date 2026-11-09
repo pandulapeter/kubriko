@@ -14,7 +14,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
+import com.pandulapeter.kubrikoCreator.template.NewProjectForm
 import com.pandulapeter.kubrikoCreator.template.TemplateProblem
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
@@ -25,14 +25,14 @@ import kotlin.test.assertEquals
 
 @OptIn(ExperimentalTestApi::class)
 class NewProjectScreenTest {
-    private val request = NewProjectRequest(name = "My Game", packageName = "io.github.me.game", parentDirectory = File("/Users/me/Games"), isUnderVersionControl = false)
+    private val form = NewProjectForm(parentDirectory = File("/Users/me/Games"), isUnderVersionControl = false).withName("My Game").withPackageName("io.github.me.game")
 
     @Test
     fun aFailedCreationComesBackToTheFormAsItWasFilledInSayingWhy() = uiTest(width = 900, height = 900) {
-        val created = mutableListOf<NewProjectRequest>()
+        val created = mutableListOf<NewProjectForm>()
         showing {
             NewProjectScreen(
-                request = request,
+                initialForm = form,
                 error = TemplateProblem.NOT_CREATED_OFFLINE.resource,
                 errorArguments = emptyList(),
                 defaultParentDirectory = File("/Users/me"),
@@ -42,13 +42,13 @@ class NewProjectScreenTest {
         }
         onNode(hasText("My Game")).assertIsDisplayed()
         onNode(hasText("io.github.me.game")).assertIsDisplayed()
-        onNode(hasText(request.parentDirectory.path)).assertIsDisplayed()
+        onNode(hasText(form.parentDirectory.path)).assertIsDisplayed()
         onNodeWithText(
             "Kubriko Creator couldn't create the project, since it couldn't reach the internet, where a new project's Kubriko and Gradle come from. " +
                 "Check the connection, and try again.",
         ).assertIsDisplayed()
         saveSnapshot("new-project-failed")
         onNodeWithText("Create").performClick()
-        assertEquals(listOf(request), created)
+        assertEquals(listOf(form), created)
     }
 }

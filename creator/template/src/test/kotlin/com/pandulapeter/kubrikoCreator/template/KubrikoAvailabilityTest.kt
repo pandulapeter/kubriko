@@ -73,11 +73,11 @@ class KubrikoAvailabilityTest {
     }
 
     @Test
-    fun aLookUpTellsAMissingVersionFromARepositoryThatDoesntAnswer() {
+    fun aLookUpTellsAMissingVersionFromARepositoryThatAnswersWithAnErrorOrNotAtAll() {
         val availability = KubrikoAvailability(useMavenLocal = false, mavenLocal = mavenLocal, mavenCentral = mavenCentral)
         assertEquals(KubrikoAvailability.Lookup.FOUND, availability.lookUp("0.8.0"))
         assertEquals(KubrikoAvailability.Lookup.MISSING, availability.lookUp("0.8.1"))
-        assertEquals(KubrikoAvailability.Lookup.UNREACHABLE, availability.lookUp("0.9.0"))
+        assertEquals(KubrikoAvailability.Lookup.REFUSED, availability.lookUp("0.9.0"))
         assertFalse(availability("0.9.0"))
         server.stop(0)
         assertEquals(KubrikoAvailability.Lookup.FOUND, availability.lookUp("0.8.0"), "a version found is remembered")

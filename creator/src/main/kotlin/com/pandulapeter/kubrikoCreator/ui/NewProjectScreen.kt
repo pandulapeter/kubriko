@@ -36,7 +36,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.template.GameTarget
 import com.pandulapeter.kubrikoCreator.template.NewProjectForm
-import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.template.TargetHost
 import com.pandulapeter.kubrikoCreator.template.TemplateProblem
 import kotlinx.coroutines.Dispatchers
@@ -61,15 +60,15 @@ import java.io.File
 
 @Composable
 internal fun NewProjectScreen(
-    request: NewProjectRequest?,
+    initialForm: NewProjectForm?,
     error: StringResource?,
     errorArguments: List<String>,
     defaultParentDirectory: File,
-    onCreate: (NewProjectRequest) -> Unit,
+    onCreate: (NewProjectForm) -> Unit,
     onCancel: () -> Unit,
 ) {
-    var form by remember(request) { mutableStateOf(request?.let(NewProjectForm::of) ?: NewProjectForm(parentDirectory = defaultParentDirectory)) }
-    var areMoreOptionsShown by remember(request) { mutableStateOf(form.isPackageNameEdited) }
+    var form by remember(initialForm) { mutableStateOf(initialForm ?: NewProjectForm(parentDirectory = defaultParentDirectory)) }
+    var areMoreOptionsShown by remember(initialForm) { mutableStateOf(form.isPackageNameEdited) }
     val pickerTitle = stringResource(Res.string.choose_parent_folder)
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -161,7 +160,7 @@ internal fun NewProjectScreen(
                 }
                 Button(
                     enabled = form.request != null,
-                    onClick = { form.request?.let(onCreate) },
+                    onClick = { if (form.request != null) onCreate(form) },
                 ) {
                     Text(stringResource(Res.string.action_create_project))
                 }

@@ -28,7 +28,7 @@ import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
 import com.pandulapeter.kubrikoCreator.recent.RecentProject
 import com.pandulapeter.kubrikoCreator.settings.CreatorSettingsController
-import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
+import com.pandulapeter.kubrikoCreator.template.NewProjectForm
 import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
 import com.pandulapeter.kubrikoCreator.ui.components.ProgressScreen
 import com.pandulapeter.kubrikoCreator.ui.settings.CreatorSettingsDialog
@@ -47,7 +47,7 @@ internal fun AppContent(
     defaultParentDirectory: File,
     onNewProject: () -> Unit,
     onForgetRecentProject: (RecentProject) -> Unit,
-    onCreateProject: (NewProjectRequest) -> Unit,
+    onCreateProject: (NewProjectForm) -> Unit,
     onOpenProject: (File) -> Unit,
     onCloseProject: () -> Unit,
     mcp: McpController,
@@ -116,7 +116,7 @@ private fun ScreenContent(
     defaultParentDirectory: File,
     onNewProject: () -> Unit,
     onForgetRecentProject: (RecentProject) -> Unit,
-    onCreateProject: (NewProjectRequest) -> Unit,
+    onCreateProject: (NewProjectForm) -> Unit,
     onOpenProject: (File) -> Unit,
     onCloseProject: () -> Unit,
     mcp: McpController,
@@ -136,7 +136,7 @@ private fun ScreenContent(
             onOpenSettings = onOpenSettings,
         )
         is AppScreen.NewProject -> NewProjectScreen(
-            request = screen.request,
+            initialForm = screen.form,
             error = screen.error,
             errorArguments = screen.errorArguments,
             defaultParentDirectory = defaultParentDirectory,

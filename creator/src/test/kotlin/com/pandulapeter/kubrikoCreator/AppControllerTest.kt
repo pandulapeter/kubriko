@@ -17,9 +17,11 @@ import com.pandulapeter.kubrikoCreator.recent.RecentProjectsStore
 import com.pandulapeter.kubrikoCreator.session.GameLaunch
 import com.pandulapeter.kubrikoCreator.session.GameProcess
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
+import com.pandulapeter.kubrikoCreator.template.NewProjectForm
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.template.ProjectCreationException
 import com.pandulapeter.kubrikoCreator.template.ProjectCreator
+import com.pandulapeter.kubrikoCreator.template.ProjectTemplate
 import com.pandulapeter.kubrikoCreator.template.TemplateProblem
 import com.pandulapeter.kubrikoCreator.testing.FakeProjectBuild
 import com.pandulapeter.kubrikoCreator.testing.FakeSessionChannel
@@ -69,7 +71,8 @@ class AppControllerTest {
     private val recentProjectsStore = RecentProjectsStore(File(temporaryDirectory, "recent.json"), currentTimeMillis = { ++time })
     private val builds = mutableListOf<FakeProjectBuild>()
 
-    private val request = NewProjectRequest(name = "My Game", packageName = "com.example.mygame", parentDirectory = File("/projects"))
+    private val form = NewProjectForm(parentDirectory = File("/projects")).withName("My Game")
+    private val request = assertNotNull(form.request)
     private val openedDirectories = mutableListOf<File>()
 
     private fun TestScope.createController(
@@ -157,7 +160,7 @@ class AppControllerTest {
     fun creatingAProjectRightAfterClosingOneWaitsForTheClose() = runTest {
         val controller = createSlowlyClosingController()
         controller.openAndPlay()
-        controller.createProject(request)
+        controller.createProject(form)
         assertEquals(1, openedDirectories.size)
         gameStopped.complete(Unit)
         assertEquals(listOf(playingDirectory, request.directory), openedDirectories)
@@ -297,7 +300,7 @@ class AppControllerTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         val created = mutableListOf<NewProjectRequest>()
         val controller = createController(creator = { created += it; File("/projects/my-game") }, ioDispatcher = dispatcher)
-        controller.createProject(request)
+        controller.createProject(form)
         assertEquals(AppScreen.CreatingProject(request.directory), controller.screen.value)
         runCurrent()
         assertEquals(listOf(request), created)
@@ -308,7 +311,7 @@ class AppControllerTest {
     @Test
     fun aProjectCreatedFromAnIdeaOpensWithItsWritersRoomRequestedOnce() = runTest {
         val controller = createController(creator = { File("/projects/my-game") })
-        controller.createProject(request.copy(pitch = "A cat who herds sheep."))
+        controller.createProject(form.copy(pitch = "A cat who herds sheep."))
         val workspace = assertIs<AppScreen.Workspace>(controller.screen.value)
         assertEquals("A cat who herds sheep.", workspace.writersRoom?.take())
         assertEquals(null, workspace.writersRoom?.take())
@@ -319,23 +322,46 @@ class AppControllerTest {
     @Test
     fun aProjectThatCantBeCreatedReturnsToTheFormWithItsReason() = runTest {
         val controller = createController(creator = { throw ProjectCreationException(TemplateProblem.FOLDER_NOT_EMPTY) })
-        controller.createProject(request)
-        assertEquals(AppScreen.NewProject(request, error = Res.string.error_project_folder_not_empty), controller.screen.value)
+        controller.createProject(form)
+        assertEquals(AppScreen.NewProject(form, error = Res.string.error_project_folder_not_empty), controller.screen.value)
         assertTrue(openedDirectories.isEmpty())
     }
 
     @Test
     fun aProjectThatFailsToBeCreatedUnexpectedlyReturnsToTheFormSayingWhy() = runTest {
         val controller = createController(creator = { throw IllegalStateException("Broken template.") })
-        controller.createProject(request)
-        assertEquals(AppScreen.NewProject(request, error = Res.string.error_project_not_created, errorArguments = listOf("Broken template.")), controller.screen.value)
+        controller.createProject(form)
+        assertEquals(AppScreen.NewProject(form, error = Res.string.error_project_not_created, errorArguments = listOf("Broken template.")), controller.screen.value)
+    }
+
+    @Test
+    fun anIncompleteFormCreatesNothing() = runTest {
+        val controller = createController(creator = { error("Nothing is created.") })
+        controller.showNewProject()
+        controller.createProject(NewProjectForm(parentDirectory = File("/projects")))
+        assertEquals(AppScreen.NewProject(), controller.screen.value)
+    }
+
+    @Test
+    fun aFailedCreationKeepsTheTemplateChosenBeforeTheIdea() = runTest {
+        val fromIdea = form.copy(template = ProjectTemplate.STARTER, pitch = "A cat who herds sheep.")
+        val controller = createController(creator = { throw ProjectCreationException(TemplateProblem.NOT_CREATED_OFFLINE) })
+        controller.createProject(fromIdea)
+        assertEquals(fromIdea, assertIs<AppScreen.NewProject>(controller.screen.value).form)
+    }
+
+    @Test
+    fun anErrorDuringCreationStillComesBackToTheFormBeforeItIsReported() = runTest {
+        val controller = createController(creator = { throw StackOverflowError() })
+        controller.createProject(form)
+        assertEquals(AppScreen.NewProject(form, error = Res.string.error_project_not_created, errorArguments = listOf("java.lang.StackOverflowError")), controller.screen.value)
     }
 
     @Test
     fun aProjectCreatedWithoutANetworkReturnsToTheFormSayingSo() = runTest {
         val controller = createController(creator = { throw ProjectCreationException(TemplateProblem.NOT_CREATED_OFFLINE) })
-        controller.createProject(request)
-        assertEquals(AppScreen.NewProject(request, error = Res.string.error_project_not_created_offline), controller.screen.value)
+        controller.createProject(form)
+        assertEquals(AppScreen.NewProject(form, error = Res.string.error_project_not_created_offline), controller.screen.value)
     }
 
     @Test
@@ -343,7 +369,7 @@ class AppControllerTest {
         lateinit var controller: AppController
         var createdCount = 0
         controller = createController(creator = { createdCount++; controller.closeProject(); it.directory })
-        controller.createProject(request)
+        controller.createProject(form)
         assertEquals(1, createdCount)
         assertEquals(AppScreen.Welcome(), controller.screen.value)
         assertTrue(openedDirectories.isEmpty())
@@ -353,7 +379,7 @@ class AppControllerTest {
     fun closingBeforeCreationStartsNeverCreatesTheProject() = runTest {
         var createdCount = 0
         val controller = createController(creator = { createdCount++; it.directory }, ioDispatcher = StandardTestDispatcher(testScheduler))
-        controller.createProject(request)
+        controller.createProject(form)
         controller.closeProject()
         runCurrent()
         assertEquals(0, createdCount)

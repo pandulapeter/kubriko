@@ -13,10 +13,10 @@ import com.pandulapeter.kubrikoCreator.foundation.unexpectedProblemHandler
 import com.pandulapeter.kubrikoCreator.gradle.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.recent.RecentProject
 import com.pandulapeter.kubrikoCreator.recent.RecentProjectsStore
-import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
+import com.pandulapeter.kubrikoCreator.template.CreationFailure
+import com.pandulapeter.kubrikoCreator.template.NewProjectForm
 import com.pandulapeter.kubrikoCreator.template.ProjectCreationException
 import com.pandulapeter.kubrikoCreator.template.ProjectCreator
-import com.pandulapeter.kubrikoCreator.template.TemplateProblem
 import com.pandulapeter.kubrikoCreator.ui.resource
 import com.pandulapeter.kubrikoCreator.ui.texts.toResource
 import com.pandulapeter.kubrikoCreator.workspace.CLOSE_GAME_TIMEOUT_IN_MILLISECONDS
@@ -99,7 +99,11 @@ internal class AppController(
         _screen.value = AppScreen.NewProject()
     }
 
-    fun createProject(request: NewProjectRequest) {
+    /**
+     * Creates the project [form] asks for, if it is complete, and opens it; a creation that fails comes back to [form].
+     */
+    fun createProject(form: NewProjectForm) {
+        val request = form.request ?: return
         closeProject()
         _screen.value = AppScreen.CreatingProject(request.directory)
         launchOperation {
@@ -108,12 +112,10 @@ internal class AppController(
                 withContext(ioDispatcher) { projectCreator.create(request) }
             } catch (exception: CancellationException) {
                 throw exception
-            } catch (exception: ProjectCreationException) {
-                _screen.value = AppScreen.NewProject(request, error = exception.targetProblem?.toResource() ?: exception.reason.resource, errorArguments = exception.arguments)
-                return@launchOperation
-            } catch (exception: Exception) {
-                exception.printStackTrace()
-                _screen.value = AppScreen.NewProject(request, error = TemplateProblem.NOT_CREATED.resource, errorArguments = listOf(exception.message ?: exception.toString()))
+            } catch (exception: Throwable) {
+                val failure = exception as? ProjectCreationException ?: CreationFailure.of(request.directory, exception)
+                _screen.value = AppScreen.NewProject(form, error = failure.targetProblem?.toResource() ?: failure.reason.resource, errorArguments = failure.arguments)
+                if (exception !is Exception) throw exception
                 return@launchOperation
             }
             ensureActive()

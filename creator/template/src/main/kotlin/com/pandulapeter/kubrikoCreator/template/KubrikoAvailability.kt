@@ -40,7 +40,8 @@ public class KubrikoAvailability(
     override fun invoke(version: String): Boolean = lookUp(version) == Lookup.FOUND
 
     /**
-     * Whether [version] can be downloaded, telling a version that isn't there from a repository that can't be reached.
+     * Whether [version] can be downloaded, telling a version that isn't there from a repository that can't be reached or
+     * answers with an error.
      * Asking Maven Central blocks for up to a few seconds, so it is called off the main thread.
      */
     public fun lookUp(version: String): Lookup = if (version in available) {
@@ -57,7 +58,7 @@ public class KubrikoAvailability(
             when (client.send(request, HttpResponse.BodyHandlers.discarding()).statusCode()) {
                 200 -> Lookup.FOUND
                 404, 410 -> Lookup.MISSING
-                else -> Lookup.UNREACHABLE
+                else -> Lookup.REFUSED
             }
         } catch (_: IOException) {
             Lookup.UNREACHABLE
@@ -75,9 +76,14 @@ public class KubrikoAvailability(
         MISSING,
 
         /**
-         * The repository didn't answer, or answered with an error of its own: no network, or Maven Central is down.
+         * The repository couldn't be reached: no network, most likely.
          */
         UNREACHABLE,
+
+        /**
+         * The repository answered with an error of its own: a proxy in the way, or Maven Central down for a while.
+         */
+        REFUSED,
     }
 
     public companion object {

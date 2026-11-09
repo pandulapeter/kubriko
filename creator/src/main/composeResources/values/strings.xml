@@ -69,6 +69,7 @@
     <string name="error_project_folder_not_empty">That folder already exists and isn't empty.</string>
     <string name="error_project_not_created">Kubriko Creator couldn't create the project: %1$s</string>
     <string name="error_project_not_created_offline">Kubriko Creator couldn't create the project, since it couldn't reach the internet, where a new project's Kubriko and Gradle come from. Check the connection, and try again.</string>
+    <string name="error_project_kubriko_refused">Kubriko Creator couldn't create the project, since Maven Central, where a new project's Kubriko comes from, answered with an error. A proxy may be in the way, or it may be down for a while. Try again later.</string>
     <string name="error_project_not_created_disk_full">Kubriko Creator couldn't create the project, since the disk is full. Make some room, and try again.</string>
     <string name="error_project_not_created_not_allowed">Kubriko Creator isn't allowed to write in %1$s. Choose another location, or change that folder's permissions.</string>
     <string name="error_project_target_not_set_up">The project couldn't be built for one of its targets on this computer, so it wasn't created.</string>

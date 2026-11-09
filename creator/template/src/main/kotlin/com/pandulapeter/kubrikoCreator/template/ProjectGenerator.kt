@@ -45,12 +45,14 @@ public class ProjectGenerator(
         if (directory.exists() && (!directory.isDirectory || !directory.list().isNullOrEmpty())) {
             throw ProjectCreationException(TemplateProblem.FOLDER_NOT_EMPTY)
         }
-        val writableFolder = CreationFailure.nearestExisting(directory)
-        if (!writableFolder.canWrite()) throw ProjectCreationException(TemplateProblem.NOT_CREATED_NOT_ALLOWED, arguments = listOf(writableFolder.path))
+        CreationFailure.nearestExisting(directory)?.takeUnless(CreationFailure::isWritable)?.let { folder ->
+            throw ProjectCreationException(TemplateProblem.NOT_CREATED_NOT_ALLOWED, arguments = listOf(folder.path))
+        }
         when (lookUpKubriko(configuration.kubrikoVersion)) {
             KubrikoAvailability.Lookup.FOUND -> Unit
             KubrikoAvailability.Lookup.MISSING -> throw ProjectCreationException(TemplateProblem.KUBRIKO_UNAVAILABLE, arguments = listOf(configuration.kubrikoVersion))
             KubrikoAvailability.Lookup.UNREACHABLE -> throw ProjectCreationException(TemplateProblem.NOT_CREATED_OFFLINE)
+            KubrikoAvailability.Lookup.REFUSED -> throw ProjectCreationException(TemplateProblem.KUBRIKO_REFUSED)
         }
         val values = placeholderValues(request)
         val didExist = directory.exists()
@@ -67,14 +69,17 @@ public class ProjectGenerator(
             wrapperInstaller.install(directory, configuration.gradleVersion)
             if (request.isUnderVersionControl) startVersionControl(directory, FIRST_COMMIT_MESSAGE)
         } catch (exception: ProjectCreationException) {
-            notCreated(directory, didExist, exception)
+            removeWritten(directory, didExist)
             throw exception
         } catch (exception: IOException) {
-            throw notCreated(directory, didExist, exception)
+            removeWritten(directory, didExist)
+            throw CreationFailure.of(directory, exception)
         } catch (exception: RuntimeException) {
-            throw notCreated(directory, didExist, exception)
+            removeWritten(directory, didExist)
+            throw CreationFailure.of(directory, exception)
         } catch (exception: GitAPIException) {
-            throw notCreated(directory, didExist, exception)
+            removeWritten(directory, didExist)
+            throw CreationFailure.of(directory, exception)
         }
         return directory
     }
@@ -110,10 +115,9 @@ public class ProjectGenerator(
      * Removes what was written of a project that couldn't be created (the folder was empty or missing before), so that
      * trying again with the same name works.
      */
-    private fun notCreated(directory: File, didExist: Boolean, cause: Exception): ProjectCreationException {
+    private fun removeWritten(directory: File, didExist: Boolean) {
         directory.deleteRecursively()
         if (didExist) directory.mkdirs()
-        return CreationFailure.of(directory, cause)
     }
 
     internal fun placeholderValues(request: NewProjectRequest) = mapOf(
