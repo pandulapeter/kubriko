@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.context
 
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.scenes.firstSceneSettings
+import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import kotlinx.coroutines.withContext
 
@@ -20,6 +21,15 @@ import kotlinx.coroutines.withContext
 internal suspend fun CommandContext.sceneTypeCounts(): Map<String, Map<String, Int>> = withContext(ioDispatcher) {
     scenes.names().mapNotNull { name -> scenes.actors(name)?.let { actors -> name to actors.groupingBy { it.typeId }.eachCount().toSortedMap() } }.toMap()
 }
+
+/**
+ * The music each Scene of the open project plays, by the Scene's name, leaving out those that play none.
+ */
+internal fun CommandContext.sceneMusic(): Map<String, String> = scenes.names().mapNotNull { name ->
+    scenes.actors(name)?.let { actors ->
+        SceneSettingsState.indexIn(actors).takeIf { it >= 0 }?.let { index -> name to SceneSettingsState.read(actors[index].state).music }
+    }
+}.filter { (_, music) -> music.isNotEmpty() }.toMap()
 
 /**
  * The relations between the parts of the open project.

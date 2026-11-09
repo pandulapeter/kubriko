@@ -23,7 +23,13 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
  */
 internal object HealthChecks {
 
-    fun of(types: List<BlockTypeDefinition>, relations: ProjectRelations, sceneNames: Collection<String>, audioFiles: AudioFiles? = null): List<HealthFinding> {
+    fun of(
+        types: List<BlockTypeDefinition>,
+        relations: ProjectRelations,
+        sceneNames: Collection<String>,
+        audioFiles: AudioFiles? = null,
+        sceneMusic: Map<String, String> = emptyMap(),
+    ): List<HealthFinding> {
         val actorTypes = types.filterIsInstance<ActorTypeDefinition>()
         val family = ActorTypeFamily(actorTypes)
         val instantiated = relations.all.filter { it.kind == RelationKind.PLACES || it.kind == RelationKind.ADDS }.mapNotNullTo(HashSet()) { (it.subject as? RelationSubject.Type)?.name }
@@ -60,7 +66,7 @@ internal object HealthChecks {
                 }
             }
             addAll(KotlinBlockScopeChecks.of(types, family))
-            addAll(MissingReferenceChecks.of(types, relations, sceneNames, audioFiles))
+            addAll(MissingReferenceChecks.of(types, relations, sceneNames, audioFiles, sceneMusic))
         }
     }
 }

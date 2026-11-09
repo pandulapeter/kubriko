@@ -103,7 +103,7 @@ internal fun SceneEditorPane(
     actorTypeDragState: SidebarDragState,
     panelLayout: PanelLayout,
     actorTypes: List<ActorTypeDefinition>,
-    music: List<String>,
+    music: List<String>?,
     description: String?,
     onPlay: () -> Unit,
     onReload: () -> Unit,
@@ -220,7 +220,7 @@ internal fun SceneEditorPane(
 private fun SceneSettingsDialogOf(
     view: SceneView,
     sceneName: String,
-    music: List<String>,
+    music: List<String>?,
     onCommand: (Invocation<*>) -> Unit,
     onDismiss: () -> Unit,
 ) {

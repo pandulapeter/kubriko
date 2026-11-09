@@ -57,7 +57,7 @@ internal fun SceneInspector(
     sceneName: String,
     selectedId: String?,
     actorTypes: List<ActorTypeDefinition>,
-    music: List<String>,
+    music: List<String>?,
     onOpenSceneSettings: () -> Unit,
     onCommand: (Invocation<*>) -> Unit,
     onRemove: (String) -> Unit,

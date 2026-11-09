@@ -34,4 +34,11 @@ class AudioFilesTest {
         assertEquals(AudioFiles(sounds = listOf("files/hit.wav", "files/sounds/pop.wav"), music = listOf("files/music/theme.mp3")), files)
         assertEquals(AudioFiles(), AudioFiles.of(emptyMap()))
     }
+
+    @Test
+    fun nothingIsKnownBeforeTheProjectIsScanned() {
+        assertEquals(null, AudioFiles.ofScanned(emptyMap()))
+        val scanned = mapOf(ResourceGroup.MUSIC to listOf(resource(ResourceGroup.MUSIC, "src/commonMain/composeResources/files/theme.mp3")))
+        assertEquals(AudioFiles.of(scanned), AudioFiles.ofScanned(scanned))
+    }
 }

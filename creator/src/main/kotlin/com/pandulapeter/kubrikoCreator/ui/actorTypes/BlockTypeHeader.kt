@@ -140,7 +140,7 @@ private fun HeaderDivider() = VerticalDivider(
 )
 
 /**
- * The Actor types based on this one as links, the first few by name and the rest in a menu.
+ * The Actor types based on this one as links: the first few by name, and every one in a searchable menu.
  */
 @Composable
 private fun ChildTypes(
@@ -171,7 +171,7 @@ private fun ChildTypes(
     if (rest.isNotEmpty()) {
         SearchableChoiceButton(
             label = stringResource(Res.string.actor_type_children_more, rest.size),
-            options = rest,
+            options = children,
             optionText = { it },
             onSelected = onTypeSelected,
         )

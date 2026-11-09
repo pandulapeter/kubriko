@@ -34,7 +34,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun SceneSettingsDialog(
     settings: SceneActorEntry?,
-    music: List<String>,
+    music: List<String>?,
     onChange: (SetSceneSettings.Input.() -> SetSceneSettings.Input) -> Unit,
     onRestoreDefaults: (SceneActorEntry) -> Unit,
     onDismiss: () -> Unit,

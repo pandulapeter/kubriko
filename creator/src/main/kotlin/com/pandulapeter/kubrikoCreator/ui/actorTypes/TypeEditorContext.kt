@@ -48,7 +48,7 @@ internal class TypeEditorContextCache {
         definition: BlockTypeDefinition,
         types: List<BlockTypeDefinition>,
         sceneNames: List<String>,
-        audioFiles: AudioFiles,
+        audioFiles: AudioFiles?,
     ): TypeEditorContext {
         val family = familyOf(types)
         val scopeKey = listOf(family, definition.name, sceneNames, audioFiles)

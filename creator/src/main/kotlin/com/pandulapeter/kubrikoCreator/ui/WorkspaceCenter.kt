@@ -88,7 +88,7 @@ internal fun WorkspaceCenter(
     val contentModifier = modifier.fadeInOnChange(shownContentKey(selection, sceneEditing))
     val markdownTitle = markdownTitleOf(selection)
     val actorTypes = remember(blockTypes) { blockTypes.filterIsInstance<ActorTypeDefinition>() }
-    val audioFiles = remember(resources) { AudioFiles.of(resources) }
+    val audioFiles = remember(resources) { AudioFiles.ofScanned(resources) }
     when (sceneEditing) {
         is SceneEditingState.Open -> SceneEditorPane(
             modifier = contentModifier,
@@ -97,7 +97,7 @@ internal fun WorkspaceCenter(
             actorTypeDragState = actorTypeDragState,
             panelLayout = panelLayout,
             actorTypes = actorTypes,
-            music = audioFiles.music,
+            music = audioFiles?.music,
             description = sceneDescriptions[sceneEditing.sceneName],
             onPlay = { onPlayScene(sceneEditing.sceneName) },
             onReload = onReloadScene,

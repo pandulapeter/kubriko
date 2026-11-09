@@ -52,4 +52,12 @@ class SceneSettingsFieldsTest {
         }
         onNodeWithText("music/deleted.mp3 no longer exists").assertExists()
     }
+
+    @Test
+    fun musicIsntMarkedAsGoneBeforeTheProjectIsScanned() = uiTest(width = 400, height = 600) {
+        showing {
+            SceneSettingsFields(values = SceneSettingsState.Values(music = "files/music/theme.mp3"), music = null, onChange = {})
+        }
+        onNodeWithText("music/theme.mp3").assertExists()
+    }
 }

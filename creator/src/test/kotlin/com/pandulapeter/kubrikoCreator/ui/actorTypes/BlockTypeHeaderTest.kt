@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.ui.actorTypes
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
@@ -43,10 +44,14 @@ class BlockTypeHeaderTest {
             )
         }
         onNodeWithText("28 more").performClick()
-        onNode(hasSetTextAction()).performTextInput("vamp")
+        onNode(hasSetTextAction() and isFocused()).performTextInput("vamp")
         onNodeWithText("Enemy4").assertDoesNotExist()
         saveSnapshot("type-header-children-search")
-        onNode(hasSetTextAction()).performKeyInput { pressKey(Key.Enter) }
+        onNode(hasSetTextAction() and isFocused()).performKeyInput { pressKey(Key.Enter) }
         assertEquals("Vampire", selected)
+        onNodeWithText("28 more").performClick()
+        onNode(hasSetTextAction() and isFocused()).performTextInput("Enemy2")
+        onNode(hasSetTextAction() and isFocused()).performKeyInput { pressKey(Key.Enter) }
+        assertEquals("Enemy2", selected, "a child shown by name is found too")
     }
 }

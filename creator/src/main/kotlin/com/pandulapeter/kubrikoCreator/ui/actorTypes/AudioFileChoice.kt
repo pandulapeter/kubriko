@@ -10,28 +10,38 @@
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import com.pandulapeter.kubrikoCreator.ui.components.SearchableChoiceButton
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * A choice of one of the project's sound or music files, shown by their path inside the `files` folder.
+ *
+ * @param paths The files to choose from, or null while they aren't known, when none is marked as missing.
+ * @param placeholder What is shown while nothing is chosen, which is offered as the first option, choosing nothing, if
+ *   [canChooseNone].
  */
 @Composable
 internal fun AudioFileChoice(
     path: String,
     paths: List<String>?,
     placeholder: StringResource,
+    canChooseNone: Boolean = false,
     onSelected: (String) -> Unit,
-) = SearchableChoiceButton(
-    label = when {
-        isMissingChoice(path, paths) -> missingChoiceLabel(audioFileLabel(path))
-        else -> path.ifEmpty { null }?.let(::audioFileLabel) ?: stringResource(placeholder)
-    },
-    options = paths.orEmpty(),
-    optionText = { audioFileLabel(it) },
-    onSelected = onSelected,
-    isMissing = isMissingChoice(path, paths),
-)
+) {
+    val isMissing = isMissingChoice(path, paths)
+    val none = stringResource(placeholder)
+    SearchableChoiceButton(
+        label = when {
+            isMissing -> missingChoiceLabel(audioFileLabel(path))
+            else -> path.ifEmpty { null }?.let(::audioFileLabel) ?: none
+        },
+        options = remember(paths, canChooseNone) { if (canChooseNone) listOf("") + paths.orEmpty() else paths.orEmpty() },
+        optionText = { it.ifEmpty { null }?.let(::audioFileLabel) ?: none },
+        onSelected = onSelected,
+        isMissing = isMissing,
+    )
+}
 
 internal fun audioFileLabel(path: String) = path.removePrefix("files/")

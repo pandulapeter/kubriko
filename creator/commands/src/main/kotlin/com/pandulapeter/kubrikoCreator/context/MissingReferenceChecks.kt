@@ -14,16 +14,24 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 
 /**
- * Blocks, Events, placeholders, and parents naming an Actor type, a Scene, a Property, or an audio file that doesn't
+ * Blocks, Events, placeholders, parents, and Scenes' music naming an Actor type, a Scene, a Property, or an audio file that doesn't
  * exist: what is left of a thing deleted outside Kubriko Creator (a file deleted in a terminal, a git checkout), since
  * deleting it in Kubriko Creator cleans those up. Each finding is about the type holding the reference, at its place.
  */
 internal object MissingReferenceChecks {
 
     /**
-     * @param audioFiles The project's sounds and music, or null if they aren't known, which leaves the play Blocks out.
+     * @param audioFiles The project's sounds and music, or null if they aren't known, which leaves the play Blocks and
+     *   the Scenes' music out.
+     * @param sceneMusic The music each Scene plays, by the Scene's name ([sceneMusic]).
      */
-    fun of(types: List<BlockTypeDefinition>, relations: ProjectRelations, sceneNames: Collection<String>, audioFiles: AudioFiles? = null): List<HealthFinding> {
+    fun of(
+        types: List<BlockTypeDefinition>,
+        relations: ProjectRelations,
+        sceneNames: Collection<String>,
+        audioFiles: AudioFiles? = null,
+        sceneMusic: Map<String, String> = emptyMap(),
+    ): List<HealthFinding> {
         val typeNames = types.mapTo(HashSet()) { it.name }
         val declared = types.associate { type -> type.name to type.properties.mapTo(HashSet()) { it.name } }
         val scenes = sceneNames.toHashSet()
@@ -35,7 +43,10 @@ internal object MissingReferenceChecks {
                 is RelationSubject.Page, is RelationSubject.Image -> false
             }
         }.map { finding(it.place, it.subject.toString()) }
-        return (missingRelations + audioFiles?.let { missingAudioFiles(types, it) }.orEmpty()).distinct()
+        val missingSceneMusic = audioFiles?.let { files ->
+            sceneMusic.filterValues { it !in files.music }.map { (scene, music) -> finding(RelationPlace.Scene(scene), music) }
+        }.orEmpty()
+        return (missingRelations + audioFiles?.let { missingAudioFiles(types, it) }.orEmpty() + missingSceneMusic).distinct()
     }
 
     private fun missingAudioFiles(types: List<BlockTypeDefinition>, audioFiles: AudioFiles) = buildList {

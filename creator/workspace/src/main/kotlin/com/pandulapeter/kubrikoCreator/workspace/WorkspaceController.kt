@@ -304,7 +304,7 @@ public class WorkspaceController(
             ),
             ioDispatcher = ioDispatcher,
             scannedFiles = ScannedFiles(
-                audioFiles = { AudioFiles.of(_resources.value) },
+                audioFiles = { AudioFiles.ofScanned(_resources.value) },
                 spriteFiles = { SpriteFiles.of(_resources.value) },
             ),
             report = ::appendToConsole,

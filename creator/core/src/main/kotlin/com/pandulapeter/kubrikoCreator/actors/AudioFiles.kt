@@ -28,6 +28,12 @@ public data class AudioFiles(
         )
 
         /**
+         * The audio files of [resources] once the project was scanned, or null before: a project always has a build
+         * file, so no resources at all means none were scanned yet, rather than that every audio file is gone.
+         */
+        public fun ofScanned(resources: Map<ResourceGroup, List<ProjectResource>>): AudioFiles? = resources.takeIf { it.isNotEmpty() }?.let(::of)
+
+        /**
          * The path of [resource] from its `composeResources` folder, or null if the game can't read it by its path.
          */
         internal fun pathOf(resource: ProjectResource) = resource.relativePath.substringAfter("$COMPOSE_RESOURCES/", "").takeIf { it.startsWith("$FILES/") }

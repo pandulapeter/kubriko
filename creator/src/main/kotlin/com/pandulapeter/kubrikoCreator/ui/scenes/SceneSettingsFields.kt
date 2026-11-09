@@ -21,12 +21,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
-import com.pandulapeter.kubrikoCreator.ui.actorTypes.audioFileLabel
-import com.pandulapeter.kubrikoCreator.ui.actorTypes.isMissingChoice
-import com.pandulapeter.kubrikoCreator.ui.actorTypes.missingChoiceLabel
+import com.pandulapeter.kubrikoCreator.ui.actorTypes.AudioFileChoice
 import com.pandulapeter.kubrikoCreator.ui.components.ColorField
 import com.pandulapeter.kubrikoCreator.ui.components.NumberField
-import com.pandulapeter.kubrikoCreator.ui.components.SearchableChoiceButton
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.actor_type_height
 import kubriko.creator.generated.resources.actor_type_width
@@ -41,13 +38,13 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * A Scene's settings: its bounds, background color, where the camera starts, and its music.
  *
- * @param music The music files the project has, by their path from `composeResources`.
+ * @param music The music files the project has, by their path from `composeResources`, or null while they aren't known.
  * @param onChange Called with the values to change, as `set_scene_settings` takes them (without the Scene).
  */
 @Composable
 internal fun SceneSettingsFields(
     values: SceneSettingsState.Values,
-    music: List<String>,
+    music: List<String>?,
     onChange: (SetSceneSettings.Input.() -> SetSceneSettings.Input) -> Unit,
     modifier: Modifier = Modifier,
 ) = Column(
@@ -79,17 +76,12 @@ internal fun SceneSettingsFields(
             text = stringResource(Res.string.scene_settings_music),
             style = MaterialTheme.typography.labelMedium,
         )
-        val none = stringResource(Res.string.scene_settings_music_none)
-        val isMissing = isMissingChoice(values.music, music)
-        SearchableChoiceButton(
-            label = when {
-                isMissing -> missingChoiceLabel(audioFileLabel(values.music))
-                else -> values.music.ifEmpty { null }?.let(::audioFileLabel) ?: none
-            },
-            options = listOf("") + music,
-            optionText = { it.ifEmpty { null }?.let(::audioFileLabel) ?: none },
+        AudioFileChoice(
+            path = values.music,
+            paths = music,
+            placeholder = Res.string.scene_settings_music_none,
             onSelected = { path -> onChange { copy(music = path) } },
-            isMissing = isMissing,
+            canChooseNone = true,
         )
     }
 }

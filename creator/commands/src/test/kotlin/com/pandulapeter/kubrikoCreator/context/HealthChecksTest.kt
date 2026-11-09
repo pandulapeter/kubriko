@@ -167,4 +167,14 @@ class HealthChecksTest {
         "Ball: the timerFinished Event of speedUp never fires, since no startTimer Block of its family starts it.",
         HealthFinding(HealthFinding.Kind.TIMER_NEVER_STARTED, RelationSubject.Type("Ball"), "speedUp").toString(),
     )
+
+    @Test
+    fun aScenesMusicThatIsGoneIsReportedOnlyWhenTheFilesAreKnown() {
+        val music = mapOf("main" to "files/theme.mp3", "boss" to "files/boss.mp3")
+        assertEquals(
+            listOf(HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Scene("boss"), "Scene boss", usage = "files/boss.mp3")),
+            MissingReferenceChecks.of(emptyList(), ProjectRelations(emptyList(), emptyMap()), music.keys, AudioFiles(music = listOf("files/theme.mp3")), music),
+        )
+        assertEquals(emptyList(), MissingReferenceChecks.of(emptyList(), ProjectRelations(emptyList(), emptyMap()), music.keys, null, music))
+    }
 }
