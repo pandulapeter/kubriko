@@ -81,9 +81,9 @@ internal class EndToEndScenario(
      */
     fun awaitGame(imageName: String, timeout: Duration = GAME_TIMEOUT, isReady: (BufferedImage) -> Boolean): BufferedImage = poll(timeout, CreatorTools.POLLING_INTERVAL) { remaining ->
         if (!remaining.isPositive()) {
-            captureGame(imageName, timeout = MINIMUM_CALL_TIMEOUT)
+            captureGame(imageName)
         } else {
-            callOrNull("take_screenshot", emptyMap(), remaining)?.png?.let(::decode)?.takeIf(isReady)?.also { save(imageName, it) }
+            callForWait("take_screenshot", emptyMap(), remaining)?.png?.let(::decode)?.takeIf(isReady)?.also { save(imageName, it) }
         }
     }
 
@@ -98,11 +98,7 @@ internal class EndToEndScenario(
      * Calls [tool] with [arguments] until it succeeds, failing the step when it still fails after [timeout].
      */
     fun awaitSuccess(tool: String, arguments: Map<String, Any?>, timeout: Duration = 15.seconds): ToolResult = poll(timeout, CreatorTools.POLLING_INTERVAL) { remaining ->
-        if (!remaining.isPositive()) {
-            tools.call(tool, arguments, timeout = MINIMUM_CALL_TIMEOUT)
-        } else {
-            callOrNull(tool, arguments, remaining)?.takeIf { !it.isError }
-        }
+        callForWait(tool, arguments, remaining)?.takeIf { !remaining.isPositive() || !it.isError }
     }.also { assertFalse(it.isError, "$tool failed: ${it.text}") }
 
     /**
@@ -110,7 +106,7 @@ internal class EndToEndScenario(
      */
     fun awaitConsole(line: String, timeout: Duration = 30.seconds) {
         poll(timeout, CreatorTools.POLLING_INTERVAL) { remaining ->
-            val console = if (remaining.isPositive()) callOrNull("read_console", emptyMap(), remaining)?.text.orEmpty() else tools.call("read_console", timeout = MINIMUM_CALL_TIMEOUT).text
+            val console = callForWait("read_console", emptyMap(), remaining)?.text.orEmpty()
             when {
                 line in console -> true
                 !remaining.isPositive() -> error("The console never showed \"$line\":\n$console")
@@ -132,7 +128,7 @@ internal class EndToEndScenario(
     /**
      * What [attempt] returns once it returns something, trying again every [interval] until [timeout] has passed. Each
      * attempt is told how much of the timeout is left; the last, told none is, returns or throws. A wait outlasts its
-     * timeout by at most two tool calls of [MINIMUM_CALL_TIMEOUT].
+     * timeout by at most one call of [MINIMUM_CALL_TIMEOUT] and its last call ([callForWait]).
      */
     private inline fun <T : Any> poll(timeout: Duration, interval: Duration, attempt: (remaining: Duration) -> T?): T {
         val deadline = System.nanoTime() + timeout.inWholeNanoseconds
@@ -146,14 +142,18 @@ internal class EndToEndScenario(
 
     /**
      * What [tool] answers within what is [remaining] of a wait (at least [MINIMUM_CALL_TIMEOUT]), or null when the call
-     * fails on the way, which a wait takes for not ready yet. An interrupt is never taken for that.
+     * fails on the way, which a wait takes for not ready yet; an interrupt never is. The last call, once nothing is
+     * left, may take as long as any call and throws what it meets, so the wait says why it gave up.
      */
-    private fun callOrNull(tool: String, arguments: Map<String, Any?>, remaining: Duration): ToolResult? = try {
-        tools.call(tool, arguments, timeout = remaining.coerceIn(MINIMUM_CALL_TIMEOUT, CreatorTools.DEFAULT_TIMEOUT))
-    } catch (exception: InterruptedException) {
-        throw exception
-    } catch (_: Exception) {
-        null
+    private fun callForWait(tool: String, arguments: Map<String, Any?>, remaining: Duration): ToolResult? {
+        if (!remaining.isPositive()) return tools.call(tool, arguments)
+        return try {
+            tools.call(tool, arguments, timeout = remaining.coerceIn(MINIMUM_CALL_TIMEOUT, CreatorTools.DEFAULT_TIMEOUT))
+        } catch (exception: InterruptedException) {
+            throw exception
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private fun decode(png: ByteArray): BufferedImage? = try {

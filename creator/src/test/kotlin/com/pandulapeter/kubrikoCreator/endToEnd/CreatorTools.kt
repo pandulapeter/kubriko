@@ -50,9 +50,17 @@ internal class CreatorTools(
     private var client: Client? = null
 
     /**
-     * Calls [tool] with [arguments], waiting at most [timeout] for its answer, and connecting first if needed.
+     * Calls [tool] with [arguments], waiting at most [timeout] for its answer, and connecting first if needed. A call
+     * that fails on the way drops the connection, so the next one opens a new one rather than failing alike.
      */
-    fun call(tool: String, arguments: Map<String, Any?> = emptyMap(), timeout: Duration = DEFAULT_TIMEOUT): ToolResult = runBlocking { answer(tool, arguments, timeout) }
+    fun call(tool: String, arguments: Map<String, Any?> = emptyMap(), timeout: Duration = DEFAULT_TIMEOUT): ToolResult = runBlocking {
+        try {
+            answer(tool, arguments, timeout)
+        } catch (exception: Exception) {
+            disconnect()
+            throw exception
+        }
+    }
 
     /**
      * Waits until the server answers and a project is open in Kubriko Creator, which happens once its window has opened
