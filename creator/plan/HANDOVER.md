@@ -25,10 +25,13 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Start `01-known-issues.md` at its first item (wide families regenerating quadratically) and go through it in order, then `02`.
+Continue `01-known-issues.md` at its first item (the Block editor rebuilding the project's scope per keystroke) and go through
+it in order, then `02`.
 
-The last session only reorganized `plan/` (documentation, no code, so no review was owed) and added the rule on Claude's names and
-sign-in to `../CLAUDE.md` → AI.
+The last session fixed wide families regenerating quadratically (`GeneratedFamilies`, a children map in `ActorTypeFamily`, and a
+family of 100 in `BenchmarkProject`: an edit's regeneration went from about 1.3 s to 40 ms, opening the benchmark project from
+2.4 s to 0.15 s), reviewed with `/code-review` (each family's scopes are now built from what they share, through
+`BlockScope.ofFamily`; two findings changed no behavior and were left), and added `renumber_creator_plans.py` to the plan process (`README.md`).
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 

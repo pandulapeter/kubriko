@@ -14,7 +14,10 @@ introduces that the code can't show. Each topic has a file of its own, so a sess
 
 Finishing an item takes one more step before the next starts: run `/code-review` on the item's commits (`git log` from where it
 started), fix what it finds in commits of their own, verify it with unit tests first and with an end-to-end scenario only where
-`../CLAUDE.md` → Running and testing asks for one (never leaving a check to the user), and only then delete the item here. The review checks the change against
+`../CLAUDE.md` → Running and testing asks for one (never leaving a check to the user), and only then delete the item here. A file
+left with no items is deleted too, and `python3 .github/scripts/renumber_creator_plans.py` (from the repository's root) then
+numbers the rest again and rewrites every reference to them, in the same commit; given the files' names without their numbers
+(`blocks git`), it puts those first in that order instead, which is how the roadmap is reordered. The review checks the change against
 `../CLAUDE.md` → Definition of done, so what a whole-codebase sweep would find later is found while the item is fresh.
 
 [HANDOVER.md](HANDOVER.md) is where the last session stopped: start there.
