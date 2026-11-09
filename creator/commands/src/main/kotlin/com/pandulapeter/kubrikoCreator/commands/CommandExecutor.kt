@@ -107,11 +107,7 @@ public class CommandExecutor(
      * for an AI client, the revision it made and what it changed ([writeSummary]).
      */
     private suspend fun execute(invocation: Invocation<*>, origin: AiStepOrigin?, isByAi: Boolean): CommandOutcome = changes.withLock {
-        try {
-            applyChange(invocation, origin, isByAi)
-        } finally {
-            deliverSceneChanges()
-        }
+        deliveringSceneChanges { applyChange(invocation, origin, isByAi) }
     }
 
     private suspend fun applyChange(invocation: Invocation<*>, origin: AiStepOrigin?, isByAi: Boolean): CommandOutcome {
@@ -177,14 +173,9 @@ public class CommandExecutor(
     private suspend fun step(isUndo: Boolean, isUsers: Boolean): CommandOutcome? = changes.withLock {
         var stepped: Stepped? = null
         try {
-            stepped = stepHistory(isUndo)
-            stepped?.outcome
+            deliveringSceneChanges { stepHistory(isUndo).also { stepped = it }?.outcome }
         } finally {
-            try {
-                deliverSceneChanges()
-            } finally {
-                if (isUsers) stepped?.broughtBack?.let(_broughtBack::tryEmit)
-            }
+            if (isUsers) stepped?.broughtBack?.let(_broughtBack::tryEmit)
         }
     }
 
@@ -313,6 +304,25 @@ public class CommandExecutor(
             is CommandTarget.Document -> changed.path
             else -> null
         }
+    }
+
+    /**
+     * Runs [change], then hands over the Scene changes it made, even when it throws. A delivery that fails then is added to
+     * the change's own failure as suppressed rather than hiding it.
+     */
+    private inline fun <T> deliveringSceneChanges(change: () -> T): T {
+        val result = try {
+            change()
+        } catch (throwable: Throwable) {
+            try {
+                deliverSceneChanges()
+            } catch (deliveryFailure: Throwable) {
+                throwable.addSuppressed(deliveryFailure)
+            }
+            throw throwable
+        }
+        deliverSceneChanges()
+        return result
     }
 
     private fun deliverSceneChanges() {

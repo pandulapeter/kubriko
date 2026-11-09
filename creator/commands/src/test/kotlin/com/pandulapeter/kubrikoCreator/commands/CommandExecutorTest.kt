@@ -408,6 +408,23 @@ class CommandExecutorTest {
     }
 
     @Test
+    fun aFailedDeliveryDoesntHideWhatTheChangeOrStepThrew() = runTest {
+        val context = commandContext()
+        val executor = CommandExecutor(context = context, scope = testScope(), onSceneChanges = { throw IllegalStateException("Not delivered.") })
+        val breaking = command("breaking") {
+            @OptIn(EditorMutation::class)
+            context.scenes.write("level", "[]")
+            throw AssertionError("Broken.")
+        }
+        val revertedByBreaking = command("revertedByBreaking") { Applied(inverse = Invocation(breaking, NoInput)) }
+        val changeFailure = assertFailsWith<AssertionError> { executor.execute(Invocation(breaking, NoInput)) }
+        assertEquals(listOf("Not delivered."), changeFailure.suppressed.map { it.message })
+        executor.execute(Invocation(revertedByBreaking, NoInput))
+        val stepFailure = assertFailsWith<AssertionError> { executor.step(isUndo = true) }
+        assertEquals(listOf("Not delivered."), stepFailure.suppressed.map { it.message })
+    }
+
+    @Test
     fun cancellationIsNotARejection() = runTest {
         val (executor, _) = executor()
         val cancelled = command("cancelled") { throw CancellationException("Stopped.") }
