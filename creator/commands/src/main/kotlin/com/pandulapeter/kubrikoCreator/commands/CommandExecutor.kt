@@ -42,7 +42,9 @@ import kotlinx.serialization.json.JsonObject
  * there for tool calls.
  *
  * @param onSceneChanges Receives what each command, undo, or redo changed in the Scene files, as the Scenes recorded it,
- *   once it finished (whether it succeeded or not), still holding the change lock.
+ *   once it finished (whether it succeeded or not), still holding the change lock. Changes it throws on are handed to it
+ *   again with the next ones, and its failure never hides what the command threw, nor fails one that succeeded: that
+ *   one's goes to the scope's handler.
  */
 public class CommandExecutor(
     public val context: CommandContext,
@@ -60,6 +62,7 @@ public class CommandExecutor(
      */
     public val aiSteps: StateFlow<List<AiStep>> = _aiSteps.asStateFlow()
     private var nextAiStepId = 0
+    private var undeliveredSceneChanges = emptyList<SceneChange>()
     private val _broughtBack = MutableSharedFlow<ActorsBroughtBack>(extraBufferCapacity = BROUGHT_BACK_BUFFER, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     /**
@@ -168,15 +171,13 @@ public class CommandExecutor(
 
     /**
      * @param isUsers Whether the user stepped ([undo], [redo]), whose step announces what it brought back ([broughtBack])
-     *   once its Scenes are delivered, still holding the change lock, so a later step's announcement can't come first.
+     *   once its Scenes are delivered (and not when they couldn't be), still holding the change lock, so a later step's
+     *   announcement can't come first.
      */
     private suspend fun step(isUndo: Boolean, isUsers: Boolean): CommandOutcome? = changes.withLock {
-        var stepped: Stepped? = null
-        try {
-            deliveringSceneChanges { stepHistory(isUndo).also { stepped = it }?.outcome }
-        } finally {
-            if (isUsers) stepped?.broughtBack?.let(_broughtBack::tryEmit)
-        }
+        deliveringSceneChanges(afterDelivery = { stepped -> if (isUsers) stepped?.broughtBack?.let(_broughtBack::tryEmit) }) {
+            stepHistory(isUndo)
+        }?.outcome
     }
 
     private class Stepped(val outcome: CommandOutcome, val broughtBack: ActorsBroughtBack? = null)
@@ -307,27 +308,31 @@ public class CommandExecutor(
     }
 
     /**
-     * Runs [change], then hands over the Scene changes it made, even when it throws. A delivery that fails then is added to
-     * the change's own failure as suppressed rather than hiding it.
+     * Runs [change], then hands over the Scene changes it made, even when it throws, and calls [afterDelivery] once they
+     * were handed over. A delivery that fails is added to the change's own failure as suppressed rather than hiding it,
+     * and after a change that succeeded goes to the scope's handler, since the change was made all the same.
      */
-    private inline fun <T> deliveringSceneChanges(change: () -> T): T {
+    private inline fun <T> deliveringSceneChanges(afterDelivery: (T) -> Unit = {}, change: () -> T): T {
         val result = try {
             change()
         } catch (throwable: Throwable) {
-            try {
-                deliverSceneChanges()
-            } catch (deliveryFailure: Throwable) {
-                throwable.addSuppressed(deliveryFailure)
-            }
+            deliveryFailure()?.takeIf { it !== throwable }?.let(throwable::addSuppressed)
             throw throwable
         }
-        deliverSceneChanges()
+        when (val failure = deliveryFailure()) {
+            null -> afterDelivery(result)
+            is CancellationException -> throw failure
+            else -> scope.launch { throw failure }
+        }
         return result
     }
 
-    private fun deliverSceneChanges() {
-        context.scenes.takeChanges().takeIf { it.isNotEmpty() }?.let(onSceneChanges)
-    }
+    private fun deliveryFailure(): Throwable? = runCatching {
+        val changes = undeliveredSceneChanges + context.scenes.takeChanges()
+        undeliveredSceneChanges = changes
+        if (changes.isNotEmpty()) onSceneChanges(changes)
+        undeliveredSceneChanges = emptyList()
+    }.exceptionOrNull()
 
     private fun rejectInput(name: String, command: EditorCommand<*>, exception: Exception, origin: AiStepOrigin?, clientName: String?): CommandOutcome {
         val rejection = Rejection(CommandProblem.INPUT_INVALID, InputProblem.describe(exception.message))

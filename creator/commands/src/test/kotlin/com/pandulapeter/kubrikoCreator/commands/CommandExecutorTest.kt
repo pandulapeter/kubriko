@@ -36,7 +36,11 @@ import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -407,10 +411,30 @@ class CommandExecutorTest {
         assertEquals(emptyList(), context.names())
     }
 
+    private class FailingDelivery {
+        var failures = 0
+        var failure: Throwable? = null
+        val delivered = mutableListOf<List<SceneChange>>()
+        val unexpected = mutableListOf<Throwable>()
+
+        fun TestScope.executorOver(context: CommandContext) = CommandExecutor(
+            context = context,
+            scope = CoroutineScope(backgroundScope.coroutineContext + SupervisorJob(backgroundScope.coroutineContext[Job]) + UnconfinedTestDispatcher(testScheduler) + CoroutineExceptionHandler { _, throwable -> unexpected += throwable }),
+            onSceneChanges = { changes ->
+                if (failures > 0) {
+                    failures--
+                    throw failure ?: IllegalStateException("Not delivered.")
+                }
+                delivered += changes
+            },
+        )
+    }
+
     @Test
     fun aFailedDeliveryDoesntHideWhatTheChangeOrStepThrew() = runTest {
         val context = commandContext()
-        val executor = CommandExecutor(context = context, scope = testScope(), onSceneChanges = { throw IllegalStateException("Not delivered.") })
+        val delivery = FailingDelivery().apply { failures = 3 }
+        val executor = with(delivery) { executorOver(context) }
         val breaking = command("breaking") {
             @OptIn(EditorMutation::class)
             context.scenes.write("level", "[]")
@@ -422,6 +446,58 @@ class CommandExecutorTest {
         executor.execute(Invocation(revertedByBreaking, NoInput))
         val stepFailure = assertFailsWith<AssertionError> { executor.step(isUndo = true) }
         assertEquals(listOf("Not delivered."), stepFailure.suppressed.map { it.message })
+        assertEquals(listOf("Not delivered."), delivery.unexpected.map { it.message })
+    }
+
+    @Test
+    fun aDeliveryThrowingWhatTheChangeThrewThrowsItOnce() = runTest {
+        val context = commandContext()
+        val shared = AssertionError("Broken.")
+        val delivery = FailingDelivery().apply {
+            failures = 1
+            failure = shared
+        }
+        val executor = with(delivery) { executorOver(context) }
+        val breaking = command("breaking") {
+            @OptIn(EditorMutation::class)
+            context.scenes.write("level", "[]")
+            throw shared
+        }
+        assertEquals(shared, assertFailsWith<AssertionError> { executor.execute(Invocation(breaking, NoInput)) })
+        assertEquals(emptyList(), shared.suppressed.toList())
+    }
+
+    @Test
+    fun aFailedDeliveryOfAChangeThatWasMadeKeepsItAndItsSceneChangesForTheNextDelivery() = runTest {
+        val context = commandContext()
+        val delivery = FailingDelivery().apply { failures = 1 }
+        val executor = with(delivery) { executorOver(context) }
+        assertIs<CommandOutcome.Success>(executor.execute(Invocation(CreateScene, CreateScene.Input("a"))))
+        assertEquals("create_scene", executor.history.value.nextUndoCommandName)
+        assertEquals(listOf("Not delivered."), delivery.unexpected.map { it.message })
+        assertEquals(emptyList(), delivery.delivered)
+        executor.execute(Invocation(CreateScene, CreateScene.Input("b")))
+        assertEquals<List<List<SceneChange>>>(listOf(listOf(SceneChange.Written("a", isNew = true), SceneChange.Written("b", isNew = true))), delivery.delivered)
+    }
+
+    @Test
+    fun theUsersUndoWhoseSceneIsNotDeliveredDoesntTellWhatItBroughtBack() = runTest {
+        val context = commandContext()
+        val wall = SceneActorEntry("Wall", """{"body":{"position":{"x":1.0,"y":2.0}}}""", "wall")
+        @OptIn(EditorMutation::class)
+        context.scenes.write("main", SceneDocument.format(listOf(wall)))
+        context.scenes.takeChanges()
+        val delivery = FailingDelivery()
+        val executor = with(delivery) { executorOver(context) }
+        val broughtBack = mutableListOf<ActorsBroughtBack>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { executor.broughtBack.collect(broughtBack::add) }
+        executor.execute(Invocation(RemoveActor, RemoveActor.Input("main", "wall")))
+        delivery.failures = 1
+        executor.undo()
+        runCurrent()
+        assertEquals(SceneDocument.format(listOf(wall)), context.scenes.read("main"))
+        assertEquals(listOf("Not delivered."), delivery.unexpected.map { it.message })
+        assertEquals(emptyList(), broughtBack)
     }
 
     @Test
