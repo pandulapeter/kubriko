@@ -50,8 +50,8 @@ import kubriko.creator.generated.resources.ic_history
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Version control for the project: what changed since the last commit, a message and a button to commit it, and the
- * history of commits.
+ * Version control for the project: a message and a button to commit what changed since the last commit, above what
+ * changed so that a long list of changes never pushes them out of sight, and the history of commits.
  *
  * @param onCommit Commits the changes with the message, calling `onCommitted` once they are committed, which clears the
  * message (a commit that fails keeps it).
@@ -116,6 +116,21 @@ private fun Repository(
                 )
             }
         }
+        if (state.changes.isNotEmpty()) {
+            if (areScreenplayRemindersShown && isScreenplayReminderDue(state.changes)) {
+                item { ScreenplayReminder(modifier = Modifier.padding(top = 8.dp)) }
+            }
+            item {
+                CommitForm(
+                    message = message,
+                    onMessageChange = { message = it },
+                    onCommit = {
+                        val sent = message
+                        onCommit(sent) { if (message == sent) message = "" }
+                    },
+                )
+            }
+        }
         item {
             Text(
                 modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 4.dp),
@@ -138,21 +153,6 @@ private fun Repository(
                 entry = entry,
                 onDiscard = { entryToDiscard = entry },
             )
-        }
-        if (state.changes.isNotEmpty()) {
-            if (areScreenplayRemindersShown && isScreenplayReminderDue(state.changes)) {
-                item { ScreenplayReminder(modifier = Modifier.padding(top = 8.dp)) }
-            }
-            item {
-                CommitForm(
-                    message = message,
-                    onMessageChange = { message = it },
-                    onCommit = {
-                        val sent = message
-                        onCommit(sent) { if (message == sent) message = "" }
-                    },
-                )
-            }
         }
         item {
             Column {

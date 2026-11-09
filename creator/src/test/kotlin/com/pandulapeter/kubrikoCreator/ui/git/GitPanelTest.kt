@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ui.git
 
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -50,6 +51,18 @@ class GitPanelTest {
         waitForIdle()
         onNodeWithText("Make the Ball faster").assertDoesNotExist()
         onNodeWithText("What did you change?").assertExists()
+    }
+
+    @Test
+    fun theCommitFormComesBeforeEveryChangeSoABigChangeSetDoesNotHideIt() = uiTest {
+        val changes = (1..60).map { ChangeEntry("Type$it", ChangeKind.MODIFIED, listOf("Type$it.kt"), isBlockType = true) }
+        val many = MutableStateFlow<GitState>(GitState.Ready("main", changes, emptyList()))
+        showing { GitPanel(state = many, onStartVersionControl = {}, onCommit = { _, _ -> }, onDiscard = {}) }
+        onNodeWithText("What did you change?").assertIsDisplayed()
+        onNodeWithText("Commit").assertIsDisplayed()
+        onNodeWithText("Type1").assertIsDisplayed()
+        onNodeWithText("Type60").assertDoesNotExist()
+        saveSnapshot("git-many-changes")
     }
 
     @Test
