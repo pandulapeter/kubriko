@@ -25,7 +25,7 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `01-known-issues.md` at its first item (creating a project that fails losing the form) and go through it in order,
+Continue `01-known-issues.md` at its first item (creating a project that can't be cancelled) and go through it in order,
 then `02`.
 
 This session works through Mistakes and failures in the first hour, each item reviewed with `/code-review` and its findings
@@ -38,6 +38,12 @@ fixed in commits of their own:
   reported in the console. A newer format's project whose settings this Creator can't read opens without its types, since
   browsing needs none. `UnreadableProjectFileException` is an `IOException`, so what already gave up on an unreadable file
   still does. Opening reads the small file twice (the format, then the store), more only while migrating.
+- A creation that fails comes back to the whole form (`AppScreen.NewProject.form`; the request would lose the template
+  chosen before an idea), saying why: `CreationFailure` tells no network, a full disk, and a refused folder from the
+  causes (by class name, since the Gradle daemon's arrive as placeholders), blames a folder only when a path names it,
+  and otherwise names the root cause. `KubrikoAvailability.lookUp` tells a missing version, no network, and an error
+  answer (a proxy) apart; `invoke` still says only whether it was found. Writability is checked first with
+  `Files.isWritable`, skipped when no folder above the location exists (an unplugged drive).
 
 The last session finished every item of Costs that grow with the project, each reviewed with `/code-review` and its findings fixed in commits of
 their own:

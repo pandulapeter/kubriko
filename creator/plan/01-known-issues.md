@@ -16,9 +16,6 @@ caught it, and the review (`README.md`).
 
 What someone who knows neither Kotlin nor Gradle meets when something goes wrong:
 
-- **Creating a project that fails loses the form.** `AppScreen.NewProject(error = …)` comes back with an empty form, since its state
-  lives in `NewProjectScreen`'s `remember`, and `error_project_not_created` never says why. Fix: keep the request in
-  `AppScreen.NewProject` and show the cause (network, disk, or permission).
 - **Creating a project can't be cancelled.** Opening one can, but `ProgressScreen` offers no Cancel while a project is created, and a
   first project waiting minutes for Gradle's download leaves only quitting. `ProjectGenerator.create` blocks, so cancelling the job
   alone would let it finish writing in the background. Fix: make the wrapper download cancellable, and remove the folder when
