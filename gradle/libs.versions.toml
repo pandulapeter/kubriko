@@ -24,9 +24,9 @@ jamepad = "2.30.0.0" # https://github.com/libgdx/jamepad/releases
 jbr-api = "1.12.0" # https://github.com/JetBrains/JetBrainsRuntimeApi/releases
 jlayer = "1.0.6" # https://github.com/umjammer/jlayer/releases
 kotlin = "2.4.21" # https://github.com/JetBrains/kotlin/releases
-gradle-toolingApi = "9.8.2" # https://gradle.org/releases/
-jgit = "7.8.0.202609011348-r" # https://github.com/eclipse-jgit/jgit/tags
-ktor = "3.6.0" # https://github.com/ktorio/ktor/releases (also lifts the MCP SDK's own Ktor modules to this version)
+gradle-toolingApi = "9.9.0" # https://gradle.org/releases/
+jgit = "7.8.1.202611041320-r" # https://github.com/eclipse-jgit/jgit/tags
+ktor = "3.6.1" # https://github.com/ktorio/ktor/releases (also lifts the MCP SDK's own Ktor modules to this version)
 kotlinx-coroutines = "1.11.0" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinx-datetime = "0.8.0" # https://github.com/Kotlin/kotlinx-datetime/releases
 kotlinx-immutable = "0.5.2" # https://github.com/Kotlin/kotlinx.collections.immutable/releases
@@ -34,7 +34,7 @@ kotlinx-immutable = "0.5.2" # https://github.com/Kotlin/kotlinx.collections.immu
 ktlint = "1.8.0" # https://github.com/pinterest/ktlint/releases
 kotlinx-serialization = "1.12.0" # https://github.com/Kotlin/kotlinx.serialization/releases
 mcp = "0.16.0" # https://github.com/modelcontextprotocol/kotlin-sdk/releases
-spotless = "8.10.4" # https://github.com/diffplug/spotless/blob/main/plugin-gradle/CHANGES.md
+spotless = "8.11.0" # https://github.com/diffplug/spotless/blob/main/plugin-gradle/CHANGES.md
 vanniktech-publish = "0.37.0" # https://github.com/vanniktech/gradle-maven-publish-plugin/releases
 
 [libraries]
