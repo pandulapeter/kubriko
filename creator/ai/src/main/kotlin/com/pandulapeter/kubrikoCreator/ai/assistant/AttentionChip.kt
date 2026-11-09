@@ -87,18 +87,22 @@ public sealed interface AttentionChip {
 
         /**
          * The chips for the editor's state: the open Scene, otherwise the selected type, and the console's latest problem,
-         * unless something went well after it.
+         * unless something went well after it ([latestProblem], as `ConsoleLines.latestProblem` keeps it).
          */
         public fun of(
             openScene: String?,
             selectedType: String?,
             isSelectedTypeManager: Boolean,
-            console: List<ConsoleEntry>,
+            latestProblem: ConsoleEntry?,
             canSendGameScreen: Boolean = false,
         ): List<AttentionChip> = listOfNotNull(
             openScene?.let(::Scene),
             selectedType?.takeIf { openScene == null }?.let { BlockType(it, isSelectedTypeManager) },
-            latestProblemOf(console),
+            when (latestProblem) {
+                is ConsoleEntry.Problem -> Problem(latestProblem.message, latestProblem.location)
+                is ConsoleEntry.SessionFailure -> Problem(latestProblem.message, null)
+                else -> null
+            },
             GameScreen.takeIf { canSendGameScreen },
         )
 
@@ -112,18 +116,6 @@ public sealed interface AttentionChip {
             } else {
                 listOf(chip.toContent())
             }
-        }
-
-        private fun latestProblemOf(console: List<ConsoleEntry>): Problem? {
-            for (index in console.indices.reversed()) {
-                when (val entry = console[index]) {
-                    is ConsoleEntry.Problem -> return Problem(entry.message, entry.location)
-                    is ConsoleEntry.SessionFailure -> return Problem(entry.message, null)
-                    is ConsoleEntry.Status -> if (!entry.isError) return null
-                    is ConsoleEntry.BuildOutput, is ConsoleEntry.Log -> Unit
-                }
-            }
-            return null
         }
     }
 }

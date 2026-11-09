@@ -22,30 +22,23 @@ import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
 import com.pandulapeter.kubrikoCreator.ui.components.PanelSplitter
 import com.pandulapeter.kubrikoCreator.ui.components.PanelWidths.Panel
 import com.pandulapeter.kubrikoCreator.ui.components.rememberPanelHeight
-import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import kotlinx.coroutines.flow.StateFlow
 
 /**
  * The workspace's console under a splitter that resizes it (opening it when it is closed), in a column [availableHeight]
- * tall. It opens by itself for lines worth seeing ([ConsoleOpening]), what the game logs once per play session.
- *
- * @param sessionState The game's session, whose start counts as a new play session.
+ * tall. It opens by itself for lines worth seeing that arrive while it is shown ([ConsoleOpening]), what the game logs
+ * once per play session.
  */
 @Composable
 internal fun WorkspaceConsole(
     lines: StateFlow<ConsoleLines>,
-    sessionState: SessionState,
     onClear: () -> Unit,
     panelLayout: PanelLayout,
     availableHeight: Dp,
 ) {
     val console by lines.collectAsState()
     var isExpanded by remember { mutableStateOf(false) }
-    val opening = remember { ConsoleOpening() }
-    val isStartingToPlay = sessionState is SessionState.Starting
-    LaunchedEffect(isStartingToPlay) {
-        if (isStartingToPlay) opening.onPlayStarted()
-    }
+    val opening = remember(lines) { ConsoleOpening(lines.value) }
     LaunchedEffect(console.revision) {
         if (opening.opensFor(console)) isExpanded = true
     }

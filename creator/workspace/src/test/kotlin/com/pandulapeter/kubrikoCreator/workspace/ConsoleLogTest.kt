@@ -91,4 +91,37 @@ class ConsoleLogTest {
         log.append(line(1))
         assertTrue(runCatching { log.lines.value.entries[1] }.exceptionOrNull() is IndexOutOfBoundsException)
     }
+
+    @Test
+    fun theLatestProblemIsKeptUntilSomethingGoesWellAfterItOrItIsDropped() {
+        val log = ConsoleLog(capacity = 3)
+        val problem = ConsoleEntry.Problem("Unresolved reference: speed", "Ball.kt:12")
+        log.append(ConsoleEntry.Status(WorkspaceStatus.BUILT))
+        log.append(problem)
+        log.append(ConsoleEntry.BuildOutput("FAILURE"))
+        log.append(ConsoleEntry.Status(WorkspaceStatus.BUILT, isError = true))
+        assertEquals(problem, log.lines.value.latestProblem)
+        log.append(ConsoleEntry.Log("Tick", source = null, isImportant = false))
+        log.append(ConsoleEntry.Log("Tick", source = null, isImportant = false))
+        assertEquals(null, log.lines.value.latestProblem, "dropped with the oldest lines")
+        log.append(ConsoleEntry.SessionFailure("The game stopped"))
+        assertEquals(ConsoleEntry.SessionFailure("The game stopped"), log.lines.value.latestProblem)
+        log.append(ConsoleEntry.Status(WorkspaceStatus.BUILT))
+        assertEquals(null, log.lines.value.latestProblem)
+        log.append(problem)
+        log.clear()
+        assertEquals(null, log.lines.value.latestProblem)
+    }
+
+    @Test
+    fun aNewPlaySessionIsANewRevision() {
+        val log = ConsoleLog(capacity = 3)
+        log.startPlaySession()
+        assertEquals(ConsoleLines(revision = 1, playSession = 1), log.lines.value)
+    }
+
+    @Test
+    fun aConsoleKeepsAtLeastOneLine() {
+        assertTrue(runCatching { ConsoleLog(capacity = 0) }.exceptionOrNull() is IllegalArgumentException)
+    }
 }

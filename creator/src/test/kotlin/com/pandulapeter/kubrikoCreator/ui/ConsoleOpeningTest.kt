@@ -20,31 +20,46 @@ class ConsoleOpeningTest {
     private val chatter = ConsoleEntry.BuildOutput("> Task :compileKotlinDesktop")
     private val problem = ConsoleEntry.Problem("Unresolved reference", location = null)
 
-    private fun lines(revision: Long, vararg entries: ConsoleEntry) = ConsoleLines(revision, entries.toList())
+    private var lineCount = 0L
+
+    /**
+     * The console after [added] more lines, of which [entries] are the newest, in play session [playSession].
+     */
+    private fun lines(added: Int, vararg entries: ConsoleEntry, playSession: Int = 0): ConsoleLines {
+        lineCount += added
+        return ConsoleLines(revision = lineCount, entries = entries.toList(), firstNumber = lineCount - entries.size, playSession = playSession)
+    }
 
     @Test
     fun whatTheGameLogsOpensTheConsoleOncePerPlaySession() {
-        val opening = ConsoleOpening()
+        val opening = ConsoleOpening(ConsoleLines())
         assertEquals(true, opening.opensFor(lines(1, log)))
-        assertEquals(false, opening.opensFor(lines(2, log, log)))
-        opening.onPlayStarted()
-        assertEquals(true, opening.opensFor(lines(3, log, log, log)))
+        assertEquals(false, opening.opensFor(lines(1, log, log)))
+        assertEquals(true, opening.opensFor(lines(1, log, log, log, playSession = 1)))
+        assertEquals(false, opening.opensFor(lines(1, log, log, log, log, playSession = 1)))
     }
 
     @Test
     fun problemsAndErrorsOpenItEveryTime() {
-        val opening = ConsoleOpening()
+        val opening = ConsoleOpening(ConsoleLines())
         assertEquals(true, opening.opensFor(lines(1, log)))
-        assertEquals(true, opening.opensFor(lines(2, log, problem)))
-        assertEquals(true, opening.opensFor(lines(3, log, problem, ConsoleEntry.Status(WorkspaceStatus.BUILT, isError = true))))
-        assertEquals(false, opening.opensFor(lines(4, log, problem, ConsoleEntry.Status(WorkspaceStatus.BUILT, isError = true), chatter)))
+        assertEquals(true, opening.opensFor(lines(1, log, problem)))
+        assertEquals(true, opening.opensFor(lines(1, log, problem, ConsoleEntry.Status(WorkspaceStatus.BUILT, isError = true))))
+        assertEquals(false, opening.opensFor(lines(1, log, problem, ConsoleEntry.Status(WorkspaceStatus.BUILT, isError = true), chatter)))
     }
 
     @Test
     fun everyLineAddedSinceTheLastLookCountsNotOnlyTheNewest() {
-        val opening = ConsoleOpening()
+        val opening = ConsoleOpening(ConsoleLines())
         assertEquals(false, opening.opensFor(lines(1, chatter)))
-        assertEquals(true, opening.opensFor(lines(4, chatter, problem, chatter, chatter)))
-        assertEquals(false, opening.opensFor(lines(4, chatter, problem, chatter, chatter)))
+        assertEquals(true, opening.opensFor(lines(3, chatter, problem, chatter, chatter)))
+        assertEquals(false, opening.opensFor(lines(0, chatter, problem, chatter, chatter)))
+    }
+
+    @Test
+    fun linesAlreadyThereWhenTheConsoleIsShownDontOpenIt() {
+        val opening = ConsoleOpening(lines(2, problem, log))
+        assertEquals(false, opening.opensFor(lines(0, problem, log)))
+        assertEquals(true, opening.opensFor(lines(1, problem, log, log)))
     }
 }

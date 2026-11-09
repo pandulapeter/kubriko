@@ -79,7 +79,7 @@ internal fun WorkspaceAiSidePanel(
                 openScene = openSceneName,
                 selectedType = selectedBlockType?.name,
                 isSelectedTypeManager = selectedBlockType is ManagerTypeDefinition,
-                console = consoleEntries.value.entries,
+                latestProblem = consoleEntries.value.latestProblem,
                 canSendGameScreen = sessionState is SessionState.Running && sessionState.target == PlayTarget.DESKTOP && isAcceptingImages.value,
             )
         }

@@ -20,17 +20,16 @@ class AttentionChipTest {
 
     @Test
     fun theOpenSceneComesBeforeTheSelectedTypeWhichItHides() {
-        assertEquals(listOf<AttentionChip>(AttentionChip.Scene("level-1")), AttentionChip.of("level-1", "Ball", false, emptyList()))
-        assertEquals(listOf<AttentionChip>(AttentionChip.BlockType("Score", true)), AttentionChip.of(null, "Score", true, emptyList()))
-        assertEquals(emptyList(), AttentionChip.of(null, null, false, emptyList()))
+        assertEquals(listOf<AttentionChip>(AttentionChip.Scene("level-1")), AttentionChip.of("level-1", "Ball", false, null))
+        assertEquals(listOf<AttentionChip>(AttentionChip.BlockType("Score", true)), AttentionChip.of(null, "Score", true, null))
+        assertEquals(emptyList(), AttentionChip.of(null, null, false, null))
     }
 
     @Test
-    fun theLatestProblemIsOfferedUntilSomethingGoesWellAfterIt() {
-        val failed = listOf(ConsoleEntry.Status(GitStatus.COMMITTED), problem, ConsoleEntry.BuildOutput("FAILURE"))
-        assertEquals(listOf<AttentionChip>(AttentionChip.Problem(problem.message, problem.location)), AttentionChip.of(null, null, false, failed))
-        assertEquals(emptyList(), AttentionChip.of(null, null, false, failed + ConsoleEntry.Status(GitStatus.COMMITTED)))
-        assertEquals(listOf<AttentionChip>(AttentionChip.Problem(problem.message, problem.location)), AttentionChip.of(null, null, false, failed + ConsoleEntry.Status(GitStatus.COMMITTED, isError = true)))
+    fun theLatestProblemIsOfferedAsText() {
+        assertEquals(listOf<AttentionChip>(AttentionChip.Problem(problem.message, problem.location)), AttentionChip.of(null, null, false, problem))
+        assertEquals(listOf<AttentionChip>(AttentionChip.Problem("The game stopped", null)), AttentionChip.of(null, null, false, ConsoleEntry.SessionFailure("The game stopped")))
+        assertEquals(emptyList(), AttentionChip.of(null, null, false, ConsoleEntry.BuildOutput("FAILURE")))
     }
 
     @Test
@@ -45,7 +44,7 @@ class AttentionChipTest {
 
     @Test
     fun theGameScreenIsOfferedOnlyWhenItCanBeSentAndIsCapturedWhenSent() = kotlinx.coroutines.test.runTest {
-        assertEquals(listOf<AttentionChip>(AttentionChip.GameScreen), AttentionChip.of(null, null, false, emptyList(), canSendGameScreen = true))
+        assertEquals(listOf<AttentionChip>(AttentionChip.GameScreen), AttentionChip.of(null, null, false, null, canSendGameScreen = true))
         val png = byteArrayOf(1, 2, 3)
         val sent = AttentionChip.contentOf(listOf(AttentionChip.Scene("main"), AttentionChip.GameScreen)) { png }
         assertEquals(3, sent.size)

@@ -148,6 +148,9 @@ class SessionControllerTest {
         assertTrue(build.runs[0].isCancelled, "the first session")
         assertFalse(build.currentRun.isCancelled)
         assertEquals(SessionState.Starting(SessionMode.PLAY), controller.state.value)
+        assertEquals(2, console.lines.value.playSession, "each play starts a play session of the console")
+        controller.playElsewhere(PlayTarget.WEB) { false }
+        assertEquals(3, console.lines.value.playSession)
     }
 
     @Test

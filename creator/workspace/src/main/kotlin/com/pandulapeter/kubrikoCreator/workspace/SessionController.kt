@@ -88,6 +88,7 @@ internal class SessionController(
         lastPrepareLaunch = prepareLaunch
         launchSession(PlayTarget.DESKTOP) {
             channel.expectSession()
+            console.startPlaySession()
             _state.value = SessionState.Starting(SessionMode.PLAY)
             when (val preparation = prepareLaunch()) {
                 is GameLaunchPreparation.Ready -> runGame(preparation.launch, systemPropertiesOf(firstScene)).also(::reportFailure).isSuccessful
@@ -106,6 +107,7 @@ internal class SessionController(
      * [run] calls its argument once the game is up, and plays until it returns whether it ended well, or is cancelled.
      */
     fun playElsewhere(target: PlayTarget, run: suspend (onUp: () -> Unit) -> Boolean) = launchSession(target) {
+        console.startPlaySession()
         _state.value = SessionState.Starting(SessionMode.PLAY, target)
         run {
             _state.value = SessionState.Running(SessionMode.PLAY, target)
