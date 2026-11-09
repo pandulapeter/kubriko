@@ -100,15 +100,16 @@ class ProjectChangesTest {
     @Test
     fun aScanStopsTheScansOnceTheScopeIsCancelled() = runTest {
         val scope = CoroutineScope(backgroundScope.coroutineContext + Job(backgroundScope.coroutineContext[Job]) + UnconfinedTestDispatcher(testScheduler) + CoroutineExceptionHandler { _, exception -> problems += exception })
-        val router = router(scope = scope) {
+        lateinit var router: ProjectChanges
+        router = router(scope = scope) {
             scanCount++
+            router.refreshResources()
             scope.cancel()
-            throw CancellationException("Closing.")
+            throw IllegalStateException("Broken while closing.")
         }
         router.refreshResources()
-        router.refreshResources()
         assertEquals(1, scanCount)
-        assertEquals(emptyList(), problems)
+        assertEquals(listOf("Broken while closing."), problems.map { it.message })
     }
 
     @Test

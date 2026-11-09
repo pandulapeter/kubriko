@@ -64,6 +64,8 @@ internal class ProjectChanges(
     init {
         scope.launch {
             for (first in resourceRefreshes) {
+                // A refresh queued before the scope was cancelled is received without a check, so no scan starts after it.
+                currentCoroutineContext().ensureActive()
                 var snapshot = first.snapshot
                 var isWalkNeeded = snapshot == null
                 while (true) {
@@ -73,7 +75,6 @@ internal class ProjectChanges(
                 try {
                     scanResources(if (isWalkNeeded) null else snapshot)
                 } catch (throwable: Throwable) {
-                    currentCoroutineContext().ensureActive()
                     scope.reportProblem(throwable)
                 }
             }
