@@ -25,7 +25,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -97,7 +96,8 @@ import org.jetbrains.compose.resources.stringResource
  * @param actorTypes The project's block-built Actor types.
  * @param music The project's music files, by their path from `composeResources`.
  * @param description What the Scene is for.
- * @param broughtBack The Actors each undo or redo put back: one put back into this Scene is selected.
+ * @param broughtBack The Actors each undo or redo put back: one put back into this Scene is selected once the Scene
+ *   shows it, unless it is the Scene settings.
  * @param onViewFailed Called when the project's code threw while the view of the Scene was being created.
  */
 @Composable
@@ -118,11 +118,9 @@ internal fun SceneEditorPane(
 ) = Column(
     modifier = modifier,
 ) {
-    var selectedId by remember(state.scene.file) { mutableStateOf<String?>(null) }
-    LaunchedEffect(broughtBack, state.sceneName) {
-        broughtBack.collect { actors -> restoredSelectionOf(actors, state.sceneName)?.let { selectedId = it } }
-    }
+    val selection = rememberSceneSelection(state, broughtBack)
     val view = rememberSceneView(state, onViewFailed) ?: return@Column ProgressScreen(stringResource(Res.string.scene_preparing, state.scene.name))
+    SelectingRestoredActor(selection, view)
     var isActorListShown by remember { mutableStateOf(false) }
     var isSettingsShown by remember(state.scene.file) { mutableStateOf(false) }
     SceneHeader(
@@ -157,7 +155,7 @@ internal fun SceneEditorPane(
     }
     state.problem?.let { problem -> InvalidSceneNotice(problem = problem, onOpenFile = { openInSystemEditor(state.scene.file) }) }
     val onRemove = { actorId: String ->
-        selectedId = null
+        selection.select(null)
         onCommand(Invocation(RemoveActor, RemoveActor.Input(state.sceneName, actorId)))
     }
     val actorListWidth = rememberPanelWidth(Panel.SCENE_ACTORS, panelLayout)
@@ -176,12 +174,12 @@ internal fun SceneEditorPane(
                     modifier = Modifier.sidePanel(actorListWidth.widthIn(row)),
                     entries = view.entries,
                     uncreatedIds = view.uncreatedIds,
-                    selectedId = selectedId,
+                    selectedId = selection.selectedId,
                     onSelect = { actorId ->
                         if (view.isBackground(actorId)) {
                             isSettingsShown = true
                         } else {
-                            selectedId = actorId
+                            selection.select(actorId)
                             view.centerOn(actorId)
                         }
                     },
@@ -194,14 +192,14 @@ internal fun SceneEditorPane(
                 actors = state.actors,
                 previews = state.previews,
                 isSceneReadable = state.problem == null,
-                selectedId = selectedId,
-                onSelect = { actorId -> selectedId = actorId?.takeUnless(view::isBackground) },
+                selectedId = selection.selectedId,
+                onSelect = { actorId -> selection.select(actorId?.takeUnless(view::isBackground)) },
                 onMove = { actorId, x, y -> onCommand(Invocation(MoveActor, MoveActor.Input(state.sceneName, actorId, x, y))) },
                 onRemove = onRemove,
                 dragState = actorTypeDragState,
                 onPlace = { actorTypeName, x, y ->
                     val actorId = SceneDocument.newId(view.entries.map { it.id })
-                    selectedId = actorId
+                    selection.select(actorId)
                     onCommand(Invocation(PlaceActor, PlaceActor.Input(state.sceneName, actorTypeName, x, y, actorId)))
                 },
             )
@@ -210,7 +208,7 @@ internal fun SceneEditorPane(
                 modifier = Modifier.sidePanel(inspectorWidth.widthIn(row)),
                 view = view,
                 sceneName = state.sceneName,
-                selectedId = selectedId,
+                selectedId = selection.selectedId,
                 actorTypes = actorTypes,
                 music = music,
                 onOpenSceneSettings = { isSettingsShown = true },

@@ -24,6 +24,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireType
 import com.pandulapeter.kubrikoCreator.commands.project.GetKubrikoApi
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
+import com.pandulapeter.kubrikoCreator.commands.scenes.PlaceActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
@@ -123,6 +124,30 @@ class CommandExecutorTest {
         executor.redo()
         runCurrent()
         assertEquals(1, broughtBack.size)
+    }
+
+    @Test
+    fun redoingAPlacementTellsWhichActorItBroughtBack() = runTest {
+        val context = commandContext(ball)
+        @OptIn(EditorMutation::class)
+        context.scenes.write("main", "[]")
+        val executor = CommandExecutor(context = context, scope = testScope(), onRejected = { rejections += it })
+        val broughtBack = mutableListOf<ActorsBroughtBack>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { executor.broughtBack.collect(broughtBack::add) }
+        executor.execute(Invocation(PlaceActor, PlaceActor.Input("main", "Ball", 1f, 2f, "ball")))
+        executor.undo()
+        executor.redo()
+        runCurrent()
+        assertEquals(listOf("ball"), broughtBack.single().actors.map { it.id })
+    }
+
+    @Test
+    fun aCompositeChangeTellsWhatItsPartsBroughtBackIntoOneScene() {
+        val ballEntry = SceneActorEntry("Ball", "{}", "ball")
+        val wallEntry = SceneActorEntry("Wall", "{}", "wall")
+        assertEquals(ActorsBroughtBack("main", listOf(ballEntry, wallEntry)), ActorsBroughtBack.merged(listOf(ActorsBroughtBack("main", listOf(ballEntry)), ActorsBroughtBack("main", listOf(wallEntry)))))
+        assertNull(ActorsBroughtBack.merged(listOf(ActorsBroughtBack("main", listOf(ballEntry)), ActorsBroughtBack("other", listOf(wallEntry)))))
+        assertNull(ActorsBroughtBack.merged(emptyList()))
     }
 
     @Test

@@ -145,15 +145,18 @@ internal fun CommandContext.validateRestorations(scene: String, restorations: Li
 /**
  * Puts [restorations], which [validateRestorations] accepted, into the Scene [scene], one after another.
  *
- * @return The IDs of the Actors put in, in the order given.
+ * @return The Actors put in, in the order given, each with its ID.
  */
 internal suspend fun CommandContext.restoreActors(scene: String, restorations: List<RestoreActors.Restored>): ActorsBroughtBack {
     val actors = readScene(scene).toMutableList()
     val ids = actors.mapTo(HashSet()) { it.id }
     restorations.forEach { restored -> restored.actorId?.let(ids::add) }
-    val restored = restorations.map { restored ->
-        SceneActorEntry(restored.typeId, restored.state, restored.actorId ?: SceneDocument.newId(ids).also(ids::add)).also { actors.add(restored.actorIndex, it) }
+    val restoredEntries = restorations.map { restored ->
+        val id = restored.actorId ?: SceneDocument.newId(ids).also(ids::add)
+        val entry = SceneActorEntry(restored.typeId, restored.state, id)
+        actors.add(restored.actorIndex, entry)
+        entry
     }
     writeScene(scene, actors)
-    return ActorsBroughtBack(scene, restored)
+    return ActorsBroughtBack(scene, restoredEntries)
 }

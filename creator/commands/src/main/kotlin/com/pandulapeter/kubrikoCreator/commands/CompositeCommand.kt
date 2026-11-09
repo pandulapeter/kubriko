@@ -41,6 +41,7 @@ internal object CompositeCommand : WriteCommand<CompositeCommand.Input> {
         var isRewritingFiles = false
         var result: JsonElement = JsonNull
         val details = LinkedHashMap<String, JsonElement>()
+        val broughtBack = ArrayList<ActorsBroughtBack>()
         input.parts.forEach { part ->
             part.validate(context)?.let { rejection ->
                 rollBack(context, inverses)
@@ -60,9 +61,16 @@ internal object CompositeCommand : WriteCommand<CompositeCommand.Input> {
             isRewritingFiles = isRewritingFiles || applied.isRewritingFiles
             result = applied.result
             applied.details?.let(details::putAll)
+            applied.broughtBack?.let(broughtBack::add)
         }
         val inverse = if (null in inverses) null else inverses.filterNotNull().asReversed().let { reverted -> reverted.singleOrNull() ?: Invocation(CompositeCommand, Input(reverted)) }
-        return Applied(inverse = inverse, result = result, isRewritingFiles = isRewritingFiles, details = details.takeIf { it.isNotEmpty() }?.let(::JsonObject))
+        return Applied(
+            inverse = inverse,
+            result = result,
+            isRewritingFiles = isRewritingFiles,
+            details = details.takeIf { it.isNotEmpty() }?.let(::JsonObject),
+            broughtBack = ActorsBroughtBack.merged(broughtBack),
+        )
     }
 
     /**

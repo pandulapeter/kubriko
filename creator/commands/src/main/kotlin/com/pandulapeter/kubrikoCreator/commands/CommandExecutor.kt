@@ -159,11 +159,7 @@ public class CommandExecutor(
     public fun redo(): Unit = stepForUser(isUndo = false)
 
     private fun stepForUser(isUndo: Boolean) {
-        scope.launch(start = CoroutineStart.UNDISPATCHED) {
-            var broughtBack: ActorsBroughtBack? = null
-            step(isUndo) { broughtBack = it.broughtBack }?.report()
-            broughtBack?.let(_broughtBack::tryEmit)
-        }
+        scope.launch(start = CoroutineStart.UNDISPATCHED) { step(isUndo, isUsers = true)?.report() }
     }
 
     /**
@@ -172,40 +168,49 @@ public class CommandExecutor(
      *
      * @return What happened, or null if there was nothing to step.
      */
-    public suspend fun step(isUndo: Boolean): CommandOutcome? = step(isUndo) {}
+    public suspend fun step(isUndo: Boolean): CommandOutcome? = step(isUndo, isUsers = false)
 
-    private suspend fun step(isUndo: Boolean, onApplied: (Applied) -> Unit): CommandOutcome? = changes.withLock {
+    /**
+     * @param isUsers Whether the user stepped ([undo], [redo]), whose step announces what it brought back ([broughtBack])
+     *   once its Scenes are delivered, still holding the change lock, so a later step's announcement can't come first.
+     */
+    private suspend fun step(isUndo: Boolean, isUsers: Boolean): CommandOutcome? = changes.withLock {
+        var stepped: Stepped? = null
         try {
-            stepHistory(isUndo, onApplied)
+            stepped = stepHistory(isUndo)
+            stepped?.outcome
         } finally {
             deliverSceneChanges()
+            if (isUsers) stepped?.broughtBack?.let(_broughtBack::tryEmit)
         }
     }
 
-    private suspend fun stepHistory(isUndo: Boolean, onApplied: (Applied) -> Unit): CommandOutcome? {
+    private class Stepped(val outcome: CommandOutcome, val broughtBack: ActorsBroughtBack? = null)
+
+    private suspend fun stepHistory(isUndo: Boolean): Stepped? {
         val history = _history.value
         val entry = (if (isUndo) history.undoable else history.redoable).lastOrNull() ?: return null
         val invocation = if (isUndo) entry.revert else entry.reapply
         val remaining = if (isUndo) history.copy(undoable = history.undoable.dropLast(1)) else history.copy(redoable = history.redoable.dropLast(1))
-        context.rejectChanges()?.let { return CommandOutcome.Rejected(it) }
+        context.rejectChanges()?.let { return Stepped(CommandOutcome.Rejected(it)) }
         changedOutside(entry)?.let { name ->
             _history.value = remaining
-            return CommandOutcome.Rejected(Rejection(CommandProblem.CHANGED_OUTSIDE, name))
+            return Stepped(CommandOutcome.Rejected(Rejection(CommandProblem.CHANGED_OUTSIDE, name)))
         }
         val rejection = invocation.validate(context)
         if (rejection != null) {
             _history.value = remaining
-            return CommandOutcome.Rejected(rejection)
+            return Stepped(CommandOutcome.Rejected(rejection))
         }
         val applied = try {
             invocation.apply(context)
         } catch (exception: Exception) {
             _history.value = remaining
-            return CommandOutcome.Rejected(failureOf(exception))
+            return Stepped(CommandOutcome.Rejected(failureOf(exception)))
         }
         applied.failure?.let {
             _history.value = remaining
-            return CommandOutcome.Rejected(it)
+            return Stepped(CommandOutcome.Rejected(it))
         }
         val revision = changeLog.record(invocation.commandName, invocation.target(context), step = if (isUndo) ChangeRecord.Step.UNDO else ChangeRecord.Step.REDO)
         val stepped = applied.inverse?.copy(isRestoring = true)?.let { inverse ->
@@ -216,8 +221,7 @@ public class CommandExecutor(
             isUndo -> remaining.copy(redoable = remaining.redoable + stepped)
             else -> remaining.copy(undoable = remaining.undoable + stepped)
         }
-        onApplied(applied)
-        return CommandOutcome.Success(applied.result)
+        return Stepped(CommandOutcome.Success(applied.result), applied.broughtBack)
     }
 
     /**

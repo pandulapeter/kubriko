@@ -9,8 +9,12 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.scenes
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -69,11 +73,35 @@ class SceneEditorPaneTest {
     }
 
     @Test
-    fun onlyOneActorBroughtBackIntoThisSceneIsSelectedAndNeverItsSettings() {
+    fun onlyOneActorBroughtBackIntoThisSceneIsSelected() {
         assertEquals("ball", restoredSelectionOf(ballBack, "level"))
         assertNull(restoredSelectionOf(ballBack, "other"))
         assertNull(restoredSelectionOf(ballBack.copy(actors = listOf(ball, ball.copy(id = "wall"))), "level"))
-        assertNull(restoredSelectionOf(ballBack.copy(actors = listOf(SceneActorEntry(SceneSettingsCodeGenerator.SETTINGS_NAME, "{}", "settings"))), "level"))
+    }
+
+    @Test
+    fun anActorBroughtBackIsSelectedOnlyOnceTheSceneShowsIt() = uiTest(width = 900, height = 600) {
+        val broughtBack = MutableSharedFlow<ActorsBroughtBack>(extraBufferCapacity = 4)
+        var actors by mutableStateOf(emptyList<SceneActorEntry>())
+        showPane(broughtBack, actors = { actors })
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText(INSPECTOR_HINT)).fetchSemanticsNodes().isNotEmpty() }
+        broughtBack.tryEmit(ballBack)
+        waitForIdle()
+        onNodeWithText(INSPECTOR_HINT).assertExists()
+        actors = listOf(ball)
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasContentDescription(REMOVE)).fetchSemanticsNodes().isNotEmpty() }
+    }
+
+    @Test
+    fun theSceneSettingsBroughtBackAreNeverSelected() = uiTest(width = 900, height = 600) {
+        val broughtBack = MutableSharedFlow<ActorsBroughtBack>(extraBufferCapacity = 4)
+        val settings = SceneActorEntry(SceneSettingsCodeGenerator.SETTINGS_NAME, "{}", "settings")
+        showPane(broughtBack, actors = { listOf(ball, settings) })
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText(INSPECTOR_HINT)).fetchSemanticsNodes().isNotEmpty() }
+        broughtBack.tryEmit(ActorsBroughtBack("level", listOf(settings)))
+        waitForIdle()
+        onNodeWithText(INSPECTOR_HINT).assertExists()
+        onAllNodes(hasContentDescription(REMOVE)).assertCountEquals(0)
     }
 
     @Test
@@ -87,12 +115,17 @@ class SceneEditorPaneTest {
         waitUntil(timeoutMillis = 5_000) { onAllNodes(hasContentDescription(REMOVE)).fetchSemanticsNodes().isNotEmpty() }
     }
 
-    private fun ComposeUiTest.showPane(broughtBack: Flow<ActorsBroughtBack>, entryPoint: CreatorEntryPoint = PlainEntryPoint, onCommand: (Invocation<*>) -> Unit = {}) = showing {
+    private fun ComposeUiTest.showPane(
+        broughtBack: Flow<ActorsBroughtBack>,
+        entryPoint: CreatorEntryPoint = PlainEntryPoint,
+        actors: () -> List<SceneActorEntry> = { listOf(ball) },
+        onCommand: (Invocation<*>) -> Unit = {},
+    ) = showing {
         SceneEditorPane(
             state = SceneEditingState.Open(
                 scene = ProjectResource(ResourceGroup.SCENES, File("/game/src/commonMain/composeResources/files/scenes/level.json"), "src/commonMain/composeResources/files/scenes/level.json"),
                 entryPoint = entryPoint,
-                actors = listOf(ball),
+                actors = actors(),
                 revision = 1,
             ),
             onCommand = onCommand,

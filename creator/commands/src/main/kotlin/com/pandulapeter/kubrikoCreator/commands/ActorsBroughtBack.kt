@@ -17,4 +17,14 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 public data class ActorsBroughtBack(
     val scene: String,
     val actors: List<SceneActorEntry>,
-)
+) {
+    internal companion object {
+
+        /**
+         * What several parts of one change brought back, together, if they brought Actors back into one Scene only.
+         */
+        fun merged(parts: List<ActorsBroughtBack>): ActorsBroughtBack? = parts.firstOrNull()?.scene
+            ?.takeIf { scene -> parts.all { it.scene == scene } }
+            ?.let { scene -> ActorsBroughtBack(scene, parts.flatMap { it.actors }) }
+    }
+}
