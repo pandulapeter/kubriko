@@ -11,6 +11,8 @@ package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -50,5 +52,40 @@ class NewProjectScreenTest {
         saveSnapshot("new-project-failed")
         onNodeWithText("Create").performClick()
         assertEquals(listOf(form), created)
+    }
+
+    @Test
+    fun aNameWithAccentsIsTakenAndItsFolderIsFolded() = uiTest(width = 900, height = 700) {
+        showing {
+            NewProjectScreen(
+                initialForm = NewProjectForm(parentDirectory = File("/Users/me/Games"), isUnderVersionControl = false).withName("Kalandjáték"),
+                error = null,
+                errorArguments = emptyList(),
+                defaultParentDirectory = File("/Users/me"),
+                onCreate = {},
+                onCancel = {},
+            )
+        }
+        onNodeWithText("The project will be created in ${File("/Users/me/Games", "kalandjatek").path}.").assertIsDisplayed()
+        onNodeWithText("Create").assertIsEnabled()
+        saveSnapshot("new-project-accented-name")
+    }
+
+    @Test
+    fun aNameIsRefusedForTheRuleItBreaks() = uiTest(width = 900, height = 700) {
+        showing {
+            NewProjectScreen(
+                initialForm = NewProjectForm(parentDirectory = File("/Users/me/Games"), isUnderVersionControl = false).withName("2048").withPackageName("com.example.fun"),
+                error = null,
+                errorArguments = emptyList(),
+                defaultParentDirectory = File("/Users/me"),
+                onCreate = {},
+                onCancel = {},
+            )
+        }
+        onNodeWithText("Start the name with a letter.").assertIsDisplayed()
+        onNodeWithText("One of the parts is a word that means something in Kotlin", substring = true).assertIsDisplayed()
+        onNodeWithText("Create").assertIsNotEnabled()
+        saveSnapshot("new-project-name-refused")
     }
 }

@@ -32,14 +32,21 @@ class GameIdentityTest {
     fun whatInstallersAndStoresRefuseIsRejected() {
         assertNull(identity.validate())
         assertNull(identity.copy(versionName = "2", versionNumber = 2_100_000_000, applicationId = "io.github.Me_2.game").validate())
-        assertEquals(IdentityProblem.NAME_INVALID, identity.copy(name = " ").validate()?.first)
+        assertEquals(IdentityProblem.NAME_EMPTY, identity.copy(name = " ").validate()?.first)
+        assertNull(identity.copy(name = "Kalandjáték").validate())
         assertEquals(IdentityProblem.NAME_INVALID, identity.copy(name = "a\nb").validate()?.first)
         listOf("0.1", "1.2.3.4", "1.", "v1", "").forEach { versionName ->
             assertEquals(IdentityProblem.VERSION_NAME_INVALID to listOf(versionName), identity.copy(versionName = versionName).validate(), versionName)
         }
         assertEquals(IdentityProblem.VERSION_NUMBER_INVALID, identity.copy(versionNumber = 0).validate()?.first)
-        listOf("game", "com.1game", "com..game", "com.my-game").forEach { applicationId ->
-            assertEquals(IdentityProblem.APPLICATION_ID_INVALID, identity.copy(applicationId = applicationId).validate()?.first, applicationId)
+        mapOf(
+            "game" to IdentityProblem.APPLICATION_ID_PARTS,
+            "com.1game" to IdentityProblem.APPLICATION_ID_FIRST_CHARACTER,
+            "com..game" to IdentityProblem.APPLICATION_ID_PART_EMPTY,
+            "com.my-game" to IdentityProblem.APPLICATION_ID_CHARACTERS,
+            "com.example.kalandjáték" to IdentityProblem.APPLICATION_ID_LETTER_BEYOND_A_TO_Z,
+        ).forEach { (applicationId, problem) ->
+            assertEquals(problem to listOf(applicationId), identity.copy(applicationId = applicationId).validate(), applicationId)
         }
         assertEquals(IdentityProblem.TEXT_INVALID, identity.copy(vendor = "x".repeat(201)).validate()?.first)
         assertEquals(IdentityProblem.TEXT_INVALID, identity.copy(description = "a\rb").validate()?.first)

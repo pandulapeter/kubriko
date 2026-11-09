@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.project
 
+import com.pandulapeter.kubrikoCreator.actors.NameFlaw
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import java.io.File
 
@@ -33,10 +34,11 @@ public data class GameIdentity(
      * Why this can't be the game's identity, with the arguments of the message, or null if it can.
      */
     public fun validate(): Pair<IdentityProblem, List<String>>? = when {
-        name.isBlank() || name.length > MAXIMUM_NAME_LENGTH || name.hasLineBreak() -> IdentityProblem.NAME_INVALID to listOf(MAXIMUM_NAME_LENGTH.toString())
+        name.isBlank() -> IdentityProblem.NAME_EMPTY to emptyList()
+        name.length > MAXIMUM_NAME_LENGTH || name.hasLineBreak() -> IdentityProblem.NAME_INVALID to listOf(MAXIMUM_NAME_LENGTH.toString())
         !versionNamePattern.matches(versionName) -> IdentityProblem.VERSION_NAME_INVALID to listOf(versionName)
         versionNumber !in 1..MAXIMUM_VERSION_NUMBER -> IdentityProblem.VERSION_NUMBER_INVALID to listOf(MAXIMUM_VERSION_NUMBER.toString())
-        !isValidApplicationId(applicationId) -> IdentityProblem.APPLICATION_ID_INVALID to listOf(applicationId)
+        applicationIdProblemOf(applicationId) != null -> checkNotNull(applicationIdProblemOf(applicationId)) to listOf(applicationId)
         listOf(vendor, description).any { it.length > MAXIMUM_TEXT_LENGTH || it.hasLineBreak() } -> IdentityProblem.TEXT_INVALID to listOf(MAXIMUM_TEXT_LENGTH.toString())
         else -> null
     }
@@ -71,9 +73,21 @@ public data class GameIdentity(
         internal const val MAXIMUM_TEXT_LENGTH = 200
         public const val MAXIMUM_VERSION_NUMBER: Int = 2_100_000_000
         private val versionNamePattern = Regex("[1-9][0-9]{0,8}(\\.[0-9]{1,9}){0,2}")
-        private val applicationIdSegmentPattern = Regex("[A-Za-z][A-Za-z0-9_]*")
 
-        internal fun isValidApplicationId(value: String) = value.split('.').let { segments -> segments.size >= 2 && segments.all(applicationIdSegmentPattern::matches) }
+        /**
+         * Why [value] isn't an application ID, or null if it is one.
+         */
+        internal fun applicationIdProblemOf(value: String): IdentityProblem? = value.split('.').let { segments ->
+            segments.firstNotNullOfOrNull { segment ->
+                when (NameFlaw.of(segment, isFirstAllowed = Char::isLetter) { NameFlaw.isLetterOrDigitAToZ(it) || it == '_' }) {
+                    NameFlaw.EMPTY -> IdentityProblem.APPLICATION_ID_PART_EMPTY
+                    NameFlaw.LETTER_BEYOND_A_TO_Z -> IdentityProblem.APPLICATION_ID_LETTER_BEYOND_A_TO_Z
+                    NameFlaw.FIRST_CHARACTER -> IdentityProblem.APPLICATION_ID_FIRST_CHARACTER
+                    NameFlaw.CHARACTER -> IdentityProblem.APPLICATION_ID_CHARACTERS
+                    null -> null
+                }
+            } ?: if (segments.size < 2) IdentityProblem.APPLICATION_ID_PARTS else null
+        }
 
         /**
          * The identity [text] (a `gradle.properties`) holds, or null if it lacks a key or holds a version number that isn't one.

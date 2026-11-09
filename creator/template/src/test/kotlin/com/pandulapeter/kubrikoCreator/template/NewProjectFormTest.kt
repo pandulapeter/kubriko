@@ -43,12 +43,20 @@ class NewProjectFormTest {
     }
 
     @Test
+    fun aNameWithAccentsMakesAProjectOfFoldedIdentifiers() {
+        val form = emptyForm.withName("Kalandjáték")
+        assertNull(form.nameError)
+        assertEquals("com.example.kalandjatek", form.packageName)
+        assertEquals(File(parentDirectory, "kalandjatek"), form.request?.directory)
+    }
+
+    @Test
     fun invalidFieldsShowTheirErrorsAndBlockTheRequest() {
         val invalidName = emptyForm.withName("2048")
-        assertEquals(TemplateProblem.NAME_INVALID, invalidName.nameError)
+        assertEquals(TemplateProblem.NAME_FIRST_CHARACTER, invalidName.nameError)
         assertNull(invalidName.request)
         val invalidPackage = emptyForm.withName("Game").withPackageName("Game")
-        assertEquals(TemplateProblem.PACKAGE_NAME_INVALID, invalidPackage.packageNameError)
+        assertEquals(TemplateProblem.PACKAGE_NAME_FIRST_CHARACTER, invalidPackage.packageNameError)
         assertNull(invalidPackage.request)
     }
 

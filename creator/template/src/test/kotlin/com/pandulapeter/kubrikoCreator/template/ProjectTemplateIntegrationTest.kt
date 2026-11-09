@@ -58,7 +58,7 @@ class ProjectTemplateIntegrationTest {
             val parentDirectory = createTempDirectory().toFile()
             try {
                 val directory = ProjectGenerator(configuration).create(
-                    NewProjectRequest(name = "Integration Game", packageName = "com.example.integration", parentDirectory = parentDirectory, template = template),
+                    NewProjectRequest(name = "Integration Játék", packageName = "com.example.integration", parentDirectory = parentDirectory, template = template),
                 )
                 assertTrue(directory.resolve("gradlew").canExecute(), "${template.id}: gradlew")
                 val buildFile = directory.resolve(KubrikoBuildFiles.BUILD_FILE)

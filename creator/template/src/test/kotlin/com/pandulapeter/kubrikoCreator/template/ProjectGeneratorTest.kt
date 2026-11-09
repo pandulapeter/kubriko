@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.template
 
 import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.git.JGitRepository
+import com.pandulapeter.kubrikoCreator.project.GameIdentity
 import com.pandulapeter.kubrikoCreator.project.ProjectFormat
 import com.pandulapeter.kubrikoCreator.project.ProjectFormatStatus
 import com.pandulapeter.kubrikoCreator.testing.testConfiguration
@@ -248,6 +249,18 @@ class ProjectGeneratorTest {
         assertEquals(ProjectFormatStatus.Writable, ProjectFormat(directory, creatorVersion = "1.0.0").prepare())
         assertTrue("\"formatVersion\": ${ProjectFormat.CURRENT_VERSION}," in File(directory, ".kubriko/project.json").readText())
         assertTrue("\"templateVersion\": ${ProjectUpgrader.CURRENT_VERSION}," in File(directory, ".kubriko/project.json").readText())
+    }
+
+    @Test
+    fun aNameWithAccentsReachesWhatPlayersSeeAndIsFoldedEverywhereElse() {
+        val name = "Kalandjáték"
+        val directory = ProjectGenerator(configuration, wrapperInstaller = { _, _ -> }, startVersionControl = { _, _ -> })
+            .create(NewProjectRequest(name = name, packageName = ProjectNaming.defaultPackageName(name), parentDirectory = parentDirectory))
+        assertEquals(File(parentDirectory, "kalandjatek"), directory)
+        assertTrue("rootProject.name = \"kalandjatek\"" in File(directory, "settings.gradle.kts").readText())
+        assertTrue(File(directory, "src/commonMain/kotlin/com/example/kalandjatek/GameEntryPoint.kt").isFile)
+        assertEquals(name, GameIdentity.read(directory)?.name)
+        assertTrue(File(directory, "README.md").readText().startsWith("# $name\n"))
     }
 
     @Test

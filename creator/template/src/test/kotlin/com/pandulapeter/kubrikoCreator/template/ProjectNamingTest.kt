@@ -17,22 +17,33 @@ class ProjectNamingTest {
 
     @Test
     fun namesStartWithALetterAndUseOnlySafeCharacters() {
-        listOf("Game", "My Game 2", "space_shooter", "Kubriko-Demo", "  Padded  ").forEach { assertNull(ProjectNaming.validateName(it), it) }
+        listOf("Game", "My Game 2", "space_shooter", "Kubriko-Demo", "  Padded  ", "Café", "Kalandjáték", "Kalandja\u0301te\u0301k", "Игра", "冒険").forEach {
+            assertNull(ProjectNaming.validateName(it), it)
+        }
         assertEquals(TemplateProblem.NAME_EMPTY, ProjectNaming.validateName("   "))
-        listOf("2048", "My \"Game\"", "Café", "a/b", "-dash").forEach { assertEquals(TemplateProblem.NAME_INVALID, ProjectNaming.validateName(it), it) }
+        listOf("2048", "-dash", "_game").forEach { assertEquals(TemplateProblem.NAME_FIRST_CHARACTER, ProjectNaming.validateName(it), it) }
+        listOf("My \"Game\"", "a/b", "a\\b", "Game: Reloaded").forEach { assertEquals(TemplateProblem.NAME_CHARACTERS, ProjectNaming.validateName(it), it) }
     }
 
     @Test
     fun packagesNeedTwoLowercaseSegmentsThatArentKeywords() {
         listOf("com.example.game", "io.github.me.game_2").forEach { assertNull(ProjectNaming.validatePackageName(it), it) }
-        listOf("game", "com.Example", "com..game", "com.example.", "com.2game", "com.example.fun", "com.example.my-game").forEach {
-            assertEquals(TemplateProblem.PACKAGE_NAME_INVALID, ProjectNaming.validatePackageName(it), it)
-        }
+        mapOf(
+            "game" to TemplateProblem.PACKAGE_NAME_PARTS,
+            "com.Example" to TemplateProblem.PACKAGE_NAME_FIRST_CHARACTER,
+            "com.exAmple" to TemplateProblem.PACKAGE_NAME_CHARACTERS,
+            "com..game" to TemplateProblem.PACKAGE_NAME_PART_EMPTY,
+            "com.example." to TemplateProblem.PACKAGE_NAME_PART_EMPTY,
+            "com.2game" to TemplateProblem.PACKAGE_NAME_FIRST_CHARACTER,
+            "com.example.fun" to TemplateProblem.PACKAGE_NAME_KEYWORD,
+            "com.example.my-game" to TemplateProblem.PACKAGE_NAME_CHARACTERS,
+            "com.example.kalandjáték" to TemplateProblem.PACKAGE_NAME_LETTER_BEYOND_A_TO_Z,
+        ).forEach { (packageName, problem) -> assertEquals(problem, ProjectNaming.validatePackageName(packageName), packageName) }
     }
 
     @Test
     fun aPackageNamedLikeAKeywordIsRejected() {
-        assertEquals(TemplateProblem.PACKAGE_NAME_INVALID, ProjectNaming.validatePackageName("com.typealias"))
+        assertEquals(TemplateProblem.PACKAGE_NAME_KEYWORD, ProjectNaming.validatePackageName("com.typealias"))
     }
 
     @Test
@@ -42,8 +53,21 @@ class ProjectNamingTest {
     }
 
     @Test
+    fun theProjectIdFoldsAccentsAndStartsWithALetter() {
+        mapOf(
+            "Kalandjáték" to "kalandjatek",
+            "Kalandja\u0301te\u0301k" to "kalandjatek",
+            "Straße Ærø" to "strasse-aero",
+            "Café 2" to "cafe-2",
+            "Игра" to "game",
+            "Игра 2" to "game-2",
+            "冒険 Quest" to "quest",
+        ).forEach { (name, id) -> assertEquals(id, ProjectNaming.projectId(name), name) }
+    }
+
+    @Test
     fun theDefaultPackageIsAlwaysValid() {
-        listOf("My Game" to "com.example.mygame", "2048 Clone" to "com.example.clone", "Fun" to "com.example.fungame", "!!!" to "com.example.game").forEach { (name, expected) ->
+        listOf("My Game" to "com.example.mygame", "2048 Clone" to "com.example.clone", "Fun" to "com.example.fungame", "!!!" to "com.example.game", "Kalandjáték" to "com.example.kalandjatek", "Игра" to "com.example.game").forEach { (name, expected) ->
             assertEquals(expected, ProjectNaming.defaultPackageName(name))
             assertNull(ProjectNaming.validatePackageName(ProjectNaming.defaultPackageName(name)))
         }

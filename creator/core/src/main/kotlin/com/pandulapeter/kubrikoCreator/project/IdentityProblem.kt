@@ -15,7 +15,12 @@ import com.pandulapeter.kubrikoCreator.foundation.DomainText
  * Why a value of the game's identity can't be used.
  */
 public enum class IdentityProblem(override val english: String) : DomainText {
-    APPLICATION_ID_INVALID("\"%1\$s\" isn't an application ID: at least two parts joined by dots, like com.example.mygame, each starting with a letter."),
+    APPLICATION_ID_PARTS("\"%1\$s\" isn't an application ID: it needs at least two parts joined by dots, like com.example.mygame."),
+    APPLICATION_ID_PART_EMPTY("\"%1\$s\" isn't an application ID: put a part on both sides of every dot."),
+    APPLICATION_ID_FIRST_CHARACTER("\"%1\$s\" isn't an application ID: start every part with a letter."),
+    APPLICATION_ID_CHARACTERS("\"%1\$s\" isn't an application ID: use only letters, numbers, and underscores in every part."),
+    APPLICATION_ID_LETTER_BEYOND_A_TO_Z("\"%1\$s\" isn't an application ID: use only the letters a to z, without accents."),
+    NAME_EMPTY("Give the game a name."),
     NAME_INVALID("The game's name is one line of at most %1\$s characters."),
     TEXT_INVALID("The vendor and the description are one line of at most %1\$s characters each."),
     VERSION_NAME_INVALID("\"%1\$s\" isn't a version name installers accept: one to three numbers, like 1.2.0, the first not 0."),

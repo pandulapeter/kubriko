@@ -300,8 +300,10 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   downloaded from where it looks (`template/KubrikoAvailability`: Maven Local for a development build, Maven Central otherwise),
   which a Creator started without its libraries would otherwise do to every project it opens; it keeps its version, the console
   says why, and a new project isn't created at all.
-- **New projects** (`template/ProjectGenerator`): a creation that fails removes what it wrote and comes back to the form as
-  it was filled in (`AppScreen.NewProject.form`, not the request, which drops the template behind an idea), saying why in
+- **New projects** (`template/ProjectGenerator`): the name is the game's, shown to players, so it may hold any letters
+  (`Kalandjáték`); its folder, Gradle name, and suggested package are folded to a to z (`ProjectNaming`: `kalandjatek`), so
+  paths on every system, the web build's file names, and the code stay plain. A creation that fails removes what it wrote
+  and comes back to the form as it was filled in (`AppScreen.NewProject.form`, not the request, which drops the template behind an idea), saying why in
   the user's terms (`CreationFailure`: no network, a full disk, or a folder Creator may not write in, told from the causes
   by class name, since the Gradle daemon's reach the Tooling API as placeholders, and blaming a folder only when a path
   names it) before the root cause's own message. A location Creator may not write in (`Files.isWritable`, which reads
