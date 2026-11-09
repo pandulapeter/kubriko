@@ -36,8 +36,7 @@ public object CreateScene : WriteCommand<CreateScene.Input> {
     override fun validate(context: CommandContext, input: Input): Rejection? = validateRestoring(context, input)
         ?: if (!SceneDocument.isValid(input.content)) Rejection(CommandProblem.SCENE_CONTENT_INVALID) else null
 
-    override fun validateRestoring(context: CommandContext, input: Input): Rejection? = when {
-        !SceneNaming.isValid(input.scene) -> Rejection(CommandProblem.SCENE_NAME_INVALID)
+    override fun validateRestoring(context: CommandContext, input: Input): Rejection? = SceneNaming.validate(input.scene)?.let(::Rejection) ?: when {
         SceneNaming.reservedFolderOf(input.scene) != null -> Rejection(CommandProblem.SCENE_FOLDER_RESERVED, SceneNaming.reservedFolderOf(input.scene).orEmpty())
         context.scenes.names().any { it.equals(input.scene, ignoreCase = true) } -> Rejection(CommandProblem.SCENE_NAME_TAKEN)
         else -> null

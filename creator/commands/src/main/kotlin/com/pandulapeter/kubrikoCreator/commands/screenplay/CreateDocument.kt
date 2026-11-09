@@ -17,8 +17,8 @@ import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
-import com.pandulapeter.kubrikoCreator.project.ResourceScanner
 import com.pandulapeter.kubrikoCreator.schema.Description
+import com.pandulapeter.kubrikoCreator.screenplay.DocumentNaming
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
@@ -39,7 +39,7 @@ public object CreateDocument : WriteCommand<CreateDocument.Input> {
      * Brings back a deleted document whatever its name and length, which the user may have given it.
      */
     override fun validateRestoring(context: CommandContext, input: Input): Rejection? =
-        if (ResourceScanner.isDocument(input.document)) context.validateFreeDocumentPath(input.document) else Rejection(CommandProblem.DOCUMENT_PATH_INVALID, input.document)
+        DocumentNaming.kindProblemOf(input.document)?.let(::Rejection) ?: context.validateFreeDocumentPath(input.document)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied = withContext(context.ioDispatcher) {
         if (!context.documents.create(input.document, input.text)) return@withContext Applied.failed(Rejection(CommandProblem.DOCUMENT_TAKEN, input.document))

@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.scenes
 
+import com.pandulapeter.kubrikoCreator.actors.NameFlaw
+import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.project.ProjectTree
 
 /**
@@ -16,9 +18,22 @@ import com.pandulapeter.kubrikoCreator.project.ProjectTree
  */
 public object SceneNaming {
 
-    private val partPattern = Regex("[A-Za-z0-9][A-Za-z0-9_-]*")
+    public fun isValid(name: String): Boolean = validate(name) == null
 
-    public fun isValid(name: String): Boolean = name.split('/').all(partPattern::matches)
+    /**
+     * Why [name] can't be a Scene's name (or a Scene folder's path), or null if it can.
+     */
+    public fun validate(name: String): NameProblem? = name.split('/').let { parts ->
+        parts.firstNotNullOfOrNull { part ->
+            when (NameFlaw.of(part, NameFlaw::isLetterOrDigitAToZ) { NameFlaw.isLetterOrDigitAToZ(it) || it in "_-" }) {
+                NameFlaw.EMPTY -> if (parts.size > 1) NameProblem.PATH_PART_EMPTY else NameProblem.NAME_EMPTY
+                NameFlaw.LETTER_BEYOND_A_TO_Z -> NameProblem.NAME_LETTER_BEYOND_A_TO_Z
+                NameFlaw.FIRST_CHARACTER -> NameProblem.SCENE_FIRST_CHARACTER
+                NameFlaw.CHARACTER -> NameProblem.SCENE_CHARACTERS
+                null -> null
+            }
+        }
+    }
 
     /**
      * The first folder of [name] that Kubriko Creator skips, as build tools do, so a Scene in it would never show up, or

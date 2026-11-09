@@ -14,8 +14,6 @@ package com.pandulapeter.kubrikoCreator.actors
  */
 public object PropertyNaming {
 
-    private val namePattern = Regex("[a-z][A-Za-z0-9]*")
-
     /**
      * Kotlin's keywords, and the names the generated classes (and the Kubriko traits and `Manager` they extend) already use.
      */
@@ -39,11 +37,17 @@ public object PropertyNaming {
      * Why [name] can't be the name of a Property among [existingNames], or null if it can. Names that differ only in
      * case are taken too, like those of Actor types.
      */
-    public fun validate(name: String, existingNames: Collection<String>): NameProblem? = when {
-        !namePattern.matches(name) -> NameProblem.PROPERTY_INVALID
-        name in reservedNames || name.startsWith("isTouching") || name.startsWith("textStyle") || TimerNaming.fieldSuffixes.any(name::endsWith) ||
-            name.endsWith(BlockScope.MANAGER_FIELD_SUFFIX) -> NameProblem.PROPERTY_RESERVED
-        existingNames.any { it.equals(name, ignoreCase = true) } -> NameProblem.PROPERTY_TAKEN
-        else -> null
+    public fun validate(name: String, existingNames: Collection<String>): NameProblem? = when (NameFlaw.of(name, isFirstAllowed = { it in 'a'..'z' }, isAllowed = NameFlaw::isLetterOrDigitAToZ)) {
+        NameFlaw.EMPTY -> NameProblem.NAME_EMPTY
+        NameFlaw.LETTER_BEYOND_A_TO_Z -> NameProblem.NAME_LETTER_BEYOND_A_TO_Z
+        NameFlaw.FIRST_CHARACTER -> NameProblem.PROPERTY_FIRST_CHARACTER
+        NameFlaw.CHARACTER -> NameProblem.PROPERTY_CHARACTERS
+        null -> when {
+            name in KotlinIdentifiers.hardKeywords -> NameProblem.NAME_KEYWORD
+            name in reservedNames || name.startsWith("isTouching") || name.startsWith("textStyle") || TimerNaming.fieldSuffixes.any(name::endsWith) ||
+                name.endsWith(BlockScope.MANAGER_FIELD_SUFFIX) -> NameProblem.PROPERTY_RESERVED
+            existingNames.any { it.equals(name, ignoreCase = true) } -> NameProblem.PROPERTY_TAKEN
+            else -> null
+        }
     }
 }

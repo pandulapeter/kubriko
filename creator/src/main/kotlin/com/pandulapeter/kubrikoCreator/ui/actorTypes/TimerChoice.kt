@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
+import com.pandulapeter.kubrikoCreator.foundation.DomainText
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.NewNameField
 import com.pandulapeter.kubrikoCreator.ui.toFieldError
@@ -89,8 +90,7 @@ internal fun timerOptions(timer: String, timerNames: List<String>, canRename: Bo
  * Why [name] can't be the name of a new Timer, or of [timer] renamed, among [timerNames], or null if it can. Naming a
  * new Timer like one in use only chooses that one.
  */
-internal fun timerNameError(name: String, timer: String, timerNames: List<String>, isRenaming: Boolean): CommandProblem? = when {
-    !TimerNaming.isValid(name) -> CommandProblem.TIMER_INVALID
+internal fun timerNameError(name: String, timer: String, timerNames: List<String>, isRenaming: Boolean): DomainText? = TimerNaming.validate(name) ?: when {
     isRenaming && name != timer && name in timerNames -> CommandProblem.TIMER_TAKEN
     else -> null
 }

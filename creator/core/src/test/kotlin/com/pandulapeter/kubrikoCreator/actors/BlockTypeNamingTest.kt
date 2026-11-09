@@ -22,9 +22,10 @@ class BlockTypeNamingTest {
     @Test
     fun namesAreKotlinClassNames() {
         listOf("Ball", "Enemy2", "PlayerShip").forEach { assertNull(BlockTypeNaming.validate(it, emptyList()), it) }
-        listOf("", "ball", "2Ball", "Player Ship", "Player-Ship", "Ballé", "Player_1").forEach {
-            assertEquals(NameProblem.TYPE_INVALID, BlockTypeNaming.validate(it, emptyList()), it)
-        }
+        assertEquals(NameProblem.NAME_EMPTY, BlockTypeNaming.validate("", emptyList()))
+        listOf("ball", "2Ball").forEach { assertEquals(NameProblem.TYPE_FIRST_CHARACTER, BlockTypeNaming.validate(it, emptyList()), it) }
+        listOf("Player Ship", "Player-Ship", "Player_1").forEach { assertEquals(NameProblem.TYPE_CHARACTERS, BlockTypeNaming.validate(it, emptyList()), it) }
+        listOf("Ballé", "Árnyék", "Bal\u0301l", "Ninja忍者").forEach { assertEquals(NameProblem.NAME_LETTER_BEYOND_A_TO_Z, BlockTypeNaming.validate(it, emptyList()), it) }
     }
 
     @Test

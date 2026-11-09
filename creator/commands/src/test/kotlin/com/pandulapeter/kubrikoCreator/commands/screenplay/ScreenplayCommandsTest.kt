@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.screenplay
 
+import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
@@ -53,7 +54,7 @@ class ScreenplayCommandsTest {
         val context = commandContext()
         CreatePage.apply(context, CreatePage.Input("hero", hero))
         assertEquals(Rejection(CommandProblem.PAGE_TAKEN, "Hero"), CreatePage.validate(context, CreatePage.Input("Hero", "")))
-        assertEquals(Rejection(CommandProblem.PAGE_NAME_INVALID, "hero.md"), CreatePage.validate(context, CreatePage.Input("hero.md", "")))
+        assertEquals(Rejection(NameProblem.FOLDER_CHARACTERS), CreatePage.validate(context, CreatePage.Input("hero.md", "")))
         assertEquals(Rejection(CommandProblem.PAGE_TOO_LONG, PAGE_MAXIMUM_LENGTH.toString()), CreatePage.validate(context, CreatePage.Input("long", "x".repeat(PAGE_MAXIMUM_LENGTH + 1))))
         assertEquals(Rejection(CommandProblem.PAGE_MISSING, "villain"), EditPage.validate(context, EditPage.Input("villain", "")))
         assertEquals(Rejection(CommandProblem.PAGE_SECTION_MISSING, "hero", "Enemies"), EditPage.apply(context, EditPage.Input("hero", "## Enemies", section = "Enemies")).failure)
@@ -112,7 +113,7 @@ class ScreenplayCommandsTest {
         val renamed = context.assertRoundTrip(Invocation(RenameFolder, RenameFolder.Input(FolderGroup.PAGES, "levels", "worlds"))) { context.screenplay.scanNames() to context.screenplay.scanFolders() }
         assertEquals(listOf("worlds/cave", "worlds/deep/pit") to setOf("people", "worlds", "worlds/deep"), renamed)
         assertEquals(Rejection(CommandProblem.FOLDER_NOT_EMPTY, "worlds"), DeleteFolder.validate(context, DeleteFolder.Input(FolderGroup.PAGES, "worlds")))
-        assertEquals(Rejection(CommandProblem.PAGE_NAME_INVALID, "a".repeat(121)), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.PAGES, "a".repeat(121))))
+        assertEquals(Rejection(NameProblem.PAGE_NAME_TOO_LONG), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.PAGES, "a".repeat(121))))
         val left = context.assertRoundTrip(Invocation(DeleteFolder, DeleteFolder.Input(FolderGroup.PAGES, "people"))) { context.screenplay.scanFolders() }
         assertEquals(setOf("worlds", "worlds/deep"), left)
     }

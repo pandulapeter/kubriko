@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.scenes
 
+import com.pandulapeter.kubrikoCreator.actors.NameFlaw
+import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -52,6 +54,8 @@ internal fun validateNewActorId(actorId: String, actors: List<SceneActorEntry>):
  * Why [actorId] can't be the ID of a new Actor in a Scene whose IDs [isTaken] knows.
  */
 internal inline fun validateNewActorId(actorId: String, isTaken: (String) -> Boolean): Rejection? = when {
+    actorId.isEmpty() -> Rejection(NameProblem.NAME_EMPTY)
+    actorId.any(NameFlaw::isLetterBeyondAToZ) -> Rejection(NameProblem.NAME_LETTER_BEYOND_A_TO_Z)
     !SceneDocument.isValidId(actorId) -> Rejection(CommandProblem.ACTOR_ID_INVALID, actorId)
     isTaken(actorId) -> Rejection(CommandProblem.ACTOR_ID_TAKEN, actorId)
     else -> null

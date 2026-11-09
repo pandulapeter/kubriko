@@ -31,8 +31,7 @@ internal fun CommandContext.validatePage(name: String): Rejection? = if (screenp
 /**
  * Why [name] can't be the name of a new page (or of [renamed] moved), or null if it can.
  */
-internal fun CommandContext.validateNewPageName(name: String, renamed: String? = null): Rejection? = when {
-    !PageNaming.isValid(name) -> Rejection(CommandProblem.PAGE_NAME_INVALID, name)
+internal fun CommandContext.validateNewPageName(name: String, renamed: String? = null): Rejection? = PageNaming.validate(name)?.let(::Rejection) ?: when {
     screenplay.existingName(name)?.let { it != renamed } == true -> Rejection(CommandProblem.PAGE_TAKEN, name)
     else -> null
 }

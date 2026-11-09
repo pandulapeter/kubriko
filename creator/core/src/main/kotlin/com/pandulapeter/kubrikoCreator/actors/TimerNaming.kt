@@ -20,14 +20,23 @@ public object TimerNaming {
      */
     public const val DEFAULT_NAME: String = "timer"
 
-    private val namePattern = Regex("[a-z][A-Za-z0-9]*")
-
     /**
      * The fields a Timer's name ends up in end with these, so no Property may.
      */
     internal val fieldSuffixes = listOf("RemainingInMilliseconds", "PeriodInMilliseconds")
 
-    public fun isValid(name: String): Boolean = namePattern.matches(name) && name !in KotlinIdentifiers.hardKeywords
+    public fun isValid(name: String): Boolean = validate(name) == null
+
+    /**
+     * Why [name] can't be a Timer's name, or null if it can.
+     */
+    public fun validate(name: String): NameProblem? = when (NameFlaw.of(name, isFirstAllowed = { it in 'a'..'z' }, isAllowed = NameFlaw::isLetterOrDigitAToZ)) {
+        NameFlaw.EMPTY -> NameProblem.NAME_EMPTY
+        NameFlaw.LETTER_BEYOND_A_TO_Z -> NameProblem.NAME_LETTER_BEYOND_A_TO_Z
+        NameFlaw.FIRST_CHARACTER -> NameProblem.TIMER_FIRST_CHARACTER
+        NameFlaw.CHARACTER -> NameProblem.TIMER_CHARACTERS
+        null -> if (name in KotlinIdentifiers.hardKeywords) NameProblem.NAME_KEYWORD else null
+    }
 
     /**
      * The name a Timer numbered [number] in older projects (Timers 1 to 8) keeps.

@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -65,7 +66,7 @@ class SceneRenamingCommandsTest {
             reports.first(),
         )
         assertEquals(Rejection(CommandProblem.SCENE_NAME_TAKEN), RenameScene.validate(context, RenameScene.Input("level-2", "Levels/1-1")))
-        assertEquals(Rejection(CommandProblem.SCENE_NAME_INVALID), RenameScene.validate(context, RenameScene.Input("level-2", "levels//2")))
+        assertEquals(Rejection(NameProblem.PATH_PART_EMPTY), RenameScene.validate(context, RenameScene.Input("level-2", "levels//2")))
         assertEquals(Rejection(CommandProblem.SCENE_MISSING, "ghost"), RenameScene.validate(context, RenameScene.Input("ghost", "x")))
         assertEquals(Rejection(CommandProblem.SCENE_FOLDER_RESERVED, "node_modules"), RenameScene.validate(context, RenameScene.Input("level-2", "node_modules/2")))
     }
@@ -74,7 +75,7 @@ class SceneRenamingCommandsTest {
     fun sceneFoldersAreCreatedRenamedWithTheirScenesAndDeletedWhenEmpty() = runTest {
         val context = context()
         context.assertRoundTrip(Invocation(CreateFolder, CreateFolder.Input(FolderGroup.SCENES, "levels"))) { context.foldersOf(FolderGroup.SCENES) }
-        assertEquals(Rejection(CommandProblem.SCENE_NAME_INVALID), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.SCENES, "two words")))
+        assertEquals(Rejection(NameProblem.SCENE_CHARACTERS), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.SCENES, "two words")))
         assertEquals(Rejection(CommandProblem.SCENE_FOLDER_RESERVED, "build"), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.SCENES, "levels/build")))
         RenameScene.apply(context, RenameScene.Input("level-2", "levels/2"))
         assertEquals(Rejection(CommandProblem.FOLDER_NOT_EMPTY, "levels"), DeleteFolder.validate(context, DeleteFolder.Input(FolderGroup.SCENES, "levels")))

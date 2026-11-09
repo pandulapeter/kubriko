@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.actors.timerNames
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -61,7 +62,7 @@ class TimerCommandsTest {
         val context = commandContext(enemy, bat, game)
         assertEquals(Rejection(CommandProblem.TIMER_UNKNOWN, "Bat", "fly"), RenameTimer.validate(context, RenameTimer.Input("Bat", "fly", "flap")))
         assertEquals(Rejection(CommandProblem.TIMER_TAKEN), RenameTimer.validate(context, RenameTimer.Input("Bat", "spawn", "blink")))
-        assertEquals(Rejection(CommandProblem.TIMER_INVALID), RenameTimer.validate(context, RenameTimer.Input("Bat", "spawn", "Spawn")))
+        assertEquals(Rejection(NameProblem.TIMER_FIRST_CHARACTER), RenameTimer.validate(context, RenameTimer.Input("Bat", "spawn", "Spawn")))
         assertEquals(null, RenameTimer.validate(context, RenameTimer.Input("Game", "spawn", "blink")))
     }
 

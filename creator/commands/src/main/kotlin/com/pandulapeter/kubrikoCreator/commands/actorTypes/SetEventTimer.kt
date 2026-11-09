@@ -37,8 +37,7 @@ public object SetEventTimer : WriteCommand<SetEventTimer.Input> {
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex)
         ?: when {
             context.requireType(input.actorType).events[input.eventIndex].type != EventType.TIMER_FINISHED -> Rejection(CommandProblem.TIMER_NOT_ALLOWED)
-            !TimerNaming.isValid(input.timer) -> Rejection(CommandProblem.TIMER_INVALID)
-            else -> null
+            else -> TimerNaming.validate(input.timer)?.let(::Rejection)
         }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {

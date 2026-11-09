@@ -50,16 +50,20 @@ internal fun CommandContext.validateFolder(group: FolderGroup, path: String): Re
  */
 internal fun CommandContext.validateNewFolder(group: FolderGroup, path: String): Rejection? = when {
     group.kind != null && blockTypes == null -> Rejection(CommandProblem.NO_ACTOR_TYPES)
-    path.isEmpty() || !FolderPaths.isValid(path) -> Rejection(NameProblem.FOLDER_INVALID)
-    // A Scene's folders are part of its name.
-    group == FolderGroup.SCENES && !SceneNaming.isValid(path) -> Rejection(CommandProblem.SCENE_NAME_INVALID)
-    // So are a page's.
-    group == FolderGroup.PAGES && !PageNaming.isValid(path) -> Rejection(CommandProblem.PAGE_NAME_INVALID, path)
+    path.isEmpty() -> Rejection(NameProblem.NAME_EMPTY)
+    // A Scene's folders are part of its name, and so are a page's.
+    folderNameProblem(group, path) != null -> Rejection(checkNotNull(folderNameProblem(group, path)))
     group == FolderGroup.SCENES && SceneNaming.reservedFolderOf(path, isFolder = true) != null ->
         Rejection(CommandProblem.SCENE_FOLDER_RESERVED, SceneNaming.reservedFolderOf(path, isFolder = true).orEmpty())
     foldersOf(group).any { it.equals(path, ignoreCase = true) } -> Rejection(CommandProblem.FOLDER_EXISTS, path)
     else -> validateFolder(group, FolderPaths.parentOf(path))
 }
+
+private fun folderNameProblem(group: FolderGroup, path: String) = when (group) {
+    FolderGroup.SCENES -> SceneNaming.validate(path)
+    FolderGroup.PAGES -> PageNaming.validate(path)
+    FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> null
+} ?: FolderPaths.validatePath(path)
 
 /**
  * Whether anything (a type, a Scene, or a folder) is in the folder at [path] of [group].

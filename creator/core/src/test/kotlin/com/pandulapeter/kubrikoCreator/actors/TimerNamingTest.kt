@@ -25,6 +25,16 @@ class TimerNamingTest {
     }
 
     @Test
+    fun aNameIsRefusedForTheRuleItBreaks() {
+        assertEquals(NameProblem.NAME_EMPTY, TimerNaming.validate(""))
+        assertEquals(NameProblem.TIMER_FIRST_CHARACTER, TimerNaming.validate("Spawn"))
+        assertEquals(NameProblem.TIMER_FIRST_CHARACTER, TimerNaming.validate("2timer"))
+        assertEquals(NameProblem.TIMER_CHARACTERS, TimerNaming.validate("spawn enemy"))
+        assertEquals(NameProblem.NAME_LETTER_BEYOND_A_TO_Z, TimerNaming.validate("időzítő"))
+        listOf("class", "while", "fun").forEach { assertEquals(NameProblem.NAME_KEYWORD, TimerNaming.validate(it), it) }
+    }
+
+    @Test
     fun aNameMakesItsFieldsAndItsHook() {
         assertEquals("spawnEnemyRemainingInMilliseconds", TimerNaming.remainingField("spawnEnemy"))
         assertEquals("spawnEnemyPeriodInMilliseconds", TimerNaming.periodField("spawnEnemy"))

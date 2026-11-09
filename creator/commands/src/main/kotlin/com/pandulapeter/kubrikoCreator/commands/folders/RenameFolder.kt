@@ -11,9 +11,9 @@ package com.pandulapeter.kubrikoCreator.commands.folders
 
 import com.pandulapeter.kubrikoCreator.actors.DefinitionPaths
 import com.pandulapeter.kubrikoCreator.actors.FolderPaths
-import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -39,7 +39,8 @@ public object RenameFolder : WriteCommand<RenameFolder.Input> {
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Project
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateFolder(input.group, input.path) ?: when {
-        input.path.isEmpty() || FolderPaths.validateName(input.newName) != null -> Rejection(NameProblem.FOLDER_INVALID)
+        input.path.isEmpty() -> Rejection(CommandProblem.FOLDER_TOP)
+        FolderPaths.validateName(input.newName) != null -> Rejection(checkNotNull(FolderPaths.validateName(input.newName)))
         else -> context.validateNewFolder(input.group, renamed(input))
     }
 

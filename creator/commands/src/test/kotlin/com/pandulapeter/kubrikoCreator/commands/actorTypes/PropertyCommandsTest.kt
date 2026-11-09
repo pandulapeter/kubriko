@@ -117,7 +117,7 @@ class PropertyCommandsTest {
     fun propertyChangesAreValidated() = runTest {
         val context = context()
         assertEquals(Rejection(NameProblem.PROPERTY_TAKEN), AddProperty.validate(context, AddProperty.Input("Player", PropertyDefinition.Toggle("tiTLE"))))
-        assertEquals(Rejection(NameProblem.PROPERTY_INVALID), AddProperty.validate(context, AddProperty.Input("Player", PropertyDefinition.Toggle("is shielded"))))
+        assertEquals(Rejection(NameProblem.PROPERTY_CHARACTERS), AddProperty.validate(context, AddProperty.Input("Player", PropertyDefinition.Toggle("is shielded"))))
         assertEquals(Rejection(CommandProblem.NUMBER_INVALID), AddProperty.validate(context, AddProperty.Input("Player", PropertyDefinition.Number("lives", Float.NaN))))
         assertEquals(Rejection(CommandProblem.PROPERTY_UNKNOWN, "Player", "lives"), RemoveProperty.validate(context, RemoveProperty.Input("Player", "lives")))
         assertEquals(Rejection(CommandProblem.PROPERTY_KIND_CHANGED), EditProperty.validate(context, EditProperty.Input("Player", "score", PropertyDefinition.Text("score"))))

@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
+import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
@@ -73,7 +74,7 @@ class WorkspaceDocumentsTest {
     @Test
     fun aDocumentNameThatCantBeUsedIsExplainedAndCreatesNothing() = runTest {
         val controller = createController()
-        assertEquals(CommandProblem.DOCUMENT_PATH_INVALID, controller.creation.createDocument("", ".hidden")?.reason)
+        assertEquals(NameProblem.DOCUMENT_FIRST_CHARACTER, controller.creation.createDocument("", ".hidden")?.reason)
         assertNull(controller.commands.history.value.nextUndoCommandName)
     }
 

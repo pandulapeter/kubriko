@@ -9,10 +9,23 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.pressKey
+import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
+import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
+import com.pandulapeter.kubrikoCreator.testing.showing
+import com.pandulapeter.kubrikoCreator.testing.uiTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+@OptIn(ExperimentalTestApi::class)
 class TimerChoiceTest {
 
     @Test
@@ -26,9 +39,23 @@ class TimerChoiceTest {
 
     @Test
     fun aNewNameMustBeValidAndARenameMustBeFree() {
-        assertEquals(CommandProblem.TIMER_INVALID, timerNameError("Spawn", "spawn", listOf("spawn"), isRenaming = false))
+        assertEquals(NameProblem.TIMER_FIRST_CHARACTER, timerNameError("Spawn", "spawn", listOf("spawn"), isRenaming = false))
+        assertEquals(NameProblem.NAME_KEYWORD, timerNameError("class", "spawn", listOf("spawn"), isRenaming = false))
         assertEquals(null, timerNameError("blink", "spawn", listOf("spawn", "blink"), isRenaming = false))
         assertEquals(CommandProblem.TIMER_TAKEN, timerNameError("blink", "spawn", listOf("spawn", "blink"), isRenaming = true))
         assertEquals(null, timerNameError("spawn", "spawn", listOf("spawn", "blink"), isRenaming = true))
+    }
+
+    @Test
+    fun aTimerNamedLikeAKotlinWordIsRefusedForThatReason() = uiTest(width = 360, height = 200) {
+        val selected = mutableListOf<String>()
+        showing { TimerChoice(timer = "spawn", timerNames = listOf("spawn"), onSelected = { selected += it }) }
+        onNodeWithText("spawn").performClick()
+        onNodeWithText("New Timer…").performClick()
+        onNode(hasSetTextAction()).performTextInput("class")
+        onNode(hasSetTextAction()).performKeyInput { pressKey(Key.Enter) }
+        onNodeWithText("That word means something in Kotlin", substring = true).assertExists()
+        saveSnapshot("timer-name-keyword")
+        assertEquals(emptyList(), selected)
     }
 }

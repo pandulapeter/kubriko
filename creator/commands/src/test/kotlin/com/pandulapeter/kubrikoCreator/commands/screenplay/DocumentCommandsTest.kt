@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.screenplay
 
+import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
@@ -78,8 +79,8 @@ class DocumentCommandsTest {
         val context = commandContext()
         context.write("README.md", "# Game\n")
         assertEquals(Rejection(CommandProblem.DOCUMENT_TAKEN, "readme.md"), CreateDocument.validate(context, CreateDocument.Input("readme.md", "")))
-        assertEquals(Rejection(CommandProblem.DOCUMENT_PATH_INVALID, "screenplay/hero.md"), CreateDocument.validate(context, CreateDocument.Input("screenplay/hero.md", "")))
-        assertEquals(Rejection(CommandProblem.DOCUMENT_PATH_INVALID, "build/notes.md"), CreateDocument.validate(context, CreateDocument.Input("build/notes.md", "")))
+        assertEquals(Rejection(NameProblem.DOCUMENT_IN_SCREENPLAY), CreateDocument.validate(context, CreateDocument.Input("screenplay/hero.md", "")))
+        assertEquals(Rejection(NameProblem.DOCUMENT_IN_LEFT_OUT_FOLDER), CreateDocument.validate(context, CreateDocument.Input("build/notes.md", "")))
         assertEquals(
             Rejection(CommandProblem.DOCUMENT_TOO_LONG, DOCUMENT_MAXIMUM_LENGTH.toString()),
             CreateDocument.validate(context, CreateDocument.Input("long.md", "x".repeat(DOCUMENT_MAXIMUM_LENGTH + 1))),
@@ -87,7 +88,7 @@ class DocumentCommandsTest {
         assertEquals(Rejection(CommandProblem.DOCUMENT_MISSING, "docs/notes.md"), EditDocument.validate(context, EditDocument.Input("docs/notes.md", "")))
         assertEquals(Rejection(CommandProblem.PAGE_SECTION_MISSING, "README.md", "Moves"), EditDocument.apply(context, EditDocument.Input("README.md", "## Moves", section = "Moves")).failure)
         assertEquals(Rejection(CommandProblem.DOCUMENT_TAKEN, "README.md"), MoveDocument.validate(context, MoveDocument.Input("README.md", "README.md")))
-        assertEquals(Rejection(CommandProblem.DOCUMENT_PATH_INVALID, "screenplay/README.md"), MoveDocument.validate(context, MoveDocument.Input("README.md", "screenplay/README.md")))
+        assertEquals(Rejection(NameProblem.DOCUMENT_IN_SCREENPLAY), MoveDocument.validate(context, MoveDocument.Input("README.md", "screenplay/README.md")))
         assertNull(MoveDocument.validate(context, MoveDocument.Input("README.md", "readme.md")))
         assertEquals(setOf("readme.md"), context.assertRoundTrip(Invocation(MoveDocument, MoveDocument.Input("README.md", "readme.md"))) { context.files().keys })
     }
@@ -116,7 +117,7 @@ class DocumentCommandsTest {
         context.write("docs/combat.md", combat)
         CreatePage.apply(context, CreatePage.Input("hero", "# Hero\n"))
         assertEquals(Rejection(CommandProblem.PAGE_TAKEN, "hero"), AddDocumentToScreenplay.validate(context, AddDocumentToScreenplay.Input("docs/combat.md", "hero")))
-        assertEquals(Rejection(CommandProblem.PAGE_NAME_INVALID, "hero.md"), AddDocumentToScreenplay.validate(context, AddDocumentToScreenplay.Input("docs/combat.md", "hero.md")))
+        assertEquals(Rejection(NameProblem.FOLDER_CHARACTERS), AddDocumentToScreenplay.validate(context, AddDocumentToScreenplay.Input("docs/combat.md", "hero.md")))
     }
 
     @Test

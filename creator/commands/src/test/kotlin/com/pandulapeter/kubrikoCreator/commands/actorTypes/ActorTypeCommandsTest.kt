@@ -90,7 +90,7 @@ class ActorTypeCommandsTest {
     @Test
     fun namesAndContentsOfNewActorTypesAreValidated() = runTest {
         val context = commandContext(ball, wall)
-        assertEquals(Rejection(NameProblem.TYPE_INVALID), context.rejection(CreateActorType, ActorTypeDefinition("ball game")))
+        assertEquals(Rejection(NameProblem.TYPE_FIRST_CHARACTER), context.rejection(CreateActorType, ActorTypeDefinition("ball game")))
         assertEquals(Rejection(NameProblem.TYPE_TAKEN), context.rejection(CreateActorType, ActorTypeDefinition("WALL")))
         assertEquals(Rejection(CommandProblem.SIZE_INVALID), context.rejection(CreateActorType, ActorTypeDefinition("Paddle", width = 0f)))
         assertEquals(Rejection(CommandProblem.KEY_NOT_ALLOWED), context.rejection(CreateActorType, ActorTypeDefinition("Paddle", events = listOf(EventDefinition(EventType.EVERY_FRAME, key = KeyChoice.A)))))
@@ -252,10 +252,10 @@ class ActorTypeCommandsTest {
         assertEquals(EventDefinition(EventType.TIMER_FINISHED, timer = "timer"), added)
         assertEquals("spawnEnemy", context.assertRoundTrip(Invocation(SetEventTimer, SetEventTimer.Input("Ball", 3, "spawnEnemy"))) { context.ball() }!!.events[3].timer)
         assertEquals(Rejection(CommandProblem.TIMER_NOT_ALLOWED), context.rejection(SetEventTimer, SetEventTimer.Input("Ball", 0, "timer2")))
-        assertEquals(Rejection(CommandProblem.TIMER_INVALID), context.rejection(SetEventTimer, SetEventTimer.Input("Ball", 3, "Spawn")))
-        assertEquals(Rejection(CommandProblem.TIMER_INVALID), context.rejection(SetEventTimer, SetEventTimer.Input("Ball", 3, "while")))
+        assertEquals(Rejection(NameProblem.TIMER_FIRST_CHARACTER), context.rejection(SetEventTimer, SetEventTimer.Input("Ball", 3, "Spawn")))
+        assertEquals(Rejection(NameProblem.NAME_KEYWORD), context.rejection(SetEventTimer, SetEventTimer.Input("Ball", 3, "while")))
         assertEquals(Rejection(CommandProblem.TIMER_NOT_ALLOWED), context.rejection(AddEvent, AddEvent.Input("Ball", EventType.EVERY_FRAME, timer = "timer2")))
-        assertEquals(Rejection(CommandProblem.TIMER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.StopTimer(timer = ""))))
+        assertEquals(Rejection(NameProblem.NAME_EMPTY), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.StopTimer(timer = ""))))
         assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.StartTimer(seconds = -1f))))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.StartTimer(timer = "timer9", seconds = 0f, isRepeating = true))))
     }

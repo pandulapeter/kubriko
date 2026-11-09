@@ -631,7 +631,7 @@ class WorkspaceControllerTest {
     @Test
     fun anActorTypeNameThatCantBeUsedIsExplainedAndCreatesNothing() = runTest {
         val controller = createController(blockTypeRepository = FakeBlockTypeRepository())
-        assertEquals(NameProblem.TYPE_INVALID, controller.creation.createActorType("ball game")?.reason)
+        assertEquals(NameProblem.TYPE_FIRST_CHARACTER, controller.creation.createActorType("ball game")?.reason)
         assertTrue(controller.blockTypes!!.actorTypes.value.isEmpty())
         assertNull(controller.commands.history.value.nextUndoCommandName)
     }
@@ -639,7 +639,7 @@ class WorkspaceControllerTest {
     @Test
     fun aSceneNameThatCantBeUsedIsExplainedAndCreatesNothing() = runTest {
         val controller = createController()
-        assertEquals(CommandProblem.SCENE_NAME_INVALID, controller.creation.createScene("my level")?.reason)
+        assertEquals(NameProblem.SCENE_CHARACTERS, controller.creation.createScene("my level")?.reason)
         assertNull(controller.commands.history.value.nextUndoCommandName)
     }
 

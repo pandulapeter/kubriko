@@ -19,11 +19,19 @@ class PropertyNamingTest {
     fun namesAreKotlinPropertyNames() {
         assertNull(PropertyNaming.validate("score", emptyList()))
         assertNull(PropertyNaming.validate("livesLeft2", emptyList()))
-        listOf("", "Score", "2lives", "high score", "score!", "lives_left").forEach { assertEquals(NameProblem.PROPERTY_INVALID, PropertyNaming.validate(it, emptyList()), it) }
+        assertEquals(NameProblem.NAME_EMPTY, PropertyNaming.validate("", emptyList()))
+        listOf("Score", "2lives", "_score").forEach { assertEquals(NameProblem.PROPERTY_FIRST_CHARACTER, PropertyNaming.validate(it, emptyList()), it) }
+        listOf("high score", "score!", "lives_left", "lives٣").forEach { assertEquals(NameProblem.PROPERTY_CHARACTERS, PropertyNaming.validate(it, emptyList()), it) }
+        listOf("életerő", "pontszám").forEach { assertEquals(NameProblem.NAME_LETTER_BEYOND_A_TO_Z, PropertyNaming.validate(it, emptyList()), it) }
     }
 
     @Test
-    fun namesTheGeneratedCodeUsesAreReserved() = listOf("velocity", "body", "color", "other", "key", "when", "isTouchingLeftEdge", "timer3RemainingInMilliseconds", "spawnPeriodInMilliseconds", "stateManager", "generatedScenes", "keyboardInputManager", "bodyCenter", "isRemoved", "box", "sprite", "isInSceneEditor", "scope", "textStyle1", "scoreManager", "levelManager").forEach {
+    fun kotlinsWordsAreToldApartFromTheGeneratedCodesNames() {
+        listOf("class", "when", "fun", "val").forEach { assertEquals(NameProblem.NAME_KEYWORD, PropertyNaming.validate(it, emptyList()), it) }
+    }
+
+    @Test
+    fun namesTheGeneratedCodeUsesAreReserved() = listOf("velocity", "body", "color", "other", "key", "isTouchingLeftEdge", "timer3RemainingInMilliseconds", "spawnPeriodInMilliseconds", "stateManager", "generatedScenes", "keyboardInputManager", "bodyCenter", "isRemoved", "box", "sprite", "isInSceneEditor", "scope", "textStyle1", "scoreManager", "levelManager").forEach {
         assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate(it, emptyList()), it)
     }
 

@@ -59,7 +59,12 @@ public object BlockTypeNaming {
      * are taken too, since they would clash on case-insensitive file systems.
      */
     public fun validate(name: String, existingNames: Collection<String>, kind: BlockTypeKind = BlockTypeKind.ACTOR): NameProblem? = when {
-        !isWellFormed(name) -> NameProblem.TYPE_INVALID
+        !isWellFormed(name) -> when (NameFlaw.of(name, isFirstAllowed = { it in 'A'..'Z' }, isAllowed = NameFlaw::isLetterOrDigitAToZ)) {
+            NameFlaw.EMPTY -> NameProblem.NAME_EMPTY
+            NameFlaw.LETTER_BEYOND_A_TO_Z -> NameProblem.NAME_LETTER_BEYOND_A_TO_Z
+            NameFlaw.FIRST_CHARACTER -> NameProblem.TYPE_FIRST_CHARACTER
+            NameFlaw.CHARACTER, null -> NameProblem.TYPE_CHARACTERS
+        }
         isReserved(name, kind) -> NameProblem.TYPE_RESERVED
         name.endsWith(BASE_SUFFIX) -> NameProblem.TYPE_BASE_SUFFIX
         existingNames.any { it.equals(name, ignoreCase = true) } -> NameProblem.TYPE_TAKEN

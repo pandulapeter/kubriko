@@ -27,10 +27,8 @@ internal fun CommandContext.validateDocument(path: String): Rejection? = if (doc
 /**
  * Why no new document can go to [path] (or [moved] be moved there), or null if one can.
  */
-internal fun CommandContext.validateNewDocumentPath(path: String, moved: String? = null): Rejection? = when {
-    !DocumentNaming.isValid(path) -> Rejection(CommandProblem.DOCUMENT_PATH_INVALID, path)
-    else -> validateFreeDocumentPath(path, moved)
-}
+internal fun CommandContext.validateNewDocumentPath(path: String, moved: String? = null): Rejection? =
+    DocumentNaming.validate(path)?.let(::Rejection) ?: validateFreeDocumentPath(path, moved)
 
 /**
  * Why [path] is taken by another document than [moved], or null if it is free: all that undoing a delete or a move

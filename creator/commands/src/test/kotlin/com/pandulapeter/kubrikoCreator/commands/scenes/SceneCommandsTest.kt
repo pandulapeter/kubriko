@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.scenes
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
+import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
@@ -71,7 +72,7 @@ class SceneCommandsTest {
     @Test
     fun newScenesNeedAFreeValidNameAndValidContent() = runTest {
         val context = context()
-        assertEquals(Rejection(CommandProblem.SCENE_NAME_INVALID), CreateScene.validate(context, CreateScene.Input("my level")))
+        assertEquals(Rejection(NameProblem.SCENE_CHARACTERS), CreateScene.validate(context, CreateScene.Input("my level")))
         assertEquals(Rejection(CommandProblem.SCENE_NAME_TAKEN), CreateScene.validate(context, CreateScene.Input("MAIN")))
         assertEquals(Rejection(CommandProblem.SCENE_FOLDER_RESERVED, "build"), CreateScene.validate(context, CreateScene.Input("levels/build/1")))
         assertEquals(null, CreateScene.validate(context, CreateScene.Input("build")))
@@ -102,6 +103,8 @@ class SceneCommandsTest {
         assertEquals(listOf("wall", "ball", newId), context.main()!!.map { it.id })
         assertEquals(Rejection(CommandProblem.ACTOR_ID_TAKEN, "wall"), PlaceActor.validate(context, PlaceActor.Input("main", "Ball", 0f, 0f, actorId = "wall")))
         assertEquals(Rejection(CommandProblem.ACTOR_ID_INVALID, "a b"), PlaceActor.validate(context, PlaceActor.Input("main", "Ball", 0f, 0f, actorId = "a b")))
+        assertEquals(Rejection(NameProblem.NAME_LETTER_BEYOND_A_TO_Z), PlaceActor.validate(context, PlaceActor.Input("main", "Ball", 0f, 0f, actorId = "labda-1á")))
+        assertEquals(Rejection(NameProblem.NAME_EMPTY), PlaceActor.validate(context, PlaceActor.Input("main", "Ball", 0f, 0f, actorId = "")))
         assertEquals(Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Wall"), PlaceActor.validate(context, PlaceActor.Input("main", "Wall", 0f, 0f)))
         assertEquals(Rejection(CommandProblem.NUMBER_INVALID), PlaceActor.validate(context, PlaceActor.Input("main", "Ball", Float.NaN, 0f)))
         assertEquals(Rejection(CommandProblem.SCENE_MISSING, "other"), PlaceActor.validate(context, PlaceActor.Input("other", "Ball", 0f, 0f)))

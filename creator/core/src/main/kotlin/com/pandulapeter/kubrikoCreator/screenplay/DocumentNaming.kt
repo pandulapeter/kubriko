@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.screenplay
 
+import com.pandulapeter.kubrikoCreator.actors.NameFlaw
+import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.project.ProjectTree
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
 
@@ -18,20 +20,41 @@ import com.pandulapeter.kubrikoCreator.project.ResourceScanner
  */
 public object DocumentNaming {
 
-    private val namePattern = Regex("[A-Za-z0-9][A-Za-z0-9 ._-]*")
-    private const val MAXIMUM_LENGTH = 200
+    internal const val MAXIMUM_LENGTH = 200
 
     /**
      * Whether Kubriko Creator may create a document at [path]: a Markdown file (`.md` in any case) outside the screenplay and outside every
      * folder the project walk leaves out, each part starting with a letter or a digit, so it is never hidden, and ending
      * in neither a space nor a dot, which Windows drops.
      */
-    public fun isValid(path: String): Boolean = path.length <= MAXIMUM_LENGTH &&
-        ResourceScanner.isDocument(path) &&
-        path.split('/').let { parts ->
-            parts.all { part -> namePattern.matches(part) && !part.endsWith(' ') && !part.endsWith('.') } &&
-                parts.dropLast(1).none { ProjectTree.isLeftOut(it) }
+    public fun isValid(path: String): Boolean = validate(path) == null
+
+    /**
+     * Why Kubriko Creator may not create a document at [path], or null if it may ([isValid]).
+     */
+    public fun validate(path: String): NameProblem? = when {
+        path.length > MAXIMUM_LENGTH -> NameProblem.DOCUMENT_PATH_TOO_LONG
+        else -> kindProblemOf(path) ?: path.split('/').let { parts ->
+            parts.firstNotNullOfOrNull(::partProblemOf) ?: if (parts.dropLast(1).any(ProjectTree::isLeftOut)) NameProblem.DOCUMENT_IN_LEFT_OUT_FOLDER else null
         }
+    }
+
+    /**
+     * Why the file at [path] isn't a document wherever its folders are (see [ResourceScanner.isDocument]), or null if it is one.
+     */
+    public fun kindProblemOf(path: String): NameProblem? = when {
+        ResourceScanner.isDocument(path) -> null
+        path.startsWith(PageNaming.FOLDER + "/") -> NameProblem.DOCUMENT_IN_SCREENPLAY
+        else -> NameProblem.DOCUMENT_NOT_MARKDOWN
+    }
+
+    private fun partProblemOf(part: String) = when (NameFlaw.of(part, NameFlaw::isLetterOrDigitAToZ) { NameFlaw.isLetterOrDigitAToZ(it) || it in " ._-" }) {
+        NameFlaw.EMPTY -> NameProblem.PATH_PART_EMPTY
+        NameFlaw.LETTER_BEYOND_A_TO_Z -> NameProblem.NAME_LETTER_BEYOND_A_TO_Z
+        NameFlaw.FIRST_CHARACTER -> NameProblem.DOCUMENT_FIRST_CHARACTER
+        NameFlaw.CHARACTER -> NameProblem.DOCUMENT_CHARACTERS
+        null -> if (part.endsWith(' ') || part.endsWith('.')) NameProblem.DOCUMENT_END else null
+    }
 
     /**
      * The path of a document called [name] in [folder] (an empty string for the project's root), with `.md` added unless

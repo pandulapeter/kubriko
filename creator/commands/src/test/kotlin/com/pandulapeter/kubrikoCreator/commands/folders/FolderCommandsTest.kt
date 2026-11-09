@@ -51,7 +51,7 @@ class FolderCommandsTest {
         assertEquals(setOf("enemies", "enemies/flying", "enemies/walking"), created)
         assertEquals(Rejection(CommandProblem.FOLDER_EXISTS, "Enemies"), context.rejection(CreateFolder, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "Enemies")))
         assertEquals(Rejection(CommandProblem.FOLDER_MISSING, "props"), context.rejection(CreateFolder, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "props/walls")))
-        assertEquals(Rejection(NameProblem.FOLDER_INVALID), context.rejection(CreateFolder, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "a//b")))
+        assertEquals(Rejection(NameProblem.PATH_PART_EMPTY), context.rejection(CreateFolder, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "a//b")))
         assertEquals(Rejection(CommandProblem.FOLDER_NOT_EMPTY, "enemies/flying"), context.rejection(DeleteFolder, DeleteFolder.Input(FolderGroup.ACTOR_TYPES, "enemies/flying")))
         assertEquals(Rejection(CommandProblem.FOLDER_NOT_EMPTY, "enemies"), context.rejection(DeleteFolder, DeleteFolder.Input(FolderGroup.ACTOR_TYPES, "enemies")))
         assertEquals(setOf("enemies", "enemies/flying"), context.assertRoundTrip(Invocation(DeleteFolder, DeleteFolder.Input(FolderGroup.ACTOR_TYPES, "enemies/walking"))) { context.actorFolders() })
@@ -68,7 +68,8 @@ class FolderCommandsTest {
         }
         assertEquals(setOf("monsters", "monsters/flying"), renamed.first)
         assertEquals(listOf("Bat" to "monsters/flying", "Game" to "", "Wall" to "monsters"), renamed.second)
-        assertEquals(Rejection(NameProblem.FOLDER_INVALID), context.rejection(RenameFolder, RenameFolder.Input(FolderGroup.ACTOR_TYPES, "monsters", "a/b")))
+        assertEquals(Rejection(NameProblem.FOLDER_CHARACTERS), context.rejection(RenameFolder, RenameFolder.Input(FolderGroup.ACTOR_TYPES, "monsters", "a/b")))
+        assertEquals(Rejection(CommandProblem.FOLDER_TOP), context.rejection(RenameFolder, RenameFolder.Input(FolderGroup.ACTOR_TYPES, "", "monsters")))
         assertNull(context.rejection(MoveToFolder, MoveToFolder.Input("Bat", "")))
     }
 }

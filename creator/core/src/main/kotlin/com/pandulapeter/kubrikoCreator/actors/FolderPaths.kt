@@ -15,14 +15,25 @@ package com.pandulapeter.kubrikoCreator.actors
  */
 public object FolderPaths {
 
-    private val namePattern = Regex("[A-Za-z0-9][A-Za-z0-9 _-]*")
-
     /**
      * Why [name] can't be a folder's name, or null if it can.
      */
-    public fun validateName(name: String): NameProblem? = if (namePattern.matches(name) && name == name.trim()) null else NameProblem.FOLDER_INVALID
+    public fun validateName(name: String): NameProblem? = when (NameFlaw.of(name, NameFlaw::isLetterOrDigitAToZ) { NameFlaw.isLetterOrDigitAToZ(it) || it in " _-" }) {
+        NameFlaw.EMPTY -> NameProblem.NAME_EMPTY
+        NameFlaw.LETTER_BEYOND_A_TO_Z -> NameProblem.NAME_LETTER_BEYOND_A_TO_Z
+        NameFlaw.FIRST_CHARACTER -> NameProblem.FOLDER_FIRST_CHARACTER
+        NameFlaw.CHARACTER -> NameProblem.FOLDER_CHARACTERS
+        null -> if (name.endsWith(' ')) NameProblem.FOLDER_END_SPACE else null
+    }
 
-    public fun isValid(path: String): Boolean = path.isEmpty() || path.split('/').all { validateName(it) == null }
+    /**
+     * Why [path] can't be a folder's path (or a page's name, which is one), or null if it can.
+     */
+    public fun validatePath(path: String): NameProblem? = path.split('/').let { parts ->
+        parts.firstNotNullOfOrNull { part -> validateName(part)?.let { if (it == NameProblem.NAME_EMPTY && parts.size > 1) NameProblem.PATH_PART_EMPTY else it } }
+    }
+
+    public fun isValid(path: String): Boolean = path.isEmpty() || validatePath(path) == null
 
     public fun parentOf(path: String): String = path.substringBeforeLast('/', "")
 

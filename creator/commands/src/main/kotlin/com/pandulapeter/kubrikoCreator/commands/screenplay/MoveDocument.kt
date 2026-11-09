@@ -17,8 +17,8 @@ import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
-import com.pandulapeter.kubrikoCreator.project.ResourceScanner
 import com.pandulapeter.kubrikoCreator.schema.Description
+import com.pandulapeter.kubrikoCreator.screenplay.DocumentNaming
 import com.pandulapeter.kubrikoCreator.screenplay.PathMove
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
@@ -44,11 +44,8 @@ public object MoveDocument : WriteCommand<MoveDocument.Input> {
      * Moves a document back to its path, which the user may have chosen in a way Kubriko Creator wouldn't.
      */
     override fun validateRestoring(context: CommandContext, input: Input): Rejection? = context.validateDocument(input.document)
-        ?: if (ResourceScanner.isDocument(input.newDocument)) {
-            context.validateFreeDocumentPath(input.newDocument, moved = input.document)
-        } else {
-            Rejection(CommandProblem.DOCUMENT_PATH_INVALID, input.newDocument)
-        }
+        ?: DocumentNaming.kindProblemOf(input.newDocument)?.let(::Rejection)
+        ?: context.validateFreeDocumentPath(input.newDocument, moved = input.document)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied = withContext(context.ioDispatcher) {
         if (!input.newDocument.equals(input.document, ignoreCase = true) && context.documents.fileOf(input.newDocument).exists()) {

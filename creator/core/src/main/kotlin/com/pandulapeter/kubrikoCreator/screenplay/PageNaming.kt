@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.screenplay
 
 import com.pandulapeter.kubrikoCreator.actors.FolderPaths
+import com.pandulapeter.kubrikoCreator.actors.NameProblem
 
 /**
  * How the screenplay's pages are named: by their path in `screenplay/` without `.md`, like Scenes (`hero`,
@@ -29,7 +30,7 @@ public object PageNaming {
 
     public const val EXTENSION: String = "md"
 
-    private const val MAXIMUM_LENGTH = 120
+    internal const val MAXIMUM_LENGTH = 120
 
     /**
      * The path of the page [name] from the project's root.
@@ -41,7 +42,12 @@ public object PageNaming {
      */
     public fun nameOf(path: String): String? = path.removePrefix("$FOLDER/").takeIf { it != path && it.endsWith(".$EXTENSION") }?.removeSuffix(".$EXTENSION")
 
-    public fun isValid(name: String): Boolean = name.isNotEmpty() && name.length <= MAXIMUM_LENGTH && FolderPaths.isValid(name)
+    public fun isValid(name: String): Boolean = validate(name) == null
+
+    /**
+     * Why [name] can't be a page's name, or null if it can.
+     */
+    public fun validate(name: String): NameProblem? = if (name.length > MAXIMUM_LENGTH) NameProblem.PAGE_NAME_TOO_LONG else FolderPaths.validatePath(name)
 
     /**
      * The folder [name] is in, or an empty string for one at the top.

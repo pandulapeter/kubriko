@@ -212,7 +212,9 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
 - **Enforced by `CommandRegistryTest`:** every `EditorCommand` is registered, tool names are snake_case, every part of every schema
   is described, and nothing outside `commands/` opts in to `@EditorMutation`, the marker on every controller and store function that
   changes the project. A new mutation is marked, so only a command can call it.
-- **Kinds:** a `ReadCommand` is never recorded. A `WriteCommand`'s `validate` returns a `Rejection` in the user's words, and `apply`
+- **Kinds:** a `ReadCommand` is never recorded. A `WriteCommand`'s `validate` returns a `Rejection` in the user's words: one
+  entry per rule broken rather than a restatement of every rule (names are told apart through `NameFlaw`), and Events and
+  Blocks named by their titles in the editor, with their IDs in brackets in `english`, which the AI reads. Its `apply`
   returns the inverse `Invocation` (none for git operations, which can't be undone); one that rewrites files without an inverse
   (discarding changes, the template upgrade) says `isRewritingFiles`, which clears the history. An `ActionCommand` (build, play)
   runs outside the change lock; a `ReadCommand` runs under it, so an AI never reads a change half made (one that reads only

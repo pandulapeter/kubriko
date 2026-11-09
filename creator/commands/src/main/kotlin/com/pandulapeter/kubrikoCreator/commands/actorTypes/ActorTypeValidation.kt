@@ -113,7 +113,7 @@ internal fun validateEvent(event: EventDefinition, scope: BlockScope): Rejection
         key?.isKnown == false -> Rejection(CommandProblem.GAME_KEY_UNKNOWN, key.composeKeyName)
         otherActorType != null && event.type != EventType.COLLISION -> Rejection(CommandProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED)
         timer != null && event.type != EventType.TIMER_FINISHED -> Rejection(CommandProblem.TIMER_NOT_ALLOWED)
-        timer != null && !TimerNaming.isValid(timer) -> Rejection(CommandProblem.TIMER_INVALID)
+        timer?.let(TimerNaming::validate) != null -> Rejection(checkNotNull(timer?.let(TimerNaming::validate)))
         otherActorType != null && otherActorType !in scope.actorTypeNames -> Rejection(CommandProblem.ACTOR_TYPE_MISSING, otherActorType)
         else -> event.blocks.firstNotNullOfOrNull { validateBlock(it, event.type, scope) }
     }
@@ -127,7 +127,7 @@ internal fun validateBlock(block: BlockDefinition, eventType: EventType, scope: 
     block is BlockDefinition.If && !ConditionKind.of(block.condition).isAvailableIn(scope.kind) -> Rejection(CommandProblem.CONDITION_NOT_ALLOWED)
     !block.areNumbersFinite -> Rejection(CommandProblem.NUMBER_INVALID)
     ((block as? BlockDefinition.If)?.condition as? ConditionDefinition.KeyHeld)?.key?.isKnown == false -> Rejection(CommandProblem.GAME_KEY_UNKNOWN, (block.condition as ConditionDefinition.KeyHeld).key.composeKeyName)
-    block.timerName?.let(TimerNaming::isValid) == false -> Rejection(CommandProblem.TIMER_INVALID)
+    block.timerName?.let(TimerNaming::validate) != null -> Rejection(checkNotNull(block.timerName?.let(TimerNaming::validate)))
     block.actorTypeReference?.let { it !in scope.actorTypeNames } == true -> Rejection(CommandProblem.ACTOR_TYPE_MISSING, block.actorTypeReference.orEmpty())
     block is BlockDefinition.GoToScene && block.scene.isNotEmpty() && scope.sceneNames?.contains(block.scene) == false -> Rejection(CommandProblem.SCENE_MISSING, block.scene)
     block is BlockDefinition.PlaySound && block.sound.isNotEmpty() && scope.audioFiles?.sounds?.contains(block.sound) == false -> Rejection(CommandProblem.SOUND_MISSING, block.sound)
