@@ -81,7 +81,8 @@ internal class ProjectChanges(
     }
 
     /**
-     * Follows what one command, undo, or redo changed in the Scene files.
+     * Follows what one command, undo, or redo changed in the Scene files, and those of a delivery that failed again, so a
+     * change it already followed may come again: a rename only moves a Scene still open under its old name.
      */
     fun onSceneChanges(changes: List<SceneChange>) {
         if (changes.any { it !is SceneChange.Written || it.isNew }) refreshResources()

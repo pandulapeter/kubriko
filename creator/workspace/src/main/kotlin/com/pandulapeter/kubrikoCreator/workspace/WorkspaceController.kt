@@ -321,6 +321,7 @@ public class WorkspaceController(
         scope = scope,
         onRejected = { appendToConsole(ConsoleEntry.Status(it.reason, isError = true, arguments = it.arguments)) },
         onSceneChanges = changes::onSceneChanges,
+        reportProblem = ::reportUnexpectedProblem,
     )
 
     /** Creates what the sidebar names in place. */
