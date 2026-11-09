@@ -102,6 +102,7 @@ fun main(args: Array<String>) {
                                         onNewProject = controller::showNewProject,
                                         onForgetRecentProject = controller::forgetRecentProject,
                                         onCreateProject = controller::createProject,
+                                        onCancelCreatingProject = controller::cancelCreatingProject,
                                         onOpenProject = controller::openProject,
                                         onCloseProject = controller::closeProject,
                                         mcp = graph.mcp,

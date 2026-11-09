@@ -12,7 +12,8 @@ package com.pandulapeter.kubrikoCreator.template
 import java.io.File
 
 /**
- * Adds the Gradle wrapper (`gradlew` and its files) to a new project.
+ * Adds the Gradle wrapper (`gradlew` and its files) to a new project. Interrupting the calling thread cancels a download
+ * in progress: [install] then throws an [InterruptedException], once Gradle stopped.
  */
 public fun interface WrapperInstaller {
 

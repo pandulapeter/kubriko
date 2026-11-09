@@ -16,9 +16,7 @@ import com.pandulapeter.kubrikoCreator.git.JGitRepository
 import com.pandulapeter.kubrikoCreator.project.GradleProperties
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
 import com.pandulapeter.kubrikoCreator.project.ProjectFormat
-import org.eclipse.jgit.api.errors.GitAPIException
 import java.io.File
-import java.io.IOException
 
 /**
  * Creates a project from a [ProjectTemplate]: renders its files into the new project's folder, generates the code of its
@@ -39,6 +37,7 @@ public class ProjectGenerator(
      * @throws ProjectCreationException If the folder already has files in it, Kubriko Creator may not write there, its
      *   Kubriko version can't be downloaded, or the project could not be written, saying why (no network, a full disk, or
      *   no permission).
+     * @throws InterruptedException If the calling thread was interrupted, once what was written is removed.
      */
     override fun create(request: NewProjectRequest): File {
         val directory = request.directory
@@ -48,7 +47,9 @@ public class ProjectGenerator(
         CreationFailure.nearestExisting(directory)?.takeUnless(CreationFailure::isWritable)?.let { folder ->
             throw ProjectCreationException(TemplateProblem.NOT_CREATED_NOT_ALLOWED, arguments = listOf(folder.path))
         }
-        when (lookUpKubriko(configuration.kubrikoVersion)) {
+        val lookup = lookUpKubriko(configuration.kubrikoVersion)
+        throwIfInterrupted()
+        when (lookup) {
             KubrikoAvailability.Lookup.FOUND -> Unit
             KubrikoAvailability.Lookup.MISSING -> throw ProjectCreationException(TemplateProblem.KUBRIKO_UNAVAILABLE, arguments = listOf(configuration.kubrikoVersion))
             KubrikoAvailability.Lookup.UNREACHABLE -> throw ProjectCreationException(TemplateProblem.NOT_CREATED_OFFLINE)
@@ -66,20 +67,19 @@ public class ProjectGenerator(
             BlockTypeStore.open(directory)?.regenerateAll()
             request.targets?.let { targets -> setTargets(directory, targets) }
             KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal).sync()
+            throwIfInterrupted()
             wrapperInstaller.install(directory, configuration.gradleVersion)
+            throwIfInterrupted()
             if (request.isUnderVersionControl) startVersionControl(directory, FIRST_COMMIT_MESSAGE)
-        } catch (exception: ProjectCreationException) {
+            throwIfInterrupted()
+        } catch (exception: Exception) {
             removeWritten(directory, didExist)
-            throw exception
-        } catch (exception: IOException) {
-            removeWritten(directory, didExist)
-            throw CreationFailure.of(directory, exception)
-        } catch (exception: RuntimeException) {
-            removeWritten(directory, didExist)
-            throw CreationFailure.of(directory, exception)
-        } catch (exception: GitAPIException) {
-            removeWritten(directory, didExist)
-            throw CreationFailure.of(directory, exception)
+            throw when {
+                exception is InterruptedException -> exception
+                Thread.currentThread().isInterrupted -> InterruptedException().apply { initCause(exception) }
+                exception is ProjectCreationException -> exception
+                else -> CreationFailure.of(directory, exception)
+            }
         }
         return directory
     }
@@ -109,6 +109,13 @@ public class ProjectGenerator(
                 }
             }
         }
+    }
+
+    /**
+     * Stops a creation whose thread was interrupted. The flag stays set, since the caller (`runInterruptible`) clears it.
+     */
+    private fun throwIfInterrupted() {
+        if (Thread.currentThread().isInterrupted) throw InterruptedException()
     }
 
     /**

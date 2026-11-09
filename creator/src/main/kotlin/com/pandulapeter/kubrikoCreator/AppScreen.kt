@@ -33,8 +33,12 @@ internal sealed interface AppScreen {
         val errorArguments: List<String> = emptyList(),
     ) : AppScreen
 
+    /**
+     * @param form What the project is created from, which cancelling the creation comes back to.
+     */
     data class CreatingProject(
         val directory: File,
+        val form: NewProjectForm,
     ) : AppScreen
 
     data class Opening(

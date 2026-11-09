@@ -34,7 +34,6 @@ import com.pandulapeter.kubrikoCreator.ui.components.ProgressScreen
 import com.pandulapeter.kubrikoCreator.ui.settings.CreatorSettingsDialog
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.app_name
-import kubriko.creator.generated.resources.creating_project
 import kubriko.creator.generated.resources.opening_project
 import kubriko.creator.generated.resources.window_title_project
 import org.jetbrains.compose.resources.stringResource
@@ -48,6 +47,7 @@ internal fun AppContent(
     onNewProject: () -> Unit,
     onForgetRecentProject: (RecentProject) -> Unit,
     onCreateProject: (NewProjectForm) -> Unit,
+    onCancelCreatingProject: () -> Unit,
     onOpenProject: (File) -> Unit,
     onCloseProject: () -> Unit,
     mcp: McpController,
@@ -96,6 +96,7 @@ internal fun AppContent(
                 onNewProject = onNewProject,
                 onForgetRecentProject = onForgetRecentProject,
                 onCreateProject = onCreateProject,
+                onCancelCreatingProject = onCancelCreatingProject,
                 onOpenProject = onOpenProject,
                 onCloseProject = onCloseProject,
                 mcp = mcp,
@@ -117,6 +118,7 @@ private fun ScreenContent(
     onNewProject: () -> Unit,
     onForgetRecentProject: (RecentProject) -> Unit,
     onCreateProject: (NewProjectForm) -> Unit,
+    onCancelCreatingProject: () -> Unit,
     onOpenProject: (File) -> Unit,
     onCloseProject: () -> Unit,
     mcp: McpController,
@@ -143,8 +145,9 @@ private fun ScreenContent(
             onCreate = onCreateProject,
             onCancel = onCloseProject,
         )
-        is AppScreen.CreatingProject -> ProgressScreen(
-            text = stringResource(Res.string.creating_project, screen.directory.name),
+        is AppScreen.CreatingProject -> CreatingProjectScreen(
+            directoryName = screen.directory.name,
+            onCancel = onCancelCreatingProject,
         )
         is AppScreen.Opening -> ProgressScreen(
             text = stringResource(Res.string.opening_project, screen.directory.name),

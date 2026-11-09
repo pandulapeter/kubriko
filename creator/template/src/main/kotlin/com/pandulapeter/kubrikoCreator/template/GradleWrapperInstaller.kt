@@ -18,14 +18,20 @@ import java.io.File
  */
 internal object GradleWrapperInstaller : WrapperInstaller {
 
-    override fun install(projectDirectory: File, gradleVersion: String) = GradleConnector.newConnector()
-        .forProjectDirectory(projectDirectory)
-        .useGradleVersion(gradleVersion)
-        .connect()
-        .use { connection ->
-            // The wrapper task writes the version of the Gradle running it, which useGradleVersion pins.
-            connection.newBuild()
-                .forTasks("wrapper")
-                .run()
-        }
+    override fun install(projectDirectory: File, gradleVersion: String) {
+        val cancellation = GradleConnector.newCancellationTokenSource()
+        GradleConnector.newConnector()
+            .forProjectDirectory(projectDirectory)
+            .useGradleVersion(gradleVersion)
+            .connect()
+            .use { connection ->
+                // The wrapper task writes the version of the Gradle running it, which useGradleVersion pins.
+                awaitInterruptibly<Void?>(cancel = cancellation::cancel) { handler ->
+                    connection.newBuild()
+                        .forTasks("wrapper")
+                        .withCancellationToken(cancellation.token())
+                        .run(handler)
+                }
+            }
+    }
 }

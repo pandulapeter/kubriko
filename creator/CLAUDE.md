@@ -305,6 +305,10 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   names it) before the root cause's own message. A location Creator may not write in (`Files.isWritable`, which reads
   Windows' access lists) is refused before anything is written, and Maven Central answering with an error is told apart
   from no network.
+  Cancelling a creation interrupts its thread (`runInterruptible`, so `ProjectCreator` stays a plain blocking call): the
+  wrapper download is cancelled through its token and waited for until Gradle stopped (`awaitInterruptibly`), what was
+  written is removed, and the next opening or creation, and quitting, wait for that (`AppController.closeProject` keeps a
+  cancelled operation in what they wait for). A project finished just as it was cancelled is removed too.
 - **Scenes** (`scenes/SceneStore`) are written with one Actor per line, so they diff and merge. Each entry's `id` is ignored by
   Kubriko's serialization (`ignoreUnknownKeys`), so games load the files unchanged; an Actor without an ID, or with an earlier one's,
   gets one from its index, the same every time, so a Scene changes only when a command writes it. Undoing a removal brings back

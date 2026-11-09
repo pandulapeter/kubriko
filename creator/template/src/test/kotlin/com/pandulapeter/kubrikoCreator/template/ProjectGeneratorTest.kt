@@ -157,6 +157,49 @@ class ProjectGeneratorTest {
     }
 
     @Test
+    fun aCreationInterruptedDuringTheWrapperDownloadRemovesWhatItWrote() {
+        listOf(
+            WrapperInstaller { _, _ -> throw InterruptedException() },
+            WrapperInstaller { _, _ -> Thread.currentThread().interrupt() },
+            WrapperInstaller { _, _ ->
+                Thread.currentThread().interrupt()
+                throw IOException("Closed by interrupt.")
+            },
+        ).forEach { installer ->
+            try {
+                assertFailsWith<InterruptedException> { generator(wrapperInstaller = installer).create(request) }
+                assertFalse(File(parentDirectory, "my-game").exists())
+            } finally {
+                Thread.interrupted()
+            }
+        }
+    }
+
+    @Test
+    fun aCreationInterruptedWhileCommittingRemovesWhatItWrote() {
+        val generator = ProjectGenerator(configuration, { _, _ -> }, loadTemplate = { template }, startVersionControl = { _, _ -> Thread.currentThread().interrupt() })
+        try {
+            assertFailsWith<InterruptedException> { generator.create(request) }
+            assertFalse(File(parentDirectory, "my-game").exists())
+        } finally {
+            Thread.interrupted()
+        }
+    }
+
+    @Test
+    fun aCreationInterruptedBeforeItStartsWritesNothing() {
+        val existing = File(parentDirectory, "my-game").apply { mkdirs() }
+        Thread.currentThread().interrupt()
+        try {
+            assertFailsWith<InterruptedException> { generator().create(request) }
+            assertEquals(emptyList(), existing.list()?.toList(), "a folder that was there stays, empty")
+            assertTrue(wrapperInstallations.isEmpty())
+        } finally {
+            Thread.interrupted()
+        }
+    }
+
+    @Test
     fun aFailedCreationInAnExistingEmptyFolderLeavesItEmpty() {
         val directory = File(parentDirectory, "my-game").apply { mkdirs() }
         assertFailsWith<ProjectCreationException> { generator(wrapperInstaller = { _, _ -> throw IOException("Offline.") }).create(request) }

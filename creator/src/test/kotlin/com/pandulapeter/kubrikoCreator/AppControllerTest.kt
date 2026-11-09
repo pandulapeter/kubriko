@@ -301,7 +301,7 @@ class AppControllerTest {
         val created = mutableListOf<NewProjectRequest>()
         val controller = createController(creator = { created += it; File("/projects/my-game") }, ioDispatcher = dispatcher)
         controller.createProject(form)
-        assertEquals(AppScreen.CreatingProject(request.directory), controller.screen.value)
+        assertEquals(AppScreen.CreatingProject(request.directory, form), controller.screen.value)
         runCurrent()
         assertEquals(listOf(request), created)
         assertEquals(listOf(File("/projects/my-game")), openedDirectories)

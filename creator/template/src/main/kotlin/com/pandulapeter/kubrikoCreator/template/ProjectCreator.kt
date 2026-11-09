@@ -12,7 +12,8 @@ package com.pandulapeter.kubrikoCreator.template
 import java.io.File
 
 /**
- * Creates a project on disk, returning its folder, or throws a [ProjectCreationException].
+ * Creates a project on disk, returning its folder, or throws a [ProjectCreationException]. Interrupting the calling thread
+ * (`runInterruptible`) cancels the creation: it then throws an [InterruptedException], once what it wrote is removed.
  */
 public fun interface ProjectCreator {
 

@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.recent.RecentProject
 import com.pandulapeter.kubrikoCreator.recent.RecentProjectsStore
 import com.pandulapeter.kubrikoCreator.template.CreationFailure
 import com.pandulapeter.kubrikoCreator.template.NewProjectForm
+import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.template.ProjectCreationException
 import com.pandulapeter.kubrikoCreator.template.ProjectCreator
 import com.pandulapeter.kubrikoCreator.ui.resource
@@ -28,11 +29,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kubriko.creator.generated.resources.Res
@@ -105,21 +110,47 @@ internal class AppController(
     fun createProject(form: NewProjectForm) {
         val request = form.request ?: return
         closeProject()
-        _screen.value = AppScreen.CreatingProject(request.directory)
+        _screen.value = AppScreen.CreatingProject(request.directory, form)
         launchOperation {
             awaitClosing()
             val directory = try {
-                withContext(ioDispatcher) { projectCreator.create(request) }
+                create(request)
             } catch (exception: CancellationException) {
                 throw exception
             } catch (exception: Throwable) {
+                ensureActive()
                 val failure = exception as? ProjectCreationException ?: CreationFailure.of(request.directory, exception)
                 _screen.value = AppScreen.NewProject(form, error = failure.targetProblem?.toResource() ?: failure.reason.resource, errorArguments = failure.arguments)
                 if (exception !is Exception) throw exception
                 return@launchOperation
             }
-            ensureActive()
             openProject(directory, writersRoomPitch = request.pitch)
+        }
+    }
+
+    /**
+     * Cancels the project being created, coming back to its form; what was written is removed in the background, and the
+     * next project waits for that.
+     */
+    fun cancelCreatingProject() {
+        val creating = _screen.value as? AppScreen.CreatingProject ?: return
+        closeProject()
+        _screen.value = AppScreen.NewProject(creating.form)
+    }
+
+    /**
+     * Creates the project [request] asks for, interrupting the creation when this is cancelled. A project finished just as
+     * it was cancelled is removed, as the creation removes one cancelled halfway.
+     */
+    private suspend fun create(request: NewProjectRequest): File {
+        var created: File? = null
+        try {
+            val directory = runInterruptible(ioDispatcher) { projectCreator.create(request).also { created = it } }
+            currentCoroutineContext().ensureActive()
+            return directory
+        } catch (exception: CancellationException) {
+            created?.let { directory -> withContext(NonCancellable + ioDispatcher) { directory.deleteRecursively() } }
+            throw exception
         }
     }
 
@@ -173,11 +204,14 @@ internal class AppController(
      * Closes the open project, if any.
      *
      * @return The job that finishes once the project closed last (this one, or one closed earlier and still closing) has
-     *   its game gone and its changes written, which an app that is quitting waits for.
+     *   its game gone and its changes written, and an opening or creation cancelled has cleaned up after itself, which an
+     *   app that is quitting, and the next opening, wait for.
      */
     fun closeProject(): Job? {
-        job?.cancel()
-        (_screen.value as? AppScreen.Workspace)?.controller?.close()?.let { closing = it }
+        val operation = job?.also { it.cancel() }
+        val workspaceClosing = (_screen.value as? AppScreen.Workspace)?.controller?.close()
+        val unfinished = listOfNotNull(closing, operation, workspaceClosing).filterNot { it.isCompleted }.distinct()
+        closing = if (unfinished.size > 1) scope.launch { unfinished.joinAll() } else unfinished.firstOrNull() ?: closing
         _screen.value = AppScreen.Welcome()
         return closing
     }
