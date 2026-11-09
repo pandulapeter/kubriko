@@ -96,7 +96,7 @@ yet, and come later (below).
   failure has them, the rehearsal's own lines around the failing one, highlighted, and the stack trace shortened to the project's
   frames, each a link to its file and line. What the rehearsal printed is a fold away.
 - **A test file in the center** opens read-only with Kotlin highlighting, its rehearsals' results in the gutter, until the code editor
-  (`15-later.md`) makes it editable; "Open in IntelliJ" is in its header.
+  (`14-later.md`) makes it editable; "Open in IntelliJ" is in its header.
 - **Next to what they rehearse:** an Actor type's, Manager type's, or Scene's header lists the rehearsals that touch it and their state,
   and its right-click menu offers "Write a rehearsal with the assistant".
 - **Committing** (`ui/git`): when rehearsals are failing, or game code changed since the last run, the commit form says so with

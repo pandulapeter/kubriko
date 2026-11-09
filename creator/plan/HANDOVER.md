@@ -21,91 +21,32 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 - `README.md` → Roadmap is in dependency order as of 2026-11-09: every file depends only on the ones before it, so work goes
   file by file from `01`. Leftovers that waited on later work were moved into the file they wait for, and what waits on something
   outside this repository is under its file's Waiting on others (ACP protocol 2, the Kotlin SDK's `systemPrompt`, Codex's quota
-  until Nov 21, 2026, and the registry's icons, all in `02-ai-assistant.md`).
+  until Nov 21, 2026, and the registry's icons, all in `01-ai-assistant.md`).
 
 ## Next
 
-Continue `01-known-issues.md` at its first item (Plain and batched drawing compared in Creator, under Missing checks), then `02`.
+Start `01-ai-assistant.md` at its first item (Other agents' changes, under The panel). `01-known-issues.md` is finished and
+gone, and the plans are numbered again from `01`.
 
-This session works through Mistakes and failures in the first hour, each item reviewed with `/code-review` and its findings
-fixed in commits of their own:
+This session finished the last known issues, each reviewed with `/code-review` and its findings fixed in commits of their own:
 
-- An unreadable `.kubriko/project.json` is named with what is wrong in it (`ProjectSettingsReader`: empty, not JSON with the
-  line of the mistake, not an object, or a value missing, of the wrong kind, or too large), in plain words rather than the
-  parser's, through `ProjectProblem`'s `PROJECT_FILE_*` entries and `ProjectInspectionException`'s arguments. `ProjectFormat`
-  parses it through the same reader, so the two never disagree about a file; while the project is open, a broken one is
-  reported in the console. A newer format's project whose settings this Creator can't read opens without its types, since
-  browsing needs none. `UnreadableProjectFileException` is an `IOException`, so what already gave up on an unreadable file
-  still does. Opening reads the small file twice (the format, then the store), more only while migrating.
-- A creation that fails comes back to the whole form (`AppScreen.NewProject.form`; the request would lose the template
-  chosen before an idea), saying why: `CreationFailure` tells no network, a full disk, and a refused folder from the
-  causes (by class name, since the Gradle daemon's arrive as placeholders), blames a folder only when a path names it,
-  and otherwise names the root cause. `KubrikoAvailability.lookUp` tells a missing version, no network, and an error
-  answer (a proxy) apart; `invoke` still says only whether it was found. Writability is checked first with
-  `Files.isWritable`, skipped when no folder above the location exists (an unplugged drive).
-- Creating a project can be cancelled (Cancel on its progress screen, back to the form). `ProjectCreator` stays blocking
-  and is cancelled by interrupting its thread (`runInterruptible`); `ProjectGenerator` checks between files and steps and
-  removes what it wrote. The wrapper download waits through `ToolingOutcome` (`:creator:gradle-session`, which
-  `GradleProjectConnection` uses too), at most 30 seconds after a cancel; past that the connection is left open, since
-  closing it would wait too. Each operation waits for the one before it (a cancelled creation may still be removing the
-  folder the next writes), and quitting waits for both through `AppController.allOf`, which belongs to no scope.
-- Rejections name one reason each, in the editor's words: Events and Blocks by their titles (`english` adds their IDs in
-  brackets for the AI), each `BlockKind` and `EventType` carrying the `PlacementProblem` that says why a Manager type
-  or another Event can't have it; names (types, Properties, Timers, Scenes, folders, pages, documents, Actor IDs,
-  packages, and application IDs) through `NameFlaw`, which tells a letter beyond a to z or an accent, a Kotlin word, an
-  empty part, a bad first character, and any other character apart, by code point. A project's name may hold any
-  letters (`Kalandjáték`); its folder, Gradle name, and package are folded to a to z (`kalandjatek`), which the
-  integration test now builds. Declined from the review: packaging a game whose name has letters some installers'
-  code pages lack, since a game name with any letters could already be set in Project settings; it stays on Before a
-  release.
-- The git panel's commit form comes first and stays in sight while the changes and the history scroll under it, taking
-  at most half of the panel's height (`atMostHalfTheHeight`, scrolling within it in a short window; the message field
-  scrolls past five lines or so), and its button counts the changes. The changes and the history each have a sticky
-  heading, and their rows are keyed (`changeKeyOf` by title, since a type's paths change as its code is generated;
-  `commitKeyOf` by the abbreviated ID and the time). Declined from the review: duplicate change keys, since
-  `JGitRepository.status` lists each path once (`distinctBy { it.path }`).
-- An Actor the user's undo or redo brings back is selected in the Scene editor, as a placed one is: `RestoreActor` and
-  `RestoreActors` (and a composite holding them) report it in `Applied.broughtBack`, `CommandExecutor.broughtBack`
-  announces it for `undo` and `redo` only (an AI turn's undo leaves the selection alone), inside the change lock after
-  the Scenes are delivered, and `SceneSelection` selects it once the Scene shows it, dropping it if the next load
-  doesn't or it is the Scene settings. Declined from the review: redoing a placement not selecting, since its redo
-  applies `RestoreActor` (`redoingAPlacementTellsWhichActorItBroughtBack`).
-- The sound and music menus (the Blocks' and the Scene settings') say how to add files when the project has none, and
-  that Kubriko Creator hasn't read the project's files while `AudioFiles.ofScanned` is null (before the first scan, or
-  after one failed), through `SearchableChoiceButton`'s new `hint`, shown below the options and kept in sight below a
-  long list.
-
-The last session finished every item of Costs that grow with the project, each reviewed with `/code-review` and its findings fixed in commits of
-their own:
-
-- The type editor no longer rebuilds the project's family, scope, and inheritance per keystroke (`TypeEditorContextCache`,
-  keyed on each type's `TypeOutline`; the sidebar's groups on `SidebarType`). `CreatorBenchmarkTest` times it: selecting a
-  member of the wide family about 1.4 ms, ten keystrokes about 1 ms together. The cache lives only while a type editor is shown.
-- A Property is renamed once its name is done (Enter, leaving the field, or the field going away), validated first
-  through `dispatchIfValid`, so a refused rename says why on Enter and reverts when left; each rename is its own undo
-  step (`EditProperty.mergeKey` merges only typed initial values, and `WriteCommand.mergesWith`/`mergeReverts` are gone).
-  A Scene folder's Scenes are renamed as one batch (`renameScenes`), going through the types, the first Scene setting,
-  and the Kotlin once.
-- Reordering or restoring Actors keeps the ones in front of the first change of order and creates only the rest again
-  (`ScenePatch`). `SceneView` tracks the order Kubriko draws its Actors in (`drawnRanks`), so a reorder also takes in a
-  changed Actor drawn out of order before it, and the picking grid is built again whenever an index changes
-  (`ScenePatch.hasNewIndices`). Re-adding the same Actors instead isn't safe: `ActorManager` may split the removal and
-  the addition into two batches, disposing Actors that stay. A cancelled load disposes what it created before it
-  returns (`createEachDisposingIfCancelled`), so the next load waits for it; that `ActorManager` disposes replaced Actors
-  on its own thread while the next load creates others is accepted (the user, 2026-11-09), since games live with the
-  same and Principle 4 rules out an engine change for it.
-- A game logging every frame no longer floods the UI thread: `ConsoleLog` adds a line without copying (a window over an
-  array later lines only go after) and publishes `ConsoleLines` (a revision, the first line's number, the game's first
-  logged line since its session started, and the latest problem, all kept as lines arrive). The console follows new
-  lines while it shows the last one (one collector; the user's own scrolling stops it), keys lines by number, and opens
-  by itself for what the game logs only at its first line per session (`ConsoleOpening`).
-- The Scene settings' music and a type's further children are `SearchableChoiceButton`s (music through `AudioFileChoice`,
-  which can offer none). A Scene's music that is gone is a missing reference (`sceneMusic`), and no audio file counts as
-  missing before the project is scanned (`AudioFiles.ofScanned`).
-- The sidebar's trees (folder groups, documents, and Kotlin files) are worked out in a `derivedStateOf` (`SidebarRows`)
-  for the modules shown open, each tree keeping its rows while what it is made of is equal, and an AI step's flash
-  reaches only the rows (`SidebarFlash`), so a selection or a flash works out nothing again and opening a folder only
-  its own tree.
+- A failure delivering Scene changes no longer hides what an undo, redo, or command threw: `CommandExecutor` adds it as
+  suppressed, or reports it when the change was made or cancelled, and never fails a change that was made over it. Reporting
+  goes through `CoroutineScope.reportProblem` (foundation's `UnexpectedProblemHandler.kt`), which never throws and leaves
+  cancellations out. `ProjectChanges` (which now requires a scope with a handler) runs every part following a change, its own
+  writes and the watcher's alike, whatever another part throws, follows nothing once the workspace is closing, and its scans stop
+  then too. What an undo brought back is still announced when the delivery fails, as `c37bb421d` meant. Declined from the
+  reviews, as contradicting each other or the code: retrying a failed delivery (its consumer isn't transactional; following
+  every part instead loses nothing), and the twins' Kotlin Block running in the Scene editor (its Kubriko never starts).
+- `OpeningAndPlayingTest` compares a generated game's Scene of shapes (a rectangle and a circle, as they are and turned and
+  stretched) drawn through their batched looks with the same Scene drawn plain: twin Actor types turn their look transparent
+  and add an Actor drawing the shape with `drawRect` or `drawOval` through a Kotlin Block, with the same body, and a rectangle and
+  a circle that only hide their looks sit where the batched Scene shows nothing. At most one in 50 of the shapes' pixels may differ by more
+  than 64 on a channel: under Xvfb 3 of 39,155 did; the plain shapes moved by one pixel would differ in 1,668, and with a hidden
+  tile's look left drawn 6,403 did.
+- The end-to-end waits (`awaitGame`, `awaitSuccess`, `awaitConsole`, now on `EndToEndScenario`) share one polling loop,
+  retry only failed tool calls, and return the frame they accepted; `take_screenshot` returns an image it can't read, or a
+  region at its edge, instead of failing with an internal error.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
@@ -149,7 +90,12 @@ never item by item.
   `:creator:run` does (`./gradlew :publishCreatorLibraries -Pcreator.localKubriko=true`), then `KUBRIKO_CREATOR_E2E=true
   KUBRIKO_CREATOR_VERSION=0.8.1-creator xvfb-run -a -s "-screen 0 1920x1080x24" ./gradlew :creator:test --tests "*endToEnd*" --rerun`,
   and look at `creator/build/end-to-end/<scenario>`; or dispatch `Tests`, whose `creator-end-to-end` job keeps the images as an
-  artifact. Unit tests and offscreen snapshots (`uiTest`) open no window and run anywhere.
+  artifact. On this Mac, a Linux container under Colima works: an `eclipse-temurin:21-jdk` image with `xvfb`, `libgl1`,
+  `libfontconfig1`, and the X libraries, the repository copied into a volume (`docker cp`, never the host's build folders), a
+  JetBrains Runtime 21 for linux-aarch64 unpacked and named in `org.gradle.java.installations.paths` (foojay has none for it),
+  `-Pkotlin.internal.mpp.allowMultiplatformPublicationsOnUnsupportedHost=true` on the publish (Kotlin/Native has no
+  linux-aarch64 host) with CI's three `publish…ToMavenLocal` tasks, and Playwright's Chromium in `KUBRIKO_CREATOR_CHROME` for
+  the web step. Unit tests and offscreen snapshots (`uiTest`) open no window and run anywhere.
 - Never recompile `:creator` while the user has `:creator:run` up.
 - The integration test, which builds but opens no window: `KUBRIKO_CREATOR_INTEGRATION=true KUBRIKO_CREATOR_VERSION=0.8.1-creator
   ./gradlew :creator:template:test --tests "*ProjectTemplateIntegrationTest*" --rerun` (after `./gradlew :publishCreatorLibraries

@@ -16,7 +16,7 @@ Kept to what a beginner needs, while the project stays an ordinary repository ot
 - **Branches:** create and switch from a menu. Merging is left to other tools at first.
 - **Checkpoints:** offer to commit before risky operations (Convert to code, deleting an Actor type, upgrading Kubriko, and AI changes).
 - **Remotes:** publish to a new GitHub repository, push, and pull (fast-forward only, explaining when histories diverged), credentials in the OS
-  keychain. A generated GitHub Actions workflow building every platform comes with exporting (`10-export.md`).
+  keychain. A generated GitHub Actions workflow building every platform comes with exporting (`09-export.md`).
 - **Conflicts:** never write conflict markers into Creator's JSON; stop before changing anything and explain which files clash. Since every
   Scene Actor has a stable ID, a Scene conflict is then shown, and resolved, Actor by Actor.
 - **Projects inside a larger repository** (not at its root: a monorepo, a game beside its website, a folder of several games). Today such
@@ -32,7 +32,7 @@ Kept to what a beginner needs, while the project stays an ordinary repository ot
 - **Clone** on the project list: a URL (HTTPS or SSH), a folder, and a progress bar, through JGit, so no git installation is needed;
   GitHub sign-in and private repositories use the remotes' keychain credentials (above).
 - After cloning, the project opens like any other: a Kubriko project that isn't opted in is offered the opt-in
-  (`12-project-upkeep.md` → Existing projects, which shows what it can until then), and one that isn't a Kubriko project at all is
+  (`11-project-upkeep.md` → Existing projects, which shows what it can until then), and one that isn't a Kubriko project at all is
   explained rather than opened half-way.
 - Submodules and Git LFS: reported when the repository uses them, and opened like any other repository, their contents left as they
   are.
