@@ -13,13 +13,15 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
-import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasScrollToNodeAction
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.git.ChangeEntry
 import com.pandulapeter.kubrikoCreator.git.ChangeKind
 import com.pandulapeter.kubrikoCreator.git.GitState
@@ -42,7 +44,7 @@ class GitPanelTest {
         val commits = mutableListOf<String>()
         showing { GitPanel(state = state, onStartVersionControl = {}, onCommit = { message, _ -> commits += message }, onDiscard = {}) }
         onNode(hasSetTextAction()).performTextReplacement("Make the Ball faster")
-        onNodeWithText("Commit").performClick()
+        onNodeWithText("Commit the change").performClick()
         waitForIdle()
         assertEquals(listOf("Make the Ball faster"), commits)
         onNodeWithText("Make the Ball faster").assertExists()
@@ -52,7 +54,7 @@ class GitPanelTest {
     fun aCommitThatWorksClearsTheMessage() = uiTest {
         showing { GitPanel(state = state, onStartVersionControl = {}, onCommit = { _, onCommitted -> onCommitted() }, onDiscard = {}) }
         onNode(hasSetTextAction()).performTextReplacement("Make the Ball faster")
-        onNodeWithText("Commit").performClick()
+        onNodeWithText("Commit the change").performClick()
         waitForIdle()
         onNodeWithText("Make the Ball faster").assertDoesNotExist()
         onNodeWithText("What did you change?").assertExists()
@@ -60,19 +62,52 @@ class GitPanelTest {
 
     @Test
     fun theCommitFormStaysAboveTheChangesWhileABigChangeSetIsScrolled() = uiTest {
-        val changes = (1..60).map { ChangeEntry("Type$it", ChangeKind.MODIFIED, listOf("Type$it.kt"), isBlockType = true) }
-        val many = MutableStateFlow<GitState>(GitState.Ready("main", changes, emptyList()))
-        showing { GitPanel(state = many, onStartVersionControl = {}, onCommit = { _, _ -> }, onDiscard = {}) }
-        val commitButton = onNodeWithText("Commit").assertIsDisplayed().getUnclippedBoundsInRoot()
-        assertTrue(commitButton.bottom <= onNodeWithText("Type1").getUnclippedBoundsInRoot().top)
-        onNodeWithText("Changes (60)").assertIsDisplayed()
+        showing { GitPanel(state = MutableStateFlow(manyChanges()), onStartVersionControl = {}, onCommit = { _, _ -> }, onDiscard = {}) }
+        val commitButton = onNodeWithText("Commit the 60 changes").assertIsDisplayed().getUnclippedBoundsInRoot()
+        assertTrue(commitButton.bottom <= onNodeWithText("Changes (60)").assertIsDisplayed().getUnclippedBoundsInRoot().top)
+        onNodeWithText("Type1").assertIsDisplayed()
         saveSnapshot("git-many-changes")
-        onNode(hasScrollAction()).performScrollToNode(hasText("Type60"))
+        onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Type60"))
         onNodeWithText("Type60").assertIsDisplayed()
         onNodeWithText("What did you change?").assertIsDisplayed()
-        onNodeWithText("Commit").assertIsDisplayed()
+        onNodeWithText("Commit the 60 changes").assertIsDisplayed()
         saveSnapshot("git-many-changes-scrolled")
     }
+
+    @Test
+    fun aLongMessageScrollsWithinItsFieldAndLeavesTheChangesTheirRoom() = uiTest {
+        showing { GitPanel(state = MutableStateFlow(manyChanges()), onStartVersionControl = {}, onCommit = { _, _ -> }, onDiscard = {}) }
+        onNode(hasSetTextAction()).performTextReplacement((1..30).joinToString("\n") { "Line $it of the message" })
+        onNodeWithText("Commit the 60 changes").assertIsDisplayed()
+        onNodeWithText("Type1").assertIsDisplayed()
+        saveSnapshot("git-long-message")
+    }
+
+    @Test
+    fun inAShortWindowTheFormTakesAtMostHalfOfTheHeightAndScrollsWithinIt() = uiTest(height = 260) {
+        val changes = (1..60).map { ChangeEntry("Type$it", ChangeKind.MODIFIED, listOf(".kubriko/actors/Type$it.json"), isBlockType = true) }
+        showing { GitPanel(state = MutableStateFlow(GitState.Ready("main", changes, emptyList())), onStartVersionControl = {}, onCommit = { _, _ -> }, onDiscard = {}, areScreenplayRemindersShown = true) }
+        saveSnapshot("git-short-window")
+        onNodeWithText("Changes (60)").assertIsDisplayed()
+        onNodeWithText("Type1").assertIsDisplayed()
+        val formTop = onNodeWithText("On branch main").getUnclippedBoundsInRoot().top
+        val list = onNode(hasScrollToNodeAction()).getUnclippedBoundsInRoot()
+        assertTrue(list.top - formTop <= (list.bottom - formTop) / 2 + 1.dp)
+        onNodeWithText("Commit the 60 changes").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun theRowLookedAtStaysInPlaceWhenAChangeAboveItGoes() = uiTest {
+        val state = MutableStateFlow(manyChanges())
+        showing { GitPanel(state = state, onStartVersionControl = {}, onCommit = { _, _ -> }, onDiscard = {}) }
+        onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Type40"))
+        val before = onNodeWithText("Type40").getUnclippedBoundsInRoot().top
+        state.value = state.value.copy(changes = state.value.changes.drop(1))
+        waitForIdle()
+        assertEquals(before, onNodeWithText("Type40").assertIsDisplayed().getUnclippedBoundsInRoot().top)
+    }
+
+    private fun manyChanges() = GitState.Ready("main", (1..60).map { ChangeEntry("Type$it", ChangeKind.MODIFIED, listOf("Type$it.kt"), isBlockType = true) }, emptyList())
 
     @Test
     fun aChangeToTheGameWithoutAPageRemindsAboutTheScreenplayWithoutStandingInTheWay() = uiTest {
@@ -89,7 +124,7 @@ class GitPanelTest {
         onNodeWithText("Ask the assistant to update the screenplay").performClick()
         assertEquals(1, prompts.size)
         onNode(hasSetTextAction()).performTextReplacement("Make the Ball faster")
-        onNodeWithText("Commit").performClick()
+        onNodeWithText("Commit the change").performClick()
         assertEquals(listOf("Make the Ball faster"), commits)
     }
 

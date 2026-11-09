@@ -56,7 +56,7 @@ class WorkspaceGitSidePanelTest {
             }
         }
         onNode(hasSetTextAction()).performTextReplacement("Make the Ball faster")
-        onNodeWithText("Commit").performClick()
+        onNodeWithText("Commit the change").performClick()
         waitForIdle()
         assertEquals(listOf<Invocation<*>>(Invocation(Commit, Commit.Input("Make the Ball faster"))), invocations)
         onNodeWithText("What did you change?").assertExists()

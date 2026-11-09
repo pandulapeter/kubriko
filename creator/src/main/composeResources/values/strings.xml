@@ -527,7 +527,10 @@
     <string name="action_update_screenplay_with_ai">Ask the assistant to update the screenplay</string>
     <string name="assistant_prompt_update_screenplay">The game changed since the last commit, but the screenplay didn't. Read what changed and the pages that mention it, and bring the pages up to date with the game as it is now.</string>
     <string name="git_commit_message">What did you change?</string>
-    <string name="action_commit">Commit</string>
+    <plurals name="action_commit_changes">
+        <item quantity="one">Commit the change</item>
+        <item quantity="other">Commit the %1$d changes</item>
+    </plurals>
     <string name="action_discard_changes">Discard the changes</string>
     <string name="git_discard_title">Discard the changes to %1$s?</string>
     <string name="git_discard_message">It goes back to how it was in the last commit. This can't be undone.</string>
