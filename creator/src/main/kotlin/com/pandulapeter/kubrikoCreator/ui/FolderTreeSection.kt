@@ -110,6 +110,8 @@ internal sealed interface SidebarNaming {
  *
  * @param tree Which folders are open, by their [SidebarKeys].
  * @param naming What is being named in the sidebar, if anything.
+ * @param rows Where the rows are kept between builds of the list.
+ * @param flash What the AI just changed, read by the rows.
  */
 internal fun LazyListScope.folderTreeSection(
     module: SidebarModule,
@@ -119,8 +121,8 @@ internal fun LazyListScope.folderTreeSection(
     tree: SidebarTree,
     naming: SidebarNaming?,
     onNamingChange: (SidebarNaming?) -> Unit,
-    flashedName: String?,
-    flashKey: Any?,
+    rows: SidebarRowsCache,
+    flash: () -> SidebarFlash,
 ) {
     val state = module.folderGroups[group] ?: return
     val isCreating = group in module.creatingGroups
@@ -164,9 +166,10 @@ internal fun LazyListScope.folderTreeSection(
             )
         }
     }
-    val folderOfItem = state.items.toMap()
+    val collapsed = tree.collapsedFolders(groupKey)
+    val folderOfItem = rows.valueOf("$groupKey-folders", state.items) { state.items.toMap() }
     items(
-        folderTreeRows(state.items, state.folders, tree.collapsedFolders(groupKey)),
+        rows.valueOf(groupKey, state.items, state.folders, collapsed) { folderTreeRows(state.items, state.folders, collapsed) },
         key = { row ->
             when (row) {
                 is FolderTreeRow.Folder -> "$groupKey-folder-${row.path}"
@@ -200,7 +203,7 @@ internal fun LazyListScope.folderTreeSection(
                 actions = actions,
                 dragState = dragState,
                 onNamingChange = onNamingChange,
-                flashKey = flashKey?.takeIf { row.name == flashedName },
+                flashKey = flash().keyFor(row.name),
             )
         }
     }

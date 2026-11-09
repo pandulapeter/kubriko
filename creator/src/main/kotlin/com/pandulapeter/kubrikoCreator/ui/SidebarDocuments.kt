@@ -53,7 +53,8 @@ internal class DocumentActions(
  * folder, a band, or another document moves into that one's folder, in any module.
  *
  * @param selectedDocument The path of the document shown in the center, if any.
- * @param flashedPath The path of the document the AI just changed, which lights up with every new [flashKey].
+ * @param rows Where the rows are kept between builds of the list.
+ * @param flash What the AI just changed, read by the rows.
  */
 internal fun LazyListScope.documentRows(
     module: SidebarModule,
@@ -64,8 +65,8 @@ internal fun LazyListScope.documentRows(
     onNamingChange: (SidebarNaming?) -> Unit,
     selectedDocument: String?,
     onSelectionCleared: () -> Unit,
-    flashedPath: String?,
-    flashKey: Any?,
+    rows: SidebarRowsCache,
+    flash: () -> SidebarFlash,
 ) {
     val documentsKey = SidebarKeys.documents(module.path)
     val indent = module.depth
@@ -81,12 +82,13 @@ internal fun LazyListScope.documentRows(
         }
     }
     if (module.documents.isEmpty()) return
-    val items = module.documentItems()
-    val collapsed = folderTreeRows(items, emptySet(), collapsed = emptySet())
-        .filterIsInstance<FolderTreeRow.Folder>()
-        .mapNotNullTo(HashSet()) { folder -> folder.path.takeIf { !tree.isExpanded(SidebarKeys.folder(documentsKey, it)) } }
+    val items = rows.valueOf("$documentsKey-items", module.documents) { module.documentItems() }
+    val folders = rows.valueOf("$documentsKey-folders", items) {
+        folderTreeRows(items, emptySet(), collapsed = emptySet()).filterIsInstance<FolderTreeRow.Folder>().map { it.path }
+    }
+    val collapsed = folders.filterTo(HashSet()) { !tree.isExpanded(SidebarKeys.folder(documentsKey, it)) }
     items(
-        folderTreeRows(items, emptySet(), collapsed),
+        rows.valueOf(documentsKey, items, collapsed) { folderTreeRows(items, emptySet(), collapsed) },
         key = { row ->
             when (row) {
                 is FolderTreeRow.Folder -> "$documentsKey-folder-${row.path}"
@@ -112,7 +114,7 @@ internal fun LazyListScope.documentRows(
                 depth = documentDepth(row.depth, indent),
                 isTopLevel = row.depth == 0,
                 isSelected = row.name == selectedDocument,
-                flashKey = flashKey?.takeIf { row.name == flashedPath },
+                flashKey = flash().keyFor(row.name),
                 actions = actions,
                 dragState = dragState,
                 naming = naming,

@@ -26,6 +26,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -96,6 +97,9 @@ internal fun ProjectSidebar(
     val shownModules = remember(query, modules) { if (isFiltering) filteredModules(modules, query) else modules }
     val tree = remember(outline, expansion, isFiltering) { SidebarTree(outline, expansion, isFiltering) }
     val listState = rememberLazyListState()
+    val rows = remember { SidebarRowsCache() }
+    val currentFlash by rememberUpdatedState(SidebarFlash(flashedName, flashKey))
+    val flash = remember { { currentFlash } }
     var revealedKey by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(revealedKey) {
         revealedKey?.let { listState.revealItem(it) }
@@ -153,8 +157,8 @@ internal fun ProjectSidebar(
                     tree = tree,
                     naming = naming,
                     onNamingChange = { naming = it },
-                    flashedName = flashedName,
-                    flashKey = flashKey,
+                    rows = rows,
+                    flash = flash,
                 )
                 documentRows(
                     module = module,
@@ -165,8 +169,8 @@ internal fun ProjectSidebar(
                     onNamingChange = { naming = it },
                     selectedDocument = selectedDocument,
                     onSelectionCleared = folderActions.onSelectionCleared,
-                    flashedPath = flashedName,
-                    flashKey = flashKey,
+                    rows = rows,
+                    flash = flash,
                 )
             }
         }
@@ -193,8 +197,8 @@ private fun LazyListScope.moduleSections(
     tree: SidebarTree,
     naming: SidebarNaming?,
     onNamingChange: (SidebarNaming?) -> Unit,
-    flashedName: String?,
-    flashKey: Any?,
+    rows: SidebarRowsCache,
+    flash: () -> SidebarFlash,
 ) {
     FolderGroup.entries.forEach { group ->
         folderTreeSection(
@@ -205,8 +209,8 @@ private fun LazyListScope.moduleSections(
             tree = tree,
             naming = naming,
             onNamingChange = onNamingChange,
-            flashedName = flashedName,
-            flashKey = flashKey,
+            rows = rows,
+            flash = flash,
         )
     }
     module.resourceGroups.forEach { group -> resourceGroupSection(module, group, tree) }
