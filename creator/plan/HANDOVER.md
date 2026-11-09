@@ -55,9 +55,10 @@ their own:
 - The Scene settings' music and a type's further children are `SearchableChoiceButton`s (music through `AudioFileChoice`,
   which can offer none). A Scene's music that is gone is a missing reference (`sceneMusic`), and no audio file counts as
   missing before the project is scanned (`AudioFiles.ofScanned`).
-- The sidebar's folder-tree rows are worked out in a `derivedStateOf` (`SidebarRows`) from the modules without their
-  selection and the open folders, and an AI step's flash reaches only the rows (`SidebarFlash`), so neither a selection
-  nor a flash works them out again.
+- The sidebar's trees (folder groups, documents, and Kotlin files) are worked out in a `derivedStateOf` (`SidebarRows`)
+  for the modules shown open, each tree keeping its rows while what it is made of is equal, and an AI step's flash
+  reaches only the rows (`SidebarFlash`), so a selection or a flash works out nothing again and opening a folder only
+  its own tree.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
