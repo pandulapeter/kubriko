@@ -136,6 +136,12 @@ class PropertyListTest {
         focusTheInitialValue()
         field("agility").assertExists()
         assertEquals(listOf("agility"), renames)
+        typeInto("agility", "refused")
+        field("refused").performKeyInput { pressKey(Key.Enter) }
+        field("refused").performKeyInput { pressKey(Key.Escape) }
+        waitForIdle()
+        field("agility").assertExists()
+        onNodeWithText("A Property's kind can't change. Remove it and add a new one instead.").assertDoesNotExist()
 
         typeInto("agility", "pace")
         field("pace").performKeyInput { pressKey(Key.Escape) }

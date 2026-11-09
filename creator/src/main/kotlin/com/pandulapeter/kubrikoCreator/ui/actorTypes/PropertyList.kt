@@ -161,6 +161,7 @@ private fun PropertyRow(
 ) {
     val hover = rememberHoverRevealState()
     val menu = rememberRightClickMenuState()
+    var renameRejection by remember(property.name) { mutableStateOf<Rejection?>(null) }
     Column(
         modifier = modifier.hoverReveal(hover).rightClickMenu(menu),
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -180,12 +181,15 @@ private fun PropertyRow(
                 name = property.name,
                 otherNames = otherNames,
                 onRename = onRename,
+                rejection = renameRejection,
+                onRejectionChange = { renameRejection = it },
             )
             Box {
                 IconActionButton(modifier = Modifier.revealedWhen(hover.isActive), icon = Res.drawable.ic_close, label = Res.string.action_remove, onClick = onRemove)
                 RightClickMenu(menu, listOf(ContextAction(stringResource(Res.string.action_remove), Res.drawable.ic_close, isDestructive = true, onClick = onRemove)))
             }
         }
+        renameRejection?.let { FieldErrorText(it.toFieldError(), Modifier.padding(start = 22.dp)) }
         Row(
             modifier = Modifier.padding(start = 22.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -218,31 +222,35 @@ private fun PropertyRow(
  * Keeps whatever is being typed, and renames the Property once its name is done: on Enter, when the field loses the
  * focus, or when it leaves the screen. Renaming rewrites every Scene holding the type's Actors, so it never happens per
  * keystroke, and each name typed renames it once, though leaving the screen also loses the focus. A rename refused on
- * Enter says why; Escape, or leaving the field with a name the Property can't have, brings its name back.
+ * Enter is handed to [onRejectionChange] to show; Escape, or leaving the field with a name the Property can't have,
+ * brings its name back.
  */
 @Composable
 private fun PropertyNameField(
     name: String,
     otherNames: List<String>,
     onRename: (String) -> Rejection?,
+    rejection: Rejection?,
+    onRejectionChange: (Rejection?) -> Unit,
     modifier: Modifier = Modifier,
-) = Column(
-    modifier = modifier,
 ) {
     var text by remember(name) { mutableStateOf(name) }
-    var rejection by remember(name) { mutableStateOf<Rejection?>(null) }
     var renamedTo by remember(name) { mutableStateOf<String?>(null) }
+    val restore = {
+        text = name
+        onRejectionChange(null)
+    }
     val finish by rememberUpdatedState { isLeaving: Boolean ->
         val newName = renamedPropertyName(text, name, otherNames)
         when {
-            newName == null -> text = name
+            newName == null -> restore()
             newName == renamedTo -> Unit
             else -> {
                 val rejected = onRename(newName)
                 when {
                     rejected == null -> renamedTo = newName
-                    isLeaving -> text = name
-                    else -> rejection = rejected
+                    isLeaving -> restore()
+                    else -> onRejectionChange(rejected)
                 }
             }
         }
@@ -251,19 +259,17 @@ private fun PropertyNameField(
         onDispose { finish(true) }
     }
     CompactTextField(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .onFocusChanged { if (!it.isFocused) finish(true) }
-            .confirmingOnEnter(onConfirm = { finish(false) }, onCancel = { text = name }),
+            .confirmingOnEnter(onConfirm = { finish(false) }, onCancel = restore),
         value = text,
         onValueChange = {
             text = it
-            rejection = null
+            onRejectionChange(null)
         },
         label = stringResource(Res.string.property_name),
         isError = rejection != null || PropertyNaming.validate(text, otherNames) != null,
     )
-    rejection?.let { FieldErrorText(it.toFieldError(), Modifier.padding(top = 2.dp)) }
 }
 
 /**
