@@ -25,6 +25,15 @@ needed twelve Kotlin Blocks, all for simple behavior. Each item replaces some of
   speed Property" too. A format raise; every random value draws from one generated `Random`, which rehearsals later seed
   (`13-rehearsals.md`). Covers an enemy appearing at a random height (`jumpTo` with a random y) and filling the sky with stars at
   random places.
+- **The edges as values:** the same value type also takes an edge of the Scene's bounds (or of the screen, when the Scene has none,
+  as the edge Event already decides) plus an offset, and a random number between two edges. "Add a Drifter at the right edge + 50, at
+  a random y between the top and bottom edges" then needs no hand-measured numbers, and stays right when the window or the Scene
+  changes size. Generated from the same bounds the edge Event reads, allocating nothing per frame.
+- **Entering and leaving the Scene:** "When it leaves the Scene", fired once when the Actor is wholly outside the bounds, so an enemy
+  added past the right edge flies in and removes itself past the left one, with no Timer whose length has to match its speed. The
+  edge Event stops pushing the Actor back inside: that becomes the "Staying inside the Scene" setting below, which loading turns on
+  for every Actor type with an edge Event so existing games behave the same, and the edge Event's Palette description says plainly
+  that touching an edge does not stop the Actor. The eval set's shooter adds its enemies off screen, so the gate covers this case.
 - **Moving in a direction:** set the velocity by an angle and a speed, either of them random, so debris can fly out in every direction
   at different speeds.
 - **Color and opacity:** a Block that sets the color, to one color or one picked at random from a few, and Blocks that set the
@@ -59,7 +68,7 @@ needed twelve Kotlin Blocks, all for simple behavior. Each item replaces some of
   speed, and looping, a sprite thumbnail in the appearance column, and tinting a sprite with the color. Each is a property of the
   type's batched look (`core/.../actors/CLAUDE.md`), and a sprite sheet joins the game's one atlas whole (`AnimatedSprite.fromAtlas`,
   `GeneratedSprites`). Layer and drawing order come with the Visible Trait (`04-reuse-and-traits.md`).
-- **More Events:** removed from the Scene, key released and held, and left the Scene bounds (as opposed to touching the edge).
+- **More Events:** removed from the Scene, and key released and held.
   Pointer and gamepad Events come with their Traits (`04-reuse-and-traits.md`).
 - **More drag and drop:** dragging a Block into another Event.
 - **Simple and Advanced mode:** Simple hides Kotlin files, Kotlin Blocks, and Gradle output; switching never changes the project.
