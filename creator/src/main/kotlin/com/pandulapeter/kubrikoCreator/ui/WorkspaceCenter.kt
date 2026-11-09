@@ -89,7 +89,6 @@ internal fun WorkspaceCenter(
     val markdownTitle = markdownTitleOf(selection)
     val actorTypes = remember(blockTypes) { blockTypes.filterIsInstance<ActorTypeDefinition>() }
     val audioFiles = remember(resources) { AudioFiles.of(resources) }
-    val typeEditorContexts = remember { TypeEditorContextCache() }
     when (sceneEditing) {
         is SceneEditingState.Open -> SceneEditorPane(
             modifier = contentModifier,
@@ -127,6 +126,7 @@ internal fun WorkspaceCenter(
     // The selection follows the Scene state a dispatch later, so the type editor waits for the Scene to close too.
     if (sceneEditing == SceneEditingState.Closed && selectedBlockType != null) {
         key(selectedBlockType.name) {
+            val typeEditorContexts = remember { TypeEditorContextCache() }
             val context = remember(selectedBlockType, blockTypes, sceneNames, audioFiles) { typeEditorContexts.contextOf(selectedBlockType, blockTypes, sceneNames, audioFiles) }
             BlockTypeEditor(
                 modifier = contentModifier,

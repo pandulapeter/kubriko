@@ -33,8 +33,7 @@ their own:
 
 - The type editor no longer rebuilds the project's family, scope, and inheritance per keystroke (`TypeEditorContextCache`,
   keyed on each type's `TypeOutline`; the sidebar's groups on `SidebarType`). `CreatorBenchmarkTest` times it: selecting a
-  member of the wide family about 1.4 ms, ten keystrokes about 1 ms together. Left from the review: the cache, remembered
-  per workspace, keeps the last types until it is used again (the controller holds the same definitions).
+  member of the wide family about 1.4 ms, ten keystrokes about 1 ms together. The cache lives only while a type editor is shown.
 - A Property is renamed once its name is done (Enter, leaving the field, or the field going away), validated first
   through `dispatchIfValid`, so a refused rename says why on Enter and reverts when left; each rename is its own undo
   step (`EditProperty.mergeKey` merges only typed initial values, and `WriteCommand.mergesWith`/`mergeReverts` are gone).

@@ -29,7 +29,8 @@ internal data class TypeEditorContext(
  * Makes [TypeEditorContext]s, building their parts again only when what they are made of changes: the types' outlines
  * ([TypeOutline]), the Scenes, and the audio files for the scope, and for the inheritance also the Events of the type's
  * ancestors and the triggers of its own. Typing into a Block changes none of these, so the editor keeps the same scope and
- * inheritance, and a project of hundreds of types isn't built into a family again per keystroke.
+ * inheritance, and a project of hundreds of types isn't built into a family again per keystroke. One is kept per type
+ * editor shown, so the types it holds go with the editor.
  */
 internal class TypeEditorContextCache {
     private var types: List<BlockTypeDefinition>? = null
