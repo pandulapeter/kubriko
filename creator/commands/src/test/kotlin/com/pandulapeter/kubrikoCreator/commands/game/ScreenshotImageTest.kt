@@ -31,6 +31,12 @@ class ScreenshotImageTest {
     private fun read(bytes: ByteArray) = ImageIO.read(bytes.inputStream())
 
     @Test
+    fun aScreenshotThatCantBeReadIsReturnedAsItIs() {
+        val truncated = png.copyOf(40)
+        assertContentEquals(truncated, ScreenshotImage.edited(truncated, maximumWidth = 200))
+    }
+
+    @Test
     fun aScreenshotIsScaledDownToTheWidthAsked() {
         val image = read(ScreenshotImage.edited(png, maximumWidth = 200))
         assertEquals(200 to 100, image.width to image.height)

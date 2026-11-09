@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.game
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import javax.imageio.ImageIO
 
 /**
@@ -24,7 +25,11 @@ internal object ScreenshotImage {
      * down to at most [maximumWidth] pixels wide, or [png] itself when there is nothing to do or it can't be read.
      */
     fun edited(png: ByteArray, maximumWidth: Int, left: Float = 0f, top: Float = 0f, right: Float = 1f, bottom: Float = 1f): ByteArray {
-        val image = ImageIO.read(png.inputStream()) ?: return png
+        val image = try {
+            ImageIO.read(png.inputStream())
+        } catch (_: IOException) {
+            null
+        } ?: return png
         val x = (left.coerceIn(0f, 1f) * image.width).toInt()
         val y = (top.coerceIn(0f, 1f) * image.height).toInt()
         val width = ((right.coerceIn(0f, 1f) * image.width).toInt() - x).coerceAtLeast(1)
