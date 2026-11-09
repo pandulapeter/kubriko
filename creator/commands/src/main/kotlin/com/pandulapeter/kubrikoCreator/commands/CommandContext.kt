@@ -12,6 +12,7 @@ import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypes
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.console.ConsoleLines
 import com.pandulapeter.kubrikoCreator.context.KeyedCache
 import com.pandulapeter.kubrikoCreator.context.ScreenplayTexts
 import com.pandulapeter.kubrikoCreator.git.GitController
@@ -37,7 +38,7 @@ import kotlinx.coroutines.withContext
  */
 public class CommandContext(
     public val project: CreatorProject,
-    public val console: StateFlow<List<ConsoleEntry>>,
+    public val console: StateFlow<ConsoleLines>,
     public val blockTypes: BlockTypes?,
     public val git: GitController,
     public val scenes: SceneStore,

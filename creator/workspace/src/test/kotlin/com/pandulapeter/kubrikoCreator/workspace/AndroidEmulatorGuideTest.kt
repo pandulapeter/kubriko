@@ -19,7 +19,7 @@ class AndroidEmulatorGuideTest {
     private val opened = mutableListOf<URI>()
     private var canOpenBrowser = true
 
-    private val statuses get() = console.entries.value.filterIsInstance<ConsoleEntry.Status>().map { it.text }
+    private val statuses get() = console.lines.value.entries.filterIsInstance<ConsoleEntry.Status>().map { it.text }
 
     private fun guide() = AndroidEmulatorGuide(
         openBrowser = { address ->

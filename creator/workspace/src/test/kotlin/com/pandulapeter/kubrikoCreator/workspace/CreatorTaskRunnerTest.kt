@@ -69,7 +69,7 @@ class CreatorTaskRunnerTest {
     private fun TestScope.start(runner: CreatorTaskRunner, taskName: String = SessionInitScript.CLASSPATH_TASK_NAME, properties: Map<String, String> = emptyMap()) =
         backgroundScope.async(UnconfinedTestDispatcher(testScheduler)) { runner.run(taskName, properties) }
 
-    private val statuses get() = console.entries.value.filterIsInstance<ConsoleEntry.Status>().map { it.text }
+    private val statuses get() = console.lines.value.entries.filterIsInstance<ConsoleEntry.Status>().map { it.text }
 
     @Test
     fun commonCodeCompilesIncrementallyUnlessTheProjectDeclaresExpectsAndAFailedBuildIsFollowedByACleanOne() = runTest {
@@ -99,7 +99,7 @@ class CreatorTaskRunnerTest {
         assertFalse(result.await())
         assertEquals(
             listOf(ConsoleEntry.Status(WorkspaceStatus.BUILDING), ConsoleEntry.Status(ProjectProblem.NO_DESKTOP_MODULE, isError = true)),
-            console.entries.value,
+            console.lines.value.entries,
         )
         assertTrue(build.runs.isEmpty())
     }
@@ -110,7 +110,7 @@ class CreatorTaskRunnerTest {
         assertFalse(result.await())
         assertEquals(
             listOf(ConsoleEntry.Status(WorkspaceStatus.BUILDING), ConsoleEntry.Status(ProjectProblem.NOT_A_GRADLE_PROJECT, isError = true)),
-            console.entries.value,
+            console.lines.value.entries,
         )
         assertTrue(build.runs.isEmpty())
     }
@@ -121,7 +121,7 @@ class CreatorTaskRunnerTest {
         val result = start(createRunner(findDesktopModulePath = { lookup.await() }))
         result.cancel()
         assertTrue(result.isCancelled)
-        assertEquals(listOf(ConsoleEntry.Status(WorkspaceStatus.BUILDING)), console.entries.value)
+        assertEquals(listOf(ConsoleEntry.Status(WorkspaceStatus.BUILDING)), console.lines.value.entries)
         assertTrue(build.runs.isEmpty())
     }
 
@@ -147,12 +147,12 @@ class CreatorTaskRunnerTest {
         assertEquals(1, build.runs.size)
         assertEquals(
             ConsoleEntry.Status(WorkspaceStatus.BUILDING_WITH_UNSAVED_TYPES, isError = true, arguments = listOf("Ball, Wall", "Locked.")),
-            console.entries.value.filterIsInstance<ConsoleEntry.Status>()[1],
+            console.lines.value.entries.filterIsInstance<ConsoleEntry.Status>()[1],
         )
         build.currentRun.finish(isSuccessful = true)
         start(createRunner(awaitWrites = { UnsavedWrites(subjects = null, reason = "Broken.") }))
         assertContains(
-            console.entries.value,
+            console.lines.value.entries,
             ConsoleEntry.Status(WorkspaceStatus.BUILDING_WITH_UNWRITTEN_GENERATED_CODE, isError = true, arguments = listOf("Broken.")),
         )
     }
@@ -239,7 +239,7 @@ class CreatorTaskRunnerTest {
                 ConsoleEntry.Problem("Unresolved reference", "src/Ball.kt:3:5"),
                 ConsoleEntry.Problem("Somewhere else", null),
             ),
-            console.entries.value.filterIsInstance<ConsoleEntry.Problem>(),
+            console.lines.value.entries.filterIsInstance<ConsoleEntry.Problem>(),
         )
     }
 
@@ -250,7 +250,7 @@ class CreatorTaskRunnerTest {
         build.currentRun.finish(isSuccessful = false)
         assertFalse(result.await())
         assertEquals(WorkspaceStatus.BUILD_FAILED, statuses.last())
-        assertEquals((10 until 40).map { "line $it" }, console.entries.value.filterIsInstance<ConsoleEntry.BuildOutput>().map { it.line })
+        assertEquals((10 until 40).map { "line $it" }, console.lines.value.entries.filterIsInstance<ConsoleEntry.BuildOutput>().map { it.line })
     }
 
     @Test
@@ -261,7 +261,7 @@ class CreatorTaskRunnerTest {
         assertEquals(
             listOf(ConsoleEntry.Status(WorkspaceStatus.BUILDING), ConsoleEntry.Status(WorkspaceStatus.BUILD_FAILED, isError = true)) +
                 (6..35).map { ConsoleEntry.BuildOutput("line $it") },
-            console.entries.value,
+            console.lines.value.entries,
         )
     }
 
@@ -271,7 +271,7 @@ class CreatorTaskRunnerTest {
         build.currentRun.onEvent(GradleBuildEvent.Output("e: noise", isError = true))
         build.currentRun.onEvent(GradleBuildEvent.Problem("Unresolved reference", file = null, line = null, column = null))
         build.currentRun.finish(isSuccessful = false)
-        assertTrue(console.entries.value.none { it is ConsoleEntry.BuildOutput })
+        assertTrue(console.lines.value.entries.none { it is ConsoleEntry.BuildOutput })
     }
 
     @Test
@@ -282,7 +282,7 @@ class CreatorTaskRunnerTest {
         assertTrue(result.await())
         assertEquals(
             listOf(ConsoleEntry.Status(WorkspaceStatus.BUILDING), ConsoleEntry.Status(WorkspaceStatus.BUILT, arguments = listOf("1.5"))),
-            console.entries.value,
+            console.lines.value.entries,
         )
     }
 
@@ -297,6 +297,6 @@ class CreatorTaskRunnerTest {
         val runner = createRunner(findDesktopModulePath = { throw ProjectInspectionException(ProjectProblem.NO_DESKTOP_MODULE) })
         runner.warmUpCompiler()
         assertTrue(build.runs.isEmpty())
-        assertTrue(console.entries.value.isEmpty())
+        assertTrue(console.lines.value.entries.isEmpty())
     }
 }

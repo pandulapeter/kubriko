@@ -60,7 +60,7 @@ class GameReloaderTest {
         currentTimeMillis = { 0L },
     )
 
-    private val statuses get() = console.entries.value.filterIsInstance<ConsoleEntry.Status>()
+    private val statuses get() = console.lines.value.entries.filterIsInstance<ConsoleEntry.Status>()
 
     @Test
     fun aChangeToCodeOnlyIsReloadedIntoTheRunningGame() = runTest {

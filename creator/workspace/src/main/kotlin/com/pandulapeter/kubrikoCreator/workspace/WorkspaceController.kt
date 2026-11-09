@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.commands.ProjectBuildFiles
 import com.pandulapeter.kubrikoCreator.commands.ScannedFiles
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.console.ConsoleLines
 import com.pandulapeter.kubrikoCreator.foundation.unexpectedProblemHandler
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.gradle.IncrementalCompilationPolicy
@@ -109,7 +110,7 @@ public class WorkspaceController(
     private val consoleLog = ConsoleLog()
 
     /** The lines of the workspace console, oldest first. */
-    public val console: StateFlow<List<ConsoleEntry>> = consoleLog.entries
+    public val console: StateFlow<ConsoleLines> = consoleLog.lines
     private val _formatStatus = MutableStateFlow(initialFormatStatus)
 
     /**

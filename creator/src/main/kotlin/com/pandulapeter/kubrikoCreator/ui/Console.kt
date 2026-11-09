@@ -28,6 +28,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -36,6 +39,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.console.ConsoleLines
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import com.pandulapeter.kubrikoCreator.ui.theme.CreatorMotion
@@ -55,7 +59,7 @@ import org.jetbrains.compose.resources.stringResource
  */
 @Composable
 internal fun Console(
-    entries: List<ConsoleEntry>,
+    lines: ConsoleLines,
     isExpanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
     onClear: () -> Unit,
@@ -73,7 +77,7 @@ internal fun Console(
             enter = fadeIn(CreatorMotion.medium()),
             exit = fadeOut(CreatorMotion.short()),
         ) {
-            entries.lastOrNull()?.let { entry ->
+            lines.entries.lastOrNull()?.let { entry ->
                 Text(
                     modifier = Modifier.padding(horizontal = 8.dp),
                     text = entry.text(),
@@ -89,7 +93,7 @@ internal fun Console(
             icon = Res.drawable.ic_clear,
             label = Res.string.action_clear_console,
             onClick = onClear,
-            isEnabled = entries.isNotEmpty(),
+            isEnabled = lines.entries.isNotEmpty(),
         )
         val arrowRotation by animateFloatAsState(if (isExpanded) 180f else 0f, CreatorMotion.medium())
         IconActionButton(
@@ -105,21 +109,37 @@ internal fun Console(
         exit = shrinkVertically(CreatorMotion.medium()) + fadeOut(CreatorMotion.short()),
     ) {
         val listState = rememberLazyListState()
-        LaunchedEffect(entries.size) {
-            if (entries.isNotEmpty()) listState.scrollToItem(entries.lastIndex)
+        var shownLastNumber by remember { mutableStateOf<Long?>(null) }
+        LaunchedEffect(lines.revision) {
+            val previousLastNumber = shownLastNumber
+            shownLastNumber = lines.lastNumber
+            val visibleNumbers = listState.layoutInfo.visibleItemsInfo.map { it.key }
+            if (lines.entries.isNotEmpty() && isFollowing(previousLastNumber, lines.firstNumber, visibleNumbers)) {
+                listState.scrollToItem(lines.entries.lastIndex)
+            }
         }
         SelectionContainer {
             LazyColumn(
                 modifier = Modifier.fillMaxWidth().height(listHeight),
                 state = listState,
             ) {
-                itemsIndexed(entries) { _, entry ->
+                itemsIndexed(lines.entries, key = { index, _ -> lines.firstNumber + index }) { _, entry ->
                     ConsoleLine(entry)
                 }
             }
         }
     }
 }
+
+/**
+ * Whether the console's list goes on showing the newest line: it showed the one that was last before
+ * ([previousLastNumber]) among [visibleNumbers], or nothing was shown yet, or that line is gone (older than
+ * [firstNumber], the first one kept), so nothing the user was reading is left.
+ */
+internal fun isFollowing(previousLastNumber: Long?, firstNumber: Long, visibleNumbers: List<Any>): Boolean =
+    previousLastNumber == null || previousLastNumber < firstNumber || previousLastNumber in visibleNumbers
+
+private val ConsoleLines.lastNumber get() = entries.lastIndex.takeIf { it >= 0 }?.let { firstNumber + it }
 
 @Composable
 private fun ConsoleLine(

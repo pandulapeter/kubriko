@@ -24,7 +24,7 @@ public object ReadConsole : ReadCommand<ReadConsole.Input> {
     override val inputSerializer: KSerializer<Input> = Input.serializer()
     override val readsProject: Boolean = false
 
-    override suspend fun read(context: CommandContext, input: Input): CommandOutcome = CommandOutcome.Success(context.console.value.takeLast(input.limit.coerceAtLeast(0)).toJsonArray())
+    override suspend fun read(context: CommandContext, input: Input): CommandOutcome = CommandOutcome.Success(context.console.value.entries.takeLast(input.limit.coerceAtLeast(0)).toJsonArray())
 
     @Serializable
     public data class Input(

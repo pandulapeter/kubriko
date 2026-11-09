@@ -61,7 +61,7 @@ class SessionControllerTest {
         runGame = runGame,
     )
 
-    private val statuses get() = console.entries.value.filterIsInstance<ConsoleEntry.Status>().map { it.text }
+    private val statuses get() = console.lines.value.entries.filterIsInstance<ConsoleEntry.Status>().map { it.text }
 
     private fun hello(protocolVersion: Int = SessionProtocol.VERSION) = channel.receive(SessionMessage.Hello(protocolVersion = protocolVersion, mode = SessionMode.PLAY))
 
@@ -89,7 +89,7 @@ class SessionControllerTest {
         hello(protocolVersion = 0)
         assertTrue(build.currentRun.isCancelled)
         assertEquals(SessionState.Idle, controller.state.value)
-        assertContains(console.entries.value, ConsoleEntry.Status(WorkspaceStatus.UNSUPPORTED_PROTOCOL, isError = true))
+        assertContains(console.lines.value.entries, ConsoleEntry.Status(WorkspaceStatus.UNSUPPORTED_PROTOCOL, isError = true))
     }
 
     @Test
@@ -102,7 +102,7 @@ class SessionControllerTest {
                 ConsoleEntry.Log(message = "Started", source = "Game", isImportant = true),
                 ConsoleEntry.Log(message = "Ticking", source = null, isImportant = false),
             ),
-            console.entries.value,
+            console.lines.value.entries,
         )
     }
 
@@ -110,7 +110,7 @@ class SessionControllerTest {
     fun aSessionFailureAppearsInTheConsoleInTheSessionsWords() = runTest {
         createController()
         channel.receive(SessionMessage.Failure(message = "No entry point."))
-        assertEquals(listOf(ConsoleEntry.SessionFailure("No entry point.")), console.entries.value)
+        assertEquals(listOf(ConsoleEntry.SessionFailure("No entry point.")), console.lines.value.entries)
     }
 
     @Test
@@ -136,7 +136,7 @@ class SessionControllerTest {
     fun stoppingWithoutASessionDoesNothing() = runTest {
         val controller = createController()
         controller.stop()
-        assertTrue(console.entries.value.isEmpty())
+        assertTrue(console.lines.value.entries.isEmpty())
     }
 
     @Test
@@ -194,7 +194,7 @@ class SessionControllerTest {
         val launch = GameLaunch(File("/java"), "M", File("/game"), emptyList(), listOf(File("/game/classes")))
         val controller = createController(runGame = { _, _ -> throw IOException("x") })
         controller.play(prepareLaunch = { GameLaunchPreparation.Ready(launch) })
-        assertEquals(ConsoleEntry.Status(WorkspaceStatus.GAME_NOT_STARTED, isError = true, arguments = listOf("x")), console.entries.value.last())
+        assertEquals(ConsoleEntry.Status(WorkspaceStatus.GAME_NOT_STARTED, isError = true, arguments = listOf("x")), console.lines.value.entries.last())
         assertEquals(SessionState.Idle, controller.state.value)
     }
 

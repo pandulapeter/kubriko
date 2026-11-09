@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.actors.store.BlockTypesController
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypesListener
 import com.pandulapeter.kubrikoCreator.actors.store.FailedWrite
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.console.ConsoleLines
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
@@ -82,7 +83,7 @@ public fun TestScope.commandContext(
     sceneReadText: (File) -> String = { file -> file.readText() },
 ) = CommandContext(
     project = CreatorProject(rootDirectory = rootDirectory, name = "game"),
-    console = MutableStateFlow(console),
+    console = MutableStateFlow(ConsoleLines(entries = console)),
     blockTypes = blockTypes,
     git = git,
     scenes = SceneStore(rootDirectory, writeText = sceneWriteText, readText = sceneReadText) { emptyList() },

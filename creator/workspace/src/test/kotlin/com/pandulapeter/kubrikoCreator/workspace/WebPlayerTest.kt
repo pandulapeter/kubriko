@@ -44,7 +44,7 @@ class WebPlayerTest {
     private var canOpenBrowser = true
     private val http = HttpClient.newHttpClient()
 
-    private val statuses get() = console.entries.value.filterIsInstance<ConsoleEntry.Status>().map { it.text }
+    private val statuses get() = console.lines.value.entries.filterIsInstance<ConsoleEntry.Status>().map { it.text }
 
     private fun player() = WebPlayer(
         runTask = { taskName, _ ->

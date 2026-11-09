@@ -42,7 +42,7 @@ class AndroidPlayerTest {
     private val emulator = AndroidDevices.emulatorTarget("Medium_Phone")
     private val apk = File(root, "${AndroidApp.OUTPUT_PATH}/androidApp-debug.apk")
 
-    private val statuses get() = console.entries.value.filterIsInstance<ConsoleEntry.Status>().map { it.text }
+    private val statuses get() = console.lines.value.entries.filterIsInstance<ConsoleEntry.Status>().map { it.text }
 
     private fun player(runTask: suspend (String) -> Boolean = { taskPath -> builds += taskPath; isBuildSuccessful }) = AndroidPlayer(
         rootDirectory = root,
@@ -85,7 +85,7 @@ class AndroidPlayerTest {
             tools.ran("-s R58M12345 shell am start -W -n com.example.mygame/.MainActivity --ez kubriko.creator.logging true --es kubriko.creator.scene 'levels/it'\\''s 1'"),
             tools.commands.joinToString("\n"),
         )
-        assertContains(console.entries.value, ConsoleEntry.Log(message = "Hit a brick", source = "Ball", isImportant = true))
+        assertContains(console.lines.value.entries, ConsoleEntry.Log(message = "Hit a brick", source = "Ball", isImportant = true))
         assertEquals(listOf(WorkspaceStatus.ANDROID_INSTALLING, WorkspaceStatus.ANDROID_GAME_STARTED), statuses)
     }
 
@@ -188,7 +188,7 @@ class AndroidPlayerTest {
         startsOn("R58M12345")
         tools.stream("-s R58M12345 logcat -v tag --pid=4321", listOf("E/AndroidRuntime: FATAL EXCEPTION: main", "E/AndroidRuntime: java.lang.IllegalStateException: Boom"))
         assertFalse(player().play(phone, firstScene = null) {})
-        assertContains(console.entries.value, ConsoleEntry.BuildOutput("java.lang.IllegalStateException: Boom"))
+        assertContains(console.lines.value.entries, ConsoleEntry.BuildOutput("java.lang.IllegalStateException: Boom"))
         assertEquals(WorkspaceStatus.ANDROID_GAME_CRASHED, statuses.last())
     }
 
@@ -250,7 +250,7 @@ class AndroidPlayerTest {
         connected()
         tools.detached = FakeToolProcesses.FakeDetachedTool(exitCode = 1, output = listOf("FATAL | No AVD named Medium_Phone"))
         assertFalse(player().play(emulator, firstScene = null) {})
-        assertContains(console.entries.value, ConsoleEntry.BuildOutput("FATAL | No AVD named Medium_Phone"))
+        assertContains(console.lines.value.entries, ConsoleEntry.BuildOutput("FATAL | No AVD named Medium_Phone"))
         tools.detached = FakeToolProcesses.FakeDetachedTool()
         assertFalse(player().play(emulator, firstScene = null) {})
         assertEquals(
@@ -268,7 +268,7 @@ class AndroidPlayerTest {
         assertFalse(player().play(phone, firstScene = null) {})
         tools.answer("-s R58M12345 install -r ${apk.path}", failed("Failure [INSTALL_FAILED_UPDATE_INCOMPATIBLE: Existing package signatures do not match]"))
         assertFalse(player().play(phone, firstScene = null) {})
-        val failures = console.entries.value.filterIsInstance<ConsoleEntry.Status>().filter { it.isError }
+        val failures = console.lines.value.entries.filterIsInstance<ConsoleEntry.Status>().filter { it.isError }
         assertEquals(listOf(WorkspaceStatus.ANDROID_INSTALL_FAILED, WorkspaceStatus.ANDROID_INSTALL_INCOMPATIBLE), failures.map { it.text })
         assertEquals("adb: failed to install: Failure [INSTALL_FAILED_INSUFFICIENT_STORAGE]", failures.first().arguments.last())
     }

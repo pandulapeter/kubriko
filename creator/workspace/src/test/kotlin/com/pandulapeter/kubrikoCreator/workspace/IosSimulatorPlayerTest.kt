@@ -40,7 +40,7 @@ class IosSimulatorPlayerTest {
         "-destination id=U1 -derivedDataPath ${File(root, IosSimulatorPlayer.BUILD_PATH).path} CODE_SIGNING_ALLOWED=NO build"
     private val launch = "-q /dev/null xcrun simctl launch --console-pty --terminate-running-process U1 com.example.mygame -kubriko.creator.logging YES"
 
-    private val statuses get() = console.entries.value.filterIsInstance<ConsoleEntry.Status>().map { it.text }
+    private val statuses get() = console.lines.value.entries.filterIsInstance<ConsoleEntry.Status>().map { it.text }
 
     private fun player() = IosSimulatorPlayer(
         rootDirectory = root,
@@ -79,11 +79,11 @@ class IosSimulatorPlayerTest {
         assertEquals(1, outsideBuilds)
         assertTrue(isUp)
         assertTrue(tools.ran("-a Simulator --args -CurrentDeviceUDID U1"))
-        assertContains(console.entries.value, ConsoleEntry.Log(message = "Hit a brick", source = "Ball", isImportant = true))
-        assertContains(console.entries.value, ConsoleEntry.Log(message = "plain", source = null, isImportant = false))
+        assertContains(console.lines.value.entries, ConsoleEntry.Log(message = "Hit a brick", source = "Ball", isImportant = true))
+        assertContains(console.lines.value.entries, ConsoleEntry.Log(message = "plain", source = null, isImportant = false))
         assertEquals(
             listOf("2026-11-03 20:01:54.789 Game[4321:5460775] early", "Hit a brick", "plain", "com.example.mygame: 99"),
-            console.entries.value.filterIsInstance<ConsoleEntry.Log>().map { it.message },
+            console.lines.value.entries.filterIsInstance<ConsoleEntry.Log>().map { it.message },
         )
         assertEquals(listOf(WorkspaceStatus.IOS_SIMULATOR_BOOTING, WorkspaceStatus.IOS_GAME_STARTED), statuses)
     }
@@ -115,7 +115,7 @@ class IosSimulatorPlayerTest {
         tools.stream(build, listOf("noise", "/game/Game.kt:3: error: Unresolved reference", "** BUILD FAILED **"), keepsRunning = false, exitCode = 65)
         assertFalse(player().play(target, firstScene = null) {})
         assertEquals(WorkspaceStatus.BUILD_FAILED, statuses.last())
-        assertEquals(listOf(ConsoleEntry.BuildOutput("/game/Game.kt:3: error: Unresolved reference")), console.entries.value.filterIsInstance<ConsoleEntry.BuildOutput>())
+        assertEquals(listOf(ConsoleEntry.BuildOutput("/game/Game.kt:3: error: Unresolved reference")), console.lines.value.entries.filterIsInstance<ConsoleEntry.BuildOutput>())
         assertFalse(tools.commands.any { "install" in it })
     }
 
@@ -153,8 +153,8 @@ class IosSimulatorPlayerTest {
             ),
             statuses.filter { it != WorkspaceStatus.BUILDING },
         )
-        assertEquals(listOf("iPhone 16 (iOS 18.2)", "5"), console.entries.value.filterIsInstance<ConsoleEntry.Status>().first { it.text == WorkspaceStatus.IOS_SIMULATOR_TIMED_OUT }.arguments)
-        assertEquals(listOf("iPhone 16 (iOS 18.2)", "Unable to boot the Simulator."), console.entries.value.filterIsInstance<ConsoleEntry.Status>().first { it.text == WorkspaceStatus.IOS_SIMULATOR_NOT_BOOTED }.arguments)
+        assertEquals(listOf("iPhone 16 (iOS 18.2)", "5"), console.lines.value.entries.filterIsInstance<ConsoleEntry.Status>().first { it.text == WorkspaceStatus.IOS_SIMULATOR_TIMED_OUT }.arguments)
+        assertEquals(listOf("iPhone 16 (iOS 18.2)", "Unable to boot the Simulator."), console.lines.value.entries.filterIsInstance<ConsoleEntry.Status>().first { it.text == WorkspaceStatus.IOS_SIMULATOR_NOT_BOOTED }.arguments)
     }
 
     @Test
@@ -170,9 +170,9 @@ class IosSimulatorPlayerTest {
         assertFalse(player().play(target, firstScene = null) {})
         assertEquals(
             listOf(WorkspaceStatus.IOS_APP_MISSING, WorkspaceStatus.IOS_INSTALL_FAILED, WorkspaceStatus.IOS_NOT_STARTED),
-            console.entries.value.filterIsInstance<ConsoleEntry.Status>().filter { it.isError }.map { it.text },
+            console.lines.value.entries.filterIsInstance<ConsoleEntry.Status>().filter { it.isError }.map { it.text },
         )
-        assertEquals("The request was denied by service delegate", console.entries.value.filterIsInstance<ConsoleEntry.Status>().last().arguments.last())
+        assertEquals("The request was denied by service delegate", console.lines.value.entries.filterIsInstance<ConsoleEntry.Status>().last().arguments.last())
     }
 
     @Test
@@ -184,10 +184,10 @@ class IosSimulatorPlayerTest {
         tools.answer("simctl list devices available --json", simulator("Booted"), simulator("Shutdown"))
         tools.stream(launch, listOf("com.example.mygame: 4321"), keepsRunning = false)
         assertFalse(player().play(target, firstScene = null) {})
-        assertContains(console.entries.value, ConsoleEntry.BuildOutput("Uncaught Kotlin exception: kotlin.IllegalStateException: Boom"))
+        assertContains(console.lines.value.entries, ConsoleEntry.BuildOutput("Uncaught Kotlin exception: kotlin.IllegalStateException: Boom"))
         assertEquals(
             listOf(WorkspaceStatus.IOS_GAME_CRASHED, WorkspaceStatus.IOS_SIMULATOR_SHUT_DOWN),
-            console.entries.value.filterIsInstance<ConsoleEntry.Status>().filter { it.isError }.map { it.text },
+            console.lines.value.entries.filterIsInstance<ConsoleEntry.Status>().filter { it.isError }.map { it.text },
         )
     }
 
@@ -200,7 +200,7 @@ class IosSimulatorPlayerTest {
         tools.answer("simctl list devices available --json", simulator("Booted"))
         tools.stream(launch, listOf("com.example.mygame: 4321"), keepsRunning = false, exitCode = 134)
         assertFalse(player().play(target, firstScene = null) {})
-        assertEquals(listOf("iPhone 16 (iOS 18.2)", "134"), console.entries.value.filterIsInstance<ConsoleEntry.Status>().single { it.isError }.arguments)
+        assertEquals(listOf("iPhone 16 (iOS 18.2)", "134"), console.lines.value.entries.filterIsInstance<ConsoleEntry.Status>().single { it.isError }.arguments)
         assertEquals(WorkspaceStatus.IOS_GAME_EXITED, statuses.last())
     }
 
@@ -213,10 +213,10 @@ class IosSimulatorPlayerTest {
         tools.stream(launch, listOf("com.example.mygame: 4321"), keepsRunning = false)
         assertTrue(player().play(target, firstScene = null) {})
         assertTrue(tools.ran("-b com.apple.dt.Devices"))
-        assertTrue(console.entries.value.none { it is ConsoleEntry.Status && it.text == WorkspaceStatus.IOS_SIMULATOR_NOT_SHOWN })
+        assertTrue(console.lines.value.entries.none { it is ConsoleEntry.Status && it.text == WorkspaceStatus.IOS_SIMULATOR_NOT_SHOWN })
         tools.answer("-b com.apple.dt.Devices", failed("Unable to find application named 'Simulator'\n"))
         assertTrue(player().play(target, firstScene = null) {})
-        val notShown = console.entries.value.filterIsInstance<ConsoleEntry.Status>().single { it.text == WorkspaceStatus.IOS_SIMULATOR_NOT_SHOWN }
+        val notShown = console.lines.value.entries.filterIsInstance<ConsoleEntry.Status>().single { it.text == WorkspaceStatus.IOS_SIMULATOR_NOT_SHOWN }
         assertEquals(listOf("iPhone 16 (iOS 18.2)", "Unable to find application named 'Simulator'"), notShown.arguments)
     }
 

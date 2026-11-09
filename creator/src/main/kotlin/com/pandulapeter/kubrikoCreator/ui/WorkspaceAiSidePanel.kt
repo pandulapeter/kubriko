@@ -24,7 +24,7 @@ import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.commands.UserQuestions
-import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.console.ConsoleLines
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
 import com.pandulapeter.kubrikoCreator.ui.components.PanelRow
@@ -54,7 +54,7 @@ internal fun WorkspaceAiSidePanel(
     assistant: AssistantPanelModel,
     acceptsImages: StateFlow<Boolean>,
     gameMap: StateFlow<GameMap?>,
-    console: StateFlow<List<ConsoleEntry>>,
+    console: StateFlow<ConsoleLines>,
     aiSteps: List<AiStep>,
     openSceneName: String?,
     selectedBlockType: BlockTypeDefinition?,
@@ -79,7 +79,7 @@ internal fun WorkspaceAiSidePanel(
                 openScene = openSceneName,
                 selectedType = selectedBlockType?.name,
                 isSelectedTypeManager = selectedBlockType is ManagerTypeDefinition,
-                console = consoleEntries.value,
+                console = consoleEntries.value.entries,
                 canSendGameScreen = sessionState is SessionState.Running && sessionState.target == PlayTarget.DESKTOP && isAcceptingImages.value,
             )
         }

@@ -47,7 +47,7 @@ class BlockTypesReportTest {
                 librariesAdded,
                 librariesRemoved,
             ),
-            console.entries.value,
+            console.lines.value.entries,
         )
     }
 
@@ -62,7 +62,7 @@ class BlockTypesReportTest {
         )
         assertEquals(
             listOf(ConsoleEntry.Status(WorkspaceStatus.KOTLIN_BLOCK_SCOPE_CHANGED, isError = true, arguments = listOf("Ball"))),
-            console.entries.value,
+            console.lines.value.entries,
         )
     }
 
@@ -75,7 +75,7 @@ class BlockTypesReportTest {
                 ConsoleEntry.Status(WorkspaceStatus.GENERATED_LEFTOVERS_REMOVED, arguments = listOf("a.kt, b.kt")),
                 ConsoleEntry.Status(WorkspaceStatus.GENERATED_LEFTOVER_CHANGED_BY_HAND, isError = true, arguments = listOf("c.kt")),
             ),
-            console.entries.value,
+            console.lines.value.entries,
         )
     }
 
@@ -83,6 +83,6 @@ class BlockTypesReportTest {
     fun aSavedBatchIsHandedOnWithoutWritingToTheConsole() {
         report.onSaved(true)
         assertEquals(listOf(true), saved)
-        assertEquals(emptyList(), console.entries.value)
+        assertEquals(emptyList(), console.lines.value.entries)
     }
 }

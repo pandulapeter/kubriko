@@ -17,28 +17,37 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Dp
-import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.console.ConsoleLines
 import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
 import com.pandulapeter.kubrikoCreator.ui.components.PanelSplitter
 import com.pandulapeter.kubrikoCreator.ui.components.PanelWidths.Panel
 import com.pandulapeter.kubrikoCreator.ui.components.rememberPanelHeight
+import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import kotlinx.coroutines.flow.StateFlow
 
 /**
  * The workspace's console under a splitter that resizes it (opening it when it is closed), in a column [availableHeight]
- * tall. It opens by itself for entries worth seeing.
+ * tall. It opens by itself for lines worth seeing ([ConsoleOpening]), what the game logs once per play session.
+ *
+ * @param sessionState The game's session, whose start counts as a new play session.
  */
 @Composable
 internal fun WorkspaceConsole(
-    entries: StateFlow<List<ConsoleEntry>>,
+    lines: StateFlow<ConsoleLines>,
+    sessionState: SessionState,
     onClear: () -> Unit,
     panelLayout: PanelLayout,
     availableHeight: Dp,
 ) {
-    val console by entries.collectAsState()
+    val console by lines.collectAsState()
     var isExpanded by remember { mutableStateOf(false) }
-    LaunchedEffect(console.lastOrNull()) {
-        if (console.lastOrNull()?.opensConsole == true) isExpanded = true
+    val opening = remember { ConsoleOpening() }
+    val isStartingToPlay = sessionState is SessionState.Starting
+    LaunchedEffect(isStartingToPlay) {
+        if (isStartingToPlay) opening.onPlayStarted()
+    }
+    LaunchedEffect(console.revision) {
+        if (opening.opensFor(console)) isExpanded = true
     }
     val height = rememberPanelHeight(Panel.CONSOLE, panelLayout)
     PanelSplitter(
@@ -47,7 +56,7 @@ internal fun WorkspaceConsole(
         onDrag = { isExpanded = true },
     )
     Console(
-        entries = console,
+        lines = console,
         isExpanded = isExpanded,
         onExpandedChange = { isExpanded = it },
         onClear = onClear,

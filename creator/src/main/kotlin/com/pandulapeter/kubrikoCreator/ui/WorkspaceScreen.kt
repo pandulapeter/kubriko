@@ -226,7 +226,8 @@ private fun WorkspaceContent(
                 }
             }
             WorkspaceConsole(
-                entries = controller.console,
+                lines = controller.console,
+                sessionState = sessionState,
                 onClear = controller::clearConsole,
                 panelLayout = panelLayout,
                 availableHeight = columnHeight,

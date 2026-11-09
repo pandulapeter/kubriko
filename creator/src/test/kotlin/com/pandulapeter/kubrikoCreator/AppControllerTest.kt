@@ -182,7 +182,7 @@ class AppControllerTest {
         assertTrue(hasRun)
         assertEquals(
             listOf(ConsoleEntry.Status(WorkspaceStatus.UNEXPECTED_PROBLEM, isError = true, arguments = listOf("java.lang.IllegalStateException: Broken."))),
-            workspace.console.value,
+            workspace.console.value.entries,
         )
     }
 

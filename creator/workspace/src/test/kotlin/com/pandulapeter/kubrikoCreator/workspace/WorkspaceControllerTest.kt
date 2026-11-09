@@ -129,7 +129,7 @@ class WorkspaceControllerTest {
         build.currentRun.finish(isSuccessful = true)
     }
 
-    private val WorkspaceController.statuses get() = console.value.filterIsInstance<ConsoleEntry.Status>().map { it.text }
+    private val WorkspaceController.statuses get() = console.value.entries.filterIsInstance<ConsoleEntry.Status>().map { it.text }
 
     @Test
     fun resourcesAreScannedFromTheProjectRootWhenOpened() = runTest {
@@ -170,7 +170,7 @@ class WorkspaceControllerTest {
             findDesktopModulePaths = { listOf(":desktop") },
             gitRepository = FakeGitRepository(),
         )
-        assertEquals(emptyList(), controller.console.value.filterIsInstance<ConsoleEntry.Status>().filter { it.text == WorkspaceStatus.UNEXPECTED_PROBLEM })
+        assertEquals(emptyList(), controller.console.value.entries.filterIsInstance<ConsoleEntry.Status>().filter { it.text == WorkspaceStatus.UNEXPECTED_PROBLEM })
         assertEquals(listOf("Ball"), controller.blockTypes?.types?.value?.map { it.name })
     }
 
@@ -332,7 +332,7 @@ class WorkspaceControllerTest {
         repository.failingNames += "Player"
         assertNull(controller.creation.createActorType("Player"))
         controller.play()
-        assertContains(controller.console.value, ConsoleEntry.Status(WorkspaceStatus.BUILDING_WITH_UNSAVED_TYPES, isError = true, arguments = listOf("Player", "Locked.")))
+        assertContains(controller.console.value.entries, ConsoleEntry.Status(WorkspaceStatus.BUILDING_WITH_UNSAVED_TYPES, isError = true, arguments = listOf("Player", "Locked.")))
         assertEquals(1, build.runs.size)
     }
 
@@ -347,13 +347,13 @@ class WorkspaceControllerTest {
         build.currentRun.finish(isSuccessful = true)
         assertEquals(listOf(":${SessionInitScript.CLASSPATH_TASK_NAME}", ":${SessionInitScript.WARM_UP_TASK_NAME}"), build.runs.map { it.taskPath })
         assertContains(build.currentRun.arguments, "-PkubrikoCreatorMode=warmUp")
-        val console = controller.console.value
+        val console = controller.console.value.entries
         controller.play()
         assertEquals(2, build.runs.size)
         build.currentRun.finish(isSuccessful = false)
         assertEquals(":${SessionInitScript.CLASSPATH_TASK_NAME}", build.currentRun.taskPath)
         assertFalse("--rerun-tasks" in build.currentRun.arguments, "a failed warm-up doesn't make the next build a clean one")
-        assertEquals(console + ConsoleEntry.Status(WorkspaceStatus.BUILDING), controller.console.value)
+        assertEquals(console + ConsoleEntry.Status(WorkspaceStatus.BUILDING), controller.console.value.entries)
     }
 
     @Test
@@ -372,7 +372,7 @@ class WorkspaceControllerTest {
             assertEquals(mapOf("kubriko.creator.port" to channel.port.toString(), "kubriko.creator.logging" to "true", "kubriko.creator.scene" to "levels/1-1"), properties)
             exit.complete(GameProcess.Exit(1, listOf("Exception in thread \"main\"")))
             assertEquals(WorkspaceStatus.GAME_FAILED, controller.statuses.last())
-            assertEquals(ConsoleEntry.BuildOutput("Exception in thread \"main\""), controller.console.value.last())
+            assertEquals(ConsoleEntry.BuildOutput("Exception in thread \"main\""), controller.console.value.entries.last())
             assertEquals(SessionState.Idle, controller.sessionState.value)
         } finally {
             playClasspathFile.delete()
@@ -550,8 +550,8 @@ class WorkspaceControllerTest {
     fun theConsoleKeepsOnlyTheMostRecentEntries() = runTest {
         val controller = createController()
         repeat(2_100) { channel.receive(SessionMessage.Failure(message = "$it")) }
-        assertEquals(2_000, controller.console.value.size)
-        assertEquals(ConsoleEntry.SessionFailure("2099"), controller.console.value.last())
+        assertEquals(2_000, controller.console.value.entries.size)
+        assertEquals(ConsoleEntry.SessionFailure("2099"), controller.console.value.entries.last())
     }
 
     @Test
@@ -559,7 +559,7 @@ class WorkspaceControllerTest {
         val controller = createController()
         channel.receive(SessionMessage.Failure(message = "x"))
         controller.clearConsole()
-        assertTrue(controller.console.value.isEmpty())
+        assertTrue(controller.console.value.entries.isEmpty())
     }
 
     @Test
@@ -608,7 +608,7 @@ class WorkspaceControllerTest {
         val controller = createController(blockTypeRepository = FakeBlockTypeRepository().apply { isFailing = true })
         controller.clearConsole()
         controller.creation.createActorType("Player")
-        assertEquals(listOf(ConsoleEntry.Status(WorkspaceStatus.BLOCK_TYPE_NOT_SAVED, isError = true, arguments = listOf("Player", "Disk full."))), controller.console.value)
+        assertEquals(listOf(ConsoleEntry.Status(WorkspaceStatus.BLOCK_TYPE_NOT_SAVED, isError = true, arguments = listOf("Player", "Disk full."))), controller.console.value.entries)
     }
 
     @Test
@@ -624,7 +624,7 @@ class WorkspaceControllerTest {
         runCurrent()
         assertEquals(
             listOf(ConsoleEntry.Status(WorkspaceStatus.KOTLIN_BLOCK_SCOPE_CHANGED, isError = true, arguments = listOf("Ball"))),
-            controller.console.value.filter { it is ConsoleEntry.Status && it.text == WorkspaceStatus.KOTLIN_BLOCK_SCOPE_CHANGED },
+            controller.console.value.entries.filter { it is ConsoleEntry.Status && it.text == WorkspaceStatus.KOTLIN_BLOCK_SCOPE_CHANGED },
         )
     }
 
@@ -652,7 +652,7 @@ class WorkspaceControllerTest {
         controller.onProjectChanged(setOf(ProjectChange.BLOCK_TYPE_DEFINITIONS))
         controller.clearConsole()
         controller.commands.undo()
-        assertEquals(listOf(ConsoleEntry.Status(CommandProblem.CHANGED_OUTSIDE, isError = true, arguments = listOf("Player"))), controller.console.value)
+        assertEquals(listOf(ConsoleEntry.Status(CommandProblem.CHANGED_OUTSIDE, isError = true, arguments = listOf("Player"))), controller.console.value.entries)
     }
 
     @Test
