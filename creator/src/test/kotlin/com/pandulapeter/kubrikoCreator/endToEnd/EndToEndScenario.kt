@@ -67,8 +67,8 @@ internal class EndToEndScenario(
      * What the running game shows, through `take_screenshot` (the game's own drawing, wherever its window is), saved as
      * [imageName].
      */
-    fun captureGame(imageName: String, timeout: Duration = CreatorTools.DEFAULT_TIMEOUT): BufferedImage {
-        val result = tools.call("take_screenshot", timeout = timeout)
+    fun captureGame(imageName: String): BufferedImage {
+        val result = tools.call("take_screenshot")
         check(!result.isError) { "take_screenshot failed: ${result.text}" }
         val png = checkNotNull(result.png) { "take_screenshot returned no image: ${result.text}" }
         return checkNotNull(decode(png)) { "take_screenshot's image can't be read." }.also { save(imageName, it) }

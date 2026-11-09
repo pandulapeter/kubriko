@@ -30,6 +30,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import java.io.IOException
 import java.util.Base64
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -51,15 +52,17 @@ internal class CreatorTools(
 
     /**
      * Calls [tool] with [arguments], waiting at most [timeout] for its answer, and connecting first if needed. A call
-     * that fails on the way drops the connection, so the next one opens a new one rather than failing alike.
+     * whose connection failed, or that was interrupted, drops the connection, so the next one opens a new one rather
+     * than failing alike; one that only took too long keeps it, since the server may still be answering it.
      */
-    fun call(tool: String, arguments: Map<String, Any?> = emptyMap(), timeout: Duration = DEFAULT_TIMEOUT): ToolResult = runBlocking {
-        try {
-            answer(tool, arguments, timeout)
-        } catch (exception: Exception) {
-            disconnect()
-            throw exception
-        }
+    fun call(tool: String, arguments: Map<String, Any?> = emptyMap(), timeout: Duration = DEFAULT_TIMEOUT): ToolResult = try {
+        runBlocking { answer(tool, arguments, timeout) }
+    } catch (exception: IOException) {
+        runBlocking { disconnect() }
+        throw exception
+    } catch (exception: InterruptedException) {
+        client = null
+        throw exception
     }
 
     /**
