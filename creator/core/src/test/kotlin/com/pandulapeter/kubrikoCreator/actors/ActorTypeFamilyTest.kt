@@ -99,4 +99,15 @@ class ActorTypeFamilyTest {
         val child = ActorTypeDefinition(name = "Bat", parent = "Enemy", events = listOf(space))
         assertEquals(listOf(left, space), ActorTypeFamily(listOf(parent, child)).eventsOf("Bat"))
     }
+
+    @Test
+    fun eventsCanComeFromNewerDefinitionsThanTheFamilysOwn() {
+        val parent = ActorTypeDefinition(name = "Enemy", events = listOf(EventDefinition(EventType.ADDED_TO_SCENE)))
+        val child = ActorTypeDefinition(name = "Bat", parent = "Enemy")
+        val kept = ActorTypeFamily(listOf(parent, child))
+        val changedParent = parent.withEvents(listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Stop))))
+        val newer = mapOf("Enemy" to changedParent, "Bat" to child)
+        assertEquals(changedParent.events, kept.eventsOf("Bat", newer::get))
+        assertEquals(parent.events, kept.eventsOf("Bat"))
+    }
 }

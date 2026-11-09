@@ -85,9 +85,15 @@ public class ActorTypeFamily(actorTypes: List<ActorTypeDefinition>) {
     /**
      * The Events [name]'s Actors react to: its own, and each of its ancestors' that none nearer to it replaces.
      */
-    public fun eventsOf(name: String): List<EventDefinition> {
-        val own = byName[name]?.events.orEmpty()
-        val inherited = parents[name]?.let(::eventsOf).orEmpty().filter { event -> own.none { it.replaces(event) } }
+    public fun eventsOf(name: String): List<EventDefinition> = eventsOf(name, byName::get)
+
+    /**
+     * The Events [name]'s Actors react to ([eventsOf]), with each type's own Events as [definitionOf] gives them rather
+     * than as this family was built with, for a family kept while only Events and Blocks change.
+     */
+    public fun eventsOf(name: String, definitionOf: (String) -> ActorTypeDefinition?): List<EventDefinition> {
+        val own = definitionOf(name)?.events.orEmpty()
+        val inherited = parents[name]?.let { eventsOf(it, definitionOf) }.orEmpty().filter { event -> own.none { it.replaces(event) } }
         return inherited + own
     }
 

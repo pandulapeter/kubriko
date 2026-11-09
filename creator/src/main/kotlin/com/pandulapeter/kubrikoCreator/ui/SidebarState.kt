@@ -20,7 +20,8 @@ import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 
 /**
- * What the sidebar's groups with folders show ([folderTreeGroups]), computed again only when one of these changes.
+ * What the sidebar's groups with folders show ([folderTreeGroups]), computed again only when one of these changes (of
+ * [types], only their kinds, names, and folders, so typing into a Block doesn't).
  *
  * @param types The project's block-built types, or null if it hasn't opted in to them.
  */
@@ -33,8 +34,11 @@ internal fun rememberFolderTreeGroups(
     sceneFolders: Set<String>,
     openSceneName: String?,
     pages: FolderTreeGroupState,
-): Map<FolderGroup, FolderTreeGroupState> = remember(types, typeFolders, selectedTypeName, sceneNames, sceneFolders, openSceneName, pages) {
-    folderTreeGroups(types, typeFolders, selectedTypeName, sceneNames, sceneFolders, openSceneName, pages)
+): Map<FolderGroup, FolderTreeGroupState> {
+    val typeEntries = remember(types) { types?.map { Triple(it.kind, it.name, it.folder) } }
+    return remember(typeEntries, typeFolders, selectedTypeName, sceneNames, sceneFolders, openSceneName, pages) {
+        folderTreeGroups(types, typeFolders, selectedTypeName, sceneNames, sceneFolders, openSceneName, pages)
+    }
 }
 
 /**

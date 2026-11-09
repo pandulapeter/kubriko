@@ -15,9 +15,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
-import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
@@ -29,7 +27,7 @@ import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.BlockTypeEditor
-import com.pandulapeter.kubrikoCreator.ui.actorTypes.Inheritance
+import com.pandulapeter.kubrikoCreator.ui.actorTypes.TypeEditorContextCache
 import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
 import com.pandulapeter.kubrikoCreator.ui.components.ProgressScreen
 import com.pandulapeter.kubrikoCreator.ui.components.fadeInOnChange
@@ -93,7 +91,8 @@ internal fun WorkspaceCenter(
     val contentModifier = modifier.fadeInOnChange(shownContentKey(selection, sceneEditing))
     val markdownTitle = markdownTitleOf(selection)
     val actorTypes = remember(blockTypes) { blockTypes.filterIsInstance<ActorTypeDefinition>() }
-    val family = remember(actorTypes) { ActorTypeFamily(actorTypes) }
+    val audioFiles = remember(resources) { AudioFiles.of(resources) }
+    val typeEditorContexts = remember { TypeEditorContextCache() }
     when (sceneEditing) {
         is SceneEditingState.Open -> SceneEditorPane(
             modifier = contentModifier,
@@ -102,7 +101,7 @@ internal fun WorkspaceCenter(
             actorTypeDragState = actorTypeDragState,
             panelLayout = panelLayout,
             actorTypes = actorTypes,
-            music = remember(resources) { AudioFiles.of(resources).music },
+            music = audioFiles.music,
             description = sceneDescriptions[sceneEditing.sceneName],
             onPlay = { onPlayScene(sceneEditing.sceneName) },
             onReload = onReloadScene,
@@ -131,20 +130,13 @@ internal fun WorkspaceCenter(
     // The selection follows the Scene state a dispatch later, so the type editor waits for the Scene to close too.
     if (sceneEditing == SceneEditingState.Closed && selectedBlockType != null) {
         key(selectedBlockType.name) {
+            val context = typeEditorContexts.contextOf(selectedBlockType, blockTypes, sceneNames, audioFiles)
             BlockTypeEditor(
                 modifier = contentModifier,
                 definition = selectedBlockType,
-                scope = remember(selectedBlockType, blockTypes, resources, family) {
-                    BlockScope.of(
-                        definition = selectedBlockType,
-                        types = blockTypes,
-                        sceneNames = sceneNames,
-                        audioFiles = AudioFiles.of(resources),
-                        family = family,
-                    )
-                },
+                scope = context.scope,
                 sprites = remember(resources) { SpriteFiles.of(resources).paths },
-                inheritance = remember(selectedBlockType, blockTypes, family) { Inheritance.of(selectedBlockType, blockTypes, family = family) },
+                inheritance = context.inheritance,
                 isChangedByHand = selectedBlockType.name in changedByHand,
                 onCommand = onCommand,
                 currentDefinition = { currentBlockType(selectedBlockType.name) },

@@ -10,7 +10,9 @@
 package com.pandulapeter.kubrikoCreator.benchmark
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
@@ -22,6 +24,7 @@ import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
 import com.pandulapeter.kubrikoCreator.testing.FakeProjectBuild
 import com.pandulapeter.kubrikoCreator.testing.FakeSessionChannel
+import com.pandulapeter.kubrikoCreator.ui.actorTypes.TypeEditorContextCache
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import com.pandulapeter.kubrikoCreator.workspace.workspaceController
 import kotlinx.coroutines.CoroutineDispatcher
@@ -42,7 +45,7 @@ import kotlin.test.Test
 
 /**
  * Times what Kubriko Creator does with a GameMaker-sized project ([BenchmarkProject]), without Gradle: opening it, changing
- * an Actor type, moving an Actor in Scenes of each size, undoing, and a pass of the file watcher. Each step reports the
+ * an Actor type, typing in the type editor, moving an Actor in Scenes of each size, undoing, and a pass of the file watcher. Each step reports the
  * time the main thread was busy with it, and the time until it was written. Only runs with
  * `KUBRIKO_CREATOR_BENCHMARK=true`, and prints its numbers rather than asserting them, so every change to the data flow can
  * be compared against the last run.
@@ -144,6 +147,8 @@ class CreatorBenchmarkTest {
         blockTypes.awaitWrites()
         report("$TYPING_COUNT quick changes to one Actor type, as typing makes (until written)", mainTime, System.nanoTime() - totalStart)
 
+        measureTypeEditor(blockTypes.types.value, ::report)
+
         var historySize = 2 + TYPING_COUNT
         BenchmarkProject.SCENE_SIZES.forEach { size ->
             totalStart = System.nanoTime()
@@ -165,6 +170,26 @@ class CreatorBenchmarkTest {
         ProjectWatcher.snapshot(directory, store.generatedPath)
         report("One pass of the file watcher", 0L, System.nanoTime() - totalStart)
         withContext(main) { controller.close() }.join()
+    }
+
+    /**
+     * Times what the type editor works out on the main thread for a member of the wide family: once when the type is
+     * selected, and again after each keystroke into one of its Blocks, which should cost next to nothing.
+     */
+    private fun measureTypeEditor(types: List<BlockTypeDefinition>, report: (String, Long, Long) -> Unit) {
+        val cache = TypeEditorContextCache()
+        val name = BenchmarkProject.actorTypeName(BenchmarkProject.WIDE_FAMILY_ROOT + 50)
+        val definition = types.first { it.name == name }
+        val audioFiles = AudioFiles()
+        val selectionTime = timed { cache.contextOf(definition, types, emptyList(), audioFiles) }
+        report("Select a member of the wide family in the type editor", selectionTime, selectionTime)
+        var typingTime = 0L
+        repeat(TYPING_COUNT) { index ->
+            val typed = definition.withEvents(definition.events.mapIndexed { eventIndex, event -> if (eventIndex == 0) event.copy(blocks = event.blocks + BlockDefinition.Log("Typed $index")) else event })
+            val typesAfter = types.map { if (it.name == name) typed else it }
+            typingTime += timed { cache.contextOf(typed, typesAfter, emptyList(), audioFiles) }
+        }
+        report("$TYPING_COUNT keystrokes into its Blocks, in the type editor", typingTime, typingTime)
     }
 
     private suspend fun awaitHistorySize(controller: WorkspaceController, size: Int) {

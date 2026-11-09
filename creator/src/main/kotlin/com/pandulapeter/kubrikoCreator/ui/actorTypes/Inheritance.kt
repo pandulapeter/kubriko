@@ -28,7 +28,8 @@ internal data class Inheritance(
     companion object {
 
         /**
-         * The inheritance of [definition] among [types]; nothing for a Manager type.
+         * The inheritance of [definition] among [types]; nothing for a Manager type. The Events come from [types], so
+         * [family] only has to match their names, parents, and Properties.
          */
         fun of(
             definition: BlockTypeDefinition,
@@ -39,7 +40,8 @@ internal data class Inheritance(
             val actorTypes = types.filterIsInstance<ActorTypeDefinition>()
             val descendants = family.descendantsOf(definition.name).toSet()
             val ownNames = definition.properties.map { it.name }.toSet()
-            val inheritedEvents = family.parentOf(definition.name)?.let(family::eventsOf).orEmpty()
+            val byName = actorTypes.associateBy { it.name }
+            val inheritedEvents = family.parentOf(definition.name)?.let { family.eventsOf(it, byName::get) }.orEmpty()
             return Inheritance(
                 properties = family.propertiesOf(definition.name).filter { it.name !in ownNames },
                 events = with(ActorTypeFamily) { inheritedEvents.filter { inherited -> definition.events.none { it.replaces(inherited) } } },
