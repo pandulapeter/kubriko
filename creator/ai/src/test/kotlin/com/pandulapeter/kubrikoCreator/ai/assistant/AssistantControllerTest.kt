@@ -655,14 +655,14 @@ class AssistantControllerTest {
         controller.startChat().state.first { it == ChatState.Ready }
         assertEquals("/Users/me/.codex-work", commands.last().environment["CODEX_HOME"])
         assertNull(commands.last().environment["CLAUDE_CONFIG_DIR"])
-        awaitSavedSettings { it.configurationAliases == mapOf("codex-acp" to "codex-work") }
+        awaitSavedSettings { it.agentId == "codex-acp" && it.configurationAliases == mapOf("codex-acp" to "codex-work") }
+        val restarted = controller(registry)
+        restarted.agent.first { it.id == "codex-acp" }
+        restarted.configuration.first { it?.alias == "codex-work" }
         onMain { controller.selectAgent(AgentChoice.Registry(RegistryAgent.claude)) }
         controller.configuration.first { it?.client == AiClient.CLAUDE_CODE }
         assertNull(controller.configuration.value?.alias)
         assertEquals(listOf(null, "claude-personal"), controller.configurations.value.map { it.alias })
-        val restarted = controller(registry)
-        restarted.agent.first { it.id == "codex-acp" }
-        restarted.configuration.first { it?.alias == "codex-work" }
     }
 
     @Test
