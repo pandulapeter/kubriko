@@ -193,6 +193,16 @@ public interface AssistantPanelModel {
     public fun signInInSystemTerminal(method: SignInMethod)
 
     /**
+     * Whether the system's terminal is being opened ([signInInSystemTerminal]), during which another can't be.
+     */
+    public val isOpeningSystemTerminal: StateFlow<Boolean>
+
+    /**
+     * Whether the system's terminal couldn't be opened the last time, leaving the sign-in that was there before running.
+     */
+    public val systemTerminalFailed: StateFlow<Boolean>
+
+    /**
      * Ends the sign-in command and closes the panel's terminal.
      */
     public fun closeSignIn()

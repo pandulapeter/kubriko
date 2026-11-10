@@ -10,13 +10,13 @@
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
 /**
- * What programs print when they need a terminal device and get pipes: the C library's own error, Node's Ink, which
- * interactive command-line tools draw with, and the wording of tools that check for one first.
+ * What programs print when they need a terminal device and get pipes: Node's Ink, which interactive command-line tools
+ * draw with, and the wording of tools that check for one first. The C library's own error (`Inappropriate ioctl for
+ * device`) is left out, since tools such as `stty` print it as a harmless warning before failing for other reasons.
  */
 internal object TerminalDeviceErrors {
     private val patterns = listOf(
-        "not a tty",
-        "inappropriate ioctl for device",
+        "is not a tty",
         "raw mode is not supported",
         "requires a tty",
         "requires an interactive terminal",

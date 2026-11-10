@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import com.pandulapeter.kubrikoCreator.foundation.findProgram
+import com.pandulapeter.kubrikoCreator.foundation.pathFolders
 import java.io.File
 
 /**
@@ -28,12 +30,13 @@ internal sealed interface SystemTerminal {
     fun openCommand(script: File): List<String>
 
     /**
-     * The terminal the user has chosen for `.command` files, Terminal unless they changed it.
+     * Terminal, named rather than left to what opens `.command` files, which may be an editor that would show the script's
+     * variables and never run it.
      */
     data object Mac : SystemTerminal {
         override val script = TerminalScript.Posix
 
-        override fun openCommand(script: File) = listOf("open", script.path)
+        override fun openCommand(script: File) = listOf("open", "-a", "Terminal", script.path)
     }
 
     /**
@@ -79,11 +82,11 @@ internal sealed interface SystemTerminal {
          */
         fun find(
             operatingSystem: String = System.getProperty("os.name").orEmpty().lowercase(),
-            path: List<File> = System.getenv("PATH").orEmpty().split(File.pathSeparator).filter { it.isNotBlank() }.map(::File),
+            path: List<File> = pathFolders(),
         ): SystemTerminal? = when {
             "mac" in operatingSystem -> Mac
             "windows" in operatingSystem -> Windows
-            else -> linuxTerminals.firstOrNull { (program) -> path.any { File(it, program).canExecute() } }?.let(::Linux)
+            else -> linuxTerminals.firstOrNull { (program) -> findProgram(program, path) != null }?.let(::Linux)
         }
     }
 }

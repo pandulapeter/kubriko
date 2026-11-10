@@ -88,6 +88,8 @@ internal class FakeAssistantPanelModel(
     }
 
     override var canSignInInSystemTerminal = true
+    override val isOpeningSystemTerminal = MutableStateFlow(false)
+    override val systemTerminalFailed = MutableStateFlow(false)
 
     override fun signInInSystemTerminal(method: SignInMethod) {
         calls += "signInInSystemTerminal: ${method.name}"

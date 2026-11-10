@@ -90,11 +90,23 @@ internal class AssistantSignIn(
      * Whether a terminal method can run in the system's terminal.
      */
     val canUseSystemTerminal get() = systemTerminal != null
+    private val _isOpeningSystemTerminal = MutableStateFlow(false)
+
+    /**
+     * Whether the system's terminal is being opened, during which another can't be.
+     */
+    val isOpeningSystemTerminal = _isOpeningSystemTerminal.asStateFlow()
+    private val _systemTerminalFailed = MutableStateFlow(false)
+
+    /**
+     * Whether the system's terminal couldn't be opened the last time, leaving the sign-in that was there before running.
+     */
+    val systemTerminalFailed = _systemTerminalFailed.asStateFlow()
 
     /**
      * Signs in with [method]: in the panel's terminal for a terminal method (or, with [isInSystemTerminal], in the
-     * system's), otherwise by the agent itself. Once a terminal method succeeds, prompts refused for want of a sign-in are
-     * sent again.
+     * system's, ending the sign-in there before only once the terminal opened), otherwise by the agent itself. Once a
+     * terminal method succeeds, prompts refused for want of a sign-in are sent again.
      */
     fun signIn(method: SignInMethod, isInSystemTerminal: Boolean = false) {
         if (method.variables != null) {
@@ -113,13 +125,18 @@ internal class AssistantSignIn(
             }
             return
         }
+        val launcher = if (isInSystemTerminal) systemTerminal?.takeUnless { _isOpeningSystemTerminal.value } ?: return else signInLauncher
+        _systemTerminalFailed.value = false
+        if (isInSystemTerminal) _isOpeningSystemTerminal.value = true
         scope.launch {
-            _session.value?.stop()
+            if (!isInSystemTerminal) _session.value?.stop()
             val session = try {
-                val launcher = if (isInSystemTerminal) systemTerminal ?: return@launch else signInLauncher
                 SignInSession(method, withContext(ioDispatcher) { launcher.launch(command) }, scope, ioDispatcher, isInSystemTerminal)
             } catch (_: IOException) {
+                if (isInSystemTerminal) _systemTerminalFailed.value = true
                 null
+            } finally {
+                if (isInSystemTerminal) _isOpeningSystemTerminal.value = false
             } ?: return@launch
             val displaced = _session.value
             _session.value = session
@@ -163,6 +180,7 @@ internal class AssistantSignIn(
      * Ends the sign-in command and closes the panel's terminal.
      */
     fun closeSignIn() {
+        _systemTerminalFailed.value = false
         val session = _session.value ?: return
         _session.value = null
         scope.launch { session.stop() }

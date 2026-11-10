@@ -31,6 +31,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class AssistantSignInTest {
@@ -94,6 +95,33 @@ class AssistantSignInTest {
         session.exitCode.first { it != null }
         signIn.session.first { it == null }
         assertEquals(1, resends.get())
+    }
+
+    @Test
+    fun aSystemsTerminalThatCantBeOpenedKeepsThePanelsSignInAndSaysSo() = blockingTest {
+        onMain { signIn.signIn(terminalMethod) }
+        while (terminals.channels.isEmpty()) delay(10)
+        val panelSession = signIn.session.first { it != null }
+        systemTerminals.isFailing = true
+        onMain { signIn.signIn(terminalMethod, isInSystemTerminal = true) }
+        signIn.systemTerminalFailed.first { it }
+        assertSame(panelSession, signIn.session.value)
+        assertFalse(terminals.channels.single().isStopped)
+        assertFalse(signIn.isOpeningSystemTerminal.value)
+        onMain { signIn.closeSignIn() }
+        assertFalse(signIn.systemTerminalFailed.value)
+    }
+
+    @Test
+    fun theSystemsTerminalIsOpenedOnceWhileItOpens() = blockingTest {
+        onMain {
+            signIn.signIn(terminalMethod, isInSystemTerminal = true)
+            assertTrue(signIn.isOpeningSystemTerminal.value)
+            signIn.signIn(terminalMethod, isInSystemTerminal = true)
+        }
+        signIn.session.first { it != null }
+        awaitIdle(mainThread, io)
+        assertEquals(1, systemTerminals.commands.size)
     }
 
     @Test

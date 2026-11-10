@@ -978,6 +978,7 @@
     <string name="assistant_sign_in_system_terminal_running">Signing in in a terminal window: %1$s</string>
     <string name="assistant_sign_in_system_terminal_hint">Finish signing in in the terminal window that opened. The assistant carries on once it's done.</string>
     <string name="assistant_sign_in_needs_terminal">This sign-in needs a terminal of its own.</string>
+    <string name="assistant_sign_in_system_terminal_failed">The terminal couldn't be opened.</string>
     <string name="assistant_sign_in_code_hint">Paste the code from the browser here, if it asks for one</string>
     <string name="assistant_api_key_note">Your key is kept in your system's keychain and given only to Claude Agent. Every conversation is billed to it, and the agent starts again with it.</string>
     <string name="assistant_variables_note">%1$s: kept in your system's keychain and given only to %2$s, which starts again with them.</string>

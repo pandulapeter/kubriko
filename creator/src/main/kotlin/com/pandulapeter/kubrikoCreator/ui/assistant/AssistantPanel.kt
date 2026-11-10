@@ -176,7 +176,7 @@ private fun AssistantPanelContent(
                 hasVariablesFailed = model.variablesFailed.collectAsState().value,
                 onSaveVariables = model::setVariables,
                 onCancelVariables = model::closeVariablesForm,
-                onContinueInSystemTerminal = model::signInInSystemTerminal.takeIf { model.canSignInInSystemTerminal },
+                systemTerminal = rememberSystemTerminalOffer(model),
             )
         }
     }
@@ -320,3 +320,12 @@ private const val ELLIPSIS = "…"
  * How often a streaming reply is drawn again at most, rather than for each chunk.
  */
 private val TRANSCRIPT_PERIOD = 50.milliseconds
+
+@Composable
+private fun rememberSystemTerminalOffer(model: AssistantPanelModel): SystemTerminalOffer? {
+    if (!model.canSignInInSystemTerminal) return null
+    val isOpening by model.isOpeningSystemTerminal.collectAsState()
+    val hasFailed by model.systemTerminalFailed.collectAsState()
+    val onContinue = remember(model) { model::signInInSystemTerminal }
+    return SystemTerminalOffer(isOpening, hasFailed, onContinue)
+}

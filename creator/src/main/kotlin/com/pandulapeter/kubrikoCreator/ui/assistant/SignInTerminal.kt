@@ -46,6 +46,7 @@ import kubriko.creator.generated.resources.assistant_sign_in_code_hint
 import kubriko.creator.generated.resources.assistant_sign_in_failed
 import kubriko.creator.generated.resources.assistant_sign_in_needs_terminal
 import kubriko.creator.generated.resources.assistant_sign_in_running
+import kubriko.creator.generated.resources.assistant_sign_in_system_terminal_failed
 import kubriko.creator.generated.resources.assistant_sign_in_system_terminal_hint
 import kubriko.creator.generated.resources.assistant_sign_in_system_terminal_running
 import org.jetbrains.compose.resources.stringResource
@@ -53,14 +54,14 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * The sign-in command's terminal: what it writes, the page it links to (which it usually opens in the browser by itself),
  * and a field for the code that page may give to paste back. A command that needs a terminal device continues in the
- * system's terminal ([onContinueInSystemTerminal], null where there is none), whose window then shows it instead.
+ * system's terminal ([systemTerminal], null where there is none), whose window then shows it instead.
  */
 @Composable
 internal fun SignInTerminal(
     session: SignInSession,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
-    onContinueInSystemTerminal: (() -> Unit)? = null,
+    systemTerminal: SystemTerminalOffer? = null,
 ) = AssistantCard(modifier) {
     val output by session.output.collectAsState()
     val exitCode by session.exitCode.collectAsState()
@@ -75,15 +76,23 @@ internal fun SignInTerminal(
         session.isInSystemTerminal -> if (exitCode == null) Hint(stringResource(Res.string.assistant_sign_in_system_terminal_hint))
         else -> {
             TerminalOutput(output.text)
-            if (needsTerminalDevice && onContinueInSystemTerminal != null) Hint(stringResource(Res.string.assistant_sign_in_needs_terminal))
+            if (needsTerminalDevice && systemTerminal != null) Hint(stringResource(Res.string.assistant_sign_in_needs_terminal))
             if (exitCode == null) {
                 CodeInput(onSend = session::send)
             }
         }
     }
+    if (systemTerminal?.hasFailed == true) {
+        Text(
+            text = stringResource(Res.string.assistant_sign_in_system_terminal_failed),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+        )
+    }
     SignInTerminalActions(
         link = output.links.firstOrNull().takeUnless { session.isInSystemTerminal },
-        onContinueInSystemTerminal = onContinueInSystemTerminal.takeUnless { session.isInSystemTerminal && exitCode == null },
+        systemTerminal = systemTerminal.takeUnless { session.isInSystemTerminal && exitCode == null },
+        onContinueInSystemTerminal = { systemTerminal?.onContinue?.invoke(session.method) },
         isContinuingFirst = needsTerminalDevice,
         onClose = onClose,
     )
@@ -92,15 +101,16 @@ internal fun SignInTerminal(
 @Composable
 private fun SignInTerminalActions(
     link: String?,
-    onContinueInSystemTerminal: (() -> Unit)?,
+    systemTerminal: SystemTerminalOffer?,
+    onContinueInSystemTerminal: () -> Unit,
     isContinuingFirst: Boolean,
     onClose: () -> Unit,
 ) = Row(
     horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalAlignment = Alignment.CenterVertically,
 ) {
-    if (onContinueInSystemTerminal != null && isContinuingFirst) {
-        Button(onClick = onContinueInSystemTerminal) {
+    if (systemTerminal != null && isContinuingFirst) {
+        Button(onClick = onContinueInSystemTerminal, enabled = !systemTerminal.isOpening) {
             Text(stringResource(Res.string.action_continue_in_terminal))
         }
     }
@@ -109,8 +119,8 @@ private fun SignInTerminalActions(
             Text(stringResource(Res.string.action_open_sign_in_page))
         }
     }
-    if (onContinueInSystemTerminal != null && !isContinuingFirst) {
-        TextButton(onClick = onContinueInSystemTerminal) {
+    if (systemTerminal != null && !isContinuingFirst) {
+        TextButton(onClick = onContinueInSystemTerminal, enabled = !systemTerminal.isOpening) {
             Text(stringResource(Res.string.action_continue_in_terminal))
         }
     }

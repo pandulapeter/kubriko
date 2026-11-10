@@ -271,6 +271,10 @@ public class AssistantController(
 
     override val canSignInInSystemTerminal: Boolean get() = signIns.canUseSystemTerminal
 
+    override val isOpeningSystemTerminal: StateFlow<Boolean> = signIns.isOpeningSystemTerminal
+
+    override val systemTerminalFailed: StateFlow<Boolean> = signIns.systemTerminalFailed
+
     override fun signInInSystemTerminal(method: SignInMethod) {
         if (!host.isOn) return
         signIns.signIn(method, isInSystemTerminal = true)

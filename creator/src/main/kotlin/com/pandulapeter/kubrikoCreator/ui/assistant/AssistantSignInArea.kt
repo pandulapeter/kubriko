@@ -34,10 +34,10 @@ internal fun AssistantSignInArea(
     hasVariablesFailed: Boolean = false,
     onSaveVariables: (SignInMethod, Map<String, String>) -> Unit = { _, _ -> },
     onCancelVariables: () -> Unit = {},
-    onContinueInSystemTerminal: ((SignInMethod) -> Unit)? = null,
+    systemTerminal: SystemTerminalOffer? = null,
 ) = when (signInAreaContent(session != null, isEnteringApiKey, needsSignIn, isEnteringVariables = variablesForm != null)) {
     SignInAreaContent.TERMINAL -> session?.let {
-        SignInTerminal(session = it, onClose = onCloseSignIn, onContinueInSystemTerminal = onContinueInSystemTerminal?.let { onContinue -> { onContinue(it.method) } })
+        SignInTerminal(session = it, onClose = onCloseSignIn, systemTerminal = systemTerminal)
     }
     SignInAreaContent.VARIABLES -> variablesForm?.let { method ->
         SignInVariablesForm(method = method, hasFailed = hasVariablesFailed, onSave = { onSaveVariables(method, it) }, onCancel = onCancelVariables)

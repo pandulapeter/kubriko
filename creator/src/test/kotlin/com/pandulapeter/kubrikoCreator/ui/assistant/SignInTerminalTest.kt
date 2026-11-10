@@ -38,6 +38,7 @@ import kotlin.time.Duration.Companion.seconds
 @OptIn(ExperimentalTestApi::class)
 class SignInTerminalTest {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val offer = SystemTerminalOffer(isOpening = false, hasFailed = false, onContinue = {})
     private val method = SignInMethod(AuthMethodId("login"), "Agent login", terminal = AgentCommand("agent", listOf("login")))
 
     @AfterTest
@@ -73,17 +74,17 @@ class SignInTerminalTest {
     fun aCommandNeedingATerminalDeviceOffersTheSystemsTerminalFirst() = uiTest {
         val continued = mutableListOf<String>()
         val session = session("ERROR Raw mode is not supported on the current process.stdin.\n", exitCode = 1)
-        showing { SignInTerminal(session = session, onClose = {}, onContinueInSystemTerminal = { continued += "continued" }) }
+        showing { SignInTerminal(session = session, onClose = {}, systemTerminal = SystemTerminalOffer(isOpening = false, hasFailed = false, onContinue = { continued += it.name })) }
         onNodeWithText("This sign-in needs a terminal of its own.").assertExists()
         saveSnapshot("sign-in-needs-terminal")
         onNodeWithText("Continue in a terminal").performClick()
-        assertEquals(listOf("continued"), continued)
+        assertEquals(listOf("Agent login"), continued)
     }
 
     @Test
     fun aCommandRunningInThePanelCanStillContinueInTheSystemsTerminal() = uiTest {
         val session = session("Paste code here if prompted > ", exitCode = null)
-        showing { SignInTerminal(session = session, onClose = {}, onContinueInSystemTerminal = {}) }
+        showing { SignInTerminal(session = session, onClose = {}, systemTerminal = offer) }
         onNodeWithText("Continue in a terminal").assertExists()
         onNodeWithText("This sign-in needs a terminal of its own.").assertDoesNotExist()
         saveSnapshot("sign-in-running")
@@ -92,7 +93,7 @@ class SignInTerminalTest {
     @Test
     fun withoutATerminalOfItsOwnNothingIsOffered() = uiTest {
         val session = session("ERROR Raw mode is not supported on the current process.stdin.\n", exitCode = 1)
-        showing { SignInTerminal(session = session, onClose = {}, onContinueInSystemTerminal = null) }
+        showing { SignInTerminal(session = session, onClose = {}, systemTerminal = null) }
         onNodeWithText("Continue in a terminal").assertDoesNotExist()
         onNodeWithText("This sign-in needs a terminal of its own.").assertDoesNotExist()
     }
@@ -100,7 +101,7 @@ class SignInTerminalTest {
     @Test
     fun aCommandInTheSystemsTerminalIsWaitedFor() = uiTest {
         val session = session("", exitCode = null, isInSystemTerminal = true)
-        showing { SignInTerminal(session = session, onClose = {}, onContinueInSystemTerminal = {}) }
+        showing { SignInTerminal(session = session, onClose = {}, systemTerminal = offer) }
         onNodeWithText("Signing in in a terminal window: Agent login").assertExists()
         onNodeWithText("Finish signing in in the terminal window", substring = true).assertExists()
         onNodeWithText("Continue in a terminal").assertDoesNotExist()
@@ -110,8 +111,16 @@ class SignInTerminalTest {
     @Test
     fun aCommandThatFailedInTheSystemsTerminalCanBeTriedThereAgain() = uiTest {
         val session = session("", exitCode = 1, isInSystemTerminal = true)
-        showing { SignInTerminal(session = session, onClose = {}, onContinueInSystemTerminal = {}) }
+        showing { SignInTerminal(session = session, onClose = {}, systemTerminal = offer) }
         onNodeWithText("Finish signing in in the terminal window", substring = true).assertDoesNotExist()
         onNodeWithText("Continue in a terminal").assertExists()
+    }
+
+    @Test
+    fun aTerminalThatCouldntBeOpenedIsSaid() = uiTest {
+        val session = session("Paste code here if prompted > ", exitCode = null)
+        showing { SignInTerminal(session = session, onClose = {}, systemTerminal = offer.copy(hasFailed = true)) }
+        onNodeWithText("The terminal couldn't be opened.").assertExists()
+        saveSnapshot("sign-in-system-terminal-failed")
     }
 }

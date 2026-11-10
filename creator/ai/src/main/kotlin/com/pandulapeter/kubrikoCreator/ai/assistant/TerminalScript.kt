@@ -14,9 +14,10 @@ import java.io.File
 
 /**
  * A script that runs a command in the system's terminal ([SystemTerminal]): it deletes itself first, since it holds the
- * command's variables, which may be secret, then runs the command in its working folder and writes its exit code to a file
- * (through a temporary one, so the file is never seen half written). A command that fails leaves the window open, so its
- * output can be read.
+ * command's variables, which may be secret, writes its own process ID to a file, so Creator can tell when its window was
+ * closed, then runs the command in its working folder and writes its exit code to another file. Both files are written
+ * through a temporary one, so they are never seen half written. A command that fails leaves the window open, so its output
+ * can be read.
  */
 internal sealed interface TerminalScript {
 
@@ -26,23 +27,31 @@ internal sealed interface TerminalScript {
     val extension: String
 
     /**
-     * The script's text, running [command] in [workingDirectory] from [script] and writing its exit code to [exitFile].
+     * The script's text, running [command] in [workingDirectory] from [files]' script.
      */
-    fun text(command: AgentCommand, workingDirectory: File, script: File, exitFile: File): String
+    fun text(command: AgentCommand, workingDirectory: File, files: TerminalScriptFiles): String
 
     data object Posix : TerminalScript {
         override val extension = "command"
 
-        override fun text(command: AgentCommand, workingDirectory: File, script: File, exitFile: File) = buildString {
-            val exitFileWhileWritten = File(exitFile.path + PARTIAL)
+        override fun text(command: AgentCommand, workingDirectory: File, files: TerminalScriptFiles) = buildString {
             appendLine("#!/bin/sh")
-            appendLine("rm -f -- ${quoted(script.path)}")
+            appendLine("rm -f -- ${quoted(files.script.path)}")
+            appendLine(written("\"\$\$\"", files.processId))
             command.environment.filterKeys { it.matches(variableName) }.forEach { (name, value) -> appendLine("export $name=${quoted(value)}") }
-            appendLine("cd ${quoted(workingDirectory.path)}")
-            appendLine((listOf(command.program) + command.arguments).joinToString(" ") { quoted(it) })
-            appendLine("status=$?")
-            appendLine("printf '%s\\n' \"\$status\" > ${quoted(exitFileWhileWritten.path)} && mv -f ${quoted(exitFileWhileWritten.path)} ${quoted(exitFile.path)}")
+            appendLine("if cd ${quoted(workingDirectory.path)}; then")
+            appendLine("    " + (listOf(command.program) + command.arguments).joinToString(" ") { quoted(it) })
+            appendLine("    status=$?")
+            appendLine("else")
+            appendLine("    status=1")
+            appendLine("fi")
+            appendLine(written("\"\$status\"", files.exitCode))
             appendLine("[ \"\$status\" -eq 0 ] || exec \"\${SHELL:-/bin/sh}\" -i")
+        }
+
+        private fun written(value: String, file: File): String {
+            val partial = quoted(file.path + PARTIAL)
+            return "printf '%s\\n' $value > $partial && mv -f $partial ${quoted(file.path)}"
         }
 
         private fun quoted(text: String) = ShellQuoting.posix(text)
@@ -57,17 +66,26 @@ internal sealed interface TerminalScript {
     data object PowerShell : TerminalScript {
         override val extension = "ps1"
 
-        override fun text(command: AgentCommand, workingDirectory: File, script: File, exitFile: File) = buildString {
-            val exitFileWhileWritten = File(exitFile.path + PARTIAL)
+        override fun text(command: AgentCommand, workingDirectory: File, files: TerminalScriptFiles) = buildString {
             append(BYTE_ORDER_MARK)
-            appendLine("Remove-Item -LiteralPath ${quoted(script.path)} -Force")
+            appendLine("Remove-Item -LiteralPath ${quoted(files.script.path)} -Force")
+            appendLine(written("\$PID", files.processId))
             command.environment.forEach { (name, value) -> appendLine("Set-Item -LiteralPath ${quoted("env:$name")} -Value ${quoted(value)}") }
-            appendLine("Set-Location -LiteralPath ${quoted(workingDirectory.path)}")
-            appendLine("& ${(listOf(command.program) + command.arguments).joinToString(" ") { quoted(it) }}")
-            appendLine("\$status = if (\$null -eq \$LASTEXITCODE) { 1 } else { \$LASTEXITCODE }")
-            appendLine("Set-Content -LiteralPath ${quoted(exitFileWhileWritten.path)} -Value \$status")
-            appendLine("Move-Item -LiteralPath ${quoted(exitFileWhileWritten.path)} -Destination ${quoted(exitFile.path)} -Force")
+            appendLine("try {")
+            appendLine("    Set-Location -LiteralPath ${quoted(workingDirectory.path)} -ErrorAction Stop")
+            appendLine("    & ${(listOf(command.program) + command.arguments).joinToString(" ") { quoted(it) }}")
+            appendLine("    \$status = if (\$null -eq \$LASTEXITCODE) { 1 } else { \$LASTEXITCODE }")
+            appendLine("} catch {")
+            appendLine("    Write-Host \$_")
+            appendLine("    \$status = 1")
+            appendLine("}")
+            appendLine(written("\$status", files.exitCode))
             appendLine("if (\$status -ne 0) { cmd /c pause }")
+        }
+
+        private fun written(value: String, file: File): String {
+            val partial = quoted(file.path + PARTIAL)
+            return "Set-Content -LiteralPath $partial -Value $value; Move-Item -LiteralPath $partial -Destination ${quoted(file.path)} -Force"
         }
 
         private fun quoted(text: String) = ShellQuoting.powerShell(text)
@@ -78,3 +96,12 @@ internal sealed interface TerminalScript {
         const val BYTE_ORDER_MARK = '\uFEFF'
     }
 }
+
+/**
+ * The files of one [TerminalScript]: the script itself, and where it writes its process ID and the command's exit code.
+ */
+internal data class TerminalScriptFiles(
+    val script: File,
+    val processId: File,
+    val exitCode: File,
+)

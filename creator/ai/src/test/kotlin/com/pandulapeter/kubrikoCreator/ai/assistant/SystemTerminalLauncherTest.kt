@@ -20,6 +20,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class SystemTerminalLauncherTest {
@@ -61,6 +62,31 @@ class SystemTerminalLauncherTest {
     }
 
     @Test
+    fun aWorkingFolderThatIsGoneFailsTheCommandWithoutRunningIt() = blockingTest(timeout = 30.seconds) {
+        workingDirectory.deleteRecursively()
+        val command = if (isWindows) AgentCommand("powershell.exe", listOf("-NoProfile", "-Command", "exit 0")) else AgentCommand("true")
+        assertEquals(1, runningScripts(if (isWindows) SystemTerminal.Windows else SystemTerminal.Mac).launch(command).awaitExit())
+    }
+
+    @Test
+    fun aWindowClosedBeforeTheCommandEndedEndsTheWait() = blockingTest {
+        val launcher = SystemTerminalLauncher(SystemTerminal.Mac, scripts, workingDirectory, pollInterval = 10.milliseconds, isAlive = { false }, open = { command ->
+            val script = File(command.last())
+            script.delete()
+            File(scripts, script.nameWithoutExtension + ".pid").writeText("12345\n")
+        })
+        assertEquals(-1, launcher.launch(AgentCommand("login")).awaitExit())
+        assertEquals(emptyList(), scripts.listFiles()!!.map { it.name })
+    }
+
+    @Test
+    fun aScriptTheTerminalNeverRanEndsTheWaitAndIsDeleted() = blockingTest {
+        val launcher = SystemTerminalLauncher(SystemTerminal.Mac, scripts, workingDirectory, pollInterval = 10.milliseconds, startTimeout = 50.milliseconds, open = {})
+        assertEquals(-1, launcher.launch(AgentCommand("login", environment = mapOf("API_KEY" to "secret"))).awaitExit())
+        assertEquals(emptyList(), scripts.listFiles()!!.map { it.name })
+    }
+
+    @Test
     fun aTerminalThatCantBeOpenedLeavesNoScript() {
         val launcher = SystemTerminalLauncher(SystemTerminal.Mac, scripts, workingDirectory, open = { throw IOException("No terminal") })
         assertFailsWith<IOException> { launcher.launch(AgentCommand("login", environment = mapOf("API_KEY" to "secret"))) }
@@ -89,7 +115,7 @@ class SystemTerminalLauncherTest {
     @Test
     fun eachSystemOpensTheScriptInATerminalOfItsOwn() {
         val script = File("/settings/sign-in/a b.command")
-        assertEquals(listOf("open", script.path), SystemTerminal.Mac.openCommand(script))
+        assertEquals(listOf("open", "-a", "Terminal", script.path), SystemTerminal.Mac.openCommand(script))
         assertEquals(listOf("konsole", "-e", "sh", script.path), SystemTerminal.Linux(listOf("konsole", "-e")).openCommand(script))
         assertEquals(
             listOf("cmd", "/c", "start", "\"\"", "powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script.path),
