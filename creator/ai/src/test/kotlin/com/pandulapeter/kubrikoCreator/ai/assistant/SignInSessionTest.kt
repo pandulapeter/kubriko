@@ -22,6 +22,7 @@ import java.util.concurrent.Executors
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class SignInSessionTest {
@@ -56,6 +57,24 @@ class SignInSessionTest {
         assertEquals("the-code", channel.readTypedLine())
         channel.exit(0)
         assertEquals(0, session.exitCode.first { it != null })
+    }
+
+    @Test
+    fun aCommandFailingForWantOfATerminalDeviceSaysSo() = blockingTest {
+        val session = session()
+        channel.write("ERROR Raw mode is not supported on the current process.stdin, which Ink uses as input stream by default.\n")
+        channel.exit(1)
+        session.exitCode.first { it != null }
+        assertTrue(session.needsTerminalDevice.value)
+    }
+
+    @Test
+    fun aCommandFailingForAnotherReasonNeedsNoTerminalDevice() = blockingTest {
+        val session = session()
+        channel.write("Invalid code.\n")
+        channel.exit(1)
+        session.exitCode.first { it != null }
+        assertFalse(session.needsTerminalDevice.value)
     }
 
     @Test

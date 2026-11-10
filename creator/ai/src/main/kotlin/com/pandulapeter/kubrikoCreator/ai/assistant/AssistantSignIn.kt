@@ -31,6 +31,8 @@ import java.io.IOException
  *
  * @param scope Where sign-ins run: the main thread, which the panel's state is read on.
  * @param signInLauncher Runs the sign-in commands of an agent's terminal sign-in methods.
+ * @param systemTerminal Runs them in the system's terminal instead, for one that needs a terminal device, where this
+ *   computer has a terminal.
  * @param resendRefused Sends the prompts refused for want of a sign-in again.
  * @param restart Starts the agent again, ending every conversation, and a new conversation.
  */
@@ -39,6 +41,7 @@ internal class AssistantSignIn(
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
     private val signInLauncher: AgentLauncher,
+    private val systemTerminal: AgentLauncher?,
     secrets: SecretStore,
     private val settings: AssistantSettingsState,
     private val host: AssistantHost<Assistant>,
@@ -84,10 +87,16 @@ internal class AssistantSignIn(
     val session = _session.asStateFlow()
 
     /**
-     * Signs in with [method]: in the panel's terminal for a terminal method, otherwise by the agent itself. Once a
-     * terminal method succeeds, prompts refused for want of a sign-in are sent again.
+     * Whether a terminal method can run in the system's terminal.
      */
-    fun signIn(method: SignInMethod) {
+    val canUseSystemTerminal get() = systemTerminal != null
+
+    /**
+     * Signs in with [method]: in the panel's terminal for a terminal method (or, with [isInSystemTerminal], in the
+     * system's), otherwise by the agent itself. Once a terminal method succeeds, prompts refused for want of a sign-in are
+     * sent again.
+     */
+    fun signIn(method: SignInMethod, isInSystemTerminal: Boolean = false) {
         if (method.variables != null) {
             _variablesFailed.value = false
             _variablesForm.value = method
@@ -107,7 +116,8 @@ internal class AssistantSignIn(
         scope.launch {
             _session.value?.stop()
             val session = try {
-                SignInSession(method, withContext(ioDispatcher) { signInLauncher.launch(command) }, scope, ioDispatcher)
+                val launcher = if (isInSystemTerminal) systemTerminal ?: return@launch else signInLauncher
+                SignInSession(method, withContext(ioDispatcher) { launcher.launch(command) }, scope, ioDispatcher, isInSystemTerminal)
             } catch (_: IOException) {
                 null
             } ?: return@launch

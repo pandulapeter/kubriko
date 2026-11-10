@@ -18,8 +18,10 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantStorage
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantSystemPrompt
 import com.pandulapeter.kubrikoCreator.ai.assistant.OpenProjectAccess
 import com.pandulapeter.kubrikoCreator.ai.assistant.ProcessAgentLauncher
+import com.pandulapeter.kubrikoCreator.ai.assistant.SystemTerminalLauncher
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
+import com.pandulapeter.kubrikoCreator.foundation.settingsDirectory
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpSettingsStore
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
@@ -126,6 +128,10 @@ internal class AppGraph(
                 runner = ShellProcessRunner(),
                 storage = AssistantStorage.default(errorLogFile = errorLog.file),
                 signInLauncher = ProcessAgentLauncher(File(System.getProperty("user.home"))),
+                systemTerminal = SystemTerminalLauncher.forThisComputer(
+                    scripts = File(settingsDirectory(), "sign-in"),
+                    workingDirectory = File(System.getProperty("user.home")),
+                ),
                 ioDispatcher = Dispatchers.IO,
                 createAssistant = { command, npx, profile ->
                     Assistant(

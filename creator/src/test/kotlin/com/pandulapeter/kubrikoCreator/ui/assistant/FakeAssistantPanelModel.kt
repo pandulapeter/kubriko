@@ -87,6 +87,12 @@ internal class FakeAssistantPanelModel(
         calls += "selectConfiguration"
     }
 
+    override var canSignInInSystemTerminal = true
+
+    override fun signInInSystemTerminal(method: SignInMethod) {
+        calls += "signInInSystemTerminal: ${method.name}"
+    }
+
     override fun signIn(method: SignInMethod) {
         calls += "signIn"
     }

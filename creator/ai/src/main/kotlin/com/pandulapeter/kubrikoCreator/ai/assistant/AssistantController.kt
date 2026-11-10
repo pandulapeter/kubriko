@@ -39,6 +39,7 @@ import java.io.IOException
  * @param scope Where conversations run: the main thread, which the panel's state is read on.
  * @param storage What the assistant keeps on this computer.
  * @param signInLauncher Runs the sign-in commands of an agent's terminal sign-in methods.
+ * @param systemTerminal Runs them in the system's terminal instead, where this computer has one.
  * @param createAssistant Creates the assistant running [AgentCommand] with [AgentProfile], given the user's `npx` where
  *   there is one.
  * @param openProject What conversations read and undo in the open project.
@@ -52,6 +53,7 @@ public class AssistantController(
     private val runner: ProcessRunner,
     private val storage: AssistantStorage,
     private val signInLauncher: AgentLauncher,
+    private val systemTerminal: AgentLauncher? = null,
     private val ioDispatcher: CoroutineDispatcher,
     private val createAssistant: (AgentCommand, npx: File?, AgentProfile) -> Assistant,
     private val openProject: OpenProjectAccess = OpenProjectAccess.None,
@@ -103,6 +105,7 @@ public class AssistantController(
         scope = scope,
         ioDispatcher = ioDispatcher,
         signInLauncher = signInLauncher,
+        systemTerminal = systemTerminal,
         secrets = storage.secrets,
         settings = settings,
         host = host,
@@ -264,6 +267,13 @@ public class AssistantController(
     override fun signIn(method: SignInMethod) {
         if (!host.isOn) return
         signIns.signIn(method)
+    }
+
+    override val canSignInInSystemTerminal: Boolean get() = signIns.canUseSystemTerminal
+
+    override fun signInInSystemTerminal(method: SignInMethod) {
+        if (!host.isOn) return
+        signIns.signIn(method, isInSystemTerminal = true)
     }
 
     override fun setVariables(method: SignInMethod, values: Map<String, String>) {

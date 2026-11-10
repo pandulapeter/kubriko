@@ -39,49 +39,94 @@ import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.openInBrowser
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_close
+import kubriko.creator.generated.resources.action_continue_in_terminal
 import kubriko.creator.generated.resources.action_open_sign_in_page
 import kubriko.creator.generated.resources.action_send
 import kubriko.creator.generated.resources.assistant_sign_in_code_hint
 import kubriko.creator.generated.resources.assistant_sign_in_failed
+import kubriko.creator.generated.resources.assistant_sign_in_needs_terminal
 import kubriko.creator.generated.resources.assistant_sign_in_running
+import kubriko.creator.generated.resources.assistant_sign_in_system_terminal_hint
+import kubriko.creator.generated.resources.assistant_sign_in_system_terminal_running
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * The sign-in command's terminal: what it writes, the page it links to (which it usually opens in the browser by itself),
- * and a field for the code that page may give to paste back.
+ * and a field for the code that page may give to paste back. A command that needs a terminal device continues in the
+ * system's terminal ([onContinueInSystemTerminal], null where there is none), whose window then shows it instead.
  */
 @Composable
 internal fun SignInTerminal(
     session: SignInSession,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    onContinueInSystemTerminal: (() -> Unit)? = null,
 ) = AssistantCard(modifier) {
     val output by session.output.collectAsState()
     val exitCode by session.exitCode.collectAsState()
+    val needsTerminalDevice by session.needsTerminalDevice.collectAsState()
     Text(
         text = exitCode?.let { stringResource(Res.string.assistant_sign_in_failed, session.method.name, it) }
-            ?: stringResource(Res.string.assistant_sign_in_running, session.method.name),
+            ?: stringResource(if (session.isInSystemTerminal) Res.string.assistant_sign_in_system_terminal_running else Res.string.assistant_sign_in_running, session.method.name),
         style = MaterialTheme.typography.titleSmall,
         color = if (exitCode == null) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.error,
     )
-    TerminalOutput(output.text)
-    if (exitCode == null) {
-        CodeInput(onSend = session::send)
-    }
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        output.links.firstOrNull()?.let { link ->
-            Button(onClick = { openInBrowser(link) }) {
-                Text(stringResource(Res.string.action_open_sign_in_page))
+    when {
+        session.isInSystemTerminal -> if (exitCode == null) Hint(stringResource(Res.string.assistant_sign_in_system_terminal_hint))
+        else -> {
+            TerminalOutput(output.text)
+            if (needsTerminalDevice && onContinueInSystemTerminal != null) Hint(stringResource(Res.string.assistant_sign_in_needs_terminal))
+            if (exitCode == null) {
+                CodeInput(onSend = session::send)
             }
         }
-        TextButton(onClick = onClose) {
-            Text(stringResource(Res.string.action_close))
+    }
+    SignInTerminalActions(
+        link = output.links.firstOrNull().takeUnless { session.isInSystemTerminal },
+        onContinueInSystemTerminal = onContinueInSystemTerminal.takeUnless { session.isInSystemTerminal && exitCode == null },
+        isContinuingFirst = needsTerminalDevice,
+        onClose = onClose,
+    )
+}
+
+@Composable
+private fun SignInTerminalActions(
+    link: String?,
+    onContinueInSystemTerminal: (() -> Unit)?,
+    isContinuingFirst: Boolean,
+    onClose: () -> Unit,
+) = Row(
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
+    verticalAlignment = Alignment.CenterVertically,
+) {
+    if (onContinueInSystemTerminal != null && isContinuingFirst) {
+        Button(onClick = onContinueInSystemTerminal) {
+            Text(stringResource(Res.string.action_continue_in_terminal))
         }
     }
+    link?.let {
+        Button(onClick = { openInBrowser(link) }) {
+            Text(stringResource(Res.string.action_open_sign_in_page))
+        }
+    }
+    if (onContinueInSystemTerminal != null && !isContinuingFirst) {
+        TextButton(onClick = onContinueInSystemTerminal) {
+            Text(stringResource(Res.string.action_continue_in_terminal))
+        }
+    }
+    TextButton(onClick = onClose) {
+        Text(stringResource(Res.string.action_close))
+    }
 }
+
+@Composable
+private fun Hint(
+    text: String,
+) = Text(
+    text = text,
+    style = MaterialTheme.typography.bodySmall,
+    color = MaterialTheme.colorScheme.onSecondaryContainer,
+)
 
 @Composable
 private fun TerminalOutput(

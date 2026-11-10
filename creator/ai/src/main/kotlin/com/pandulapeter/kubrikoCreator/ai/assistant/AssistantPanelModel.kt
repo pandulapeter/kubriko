@@ -182,6 +182,17 @@ public interface AssistantPanelModel {
     public fun signIn(method: SignInMethod)
 
     /**
+     * Whether a terminal method can run in the system's terminal ([signInInSystemTerminal]).
+     */
+    public val canSignInInSystemTerminal: Boolean
+
+    /**
+     * Signs in with the terminal method [method] in the system's terminal, for a command that needs a terminal device,
+     * ending the one in the panel's terminal. Once it succeeds, prompts refused for want of a sign-in are sent again.
+     */
+    public fun signInInSystemTerminal(method: SignInMethod)
+
+    /**
      * Ends the sign-in command and closes the panel's terminal.
      */
     public fun closeSignIn()

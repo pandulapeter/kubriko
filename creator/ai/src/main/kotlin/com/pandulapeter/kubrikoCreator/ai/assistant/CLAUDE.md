@@ -54,7 +54,11 @@ Hosts Agent Client Protocol agents through the official Kotlin SDK. Tests run `F
 - **Signing in never passes through Creator:** the agent signs in by itself, a terminal method runs in the agent's environment so it
   signs in to the same configuration, and the API key lives in the system's secret store, passed to the secret tool on standard
   input (never its arguments) and to the agent only as `ANTHROPIC_API_KEY`. Claude Agent reports a new identity only at the next
-  prompt, so after a terminal sign-in `needsSignIn` stays false until it reports something new.
+  prompt, so after a terminal sign-in `needsSignIn` stays false until it reports something new. A sign-in command that needs a
+  terminal device continues in the system's own terminal (`SystemTerminalLauncher`): a script Creator writes, readable only by
+  the user, deletes itself before anything else, since it holds the agent's variables, and reports the exit code through a
+  file, since the window isn't Creator's to read; it is offered on every terminal sign-in, first when the output says a
+  device was needed (`TerminalDeviceErrors`), since that wording differs between programs.
 - **Processes:** one that ends unasked is started again and its conversations loaded again, but one that exits soon after starting
   several times in a row is `Failed` until it is used again. Ending them all restarts an agent that can't close conversations, so
   their IDs can be loaded later.

@@ -25,8 +25,9 @@ import java.io.InputStream
 
 /**
  * A sign-in command running in the assistant panel's terminal, such as `claude auth login`, which opens the browser and
- * may ask for a code pasted from it. Programs that sign in this way work without a terminal device, so plain pipes do;
- * the output is shown as [TerminalText].
+ * may ask for a code pasted from it. Most programs that sign in this way work without a terminal device, so plain pipes
+ * do, and the output is shown as [TerminalText]; one that needs a device runs in the system's terminal instead
+ * ([isInSystemTerminal]), whose window shows it.
  *
  * @param scope Where the command's output is read: the main thread, which the panel's state is read on.
  */
@@ -38,6 +39,11 @@ public class SignInSession(
     private val channel: AgentChannel,
     scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
+    /**
+     * Whether the command runs in the system's terminal ([SystemTerminalLauncher]), so that nothing it prints reaches
+     * [output] and nothing can be typed into it from here.
+     */
+    public val isInSystemTerminal: Boolean = false,
 ) {
     private val scope = CoroutineScope(scope.coroutineContext + SupervisorJob(scope.coroutineContext[Job]))
     private val raw = StringBuilder()
@@ -52,12 +58,21 @@ public class SignInSession(
      * How the command ended, or null while it runs.
      */
     public val exitCode: StateFlow<Int?> = _exitCode.asStateFlow()
+    private val _needsTerminalDevice = MutableStateFlow(false)
+
+    /**
+     * Whether the command failed saying it needs a terminal device ([TerminalDeviceErrors]), so the system's terminal
+     * should run it instead.
+     */
+    public val needsTerminalDevice: StateFlow<Boolean> = _needsTerminalDevice.asStateFlow()
     private val writer = channel.toAgent.bufferedWriter()
 
     init {
         this.scope.launch {
             listOf(read(channel.fromAgent), read(channel.errors)).joinAll()
-            _exitCode.value = withContext(ioDispatcher) { channel.awaitExit() }
+            val exitCode = withContext(ioDispatcher) { channel.awaitExit() }
+            _needsTerminalDevice.value = exitCode != 0 && TerminalDeviceErrors.areIn(raw.toString())
+            _exitCode.value = exitCode
         }
     }
 

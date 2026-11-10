@@ -176,6 +176,7 @@ private fun AssistantPanelContent(
                 hasVariablesFailed = model.variablesFailed.collectAsState().value,
                 onSaveVariables = model::setVariables,
                 onCancelVariables = model::closeVariablesForm,
+                onContinueInSystemTerminal = model::signInInSystemTerminal.takeIf { model.canSignInInSystemTerminal },
             )
         }
     }

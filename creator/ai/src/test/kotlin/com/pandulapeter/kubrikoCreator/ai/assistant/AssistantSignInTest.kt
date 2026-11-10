@@ -29,6 +29,7 @@ import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -38,6 +39,8 @@ class AssistantSignInTest {
     private val io = IdleTrackingDispatcher(Dispatchers.IO)
     private val scope = CoroutineScope(SupervisorJob() + mainThread)
     private val terminals = FakeTerminalLauncher()
+    private val systemTerminals = FakeTerminalLauncher()
+    private val resends = AtomicInteger()
     private val secrets = FakeSecretStore()
     private val settingsDirectory = createTempDirectory().toFile()
     private val settings = AssistantSettingsState(scope, AssistantSettingsStore(File(settingsDirectory, "assistant.json")), io)
@@ -47,10 +50,11 @@ class AssistantSignInTest {
         scope = scope,
         ioDispatcher = io,
         signInLauncher = terminals,
+        systemTerminal = systemTerminals,
         secrets = secrets,
         settings = settings,
         host = host,
-        resendRefused = {},
+        resendRefused = { resends.incrementAndGet() },
         restart = { restarts.incrementAndGet() },
     )
     private val terminalMethod = SignInMethod(AuthMethodId("terminal-login"), "Terminal login", terminal = AgentCommand(FakeAgent.TERMINAL_LOGIN, listOf("login")))
@@ -75,6 +79,32 @@ class AssistantSignInTest {
         assertEquals(1, terminals.channels.count { it.isStopped })
         awaitIdle(mainThread, io)
         assertNull(signIn.session.value!!.exitCode.value)
+    }
+
+    @Test
+    fun aSignInContinuedInTheSystemsTerminalEndsThePanelsAndSendsTheRefusedPromptsAgainOnceItWorks() = blockingTest {
+        onMain { signIn.signIn(terminalMethod) }
+        while (terminals.channels.isEmpty()) delay(10)
+        onMain { signIn.signIn(terminalMethod, isInSystemTerminal = true) }
+        while (systemTerminals.channels.isEmpty()) delay(10)
+        assertTrue(terminals.channels.single().isStopped)
+        assertEquals(listOf(terminalMethod.terminal), systemTerminals.commands)
+        val session = signIn.session.first { it?.isInSystemTerminal == true }!!
+        systemTerminals.channels.single().exit(0)
+        session.exitCode.first { it != null }
+        signIn.session.first { it == null }
+        assertEquals(1, resends.get())
+    }
+
+    @Test
+    fun withoutATerminalOfItsOwnTheSystemsTerminalIsntOffered() = blockingTest {
+        val withoutTerminal = AssistantSignIn(scope, io, terminals, systemTerminal = null, secrets, settings, host, resendRefused = {}, restart = {})
+        assertFalse(withoutTerminal.canUseSystemTerminal)
+        assertTrue(signIn.canUseSystemTerminal)
+        onMain { withoutTerminal.signIn(terminalMethod, isInSystemTerminal = true) }
+        awaitIdle(mainThread, io)
+        assertNull(withoutTerminal.session.value)
+        assertTrue(terminals.commands.isEmpty())
     }
 
     @Test
