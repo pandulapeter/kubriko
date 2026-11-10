@@ -56,7 +56,7 @@ internal fun AssistantSetupOptions(
                     options = choices,
                     optionText = { it.name },
                     onSelected = { onConfigOptionSelected(option, it) },
-                        isWrapping = true,
+                    isWrapping = true,
                 )
             }
         }
