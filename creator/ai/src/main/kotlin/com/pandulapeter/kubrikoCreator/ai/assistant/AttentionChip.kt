@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.agentclientprotocol.model.ContentBlock
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.serialName
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import java.util.Base64
 
@@ -84,7 +85,7 @@ public sealed interface AttentionChip {
         override val key: String get() = "event:$typeName:$index:$type"
 
         override fun toContent(): ContentBlock = ContentBlock.ResourceLink(
-            name = "Event $index (${EventType.serializer().descriptor.getElementName(type.ordinal)}) of " + (if (isManager) "Manager type " else "Actor type ") + typeName,
+            name = "Event $index (${type.serialName}) of " + (if (isManager) "Manager type " else "Actor type ") + typeName,
             uri = "$URI_SCHEME://types/$typeName/events/$index",
             description = "The Event selected in the editor, by its index among the type's Events. " +
                 (if (isManager) "read_manager_type" else "read_actor_type") + " reads it.",
@@ -106,11 +107,13 @@ public sealed interface AttentionChip {
     }
 
     /**
-     * The open Scene as the Scene editor draws it, sent only once the user turns it on, since a picture with every message
-     * costs far more than the Scene's link.
+     * The open Scene as the Scene editor draws it, sent only once the user turns it on for this Scene, since a picture with
+     * every message costs far more than the Scene's link.
      */
-    public data object SceneScreen : Screenshot {
-        override val key: String get() = "scene-screen"
+    public data class SceneScreen(
+        val sceneName: String,
+    ) : Screenshot {
+        override val key: String get() = "scene-screen:$sceneName"
 
         override val isOnByDefault: Boolean get() = false
 
@@ -147,9 +150,9 @@ public sealed interface AttentionChip {
             canSendSceneScreen: Boolean = false,
         ): List<AttentionChip> = listOfNotNull(
             openScene?.let(::Scene),
-            SceneScreen.takeIf { openScene != null && canSendSceneScreen },
+            openScene?.takeIf { canSendSceneScreen }?.let(::SceneScreen),
             selectedType?.takeIf { openScene == null }?.let { BlockType(it, isSelectedTypeManager) },
-            shownEvent?.takeIf { openScene == null && it.typeName == selectedType }?.copy(isManager = isSelectedTypeManager),
+            shownEvent?.takeIf { openScene == null && it.typeName == selectedType },
             latestProblem?.let { Problem(it.message, it.location) },
             GameScreen.takeIf { canSendGameScreen },
         )

@@ -110,7 +110,7 @@ private fun AttentionChip.label() = when (this) {
     is AttentionChip.Problem -> stringResource(Res.string.assistant_chip_problem)
     is AttentionChip.Event -> stringResource(Res.string.assistant_chip_event, stringResource(type.title))
     AttentionChip.GameScreen -> stringResource(Res.string.assistant_chip_game_screen)
-    AttentionChip.SceneScreen -> stringResource(Res.string.assistant_chip_scene_screen)
+    is AttentionChip.SceneScreen -> stringResource(Res.string.assistant_chip_scene_screen)
 }
 
 private const val SEPARATOR = " · "

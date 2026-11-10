@@ -59,17 +59,19 @@ class AttentionChipTest {
     @Test
     fun theScenesPictureIsOfferedWithTheOpenSceneAndSentOnlyOnceTurnedOn() = kotlinx.coroutines.test.runTest {
         assertEquals(
-            listOf(AttentionChip.Scene("main"), AttentionChip.SceneScreen),
+            listOf(AttentionChip.Scene("main"), AttentionChip.SceneScreen("main")),
             AttentionChip.of("main", null, false, null, canSendSceneScreen = true),
         )
         assertEquals(listOf<AttentionChip>(AttentionChip.Scene("main")), AttentionChip.of("main", null, false, null))
         assertEquals(emptyList(), AttentionChip.of(null, "Ball", false, null, canSendSceneScreen = true).filterIsInstance<AttentionChip.Screenshot>())
-        assertFalse(AttentionChip.SceneScreen.isSentWith(emptySet()))
-        assertTrue(AttentionChip.SceneScreen.isSentWith(setOf(AttentionChip.SceneScreen.key)))
+        val picture = AttentionChip.SceneScreen("main")
+        assertFalse(picture.isSentWith(emptySet()))
+        assertTrue(picture.isSentWith(setOf(picture.key)))
+        assertFalse(AttentionChip.SceneScreen("other").isSentWith(setOf(picture.key)))
         assertTrue(AttentionChip.GameScreen.isSentWith(emptySet()))
         assertFalse(AttentionChip.GameScreen.isSentWith(setOf(AttentionChip.GameScreen.key)))
         val png = byteArrayOf(4, 5)
-        val sent = AttentionChip.contentOf(listOf(AttentionChip.SceneScreen)) { png.takeIf { _ -> it == AttentionChip.SceneScreen } }
+        val sent = AttentionChip.contentOf(listOf(picture)) { png.takeIf { _ -> it == picture } }
         assertEquals("A picture of the open Scene as the Scene editor shows it follows.", (sent.first() as ContentBlock.Text).text)
         assertEquals(java.util.Base64.getEncoder().encodeToString(png), (sent.last() as ContentBlock.Image).data)
     }
@@ -78,8 +80,8 @@ class AttentionChipTest {
     fun theEventShownIsOfferedWithItsTypeAsALinkByItsIndex() {
         val event = AttentionChip.Event("Score", isManager = false, index = 2, type = EventType.KEY_PRESSED)
         assertEquals(
-            listOf(AttentionChip.BlockType("Score", true), event.copy(isManager = true)),
-            AttentionChip.of(null, "Score", true, null, shownEvent = event),
+            listOf(AttentionChip.BlockType("Score", false), event),
+            AttentionChip.of(null, "Score", false, null, shownEvent = event),
         )
         assertEquals(listOf<AttentionChip>(AttentionChip.BlockType("Ball", false)), AttentionChip.of(null, "Ball", false, null, shownEvent = event))
         assertEquals(listOf<AttentionChip>(AttentionChip.Scene("main")), AttentionChip.of("main", "Score", false, null, shownEvent = event))

@@ -458,7 +458,8 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   any other turn; it shows only while that conversation takes prompts (`LocalDescriptionWriter`).
 - **Chips** (`AttentionChip`, what goes with the next message): what the center shows beyond the selection reaches the AI
   panel through `EditorAttention`, which the editors report to, since only they know it (the Event shown, and a picture of
-  the open Scene recorded from its viewport, on the editor's background). A picture costs far more than a link, so the
+  the open Scene, recorded from its viewport on the editor's background only for the frame after one is asked for, on the
+  thread that draws, since a layer recorded every frame would cost every frame and race the capture). A picture costs far more than a link, so the
   Scene's is off until the user turns it on.
 - **Following the AI** goes only to what a step changes (`AiStep.changesProject`): the Actor type, Manager type, or Scene,
   lighting up its Event or Block. Each followed step stays at least the settings' delay (`AiStepPacing`), so quick steps

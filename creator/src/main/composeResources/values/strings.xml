@@ -937,7 +937,7 @@
     <string name="assistant_chip_event">Event %1$s</string>
     <string name="assistant_chip_scene_screen">Scene picture</string>
     <string name="assistant_chip_problem">The latest problem</string>
-    <string name="assistant_chip_hint">Sent with your next message, so the assistant knows what you mean. Click to leave something out.</string>
+    <string name="assistant_chip_hint">Sent with your next message, so the assistant knows what you mean. Click to choose what goes with it.</string>
     <string name="assistant_context_with">With your message: %1$s</string>
     <string name="assistant_context_none">Nothing else goes with your message</string>
     <string name="assistant_conversation_earlier">%1$s (earlier)</string>

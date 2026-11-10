@@ -35,18 +35,20 @@ internal fun interface ScenePicture {
          */
         fun pngOf(bitmap: ImageBitmap, maximumWidth: Int = MAXIMUM_WIDTH): ByteArray? {
             if (bitmap.width <= 0 || bitmap.height <= 0) return null
-            val image = Image.makeFromBitmap(bitmap.asSkiaBitmap())
-            val scaled = if (image.width <= maximumWidth) {
-                image
-            } else {
-                val height = (image.height * maximumWidth.toFloat() / image.width).roundToInt().coerceAtLeast(1)
-                Surface.makeRasterN32Premul(maximumWidth, height).use { surface ->
-                    surface.canvas.drawImageRect(image, Rect.makeWH(image.width.toFloat(), image.height.toFloat()), Rect.makeWH(maximumWidth.toFloat(), height.toFloat()), SamplingMode.LINEAR, null, true)
-                    surface.makeImageSnapshot()
+            return Image.makeFromBitmap(bitmap.asSkiaBitmap()).use { image ->
+                if (image.width <= maximumWidth) {
+                    image.png()
+                } else {
+                    val height = (image.height * maximumWidth.toFloat() / image.width).roundToInt().coerceAtLeast(1)
+                    Surface.makeRasterN32Premul(maximumWidth, height).use { surface ->
+                        surface.canvas.drawImageRect(image, Rect.makeWH(image.width.toFloat(), image.height.toFloat()), Rect.makeWH(maximumWidth.toFloat(), height.toFloat()), SamplingMode.LINEAR, null, true)
+                        surface.makeImageSnapshot().use { it.png() }
+                    }
                 }
             }
-            return scaled.encodeToData(EncodedImageFormat.PNG)?.bytes
         }
+
+        private fun Image.png() = encodeToData(EncodedImageFormat.PNG)?.use { it.bytes }
     }
 }
 

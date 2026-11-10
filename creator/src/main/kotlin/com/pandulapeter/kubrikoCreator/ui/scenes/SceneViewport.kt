@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
@@ -24,8 +26,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * The Scene as the game draws it on [background], recorded into a layer that [pictureHost] can take a picture of while it
- * is shown, so the picture has the editor's background where the Scene draws nothing, rather than transparency.
+ * The Scene as the game draws it, which [pictureHost] can take a picture of while it is shown: the next frame after a
+ * picture is asked for is recorded into a layer on [background], so the picture has the editor's background where the
+ * Scene draws nothing rather than transparency, and every other frame draws as it would without it.
  */
 @Composable
 internal fun SceneViewport(
@@ -35,9 +38,11 @@ internal fun SceneViewport(
     modifier: Modifier = Modifier,
 ) {
     val pictureLayer = rememberGraphicsLayer()
+    val drawingScope = rememberCoroutineScope()
+    val requests = remember { PictureRequests() }
     DisposableEffect(pictureLayer, pictureHost) {
         val picture = ScenePicture {
-            val bitmap = pictureLayer.toImageBitmap()
+            val bitmap = requests.take(drawingScope, pictureLayer) ?: return@ScenePicture null
             withContext(Dispatchers.Default) { ScenePicture.pngOf(bitmap) }
         }
         pictureHost?.provide(picture)
@@ -47,11 +52,16 @@ internal fun SceneViewport(
         modifier = modifier
             .fillMaxSize()
             .drawWithContent {
-                pictureLayer.record {
-                    drawRect(background)
-                    this@drawWithContent.drawContent()
+                if (requests.isPending) {
+                    pictureLayer.record {
+                        drawRect(background)
+                        this@drawWithContent.drawContent()
+                    }
+                    drawLayer(pictureLayer)
+                    requests.onRecorded()
+                } else {
+                    drawContent()
                 }
-                drawLayer(pictureLayer)
             },
         kubriko = kubriko,
         windowInsets = WindowInsets(0),

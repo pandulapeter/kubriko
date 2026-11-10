@@ -53,7 +53,7 @@ class AssistantPanelPartsTest {
             AttentionLine(
                 chips = listOf(
                     AttentionChip.Scene("level-1"),
-                    AttentionChip.SceneScreen,
+                    AttentionChip.SceneScreen("level-1"),
                     AttentionChip.Problem("Unresolved reference", "Ball.kt:3"),
                     AttentionChip.GameScreen,
                 ),

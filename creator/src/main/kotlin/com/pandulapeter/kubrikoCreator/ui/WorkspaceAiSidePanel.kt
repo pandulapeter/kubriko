@@ -93,7 +93,7 @@ internal fun WorkspaceAiSidePanel(
         { screenshot ->
             when (screenshot) {
                 AttentionChip.GameScreen -> currentCaptureScreen()
-                AttentionChip.SceneScreen -> editorAttention.scenePicture?.png()
+                is AttentionChip.SceneScreen -> editorAttention.scenePicture?.png()
             }
         }
     }

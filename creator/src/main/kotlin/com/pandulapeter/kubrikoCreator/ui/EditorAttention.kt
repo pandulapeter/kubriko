@@ -41,10 +41,15 @@ internal class EditorAttention : ScenePictureHost {
         private set
 
     /**
-     * The type editor of [type] shows its Event at [index], of [eventType], or none.
+     * The type editor of [type] shows its Event at [index], of [eventType], or none, as when it closes, which leaves the
+     * Event another type's editor shows, since the next type's may open before this one closes.
      */
     fun showEvent(type: BlockTypeDefinition, index: Int?, eventType: EventType?) {
-        shownEvent = if (index != null && eventType != null) AttentionChip.Event(type.name, type is ManagerTypeDefinition, index, eventType) else null
+        shownEvent = if (index != null && eventType != null) {
+            AttentionChip.Event(type.name, type is ManagerTypeDefinition, index, eventType)
+        } else {
+            shownEvent?.takeUnless { it.typeName == type.name }
+        }
     }
 
     override fun provide(picture: ScenePicture) {

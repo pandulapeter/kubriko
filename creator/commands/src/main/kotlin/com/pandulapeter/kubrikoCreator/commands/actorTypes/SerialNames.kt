@@ -22,7 +22,7 @@ import kotlinx.serialization.json.jsonPrimitive
 /**
  * The names Events, Blocks, and kinds of Property have in definitions and tool inputs (`everyFrame`, `setVelocity`, `number`).
  */
-internal val EventType.serialName get() = EventType.serializer().descriptor.getElementName(ordinal)
+public val EventType.serialName: String get() = EventType.serializer().descriptor.getElementName(ordinal)
 
 internal val BlockDefinition.serialName get() = Json.encodeToJsonElement(BlockDefinition.serializer(), this).jsonObject.getValue(JsonSchema.TYPE_PROPERTY).jsonPrimitive.content
 

@@ -31,6 +31,7 @@ import com.pandulapeter.kubrikoCreator.testing.uiTest
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.Image
+import java.util.concurrent.CompletableFuture
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -72,9 +73,11 @@ class SceneViewportTest {
             if (isShown) SceneViewport(remember { kubriko }, host, background = Color.Blue)
         }
         waitUntil(timeoutMillis = 5_000) { actorManager.allActors.value.isNotEmpty() }
-        mainClock.advanceTimeBy(1_000)
         waitForIdle()
-        val png = assertNotNull(runBlocking { assertNotNull(host.picture).png() })
+        val picture = assertNotNull(host.picture)
+        val taking = CompletableFuture.supplyAsync { runBlocking { picture.png() } }
+        waitUntil(timeoutMillis = 5_000) { taking.isDone }
+        val png = assertNotNull(taking.get())
         saveSnapshot("scene-viewport")
         val image = Image.makeFromEncoded(png)
         assertEquals(Color.Red.toArgb(), image.colorAt(image.width / 4, image.height / 4))
@@ -82,6 +85,9 @@ class SceneViewportTest {
         isShown = false
         waitForIdle()
         assertNull(host.picture)
+        val takingLate = CompletableFuture.supplyAsync { runBlocking { picture.png() } }
+        waitUntil(timeoutMillis = 10_000) { takingLate.isDone }
+        assertNull(takingLate.get())
         kubriko.dispose()
     }
 

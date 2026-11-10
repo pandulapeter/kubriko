@@ -33,6 +33,15 @@ class EditorAttentionTest {
     }
 
     @Test
+    fun aTypeEditorClosingAfterTheNextOneOpenedLeavesTheNextOnesEvent() {
+        attention.showEvent(ActorTypeDefinition(name = "Paddle"), 0, EventType.KEY_PRESSED)
+        attention.showEvent(ActorTypeDefinition(name = "Ball"), null, null)
+        assertEquals("Paddle", attention.shownEvent?.typeName)
+        attention.showEvent(ActorTypeDefinition(name = "Paddle"), null, null)
+        assertNull(attention.shownEvent)
+    }
+
+    @Test
     fun aScenePictureWithdrawnAfterAnotherWasProvidedLeavesTheOther() {
         val first = ScenePicture { null }
         val second = ScenePicture { null }
