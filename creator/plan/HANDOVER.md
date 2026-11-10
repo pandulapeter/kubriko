@@ -25,28 +25,22 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Start `01-ai-assistant.md` at its first item (Other agents' changes, under The panel). `01-known-issues.md` is finished and
-gone, and the plans are numbered again from `01`.
+Start `01-ai-assistant.md` at its first item (Accounts, under The panel).
 
-This session finished the last known issues, each reviewed with `/code-review` and its findings fixed in commits of their own:
+This session finished Other agents' changes, reviewed with `/code-review` and every finding fixed in a commit of its own:
 
-- A failure delivering Scene changes no longer hides what an undo, redo, or command threw: `CommandExecutor` adds it as
-  suppressed, or reports it when the change was made or cancelled, and never fails a change that was made over it. Reporting
-  goes through `CoroutineScope.reportProblem` (foundation's `UnexpectedProblemHandler.kt`), which never throws and leaves
-  cancellations out. `ProjectChanges` (which now requires a scope with a handler) runs every part following a change, its own
-  writes and the watcher's alike, whatever another part throws, follows nothing once the workspace is closing, and its scans stop
-  then too. What an undo brought back is still announced when the delivery fails, as `c37bb421d` meant. Declined from the
-  reviews, as contradicting each other or the code: retrying a failed delivery (its consumer isn't transactional; following
-  every part instead loses nothing), and the twins' Kotlin Block running in the Scene editor (its Kubriko never starts).
-- `OpeningAndPlayingTest` compares a generated game's Scene of shapes (a rectangle and a circle, as they are and turned and
-  stretched) drawn through their batched looks with the same Scene drawn plain: twin Actor types turn their look transparent
-  and add an Actor drawing the shape with `drawRect` or `drawOval` through a Kotlin Block, with the same body, and a rectangle and
-  a circle that only hide their looks sit where the batched Scene shows nothing. At most one in 50 of the shapes' pixels may differ by more
-  than 64 on a channel: under Xvfb 3 of 39,155 did; the plain shapes moved by one pixel would differ in 1,668, and with a hidden
-  tile's look left drawn 6,403 did.
-- The end-to-end waits (`awaitGame`, `awaitSuccess`, `awaitConsole`, now on `EndToEndScenario`) share one polling loop,
-  retry only failed tool calls, and return the frame they accepted; `take_screenshot` returns an image it can't read, or a
-  region at its edge, instead of failing with an internal error.
+- Every agent but Claude Agent has its conversations switched to the read-only mode or sandbox it offers (`ReadOnlyMode`: a
+  config option's value or a session mode named read-only, never one naming a plan), on starting and whenever they are
+  loaded again; a mode the agent switches to without reporting it still counts, and one that never answers is given up on
+  after 5 seconds, since the switch runs under the agent's lifecycle lock.
+- What an agent still asks to edit, delete, move, or run itself goes to the user instead of being rejected: the card shows
+  the agent's diffs through `FileDiff` (a change of more than 2,000 lines in all is only named, `LineDiff.isSmallEnough`)
+  and warns that Undo can't revert it (`PermissionRequest.isOutsideCreator`, with the kind the tool call started with when
+  the question leaves it out).
+- An agent seen editing, deleting, or moving files without asking (`UnaskedChanges`; commands don't count, nor calls in the
+  read-only mode or of a kind the user allowed always) is remembered in the settings by `AgentChoice.identity` (a hash of a
+  custom agent's command line, keeping only the last), marked in the agent menu, and its conversations suggest version
+  control.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
@@ -55,6 +49,8 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
 - A project created from an idea, through to the room's first questions, in the real app (an end-to-end scenario could cover
   it under Xvfb, but it needs a signed-in agent).
 - Pasting an image from the system clipboard, and dropping one from Finder, onto a page.
+- A real agent other than Claude Agent switched to its read-only mode, asking before its own edits, and one that edits
+  without asking being marked (Codex's `read-only` sandbox once it has quota again, after Nov 21, 2026).
 
 ## Before a release
 

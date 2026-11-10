@@ -16,24 +16,18 @@ call it.
 
 ## The panel
 
-1. **Other agents' changes.** Agents other than Claude have no portable switch for permissions, so their
-   `session/request_permission` for edits and commands is rejected (`PermissionHandler.rejectingChanges`) whatever the user would
-   choose. First, a read-only mode or sandbox where the agent offers one (a session mode or config option, chosen from its
-   `initialize` answer), before falling back on rejecting; then letting the user allow a request from the panel. An agent that
-   changes files without asking is marked as such in the agent list, and its conversations suggest version control, since a turn's
-   Undo only reverts changes made through Creator's tools. A `FakeAgent` variant with a read-only mode tests it.
-2. **Accounts:** the variable that picks an agent's configuration folder (`CLAUDE_CONFIG_DIR` for Claude Code, `CODEX_HOME` for
+1. **Accounts:** the variable that picks an agent's configuration folder (`CLAUDE_CONFIG_DIR` for Claude Code, `CODEX_HOME` for
    Codex), offered from the user's shell aliases (`ShellAliases`) as the MCP clients' setups are, so `claude-personal` and
    `claude-flashfood` each become an account to choose.
-3. **Google Antigravity's system prompt:** it advertises `_meta.antigravity.systemPrompt.append` in its `initialize` answer; append
+2. **Google Antigravity's system prompt:** it advertises `_meta.antigravity.systemPrompt.append` in its `initialize` answer; append
    `AssistantSystemPrompt` through it, as Claude Agent's is, in place of the first prompt's leading text.
-4. **Sign-in in a terminal:** the operating system's terminal as a fallback for a sign-in command (`SignInSession`) that turns out to
+3. **Sign-in in a terminal:** the operating system's terminal as a fallback for a sign-in command (`SignInSession`) that turns out to
    need a terminal device.
-5. **Chips:** a screenshot of the open Scene (the game's exists), and the selected Event (its index lives in `BlockTypeEditor`'s own
+4. **Chips:** a screenshot of the open Scene (the game's exists), and the selected Event (its index lives in `BlockTypeEditor`'s own
    state today, so it moves to a holder the panel can read).
-6. **Kubriko's sources:** check in a live scenario whether Claude still reaches for its own Read for Kubriko's sources now that
+5. **Kubriko's sources:** check in a live scenario whether Claude still reaches for its own Read for Kubriko's sources now that
    `get_kubriko_api` exists (it keeps Read for the game's own Kotlin), and steer it to the tool in its description if it does.
-7. **AI in Creator settings:** the defaults behind the AI panel that aren't about one conversation (the MCP server's port, token, and
+6. **AI in Creator settings:** the defaults behind the AI panel that aren't about one conversation (the MCP server's port, token, and
    commands from Advanced; the agent and the Claude Code configuration) as a section of Creator settings, hidden with the rest when
    AI features are off.
 
