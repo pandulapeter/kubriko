@@ -90,6 +90,7 @@ public class Assistant(
                 meta = prompt?.let { profile.sessionMeta?.invoke(it) },
                 permissions = guarded,
                 firstPromptLead = prompt.takeIf { profile.sessionMeta == null },
+                prefersReadOnly = !profile.keepsOffFiles,
             )
         }
     }
@@ -116,6 +117,7 @@ public class Assistant(
             meta = listOfNotNull(systemPrompt(null), rules).joinToString("\n\n").ifEmpty { null }?.let { profile.sessionMeta?.invoke(it) },
             permissions = guarded,
             onHistory = onHistory,
+            prefersReadOnly = !profile.keepsOffFiles,
         )
     }
 

@@ -37,13 +37,17 @@ import com.agentclientprotocol.model.SessionCapabilities
 import com.agentclientprotocol.model.SessionCloseCapabilities
 import com.agentclientprotocol.model.SessionConfigId
 import com.agentclientprotocol.model.SessionConfigOption
+import com.agentclientprotocol.model.SessionConfigOptionCategory
 import com.agentclientprotocol.model.SessionConfigOptionValue
 import com.agentclientprotocol.model.SessionConfigSelectOption
 import com.agentclientprotocol.model.SessionConfigSelectOptions
 import com.agentclientprotocol.model.SessionConfigValueId
 import com.agentclientprotocol.model.SessionId
+import com.agentclientprotocol.model.SessionMode
+import com.agentclientprotocol.model.SessionModeId
 import com.agentclientprotocol.model.SessionUpdate
 import com.agentclientprotocol.model.SetSessionConfigOptionResponse
+import com.agentclientprotocol.model.SetSessionModeResponse
 import com.agentclientprotocol.model.StopReason
 import com.agentclientprotocol.model.ToolCallId
 import com.agentclientprotocol.model.ToolCallStatus
@@ -73,13 +77,15 @@ import kotlin.time.Duration
  * - `wait`: works until cancelled;
  * - `crash`: the process ends with exit code 1;
  * - `later`: ends the turn, then sends a message outside any prompt;
- * - `tool`: a plan, a tool call of Kubriko Creator's that completes, and a message.
+ * - `tool`: a plan, a tool call of Kubriko Creator's that completes, and a message;
+ * - `mode`: says whether the conversation is in its read-only mode (`read-only`) or not (`writable`).
  *
  * While [isSignedIn] is false, every prompt is refused with the `authRequired` error. The agent offers an agent sign-in
  * method and a terminal one, whose `_meta["terminal-auth"]` runs [TERMINAL_LOGIN].
  *
  * Every conversation offers a `model` option, `sonnet` or `opus`, and announces a `compact` slash command as soon as it starts.
  *
+ * @param readOnlyMode How the agent offers a read-only mode, if it does, which conversations start without.
  * @param supportsHttpMcp Whether the agent advertises taking HTTP MCP servers.
  * @param exitsAtStart The exit code the process ends with right after starting, or null if it doesn't.
  * @param sessionClose Run when a conversation is closed (`session/close`), which the agent then advertises; without
@@ -95,7 +101,18 @@ public class FakeAgent(
     private val isSignedIn: AtomicBoolean = AtomicBoolean(true),
     private val sessionClose: (suspend () -> Unit)? = null,
     private val crashExitDelay: Duration = Duration.ZERO,
+    private val readOnlyMode: ReadOnlyOffer = ReadOnlyOffer.NONE,
 ) {
+    /**
+     * How an agent offers a read-only mode: not at all, as a value of its `sandbox` config option (`auto` or `read-only`),
+     * or as one of its session modes (`default` or `read-only`).
+     */
+    enum class ReadOnlyOffer {
+        NONE,
+        CONFIG_OPTION,
+        MODE,
+    }
+
     val clientInfos = CopyOnWriteArrayList<ClientInfo>()
     val newSessions = CopyOnWriteArrayList<SessionCreationParameters>()
     val loadedSessions = CopyOnWriteArrayList<SessionId>()
@@ -166,9 +183,24 @@ public class FakeAgent(
         private val isLoaded: Boolean,
     ) : AgentSession {
         private var model = "sonnet"
+        private var sandbox = AUTO
+        private var mode = DEFAULT_MODE
+
+        override val availableModes
+            get() = if (readOnlyMode == ReadOnlyOffer.MODE) listOf(SessionMode(SessionModeId(DEFAULT_MODE), "Default"), SessionMode(SessionModeId(READ_ONLY), "Read only")) else emptyList()
+
+        override val defaultMode get() = SessionModeId(DEFAULT_MODE)
+
+        override suspend fun setMode(modeId: SessionModeId, _meta: JsonElement?): SetSessionModeResponse {
+            mode = modeId.value
+            currentCoroutineContext().client.notify(SessionUpdate.CurrentModeUpdate(modeId))
+            return SetSessionModeResponse()
+        }
+
+        private val isReadOnly get() = sandbox == READ_ONLY || mode == READ_ONLY
 
         override val configOptions
-            get() = listOf(
+            get() = listOfNotNull(
                 SessionConfigOption.select(
                     id = MODEL,
                     name = "Model",
@@ -180,10 +212,23 @@ public class FakeAgent(
                         ),
                     ),
                 ),
+                SessionConfigOption.select(
+                    id = SANDBOX,
+                    name = "Sandbox",
+                    currentValue = sandbox,
+                    options = SessionConfigSelectOptions.Flat(
+                        listOf(
+                            SessionConfigSelectOption(SessionConfigValueId(AUTO), "Auto"),
+                            SessionConfigSelectOption(SessionConfigValueId(READ_ONLY), "Read only"),
+                        ),
+                    ),
+                    category = SessionConfigOptionCategory.MODE,
+                ).takeIf { readOnlyMode == ReadOnlyOffer.CONFIG_OPTION },
             )
 
         override suspend fun setConfigOption(configId: SessionConfigId, value: SessionConfigOptionValue, _meta: JsonElement?): SetSessionConfigOptionResponse {
-            model = (value as SessionConfigOptionValue.StringValue).value
+            val text = (value as SessionConfigOptionValue.StringValue).value
+            if (configId.value == SANDBOX) sandbox = text else model = text
             return SetSessionConfigOptionResponse(configOptions)
         }
 
@@ -231,6 +276,7 @@ public class FakeAgent(
                     emit(Event.SessionUpdateEvent(SessionUpdate.ToolCallUpdate(ToolCallId("tool-1"), status = ToolCallStatus.COMPLETED)))
                     emit(Event.SessionUpdateEvent(message("Done")))
                 }
+                "mode" -> emit(Event.SessionUpdateEvent(message(if (isReadOnly) READ_ONLY else "writable")))
                 "wait" -> awaitCancellation()
                 "crash" -> {
                     channel.writeError("Fake agent crashed.")
@@ -254,6 +300,10 @@ public class FakeAgent(
         const val LATER = "later"
         const val MODEL = "model"
         const val COMPACT = "compact"
+        const val SANDBOX = "sandbox"
+        const val READ_ONLY = "read-only"
+        private const val AUTO = "auto"
+        private const val DEFAULT_MODE = "default"
         const val AGENT_LOGIN = "fake-login"
         const val TERMINAL_LOGIN = "fake-terminal-login"
         private val sessionCount = AtomicInteger()

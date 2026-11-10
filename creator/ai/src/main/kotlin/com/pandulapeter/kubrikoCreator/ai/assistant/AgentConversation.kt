@@ -23,7 +23,9 @@ import com.agentclientprotocol.model.SessionConfigOption
 import com.agentclientprotocol.model.SessionConfigOptionValue
 import com.agentclientprotocol.model.SessionId
 import com.agentclientprotocol.model.SessionUpdate
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,11 +33,15 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.isActive
 import kotlinx.serialization.json.JsonElement
 
 /**
  * One conversation (an ACP session) with an [AcpAgent]. It outlives the agent's process: after a crash the agent
  * loads it again where it can, and otherwise it is lost.
+ *
+ * @param prefersReadOnly Whether the conversation is switched to the agent's read-only mode ([ReadOnlyMode]) whenever it
+ *   starts or is loaded again, where the agent offers one.
  */
 public class AgentConversation internal constructor(
     internal val id: SessionId,
@@ -43,6 +49,7 @@ public class AgentConversation internal constructor(
     private val agent: AcpAgent,
     private val permissions: PermissionHandler,
     @Volatile private var firstPromptLead: String? = null,
+    private val prefersReadOnly: Boolean = false,
 ) {
     private val _updates = MutableSharedFlow<SessionUpdate>(extraBufferCapacity = UPDATE_BUFFER_SIZE)
 
@@ -147,8 +154,26 @@ public class AgentConversation internal constructor(
 
     internal fun currentSession() = session.value
 
-    internal fun attach(session: ClientSession) {
+    /**
+     * Whether the conversation is in the agent's read-only mode now.
+     */
+    internal val isReadOnly get() = session.value?.let(ReadOnlyMode::isActive) == true
+
+    /**
+     * Makes [session] the conversation's, switching it to the agent's read-only mode where it is preferred and offered. A
+     * conversation the agent refuses to switch goes on as it is, since the user is still asked before its own changes.
+     */
+    internal suspend fun attach(session: ClientSession) {
         this.session.value = session
+        if (!prefersReadOnly) return
+        val mode = ReadOnlyMode.of(session) ?: return
+        try {
+            mode.enter(session)
+        } catch (exception: CancellationException) {
+            // The SDK fails the request with a cancellation of its own when the agent stops meanwhile.
+            if (!currentCoroutineContext().isActive) throw exception
+        } catch (_: Exception) {
+        }
     }
 
     internal suspend fun <T> replaying(load: suspend () -> T): T {
