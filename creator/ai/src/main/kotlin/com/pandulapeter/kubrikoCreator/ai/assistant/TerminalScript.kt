@@ -61,7 +61,9 @@ internal sealed interface TerminalScript {
 
     /**
      * Starts with a byte order mark, without which Windows PowerShell reads a script in the system's code page, which
-     * would garble every letter outside it, such as those of a user folder's name in the `PATH`.
+     * would garble every letter outside it, such as those of a user folder's name in the `PATH`. Arguments reach the
+     * program the legacy way on every PowerShell version, which drops double quotes inside them, so those are escaped as
+     * Windows programs read them back ([nativeArgument]).
      */
     data object PowerShell : TerminalScript {
         override val extension = "ps1"
@@ -70,10 +72,11 @@ internal sealed interface TerminalScript {
             append(BYTE_ORDER_MARK)
             appendLine("Remove-Item -LiteralPath ${quoted(files.script.path)} -Force")
             appendLine(written("\$PID", files.processId))
+            appendLine("\$PSNativeCommandArgumentPassing = 'Legacy'")
             command.environment.forEach { (name, value) -> appendLine("Set-Item -LiteralPath ${quoted("env:$name")} -Value ${quoted(value)}") }
             appendLine("try {")
             appendLine("    Set-Location -LiteralPath ${quoted(workingDirectory.path)} -ErrorAction Stop")
-            appendLine("    & ${(listOf(command.program) + command.arguments).joinToString(" ") { quoted(it) }}")
+            appendLine("    & ${(listOf(quoted(command.program)) + command.arguments.map { quoted(nativeArgument(it)) }).joinToString(" ")}")
             appendLine("    \$status = if (\$null -eq \$LASTEXITCODE) { 1 } else { \$LASTEXITCODE }")
             appendLine("} catch {")
             appendLine("    Write-Host \$_")
@@ -89,6 +92,19 @@ internal sealed interface TerminalScript {
         }
 
         private fun quoted(text: String) = ShellQuoting.powerShell(text)
+
+        /**
+         * [argument] escaped so that a Windows program reads it back as it is from the command line PowerShell builds,
+         * which wraps an argument holding whitespace in double quotes: each double quote is escaped with a backslash, the
+         * backslashes before it doubled, and so are those at the end of an argument that gets wrapped.
+         */
+        internal fun nativeArgument(argument: String): String {
+            val escaped = argument.replace(quoteWithBackslashes) { match -> match.groupValues[1].repeat(2) + "\\\"" }
+            return if (argument.any { it.isWhitespace() }) escaped.replace(trailingBackslashes) { it.value.repeat(2) } else escaped
+        }
+
+        private val quoteWithBackslashes = Regex("(\\\\*)\"")
+        private val trailingBackslashes = Regex("\\\\+$")
     }
 
     private companion object {
