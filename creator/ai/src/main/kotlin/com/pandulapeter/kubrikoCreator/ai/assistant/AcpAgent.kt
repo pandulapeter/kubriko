@@ -140,24 +140,27 @@ public class AcpAgent(
     /**
      * Starts a conversation in [workingDirectory], with [mcpServers] as the agent's tools, chosen from what it advertises.
      *
-     * @param meta The `_meta` of `session/new`, through which agents take options of their own.
-     * @param firstPromptLead Sent ahead of the first prompt's own content, for an agent that takes no system prompt.
+     * @param meta The `_meta` of `session/new`, through which agents take options of their own, chosen from what the agent
+     *   advertises.
+     * @param firstPromptLead Sent ahead of the first prompt's own content, for an agent that takes no system prompt, chosen
+     *   from what it advertises.
      * @param prefersReadOnly Whether the conversation is switched to the agent's read-only mode where it offers one.
      * @throws AgentStartException If the agent couldn't be started.
      */
     public suspend fun newConversation(
         workingDirectory: File,
         mcpServers: (AgentCapabilities) -> List<McpServer> = { emptyList() },
-        meta: JsonElement? = null,
+        meta: (AgentCapabilities) -> JsonElement? = { null },
         permissions: PermissionHandler = PermissionHandler.Reject,
-        firstPromptLead: String? = null,
+        firstPromptLead: (AgentCapabilities) -> String? = { null },
         prefersReadOnly: Boolean = false,
     ): AgentConversation = lifecycle.withLock {
         val connection = connected()
-        val parameters = SessionCreationParameters(workingDirectory.absolutePath, mcpServers(connection.info.capabilities), _meta = meta)
+        val capabilities = connection.info.capabilities
+        val parameters = SessionCreationParameters(workingDirectory.absolutePath, mcpServers(capabilities), _meta = meta(capabilities))
         lateinit var conversation: AgentConversation
         val session = connection.client.newSession(parameters) { sessionId, _ ->
-            conversation = AgentConversation(sessionId, parameters, this, permissions, firstPromptLead, prefersReadOnly)
+            conversation = AgentConversation(sessionId, parameters, this, permissions, firstPromptLead(capabilities), prefersReadOnly)
             conversation.operations
         }
         conversation.attach(session)
@@ -169,6 +172,7 @@ public class AcpAgent(
      * Continues the conversation [id], which an earlier run of the agent started, with `session/load`, handing its
      * history to [onHistory] as the agent replays it.
      *
+     * @param meta The `_meta` of `session/load`, chosen from what the agent advertises.
      * @param prefersReadOnly Whether the conversation is switched to the agent's read-only mode where it offers one.
      * @throws ConversationLostException If the agent can't load conversations, or couldn't load this one.
      * @throws AgentStartException If the agent couldn't be started.
@@ -177,14 +181,15 @@ public class AcpAgent(
         id: SessionId,
         workingDirectory: File,
         mcpServers: (AgentCapabilities) -> List<McpServer> = { emptyList() },
-        meta: JsonElement? = null,
+        meta: (AgentCapabilities) -> JsonElement? = { null },
         permissions: PermissionHandler = PermissionHandler.Reject,
         onHistory: suspend (SessionUpdate) -> Unit = {},
         prefersReadOnly: Boolean = false,
     ): AgentConversation = lifecycle.withLock {
         val connection = connected()
-        if (!connection.info.capabilities.loadSession) throw ConversationLostException()
-        val parameters = SessionCreationParameters(workingDirectory.absolutePath, mcpServers(connection.info.capabilities), _meta = meta)
+        val capabilities = connection.info.capabilities
+        if (!capabilities.loadSession) throw ConversationLostException()
+        val parameters = SessionCreationParameters(workingDirectory.absolutePath, mcpServers(capabilities), _meta = meta(capabilities))
         val conversation = AgentConversation(id, parameters, this, permissions, prefersReadOnly = prefersReadOnly)
         val session = try {
             conversation.collectingHistory(onHistory) { connection.client.loadSession(id, parameters, conversation.operations) }

@@ -90,6 +90,7 @@ import kotlin.time.Duration
  * @param reportsModeChanges Whether the agent reports a change of mode the client asked for, which it needn't.
  * @param answersModeChanges Whether the agent answers a request to change the mode at all.
  * @param supportsHttpMcp Whether the agent advertises taking HTTP MCP servers.
+ * @param capabilitiesMeta The `_meta` of the capabilities the agent advertises, through which it offers extensions.
  * @param exitsAtStart The exit code the process ends with right after starting, or null if it doesn't.
  * @param sessionClose Run when a conversation is closed (`session/close`), which the agent then advertises; without
  *   it, the agent can't close conversations.
@@ -99,6 +100,7 @@ import kotlin.time.Duration
 public class FakeAgent(
     private val supportsLoading: Boolean = true,
     private val supportsHttpMcp: Boolean = false,
+    private val capabilitiesMeta: JsonElement? = null,
     val exitsAtStart: Int? = null,
     private val answersInitialize: Boolean = true,
     private val isSignedIn: AtomicBoolean = AtomicBoolean(true),
@@ -145,6 +147,7 @@ public class FakeAgent(
                     loadSession = supportsLoading,
                     mcpCapabilities = McpCapabilities(http = supportsHttpMcp),
                     sessionCapabilities = SessionCapabilities(close = sessionClose?.let { SessionCloseCapabilities() }),
+                    _meta = capabilitiesMeta,
                 ),
                 authMethods = listOf(
                     AuthMethod.AgentAuth(AuthMethodId(AGENT_LOGIN), "Fake login"),

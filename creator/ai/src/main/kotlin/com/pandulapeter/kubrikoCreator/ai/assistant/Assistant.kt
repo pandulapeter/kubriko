@@ -19,6 +19,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonElement
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
@@ -87,9 +88,9 @@ public class Assistant(
             agent.newConversation(
                 workingDirectory = workingDirectory,
                 mcpServers = mcpServers,
-                meta = prompt?.let { profile.sessionMeta?.invoke(it) },
+                meta = { capabilities -> prompt?.let { sessionMetaOf(capabilities, it) } },
                 permissions = guarded,
-                firstPromptLead = prompt.takeIf { profile.sessionMeta == null },
+                firstPromptLead = { capabilities -> prompt.takeIf { !takesSystemPrompt(capabilities) } },
                 prefersReadOnly = !profile.keepsOffFiles,
             )
         }
@@ -114,12 +115,21 @@ public class Assistant(
             id = SessionId(id),
             workingDirectory = workingDirectory,
             mcpServers = mcpServers,
-            meta = listOfNotNull(systemPrompt(null), rules).joinToString("\n\n").ifEmpty { null }?.let { profile.sessionMeta?.invoke(it) },
+            meta = { capabilities -> listOfNotNull(systemPrompt(null), rules).joinToString("\n\n").ifEmpty { null }?.let { sessionMetaOf(capabilities, it) } },
             permissions = guarded,
             onHistory = onHistory,
             prefersReadOnly = !profile.keepsOffFiles,
         )
     }
+
+    /**
+     * Whether the agent takes the system prompt through a conversation's `_meta`: through its profile, or by advertising
+     * it in [capabilities] ([AppendedSystemPrompt]).
+     */
+    private fun takesSystemPrompt(capabilities: AgentCapabilities) = profile.sessionMeta != null || AppendedSystemPrompt.isAdvertised(capabilities)
+
+    private fun sessionMetaOf(capabilities: AgentCapabilities, systemPrompt: String): JsonElement? = profile.sessionMeta?.invoke(systemPrompt)
+        ?: AppendedSystemPrompt.meta(systemPrompt).takeIf { AppendedSystemPrompt.isAdvertised(capabilities) }
 
     /**
      * Opens an address of the tools for the conversation [start] starts in the agent's working folder, allowing Creator's

@@ -129,7 +129,7 @@ class AcpAgentTest {
         val launcher = launcher()
         val mcpServer = McpServer.Http("kubriko-creator", "http://127.0.0.1:7781/mcp/conversations/1", listOf(HttpHeader("Authorization", "Bearer token")))
         val meta = buildJsonObject { put("claudeCode", JsonPrimitive("options")) }
-        val conversation = agent(launcher).newConversation(workingDirectory, { listOf(mcpServer) }, meta)
+        val conversation = agent(launcher).newConversation(workingDirectory, { listOf(mcpServer) }, { meta })
         val messages = messagesOf(conversation)
         assertEquals(StopReason.END_TURN, conversation.prompt(text("hello")).stopReason)
         assertReceived(listOf("Hi", " there"), messages)

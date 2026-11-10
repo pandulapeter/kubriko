@@ -26,7 +26,9 @@ Hosts Agent Client Protocol agents through the official Kotlin SDK. Tests run `F
   descriptions) works from the start; any other agent waits for the panel, since starting it may download it or ask to sign in.
 - **Agents:** Claude Agent is the one fully supported agent (`RegistryAgent.isTested`); every other ACP Registry agent runs on
   generic fallbacks chosen from its `initialize` answer (`AgentProfile.fallback`), with as little per-agent code as possible, and
-  is shown as untested. An agent a vendor publishes in the registry counts as meant for hosting, so vendors' terms don't gate it;
+  is shown as untested. Such an agent hears the system prompt ahead of its first prompt, unless it advertises appending it
+  to its own through a conversation's `_meta` (`AppendedSystemPrompt`, Google Antigravity's extension), which also reaches
+  a continued conversation. An agent a vendor publishes in the registry counts as meant for hosting, so vendors' terms don't gate it;
   names and icons follow each vendor's trademark rules.
 - **Nothing of any agent ships with Creator:** the registry's distribution fetches it on first use. Bundling would mean
   redistributing a proprietary binary and preinstalling Claude Code, which its terms tie to the Commercial Terms.

@@ -36,6 +36,9 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonObject
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
@@ -159,6 +162,21 @@ class AssistantTest {
         val agent = launcher.agents.single()
         assertNull(agent.newSessions.single()._meta)
         assertEquals(listOf(SYSTEM_PROMPT), agent.leadingTexts)
+    }
+
+    @Test
+    fun anAgentAdvertisingAnAppendedSystemPromptGetsItThroughEveryConversationsMetaInstead() = blockingTest {
+        val advertising = buildJsonObject { putJsonObject("antigravity") { putJsonObject("systemPrompt") { put("append", true) } } }
+        val launcher = FakeAgentLauncher(fakeAgent = { FakeAgent(capabilitiesMeta = advertising) })
+        val assistant = assistant(AgentProfile.fallback, launcher)
+        val conversation = assistant.newConversation(projectDirectory, rules = "Ask first.")
+        conversation.prompt(listOf(ContentBlock.Text("hello")))
+        assistant.resumeConversation(projectDirectory, "earlier")
+        val agent = launcher.agents.single()
+        assertEquals(AppendedSystemPrompt.meta("$SYSTEM_PROMPT\n\nAsk first."), agent.newSessions.single()._meta)
+        assertEquals(AppendedSystemPrompt.meta(SYSTEM_PROMPT), agent.loadedSessionParameters.single()._meta)
+        assertEquals(emptyList(), agent.leadingTexts)
+        launcher.close()
     }
 
     @Test
