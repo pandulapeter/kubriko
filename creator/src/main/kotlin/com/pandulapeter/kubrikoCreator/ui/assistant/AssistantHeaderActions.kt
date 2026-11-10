@@ -105,6 +105,7 @@ private fun AssistantSetup(
             agent = LocalAgent.current,
             agents = model.agents.collectAsState().value,
             customAgentCommand = model.customAgentCommand,
+            changingFilesUnasked = model.agentsChangingFilesUnasked.collectAsState().value,
             onSelected = model::selectAgent,
             onEnterCustomAgent = {
                 close()

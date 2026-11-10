@@ -33,6 +33,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
@@ -52,6 +53,7 @@ import kotlinx.coroutines.launch
  *   changes stay ([com.pandulapeter.kubrikoCreator.commands.CommandExecutor.undoTurn]).
  * @param onTurnEnded Called after each turn with the conversation's ID, title, and the agent's last answer, so that it can
  *   be continued later.
+ * @param onChangedFilesUnasked Called once the agent changed files or ran a command with its own tools without asking.
  * @param changeLog The open project's changes, which a prompt sums up for the agent when someone else made them since
  *   its last turn ([ChangesSummary]).
  * @param lastMessageAt When the last message of a continued conversation was said, or null for a new one, which counts
@@ -69,6 +71,7 @@ public class AssistantChat(
     private val changeLog: () -> ChangeLog? = { null },
     private val onTurnEnded: suspend (id: String, title: String, lastAnswer: String?) -> Unit = { _, _, _ -> },
     private val undoTurn: suspend (toolsId: String, sinceRevision: Int) -> Int = { _, _ -> 0 },
+    private val onChangedFilesUnasked: () -> Unit = {},
     lastMessageAt: Long? = null,
     private val clock: () -> Long = System::currentTimeMillis,
     firstPrompt: String? = null,
@@ -342,6 +345,10 @@ public class AssistantChat(
             scope.launch(start = CoroutineStart.UNDISPATCHED) { started.updates.collect { update -> _transcript.update { it.withUpdate(update) } } }
             scope.launch(start = CoroutineStart.UNDISPATCHED) { started.configOptions.collect { _configOptions.value = it } }
             scope.launch(start = CoroutineStart.UNDISPATCHED) { started.availableCommands.collect { _availableCommands.value = it } }
+            scope.launch(start = CoroutineStart.UNDISPATCHED) {
+                started.hasChangedFilesUnasked.first { it }
+                onChangedFilesUnasked()
+            }
             scope.launch(start = CoroutineStart.UNDISPATCHED) {
                 started.isLost.collect { isLost -> if (isLost && !isClosed) _state.value = ChatState.Failed(FailureReason.CONVERSATION_LOST) }
             }

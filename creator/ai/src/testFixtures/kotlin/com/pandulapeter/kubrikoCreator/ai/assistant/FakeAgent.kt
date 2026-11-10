@@ -78,7 +78,8 @@ import kotlin.time.Duration
  * - `crash`: the process ends with exit code 1;
  * - `later`: ends the turn, then sends a message outside any prompt;
  * - `tool`: a plan, a tool call of Kubriko Creator's that completes, and a message;
- * - `mode`: says whether the conversation is in its read-only mode (`read-only`) or not (`writable`).
+ * - `mode`: says whether the conversation is in its read-only mode (`read-only`) or not (`writable`);
+ * - `write`: edits a file with its own tool without asking, or, in its read-only mode, says it can't (`refused`).
  *
  * While [isSignedIn] is false, every prompt is refused with the `authRequired` error. The agent offers an agent sign-in
  * method and a terminal one, whose `_meta["terminal-auth"]` runs [TERMINAL_LOGIN].
@@ -276,6 +277,12 @@ public class FakeAgent(
                     emit(Event.SessionUpdateEvent(SessionUpdate.ToolCallUpdate(ToolCallId("tool-1"), status = ToolCallStatus.COMPLETED)))
                     emit(Event.SessionUpdateEvent(message("Done")))
                 }
+                "write" -> if (isReadOnly) {
+                    emit(Event.SessionUpdateEvent(message(REFUSED)))
+                } else {
+                    emit(Event.SessionUpdateEvent(SessionUpdate.ToolCall(ToolCallId("write-1"), "Write notes.txt", kind = ToolKind.EDIT, status = ToolCallStatus.PENDING)))
+                    emit(Event.SessionUpdateEvent(SessionUpdate.ToolCallUpdate(ToolCallId("write-1"), status = ToolCallStatus.COMPLETED)))
+                }
                 "mode" -> emit(Event.SessionUpdateEvent(message(if (isReadOnly) READ_ONLY else "writable")))
                 "wait" -> awaitCancellation()
                 "crash" -> {
@@ -302,6 +309,7 @@ public class FakeAgent(
         const val COMPACT = "compact"
         const val SANDBOX = "sandbox"
         const val READ_ONLY = "read-only"
+        const val REFUSED = "refused"
         private const val AUTO = "auto"
         private const val DEFAULT_MODE = "default"
         const val AGENT_LOGIN = "fake-login"

@@ -915,6 +915,9 @@
     <string name="assistant_configuration_default">Claude Code</string>
     <string name="assistant_agent_menu">The agent the assistant runs</string>
     <string name="assistant_agent_untested">%1$s (untested)</string>
+    <string name="assistant_agent_unasked">%1$s (changes files without asking)</string>
+    <string name="assistant_agent_untested_unasked">%1$s (untested, changes files without asking)</string>
+    <string name="assistant_unasked_changes">%1$s has changed files without asking. Undo takes back only what changed through Kubriko Creator, so keep your project in version control to be able to go back.</string>
     <string name="assistant_agent_custom">Custom agent…</string>
     <string name="assistant_custom_agent_note">The command that starts an Agent Client Protocol agent, as you would type it in a terminal, like "goose acp" or "OPENCODE_MODEL=ollama/qwen opencode acp".</string>
     <string name="assistant_custom_agent_hint">Command</string>

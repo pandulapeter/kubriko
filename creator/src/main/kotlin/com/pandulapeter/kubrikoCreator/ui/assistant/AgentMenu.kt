@@ -18,28 +18,32 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_open_agent_log
 import kubriko.creator.generated.resources.assistant_agent_custom
 import kubriko.creator.generated.resources.assistant_agent_menu
+import kubriko.creator.generated.resources.assistant_agent_unasked
 import kubriko.creator.generated.resources.assistant_agent_untested
+import kubriko.creator.generated.resources.assistant_agent_untested_unasked
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * The agent the assistant runs, as a menu of the registry's agents, the custom one if the user entered it, entering a
- * custom agent, and opening the agents' log, when there is one.
+ * custom agent, and opening the agents' log, when there is one. Untested agents, and those seen changing files without
+ * asking ([changingFilesUnasked], by [AgentChoice.identity]), are marked as such.
  */
 @Composable
 internal fun AgentMenu(
     agent: AgentChoice,
     agents: List<RegistryAgent>,
     customAgentCommand: String?,
+    changingFilesUnasked: Set<String>,
     onSelected: (AgentChoice) -> Unit,
     onEnterCustomAgent: () -> Unit,
     onOpenLog: (() -> Unit)? = null,
 ) = WithTooltip(stringResource(Res.string.assistant_agent_menu)) {
     MenuButton(
-        label = agent.label(),
+        label = agent.label(changingFilesUnasked),
         options = agentMenuItems(agents, customAgentCommand, hasLog = onOpenLog != null),
         optionText = { item ->
             when (item) {
-                is AgentMenuItem.Agent -> item.choice.label()
+                is AgentMenuItem.Agent -> item.choice.label(changingFilesUnasked)
                 AgentMenuItem.EnterCustom -> stringResource(Res.string.assistant_agent_custom)
                 AgentMenuItem.OpenLog -> stringResource(Res.string.action_open_agent_log)
             }
@@ -76,4 +80,8 @@ internal fun agentMenuItems(agents: List<RegistryAgent>, customAgentCommand: Str
         listOfNotNull(AgentMenuItem.OpenLog.takeIf { hasLog })
 
 @Composable
-private fun AgentChoice.label() = if (isTested) name else stringResource(Res.string.assistant_agent_untested, name)
+private fun AgentChoice.label(changingFilesUnasked: Set<String>) = when {
+    identity in changingFilesUnasked -> stringResource(if (isTested) Res.string.assistant_agent_unasked else Res.string.assistant_agent_untested_unasked, name)
+    isTested -> name
+    else -> stringResource(Res.string.assistant_agent_untested, name)
+}

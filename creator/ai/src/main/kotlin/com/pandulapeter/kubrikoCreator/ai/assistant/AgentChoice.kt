@@ -26,6 +26,12 @@ public sealed interface AgentChoice {
     public val name: String
 
     /**
+     * What tells the agent apart from every other, by which what Kubriko Creator learns about it is kept: the registry
+     * agent's ID, or the custom agent's command line, since another command is another agent.
+     */
+    public val identity: String
+
+    /**
      * One of the ACP Registry's agents.
      */
     public data class Registry(
@@ -33,6 +39,7 @@ public sealed interface AgentChoice {
     ) : AgentChoice {
         override val id: String get() = agent.id
         override val name: String get() = agent.name
+        override val identity: String get() = agent.id
     }
 
     /**
@@ -43,6 +50,7 @@ public sealed interface AgentChoice {
     ) : AgentChoice {
         override val id: String get() = ID
         override val name: String get() = CustomAgentCommand.programOf(commandLine).let { File(it).name }.ifEmpty { commandLine }
+        override val identity: String get() = "$ID:$commandLine"
 
         internal companion object {
             internal const val ID = "custom"

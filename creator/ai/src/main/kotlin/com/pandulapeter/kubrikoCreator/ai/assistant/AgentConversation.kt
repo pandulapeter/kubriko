@@ -74,6 +74,14 @@ public class AgentConversation internal constructor(
     internal val isLost = _isLost.asStateFlow()
 
     private val session = MutableStateFlow<ClientSession?>(null)
+    private val unaskedChanges = UnaskedChanges()
+    private val _hasChangedFilesUnasked = MutableStateFlow(false)
+
+    /**
+     * Whether the agent changed files or ran a command with its own tools without asking, since the conversation started
+     * or was loaded ([UnaskedChanges]).
+     */
+    internal val hasChangedFilesUnasked = _hasChangedFilesUnasked.asStateFlow()
 
     /**
      * The options the agent offers for the conversation (its model, mode, or effort), with their current values.
@@ -92,7 +100,10 @@ public class AgentConversation internal constructor(
             toolCall: SessionUpdate.ToolCallUpdate,
             permissions: List<PermissionOption>,
             _meta: JsonElement?,
-        ) = RequestPermissionResponse(this@AgentConversation.permissions.answer(toolCall, permissions))
+        ): RequestPermissionResponse {
+            unaskedChanges.asked(toolCall.toolCallId)
+            return RequestPermissionResponse(this@AgentConversation.permissions.answer(toolCall, permissions))
+        }
 
         override suspend fun notify(notification: SessionUpdate, _meta: JsonElement?) {
             note(notification)
@@ -100,7 +111,9 @@ public class AgentConversation internal constructor(
                 collect(notification)
                 return
             }
-            if (!isReplaying) _updates.emit(notification)
+            if (isReplaying) return
+            follow(notification)
+            _updates.emit(notification)
         }
     }
 
@@ -119,6 +132,7 @@ public class AgentConversation internal constructor(
             when (event) {
                 is Event.SessionUpdateEvent -> {
                     note(event.update)
+                    follow(event.update)
                     onUpdate?.invoke(event.update) ?: _updates.emit(event.update)
                 }
                 is Event.PromptResponseEvent -> response = event.response
@@ -147,6 +161,10 @@ public class AgentConversation internal constructor(
      * Ends the conversation. The agent forgets it if it can.
      */
     public suspend fun close(): Unit = agent.close(this)
+
+    private fun follow(update: SessionUpdate) {
+        if (unaskedChanges.completesUnaskedChange(update) { isReadOnly }) _hasChangedFilesUnasked.value = true
+    }
 
     private fun note(update: SessionUpdate) {
         if (update is SessionUpdate.AvailableCommandsUpdate) _availableCommands.value = update.availableCommands

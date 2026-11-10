@@ -35,6 +35,7 @@ internal class FakeAssistantPanelModel(
     val selectedAgents = CopyOnWriteArrayList<AgentChoice>()
     override val agent = MutableStateFlow(agent)
     override val agents = MutableStateFlow(listOf(RegistryAgent.claude))
+    override val agentsChangingFilesUnasked = MutableStateFlow(emptySet<String>())
     override val chats = MutableStateFlow(emptyList<AssistantChat>())
     override val currentChat = MutableStateFlow<AssistantChat?>(null)
     override val savedConversations = MutableStateFlow(emptyList<SavedConversation>())

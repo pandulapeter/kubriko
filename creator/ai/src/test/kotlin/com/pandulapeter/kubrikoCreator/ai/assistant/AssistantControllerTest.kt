@@ -287,6 +287,22 @@ class AssistantControllerTest {
     }
 
     @Test
+    fun anAgentChangingFilesWithoutAskingIsRememberedAsSuch() = blockingTest {
+        runner.installed += "goose"
+        val controller = controller()
+        controller.startChat().state.first { it == ChatState.Ready }
+        assertTrue(controller.agentsChangingFilesUnasked.value.isEmpty())
+        val custom = AgentChoice.Custom("goose acp")
+        onMain { controller.selectAgent(custom) }
+        val chat = controller.currentChat.value!!
+        chat.state.first { it == ChatState.Ready }
+        onMain { chat.send("write") }
+        controller.agentsChangingFilesUnasked.first { custom.identity in it }
+        awaitSavedSettings { custom.identity in it.agentsChangingFilesUnasked }
+        assertEquals(setOf(custom.identity), controller().agentsChangingFilesUnasked.value)
+    }
+
+    @Test
     fun aCustomAgentRunsItsCommandWithTheFallbacksAndIsRemembered() = blockingTest {
         runner.installed += "goose"
         val controller = controller()

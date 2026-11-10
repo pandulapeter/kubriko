@@ -31,7 +31,9 @@ Hosts Agent Client Protocol agents through the official Kotlin SDK. Tests run `F
   sandbox where it offers one (`ReadOnlyMode`), again whenever they are loaded: only a value named read-only, never a plan mode,
   since Claude Code's refuses MCP tools that change something, Creator's among them. What an agent still asks to edit,
   delete, move, or execute itself goes to the user, as every change outside Creator is confirmed, with the agent's diffs and
-  a warning that Undo can't revert it (`PermissionRequest.isOutsideCreator`). Each agent works in a folder of its own per project (`agents/workspaces`),
+  a warning that Undo can't revert it (`PermissionRequest.isOutsideCreator`). An agent seen changing files without asking
+  (`UnaskedChanges`, which needs no list of agents, since only a session shows it) is remembered by its `AgentChoice.identity`,
+  marked in the agent menu, and its conversations suggest version control. Each agent works in a folder of its own per project (`agents/workspaces`),
   since an agent may write files where it starts without asking. Creator's own tools are allowed without asking when their kind
   edits, deletes, moves, and runs nothing (`PermissionHandler.allowingCreatorTools`), recognized however the agent names them
   (`CreatorToolName`). An agent without HTTP MCP reaches them through `mcp-remote`, pinned to one exact version

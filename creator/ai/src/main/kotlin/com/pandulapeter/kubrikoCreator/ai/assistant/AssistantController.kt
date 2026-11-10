@@ -82,6 +82,9 @@ public class AssistantController(
     override val agent: StateFlow<AgentChoice> = selection.agent
 
     override val customAgentCommand: String? get() = selection.customAgentCommand
+
+    override val agentsChangingFilesUnasked: StateFlow<Set<String>> = settings.value.map { it.agentsChangingFilesUnasked }
+        .stateIn(scope, SharingStarted.Eagerly, settings.value.value.agentsChangingFilesUnasked)
     private val claude = ClaudeAccount(scope, ioDispatcher, runner, storage.secrets, home, settings.value.value.claudeConfigurationAlias)
 
     override val configurations: StateFlow<List<ClaudeConfiguration>> = combine(claude.configurations, agent) { configurations, choice -> configurations.takeIf { choice.profile.usesClaudeAccount }.orEmpty() }
@@ -213,6 +216,7 @@ public class AssistantController(
     private fun openChat(lastMessageAt: Long? = null, firstPrompt: String? = null, isWritersRoom: Boolean = false, start: suspend (Assistant, File, PermissionHandler, suspend (SessionUpdate) -> Unit) -> AgentConversation) {
         val directory = project ?: return
         val agentId = selection.agent.value.id
+        val agentIdentity = selection.agent.value.identity
         var owner: Assistant? = null
         val chat = AssistantChat(
             parentScope = scope,
@@ -224,6 +228,9 @@ public class AssistantController(
             undoTurn = { toolsId, sinceRevision -> openProject.undoTurn(toolsId, sinceRevision) },
             onTurnEnded = { id, title, lastAnswer ->
                 withContext(ioDispatcher) { storage.conversations?.save(SavedConversation(directory.absolutePath, agentId, id, title, clock(), lastAnswer?.take(LastConversation.ANSWER_LENGTH), isWritersRoom)) }
+            },
+            onChangedFilesUnasked = {
+                settings.update { it.takeIf { agentIdentity in it.agentsChangingFilesUnasked } ?: it.copy(agentsChangingFilesUnasked = it.agentsChangingFilesUnasked + agentIdentity) }
             },
             lastMessageAt = lastMessageAt,
             clock = clock,

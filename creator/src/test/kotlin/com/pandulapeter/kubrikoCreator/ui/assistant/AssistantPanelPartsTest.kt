@@ -127,13 +127,14 @@ class AssistantPanelPartsTest {
                 agent = antigravity,
                 agents = listOf(RegistryAgent.claude, antigravity.agent),
                 customAgentCommand = "goose acp",
+                changingFilesUnasked = setOf(AgentChoice.Custom("goose acp").identity),
                 onSelected = { chosen += it },
                 onEnterCustomAgent = {},
                 onOpenLog = {},
             )
         }
         onNodeWithText("Google Antigravity (untested)").performClick()
-        onNodeWithText("goose (untested)").assertExists()
+        onNodeWithText("goose (untested, changes files without asking)").assertExists()
         onNodeWithText("Custom agent…").assertExists()
         onNodeWithText("Open the agent's log").assertExists()
         saveSnapshot("agent-menu")

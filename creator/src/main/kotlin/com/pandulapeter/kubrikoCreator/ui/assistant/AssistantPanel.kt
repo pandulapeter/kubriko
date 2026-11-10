@@ -153,6 +153,7 @@ private fun AssistantPanelContent(
             onInstallNode = model::installNode.takeIf { model.canInstallNode },
             nodeInstallFailure = model.nodeInstallFailure.collectAsState().value,
             isBilledToApiKey = hasApiKey,
+            isAgentChangingFilesUnasked = LocalAgent.current.identity in model.agentsChangingFilesUnasked.collectAsState().value,
             onOpenLog = model.errorLogFile?.let { file -> { if (file.isFile) openInSystemEditor(file) } },
             aiSteps = aiSteps,
             onShowStep = onShowStep,
@@ -189,6 +190,7 @@ private fun ChatContent(
     captureScreen: suspend () -> ByteArray?,
     download: AgentDownload?,
     isBilledToApiKey: Boolean,
+    isAgentChangingFilesUnasked: Boolean,
     onOpenLog: (() -> Unit)?,
     aiSteps: List<AiStep>,
     onShowStep: (AiStep) -> Unit,
@@ -251,6 +253,9 @@ private fun ChatContent(
             request = request,
             onAnswer = chat::answer,
         )
+    }
+    if (isAgentChangingFilesUnasked) {
+        UnaskedChangesNotice()
     }
     var leftOut by remember(chat) { mutableStateOf(emptySet<String>()) }
     AttentionLine(

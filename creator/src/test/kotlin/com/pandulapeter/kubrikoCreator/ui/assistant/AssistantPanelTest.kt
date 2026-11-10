@@ -61,6 +61,7 @@ import kubriko.creator.generated.resources.assistant_agent_untested
 import kubriko.creator.generated.resources.assistant_configuration_default
 import kubriko.creator.generated.resources.assistant_note
 import kubriko.creator.generated.resources.assistant_note_untested
+import kubriko.creator.generated.resources.assistant_unasked_changes
 import org.jetbrains.compose.resources.stringResource
 import java.io.File
 import java.util.concurrent.Executors
@@ -142,6 +143,20 @@ class AssistantPanelTest {
         onNodeWithText(accountLabel).performClick()
         saveSnapshot("assistant-panel-untested")
         onNodeWithText(useApiKey).assertDoesNotExist()
+    }
+
+    @Test
+    fun aConversationOfAnAgentChangingFilesWithoutAskingSuggestsVersionControl() = uiTest {
+        val model = FakeAssistantPanelModel(agent = untested).apply { currentChat.value = readyChat() }
+        lateinit var notice: String
+        showing {
+            notice = stringResource(Res.string.assistant_unasked_changes, untested.name)
+            AssistantPanelWithActions(model)
+        }
+        onNodeWithText(notice).assertDoesNotExist()
+        model.agentsChangingFilesUnasked.value = setOf(untested.identity)
+        onNodeWithText(notice).assertExists()
+        saveSnapshot("assistant-panel-unasked-changes")
     }
 
     @Test
