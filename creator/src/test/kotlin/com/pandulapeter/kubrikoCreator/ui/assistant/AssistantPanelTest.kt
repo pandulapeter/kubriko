@@ -18,6 +18,8 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -27,15 +29,16 @@ import androidx.compose.ui.text.TextLayoutResult
 import com.pandulapeter.kubrikoCreator.ai.assistant.AcpAgent
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentChoice
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentCommand
+import com.pandulapeter.kubrikoCreator.ai.assistant.AgentConfiguration
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantChat
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantPanelModel
 import com.pandulapeter.kubrikoCreator.ai.assistant.AuthStatus
 import com.pandulapeter.kubrikoCreator.ai.assistant.ChatState
-import com.pandulapeter.kubrikoCreator.ai.assistant.ClaudeConfiguration
 import com.pandulapeter.kubrikoCreator.ai.assistant.FakeAgentLauncher
 import com.pandulapeter.kubrikoCreator.ai.assistant.RegistryAgent
 import com.pandulapeter.kubrikoCreator.commands.AiStepOrigin
 import com.pandulapeter.kubrikoCreator.commands.UserQuestions
+import com.pandulapeter.kubrikoCreator.mcp.clients.AiClient
 import com.pandulapeter.kubrikoCreator.testing.PANEL_WIDTH
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
@@ -58,9 +61,9 @@ import kubriko.creator.generated.resources.assistant_account_signed_in
 import kubriko.creator.generated.resources.assistant_account_use_api_key
 import kubriko.creator.generated.resources.assistant_agent_custom
 import kubriko.creator.generated.resources.assistant_agent_untested
-import kubriko.creator.generated.resources.assistant_configuration_default
 import kubriko.creator.generated.resources.assistant_note
 import kubriko.creator.generated.resources.assistant_note_untested
+import kubriko.creator.generated.resources.assistant_setup_configuration
 import kubriko.creator.generated.resources.assistant_unasked_changes
 import org.jetbrains.compose.resources.stringResource
 import java.io.File
@@ -82,6 +85,7 @@ class AssistantPanelTest {
     private val launcher = FakeAgentLauncher()
     private val acpAgent = AcpAgent(AgentCommand("fake-agent"), launcher, AcpAgent.clientInfo("1.0.0"), scope, Dispatchers.IO)
     private val untested = AgentChoice.Registry(RegistryAgent("antigravity-acp", "Google Antigravity", "1.4.5", RegistryAgent.claude.distribution))
+    private val codex = AgentChoice.Registry(RegistryAgent("codex-acp", "Codex", "2.4.0", RegistryAgent.claude.distribution))
     private val signedIn = AuthStatus(AuthStatus.Kind.ACCOUNT, "Claude Max", email = "me@example.com")
 
     @AfterTest
@@ -132,7 +136,7 @@ class AssistantPanelTest {
         showing {
             accountLabel = stringResource(Res.string.assistant_account_signed_in, signedIn.label, signedIn.email!!)
             useApiKey = stringResource(Res.string.assistant_account_use_api_key)
-            configurationLabel = stringResource(Res.string.assistant_configuration_default)
+            configurationLabel = stringResource(Res.string.assistant_setup_configuration)
             note = stringResource(Res.string.assistant_note_untested, untested.name)
             AssistantPanelWithActions(model)
         }
@@ -163,7 +167,7 @@ class AssistantPanelTest {
     fun claudeAgentOffersItsApiKeyAndConfigurations() = uiTest {
         val model = FakeAssistantPanelModel(canKeepApiKey = true).apply {
             authStatus.value = signedIn
-            configurations.value = listOf(ClaudeConfiguration.default, ClaudeConfiguration(alias = "claude-personal", variant = "claude-personal"))
+            configurations.value = listOf(AgentConfiguration(AiClient.CLAUDE_CODE), AgentConfiguration(AiClient.CLAUDE_CODE, alias = "claude-personal", variant = "personal"))
             currentChat.value = readyChat()
         }
         lateinit var accountLabel: String
@@ -173,7 +177,7 @@ class AssistantPanelTest {
         showing {
             accountLabel = stringResource(Res.string.assistant_account_signed_in, signedIn.label, signedIn.email!!)
             useApiKey = stringResource(Res.string.assistant_account_use_api_key)
-            configurationLabel = stringResource(Res.string.assistant_configuration_default)
+            configurationLabel = AiClient.CLAUDE_CODE.displayName
             note = stringResource(Res.string.assistant_note)
             AssistantPanelWithActions(model)
         }
@@ -184,6 +188,22 @@ class AssistantPanelTest {
         onNodeWithText(accountLabel).performClick()
         saveSnapshot("assistant-panel-claude")
         onNodeWithText(useApiKey).assertExists()
+    }
+
+    @Test
+    fun codexOffersTheConfigurationsOfItsAliases() = uiTest {
+        val work = AgentConfiguration(AiClient.CODEX, alias = "codex-work", variant = "work", environment = mapOf("CODEX_HOME" to "/Users/me/.codex-work"))
+        val model = FakeAssistantPanelModel(agent = codex).apply {
+            configuration.value = work
+            configurations.value = listOf(AgentConfiguration(AiClient.CODEX), work)
+            currentChat.value = readyChat()
+        }
+        showing { AssistantPanelWithActions(model) }
+        openSetup()
+        onNodeWithText("Codex (work)").performClick()
+        onAllNodesWithText("Codex").onLast().performClick()
+        saveSnapshot("assistant-setup-codex")
+        assertEquals(listOf("selectConfiguration"), model.calls.filter { it == "selectConfiguration" })
     }
 
     @Test

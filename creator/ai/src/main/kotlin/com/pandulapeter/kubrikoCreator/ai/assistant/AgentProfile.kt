@@ -23,8 +23,7 @@ import kotlinx.serialization.json.JsonElement
  *   edit, delete, move, or run goes to the user ([PermissionRequest.isOutsideCreator]).
  * @param usesProjectFolder Whether the agent works in the project's folder; otherwise it gets a folder of its own, since
  *   some agents write files of their own where they start (Google Antigravity its skills) without asking.
- * @param usesClaudeAccount Whether the agent signs in through a Claude Code configuration or the user's Anthropic API key
- *   ([ClaudeAccount]).
+ * @param usesAnthropicApiKey Whether the agent can sign in with the user's Anthropic API key ([ClaudeApiKey]).
  * @param environment Variables the agent is started with, under any the user's own configuration sets.
  */
 public data class AgentProfile(
@@ -32,7 +31,7 @@ public data class AgentProfile(
     val alwaysUsesHttpTools: Boolean,
     val keepsOffFiles: Boolean,
     val usesProjectFolder: Boolean,
-    val usesClaudeAccount: Boolean,
+    val usesAnthropicApiKey: Boolean,
     val environment: Map<String, String> = emptyMap(),
 ) {
     internal companion object {
@@ -41,7 +40,7 @@ public data class AgentProfile(
             alwaysUsesHttpTools = true,
             keepsOffFiles = true,
             usesProjectFolder = true,
-            usesClaudeAccount = true,
+            usesAnthropicApiKey = true,
             // Claude Code gives up on a tool call after a minute, and ask_user waits for as long as the user takes.
             environment = mapOf("MCP_TOOL_TIMEOUT" to TOOL_CALL_TIMEOUT_IN_MILLISECONDS.toString()),
         )
@@ -50,7 +49,7 @@ public data class AgentProfile(
             alwaysUsesHttpTools = false,
             keepsOffFiles = false,
             usesProjectFolder = false,
-            usesClaudeAccount = false,
+            usesAnthropicApiKey = false,
         )
 
         /**

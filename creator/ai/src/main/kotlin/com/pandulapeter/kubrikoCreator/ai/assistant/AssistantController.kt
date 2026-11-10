@@ -32,9 +32,9 @@ import java.io.IOException
 
 /**
  * The assistant panel's state for as long as Kubriko Creator runs: the agent chosen, the one [Assistant] running it,
- * created on first use and held until Creator quits or another agent is chosen, the Claude Code configuration Claude
- * Agent signs in with, and the conversations about the open project,
- * which end when the project closes, since their tools work on whatever project is open.
+ * created on first use and held until Creator quits or another agent is chosen, the configuration each agent runs as,
+ * and the conversations about the open project, which end when the project closes, since their tools work on whatever
+ * project is open.
  *
  * @param scope Where conversations run: the main thread, which the panel's state is read on.
  * @param storage What the assistant keeps on this computer.
@@ -72,7 +72,7 @@ public class AssistantController(
         selection.awaitLoaded()
         val choice = selection.agent.value
         val npx = commands.npx()
-        val environment = choice.profile.environment + if (choice.isClaude) claude.environment() else signIns.environmentOf(choice)
+        val environment = choice.profile.environment + configurationList.environmentOf(choice) + if (choice.isClaude) claudeApiKey.environment() else signIns.environmentOf(choice)
         createAssistant(commands.of(choice, npx, environment), npx, choice.profile)
     }
     private val selection: AgentSelection = AgentSelection(scope, settings, sources.registry, ioDispatcher, isAiEnabled, isAgentRunning = { host.current.value != null })
@@ -85,12 +85,12 @@ public class AssistantController(
 
     override val agentsChangingFilesUnasked: StateFlow<Set<String>> = settings.value.map { it.agentsChangingFilesUnasked }
         .stateIn(scope, SharingStarted.Eagerly, settings.value.value.agentsChangingFilesUnasked)
-    private val claude = ClaudeAccount(scope, ioDispatcher, runner, storage.secrets, home, settings.value.value.claudeConfigurationAlias)
+    private val configurationList = AgentConfigurations(scope, ioDispatcher, runner, home, agent, settings.value.value.configurationAliases)
 
-    override val configurations: StateFlow<List<ClaudeConfiguration>> = combine(claude.configurations, agent) { configurations, choice -> configurations.takeIf { choice.profile.usesClaudeAccount }.orEmpty() }
-        .stateIn(scope, SharingStarted.Eagerly, claude.configurations.value.takeIf { agent.value.profile.usesClaudeAccount }.orEmpty())
+    override val configurations: StateFlow<List<AgentConfiguration>> = configurationList.configurations
 
-    override val configuration: StateFlow<ClaudeConfiguration> = claude.configuration
+    override val configuration: StateFlow<AgentConfiguration?> = configurationList.configuration
+    private val claudeApiKey = ClaudeApiKey(scope, ioDispatcher, storage.secrets)
     private val chatList = AssistantChats(scope, ioDispatcher, storage.conversations)
 
     override val chats: StateFlow<List<AssistantChat>> = chatList.open
@@ -135,15 +135,18 @@ public class AssistantController(
 
     override val signIn: StateFlow<SignInSession?> = signIns.session
 
-    override val hasApiKey: StateFlow<Boolean> = combine(claude.hasApiKey, agent) { hasApiKey, choice -> hasApiKey && choice.profile.usesClaudeAccount }
-        .stateIn(scope, SharingStarted.Eagerly, claude.hasApiKey.value && agent.value.profile.usesClaudeAccount)
+    override val hasApiKey: StateFlow<Boolean> = combine(claudeApiKey.hasApiKey, agent) { hasApiKey, choice -> hasApiKey && choice.profile.usesAnthropicApiKey }
+        .stateIn(scope, SharingStarted.Eagerly, claudeApiKey.hasApiKey.value && agent.value.profile.usesAnthropicApiKey)
 
-    override val canKeepApiKey: Boolean get() = claude.canKeepApiKey && agent.value.profile.usesClaudeAccount
+    override val canKeepApiKey: Boolean get() = claudeApiKey.canKeepApiKey && agent.value.profile.usesAnthropicApiKey
 
-    override val apiKeyFailed: StateFlow<Boolean> = claude.apiKeyFailed
+    override val apiKeyFailed: StateFlow<Boolean> = claudeApiKey.apiKeyFailed
     private var project: File? = null
 
-    override fun findConfigurations(): Unit = claude.findConfigurations()
+    override fun findConfigurations() {
+        claudeApiKey.lookUpApiKey()
+        configurationList.find()
+    }
 
     /**
      * Makes [directory] the project conversations are about, ending those about the one before, and opens a conversation
@@ -251,10 +254,10 @@ public class AssistantController(
         if (selection.select(choice)) restartAgent()
     }
 
-    override fun selectConfiguration(configuration: ClaudeConfiguration) {
+    override fun selectConfiguration(configuration: AgentConfiguration) {
         if (!host.isOn) return
-        if (!claude.select(configuration)) return
-        settings.update { it.copy(claudeConfigurationAlias = configuration.alias) }
+        if (!configurationList.select(configuration)) return
+        settings.update { it.copy(configurationAliases = configurationList.chosenAliases) }
         restartAgent()
     }
 
@@ -294,7 +297,7 @@ public class AssistantController(
         if (!host.isOn) return
         val key = apiKey.trim().takeIf { it.isNotEmpty() } ?: return
         scope.launch {
-            if (!claude.keepApiKey(key)) return@launch
+            if (!claudeApiKey.keepApiKey(key)) return@launch
             onKept()
             restartAgent()
         }
@@ -303,7 +306,7 @@ public class AssistantController(
     override fun removeApiKey() {
         if (!host.isOn) return
         scope.launch {
-            claude.forgetApiKey()
+            claudeApiKey.forgetApiKey()
             restartAgent()
         }
     }

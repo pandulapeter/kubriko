@@ -10,15 +10,16 @@
 package com.pandulapeter.kubrikoCreator.ui.assistant
 
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentChoice
+import com.pandulapeter.kubrikoCreator.ai.assistant.AgentConfiguration
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentDownload
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantChat
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantPanelModel
 import com.pandulapeter.kubrikoCreator.ai.assistant.AuthStatus
-import com.pandulapeter.kubrikoCreator.ai.assistant.ClaudeConfiguration
 import com.pandulapeter.kubrikoCreator.ai.assistant.RegistryAgent
 import com.pandulapeter.kubrikoCreator.ai.assistant.SavedConversation
 import com.pandulapeter.kubrikoCreator.ai.assistant.SignInMethod
 import com.pandulapeter.kubrikoCreator.ai.assistant.SignInSession
+import com.pandulapeter.kubrikoCreator.mcp.clients.AiClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
@@ -45,8 +46,8 @@ internal class FakeAssistantPanelModel(
     override val signIn = MutableStateFlow<SignInSession?>(null)
     override val hasApiKey = MutableStateFlow(false)
     override val apiKeyFailed = MutableStateFlow(false)
-    override val configuration = MutableStateFlow(ClaudeConfiguration.default)
-    override val configurations = MutableStateFlow(emptyList<ClaudeConfiguration>())
+    override val configuration = MutableStateFlow<AgentConfiguration?>(AgentConfiguration(AiClient.CLAUDE_CODE))
+    override val configurations = MutableStateFlow(emptyList<AgentConfiguration>())
     override val download = MutableStateFlow<AgentDownload?>(null)
     override val canInstallNode = false
     override val nodeInstallFailure = MutableStateFlow<String?>(null)
@@ -82,7 +83,7 @@ internal class FakeAssistantPanelModel(
         selectedAgents += choice
     }
 
-    override fun selectConfiguration(configuration: ClaudeConfiguration) {
+    override fun selectConfiguration(configuration: AgentConfiguration) {
         calls += "selectConfiguration"
     }
 

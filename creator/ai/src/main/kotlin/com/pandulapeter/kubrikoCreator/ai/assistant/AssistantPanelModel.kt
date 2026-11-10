@@ -14,7 +14,7 @@ import java.io.File
 
 /**
  * What the assistant panel shows and does: the agent chosen, its conversations, and signing in. What an agent offers
- * beyond the fallbacks (an API key, Claude Code configurations) is already accounted for, so the panel shows these as
+ * beyond the fallbacks (an API key, the configurations of its tool) is already accounted for, so the panel shows these as
  * they are.
  */
 public interface AssistantPanelModel {
@@ -78,7 +78,7 @@ public interface AssistantPanelModel {
 
     /**
      * Whether the agent chosen uses the user's Anthropic API key, kept in the secret store, rather than a Claude Code
-     * login: never for an agent without a Claude account ([AgentProfile.usesClaudeAccount]).
+     * login: never for an agent that takes none ([AgentProfile.usesAnthropicApiKey]).
      */
     public val hasApiKey: StateFlow<Boolean>
 
@@ -93,15 +93,15 @@ public interface AssistantPanelModel {
     public val apiKeyFailed: StateFlow<Boolean>
 
     /**
-     * The Claude Code configuration Claude Agent uses.
+     * The configuration the agent chosen runs as, or null for an agent whose tool Kubriko Creator doesn't know.
      */
-    public val configuration: StateFlow<ClaudeConfiguration>
+    public val configuration: StateFlow<AgentConfiguration?>
 
     /**
-     * The Claude Code configurations found on this computer, the default one first, or none for an agent without a
-     * Claude account.
+     * The agent chosen's configurations found on this computer, its default one first, or none for an agent whose tool
+     * Kubriko Creator doesn't know.
      */
-    public val configurations: StateFlow<List<ClaudeConfiguration>>
+    public val configurations: StateFlow<List<AgentConfiguration>>
 
     /**
      * The agent's archive being downloaded on its first start, if one is.
@@ -134,7 +134,7 @@ public interface AssistantPanelModel {
     public val errorLogFile: File?
 
     /**
-     * Finds the Claude Code configurations of the user's shell aliases, once per run.
+     * Finds the configurations of the user's shell aliases, once per run.
      */
     public fun findConfigurations()
 
@@ -173,7 +173,7 @@ public interface AssistantPanelModel {
     /**
      * Uses [configuration] from now on: its own agent, so every conversation ends, and a new one starts.
      */
-    public fun selectConfiguration(configuration: ClaudeConfiguration)
+    public fun selectConfiguration(configuration: AgentConfiguration)
 
     /**
      * Signs in with [method]: in the panel's terminal for a terminal method, otherwise by the agent itself. Once a

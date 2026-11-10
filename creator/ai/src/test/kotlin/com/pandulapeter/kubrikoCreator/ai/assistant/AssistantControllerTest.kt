@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.agentclientprotocol.model.AuthMethodId
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
+import com.pandulapeter.kubrikoCreator.mcp.clients.AiClient
 import com.pandulapeter.kubrikoCreator.testing.FakeProcessRunner
 import com.pandulapeter.kubrikoCreator.testing.IdleTrackingDispatcher
 import com.pandulapeter.kubrikoCreator.testing.awaitIdle
@@ -260,7 +261,7 @@ class AssistantControllerTest {
         }
         awaitIdle(mainThread, io)
         assertTrue(controller.agent.value.isClaude)
-        assertEquals(ClaudeConfiguration.default, controller.configuration.value)
+        assertEquals(AgentConfiguration(AiClient.CLAUDE_CODE), controller.configuration.value)
         assertFalse(File(settingsDirectory, "assistant.json").exists())
         assertEquals(emptyMap(), secrets.secrets)
         assertTrue(launcher.commands.isEmpty())
@@ -628,12 +629,40 @@ class AssistantControllerTest {
         onMain { controller.selectConfiguration(personal) }
         controller.startChat().state.first { it == ChatState.Ready }
         assertEquals("/Users/me/.claude-personal", commands.last().environment["CLAUDE_CONFIG_DIR"])
-        awaitSavedSettings { it.claudeConfigurationAlias == "claude-personal" }
+        awaitSavedSettings { it.configurationAliases == mapOf(RegistryAgent.claude.id to "claude-personal") }
         val restarted = controller()
-        assertEquals("claude-personal", restarted.configuration.value.alias)
+        assertEquals("claude-personal", restarted.configuration.value?.alias)
         restarted.startChat().state.first { it == ChatState.Ready }
         assertEquals(2, commands.size)
         assertEquals("/Users/me/.claude-personal", commands.last().environment["CLAUDE_CONFIG_DIR"])
+    }
+
+    @Test
+    fun codexRunsAsTheConfigurationOfItsOwnAliasKeptApartFromClaudeAgents() = blockingTest {
+        runner.aliases["claude-personal"] = "CLAUDE_CONFIG_DIR=~/.claude-personal claude"
+        runner.aliases["codex-work"] = "CODEX_HOME=~/.codex-work codex"
+        val registry = registry(CODEX)
+        registry.refresh()
+        val controller = controller(registry)
+        val codex = controller.agents.first { it.size == 2 }.last()
+        onMain {
+            controller.findConfigurations()
+            controller.selectAgent(AgentChoice.Registry(codex))
+        }
+        val work = controller.configurations.first { it.size == 2 && it.first().client == AiClient.CODEX }.last()
+        assertEquals("work", work.variant)
+        onMain { controller.selectConfiguration(work) }
+        controller.startChat().state.first { it == ChatState.Ready }
+        assertEquals("/Users/me/.codex-work", commands.last().environment["CODEX_HOME"])
+        assertNull(commands.last().environment["CLAUDE_CONFIG_DIR"])
+        awaitSavedSettings { it.configurationAliases == mapOf("codex-acp" to "codex-work") }
+        onMain { controller.selectAgent(AgentChoice.Registry(RegistryAgent.claude)) }
+        controller.configuration.first { it?.client == AiClient.CLAUDE_CODE }
+        assertNull(controller.configuration.value?.alias)
+        assertEquals(listOf(null, "claude-personal"), controller.configurations.value.map { it.alias })
+        val restarted = controller(registry)
+        restarted.agent.first { it.id == "codex-acp" }
+        restarted.configuration.first { it?.alias == "codex-work" }
     }
 
     @Test
@@ -652,10 +681,10 @@ class AssistantControllerTest {
 
     @Test
     fun aRememberedConfigurationWhoseAliasIsGoneFallsBackToTheDefault() = blockingTest {
-        AssistantSettingsStore(File(settingsDirectory, "assistant.json")).save(AssistantSettings(claudeConfigurationAlias = "claude-gone"))
+        AssistantSettingsStore(File(settingsDirectory, "assistant.json")).save(AssistantSettings(configurationAliases = mapOf(RegistryAgent.claude.id to "claude-gone")))
         val controller = controller()
         controller.startChat().state.first { it == ChatState.Ready }
-        assertEquals(ClaudeConfiguration.default, controller.configuration.value)
+        assertEquals(AgentConfiguration(AiClient.CLAUDE_CODE), controller.configuration.value)
         assertNull(commands.single().environment["CLAUDE_CONFIG_DIR"])
     }
 
@@ -709,21 +738,22 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun anAgentWithoutAClaudeAccountReportsNoApiKeyOrConfigurations() = blockingTest {
+    fun anAgentOfAnUnknownToolReportsNoApiKeyOrConfigurations() = blockingTest {
         secrets.secrets["anthropic-api-key"] = "sk-ant-old"
         runner.aliases["claude-personal"] = "CLAUDE_CONFIG_DIR=~/.claude-personal claude"
-        val registry = registry(CODEX)
+        val registry = registry(GEMINI)
         registry.refresh()
         val controller = controller(registry)
         controller.startChat().state.first { it == ChatState.Ready }
         onMain { controller.findConfigurations() }
         controller.configurations.first { it.size == 2 }
         controller.hasApiKey.first { it }
-        val codex = controller.agents.first { it.size == 2 }.last()
-        onMain { controller.selectAgent(AgentChoice.Registry(codex)) }
+        val gemini = controller.agents.first { it.size == 2 }.last()
+        onMain { controller.selectAgent(AgentChoice.Registry(gemini)) }
         controller.agent.first { !it.isClaude }
         controller.hasApiKey.first { !it }
         controller.configurations.first { it.isEmpty() }
+        assertNull(controller.configuration.value)
         assertFalse(controller.canKeepApiKey)
         onMain { controller.selectAgent(AgentChoice.Registry(RegistryAgent.claude)) }
         controller.hasApiKey.first { it }

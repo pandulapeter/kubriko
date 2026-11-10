@@ -56,4 +56,14 @@ class AssistantSettingsStateTest {
             assertEquals("second", AssistantSettingsStore(file).load().agentId)
         }
     }
+
+    @Test
+    fun theAliasClaudeAgentRanAsWhenOnlyItHadConfigurationsIsReadAsItsOwn() {
+        val file = File(settingsDirectory, "assistant.json")
+        file.writeText("""{"claudeConfigurationAlias": "claude-personal", "configurationAliases": {"codex-acp": "codex-work"}}""")
+        assertEquals(
+            AssistantSettings(configurationAliases = mapOf("claude-acp" to "claude-personal", "codex-acp" to "codex-work")),
+            AssistantSettingsStore(file).load(),
+        )
+    }
 }

@@ -14,7 +14,10 @@ import kotlinx.serialization.Serializable
 /**
  * What the assistant panel remembers between runs of Kubriko Creator.
  *
- * @param claudeConfigurationAlias The shell alias whose Claude Code configuration Claude Agent uses, or null for the default one.
+ * @param configurationAliases The shell alias whose configuration each agent ([AgentChoice.id]) runs as
+ *   ([AgentConfiguration]), for those not using the default one.
+ * @param claudeConfigurationAlias The shell alias Claude Agent ran as when it was the only agent with configurations, read
+ *   into [configurationAliases] by [withConfigurationAliasesMigrated].
  * @param agentId The agent chosen ([AgentChoice.id]), or null for Claude Agent.
  * @param customAgentCommand The command line of the custom agent, kept while another agent is chosen.
  * @param agentVariables The names of the environment variables each agent ([AgentChoice.id]) was given for signing in,
@@ -24,6 +27,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 internal data class AssistantSettings(
+    val configurationAliases: Map<String, String> = emptyMap(),
     val claudeConfigurationAlias: String? = null,
     val agentId: String? = null,
     val customAgentCommand: String? = null,
@@ -37,4 +41,11 @@ internal data class AssistantSettings(
     fun withChangingFilesUnasked(identity: String) = copy(
         agentsChangingFilesUnasked = agentsChangingFilesUnasked.filterNot { AgentChoice.Custom.isIdentity(it) && AgentChoice.Custom.isIdentity(identity) }.toSet() + identity,
     )
+
+    /**
+     * These settings with [claudeConfigurationAlias] moved into [configurationAliases].
+     */
+    fun withConfigurationAliasesMigrated() = claudeConfigurationAlias?.let { alias ->
+        copy(configurationAliases = mapOf(RegistryAgent.claude.id to alias) + configurationAliases, claudeConfigurationAlias = null)
+    } ?: this
 }

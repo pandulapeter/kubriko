@@ -51,7 +51,7 @@ class AssistantTest {
     private val launcher = FakeAgentLauncher()
     private val assistants = mutableListOf<Assistant>()
     private val httpClient = HttpClient(CIO) { install(SSE) }
-    private val profile = AgentProfile(sessionMeta = { JsonPrimitive(it) }, alwaysUsesHttpTools = true, keepsOffFiles = true, usesProjectFolder = true, usesClaudeAccount = true)
+    private val profile = AgentProfile(sessionMeta = { JsonPrimitive(it) }, alwaysUsesHttpTools = true, keepsOffFiles = true, usesProjectFolder = true, usesAnthropicApiKey = true)
     private val agentFolders = createTempDirectory().toFile()
     private val assistant = assistant(profile)
 

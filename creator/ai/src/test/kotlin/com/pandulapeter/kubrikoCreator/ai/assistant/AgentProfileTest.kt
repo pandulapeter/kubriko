@@ -17,10 +17,10 @@ class AgentProfileTest {
     private val untested = AgentChoice.Registry(RegistryAgent("codex-acp", "Codex", "2.4.0", AgentDistribution.Npx("@zed-industries/codex-acp@2.4.0")))
 
     @Test
-    fun onlyClaudeAgentUsesAClaudeAccount() {
-        assertTrue(AgentChoice.Registry(RegistryAgent.claude).profile.usesClaudeAccount)
-        assertFalse(untested.profile.usesClaudeAccount)
-        assertFalse(AgentChoice.Custom("goose acp").profile.usesClaudeAccount)
+    fun onlyClaudeAgentTakesAnAnthropicApiKey() {
+        assertTrue(AgentChoice.Registry(RegistryAgent.claude).profile.usesAnthropicApiKey)
+        assertFalse(untested.profile.usesAnthropicApiKey)
+        assertFalse(AgentChoice.Custom("goose acp").profile.usesAnthropicApiKey)
     }
 
     @Test

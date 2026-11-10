@@ -23,7 +23,7 @@ public class AssistantSettingsStore(
 ) {
     private val store = JsonFileStore(file, AssistantSettings.serializer())
 
-    internal fun load() = store.read().valueOrNull() ?: AssistantSettings()
+    internal fun load() = store.read().valueOrNull()?.withConfigurationAliasesMigrated() ?: AssistantSettings()
 
     internal fun save(settings: AssistantSettings) {
         store.write(settings)

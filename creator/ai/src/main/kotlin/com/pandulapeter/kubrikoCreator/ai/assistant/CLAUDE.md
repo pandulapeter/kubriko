@@ -15,8 +15,11 @@ Hosts Agent Client Protocol agents through the official Kotlin SDK. Tests run `F
   `AgentSelection` (the agent chosen and the registry), `AssistantHost` (the one `Assistant` from first use until Creator quits,
   replaced in one ordered sequence, and the one check of AI features), and `AssistantSignIn` (sign-in, API key aside, and agent
   variables); `AssistantSettingsState` saves their settings off the main thread. The panel reads an `AssistantPanelModel` (which
-  `AssistantController` implements), and what a given agent offers, an API key and Claude Code configurations, comes from its
-  `AgentProfile.usesClaudeAccount`, not from the UI.
+  `AssistantController` implements), and what a given agent offers, an API key (`AgentProfile.usesAnthropicApiKey`) and its
+  tool's configurations (`AgentConfiguration.clientOf`), comes from the agent, not from the UI.
+- **Accounts:** an agent whose tool Kubriko Creator knows (Claude Code, Codex) can run as any shell alias that runs that tool
+  with variables of its own (`CLAUDE_CONFIG_DIR`, `CODEX_HOME`), found as the MCP clients' setups are, and remembered per
+  agent by the alias's name, never its variables, which may hold a secret.
 - **Starting with a project:** an agent that has worked before (it holds a saved conversation about any project) opens a
   conversation as soon as a project opens, whether or not the panel is shown, so what needs one taking prompts (writing
   descriptions) works from the start; any other agent waits for the panel, since starting it may download it or ask to sign in.
