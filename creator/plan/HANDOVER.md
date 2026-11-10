@@ -25,17 +25,17 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Start `01-ai-assistant.md` at its first item (Chips, under The panel).
+Start `01-ai-assistant.md` at its first item (Kubriko's sources, under The panel).
 
-This session finished Sign-in in a terminal, reviewed with `/code-review`, its findings fixed in two commits (the shared `PATH`
-lookup, `findProgram`, and a terminal that never opens or closes early ending the wait):
+This session finished Chips, reviewed with `/code-review`, its findings fixed in a commit of their own (the picture is recorded
+only when asked for, on the thread that draws, within a time limit; the Scene picture is turned on per Scene; a closed type
+editor's Event is forgotten):
 
-- A terminal sign-in method can continue in the system's own terminal (`SystemTerminalLauncher`): Terminal (or whatever
-  opens `.command` files) on macOS, the first known terminal emulator on Linux, and PowerShell on Windows. Creator writes a
-  script that deletes itself first, since it holds the agent's variables, and waits for the exit code it writes to a file,
-  so a success resends the refused prompts as the panel's own terminal does. The panel offers it on every terminal sign-in,
-  first when the output says a terminal device was needed (`TerminalDeviceErrors`).
-- The POSIX and PowerShell quoting moved into `ShellQuoting`, and a racy Codex accounts test was fixed.
+- The type editor reports the Event it shows, and the Scene editor a way to take a picture of the open Scene, to
+  `EditorAttention` (in `WorkspaceUiState`), which the AI panel reads: an Event chip (`AttentionChip.Event`, a link by its
+  index) beside the type's, and a Scene picture chip (`AttentionChip.SceneScreen`) that is off until the user turns it on,
+  since an image with every message costs far more than a link. The picture is recorded from the Scene's viewport into a
+  `GraphicsLayer` on the next frame once asked for (`SceneViewport`, `PictureRequests`), on the editor's background, and scaled to the game screenshots' 1280 pixels.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
@@ -48,6 +48,8 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
   without asking being marked (Codex's `read-only` sandbox once it has quota again, after Nov 21, 2026).
 - Google Antigravity following the appended system prompt in a real conversation (it spends the user's Antigravity
   requests; the binary Creator downloaded is in the settings folder's `tools/agents`).
+- A real agent reading the Scene picture chip's image and following the Event chip's link (unit and offscreen tests cover
+  both, and the capture of a real Kubriko viewport).
 - Codex started as a `codex-work` alias's account signing in to that `CODEX_HOME` (running `codex-acp` fetched from npm wasn't
   allowed in this session; it is listed under Codex's profile in `01-ai-assistant.md`).
 

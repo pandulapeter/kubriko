@@ -16,14 +16,12 @@ call it.
 
 ## The panel
 
-1. **Chips:** a screenshot of the open Scene (the game's exists), and the selected Event (its index lives in `BlockTypeEditor`'s own
-   state today, so it moves to a holder the panel can read).
-2. **Kubriko's sources:** check in a live scenario whether Claude still reaches for its own Read for Kubriko's sources now that
+1. **Kubriko's sources:** check in a live scenario whether Claude still reaches for its own Read for Kubriko's sources now that
    `get_kubriko_api` exists (it keeps Read for the game's own Kotlin), and steer it to the tool in its description if it does.
-3. **AI in Creator settings:** the defaults behind the AI panel that aren't about one conversation (the MCP server's port, token, and
+2. **AI in Creator settings:** the defaults behind the AI panel that aren't about one conversation (the MCP server's port, token, and
    commands from Advanced; the agent and the configuration each agent runs as) as a section of Creator settings, hidden with the rest when
    AI features are off.
-4. **Google Antigravity's own file tools off:** it takes `enabledTools` and `disabledTools` under `_meta.antigravity` on
+3. **Google Antigravity's own file tools off:** it takes `enabledTools` and `disabledTools` under `_meta.antigravity` on
    `session/new`, `session/load`, and `session/resume` (a list or a comma-separated string), so its tools that edit, delete, or
    run could be turned off as Claude Agent's are, which needs their names from a real session's tool calls.
 
