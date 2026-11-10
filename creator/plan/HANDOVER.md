@@ -25,18 +25,17 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Start `01-ai-assistant.md` at its first item (Sign-in in a terminal, under The panel).
+Start `01-ai-assistant.md` at its first item (Chips, under The panel).
 
-This session finished Google Antigravity's system prompt, reviewed with `/code-review`, its findings fixed in a commit of their
-own (two left as they are: a continued conversation hears no digest, as Claude Agent's doesn't, and an agent's capabilities
-can't change while its pinned version runs):
+This session finished Sign-in in a terminal, reviewed with `/code-review`, its findings fixed in two commits (the shared `PATH`
+lookup, `findProgram`, and a terminal that never opens or closes early ending the wait):
 
-- An agent without a profile that advertises `agentCapabilities._meta.antigravity.systemPrompt.append` in its `initialize`
-  answer (read from Antigravity 1.4.5's own source, which reads `_meta.antigravity.systemPrompt.append` on `session/new`,
-  `session/load`, and `session/resume`) gets the system prompt there (`AppendedSystemPrompt`) instead of ahead of its first
-  prompt, so a continued conversation hears it too. `AcpAgent` now chooses a conversation's `_meta` and first prompt's lead
-  from the agent's capabilities, as it already chose its MCP servers.
-- Antigravity also takes `enabledTools` and `disabledTools` there, now an item of its own in `01-ai-assistant.md`.
+- A terminal sign-in method can continue in the system's own terminal (`SystemTerminalLauncher`): Terminal (or whatever
+  opens `.command` files) on macOS, the first known terminal emulator on Linux, and PowerShell on Windows. Creator writes a
+  script that deletes itself first, since it holds the agent's variables, and waits for the exit code it writes to a file,
+  so a success resends the refused prompts as the panel's own terminal does. The panel offers it on every terminal sign-in,
+  first when the output says a terminal device was needed (`TerminalDeviceErrors`).
+- The POSIX and PowerShell quoting moved into `ShellQuoting`, and a racy Codex accounts test was fixed.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
@@ -60,6 +59,8 @@ never item by item.
 
 - Every frame the display shows (Project settings → Game) on a 120 Hz screen.
 - The macOS title bar's controls following Creator's light and dark theme.
+- Continuing a sign-in in the system's terminal: Terminal on macOS, PowerShell on a real Windows machine, and a Linux
+  desktop's terminal emulator opening the script, and the panel carrying on once it signs in.
 - The packaged game and its installers on macOS, Windows, and Linux: the version, vendor, and a name with an accent, and one in another script (Игра), reaching them.
 - The web build in a browser (`wasmJsBrowserDevelopmentRun`): the page's title from `game.name`, a fixed aspect ratio, and web
   audio; and Play in the browser opening the system's browser on macOS, Windows, and Linux (`xdg-open`).
