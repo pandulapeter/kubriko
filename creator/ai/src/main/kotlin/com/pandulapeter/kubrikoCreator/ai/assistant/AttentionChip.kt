@@ -10,20 +10,31 @@
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.agentclientprotocol.model.ContentBlock
+import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import java.util.Base64
 
 /**
  * What the user is looking at, offered to the agent with their next message: as links the agent follows with Creator's
- * read tools when it needs them, rather than pasted content, except for a console problem, which is short, and the running
- * game's screen, sent as an image to agents that take images.
+ * read tools when it needs them, rather than pasted content, except for a console problem, which is short, and pictures
+ * ([Screenshot]), sent as images to agents that take images.
  */
 public sealed interface AttentionChip {
 
     /**
-     * Tells chips apart, so that one the user turned off stays off while it is the same.
+     * Tells chips apart, so that one the user turned on or off stays so while it is the same.
      */
     public val key: String
+
+    /**
+     * Whether the chip is sent unless the user leaves it out; otherwise it is sent only once the user turns it on.
+     */
+    public val isOnByDefault: Boolean get() = true
+
+    /**
+     * Whether the chip is sent, given the [toggled] keys: those the user turned from how they are by default.
+     */
+    public fun isSentWith(toggled: Set<String>): Boolean = isOnByDefault != (key in toggled)
 
     /**
      * What the chip adds to the prompt it is sent with.
@@ -62,12 +73,48 @@ public sealed interface AttentionChip {
     }
 
     /**
-     * What the running game shows, captured when the message is sent ([contentOf]).
+     * The Event shown in the type editor, by its index among the type's Events, as commands address Events.
      */
-    public data object GameScreen : AttentionChip {
+    public data class Event(
+        val typeName: String,
+        val isManager: Boolean,
+        val index: Int,
+        val type: EventType,
+    ) : AttentionChip {
+        override val key: String get() = "event:$typeName:$index:$type"
+
+        override fun toContent(): ContentBlock = ContentBlock.ResourceLink(
+            name = "Event $index (${EventType.serializer().descriptor.getElementName(type.ordinal)}) of " + (if (isManager) "Manager type " else "Actor type ") + typeName,
+            uri = "$URI_SCHEME://types/$typeName/events/$index",
+            description = "The Event selected in the editor, by its index among the type's Events. " +
+                (if (isManager) "read_manager_type" else "read_actor_type") + " reads it.",
+        )
+    }
+
+    /**
+     * A picture, captured when the message is sent ([contentOf]).
+     */
+    public sealed interface Screenshot : AttentionChip
+
+    /**
+     * What the running game shows.
+     */
+    public data object GameScreen : Screenshot {
         override val key: String get() = "game"
 
         override fun toContent(): ContentBlock = ContentBlock.Text("A screenshot of the running game follows.")
+    }
+
+    /**
+     * The open Scene as the Scene editor draws it, sent only once the user turns it on, since a picture with every message
+     * costs far more than the Scene's link.
+     */
+    public data object SceneScreen : Screenshot {
+        override val key: String get() = "scene-screen"
+
+        override val isOnByDefault: Boolean get() = false
+
+        override fun toContent(): ContentBlock = ContentBlock.Text("A picture of the open Scene as the Scene editor shows it follows.")
     }
 
     /**
@@ -86,8 +133,9 @@ public sealed interface AttentionChip {
         private const val URI_SCHEME = "kubriko-creator"
 
         /**
-         * The chips for the editor's state: the open Scene, otherwise the selected type, and the console's latest problem,
-         * unless something went well after it ([latestProblem], as `ConsoleLines.latestProblem` keeps it).
+         * The chips for the editor's state: the open Scene (and its picture), otherwise the selected type and the Event shown
+         * of it ([shownEvent], left out when it is another type's), and the console's latest problem, unless something went
+         * well after it ([latestProblem], as `ConsoleLines.latestProblem` keeps it).
          */
         public fun of(
             openScene: String?,
@@ -95,20 +143,23 @@ public sealed interface AttentionChip {
             isSelectedTypeManager: Boolean,
             latestProblem: ConsoleEntry.Failing?,
             canSendGameScreen: Boolean = false,
+            shownEvent: Event? = null,
+            canSendSceneScreen: Boolean = false,
         ): List<AttentionChip> = listOfNotNull(
             openScene?.let(::Scene),
+            SceneScreen.takeIf { openScene != null && canSendSceneScreen },
             selectedType?.takeIf { openScene == null }?.let { BlockType(it, isSelectedTypeManager) },
+            shownEvent?.takeIf { openScene == null && it.typeName == selectedType }?.copy(isManager = isSelectedTypeManager),
             latestProblem?.let { Problem(it.message, it.location) },
             GameScreen.takeIf { canSendGameScreen },
         )
 
         /**
-         * What [chips] send: each one's content, and for [GameScreen] the screenshot [captureScreen] takes, left out if it
-         * takes none.
+         * What [chips] send: each one's content, and for a [Screenshot] the PNG [capture] takes, left out if it takes none.
          */
-        public suspend fun contentOf(chips: List<AttentionChip>, captureScreen: suspend () -> ByteArray?): List<ContentBlock> = chips.flatMap { chip ->
-            if (chip == GameScreen) {
-                captureScreen()?.let { png -> listOf(chip.toContent(), ContentBlock.Image(data = Base64.getEncoder().encodeToString(png), mimeType = "image/png")) }.orEmpty()
+        public suspend fun contentOf(chips: List<AttentionChip>, capture: suspend (Screenshot) -> ByteArray?): List<ContentBlock> = chips.flatMap { chip ->
+            if (chip is Screenshot) {
+                capture(chip)?.let { png -> listOf(chip.toContent(), ContentBlock.Image(data = Base64.getEncoder().encodeToString(png), mimeType = "image/png")) }.orEmpty()
             } else {
                 listOf(chip.toContent())
             }

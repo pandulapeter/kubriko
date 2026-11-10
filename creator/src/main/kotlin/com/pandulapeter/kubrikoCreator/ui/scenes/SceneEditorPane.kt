@@ -99,6 +99,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param broughtBack The Actors each undo or redo put back: one put back into this Scene is selected once the Scene
  *   shows it, unless it is the Scene settings.
  * @param onViewFailed Called when the project's code threw while the view of the Scene was being created.
+ * @param pictureHost Offered a picture of the Scene while it is shown.
  */
 @Composable
 internal fun SceneEditorPane(
@@ -115,6 +116,7 @@ internal fun SceneEditorPane(
     onClose: () -> Unit,
     onViewFailed: (exception: Throwable, isShowingOlderClasses: Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    pictureHost: ScenePictureHost? = null,
 ) = Column(
     modifier = modifier,
 ) {
@@ -197,6 +199,7 @@ internal fun SceneEditorPane(
                 onMove = { actorId, x, y -> onCommand(Invocation(MoveActor, MoveActor.Input(state.sceneName, actorId, x, y))) },
                 onRemove = onRemove,
                 dragState = actorTypeDragState,
+                pictureHost = pictureHost,
                 onPlace = { actorTypeName, x, y ->
                     val actorId = SceneDocument.newId(view.entries.map { it.id })
                     selection.select(actorId)

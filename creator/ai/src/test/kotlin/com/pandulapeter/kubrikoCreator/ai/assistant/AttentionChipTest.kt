@@ -10,10 +10,13 @@
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.agentclientprotocol.model.ContentBlock
+import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.git.GitStatus
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class AttentionChipTest {
     private val problem = ConsoleEntry.Problem("Unresolved reference: speed", "Ball.kt:12")
@@ -45,11 +48,45 @@ class AttentionChipTest {
     fun theGameScreenIsOfferedOnlyWhenItCanBeSentAndIsCapturedWhenSent() = kotlinx.coroutines.test.runTest {
         assertEquals(listOf<AttentionChip>(AttentionChip.GameScreen), AttentionChip.of(null, null, false, null, canSendGameScreen = true))
         val png = byteArrayOf(1, 2, 3)
-        val sent = AttentionChip.contentOf(listOf(AttentionChip.Scene("main"), AttentionChip.GameScreen)) { png }
+        val sent = AttentionChip.contentOf(listOf(AttentionChip.Scene("main"), AttentionChip.GameScreen)) { png.takeIf { _ -> it == AttentionChip.GameScreen } }
         assertEquals(3, sent.size)
         val image = sent.last() as ContentBlock.Image
         assertEquals("image/png", image.mimeType)
         assertEquals(java.util.Base64.getEncoder().encodeToString(png), image.data)
         assertEquals(1, AttentionChip.contentOf(listOf(AttentionChip.Scene("main"), AttentionChip.GameScreen)) { null }.size)
+    }
+
+    @Test
+    fun theScenesPictureIsOfferedWithTheOpenSceneAndSentOnlyOnceTurnedOn() = kotlinx.coroutines.test.runTest {
+        assertEquals(
+            listOf(AttentionChip.Scene("main"), AttentionChip.SceneScreen),
+            AttentionChip.of("main", null, false, null, canSendSceneScreen = true),
+        )
+        assertEquals(listOf<AttentionChip>(AttentionChip.Scene("main")), AttentionChip.of("main", null, false, null))
+        assertEquals(emptyList(), AttentionChip.of(null, "Ball", false, null, canSendSceneScreen = true).filterIsInstance<AttentionChip.Screenshot>())
+        assertFalse(AttentionChip.SceneScreen.isSentWith(emptySet()))
+        assertTrue(AttentionChip.SceneScreen.isSentWith(setOf(AttentionChip.SceneScreen.key)))
+        assertTrue(AttentionChip.GameScreen.isSentWith(emptySet()))
+        assertFalse(AttentionChip.GameScreen.isSentWith(setOf(AttentionChip.GameScreen.key)))
+        val png = byteArrayOf(4, 5)
+        val sent = AttentionChip.contentOf(listOf(AttentionChip.SceneScreen)) { png.takeIf { _ -> it == AttentionChip.SceneScreen } }
+        assertEquals("A picture of the open Scene as the Scene editor shows it follows.", (sent.first() as ContentBlock.Text).text)
+        assertEquals(java.util.Base64.getEncoder().encodeToString(png), (sent.last() as ContentBlock.Image).data)
+    }
+
+    @Test
+    fun theEventShownIsOfferedWithItsTypeAsALinkByItsIndex() {
+        val event = AttentionChip.Event("Score", isManager = false, index = 2, type = EventType.KEY_PRESSED)
+        assertEquals(
+            listOf(AttentionChip.BlockType("Score", true), event.copy(isManager = true)),
+            AttentionChip.of(null, "Score", true, null, shownEvent = event),
+        )
+        assertEquals(listOf<AttentionChip>(AttentionChip.BlockType("Ball", false)), AttentionChip.of(null, "Ball", false, null, shownEvent = event))
+        assertEquals(listOf<AttentionChip>(AttentionChip.Scene("main")), AttentionChip.of("main", "Score", false, null, shownEvent = event))
+        val link = event.toContent() as ContentBlock.ResourceLink
+        assertEquals("Event 2 (keyPressed) of Actor type Score", link.name)
+        assertEquals("kubriko-creator://types/Score/events/2", link.uri)
+        assertEquals(true, link.description?.contains("read_actor_type"))
+        assertEquals(true, (event.copy(isManager = true).toContent() as ContentBlock.ResourceLink).description?.contains("read_manager_type"))
     }
 }

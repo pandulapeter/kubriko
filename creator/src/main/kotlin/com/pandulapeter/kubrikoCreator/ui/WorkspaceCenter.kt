@@ -55,6 +55,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param currentBlockType The type of the given name as it is now, not as last composed.
  * @param onCommandIfValid Applies a command unless it is rejected, returning why it was.
  * @param broughtBack The Actors each undo or redo put back, which the Scene editor selects.
+ * @param editorAttention Told what the editors show, which the assistant offers.
  * @param markdownText The text of the page or document shown, once it is read, or null.
  * @param onMarkdownTextChange Saves the page or document shown.
  * @param markdownLinks What the links of the page or document shown point at.
@@ -83,6 +84,7 @@ internal fun WorkspaceCenter(
     onReloadScene: () -> Unit,
     onCloseScene: () -> Unit,
     onSceneViewFailed: (revision: Int, exception: Throwable, isShowingOlderClasses: Boolean) -> Unit,
+    editorAttention: EditorAttention? = null,
     markdownText: String? = null,
     onMarkdownTextChange: (text: String) -> Unit = {},
     markdownLinks: PageLinksState? = null,
@@ -108,6 +110,7 @@ internal fun WorkspaceCenter(
             onReload = onReloadScene,
             onClose = onCloseScene,
             onViewFailed = { exception, isShowingOlderClasses -> onSceneViewFailed(sceneEditing.revision, exception, isShowingOlderClasses) },
+            pictureHost = editorAttention,
         )
         is SceneEditingState.Unsupported -> SceneNotice(
             modifier = contentModifier,
@@ -145,6 +148,7 @@ internal fun WorkspaceCenter(
                 onCommandIfValid = onCommandIfValid,
                 onTypeSelected = onTypeSelected,
                 highlight = shownAiStep?.let { it.step.highlightIn(selectedBlockType.name, it.flashKey) },
+                onEventShown = { index, type -> editorAttention?.showEvent(selectedBlockType, index, type) },
             )
         }
     } else if (markdownTitle != null && sceneEditing == SceneEditingState.Closed) {

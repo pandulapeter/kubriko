@@ -51,7 +51,7 @@ import com.pandulapeter.kubrikoCreator.ui.theme.CreatorMotion
  * @param digest What the AI is told about the game, read only while that view is shown.
  * @param findings What about the game is worth a look, shown with it.
  * @param attention What the user is looking at, which the assistant offers with the next message.
- * @param captureScreen Takes a screenshot of the running game.
+ * @param captureScreenshot Takes the picture an [AttentionChip.Screenshot] sends.
  */
 @Composable
 internal fun AiPanel(
@@ -69,7 +69,7 @@ internal fun AiPanel(
     onSceneSelected: (String) -> Unit,
     onPageSelected: (String) -> Unit,
     attention: List<AttentionChip>,
-    captureScreen: suspend () -> ByteArray?,
+    captureScreenshot: suspend (AttentionChip.Screenshot) -> ByteArray?,
     modifier: Modifier = Modifier,
     isScreenplayOffered: Boolean = false,
     onScreenplayOfferAnswered: () -> Unit = {},
@@ -113,7 +113,7 @@ internal fun AiPanel(
             onSceneSelected = onSceneSelected,
             onPageSelected = onPageSelected,
             attention = attention,
-            captureScreen = captureScreen,
+            captureScreenshot = captureScreenshot,
             questions = questions,
             onAnswer = onAnswer,
         )
@@ -136,7 +136,7 @@ private fun AiPanelContent(
     onSceneSelected: (String) -> Unit,
     onPageSelected: (String) -> Unit,
     attention: List<AttentionChip>,
-    captureScreen: suspend () -> ByteArray?,
+    captureScreenshot: suspend (AttentionChip.Screenshot) -> ByteArray?,
     questions: List<UserQuestions.Question>,
     onAnswer: (id: Long, answer: String) -> Unit,
 ) {
@@ -149,7 +149,7 @@ private fun AiPanelContent(
             aiSteps = aiSteps,
             onShowStep = onShowStep,
             attention = attention,
-            captureScreen = captureScreen,
+            captureScreenshot = captureScreenshot,
             questions = questions,
             onAnswer = onAnswer,
         )

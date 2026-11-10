@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.ai.assistant.AttentionChip
+import com.pandulapeter.kubrikoCreator.ui.actorTypes.title
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
 import com.pandulapeter.kubrikoCreator.ui.components.WithTooltip
@@ -33,11 +34,13 @@ import com.pandulapeter.kubrikoCreator.ui.components.rememberMenuAnchor
 import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.assistant_chip_actor_type
+import kubriko.creator.generated.resources.assistant_chip_event
 import kubriko.creator.generated.resources.assistant_chip_game_screen
 import kubriko.creator.generated.resources.assistant_chip_hint
 import kubriko.creator.generated.resources.assistant_chip_manager_type
 import kubriko.creator.generated.resources.assistant_chip_problem
 import kubriko.creator.generated.resources.assistant_chip_scene
+import kubriko.creator.generated.resources.assistant_chip_scene_screen
 import kubriko.creator.generated.resources.assistant_context_none
 import kubriko.creator.generated.resources.assistant_context_with
 import kubriko.creator.generated.resources.ic_chevron
@@ -47,18 +50,19 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * What goes with the next message, filled in from what the user is looking at, as one quiet line above the composer:
- * each [chips] entry is on until the user leaves it out in the line's menu.
+ * each [chips] entry is on or off as it is by default ([AttentionChip.isOnByDefault]) until the user turns it in the
+ * line's menu ([toggled]).
  */
 @Composable
 internal fun AttentionLine(
     chips: List<AttentionChip>,
-    leftOut: Set<String>,
+    toggled: Set<String>,
     onToggle: (AttentionChip) -> Unit,
 ) {
     if (chips.isEmpty()) return
     val menu = rememberRightClickMenuState()
     val anchor = rememberMenuAnchor(menu)
-    val included = chips.filter { it.key !in leftOut }.map { it.label() }
+    val included = chips.filter { it.isSentWith(toggled) }.map { it.label() }
     Box {
         WithTooltip(stringResource(Res.string.assistant_chip_hint)) {
             Row(
@@ -94,7 +98,7 @@ internal fun AttentionLine(
         }
         RightClickMenu(
             state = menu,
-            actions = chips.map { chip -> ContextAction(label = chip.label(), isChecked = chip.key !in leftOut) { onToggle(chip) } },
+            actions = chips.map { chip -> ContextAction(label = chip.label(), isChecked = chip.isSentWith(toggled)) { onToggle(chip) } },
         )
     }
 }
@@ -104,7 +108,9 @@ private fun AttentionChip.label() = when (this) {
     is AttentionChip.Scene -> stringResource(Res.string.assistant_chip_scene, name)
     is AttentionChip.BlockType -> stringResource(if (isManager) Res.string.assistant_chip_manager_type else Res.string.assistant_chip_actor_type, name)
     is AttentionChip.Problem -> stringResource(Res.string.assistant_chip_problem)
+    is AttentionChip.Event -> stringResource(Res.string.assistant_chip_event, stringResource(type.title))
     AttentionChip.GameScreen -> stringResource(Res.string.assistant_chip_game_screen)
+    AttentionChip.SceneScreen -> stringResource(Res.string.assistant_chip_scene_screen)
 }
 
 private const val SEPARATOR = " · "

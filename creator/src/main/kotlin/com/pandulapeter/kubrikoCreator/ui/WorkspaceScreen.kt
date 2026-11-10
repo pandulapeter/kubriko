@@ -484,6 +484,7 @@ private fun WorkspaceCenterOf(
     onReloadScene = controller.sceneEditing::reload,
     onCloseScene = controller.selection::clear,
     onSceneViewFailed = controller.sceneEditing::onViewFailed,
+    editorAttention = uiState.editorAttention,
     markdownText = markdownText,
     onMarkdownTextChange = { text -> markdownEditOf(selection, text)?.let(controller.commands::dispatch) },
     markdownLinks = rememberPageLinks(controller.commands.context, controller.selection, selection, markdownText, blockTypes, resources),

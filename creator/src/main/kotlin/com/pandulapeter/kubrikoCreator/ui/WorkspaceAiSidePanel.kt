@@ -14,6 +14,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
@@ -73,6 +74,7 @@ internal fun WorkspaceAiSidePanel(
     val shownGameMap = if (uiState.aiPanelView == AiPanelView.GAME_MAP) gameMap.collectAsState().value else null
     val consoleEntries = console.collectAsState()
     val isAcceptingImages = acceptsImages.collectAsState()
+    val editorAttention = uiState.editorAttention
     val attention by remember(openSceneName, selectedBlockType?.name, selectedBlockType is ManagerTypeDefinition, sessionState) {
         derivedStateOf(structuralEqualityPolicy()) {
             AttentionChip.of(
@@ -81,7 +83,18 @@ internal fun WorkspaceAiSidePanel(
                 isSelectedTypeManager = selectedBlockType is ManagerTypeDefinition,
                 latestProblem = consoleEntries.value.latestProblem,
                 canSendGameScreen = sessionState is SessionState.Running && sessionState.target == PlayTarget.DESKTOP && isAcceptingImages.value,
+                shownEvent = editorAttention.shownEvent,
+                canSendSceneScreen = editorAttention.scenePicture != null && isAcceptingImages.value,
             )
+        }
+    }
+    val currentCaptureScreen by rememberUpdatedState(captureScreen)
+    val captureScreenshot: suspend (AttentionChip.Screenshot) -> ByteArray? = remember(editorAttention) {
+        { screenshot ->
+            when (screenshot) {
+                AttentionChip.GameScreen -> currentCaptureScreen()
+                AttentionChip.SceneScreen -> editorAttention.scenePicture?.png()
+            }
         }
     }
     AiPanel(
@@ -109,7 +122,7 @@ internal fun WorkspaceAiSidePanel(
         onSceneSelected = onSceneSelected,
         onPageSelected = onPageSelected,
         attention = attention,
-        captureScreen = captureScreen,
+        captureScreenshot = captureScreenshot,
         isScreenplayOffered = screenplayOffer?.isShown?.collectAsState()?.value == true,
         onScreenplayOfferAnswered = { screenplayOffer?.answer() },
         questions = questions?.pending?.collectAsState()?.value.orEmpty(),

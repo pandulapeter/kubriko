@@ -25,6 +25,11 @@ import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettingsPage
  * What the workspace screen shows besides the project: its side panels, its dialogs, and the AI step the user went back to.
  */
 internal class WorkspaceUiState {
+    /**
+     * What the editors in the center show, which the assistant offers.
+     */
+    val editorAttention = EditorAttention()
+
     var openPanel: SidePanel? by mutableStateOf(null)
         private set
     var aiPanelView by mutableStateOf(AiPanelView.ASSISTANT)

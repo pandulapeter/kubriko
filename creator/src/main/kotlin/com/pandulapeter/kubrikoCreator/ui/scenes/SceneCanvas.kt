@@ -15,7 +15,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -49,7 +48,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubrikoCreator.sceneRuntime.ActorTypeLook
@@ -68,6 +66,7 @@ import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
  * @param actors The Scene's Actors, which [view] loads again whenever they change.
  * @param previews The looks of the Actor types whose Actors [view] draws itself until they are compiled.
  * @param isSceneReadable Whether the Scene file can be changed at all, which one that can't be read can't.
+ * @param pictureHost Offered a picture of the Scene as drawn, without the selection's outline, while the canvas shows it.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -83,6 +82,7 @@ internal fun SceneCanvas(
     dragState: SidebarDragState,
     onPlace: (actorTypeName: String, x: Float, y: Float) -> Unit,
     modifier: Modifier = Modifier,
+    pictureHost: ScenePictureHost? = null,
 ) {
     val currentOnPlace by rememberUpdatedState(onPlace)
     DisposableEffect(dragState) {
@@ -164,11 +164,7 @@ internal fun SceneCanvas(
                 }
             },
     ) {
-        KubrikoViewport(
-            modifier = Modifier.fillMaxSize(),
-            kubriko = view.kubriko,
-            windowInsets = WindowInsets(0),
-        )
+        SceneViewport(view.kubriko, pictureHost, background = MaterialTheme.colorScheme.surfaceContainerLowest)
         Canvas(
             modifier = Modifier.fillMaxSize(),
         ) {

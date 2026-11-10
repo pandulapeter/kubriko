@@ -62,7 +62,7 @@ import kotlin.time.Duration.Companion.milliseconds
  * @param aiSteps The open project's AI steps, which the tool call cards tie into.
  * @param onShowStep Goes to what a step worked on, in the editor.
  * @param attention What the user is looking at, offered with the next message.
- * @param captureScreen Takes a screenshot of the running game, for [AttentionChip.GameScreen].
+ * @param captureScreenshot Takes the picture an [AttentionChip.Screenshot] sends.
  * @param questions The questions waiting for an answer, which the conversation that asked shows.
  * @param onAnswer Answers a question.
  */
@@ -73,7 +73,7 @@ internal fun AssistantPanel(
     onShowStep: (AiStep) -> Unit,
     modifier: Modifier = Modifier,
     attention: List<AttentionChip> = emptyList(),
-    captureScreen: suspend () -> ByteArray? = { null },
+    captureScreenshot: suspend (AttentionChip.Screenshot) -> ByteArray? = { null },
     forms: AssistantForms = rememberAssistantForms(),
     questions: List<UserQuestions.Question> = emptyList(),
     onAnswer: (id: Long, answer: String) -> Unit = { _, _ -> },
@@ -86,7 +86,7 @@ internal fun AssistantPanel(
             aiSteps = aiSteps,
             onShowStep = onShowStep,
             attention = attention,
-            captureScreen = captureScreen,
+            captureScreenshot = captureScreenshot,
             modifier = modifier,
             questions = questions,
             onAnswer = onAnswer,
@@ -101,7 +101,7 @@ private fun AssistantPanelContent(
     aiSteps: List<AiStep>,
     onShowStep: (AiStep) -> Unit,
     attention: List<AttentionChip>,
-    captureScreen: suspend () -> ByteArray?,
+    captureScreenshot: suspend (AttentionChip.Screenshot) -> ByteArray?,
     modifier: Modifier = Modifier,
     questions: List<UserQuestions.Question>,
     onAnswer: (id: Long, answer: String) -> Unit,
@@ -149,7 +149,7 @@ private fun AssistantPanelContent(
             chat = current,
             download = model.download.collectAsState().value,
             attention = attention,
-            captureScreen = captureScreen,
+            captureScreenshot = captureScreenshot,
             onInstallNode = model::installNode.takeIf { model.canInstallNode },
             nodeInstallFailure = model.nodeInstallFailure.collectAsState().value,
             isBilledToApiKey = hasApiKey,
@@ -188,7 +188,7 @@ private fun ChatContent(
     onInstallNode: (() -> Unit)?,
     nodeInstallFailure: String?,
     attention: List<AttentionChip>,
-    captureScreen: suspend () -> ByteArray?,
+    captureScreenshot: suspend (AttentionChip.Screenshot) -> ByteArray?,
     download: AgentDownload?,
     isBilledToApiKey: Boolean,
     isAgentChangingFilesUnasked: Boolean,
@@ -258,11 +258,11 @@ private fun ChatContent(
     if (isAgentChangingFilesUnasked) {
         UnaskedChangesNotice()
     }
-    var leftOut by remember(chat) { mutableStateOf(emptySet<String>()) }
+    var toggled by remember(chat) { mutableStateOf(emptySet<String>()) }
     AttentionLine(
         chips = attention,
-        leftOut = leftOut,
-        onToggle = { chip -> leftOut = if (chip.key in leftOut) leftOut - chip.key else leftOut + chip.key },
+        toggled = toggled,
+        onToggle = { chip -> toggled = if (chip.key in toggled) toggled - chip.key else toggled + chip.key },
     )
     ConversationUsageLine(
         usage = transcript.usage,
@@ -274,8 +274,8 @@ private fun ChatContent(
         isEnabled = state == ChatState.Ready,
         isBusy = isBusy,
         onSend = { text ->
-            val chips = attention.filter { it.key !in leftOut }
-            chat.send(text) { AttentionChip.contentOf(chips, captureScreen) }
+            val chips = attention.filter { it.isSentWith(toggled) }
+            chat.send(text) { AttentionChip.contentOf(chips, captureScreenshot) }
         },
         onStop = chat::stop,
     )

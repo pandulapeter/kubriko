@@ -23,6 +23,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.agentclientprotocol.model.AuthMethodId
+import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentChoice
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentDownload
 import com.pandulapeter.kubrikoCreator.ai.assistant.AttentionChip
@@ -46,13 +47,18 @@ class AssistantPanelPartsTest {
     private val antigravity = AgentChoice.Registry(RegistryAgent("antigravity-acp", "Google Antigravity", "1.4.5", RegistryAgent.claude.distribution))
 
     @Test
-    fun whatGoesWithTheMessageIsOneLineAndEachPartIsOnUntilLeftOut() = uiTest {
+    fun whatGoesWithTheMessageIsOneLineAndEachPartIsAsItIsByDefaultUntilTurned() = uiTest {
         showing {
-            var leftOut by remember { mutableStateOf(emptySet<String>()) }
+            var toggled by remember { mutableStateOf(emptySet<String>()) }
             AttentionLine(
-                chips = listOf(AttentionChip.Scene("level-1"), AttentionChip.Problem("Unresolved reference", "Ball.kt:3"), AttentionChip.GameScreen),
-                leftOut = leftOut,
-                onToggle = { chip -> leftOut = if (chip.key in leftOut) leftOut - chip.key else leftOut + chip.key },
+                chips = listOf(
+                    AttentionChip.Scene("level-1"),
+                    AttentionChip.SceneScreen,
+                    AttentionChip.Problem("Unresolved reference", "Ball.kt:3"),
+                    AttentionChip.GameScreen,
+                ),
+                toggled = toggled,
+                onToggle = { chip -> toggled = if (chip.key in toggled) toggled - chip.key else toggled + chip.key },
             )
         }
         onNodeWithText("With your message: Scene level-1 · The latest problem · Game screenshot").assertExists()
@@ -61,6 +67,21 @@ class AssistantPanelPartsTest {
         saveSnapshot("attention-line-menu")
         onNodeWithText("The latest problem").performClick()
         onNodeWithText("With your message: Scene level-1 · Game screenshot").assertExists()
+        onNodeWithText("With your message", substring = true).performClick()
+        onNodeWithText("Scene picture").performClick()
+        onNodeWithText("With your message: Scene level-1 · Scene picture · Game screenshot").assertExists()
+    }
+
+    @Test
+    fun theEventShownIsNamedByItsTitle() = uiTest {
+        showing {
+            AttentionLine(
+                chips = listOf(AttentionChip.BlockType("Ball", isManager = false), AttentionChip.Event("Ball", isManager = false, index = 1, type = EventType.EVERY_FRAME)),
+                toggled = emptySet(),
+                onToggle = {},
+            )
+        }
+        onNodeWithText("With your message: Actor type Ball · Event Every frame").assertExists()
     }
 
     @Test

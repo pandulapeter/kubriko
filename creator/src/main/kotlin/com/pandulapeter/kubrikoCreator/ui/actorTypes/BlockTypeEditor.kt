@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +32,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.DefinitionPaths
+import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -58,6 +60,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param onCommandIfValid Applies a command unless it is rejected, returning why it was: how renames are made.
  * @param currentDefinition The type as it is now, which an add that succeeded reads to find the Event it made, since
  *   [definition] may not show it yet, or may show the AI's changes from before it.
+ * @param onEventShown Told the index and type of the Event shown whenever either changes, or nulls when none is.
  */
 @Composable
 internal fun BlockTypeEditor(
@@ -72,6 +75,7 @@ internal fun BlockTypeEditor(
     onTypeSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
     highlight: ActorTypeHighlight? = null,
+    onEventShown: (index: Int?, type: EventType?) -> Unit = { _, _ -> },
 ) = Box(
     modifier = modifier,
 ) {
@@ -80,6 +84,8 @@ internal fun BlockTypeEditor(
     val eventKeys = remember(eventSelection, definition.events) { eventSelection.keysOf(definition.events) }
     val eventIndex = eventSelection.shownIndex(eventKeys, highlight)
     val event = eventIndex?.let { definition.events[it] }
+    val currentOnEventShown by rememberUpdatedState(onEventShown)
+    LaunchedEffect(eventIndex, event?.type) { currentOnEventShown(eventIndex, event?.type) }
     val actions = remember(definition, onCommand, onCommandIfValid) { BlockTypeEditorActions(definition, onCommand, onCommandIfValid) }
     val selectAddedEvent: () -> Unit = { currentDefinition()?.let { eventSelection.selectAdded(it.events) } }
     var blockListScrollToEndRequest by remember(name) { mutableIntStateOf(0) }
