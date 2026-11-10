@@ -123,26 +123,27 @@ internal class AssistantSignIn(
     }
 
     /**
-     * Gives the agent [agentId] the [values] of [method]'s variables, kept in the operating system's secret store, which
-     * starts it again (ending every conversation) and a new conversation.
+     * Gives the agent's [account] ([AgentConfigurations.accountOf]) the [values] of [method]'s variables, kept in the
+     * operating system's secret store, which starts it again (ending every conversation) and a new conversation.
      */
-    fun setVariables(agentId: String, method: SignInMethod, values: Map<String, String>) {
+    fun setVariables(account: String, method: SignInMethod, values: Map<String, String>) {
         val given = values.filterValues { it.isNotBlank() }.mapValues { it.value.trim() }
         if (method.variables.orEmpty().any { !it.isOptional && it.name !in given }) return
         scope.launch {
-            val isKept = withContext(ioDispatcher) { agentVariables.write(agentId, given) }
+            val isKept = withContext(ioDispatcher) { agentVariables.write(account, given) }
             _variablesFailed.value = !isKept
             if (!isKept) return@launch
             _variablesForm.value = null
-            settings.update { it.copy(agentVariables = it.agentVariables + (agentId to (it.agentVariables[agentId].orEmpty() + given.keys).distinct())) }
+            settings.update { it.copy(agentVariables = it.agentVariables + (account to (it.agentVariables[account].orEmpty() + given.keys).distinct())) }
             restart()
         }
     }
 
     /**
-     * The variables given for [choice], read from the secret store off the main thread.
+     * The variables given for the agent's [account] ([AgentConfigurations.accountOf]), read from the secret store off the
+     * main thread.
      */
-    suspend fun environmentOf(choice: AgentChoice) = withContext(ioDispatcher) { agentVariables.read(choice.id, settings.value.value.agentVariables[choice.id].orEmpty()) }
+    suspend fun environmentOf(account: String) = withContext(ioDispatcher) { agentVariables.read(account, settings.value.value.agentVariables[account].orEmpty()) }
 
     fun closeVariablesForm() {
         _variablesForm.value = null

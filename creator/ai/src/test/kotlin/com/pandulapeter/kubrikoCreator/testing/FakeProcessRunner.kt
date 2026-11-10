@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.testing
 
 import com.pandulapeter.kubrikoCreator.mcp.clients.ProcessRunner
+import java.io.IOException
 
 /**
  * Pretends to be the AI tools' programs: the ones in [installed] keep a set of registered servers that `mcp add`,
@@ -29,7 +30,12 @@ internal class FakeProcessRunner(
 
     val aliases = mutableMapOf<String, String>()
 
-    override fun aliases() = aliases.toMap()
+    /**
+     * Whether listing the aliases throws, as a shell that can't be started does.
+     */
+    var areAliasesFailing = false
+
+    override fun aliases() = if (areAliasesFailing) throw IOException("No shell") else aliases.toMap()
 
     override fun exists(command: String) = command in installed
 

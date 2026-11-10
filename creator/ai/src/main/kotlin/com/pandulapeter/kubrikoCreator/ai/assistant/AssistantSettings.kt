@@ -20,8 +20,8 @@ import kotlinx.serialization.Serializable
  *   into [configurationAliases] by [withConfigurationAliasesMigrated].
  * @param agentId The agent chosen ([AgentChoice.id]), or null for Claude Agent.
  * @param customAgentCommand The command line of the custom agent, kept while another agent is chosen.
- * @param agentVariables The names of the environment variables each agent ([AgentChoice.id]) was given for signing in,
- *   whose values are kept in the operating system's secret store.
+ * @param agentVariables The names of the environment variables each agent's account ([AgentConfigurations.accountOf]) was
+ *   given for signing in, whose values are kept in the operating system's secret store.
  * @param agentsChangingFilesUnasked The agents ([AgentChoice.identity]) seen changing files with their own tools without
  *   asking ([UnaskedChanges]).
  */

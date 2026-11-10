@@ -72,7 +72,7 @@ public class AssistantController(
         selection.awaitLoaded()
         val choice = selection.agent.value
         val npx = commands.npx()
-        val environment = choice.profile.environment + configurationList.environmentOf(choice) + if (choice.isClaude) claudeApiKey.environment() else signIns.environmentOf(choice)
+        val environment = choice.profile.environment + configurationList.environmentOf(choice) + if (choice.isClaude) claudeApiKey.environment() else signIns.environmentOf(configurationList.accountOf(choice))
         createAssistant(commands.of(choice, npx, environment), npx, choice.profile)
     }
     private val selection: AgentSelection = AgentSelection(scope, settings, sources.registry, ioDispatcher, isAiEnabled, isAgentRunning = { host.current.value != null })
@@ -144,7 +144,7 @@ public class AssistantController(
     private var project: File? = null
 
     override fun findConfigurations() {
-        claudeApiKey.lookUpApiKey()
+        if (agent.value.profile.usesAnthropicApiKey) claudeApiKey.lookUpApiKey()
         configurationList.find()
     }
 
@@ -268,7 +268,7 @@ public class AssistantController(
 
     override fun setVariables(method: SignInMethod, values: Map<String, String>) {
         if (!host.isOn) return
-        signIns.setVariables(selection.agent.value.id, method, values)
+        signIns.setVariables(configurationList.accountOf(selection.agent.value), method, values)
     }
 
     override val canInstallNode: Boolean get() = commands.canInstallNode

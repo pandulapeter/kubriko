@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.IOException
 
 /**
  * The accounts agents run as ([AgentConfiguration]): the ones the user's shell aliases set up for each agent's tool, and the
@@ -64,18 +65,31 @@ internal class AgentConfigurations(
     }
 
     /**
-     * Finds the configurations of the user's shell aliases, once per run. A remembered configuration whose alias is gone
-     * falls back to the default one.
+     * Finds the configurations of the user's shell aliases, once per run. A remembered configuration whose alias is gone,
+     * or whose shell can't list its aliases, falls back to the default one.
      */
     fun find() {
         if (hasFoundAliases) return
         hasFoundAliases = true
         scope.launch {
-            aliases = withContext(ioDispatcher) { runner.aliases() }
-            refresh()
-            discovery.complete(Unit)
+            try {
+                aliases = try {
+                    withContext(ioDispatcher) { runner.aliases() }
+                } catch (_: IOException) {
+                    emptyMap()
+                }
+                refresh()
+            } finally {
+                discovery.complete(Unit)
+            }
         }
     }
+
+    /**
+     * What tells [choice]'s chosen account apart from its others, which what it signs in with is kept by: its ID, followed
+     * by the alias it runs as, if any.
+     */
+    fun accountOf(choice: AgentChoice) = chosenOf(choice)?.alias?.let { "${choice.id}$ACCOUNT_SEPARATOR$it" } ?: choice.id
 
     /**
      * Makes the chosen agent use [configuration] from now on.
@@ -84,7 +98,7 @@ internal class AgentConfigurations(
      */
     fun select(configuration: AgentConfiguration): Boolean {
         val choice = agent.value
-        if (AgentConfiguration.clientOf(choice) != configuration.client || configuration == chosenOf(choice)) return false
+        if (AgentConfiguration.clientOf(choice) != configuration.client || configuration.alias == chosenAliases[choice.id]) return false
         chosenAliases = configuration.alias?.let { chosenAliases + (choice.id to it) } ?: (chosenAliases - choice.id)
         refresh()
         return true
@@ -101,8 +115,9 @@ internal class AgentConfigurations(
     }
 
     private fun refresh() {
-        _configurations.value = configurationsOf(agent.value)
-        _configuration.value = chosenOf(agent.value)
+        val configurations = configurationsOf(agent.value)
+        _configurations.value = configurations
+        _configuration.value = chosenOf(agent.value, configurations)
     }
 
     private fun configurationsOf(choice: AgentChoice): List<AgentConfiguration> {
@@ -110,10 +125,14 @@ internal class AgentConfigurations(
         return AgentConfiguration.discover(client, aliases.orEmpty(), home)
     }
 
-    private fun chosenOf(choice: AgentChoice): AgentConfiguration? {
+    private fun chosenOf(choice: AgentChoice, configurations: List<AgentConfiguration> = configurationsOf(choice)): AgentConfiguration? {
         val client = AgentConfiguration.clientOf(choice) ?: return null
         val alias = chosenAliases[choice.id] ?: return AgentConfiguration(client)
-        val found = aliases ?: return AgentConfiguration.ofAlias(client, alias)
-        return AgentConfiguration.discover(client, found, home).firstOrNull { it.alias == alias } ?: AgentConfiguration(client)
+        if (aliases == null) return AgentConfiguration.ofAlias(client, alias)
+        return configurations.firstOrNull { it.alias == alias } ?: AgentConfiguration(client)
+    }
+
+    private companion object {
+        const val ACCOUNT_SEPARATOR = "@"
     }
 }

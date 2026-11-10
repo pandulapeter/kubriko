@@ -11,23 +11,23 @@ package com.pandulapeter.kubrikoCreator.ai.assistant
 
 /**
  * Keeps the environment variables agents are given for signing in (an agent's own API key) in the operating system's
- * secret store, one entry per agent and variable. Every call blocks.
+ * secret store, one entry per agent's account ([AgentConfigurations.accountOf]) and variable. Every call blocks.
  */
 internal class AgentVariableStore(
     private val secrets: SecretStore,
 ) {
 
     /**
-     * The values kept for the variables [names] of the agent [agentId], leaving out those that are gone.
+     * The values kept for the variables [names] of [account], leaving out those that are gone.
      */
-    fun read(agentId: String, names: List<String>): Map<String, String> = names.mapNotNull { name -> secrets.read(keyOf(agentId, name))?.let { name to it } }.toMap()
+    fun read(account: String, names: List<String>): Map<String, String> = names.mapNotNull { name -> secrets.read(keyOf(account, name))?.let { name to it } }.toMap()
 
     /**
-     * Keeps [values] for the agent [agentId].
+     * Keeps [values] for [account].
      *
      * @return Whether every value was kept.
      */
-    fun write(agentId: String, values: Map<String, String>) = values.all { (name, value) -> secrets.write(keyOf(agentId, name), value) }
+    fun write(account: String, values: Map<String, String>) = values.all { (name, value) -> secrets.write(keyOf(account, name), value) }
 
-    private fun keyOf(agentId: String, name: String) = "agent-variable:$agentId:$name"
+    private fun keyOf(account: String, name: String) = "agent-variable:$account:$name"
 }
