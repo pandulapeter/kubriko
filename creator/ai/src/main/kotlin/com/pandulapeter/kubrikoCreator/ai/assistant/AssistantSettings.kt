@@ -29,4 +29,12 @@ internal data class AssistantSettings(
     val customAgentCommand: String? = null,
     val agentVariables: Map<String, List<String>> = emptyMap(),
     val agentsChangingFilesUnasked: Set<String> = emptySet(),
-)
+) {
+    /**
+     * These settings with the agent [identity] marked as changing files without asking, keeping only the custom agent marked
+     * last, since the custom agent's earlier commands are forgotten too.
+     */
+    fun withChangingFilesUnasked(identity: String) = copy(
+        agentsChangingFilesUnasked = agentsChangingFilesUnasked.filterNot { AgentChoice.Custom.isIdentity(it) && AgentChoice.Custom.isIdentity(identity) }.toSet() + identity,
+    )
+}

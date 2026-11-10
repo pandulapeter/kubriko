@@ -230,7 +230,7 @@ public class AssistantController(
                 withContext(ioDispatcher) { storage.conversations?.save(SavedConversation(directory.absolutePath, agentId, id, title, clock(), lastAnswer?.take(LastConversation.ANSWER_LENGTH), isWritersRoom)) }
             },
             onChangedFilesUnasked = {
-                settings.update { it.takeIf { agentIdentity in it.agentsChangingFilesUnasked } ?: it.copy(agentsChangingFilesUnasked = it.agentsChangingFilesUnasked + agentIdentity) }
+                settings.update { it.takeIf { agentIdentity in it.agentsChangingFilesUnasked } ?: it.withChangingFilesUnasked(agentIdentity) }
             },
             lastMessageAt = lastMessageAt,
             clock = clock,

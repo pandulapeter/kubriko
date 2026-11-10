@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import java.io.File
+import java.security.MessageDigest
 
 /**
  * The agent the assistant runs: one of the registry's, or a command line the user entered.
@@ -27,7 +28,8 @@ public sealed interface AgentChoice {
 
     /**
      * What tells the agent apart from every other, by which what Kubriko Creator learns about it is kept: the registry
-     * agent's ID, or the custom agent's command line, since another command is another agent.
+     * agent's ID, or a hash of the custom agent's command line, since another command is another agent, and a command line
+     * may hold a secret that has no place in the settings.
      */
     public val identity: String
 
@@ -50,10 +52,20 @@ public sealed interface AgentChoice {
     ) : AgentChoice {
         override val id: String get() = ID
         override val name: String get() = CustomAgentCommand.programOf(commandLine).let { File(it).name }.ifEmpty { commandLine }
-        override val identity: String get() = "$ID:$commandLine"
+        override val identity: String by lazy {
+            val normalized = commandLine.trim().split(whitespace).joinToString(" ")
+            IDENTITY_PREFIX + MessageDigest.getInstance("SHA-256").digest(normalized.toByteArray()).joinToString("") { "%02x".format(it) }
+        }
 
         internal companion object {
             internal const val ID = "custom"
+            private const val IDENTITY_PREFIX = "$ID:"
+            private val whitespace = Regex("\\s+")
+
+            /**
+             * Whether [identity] is a custom agent's.
+             */
+            internal fun isIdentity(identity: String) = identity.startsWith(IDENTITY_PREFIX)
         }
     }
 
