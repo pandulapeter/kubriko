@@ -53,7 +53,7 @@ import kotlinx.coroutines.launch
  *   changes stay ([com.pandulapeter.kubrikoCreator.commands.CommandExecutor.undoTurn]).
  * @param onTurnEnded Called after each turn with the conversation's ID, title, and the agent's last answer, so that it can
  *   be continued later.
- * @param onChangedFilesUnasked Called once the agent changed files or ran a command with its own tools without asking.
+ * @param onChangedFilesUnasked Called once the agent changed files with its own tools without asking.
  * @param changeLog The open project's changes, which a prompt sums up for the agent when someone else made them since
  *   its last turn ([ChangesSummary]).
  * @param lastMessageAt When the last message of a continued conversation was said, or null for a new one, which counts

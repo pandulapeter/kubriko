@@ -19,7 +19,7 @@ import kotlinx.serialization.Serializable
  * @param customAgentCommand The command line of the custom agent, kept while another agent is chosen.
  * @param agentVariables The names of the environment variables each agent ([AgentChoice.id]) was given for signing in,
  *   whose values are kept in the operating system's secret store.
- * @param agentsChangingFilesUnasked The agents ([AgentChoice.identity]) seen changing files or running commands without
+ * @param agentsChangingFilesUnasked The agents ([AgentChoice.identity]) seen changing files with their own tools without
  *   asking ([UnaskedChanges]).
  */
 @Serializable

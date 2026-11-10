@@ -9,11 +9,16 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import com.agentclientprotocol.model.PermissionOption
+import com.agentclientprotocol.model.PermissionOptionId
+import com.agentclientprotocol.model.PermissionOptionKind
+import com.agentclientprotocol.model.RequestPermissionOutcome
 import com.agentclientprotocol.model.SessionUpdate
 import com.agentclientprotocol.model.ToolCallId
 import com.agentclientprotocol.model.ToolCallStatus
 import com.agentclientprotocol.model.ToolKind
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -34,17 +39,58 @@ class UnaskedChangesTest {
     }
 
     @Test
-    fun aCommandCompletedWithoutAskingIsAnUnaskedChange() {
-        started("rm notes.txt", ToolKind.EXECUTE)
+    fun deletesAndMovesCompletedWithoutAskingAreUnaskedChanges() {
+        started("Delete notes.txt", ToolKind.DELETE)
         assertTrue(ended())
+        started("Move notes.txt", ToolKind.MOVE)
+        assertTrue(ended())
+    }
+
+    @Test
+    fun aCommandRunWithoutAskingIsnt() {
+        started("ls", ToolKind.EXECUTE)
+        assertFalse(ended())
     }
 
     @Test
     fun aCallTheUserWasAskedAboutIsnt() {
         started("Write notes.txt", ToolKind.EDIT)
-        changes.asked(ID)
+        changes.asked(question())
         assertFalse(ended())
     }
+
+    @Test
+    fun aKindTheUserAllowedAlwaysIsntAnymore() {
+        started("Write notes.txt", ToolKind.EDIT)
+        val question = changes.asked(question())
+        changes.answered(question, listOf(always, once), RequestPermissionOutcome.Selected(always.optionId))
+        assertFalse(ended())
+        started("Write more.txt", ToolKind.EDIT)
+        assertFalse(ended())
+        started("Delete notes.txt", ToolKind.DELETE)
+        assertTrue(ended())
+    }
+
+    @Test
+    fun allowingOnceStillCountsTheNextUnaskedCall() {
+        started("Write notes.txt", ToolKind.EDIT)
+        val question = changes.asked(question())
+        changes.answered(question, listOf(always, once), RequestPermissionOutcome.Selected(once.optionId))
+        assertFalse(ended())
+        started("Write more.txt", ToolKind.EDIT)
+        assertTrue(ended())
+    }
+
+    @Test
+    fun aQuestionLeavingOutTheKindGetsTheOneTheCallWasStartedWith() {
+        started("Write notes.txt", ToolKind.EDIT)
+        val question = changes.asked(question())
+        assertEquals(ToolKind.EDIT, question.kind)
+        assertEquals("Write notes.txt", question.title)
+        assertTrue(PermissionRequest(question, emptyList()).isOutsideCreator)
+    }
+
+    private fun question() = SessionUpdate.ToolCallUpdate(ID)
 
     @Test
     fun aCallInTheReadOnlyModeIsnt() {
@@ -70,5 +116,7 @@ class UnaskedChangesTest {
 
     private companion object {
         val ID = ToolCallId("call-1")
+        val always = PermissionOption(PermissionOptionId("always"), "Always allow", PermissionOptionKind.ALLOW_ALWAYS)
+        val once = PermissionOption(PermissionOptionId("once"), "Allow", PermissionOptionKind.ALLOW_ONCE)
     }
 }

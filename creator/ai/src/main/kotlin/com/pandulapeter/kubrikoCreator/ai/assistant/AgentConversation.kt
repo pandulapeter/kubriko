@@ -81,7 +81,7 @@ public class AgentConversation internal constructor(
     private val _hasChangedFilesUnasked = MutableStateFlow(false)
 
     /**
-     * Whether the agent changed files or ran a command with its own tools without asking, since the conversation started
+     * Whether the agent changed files with its own tools without asking, since the conversation started
      * or was loaded ([UnaskedChanges]).
      */
     internal val hasChangedFilesUnasked = _hasChangedFilesUnasked.asStateFlow()
@@ -104,8 +104,10 @@ public class AgentConversation internal constructor(
             permissions: List<PermissionOption>,
             _meta: JsonElement?,
         ): RequestPermissionResponse {
-            unaskedChanges.asked(toolCall.toolCallId)
-            return RequestPermissionResponse(this@AgentConversation.permissions.answer(toolCall, permissions))
+            val question = unaskedChanges.asked(toolCall)
+            val outcome = this@AgentConversation.permissions.answer(question, permissions)
+            unaskedChanges.answered(question, permissions, outcome)
+            return RequestPermissionResponse(outcome)
         }
 
         override suspend fun notify(notification: SessionUpdate, _meta: JsonElement?) {

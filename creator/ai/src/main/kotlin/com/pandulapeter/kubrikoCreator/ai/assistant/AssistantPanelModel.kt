@@ -35,7 +35,7 @@ public interface AssistantPanelModel {
     public val customAgentCommand: String?
 
     /**
-     * The agents ([AgentChoice.identity]) seen changing files or running commands with their own tools without asking,
+     * The agents ([AgentChoice.identity]) seen changing files with their own tools without asking,
      * whose changes only version control can take back.
      */
     public val agentsChangingFilesUnasked: StateFlow<Set<String>>
