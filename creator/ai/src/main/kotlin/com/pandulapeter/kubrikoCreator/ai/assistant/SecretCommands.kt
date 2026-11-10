@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import java.io.File
+import com.pandulapeter.kubrikoCreator.mcp.clients.ShellQuoting.powerShell as quoted
 
 /**
  * The command lines of one platform's secret store, each secret kept under [SERVICE] and its name.
@@ -56,9 +57,6 @@ internal sealed interface SecretCommands {
         private const val LOAD = "[void][Windows.Security.Credentials.PasswordVault, Windows.Security.Credentials, ContentType = WindowsRuntime];"
 
         private fun powerShell(script: String) = listOf("powershell.exe", "-NoProfile", "-NonInteractive", "-Command", LOAD + VAULT + script)
-
-        /** [text] as a PowerShell single-quoted string; PowerShell also takes the typographic single quotes as quotes. */
-        private fun quoted(text: String) = "'" + text.replace(Regex("['‘’‚‛]")) { it.value + it.value } + "'"
 
         override fun read(name: String) = powerShell("\$c = \$v.Retrieve(${quoted(SERVICE)}, ${quoted(name)}); \$c.RetrievePassword(); \$c.Password")
 

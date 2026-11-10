@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.mcp.clients
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import com.pandulapeter.kubrikoCreator.mcp.clients.ShellQuoting.posix as quoted
 
 /**
  * Runs programs the way a terminal would find them. An app started from the Finder or the Start menu doesn't have the
@@ -87,11 +88,6 @@ public class ShellProcessRunner(
          * The program [command] runs: its first word that doesn't set an environment variable or go past aliases.
          */
         fun executableOf(command: String) = command.trim().removePrefix(AiClientSetup.ALIAS_BYPASS).split(whitespace).firstOrNull { '=' !in it }.orEmpty()
-
-        /**
-         * Quotes [argument] for a POSIX shell, so that tokens and URLs are passed as they are.
-         */
-        fun quoted(argument: String) = "'" + argument.replace("'", "'\\''") + "'"
     }
 }
 
