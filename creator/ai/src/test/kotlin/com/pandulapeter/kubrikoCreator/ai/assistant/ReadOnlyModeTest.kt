@@ -42,8 +42,8 @@ class ReadOnlyModeTest {
         scope.cancel()
     }
 
-    private fun agent(readOnlyMode: ReadOnlyOffer): Pair<AcpAgent, FakeAgentLauncher> {
-        val launcher = FakeAgentLauncher({ FakeAgent(readOnlyMode = readOnlyMode) }).also { launchers += it }
+    private fun agent(readOnlyMode: ReadOnlyOffer, reportsModeChanges: Boolean = true): Pair<AcpAgent, FakeAgentLauncher> {
+        val launcher = FakeAgentLauncher({ FakeAgent(readOnlyMode = readOnlyMode, reportsModeChanges = reportsModeChanges) }).also { launchers += it }
         val agent = AcpAgent(AgentCommand("fake-agent"), launcher, AcpAgent.clientInfo("1.0.0"), scope, Dispatchers.IO).also { agents += it }
         return agent to launcher
     }
@@ -64,6 +64,22 @@ class ReadOnlyModeTest {
         val conversation = agent(ReadOnlyOffer.MODE).first.newConversation(WORKING_DIRECTORY, prefersReadOnly = true)
         assertEquals(FakeAgent.READ_ONLY, conversation.reply("mode"))
         assertTrue(conversation.isReadOnly)
+    }
+
+    @Test
+    fun aSessionModeTheAgentDoesntReportSwitchingToStillCountsAsReadOnly() = blockingTest {
+        val conversation = agent(ReadOnlyOffer.MODE, reportsModeChanges = false).first.newConversation(WORKING_DIRECTORY, prefersReadOnly = true)
+        assertEquals(FakeAgent.READ_ONLY, conversation.reply("mode"))
+        assertTrue(conversation.isReadOnly)
+    }
+
+    @Test
+    fun anAgentNeverAnsweringTheSwitchStillStartsTheConversationAndOthers() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
+        val launcher = FakeAgentLauncher({ FakeAgent(readOnlyMode = ReadOnlyOffer.MODE, answersModeChanges = false) }).also { launchers += it }
+        val agent = AcpAgent(AgentCommand("fake-agent"), launcher, AcpAgent.clientInfo("1.0.0"), scope, Dispatchers.IO).also { agents += it }
+        val conversation = agent.newConversation(WORKING_DIRECTORY, prefersReadOnly = true)
+        assertFalse(conversation.isReadOnly)
+        assertEquals("Hi there", agent.newConversation(WORKING_DIRECTORY).reply("hello"))
     }
 
     @Test
@@ -100,8 +116,14 @@ class ReadOnlyModeTest {
 
     @Test
     fun readOnlyIsRecognizedHoweverItIsWritten() {
-        listOf("read-only", "readOnly", "Read only", "workspace_read_only").forEach { assertTrue(ReadOnlyMode.isReadOnly(it), it) }
-        listOf("plan", "auto", "default", "ask").forEach { assertFalse(ReadOnlyMode.isReadOnly(it), it) }
+        listOf("read-only", "readOnly", "Read only", "workspace_read_only").forEach { assertTrue(ReadOnlyMode.isReadOnly(it, "Sandbox"), it) }
+        listOf("plan", "auto", "default", "ask").forEach { assertFalse(ReadOnlyMode.isReadOnly(it, it), it) }
+    }
+
+    @Test
+    fun aPlanModeNamedReadOnlyIsntOne() {
+        assertFalse(ReadOnlyMode.isReadOnly("plan", "Plan (read-only)"))
+        assertFalse(ReadOnlyMode.isReadOnly("read-only-plan", "Read-only planning"))
     }
 
     private companion object {

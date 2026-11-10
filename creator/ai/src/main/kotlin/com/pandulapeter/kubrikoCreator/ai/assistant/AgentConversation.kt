@@ -22,6 +22,7 @@ import com.agentclientprotocol.model.SessionConfigId
 import com.agentclientprotocol.model.SessionConfigOption
 import com.agentclientprotocol.model.SessionConfigOptionValue
 import com.agentclientprotocol.model.SessionId
+import com.agentclientprotocol.model.SessionModeId
 import com.agentclientprotocol.model.SessionUpdate
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -34,7 +35,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.JsonElement
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * One conversation (an ACP session) with an [AcpAgent]. It outlives the agent's process: after a crash the agent
@@ -175,7 +178,24 @@ public class AgentConversation internal constructor(
     /**
      * Whether the conversation is in the agent's read-only mode now.
      */
-    internal val isReadOnly get() = session.value?.let(ReadOnlyMode::isActive) == true
+    internal val isReadOnly: Boolean
+        get() {
+            val session = session.value ?: return false
+            val switched = modeSwitchedFrom
+            return ReadOnlyMode.isActive(session) || (switched?.session === session && session.currentMode.value == switched.previous)
+        }
+
+    /**
+     * The session mode the conversation left for [ReadOnlyMode.Mode], while the agent hasn't reported another mode since:
+     * the SDK follows the mode only by the agent's reports, which an agent needn't send for a change the client asked for.
+     */
+    private class SwitchedMode(
+        val session: ClientSession,
+        val previous: SessionModeId,
+    )
+
+    @Volatile
+    private var modeSwitchedFrom: SwitchedMode? = null
 
     /**
      * Makes [session] the conversation's, switching it to the agent's read-only mode where it is preferred and offered. A
@@ -185,8 +205,11 @@ public class AgentConversation internal constructor(
         this.session.value = session
         if (!prefersReadOnly) return
         val mode = ReadOnlyMode.of(session) ?: return
+        val previousMode = if (mode is ReadOnlyMode.Mode) session.currentMode.value else null
         try {
-            mode.enter(session)
+            // Waited for under the agent's lifecycle lock, so an agent that never answers can't hold up the others.
+            val isSwitched = withTimeoutOrNull(MODE_SWITCH_WAIT) { mode.enter(session) } != null
+            if (isSwitched && previousMode != null) modeSwitchedFrom = SwitchedMode(session, previousMode)
         } catch (exception: CancellationException) {
             // The SDK fails the request with a cancellation of its own when the agent stops meanwhile.
             if (!currentCoroutineContext().isActive) throw exception
@@ -222,5 +245,6 @@ public class AgentConversation internal constructor(
 
     private companion object {
         const val UPDATE_BUFFER_SIZE = 256
+        val MODE_SWITCH_WAIT = 5.seconds
     }
 }

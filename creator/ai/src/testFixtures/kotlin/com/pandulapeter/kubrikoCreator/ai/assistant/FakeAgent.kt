@@ -87,6 +87,8 @@ import kotlin.time.Duration
  * Every conversation offers a `model` option, `sonnet` or `opus`, and announces a `compact` slash command as soon as it starts.
  *
  * @param readOnlyMode How the agent offers a read-only mode, if it does, which conversations start without.
+ * @param reportsModeChanges Whether the agent reports a change of mode the client asked for, which it needn't.
+ * @param answersModeChanges Whether the agent answers a request to change the mode at all.
  * @param supportsHttpMcp Whether the agent advertises taking HTTP MCP servers.
  * @param exitsAtStart The exit code the process ends with right after starting, or null if it doesn't.
  * @param sessionClose Run when a conversation is closed (`session/close`), which the agent then advertises; without
@@ -103,6 +105,8 @@ public class FakeAgent(
     private val sessionClose: (suspend () -> Unit)? = null,
     private val crashExitDelay: Duration = Duration.ZERO,
     private val readOnlyMode: ReadOnlyOffer = ReadOnlyOffer.NONE,
+    private val reportsModeChanges: Boolean = true,
+    private val answersModeChanges: Boolean = true,
 ) {
     /**
      * How an agent offers a read-only mode: not at all, as a value of its `sandbox` config option (`auto` or `read-only`),
@@ -193,8 +197,9 @@ public class FakeAgent(
         override val defaultMode get() = SessionModeId(DEFAULT_MODE)
 
         override suspend fun setMode(modeId: SessionModeId, _meta: JsonElement?): SetSessionModeResponse {
+            if (!answersModeChanges) awaitCancellation()
             mode = modeId.value
-            currentCoroutineContext().client.notify(SessionUpdate.CurrentModeUpdate(modeId))
+            if (reportsModeChanges) currentCoroutineContext().client.notify(SessionUpdate.CurrentModeUpdate(modeId))
             return SetSessionModeResponse()
         }
 

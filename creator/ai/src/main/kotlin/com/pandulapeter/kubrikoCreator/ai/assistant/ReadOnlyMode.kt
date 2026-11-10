@@ -61,7 +61,7 @@ internal sealed interface ReadOnlyMode {
          */
         fun isActive(session: ClientSession): Boolean {
             val isConfigOptionReadOnly = session.selects().any { option ->
-                option.choices().any { it.value == option.currentValue && it.isReadOnly() } || isReadOnly(option.currentValue.value)
+                option.choices().any { it.value == option.currentValue && it.isReadOnly() }
             }
             val isModeReadOnly = session.modesSupported && session.availableModes.any { it.id == session.currentMode.value && it.isReadOnly() }
             return isConfigOptionReadOnly || isModeReadOnly
@@ -73,9 +73,16 @@ internal sealed interface ReadOnlyMode {
 
         private fun modeOf(session: ClientSession) = session.availableModes.firstOrNull { it.isReadOnly() }?.let { Mode(it.id) }
 
-        private fun SessionConfigSelectOption.isReadOnly() = isReadOnly(value.value) || isReadOnly(name)
+        private fun SessionConfigSelectOption.isReadOnly() = isReadOnly(value.value, name)
 
-        private fun SessionMode.isReadOnly() = isReadOnly(id.value) || isReadOnly(name)
+        private fun SessionMode.isReadOnly() = isReadOnly(id.value, name)
+
+        /**
+         * Whether a mode or value of [id] and [name] says read-only and neither of them says plan.
+         */
+        internal fun isReadOnly(id: String, name: String) = (isReadOnly(id) || isReadOnly(name)) && !mentionsPlan(id) && !mentionsPlan(name)
+
+        private fun mentionsPlan(name: String) = PLAN in name.lowercase()
 
         private fun ClientSession.selects() = if (configOptionsSupported) configOptions.value.filterIsInstance<SessionConfigOption.Select>() else emptyList()
 
@@ -87,8 +94,9 @@ internal sealed interface ReadOnlyMode {
         /**
          * Whether [name] says read-only, however it is written (`read-only`, `readOnly`, `Read only`).
          */
-        internal fun isReadOnly(name: String) = name.lowercase().filter { it.isLetterOrDigit() }.contains(READ_ONLY)
+        private fun isReadOnly(name: String) = name.lowercase().filter { it.isLetterOrDigit() }.contains(READ_ONLY)
 
         private const val READ_ONLY = "readonly"
+        private const val PLAN = "plan"
     }
 }
