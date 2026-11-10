@@ -29,7 +29,7 @@ done once the session reaches it. An item that turns out to wait for later work 
 in an earlier one, and an item that waits for something outside this repository (a protocol, a vendor, a release) is listed under
 its file's Waiting on others. Inside a file, its Order section says what comes first.
 
-1. [AI assistant](01-ai-assistant.md) - Google Antigravity's system prompt, chips, more context for large games, the activity view, and
+1. [AI assistant](01-ai-assistant.md) - sign-in in a terminal, chips, more context for large games, the activity view, and
    what waits on ACP, the Kotlin SDK, and vendors.
 2. [Resources and search](02-resources-and-search.md) - adding, renaming, and deleting sprites, sounds, and music, the remaining
    deletes, folders, the sidebar filter, quick open, find usages, and searching conversations.

@@ -16,17 +16,18 @@ call it.
 
 ## The panel
 
-1. **Google Antigravity's system prompt:** it advertises `_meta.antigravity.systemPrompt.append` in its `initialize` answer; append
-   `AssistantSystemPrompt` through it, as Claude Agent's is, in place of the first prompt's leading text.
-2. **Sign-in in a terminal:** the operating system's terminal as a fallback for a sign-in command (`SignInSession`) that turns out to
+1. **Sign-in in a terminal:** the operating system's terminal as a fallback for a sign-in command (`SignInSession`) that turns out to
    need a terminal device.
-3. **Chips:** a screenshot of the open Scene (the game's exists), and the selected Event (its index lives in `BlockTypeEditor`'s own
+2. **Chips:** a screenshot of the open Scene (the game's exists), and the selected Event (its index lives in `BlockTypeEditor`'s own
    state today, so it moves to a holder the panel can read).
-4. **Kubriko's sources:** check in a live scenario whether Claude still reaches for its own Read for Kubriko's sources now that
+3. **Kubriko's sources:** check in a live scenario whether Claude still reaches for its own Read for Kubriko's sources now that
    `get_kubriko_api` exists (it keeps Read for the game's own Kotlin), and steer it to the tool in its description if it does.
-5. **AI in Creator settings:** the defaults behind the AI panel that aren't about one conversation (the MCP server's port, token, and
+4. **AI in Creator settings:** the defaults behind the AI panel that aren't about one conversation (the MCP server's port, token, and
    commands from Advanced; the agent and the configuration each agent runs as) as a section of Creator settings, hidden with the rest when
    AI features are off.
+5. **Google Antigravity's own file tools off:** it takes `enabledTools` and `disabledTools` under `_meta.antigravity` on
+   `session/new`, `session/load`, and `session/resume` (a list or a comma-separated string), so its tools that edit, delete, or
+   run could be turned off as Claude Agent's are, which needs their names from a real session's tool calls.
 
 ## Context for large games
 

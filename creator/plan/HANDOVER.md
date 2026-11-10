@@ -25,17 +25,18 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Start `01-ai-assistant.md` at its first item (Google Antigravity's system prompt, under The panel).
+Start `01-ai-assistant.md` at its first item (Sign-in in a terminal, under The panel).
 
-This session finished Accounts, reviewed with `/code-review`, its findings fixed in three commits (two left as they are: the
-configurations are only touched on the main thread, and the old `claudeConfigurationAlias` key leaves the file at its next save):
+This session finished Google Antigravity's system prompt, reviewed with `/code-review`, its findings fixed in a commit of their
+own (two left as they are: a continued conversation hears no digest, as Claude Agent's doesn't, and an agent's capabilities
+can't change while its pinned version runs):
 
-- Claude Code's alias-based configurations became every known tool's (`AgentConfiguration`, its `client` an `AiClient`):
-  Claude Agent runs as a `CLAUDE_CONFIG_DIR` alias, Codex (`codex-acp`) as a `CODEX_HOME` one, any other agent has none
-  (`AgentConfiguration.clientOf`). `AgentConfigurations` finds the aliases once and keeps the alias chosen per agent
-  (`AssistantSettings.configurationAliases`; the old `claudeConfigurationAlias` is read into it on loading), and
-  `ClaudeApiKey` holds only the API key now (`AgentProfile.usesAnthropicApiKey`). Sign-in variables are kept per account
-  (`AgentConfigurations.accountOf`), so variables given earlier to a Codex agent still apply only to its default account.
+- An agent without a profile that advertises `agentCapabilities._meta.antigravity.systemPrompt.append` in its `initialize`
+  answer (read from Antigravity 1.4.5's own source, which reads `_meta.antigravity.systemPrompt.append` on `session/new`,
+  `session/load`, and `session/resume`) gets the system prompt there (`AppendedSystemPrompt`) instead of ahead of its first
+  prompt, so a continued conversation hears it too. `AcpAgent` now chooses a conversation's `_meta` and first prompt's lead
+  from the agent's capabilities, as it already chose its MCP servers.
+- Antigravity also takes `enabledTools` and `disabledTools` there, now an item of its own in `01-ai-assistant.md`.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
@@ -46,6 +47,8 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
 - Pasting an image from the system clipboard, and dropping one from Finder, onto a page.
 - A real agent other than Claude Agent switched to its read-only mode, asking before its own edits, and one that edits
   without asking being marked (Codex's `read-only` sandbox once it has quota again, after Nov 21, 2026).
+- Google Antigravity following the appended system prompt in a real conversation (it spends the user's Antigravity
+  requests; the binary Creator downloaded is in the settings folder's `tools/agents`).
 - Codex started as a `codex-work` alias's account signing in to that `CODEX_HOME` (running `codex-acp` fetched from npm wasn't
   allowed in this session; it is listed under Codex's profile in `01-ai-assistant.md`).
 
