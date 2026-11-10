@@ -9,7 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
-import java.io.File
+import com.pandulapeter.kubrikoCreator.foundation.findProgram
+import com.pandulapeter.kubrikoCreator.foundation.pathFolders
 import com.pandulapeter.kubrikoCreator.mcp.clients.ShellQuoting.powerShell as quoted
 
 /**
@@ -75,7 +76,7 @@ internal sealed interface SecretCommands {
         fun forThisPlatform(osName: String = System.getProperty("os.name"), path: String? = System.getenv("PATH")): SecretCommands? = when {
             osName.startsWith("Mac") -> MacKeychain
             osName.startsWith("Windows") -> CredentialLocker
-            else -> path.orEmpty().split(File.pathSeparator).map { File(it, "secret-tool") }.firstOrNull { it.canExecute() }?.let { SecretService(it.path) }
+            else -> findProgram("secret-tool", pathFolders(path))?.let { SecretService(it.path) }
         }
     }
 }

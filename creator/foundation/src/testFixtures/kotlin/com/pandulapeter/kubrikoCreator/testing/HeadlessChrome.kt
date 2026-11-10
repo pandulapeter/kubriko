@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.testing
 
+import com.pandulapeter.kubrikoCreator.foundation.findProgram
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -127,9 +128,7 @@ public class HeadlessChrome private constructor(
          */
         public fun find(): String? = (
             listOfNotNull(System.getenv("KUBRIKO_CREATOR_CHROME"), "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome") +
-                listOf("google-chrome", "chromium", "chromium-browser").mapNotNull { name ->
-                    System.getenv("PATH").orEmpty().split(File.pathSeparator).map { File(it, name) }.firstOrNull { it.canExecute() }?.path
-                }
+                listOf("google-chrome", "chromium", "chromium-browser").mapNotNull { name -> findProgram(name)?.path }
             ).firstOrNull { File(it).canExecute() }
 
         /**
