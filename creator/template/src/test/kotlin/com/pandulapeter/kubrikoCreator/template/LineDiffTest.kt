@@ -13,6 +13,8 @@ import com.pandulapeter.kubrikoCreator.template.LineDiff.Kind
 import com.pandulapeter.kubrikoCreator.template.LineDiff.Line
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class LineDiffTest {
 
@@ -23,6 +25,15 @@ class LineDiffTest {
             LineDiff.of("a\nb\nc", "a\nx\ny\nc"),
         )
         assertEquals(listOf(Line(Kind.SAME, "a")), LineDiff.of("a", "a"))
+    }
+
+    @Test
+    fun aChangeIsSmallEnoughToShowUpToTwoThousandLinesInAll() {
+        val lines = { count: Int -> (1..count).joinToString("\n") }
+        assertTrue(LineDiff.isSmallEnough(lines(1_000), lines(1_000)))
+        assertTrue(LineDiff.isSmallEnough("", lines(1_999)))
+        assertFalse(LineDiff.isSmallEnough("", lines(2_000)))
+        assertFalse(LineDiff.isSmallEnough(lines(1_500), lines(600)))
     }
 
     @Test

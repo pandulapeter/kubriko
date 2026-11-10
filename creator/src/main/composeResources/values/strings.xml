@@ -957,7 +957,7 @@
     <string name="assistant_plan">Plan</string>
     <string name="assistant_permission">The assistant asks to use %1$s.</string>
     <string name="assistant_permission_outside">This changes files without Kubriko Creator, so the editor won't show it and Undo can't revert it. Commit your project first to be able to go back.</string>
-    <string name="assistant_permission_diff_too_large">%1$s: too large a change to show here.</string>
+    <string name="diff_too_large">Too large a change to show here.</string>
     <string name="assistant_failure_node_missing">%1$s needs Node.js, which your shell can't find. Install it, then try again.</string>
     <string name="assistant_failure_uv_missing">%1$s needs uv, which your shell can't find. Install it, then try again.</string>
     <string name="assistant_failure_agent_not_started">%1$s couldn't be started.</string>

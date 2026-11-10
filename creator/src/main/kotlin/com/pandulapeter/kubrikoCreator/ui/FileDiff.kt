@@ -19,11 +19,13 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.template.LineDiff
 import com.pandulapeter.kubrikoCreator.template.ProposedFileChange
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.diff_too_large
 import kubriko.creator.generated.resources.project_upgrade_file_deleted
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * One file's [change], as the lines it changes with a few around them.
+ * One file's [change], as the lines it changes with a few around them, or only its path for a change too large to show
+ * ([LineDiff.isSmallEnough]).
  */
 @Composable
 internal fun FileDiff(change: ProposedFileChange) = Column(
@@ -34,5 +36,14 @@ internal fun FileDiff(change: ProposedFileChange) = Column(
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.primary,
     )
-    DiffLines(remember(change) { LineDiff.withContext(LineDiff.of(change.before, change.after.orEmpty())) })
+    val lines = remember(change) { if (LineDiff.isSmallEnough(change.before, change.after.orEmpty())) LineDiff.withContext(LineDiff.of(change.before, change.after.orEmpty())) else null }
+    if (lines == null) {
+        Text(
+            text = stringResource(Res.string.diff_too_large),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    } else {
+        DiffLines(lines)
+    }
 }

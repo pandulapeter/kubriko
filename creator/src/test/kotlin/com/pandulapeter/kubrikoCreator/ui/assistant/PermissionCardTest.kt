@@ -25,8 +25,6 @@ import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 @OptIn(ExperimentalTestApi::class)
 class PermissionCardTest {
@@ -71,10 +69,18 @@ class PermissionCardTest {
     }
 
     @Test
-    fun aChangeTooLargeToCompareIsNamedWithoutItsLines() {
-        val large = (1..2_000).joinToString("\n") { "line $it" }
-        assertNull(diffLinesOf(ToolCallContent.Diff("Big.kt", newText = large + "\nmore", oldText = large)))
-        assertNotNull(diffLinesOf(ToolCallContent.Diff("New.kt", newText = "a")))
+    fun aChangeTooLargeToShowIsNamedWithoutItsLines() = uiTest {
+        val large = (1..3_000).joinToString("\n") { "line $it" }
+        val diff = ToolCallContent.Diff("Big.json", newText = large)
+        showing {
+            PermissionCard(
+                request = PermissionRequest(SessionUpdate.ToolCallUpdate(ToolCallId("1"), title = "Write Big.json", kind = ToolKind.EDIT, content = listOf(diff)), listOf(allow)),
+                onAnswer = {},
+            )
+        }
+        onNodeWithText("Big.json").assertExists()
+        onNodeWithText("Too large a change to show here.").assertExists()
+        onNodeWithText("+ line 1", substring = true).assertDoesNotExist()
     }
 
     @Test

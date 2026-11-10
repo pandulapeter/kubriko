@@ -15,6 +15,7 @@ import kotlin.math.abs
  * The lines of a file before and after a change, as a diff shows them.
  */
 public object LineDiff {
+    private const val MAXIMUM_LINES = 2_000
 
     /**
      * Whether a line was kept, removed, or added.
@@ -36,6 +37,14 @@ public object LineDiff {
         public val kind: Kind,
         public val text: String,
     )
+
+    /**
+     * Whether [before] and [after] are small enough to compare and show at once: comparing takes memory in proportion to the
+     * product of their line counts, and showing every line of a large file holds up the window. A change a user or an
+     * agent makes can be any size, unlike the template files'.
+     */
+    public fun isSmallEnough(before: String, after: String): Boolean =
+        before.lineSequence().count() + after.lineSequence().count() <= MAXIMUM_LINES
 
     /**
      * Every line of [before] and [after], each one marked as kept, removed, or added (a longest common subsequence, which
