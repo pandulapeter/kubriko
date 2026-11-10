@@ -16,19 +16,16 @@ call it.
 
 ## The panel
 
-1. **Accounts:** the variable that picks an agent's configuration folder (`CLAUDE_CONFIG_DIR` for Claude Code, `CODEX_HOME` for
-   Codex), offered from the user's shell aliases (`ShellAliases`) as the MCP clients' setups are, so `claude-personal` and
-   `claude-flashfood` each become an account to choose.
-2. **Google Antigravity's system prompt:** it advertises `_meta.antigravity.systemPrompt.append` in its `initialize` answer; append
+1. **Google Antigravity's system prompt:** it advertises `_meta.antigravity.systemPrompt.append` in its `initialize` answer; append
    `AssistantSystemPrompt` through it, as Claude Agent's is, in place of the first prompt's leading text.
-3. **Sign-in in a terminal:** the operating system's terminal as a fallback for a sign-in command (`SignInSession`) that turns out to
+2. **Sign-in in a terminal:** the operating system's terminal as a fallback for a sign-in command (`SignInSession`) that turns out to
    need a terminal device.
-4. **Chips:** a screenshot of the open Scene (the game's exists), and the selected Event (its index lives in `BlockTypeEditor`'s own
+3. **Chips:** a screenshot of the open Scene (the game's exists), and the selected Event (its index lives in `BlockTypeEditor`'s own
    state today, so it moves to a holder the panel can read).
-5. **Kubriko's sources:** check in a live scenario whether Claude still reaches for its own Read for Kubriko's sources now that
+4. **Kubriko's sources:** check in a live scenario whether Claude still reaches for its own Read for Kubriko's sources now that
    `get_kubriko_api` exists (it keeps Read for the game's own Kotlin), and steer it to the tool in its description if it does.
-6. **AI in Creator settings:** the defaults behind the AI panel that aren't about one conversation (the MCP server's port, token, and
-   commands from Advanced; the agent and the Claude Code configuration) as a section of Creator settings, hidden with the rest when
+5. **AI in Creator settings:** the defaults behind the AI panel that aren't about one conversation (the MCP server's port, token, and
+   commands from Advanced; the agent and the configuration each agent runs as) as a section of Creator settings, hidden with the rest when
    AI features are off.
 
 ## Context for large games
@@ -73,7 +70,8 @@ Each starts when what it waits for happens; nothing is built for it before.
 - **Codex's profile** (`codex-acp`), once Codex has quota again (after Nov 21, 2026). Known: it takes client MCP servers over HTTP;
   ChatGPT login, `CODEX_API_KEY` or `OPENAI_API_KEY`, or a custom gateway; `INITIAL_AGENT_MODE=read-only` and a sandbox mode;
   `CODEX_CONFIG` merged into its session config. To check in a real session: the system prompt through `CODEX_CONFIG` (its developer
-  instructions) or leading text, whether read-only still lets MCP tools run, and `CODEX_HOME` for accounts. A profile is written only
+  instructions) or leading text, whether read-only still lets MCP tools run, and that a `codex-work` alias's account
+  (`CODEX_HOME`, which the setup already offers) is the one it signs in to. A profile is written only
   for what the fallbacks can't do, and gets a live scenario of its own.
 - **The registry's icons** in the agent menu, once each vendor's trademark rules are checked (Anthropic's first).
 - **Claude Agent's version**, pinned to the one checked, offered as an update once the registry's moves and the new one is checked.

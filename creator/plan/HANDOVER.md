@@ -25,22 +25,17 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Start `01-ai-assistant.md` at its first item (Accounts, under The panel).
+Start `01-ai-assistant.md` at its first item (Google Antigravity's system prompt, under The panel).
 
-This session finished Other agents' changes, reviewed with `/code-review` and every finding fixed in a commit of its own:
+This session finished Accounts, reviewed with `/code-review`, its findings fixed in three commits (two left as they are: the
+configurations are only touched on the main thread, and the old `claudeConfigurationAlias` key leaves the file at its next save):
 
-- Every agent but Claude Agent has its conversations switched to the read-only mode or sandbox it offers (`ReadOnlyMode`: a
-  config option's value or a session mode named read-only, never one naming a plan), on starting and whenever they are
-  loaded again; a mode the agent switches to without reporting it still counts, and one that never answers is given up on
-  after 5 seconds, since the switch runs under the agent's lifecycle lock.
-- What an agent still asks to edit, delete, move, or run itself goes to the user instead of being rejected: the card shows
-  the agent's diffs through `FileDiff` (a change of more than 2,000 lines in all is only named, `LineDiff.isSmallEnough`)
-  and warns that Undo can't revert it (`PermissionRequest.isOutsideCreator`, with the kind the tool call started with when
-  the question leaves it out).
-- An agent seen editing, deleting, or moving files without asking (`UnaskedChanges`; commands don't count, nor calls in the
-  read-only mode or of a kind the user allowed always) is remembered in the settings by `AgentChoice.identity` (a hash of a
-  custom agent's command line, keeping only the last), marked in the agent menu, and its conversations suggest version
-  control.
+- Claude Code's alias-based configurations became every known tool's (`AgentConfiguration`, its `client` an `AiClient`):
+  Claude Agent runs as a `CLAUDE_CONFIG_DIR` alias, Codex (`codex-acp`) as a `CODEX_HOME` one, any other agent has none
+  (`AgentConfiguration.clientOf`). `AgentConfigurations` finds the aliases once and keeps the alias chosen per agent
+  (`AssistantSettings.configurationAliases`; the old `claudeConfigurationAlias` is read into it on loading), and
+  `ClaudeApiKey` holds only the API key now (`AgentProfile.usesAnthropicApiKey`). Sign-in variables are kept per account
+  (`AgentConfigurations.accountOf`), so variables given earlier to a Codex agent still apply only to its default account.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
@@ -51,6 +46,8 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
 - Pasting an image from the system clipboard, and dropping one from Finder, onto a page.
 - A real agent other than Claude Agent switched to its read-only mode, asking before its own edits, and one that edits
   without asking being marked (Codex's `read-only` sandbox once it has quota again, after Nov 21, 2026).
+- Codex started as a `codex-work` alias's account signing in to that `CODEX_HOME` (running `codex-acp` fetched from npm wasn't
+  allowed in this session; it is listed under Codex's profile in `01-ai-assistant.md`).
 
 ## Before a release
 
