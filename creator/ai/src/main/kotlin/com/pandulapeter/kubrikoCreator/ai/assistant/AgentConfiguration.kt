@@ -31,7 +31,7 @@ public data class AgentConfiguration(
     public companion object {
         private val clientsByAgentId = mapOf(
             RegistryAgent.claude.id to AiClient.CLAUDE_CODE,
-            "codex-acp" to AiClient.CODEX,
+            RegistryAgent.CODEX_ID to AiClient.CODEX,
         )
 
         /**

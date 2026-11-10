@@ -30,6 +30,11 @@ public data class RegistryAgent(
         private const val PATH = "PATH"
 
         /**
+         * The registry's ID of Codex, through Zed's ACP adapter.
+         */
+        internal const val CODEX_ID = "codex-acp"
+
+        /**
          * Claude Code, through the ACP adapter of Anthropic, Zed, and JetBrains, which runs Anthropic's own `claude` binary
          * signed in as the user is.
          */
