@@ -10,23 +10,34 @@
 package com.pandulapeter.kubrikoCreator.ui.assistant
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.agentclientprotocol.model.PermissionOption
 import com.agentclientprotocol.model.PermissionOptionKind
+import com.agentclientprotocol.model.ToolCallContent
 import com.pandulapeter.kubrikoCreator.ai.assistant.PermissionRequest
+import com.pandulapeter.kubrikoCreator.template.LineDiff
+import com.pandulapeter.kubrikoCreator.ui.DiffLines
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.assistant_permission
+import kubriko.creator.generated.resources.assistant_permission_diff_too_large
+import kubriko.creator.generated.resources.assistant_permission_outside
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * The agent asking to run a tool call, with the answers it offers (allow once, always, or reject), as the agent names them.
+ * A change the agent would make with its own tools says that Undo can't revert it, and shows the diffs the agent sent.
  */
 @Composable
 internal fun PermissionCard(
@@ -39,6 +50,16 @@ internal fun PermissionCard(
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSecondaryContainer,
     )
+    if (request.isOutsideCreator) {
+        Text(
+            text = stringResource(Res.string.assistant_permission_outside),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+        )
+    }
+    if (request.diffs.isNotEmpty()) {
+        RequestedDiffs(request.diffs)
+    }
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -52,3 +73,40 @@ internal fun PermissionCard(
         }
     }
 }
+
+@Composable
+private fun RequestedDiffs(
+    diffs: List<ToolCallContent.Diff>,
+) = Column(
+    modifier = Modifier.heightIn(max = 240.dp).verticalScroll(rememberScrollState()),
+    verticalArrangement = Arrangement.spacedBy(4.dp),
+) {
+    diffs.forEach { diff ->
+        val lines = remember(diff) { diffLinesOf(diff) }
+        if (lines == null) {
+            Text(
+                text = stringResource(Res.string.assistant_permission_diff_too_large, diff.path),
+                style = MaterialTheme.typography.bodySmall,
+            )
+        } else {
+            Text(
+                text = diff.path,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            DiffLines(lines)
+        }
+    }
+}
+
+/**
+ * The lines [diff] changes with a few around them, or null for a change too large to compare on the main thread, since
+ * comparing takes memory in proportion to the product of the two texts' line counts.
+ */
+internal fun diffLinesOf(diff: ToolCallContent.Diff): List<LineDiff.Line?>? {
+    val before = diff.oldText.orEmpty()
+    if (before.lineSequence().count().toLong() * diff.newText.lineSequence().count() > MAXIMUM_COMPARED_LINE_PAIRS) return null
+    return LineDiff.withContext(LineDiff.of(before, diff.newText))
+}
+
+private const val MAXIMUM_COMPARED_LINE_PAIRS = 1_000_000L

@@ -26,9 +26,12 @@ Hosts Agent Client Protocol agents through the official Kotlin SDK. Tests run `F
   names and icons follow each vendor's trademark rules.
 - **Nothing of any agent ships with Creator:** the registry's distribution fetches it on first use. Bundling would mean
   redistributing a proprietary binary and preinstalling Claude Code, which its terms tie to the Commercial Terms.
-- **Creator's tools make every change:** the agent gets neither file system nor terminal access, its requests to edit, delete,
-  move, or execute are rejected whatever the user would choose (`PermissionHandler.rejectingChanges`), Claude Agent has `Bash`,
-  `Write`, `Edit`, and `NotebookEdit` disallowed, and each agent works in a folder of its own per project (`agents/workspaces`),
+- **Creator's tools make every change:** the agent gets neither file system nor terminal access, Claude Agent has `Bash`,
+  `Write`, `Edit`, and `NotebookEdit` disallowed, and every other agent's conversations are switched to its read-only mode or
+  sandbox where it offers one (`ReadOnlyMode`), again whenever they are loaded: only a value named read-only, never a plan mode,
+  since Claude Code's refuses MCP tools that change something, Creator's among them. What an agent still asks to edit,
+  delete, move, or execute itself goes to the user, as every change outside Creator is confirmed, with the agent's diffs and
+  a warning that Undo can't revert it (`PermissionRequest.isOutsideCreator`). Each agent works in a folder of its own per project (`agents/workspaces`),
   since an agent may write files where it starts without asking. Creator's own tools are allowed without asking when their kind
   edits, deletes, moves, and runs nothing (`PermissionHandler.allowingCreatorTools`), recognized however the agent names them
   (`CreatorToolName`). An agent without HTTP MCP reaches them through `mcp-remote`, pinned to one exact version

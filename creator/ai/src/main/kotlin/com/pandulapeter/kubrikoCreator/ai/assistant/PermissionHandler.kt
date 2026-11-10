@@ -48,14 +48,9 @@ public fun interface PermissionHandler {
             if (allow != null && isCreatorTool) RequestPermissionOutcome.Selected(allow.optionId) else other.answer(toolCall, options)
         }
 
-        private val changingKinds = setOf(ToolKind.EDIT, ToolKind.DELETE, ToolKind.MOVE, ToolKind.EXECUTE)
-
         /**
-         * Rejects requests for tool calls that edit, delete, or move files or run commands, and leaves the rest to
-         * [other]: how an agent that has no switch for its own tools is kept off the project's files.
+         * The kinds of tool calls that edit, delete, or move files or run commands.
          */
-        internal fun rejectingChanges(other: PermissionHandler) = PermissionHandler { toolCall, options ->
-            if (toolCall.kind in changingKinds) Reject.answer(toolCall, options) else other.answer(toolCall, options)
-        }
+        internal val changingKinds = setOf(ToolKind.EDIT, ToolKind.DELETE, ToolKind.MOVE, ToolKind.EXECUTE)
     }
 }

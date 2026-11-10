@@ -184,12 +184,16 @@ class AssistantTest {
     }
 
     @Test
-    fun anAgentWithoutAProfileIsKeptOffTheFilesWhateverTheUserWouldAllow() = blockingTest {
-        val allow = PermissionHandler { _, options -> RequestPermissionOutcome.Selected(options.first { it.kind == PermissionOptionKind.ALLOW_ONCE }.optionId) }
-        val fallback = assistant(AgentProfile.fallback).newConversation(projectDirectory, permissions = allow)
-        val profiled = assistant.newConversation(projectDirectory, permissions = allow)
-        assertEquals("reject", fallback.reply("edit"))
-        assertEquals("allow", profiled.reply("edit"))
+    fun anAgentWithoutAProfileAsksTheUserBeforeChangingFilesItself() = blockingTest {
+        val asked = mutableListOf<PermissionRequest>()
+        val allow = PermissionHandler { toolCall, options ->
+            asked += PermissionRequest(toolCall, options)
+            RequestPermissionOutcome.Selected(options.first { it.kind == PermissionOptionKind.ALLOW_ONCE }.optionId)
+        }
+        val conversation = assistant(AgentProfile.fallback).newConversation(projectDirectory, permissions = allow)
+        assertEquals("allow", conversation.reply("edit"))
+        assertTrue(asked.single().isOutsideCreator)
+        assertEquals("reject", assistant(AgentProfile.fallback).newConversation(projectDirectory).reply("edit"))
     }
 
     @Test

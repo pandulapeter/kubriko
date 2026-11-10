@@ -16,13 +16,17 @@ import com.agentclientprotocol.model.PermissionOption
 import com.agentclientprotocol.model.PermissionOptionId
 import com.agentclientprotocol.model.PermissionOptionKind
 import com.agentclientprotocol.model.SessionUpdate
+import com.agentclientprotocol.model.ToolCallContent
 import com.agentclientprotocol.model.ToolCallId
+import com.agentclientprotocol.model.ToolKind
 import com.pandulapeter.kubrikoCreator.ai.assistant.PermissionRequest
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 @OptIn(ExperimentalTestApi::class)
 class PermissionCardTest {
@@ -46,8 +50,40 @@ class PermissionCardTest {
     }
 
     @Test
+    fun anEditOfTheAgentsOwnSaysUndoCantRevertItAndShowsItsDiff() = uiTest {
+        val diff = ToolCallContent.Diff("src/Game.kt", oldText = "val speed = 1", newText = "val speed = 2")
+        showing {
+            PermissionCard(
+                request = PermissionRequest(SessionUpdate.ToolCallUpdate(ToolCallId("1"), title = "Edit Game.kt", kind = ToolKind.EDIT, content = listOf(diff)), listOf(allow, reject)),
+                onAnswer = {},
+            )
+        }
+        onNodeWithText(OUTSIDE, substring = true).assertExists()
+        onNodeWithText("src/Game.kt").assertExists()
+        onNodeWithText("+ val speed = 2", substring = true).assertExists()
+        saveSnapshot("permission-card-outside")
+    }
+
+    @Test
+    fun aReadIsAskedWithoutTheWarning() = uiTest {
+        showing { PermissionCard(request = PermissionRequest(SessionUpdate.ToolCallUpdate(ToolCallId("1"), title = "Read Game.kt", kind = ToolKind.READ), listOf(allow)), onAnswer = {}) }
+        onNodeWithText(OUTSIDE, substring = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun aChangeTooLargeToCompareIsNamedWithoutItsLines() {
+        val large = (1..2_000).joinToString("\n") { "line $it" }
+        assertNull(diffLinesOf(ToolCallContent.Diff("Big.kt", newText = large + "\nmore", oldText = large)))
+        assertNotNull(diffLinesOf(ToolCallContent.Diff("New.kt", newText = "a")))
+    }
+
+    @Test
     fun aToolCallWithoutATitleIsNamedByItsId() = uiTest {
         showing { PermissionCard(request = PermissionRequest(SessionUpdate.ToolCallUpdate(ToolCallId("call-7")), listOf(allow)), onAnswer = {}) }
         onNodeWithText("The assistant asks to use call-7.").assertExists()
+    }
+
+    private companion object {
+        const val OUTSIDE = "Undo can't revert it"
     }
 }

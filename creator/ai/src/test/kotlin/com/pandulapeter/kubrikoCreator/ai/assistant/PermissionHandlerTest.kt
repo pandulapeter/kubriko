@@ -49,10 +49,6 @@ class PermissionHandlerTest {
         val changingKinds = listOf(ToolKind.EDIT, ToolKind.DELETE, ToolKind.MOVE, ToolKind.EXECUTE)
         changingKinds.forEach { kind ->
             assertEquals(RequestPermissionOutcome.Cancelled, PermissionHandler.allowingCreatorTools(recording).answer(call("kubriko-creator_read_scene", kind), options))
-            assertEquals(
-                RequestPermissionOutcome.Selected(PermissionOptionId("reject")),
-                PermissionHandler.allowingCreatorTools(PermissionHandler.rejectingChanges(recording)).answer(call("kubriko-creator_read_scene", kind), options),
-            )
         }
         assertEquals(changingKinds, asked.map { it.kind })
     }

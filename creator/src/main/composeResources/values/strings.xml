@@ -921,7 +921,7 @@
     <string name="assistant_configuration_menu">Claude Code configuration</string>
     <string name="assistant_empty">Ask for a change to your game, like a new character, a rule, or a Scene, or ask how something in it works.</string>
     <string name="assistant_note">Claude Agent runs Claude Code, signed in as you are. Its changes go through the editor, so they show up as they happen and can be undone like your own.</string>
-    <string name="assistant_note_untested">%1$s works through the editor, so its changes show up as they happen and can be undone like your own. It wasn't tried with Kubriko Creator yet, so some things may not work, and its own edits to files and commands are turned down.</string>
+    <string name="assistant_note_untested">%1$s works through the editor, so its changes show up as they happen and can be undone like your own. It wasn't tried with Kubriko Creator yet, so some things may not work. It works in its read-only mode where it has one, and asks you before editing files or running commands itself, which Undo can't revert.</string>
     <string name="assistant_starting">Starting %1$s…</string>
     <string name="assistant_downloading">Downloading %1$s… %2$s MB</string>
     <string name="assistant_downloading_of">Downloading %1$s… %2$s of %3$s MB</string>
@@ -953,6 +953,8 @@
     <string name="assistant_setup_configuration">Configuration</string>
     <string name="assistant_plan">Plan</string>
     <string name="assistant_permission">The assistant asks to use %1$s.</string>
+    <string name="assistant_permission_outside">This changes files without Kubriko Creator, so the editor won't show it and Undo can't revert it. Commit your project first to be able to go back.</string>
+    <string name="assistant_permission_diff_too_large">%1$s: too large a change to show here.</string>
     <string name="assistant_failure_node_missing">%1$s needs Node.js, which your shell can't find. Install it, then try again.</string>
     <string name="assistant_failure_uv_missing">%1$s needs uv, which your shell can't find. Install it, then try again.</string>
     <string name="assistant_failure_agent_not_started">%1$s couldn't be started.</string>

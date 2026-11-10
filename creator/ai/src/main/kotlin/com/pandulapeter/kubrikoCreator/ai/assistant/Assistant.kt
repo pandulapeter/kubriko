@@ -122,8 +122,8 @@ public class Assistant(
     }
 
     /**
-     * Opens an address of the tools for the conversation [start] starts in the agent's working folder, with the
-     * permissions the agent's profile calls for, and closes it again if starting fails.
+     * Opens an address of the tools for the conversation [start] starts in the agent's working folder, allowing Creator's
+     * own tools and asking [permissions] about the rest, and closes the address again if starting fails.
      */
     private suspend fun withTools(
         projectDirectory: File,
@@ -136,7 +136,7 @@ public class Assistant(
             start(
                 if (profile.usesProjectFolder) projectDirectory else agentFolderOf(projectDirectory),
                 { capabilities -> listOf(ConversationToolServer.of(capabilities, profile, "http://${McpToolServer.HOST}:$port${tools.path}", tools.token, npx)) },
-                PermissionHandler.allowingCreatorTools(if (profile.keepsOffFiles) permissions else PermissionHandler.rejectingChanges(permissions)),
+                PermissionHandler.allowingCreatorTools(permissions),
             )
         } catch (exception: Exception) {
             toolServer.closeConversation(tools.id)
