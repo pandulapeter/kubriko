@@ -140,27 +140,24 @@ public class AcpAgent(
     /**
      * Starts a conversation in [workingDirectory], with [mcpServers] as the agent's tools, chosen from what it advertises.
      *
-     * @param meta The `_meta` of `session/new`, through which agents take options of their own, chosen from what the agent
-     *   advertises.
-     * @param firstPromptLead Sent ahead of the first prompt's own content, for an agent that takes no system prompt, chosen
-     *   from what it advertises.
+     * @param opening What the conversation is started with, chosen from what the agent advertises.
      * @param prefersReadOnly Whether the conversation is switched to the agent's read-only mode where it offers one.
      * @throws AgentStartException If the agent couldn't be started.
      */
     public suspend fun newConversation(
         workingDirectory: File,
         mcpServers: (AgentCapabilities) -> List<McpServer> = { emptyList() },
-        meta: (AgentCapabilities) -> JsonElement? = { null },
+        opening: (AgentCapabilities) -> ConversationOpening = { ConversationOpening() },
         permissions: PermissionHandler = PermissionHandler.Reject,
-        firstPromptLead: (AgentCapabilities) -> String? = { null },
         prefersReadOnly: Boolean = false,
     ): AgentConversation = lifecycle.withLock {
         val connection = connected()
         val capabilities = connection.info.capabilities
-        val parameters = SessionCreationParameters(workingDirectory.absolutePath, mcpServers(capabilities), _meta = meta(capabilities))
+        val started = opening(capabilities)
+        val parameters = SessionCreationParameters(workingDirectory.absolutePath, mcpServers(capabilities), _meta = started.meta)
         lateinit var conversation: AgentConversation
         val session = connection.client.newSession(parameters) { sessionId, _ ->
-            conversation = AgentConversation(sessionId, parameters, this, permissions, firstPromptLead(capabilities), prefersReadOnly)
+            conversation = AgentConversation(sessionId, parameters, this, permissions, started.firstPromptLead, prefersReadOnly)
             conversation.operations
         }
         conversation.attach(session)

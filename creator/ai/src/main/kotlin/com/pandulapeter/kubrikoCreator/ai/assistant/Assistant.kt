@@ -88,9 +88,11 @@ public class Assistant(
             agent.newConversation(
                 workingDirectory = workingDirectory,
                 mcpServers = mcpServers,
-                meta = { capabilities -> prompt?.let { sessionMetaOf(capabilities, it) } },
+                opening = { capabilities ->
+                    val meta = prompt?.let { sessionMetaOf(capabilities, it) }
+                    ConversationOpening(meta = meta, firstPromptLead = prompt.takeIf { meta == null })
+                },
                 permissions = guarded,
-                firstPromptLead = { capabilities -> prompt.takeIf { !takesSystemPrompt(capabilities) } },
                 prefersReadOnly = !profile.keepsOffFiles,
             )
         }
@@ -111,11 +113,12 @@ public class Assistant(
         onHistory: suspend (SessionUpdate) -> Unit = {},
         rules: String? = null,
     ): AgentConversation = withTools(projectDirectory, permissions) { workingDirectory, mcpServers, guarded ->
+        val prompt = listOfNotNull(systemPrompt(null), rules).joinToString("\n\n").ifEmpty { null }
         agent.resumeConversation(
             id = SessionId(id),
             workingDirectory = workingDirectory,
             mcpServers = mcpServers,
-            meta = { capabilities -> listOfNotNull(systemPrompt(null), rules).joinToString("\n\n").ifEmpty { null }?.let { sessionMetaOf(capabilities, it) } },
+            meta = { capabilities -> prompt?.let { sessionMetaOf(capabilities, it) } },
             permissions = guarded,
             onHistory = onHistory,
             prefersReadOnly = !profile.keepsOffFiles,
@@ -123,11 +126,9 @@ public class Assistant(
     }
 
     /**
-     * Whether the agent takes the system prompt through a conversation's `_meta`: through its profile, or by advertising
-     * it in [capabilities] ([AppendedSystemPrompt]).
+     * The `_meta` that hands the agent [systemPrompt]: its profile's, or the one it advertises in [capabilities]
+     * ([AppendedSystemPrompt]), or null for an agent that takes neither.
      */
-    private fun takesSystemPrompt(capabilities: AgentCapabilities) = profile.sessionMeta != null || AppendedSystemPrompt.isAdvertised(capabilities)
-
     private fun sessionMetaOf(capabilities: AgentCapabilities, systemPrompt: String): JsonElement? = profile.sessionMeta?.invoke(systemPrompt)
         ?: AppendedSystemPrompt.meta(systemPrompt).takeIf { AppendedSystemPrompt.isAdvertised(capabilities) }
 
