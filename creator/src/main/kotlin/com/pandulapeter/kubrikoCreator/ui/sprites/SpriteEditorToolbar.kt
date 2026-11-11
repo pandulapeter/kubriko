@@ -22,7 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.spriteLabel
@@ -31,15 +30,11 @@ import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_save
-import kubriko.creator.generated.resources.ic_chevron
 import kubriko.creator.generated.resources.ic_fit_screen
 import kubriko.creator.generated.resources.ic_zoom_in
 import kubriko.creator.generated.resources.ic_zoom_out
 import kubriko.creator.generated.resources.sprite_editor_every_frame
-import kubriko.creator.generated.resources.sprite_editor_frame
 import kubriko.creator.generated.resources.sprite_editor_image
-import kubriko.creator.generated.resources.sprite_editor_next_frame
-import kubriko.creator.generated.resources.sprite_editor_previous_frame
 import kubriko.creator.generated.resources.sprite_editor_zoom
 import kubriko.creator.generated.resources.sprite_editor_zoom_fit
 import kubriko.creator.generated.resources.sprite_editor_zoom_in
@@ -47,10 +42,8 @@ import kubriko.creator.generated.resources.sprite_editor_zoom_out
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Above the sprite editor's canvas: the sprite's name, the frame shown (stepped through for a sprite cut into frames),
- * the zoom, the Image menu, whose operations change the frame shown or, by the switch, every frame, and saving.
+ * Above the sprite editor's canvas: the sprite's name, the zoom, the Image menu, whose operations change the frame shown or, by the switch, every frame, and saving.
  *
- * @param onFrameStep Shows the frame that many frames on (or back, below 0), going round.
  * @param onSave Saves the changes the editor holds, offered while it holds some.
  */
 @Composable
@@ -59,7 +52,6 @@ internal fun SpriteEditorToolbar(
     frameCount: Int,
     state: SpriteEditorState,
     onImageAction: (SpriteImageAction) -> Unit,
-    onFrameStep: (Int) -> Unit,
     onFit: () -> Unit,
     onSave: () -> Unit,
 ) = Row(
@@ -74,21 +66,6 @@ internal fun SpriteEditorToolbar(
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
     )
-    if (frameCount > 1) {
-        IconActionButton(
-            modifier = Modifier.rotate(90f),
-            icon = Res.drawable.ic_chevron,
-            label = Res.string.sprite_editor_previous_frame,
-            onClick = { onFrameStep(-1) },
-        )
-        Text(stringResource(Res.string.sprite_editor_frame, state.frameIndex + 1, frameCount), style = MaterialTheme.typography.bodySmall)
-        IconActionButton(
-            modifier = Modifier.rotate(-90f),
-            icon = Res.drawable.ic_chevron,
-            label = Res.string.sprite_editor_next_frame,
-            onClick = { onFrameStep(1) },
-        )
-    }
     Spacer(Modifier.weight(1f))
     IconActionButton(icon = Res.drawable.ic_zoom_out, label = Res.string.sprite_editor_zoom_out, onClick = state::zoomOut)
     Text(stringResource(Res.string.sprite_editor_zoom, state.zoom), style = MaterialTheme.typography.bodySmall)

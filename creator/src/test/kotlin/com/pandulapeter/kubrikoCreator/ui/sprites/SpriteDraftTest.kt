@@ -13,6 +13,7 @@ import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.resources.EditSprite
+import com.pandulapeter.kubrikoCreator.commands.resources.EditSpriteFrames
 import com.pandulapeter.kubrikoCreator.commands.resources.SaveSprite
 import com.pandulapeter.kubrikoCreator.commands.resources.SpriteProblem
 import com.pandulapeter.kubrikoCreator.sprites.pixels.Pixel
@@ -146,5 +147,26 @@ class SpriteDraftTest {
         assertTrue(state.onDraftKey(Key.Y, isShortcut = true, isShift = false) {})
         assertEquals(red, shown()[0, 0])
         assertFalse(state.onDraftKey(Key.S, isShortcut = false, isShift = false) {}, "S alone is the selection tool's")
+    }
+
+    @Test
+    fun framesChangeInTheDraftAndTheFrameShownFollowsThem() {
+        state.draw(0, listOf(Pixel(0, 0, red)))
+        assertNull(state.editFrames(path, EditSpriteFrames.Operation.Duplicate(0)))
+        assertEquals(1, state.frameIndex)
+        assertEquals(listOf(red, red), state.draft!!.current.frames.map { it[0, 0] })
+        assertEquals(2, state.draft!!.current.sheet?.frameCount)
+        assertNull(state.editFrames(path, EditSpriteFrames.Operation.Delete(1)))
+        assertEquals(0, state.frameIndex)
+        assertEquals(SpriteProblem.SPRITE_FRAME_LAST, state.editFrames(path, EditSpriteFrames.Operation.Delete(0))?.reason)
+        assertTrue(state.undo())
+        assertEquals(2, state.draft!!.current.frames.size, "a frame change is a step of the draft")
+    }
+
+    @Test
+    fun aDraggedFrameLandsWhereItWasDroppedWithinTheStrip() {
+        assertEquals(2, frameDropIndex(from = 0, offset = 130f, pitch = 62f, count = 4))
+        assertEquals(0, frameDropIndex(from = 1, offset = -500f, pitch = 62f, count = 4))
+        assertEquals(3, frameDropIndex(from = 3, offset = 20f, pitch = 62f, count = 4))
     }
 }

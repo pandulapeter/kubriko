@@ -24,6 +24,7 @@ import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextReplacement
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.resources.EditSprite
+import com.pandulapeter.kubrikoCreator.commands.resources.EditSpriteFrames
 import com.pandulapeter.kubrikoCreator.commands.resources.SaveSprite
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import com.pandulapeter.kubrikoCreator.sprites.pixels.Pixel
@@ -92,11 +93,11 @@ class SpriteEditorUiTest {
                 modifier = Modifier.fillMaxSize(),
             )
         }
-        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("Frame 1 of 2")).fetchSemanticsNodes().isNotEmpty() }
+        waitUntil(timeoutMillis = 5_000) { state.draft != null }
         onNodeWithText("Filled").assertExists()
         saveSnapshot("sprite-editor")
-        onNodeWithContentDescription("Next frame").performClick()
-        onNodeWithText("Frame 2 of 2").assertExists()
+        onNodeWithText("2").performClick()
+        assertEquals(1, state.frameIndex)
         onNodeWithText("Save").assertIsNotEnabled()
         onNodeWithText("Image").performClick()
         onNodeWithText("Flip vertically").performClick()
@@ -159,5 +160,36 @@ class SpriteEditorUiTest {
         onNode(androidx.compose.ui.test.hasSetTextAction() and hasText("17")).performTextReplacement("3")
         onNodeWithText("Apply").performClick()
         assertEquals(listOf<EditSprite.Operation>(EditSprite.Operation.Scale(3)), applied)
+    }
+
+    @Test
+    fun theFrameStripShowsAddsDuplicatesDeletesAndDragsFrames() = uiTest(width = 700, height = 200) {
+        val frames = listOf(PixelImage(2, 2).with(listOf(Pixel(0, 0, red))), PixelImage(2, 2).with(listOf(Pixel(0, 0, blue))))
+        val edits = mutableListOf<EditSpriteFrames.Operation>()
+        val shown = mutableListOf<Int>()
+        showing { SpriteFrameStrip(frames = frames, shownIndex = 0, onShow = { shown += it }, onEdit = { edits += it }) }
+        onNodeWithText("2").performClick()
+        assertEquals(listOf(1), shown)
+        onNodeWithContentDescription("Add a frame after this one").performClick()
+        onNodeWithContentDescription("Duplicate the frame").performClick()
+        onNodeWithContentDescription("Delete the frame").performClick()
+        onNodeWithText("1").performMouseInput {
+            moveTo(center)
+            press()
+            moveBy(Offset(30f, 0f))
+            moveBy(Offset(40f, 0f))
+            release()
+        }
+        assertEquals(
+            listOf(EditSpriteFrames.Operation.Add(at = 1), EditSpriteFrames.Operation.Duplicate(0), EditSpriteFrames.Operation.Delete(0), EditSpriteFrames.Operation.Move(0, to = 1)),
+            edits,
+        )
+        saveSnapshot("sprite-frame-strip")
+    }
+
+    @Test
+    fun theLastFrameCantBeDeleted() = uiTest(width = 700, height = 200) {
+        showing { SpriteFrameStrip(frames = listOf(PixelImage(2, 2)), shownIndex = 0, onShow = {}, onEdit = {}) }
+        onNodeWithContentDescription("Delete the frame").assertIsNotEnabled()
     }
 }

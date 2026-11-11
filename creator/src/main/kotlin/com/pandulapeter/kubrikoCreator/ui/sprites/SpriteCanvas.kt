@@ -181,28 +181,5 @@ private fun DrawScope.drawGrid(geometry: SpriteCanvasGeometry, width: Int, heigh
     }
 }
 
-/**
- * The gray squares that show through see-through pixels, in [bounds].
- */
-private fun DrawScope.drawCheckerboard(bounds: Rect) {
-    clipRect(bounds.left, bounds.top, bounds.right, bounds.bottom) {
-        drawRect(CHECKERBOARD_LIGHT, bounds.topLeft, bounds.size)
-        var y = bounds.top
-        var row = 0
-        while (y < bounds.bottom) {
-            var x = bounds.left + if (row % 2 == 0) 0f else CHECKERBOARD_SQUARE
-            while (x < bounds.right) {
-                drawRect(CHECKERBOARD_DARK, Offset(x, y), Size(CHECKERBOARD_SQUARE, CHECKERBOARD_SQUARE))
-                x += CHECKERBOARD_SQUARE * 2
-            }
-            y += CHECKERBOARD_SQUARE
-            row++
-        }
-    }
-}
-
 private const val PAN_PER_SCROLL = 24f
 private val GRID_COLOR = Color(0x40000000)
-private const val CHECKERBOARD_SQUARE = 8f
-private val CHECKERBOARD_LIGHT = Color(0xFFCCCCCC)
-private val CHECKERBOARD_DARK = Color(0xFF999999)

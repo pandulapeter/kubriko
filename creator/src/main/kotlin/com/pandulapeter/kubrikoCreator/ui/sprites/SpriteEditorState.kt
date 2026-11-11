@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.resources.EditSprite
+import com.pandulapeter.kubrikoCreator.commands.resources.EditSpriteFrames
 import com.pandulapeter.kubrikoCreator.commands.resources.SpriteEdit
 import com.pandulapeter.kubrikoCreator.sprites.pixels.Pixel
 import com.pandulapeter.kubrikoCreator.sprites.pixels.PixelImage
@@ -153,6 +154,21 @@ internal class SpriteEditorState {
         val current = draft ?: return null
         return when (val edited = EditSprite.edited(current.current, path, operation, frameIndex)) {
             is SpriteEdit.Edited -> null.also { draft = current.with(edited.frames) }
+            is SpriteEdit.Rejected -> edited.rejection
+        }
+    }
+
+    /**
+     * Applies [operation] to the draft's frames, as `edit_sprite_frames` would, showing the frame it added or moved (or
+     * the one in a deleted one's place), returning why it can't be, or null once it is applied.
+     */
+    fun editFrames(path: String, operation: EditSpriteFrames.Operation): Rejection? {
+        val current = draft ?: return null
+        return when (val edited = EditSpriteFrames.edited(current.current, path, operation)) {
+            is SpriteEdit.Edited -> null.also {
+                draft = current.with(edited.frames)
+                frameIndex = operation.frameShownAfter(edited.frames.frames.size)
+            }
             is SpriteEdit.Rejected -> edited.rejection
         }
     }

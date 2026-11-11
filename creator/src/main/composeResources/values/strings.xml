@@ -762,9 +762,11 @@
     <string name="sprite_editor_tool_select">Select (S): drag to select, drag the selection to move it, and copy, cut, and paste it</string>
     <string name="sprite_editor_filled">Filled</string>
     <string name="sprite_editor_contiguous">Only touching pixels</string>
-    <string name="sprite_editor_frame">Frame %1$d of %2$d</string>
-    <string name="sprite_editor_previous_frame">Previous frame</string>
-    <string name="sprite_editor_next_frame">Next frame</string>
+    <string name="sprite_editor_frame_add">Add a frame after this one</string>
+    <string name="sprite_editor_frame_add_before">Add a frame before</string>
+    <string name="sprite_editor_frame_add_after">Add a frame after</string>
+    <string name="sprite_editor_frame_duplicate">Duplicate the frame</string>
+    <string name="sprite_editor_frame_delete">Delete the frame</string>
     <string name="sprite_editor_zoom">%1$dx</string>
     <string name="sprite_editor_zoom_in">Zoom in</string>
     <string name="sprite_editor_zoom_out">Zoom out</string>

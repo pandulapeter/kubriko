@@ -135,10 +135,6 @@ internal fun SpriteEditor(
             frameCount = frames.frames.size,
             state = state,
             onImageAction = { action -> action.operation?.let(editImage) ?: run { askedAction = action } },
-            onFrameStep = { step ->
-                draw(state.settle(frame))
-                state.frameIndex = (frameIndex + step).mod(frames.frames.size)
-            },
             onFit = { state.zoomToFit(frame.width, frame.height, canvasSize.width.toFloat(), canvasSize.height.toFloat()) },
             onSave = { save {} },
         )
@@ -164,6 +160,13 @@ internal fun SpriteEditor(
                 onPaletteChange = { problem = editing.onCommand(Invocation(SetPalette, SetPalette.Input(it)), {}, {}) },
             )
         }
+        HorizontalDivider()
+        SpriteFrameStrip(
+            frames = frames.frames,
+            shownIndex = frameIndex,
+            onShow = { index -> state.frameIndex = index.also { draw(state.settle(frame)) } },
+            onEdit = { operation -> problem = state.editFrames(path, operation.also { draw(state.settle(frame)) }) },
+        )
         HorizontalDivider()
         SpriteStatusLine(frame.width, frame.height, state)
     }
