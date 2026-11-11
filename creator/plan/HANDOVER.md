@@ -40,8 +40,11 @@ replacement, outline helpers) in `12-later.md`. What it came to, besides its fir
 - `edit_sprite_frames` and the frame strip (add, duplicate, delete, drag to reorder), onion skinning (`OnionSkin`, a pure
   composite), and the preview with its speed, a step of the draft (b9a2b2d18..). The tool list's budget went to 23,500.
 
-None of the work since c8a10a1c8 has had a `/code-review` yet: run one over c8a10a1c8..HEAD first, fixing each finding in
-a commit of its own.
+A `/code-review` over c8a10a1c8..2ed1308d1 found ten things; nine were fixed, each in a commit of its own
+(05103864d..078427a98): saving marks the draft saved only once it succeeded, Keep mine takes the outside change as saved,
+an edit that changes nothing is no change, the toolbar's undo takes the draft's steps first (`EditorHistory`), the save has
+a title, and the preview converts only changed frames. The tenth (a notice outliving its sprite) was wrong: the editor is
+keyed by the sprite's path.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
