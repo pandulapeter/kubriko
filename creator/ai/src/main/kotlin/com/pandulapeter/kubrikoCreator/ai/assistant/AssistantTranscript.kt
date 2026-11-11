@@ -15,12 +15,14 @@ import com.agentclientprotocol.model.PlanEntryStatus
 import com.agentclientprotocol.model.SessionUpdate
 import com.agentclientprotocol.model.StopReason
 import com.pandulapeter.kubrikoCreator.commands.ChangeRecord
+import com.pandulapeter.kubrikoCreator.commands.CommandRegistry
 
 /**
  * A conversation as the assistant panel shows it, built up from what the user sends and the agent reports.
  *
  * @param plan The agent's latest plan, shown as a checklist.
- * @param isPlanNew Whether the agent reported [plan] after the user's last message, so the user hasn't answered it yet.
+ * @param isPlanNew Whether the agent reported [plan] after the user's last message and changed nothing since, in a turn
+ *   that ended as the agent meant it to, so the user hasn't answered it yet and nothing of it has been done.
  * @param usage What the conversation uses and cost, where the agent reports it.
  */
 public data class AssistantTranscript(
@@ -36,7 +38,8 @@ public data class AssistantTranscript(
 
     /**
      * Whether the agent laid out a plan in its last turn and started none of it, which the user approves (or changes)
-     * before it goes on.
+     * before it goes on. An agent may never mark its plan's steps as done, so a change it made after laying the plan out
+     * counts as starting it too.
      */
     public val isPlanAwaitingApproval: Boolean get() = isPlanNew && plan.isNotEmpty() && plan.all { it.status == PlanEntryStatus.PENDING }
 
@@ -52,7 +55,9 @@ public data class AssistantTranscript(
         is SessionUpdate.UserMessageChunk -> update.content.text()?.let { text ->
             copy(items = items.appending(text, { (it as? TranscriptItem.UserMessage)?.text }, TranscriptItem::UserMessage), isPlanNew = false)
         } ?: this
-        is SessionUpdate.ToolCall -> withToolCall(TranscriptItem.ToolCall(update.toolCallId, update.title, update.kind, update.status))
+        is SessionUpdate.ToolCall -> withToolCall(TranscriptItem.ToolCall(update.toolCallId, update.title, update.kind, update.status)).let { transcript ->
+            if (transcript.isPlanNew && changesProject(update.title)) transcript.copy(isPlanNew = false) else transcript
+        }
         is SessionUpdate.ToolCallUpdate -> {
             val previous = items.firstOrNull { it is TranscriptItem.ToolCall && it.id == update.toolCallId } as? TranscriptItem.ToolCall
             withToolCall(
@@ -62,7 +67,10 @@ public data class AssistantTranscript(
                     kind = update.kind ?: previous?.kind,
                     status = update.status ?: previous?.status,
                 ),
-            )
+            ).let { transcript ->
+                val title = update.title
+                if (transcript.isPlanNew && title != null && title != previous?.title && changesProject(title)) transcript.copy(isPlanNew = false) else transcript
+            }
         }
         is SessionUpdate.PlanUpdate -> copy(plan = update.entries, isPlanNew = true)
         is SessionUpdate.PlanRemoved -> copy(plan = emptyList(), isPlanNew = false)
@@ -73,7 +81,7 @@ public data class AssistantTranscript(
     /**
      * Notes how a turn ended, unless the agent simply finished it.
      */
-    internal fun withTurnEnd(reason: StopReason) = if (reason == StopReason.END_TURN) this else copy(items = items + TranscriptItem.TurnEnded(reason))
+    internal fun withTurnEnd(reason: StopReason) = if (reason == StopReason.END_TURN) this else copy(items = items + TranscriptItem.TurnEnded(reason), isPlanNew = false)
 
     /**
      * Shows what [changes] a turn made before the agent's final answer, and offers to keep or undo them at the end,
@@ -96,7 +104,7 @@ public data class AssistantTranscript(
         items = items.map { if (it is TranscriptItem.TurnReview && it.sinceRevision == sinceRevision) it.copy(state = state) else it },
     )
 
-    internal fun withFailure(reason: FailureReason, details: String? = null) = copy(items = items + TranscriptItem.Failure(reason, details))
+    internal fun withFailure(reason: FailureReason, details: String? = null) = copy(items = items + TranscriptItem.Failure(reason, details), isPlanNew = false)
 
     internal fun withoutLastItem() = copy(items = items.dropLast(1))
 
@@ -125,3 +133,10 @@ private fun List<TranscriptItem>.appending(
 }
 
 private fun ContentBlock.text() = (this as? ContentBlock.Text)?.text
+
+/**
+ * Whether the tool call titled [title] is one of Kubriko Creator's that changes something, which only its tools can.
+ */
+private fun changesProject(title: String) = CreatorToolName.of(title)?.let { name -> creatorToolsChanging[name] } == true
+
+private val creatorToolsChanging by lazy { CommandRegistry.editor.tools.associate { it.name to !it.isReadOnly } }

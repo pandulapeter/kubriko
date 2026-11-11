@@ -102,6 +102,20 @@ class AssistantTranscriptTest {
     }
 
     @Test
+    fun aPlanAnAgentStartedWithoutMarkingItOrWhoseTurnDidntEndAsMeantAwaitsNothing() {
+        val proposed = AssistantTranscript().with(SessionUpdate.PlanUpdate(listOf(PlanEntry("Add Lives", PlanEntryPriority.MEDIUM, PlanEntryStatus.PENDING))))
+        assertTrue(proposed.with(SessionUpdate.ToolCall(ToolCallId("1"), "mcp__kubriko-creator__list_scenes")).isPlanAwaitingApproval)
+        assertTrue(proposed.with(SessionUpdate.ToolCall(ToolCallId("1"), "mcp__kubriko-creator__ask_user")).isPlanAwaitingApproval)
+        assertFalse(proposed.with(SessionUpdate.ToolCall(ToolCallId("1"), "mcp__kubriko-creator__add_property")).isPlanAwaitingApproval)
+        assertFalse(
+            proposed.with(SessionUpdate.ToolCall(ToolCallId("1"), "Tool"), SessionUpdate.ToolCallUpdate(ToolCallId("1"), title = "mcp__kubriko-creator__add_property")).isPlanAwaitingApproval,
+        )
+        assertFalse(proposed.withTurnEnd(StopReason.CANCELLED).isPlanAwaitingApproval)
+        assertFalse(proposed.withFailure(FailureReason.PROMPT_FAILED).isPlanAwaitingApproval)
+        assertTrue(proposed.withTurnEnd(StopReason.END_TURN).isPlanAwaitingApproval)
+    }
+
+    @Test
     fun onlyTurnsTheAgentDidntFinishAreNoted() {
         val transcript = AssistantTranscript().withTurnEnd(StopReason.END_TURN).withTurnEnd(StopReason.CANCELLED)
         assertEquals(listOf<TranscriptItem>(TranscriptItem.TurnEnded(StopReason.CANCELLED)), transcript.items)
