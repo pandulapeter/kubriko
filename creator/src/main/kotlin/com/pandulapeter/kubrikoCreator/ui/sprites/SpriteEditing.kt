@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ui.sprites
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -45,5 +46,5 @@ internal fun rememberSpriteEditing(commands: CommandExecutor, selection: Selecti
     imagesRevision = commands.context.spriteImagesRevision.collectAsState().value,
     palette = commands.context.palette.colors.collectAsState().value,
     onCommand = commands::dispatchIfValidWatching,
-    onGuardLeaving = { selection.leaveGuard = it },
+    onGuardLeaving = remember(selection) { { guard -> selection.leaveGuard = guard } },
 )
