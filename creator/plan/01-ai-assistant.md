@@ -16,8 +16,6 @@ call it.
 
 ## Guards
 
-- More live scenarios (`AssistantLiveScenariosTest`): the chips' links followed, game notes proposed after a settled decision, and
-  the `game-explorer` subagent used.
 - The eval set (`EvalSetTest`) with calls recorded from real sessions rather than written by hand, more requests ("stop the paddle on
   key release"), and an opt-in live run that has a real agent answer each request against a scratch project, like the template
   integration test.

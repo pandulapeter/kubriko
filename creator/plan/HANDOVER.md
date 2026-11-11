@@ -26,22 +26,13 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Start `01-ai-assistant.md` at its first item (More live scenarios, under Guards).
+Start `01-ai-assistant.md` at its first item (the eval set, under Guards).
 
-This session finished Fewer retries, Planning first, and the activity view, each reviewed with `/code-review`, with the
-findings fixed in commits of their own; no review left anything open.
-
-- Fewer retries: a rejection of something a command names but can't find (`LookupProblem`) says what to use instead: the
-  close names (`SimilarNames`), that a type is of the other kind, that a Block's Property exists but of another kind, or
-  the indexes there are.
-- Planning first: the agent lays its plan out with Creator's own `set_plan` (`ConversationPlans`), since a live run showed
-  Claude Code through the SDK has no todo or task tool; a plan awaiting approval gets Approve, and Approve with the model
-  a tier below (`SmallerModel`, preferring the current model's version), and is kept with a saved conversation.
-  `AssistantLiveScenariosTest.aRequestOfManyChangesIsPlannedFirstAndCarriedOutOnceApprovedWithASmallerModel` passed
-  against the real Claude Agent (Opus 5.5 planned, Sonnet 5.5 built).
-- The activity view: a Scene step names the Actors it changed (`CommandTarget.Scene.actorIds`, `Applied.target` for a
-  placed one), which the Scene editor lights up on the canvas and in the Actor list (`SceneFlash`); steps are numbered
-  per project (`AiStepNumbering`).
+This session finished More live scenarios: `AssistantLiveScenariosTest` gained the chips (an Event chip's link, a Scene
+chip's link, and a Scene picture chip's image, a stand-in PNG), a settled convention written to the game's notes, and the
+`game-explorer` subagent answering through Creator's read tools; all three passed against the real Claude Agent. The explorer
+is asked for by name, since a live run showed the agent rightly doing a five-read question itself; the scenario guards the
+subagent's wiring, not the model's choice. Its `/code-review` is noted below.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
@@ -57,8 +48,6 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
   (Codex's `read-only` sandbox once it has quota again, after Nov 21, 2026).
 - Google Antigravity's tools turned off through Creator itself rather than a hand-written ACP client (the same `_meta`;
   the binary Creator downloaded is in the settings folder's `tools/agents`).
-- A real agent reading the Scene picture chip's image and following the Event chip's link (unit and offscreen tests cover
-  both, and the capture of a real Kubriko viewport).
 - Codex started as a `codex-work` alias's account signing in to that `CODEX_HOME` (running `codex-acp` fetched from npm wasn't
   allowed in this session; it is listed under Codex's profile in `01-ai-assistant.md`).
 

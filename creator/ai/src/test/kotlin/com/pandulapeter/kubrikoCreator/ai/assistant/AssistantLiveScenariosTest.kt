@@ -10,6 +10,8 @@
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.agentclientprotocol.model.SessionConfigOption
+import com.agentclientprotocol.model.ToolCallStatus
+import com.agentclientprotocol.model.ToolKind
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
@@ -22,6 +24,7 @@ import com.pandulapeter.kubrikoCreator.context.screenplayTexts
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
 import com.pandulapeter.kubrikoCreator.mcp.clients.ShellProcessRunner
+import com.pandulapeter.kubrikoCreator.project.GameNotes
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import com.pandulapeter.kubrikoCreator.screenplay.PageText
 import com.pandulapeter.kubrikoCreator.screenplay.ScreenplayStyle
@@ -37,7 +40,11 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.junit.Assume.assumeTrue
+import java.awt.Color
+import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
 import java.io.File
+import javax.imageio.ImageIO
 import kotlin.io.path.createTempDirectory
 import kotlin.math.hypot
 import kotlin.test.Test
@@ -172,6 +179,58 @@ class AssistantLiveScenariosTest {
     }
 
     @Test
+    fun theChipsLinksAreFollowedAndTheScenesPictureIsRead() = live { session ->
+        val chat = session.chat()
+        val event = AttentionChip.Event("Ball", isManager = false, index = BRICK_COLLISION, type = EventType.COLLISION)
+        chat.ask("Add a Log Block saying \"here\" at the end of this Event.", chips = listOf(event))
+        val events = session.context.ball().events
+        assertEquals(BlockDefinition.Log("here"), events[BRICK_COLLISION].blocks.last())
+        assertEquals(1, events.sumOf { it.blocks.count { block -> block is BlockDefinition.Log } }, "The Log Block went elsewhere too.")
+        chat.ask("How many gold bricks does this Scene place? Answer with the number alone, and change nothing.", chips = listOf(AttentionChip.Scene("level-1")))
+        println("Gold bricks: ${chat.lastAnswer()}")
+        assertContains(chat.lastAnswer(), "4")
+        chat.ask(
+            "How many white squares does the picture of this Scene show? Answer with the number alone, and change nothing.",
+            chips = listOf(AttentionChip.SceneScreen("level-1")),
+            picture = squares(SQUARES),
+        )
+        println("Squares: ${chat.lastAnswer()}")
+        assertTrue(chat.lastAnswer().contains("$SQUARES") || chat.lastAnswer().contains("three", ignoreCase = true), "The picture wasn't read.")
+    }
+
+    @Test
+    fun aSettledConventionIsAddedToTheGamesNotes() = live { session ->
+        val chat = session.chat()
+        chat.ask(
+            "Let's settle this for the whole game: every Log Block's message starts with its type's name in brackets, like \"[Ball] hit\". " +
+                "Add one saying hit at the end of the Ball's collision with Brick.",
+        )
+        val notes = withContext(Dispatchers.IO) { GameNotes.read(session.projectDirectory) }
+        println("Notes: $notes")
+        assertNotNull(notes, "Nothing was added to the game's notes.")
+        assertContains(notes, "[")
+        val collision = session.context.ball().events[BRICK_COLLISION]
+        assertEquals(BlockDefinition.Log("[Ball] hit"), collision.blocks.last())
+    }
+
+    @Test
+    fun theGameExplorerAnswersThroughCreatorsReadTools() = live { session ->
+        val chat = session.chat()
+        // Named outright: whether a question takes enough reads to hand over is the model's call, while what can break here is the subagent's wiring.
+        chat.ask(
+            "Ask the ${ClaudeAgentOptions.EXPLORER_NAME} subagent to list every way the player gains points or loses a life, naming the type and " +
+                "Event of each, then pass its answer on. Change nothing.",
+        )
+        val calls = chat.transcript.value.items.filterIsInstance<TranscriptItem.ToolCall>()
+        calls.forEach { println("Tool call: ${it.kind} ${it.status} ${it.title}") }
+        val handOver = calls.indexOfFirst { it.kind == ToolKind.THINK && it.creatorToolName == null }
+        assertTrue(handOver >= 0, "The subagent wasn't asked.")
+        assertTrue(calls.drop(handOver + 1).any { it.creatorToolName == "read_actor_type" && it.status == ToolCallStatus.COMPLETED }, "The subagent read nothing through Creator's tools.")
+        assertContains(chat.lastAnswer(), "Ball")
+        assertEquals(null, session.executor.history.value.nextUndoCommandName)
+    }
+
+    @Test
     fun aPitchInTheWritersRoomBecomesAPlayableSliceWithPagesThatKeepTheRules() = live(isBlank = true) { session ->
         val questions = session.context.questions
         // Whatever the room asks is answered with its first suggestion, as a user who agrees with everything would.
@@ -218,13 +277,31 @@ class AssistantLiveScenariosTest {
     /**
      * Sends [text] and waits for the turn to end, in real time: [runTest]'s own clock would let the timeout pass at once.
      */
-    private suspend fun AssistantChat.ask(text: String, timeout: Duration = 5.minutes, model: SmallerModel? = null) = withContext(Dispatchers.Default) {
+    private suspend fun AssistantChat.ask(
+        text: String,
+        timeout: Duration = 5.minutes,
+        model: SmallerModel? = null,
+        chips: List<AttentionChip> = emptyList(),
+        picture: ByteArray? = null,
+    ) = withContext(Dispatchers.Default) {
         withTimeout(timeout) {
             state.first { it == ChatState.Ready }
-            send(text, model = model)
+            send(text, model = model) { AttentionChip.contentOf(chips) { picture } }
             isBusy.first { it }
             isBusy.first { !it }
         }
+    }
+
+    /**
+     * A PNG of [count] white squares apart on black, standing in for a picture of the Scene.
+     */
+    private fun squares(count: Int): ByteArray {
+        val image = BufferedImage(SQUARE_SIZE * (count * 2 + 1), SQUARE_SIZE * 3, BufferedImage.TYPE_INT_RGB)
+        val graphics = image.createGraphics()
+        graphics.color = Color.WHITE
+        repeat(count) { graphics.fillRect(SQUARE_SIZE * (it * 2 + 1), SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE) }
+        graphics.dispose()
+        return ByteArrayOutputStream().also { ImageIO.write(image, "png", it) }.toByteArray()
     }
 
     private fun AssistantChat.lastAnswer() = transcript.value.items.filterIsInstance<TranscriptItem.AgentMessage>().lastOrNull()?.text.orEmpty()
@@ -237,7 +314,7 @@ class AssistantLiveScenariosTest {
     private inner class LiveSession {
         val mainThread = Dispatchers.Default
         private val scope = CoroutineScope(SupervisorJob() + mainThread)
-        private val projectDirectory = createTempDirectory().toFile()
+        val projectDirectory = createTempDirectory().toFile()
         val projectPath: String = projectDirectory.path
         private val npx = File(assertNotNull(ShellProcessRunner().locate("npx"), "Node.js isn't installed."))
         private val configDirectory = System.getenv("KUBRIKO_CREATOR_CLAUDE_CONFIG_DIR")
@@ -307,6 +384,17 @@ class AssistantLiveScenariosTest {
          * How many times the writers' room is asked to go on when it stops before building anything, waiting to be told.
          */
         const val FOLLOW_UPS = 2
+
+        /**
+         * The index of the Ball's collision with Brick among its Events in [BreakoutFixture].
+         */
+        const val BRICK_COLLISION = 2
+
+        /**
+         * How many squares the stand-in picture of the Scene shows, and how wide each is, in pixels.
+         */
+        const val SQUARES = 3
+        const val SQUARE_SIZE = 40
 
         /**
          * How long the user takes to answer a question: longer than Claude Code waits for a tool call by default.
