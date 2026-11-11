@@ -15,6 +15,12 @@ package com.pandulapeter.kubrikoCreator.commands
  */
 public interface ActionCommand<I> : EditorCommand<I> {
 
+    /**
+     * Whether it leaves everything as it was, starting no process and touching no file, so that an agent's read-only mode
+     * lets it run.
+     */
+    public val leavesEverythingAsItWas: Boolean get() = false
+
     public suspend fun run(context: CommandContext, input: I): CommandOutcome
 
     /**

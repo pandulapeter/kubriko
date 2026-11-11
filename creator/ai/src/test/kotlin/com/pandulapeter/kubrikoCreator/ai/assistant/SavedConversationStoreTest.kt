@@ -55,11 +55,15 @@ class SavedConversationStoreTest {
         val store = SavedConversationStore(file)
         store.save(saved("a", 1).copy(summary = "Made the Ball faster."))
         store.save(saved("a", 2, agentId = "antigravity-acp"))
+        assertEquals(false, store.of(breakout, "claude-acp").single().isSummaryEarlier)
         store.save(saved("a", 3))
-        assertEquals("Made the Ball faster.", store.of(breakout, "claude-acp").single().summary)
+        val kept = store.of(breakout, "claude-acp").single()
+        assertEquals("Made the Ball faster.", kept.summary)
+        assertEquals(true, kept.isSummaryEarlier)
         assertEquals(null, store.of(breakout, "antigravity-acp").single().summary)
         store.save(saved("a", 4).copy(summary = "Added lives."))
         assertEquals("Added lives.", store.of(breakout, "claude-acp").single().summary)
+        assertEquals(false, store.of(breakout, "claude-acp").single().isSummaryEarlier)
     }
 
     @Test

@@ -18,10 +18,15 @@ internal object LastConversation {
 
     fun withProject(projectContext: String?, last: SavedConversation?): String? {
         val lastTime = when {
-            last?.summary != null -> "What the previous conversation about this project, \"${last.title}\", noted for this one:\n${last.summary}"
-            last?.lastAnswer != null -> "The previous conversation about this project, \"${last.title}\", ended with this answer:\n${last.lastAnswer}"
+            last == null -> null
+            last.summary != null && last.isSummaryEarlier && last.lastAnswer != null ->
+                "${notedBy(last)}\nAfter that, it ended with this answer:\n${last.lastAnswer}"
+            last.summary != null -> notedBy(last)
+            last.lastAnswer != null -> "The previous conversation about this project, \"${last.title}\", ended with this answer:\n${last.lastAnswer}"
             else -> null
         }
         return listOfNotNull(projectContext, lastTime).joinToString("\n\n").ifEmpty { null }
     }
+
+    private fun notedBy(last: SavedConversation) = "What the previous conversation about this project, \"${last.title}\", noted for this one:\n${last.summary}"
 }

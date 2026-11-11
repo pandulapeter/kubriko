@@ -63,7 +63,12 @@ class CommandRegistryTest {
     fun theToolListIsTheCommandList() {
         assertEquals(registry.commands.map { it.name }, registry.tools.map { it.name })
         assertEquals(registry.commands.map { it.description }, registry.tools.map { it.description })
-        assertEquals(registry.commands.map { it is ReadCommand }, registry.tools.map { it.isReadOnly })
+        assertEquals(registry.commands.map { it is ReadCommand || (it is ActionCommand && it.leavesEverythingAsItWas) }, registry.tools.map { it.isReadOnly })
+        assertEquals(registry.commands.map { it is ReadCommand }, registry.tools.map { it.readsProject })
+        assertEquals(
+            setOf("ask_user", "remember_for_next_time"),
+            registry.tools.filter { it.isReadOnly && !it.readsProject }.map { it.name }.toSet(),
+        )
         registry.commands.forEach { assertEquals(it, registry[it.name]) }
     }
 

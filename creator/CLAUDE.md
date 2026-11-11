@@ -217,7 +217,8 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   Blocks named by their titles in the editor, with their IDs in brackets in `english`, which the AI reads. Its `apply`
   returns the inverse `Invocation` (none for git operations, which can't be undone); one that rewrites files without an inverse
   (discarding changes, the template upgrade) says `isRewritingFiles`, which clears the history. An `ActionCommand` (build, play)
-  runs outside the change lock; a `ReadCommand` runs under it, so an AI never reads a change half made (one that reads only
+  runs outside the change lock (one that starts nothing and touches no file, such as `ask_user`, says
+  `leavesEverythingAsItWas`, so its tool is marked read-only and an agent's read-only mode lets it run); a `ReadCommand` runs under it, so an AI never reads a change half made (one that reads only
   Creator's own knowledge says `readsProject = false`, so a download doesn't hold up edits).
 - **`CommandExecutor`** (one per workspace) applies changes one at a time. Consecutive changes with the same `mergeKey` (typing into
   one field) are one undo step; steps of different conversations,

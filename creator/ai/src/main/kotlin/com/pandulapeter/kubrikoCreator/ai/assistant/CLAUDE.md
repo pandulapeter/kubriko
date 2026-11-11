@@ -81,7 +81,8 @@ Hosts Agent Client Protocol agents through the official Kotlin SDK. Tests run `F
   system prompt asks for once a request is done), or else the start of its last answer. The note is written during the
   turn rather than asked for when a conversation is left, since the next conversation starts as soon as the project opens.
   The tool keeps it in the project's `ConversationSummaries` by the conversation's tool address, and the assistant takes it
-  when the turn ends and saves it with the conversation, keeping the last one through turns that note nothing.
+  when a turn ends, stopped ones too, and saves it with the conversation. Turns that note nothing keep it, marked as
+  earlier (`isSummaryEarlier`), so the next conversation hears their last answer after it rather than a stale account alone.
 - **Leaving a conversation:** once it holds something and its agent isn't working, the panel offers a new one above the
   composer (`NewConversationOffer`), stopping a turn that waits for an answer and answering its questions for the user
   (`UserQuestions.LEFT_UNANSWERED`, since an agent may not cancel the call that asked), as a follow-up question shouldn't

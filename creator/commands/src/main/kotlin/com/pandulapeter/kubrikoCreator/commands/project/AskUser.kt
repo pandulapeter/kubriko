@@ -27,6 +27,7 @@ public object AskUser : ActionCommand<AskUser.Input> {
     override val description: String = "Asks the user a question with two to four short answers, which Kubriko Creator shows as buttons beside a field for " +
         "any other answer, and returns the answer once given. Ask in the game's terms, one question at a time."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
+    override val leavesEverythingAsItWas: Boolean = true
 
     override suspend fun run(context: CommandContext, input: Input): CommandOutcome = run(context, input, origin = null)
 

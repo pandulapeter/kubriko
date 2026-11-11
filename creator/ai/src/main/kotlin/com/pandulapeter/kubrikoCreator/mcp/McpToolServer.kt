@@ -200,7 +200,7 @@ public class McpToolServer(
     ) {
         val server = this
         registry.tools.forEach { tool ->
-            val isRemembered = conversationId != null && tool.isReadOnly
+            val isRemembered = conversationId != null && tool.readsProject
             val properties = tool.inputSchema["properties"]?.jsonObject
             addTool(
                 name = tool.name,

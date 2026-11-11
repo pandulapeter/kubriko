@@ -26,6 +26,7 @@ public object RememberForNextTime : ActionCommand<RememberForNextTime.Input> {
     override val description: String = "Notes what this conversation did and what is still open, which the next conversation about the project starts with. " +
         "Each call replaces the last; outside Kubriko Creator's own panel it does nothing."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
+    override val leavesEverythingAsItWas: Boolean = true
 
     override suspend fun run(context: CommandContext, input: Input): CommandOutcome = run(context, input, origin = null)
 

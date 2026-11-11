@@ -58,8 +58,8 @@ undo; and a page's sprite images after a sprite rename.
   `ProjectRelations`, which `get_relations` already reads types, Properties, and Scenes from (sprites and sounds are added).
 - **Searching conversations:** a search field over the open project's saved conversations, never another project's, that finds a query
   in what the user asked and what the agent answered, ignoring case, and lists the matches with the words around them highlighted;
-  choosing one continues that conversation and scrolls to the match. `SavedConversation` keeps only the title and the start of the
-  last answer, and the transcript itself stays with the agent (`session/load` replays it), so Creator keeps each conversation's
+  choosing one continues that conversation and scrolls to the match. `SavedConversation` keeps only the title, the start of the
+  last answer, and the agent's summary, and the transcript itself stays with the agent (`session/load` replays it), so Creator keeps each conversation's
   messages as plain text beside it, without tool calls or images, and capped per conversation. The text is searched in memory, off
   the main thread, and forgotten with the conversation when `SavedConversationStore` drops the oldest beyond
   `conversationsPerProject`. Conversations held by another agent are listed too, marked as such and opened read-only from the kept

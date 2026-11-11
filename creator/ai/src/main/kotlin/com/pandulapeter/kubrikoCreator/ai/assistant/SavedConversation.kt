@@ -24,6 +24,7 @@ import kotlinx.serialization.Serializable
  *   has no [summary].
  * @param isWritersRoom Whether it is a conversation in the writers' room, which is continued with its rules.
  * @param summary What the agent noted last for the next conversation about the project (`remember_for_next_time`).
+ * @param isSummaryEarlier Whether turns that noted nothing came after the [summary], so that [lastAnswer] is newer.
  */
 @Serializable
 public data class SavedConversation(
@@ -35,4 +36,5 @@ public data class SavedConversation(
     @SerialName("lastAnswer") val lastAnswer: String? = null,
     @SerialName("isWritersRoom") val isWritersRoom: Boolean = false,
     @SerialName("summary") val summary: String? = null,
+    @SerialName("isSummaryEarlier") val isSummaryEarlier: Boolean = false,
 )

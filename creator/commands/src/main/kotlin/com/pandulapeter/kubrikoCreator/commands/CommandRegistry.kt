@@ -136,7 +136,8 @@ public class CommandRegistry(
                 name = command.name,
                 description = command.description,
                 inputSchema = JsonSchema.of(command.inputSerializer.descriptor),
-                isReadOnly = command is ReadCommand,
+                isReadOnly = command is ReadCommand || (command is ActionCommand && command.leavesEverythingAsItWas),
+                readsProject = command is ReadCommand,
                 isDestructive = command is WriteCommand && command.isDestructive,
                 isAlwaysLoaded = command in alwaysLoaded,
             )

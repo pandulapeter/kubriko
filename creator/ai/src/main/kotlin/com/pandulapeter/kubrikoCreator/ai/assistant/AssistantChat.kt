@@ -223,12 +223,12 @@ public class AssistantChat(
                     val toolsId = _toolsId.value
                     _transcript.update { transcript -> transcript.withTurnChanges(turnStart, log.since(turnStart).filter { it.step == null && it.origin?.conversationId == toolsId }) }
                 }
-                val title = _transcript.value.title
-                if (title != null) onTurnEnded(conversation.id.value, title, _transcript.value.items.filterIsInstance<TranscriptItem.AgentMessage>().lastOrNull()?.text, _toolsId.value)
+                saveTurn(conversation)
             } catch (exception: CancellationException) {
                 if (!currentCoroutineContext().isActive) throw exception
                 forgetReads(conversation)
                 _transcript.update { it.withFailure(FailureReason.AGENT_STOPPED) }
+                saveTurn(conversation)
             } catch (_: ConversationLostException) {
                 _transcript.update { it.withFailure(FailureReason.CONVERSATION_LOST) }
                 _state.value = ChatState.Failed(FailureReason.CONVERSATION_LOST)
@@ -244,6 +244,14 @@ public class AssistantChat(
         turn.invokeOnCompletion { _isBusy.value = false }
         turnGatheringContext = turn
         turn.start()
+    }
+
+    /**
+     * Hands the turn that ended, stopped or not, to [onTurnEnded], since a stopped one may have changed and noted things too.
+     */
+    private suspend fun saveTurn(conversation: AgentConversation) {
+        val title = _transcript.value.title ?: return
+        onTurnEnded(conversation.id.value, title, _transcript.value.items.filterIsInstance<TranscriptItem.AgentMessage>().lastOrNull()?.text, _toolsId.value)
     }
 
     /**

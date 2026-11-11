@@ -266,6 +266,7 @@ class AssistantChatTest {
         val chat = readyChat()
         chat.sendAndWait("crash")
         assertEquals(TranscriptItem.Failure(FailureReason.AGENT_STOPPED), chat.transcript.value.items.last())
+        assertEquals(listOf("tools"), endedTurns.map { it.third }, "A stopped turn isn't saved with what it noted.")
         chat.sendAndWait("hello")
         assertEquals(TranscriptItem.AgentMessage("Hi there"), chat.transcript.value.items.last())
     }

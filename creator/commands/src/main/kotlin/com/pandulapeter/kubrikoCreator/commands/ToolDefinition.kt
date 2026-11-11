@@ -14,7 +14,8 @@ import kotlinx.serialization.json.JsonObject
 /**
  * A command as an AI tool: what the MCP server lists and the assistant panel sends to the model.
  *
- * @param isReadOnly Whether calling the tool leaves the project as it is.
+ * @param isReadOnly Whether calling the tool leaves the project, and everything else, as it is.
+ * @param readsProject Whether the tool reads the project, so that a conversation calling it again hears what changed.
  * @param isDestructive Whether calling the tool throws work away for good.
  * @param isAlwaysLoaded Whether a client that loads tool schemas only when the model asks for them (Claude Code's tool
  *   search) should load this one from the start, as one nearly every conversation uses.
@@ -26,4 +27,5 @@ public data class ToolDefinition(
     val isReadOnly: Boolean,
     val isDestructive: Boolean,
     val isAlwaysLoaded: Boolean = false,
+    val readsProject: Boolean = false,
 )

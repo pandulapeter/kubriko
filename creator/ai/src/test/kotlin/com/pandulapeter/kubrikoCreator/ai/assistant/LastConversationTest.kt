@@ -29,6 +29,13 @@ class LastConversationTest {
     )
 
     @Test
+    fun anEarlierSummaryIsToldWithTheAnswerThatCameAfterIt() = assertEquals(
+        "What the previous conversation about this project, \"Make the Ball faster\", noted for this one:\nThe Ball is faster; the Paddle is still slow.\n" +
+            "After that, it ended with this answer:\nDone: the Ball moves at 360.",
+        LastConversation.withProject(null, last.copy(summary = "The Ball is faster; the Paddle is still slow.", isSummaryEarlier = true)),
+    )
+
+    @Test
     fun withoutAnAnswerOnlyTheProjectIsTold() {
         assertEquals("Digest", LastConversation.withProject("Digest", last.copy(lastAnswer = null)))
         assertNull(LastConversation.withProject(null, null))
