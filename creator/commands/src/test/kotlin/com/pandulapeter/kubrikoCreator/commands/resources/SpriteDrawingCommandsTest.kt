@@ -159,4 +159,14 @@ class SpriteDrawingCommandsTest {
         assertEquals(missing, EditSprite.apply(context, EditSprite.Input("drawable/ship.png", EditSprite.Operation.Flip(), frame = 1)).failure)
         assertEquals(missing, assertIs<CommandOutcome.Rejected>(ReadSprite.read(context, ReadSprite.Input("drawable/ship.png", frame = 1))).rejection)
     }
+
+    @Test
+    fun aScaleThatWouldMakeTheImageTooLargeIsRefusedBeforeAnyPixelIsTouched() = runTest {
+        val context = context(PixelImage(300, 2))
+        assertEquals(
+            Rejection(SpriteProblem.SPRITE_SIZE_INVALID, "4096"),
+            EditSprite.apply(context, EditSprite.Input("drawable/ship.png", EditSprite.Operation.Scale(16))).failure,
+        )
+        assertEquals(300, context.image().width)
+    }
 }

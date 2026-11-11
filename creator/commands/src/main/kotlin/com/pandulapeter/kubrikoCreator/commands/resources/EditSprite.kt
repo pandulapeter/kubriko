@@ -42,12 +42,15 @@ public object EditSprite : WriteCommand<EditSprite.Input> {
 
     override suspend fun apply(context: CommandContext, input: Input): Applied = context.editSpriteImage(input.sprite) { frames ->
         frameMissingFrom(frames, input.sprite, input.frame)?.let { return@editSpriteImage SpriteEdit.Rejected(it) }
-        val edited = frames.mapped(input.frame) { frame -> input.operation.applyTo(frame) }
-        when {
-            edited == null -> SpriteEdit.Rejected(Rejection(SpriteProblem.SPRITE_FRAME_SIZE_ALONE))
-            edited.toImage().let { it.width > MAXIMUM_SIZE || it.height > MAXIMUM_SIZE } -> SpriteEdit.Rejected(Rejection(SpriteProblem.SPRITE_SIZE_INVALID, MAXIMUM_SIZE.toString()))
-            else -> SpriteEdit.Edited(edited)
+        val (frameWidth, frameHeight) = input.operation.sizeOf(frames.frameWidth, frames.frameHeight)
+        val columns = frames.sheet?.let { minOf(it.framesPerRow, it.frameCount) } ?: 1
+        val rows = frames.sheet?.rowCount ?: 1
+        // Checked before any pixel is touched, so a slip of a scale can't build an image too large to hold.
+        if (frameWidth.toLong() * columns > MAXIMUM_SIZE || frameHeight.toLong() * rows > MAXIMUM_SIZE) {
+            return@editSpriteImage SpriteEdit.Rejected(Rejection(SpriteProblem.SPRITE_SIZE_INVALID, MAXIMUM_SIZE.toString()))
         }
+        frames.mapped(input.frame) { frame -> input.operation.applyTo(frame) }?.let(SpriteEdit::Edited)
+            ?: SpriteEdit.Rejected(Rejection(SpriteProblem.SPRITE_FRAME_SIZE_ALONE))
     }
 
     /**
@@ -73,6 +76,11 @@ public object EditSprite : WriteCommand<EditSprite.Input> {
     public sealed interface Operation {
         public fun applyTo(image: PixelImage): PixelImage
 
+        /**
+         * The width and height a frame of [width] by [height] pixels has once this is applied to it.
+         */
+        public fun sizeOf(width: Int, height: Int): Pair<Int, Int> = width to height
+
         @Serializable
         @SerialName("flip")
         @Description("Mirrors it, left to right, or top to bottom.")
@@ -91,6 +99,8 @@ public object EditSprite : WriteCommand<EditSprite.Input> {
             @SerialName("isClockwise") val isClockwise: Boolean = true,
         ) : Operation {
             override fun applyTo(image: PixelImage): PixelImage = PixelOperations.rotated(image, isClockwise)
+
+            override fun sizeOf(width: Int, height: Int): Pair<Int, Int> = height to width
         }
 
         @Serializable
@@ -117,6 +127,8 @@ public object EditSprite : WriteCommand<EditSprite.Input> {
             @SerialName("anchor") val anchor: CanvasAnchor = CanvasAnchor.CENTER,
         ) : Operation {
             override fun applyTo(image: PixelImage): PixelImage = PixelOperations.resizedCanvas(image, width, height, anchor)
+
+            override fun sizeOf(width: Int, height: Int): Pair<Int, Int> = this.width to this.height
         }
 
         @Serializable
@@ -127,6 +139,9 @@ public object EditSprite : WriteCommand<EditSprite.Input> {
             @SerialName("factor") val factor: Int,
         ) : Operation {
             override fun applyTo(image: PixelImage): PixelImage = PixelOperations.scaled(image, factor)
+
+            override fun sizeOf(width: Int, height: Int): Pair<Int, Int> = (width.toLong() * factor).coerceAtMost(Int.MAX_VALUE.toLong()).toInt() to
+                (height.toLong() * factor).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
         }
     }
 }
