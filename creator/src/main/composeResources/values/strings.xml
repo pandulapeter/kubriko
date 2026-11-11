@@ -1155,6 +1155,11 @@
     <string name="error_game_settings_first_scene_invalid">"%1$s" isn't a Scene name: folder names and a name separated by slashes, like levels/1-1.</string>
     <string name="error_game_settings_viewport_size_invalid">The viewport's width and height are numbers from 1 to %1$s.</string>
     <string name="error_game_settings_frame_rate_invalid">The frame rate is a whole number of updates per second from 1 to %1$s, or 0 for every frame the display shows.</string>
+    <string name="error_sprite_sheet_frame_size">A frame's width and height are whole numbers of pixels from 1.</string>
+    <string name="error_sprite_sheet_frame_count">The number of frames, and of frames in a row, are whole numbers from 1.</string>
+    <string name="error_sprite_sheet_frames_per_second">The frames per second are a number above 0, at most 240.</string>
+    <string name="error_sprite_sheet_origin">The origin is inside a frame: from 0 to its width across, and from 0 to its height down.</string>
+    <string name="error_sprite_sheet_larger_than_image">The frames don't fit the image: their rows take more room than it has.</string>
     <string name="project_settings_title">Project settings</string>
     <string name="project_settings_unreadable">Couldn't read this project's settings: %1$s</string>
     <string name="project_settings_section_identity">Identity</string>

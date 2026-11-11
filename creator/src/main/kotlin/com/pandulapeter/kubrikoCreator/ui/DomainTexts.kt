@@ -23,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneProblem
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneStatus
 import com.pandulapeter.kubrikoCreator.screenplay.ScreenplayStyle
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheetProblem
 import com.pandulapeter.kubrikoCreator.template.TargetProblem
 import com.pandulapeter.kubrikoCreator.template.TemplateProblem
 import com.pandulapeter.kubrikoCreator.ui.components.FieldError
@@ -49,6 +50,7 @@ internal val DomainText.resource: StringResource
         is CommandProblem -> toResource()
         is LookupProblem -> toResource()
         is PlacementProblem -> toResource()
+        is SpriteSheetProblem -> toResource()
         is WorkspaceStatus -> toResource()
         is ScreenplayStyle.Rule -> toResource()
         else -> error("No string for ${this::class.simpleName}.$this")

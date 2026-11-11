@@ -93,4 +93,41 @@ class SpriteFolderStoreTest {
         store.refresh()
         assertEquals("enemies", store.state.value.folderOf["bat"])
     }
+
+    @Test
+    fun aSheetIsKeptBesideTheFolderAndGoesWithItsLastFile() {
+        val sheet = SpriteSheet(frameWidth = 16, frameHeight = 16, frameCount = 4, framesPerRow = 2, framesPerSecond = 8f)
+        store.setSheet("bat", sheet)
+        assertEquals(mapOf("bat" to sheet), store.state.value.sheets)
+        assertEquals(mapOf("bat" to sheet), SpriteFolderStore.readSheets(root))
+        store.createFolder("enemies")
+        store.move("bat", "enemies")
+        assertEquals(sheet, store.state.value.sheets["bat"])
+        store.move("bat", "")
+        store.setSheet("bat", null)
+        assertEquals(emptyList(), store.filesOf("bat"))
+        assertEquals(SpriteFolderStore.State(setOf("enemies")), store.state.value)
+    }
+
+    @Test
+    fun removingASheetKeepsTheFolderAndWhatElseTheFileHolds() {
+        File(root, ".kubriko/sprites/enemies").mkdirs()
+        File(root, ".kubriko/sprites/enemies/bat.json").writeText("{\"later\":1}\n")
+        store.refresh()
+        store.setSheet("bat", SpriteSheet(frameWidth = 8, frameHeight = 8, frameCount = 2, framesPerRow = 2))
+        store.setSheet("bat", null)
+        assertEquals("{\n    \"later\": 1\n}\n", File(root, ".kubriko/sprites/enemies/bat.json").readText())
+        assertEquals("enemies", store.state.value.folderOf["bat"])
+    }
+
+    @Test
+    fun aSheetThatCanNotBePlayedOrReadIsLeftOut() {
+        File(root, ".kubriko/sprites").mkdirs()
+        File(root, ".kubriko/sprites/bat.json").writeText("{\"sheet\":{\"frameWidth\":0,\"frameHeight\":8,\"frameCount\":2,\"framesPerRow\":2}}")
+        File(root, ".kubriko/sprites/owl.json").writeText("{\"sheet\":{\"frameWidth\":\"wide\"}}")
+        File(root, ".kubriko/sprites/cat.json").writeText("not json")
+        store.refresh()
+        assertEquals(emptyMap(), store.state.value.sheets)
+        assertEquals(setOf("bat", "owl", "cat"), store.state.value.folderOf.keys)
+    }
 }

@@ -22,6 +22,7 @@ import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneProblem
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneStatus
 import com.pandulapeter.kubrikoCreator.screenplay.ScreenplayStyle
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheetProblem
 import com.pandulapeter.kubrikoCreator.template.TargetProblem
 import com.pandulapeter.kubrikoCreator.template.TemplateProblem
 import com.pandulapeter.kubrikoCreator.testing.creatorSourceRoots
@@ -49,6 +50,7 @@ class DomainTextsTest {
         CommandProblem::class to CommandProblem.entries,
         LookupProblem::class to LookupProblem.entries,
         PlacementProblem::class to PlacementProblem.entries,
+        SpriteSheetProblem::class to SpriteSheetProblem.entries,
         WorkspaceStatus::class to WorkspaceStatus.entries,
         ScreenplayStyle.Rule::class to ScreenplayStyle.Rule.entries,
     )

@@ -16,7 +16,11 @@ import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import java.io.File
+import java.io.IOException
 
 /**
  * The sidebar's folders of sprites, which are virtual, since Compose resources make accessors only of the images right in
@@ -32,10 +36,13 @@ public class SpriteFolderStore(
     /**
      * @param folders Every folder, as paths (`enemies/flying`), empty ones too.
      * @param folderOf The folder of each sprite in one, by the sprite's name.
+     * @param sheets How each sprite cut into frames is cut, by the sprite's name; a sheet that can't be played
+     *   ([SpriteSheet.problem]) is left out, so the image shows whole.
      */
     public data class State(
         val folders: Set<String> = emptySet(),
         val folderOf: Map<String, String> = emptyMap(),
+        val sheets: Map<String, SpriteSheet> = emptyMap(),
     )
 
     private val directory get() = File(rootDirectory, DIRECTORY)
@@ -56,6 +63,7 @@ public class SpriteFolderStore(
         _state.value = State(
             folders = files.filter { it.isDirectory }.mapTo(sortedSetOf()) { it.relativeTo(root).invariantSeparatorsPath },
             folderOf = filesByName.mapValues { (_, named) -> named.first().parentFile.relativeTo(root).invariantSeparatorsPath },
+            sheets = sheetsOf(filesByName),
         )
     }
 
@@ -124,6 +132,33 @@ public class SpriteFolderStore(
     }
 
     /**
+     * Cuts the sprite called [name] into frames as [sheet] says, or shows it whole for null, keeping the rest of what its
+     * file holds. A sprite left with nothing to keep and in no folder has no file. Throws [java.io.IOException] when the
+     * file can't be written, changing nothing.
+     */
+    @EditorMutation
+    public fun setSheet(name: String, sheet: SpriteSheet?) {
+        val files = filesOf(name)
+        val content = files.firstOrNull()?.let(::contentOf) ?: JsonObject(emptyMap())
+        val text = textOf(JsonObject(if (sheet == null) content - SHEET else content + (SHEET to json.encodeToJsonElement(SpriteSheet.serializer(), sheet))))
+        val folder = state.value.folderOf[name].orEmpty()
+        val target = files.firstOrNull() ?: File(File(directory, folder), "$name.$EXTENSION")
+        if (text == DEFAULT_TEXT && folder.isEmpty()) {
+            files.forEach { file ->
+                file.delete()
+                ownWrites.record(file)
+            }
+        } else {
+            files.ifEmpty { listOf(target) }.forEach { file ->
+                file.parentFile.mkdirs()
+                file.writeTextAtomically(text)
+                ownWrites.record(file)
+            }
+        }
+        refresh()
+    }
+
+    /**
      * Renames the files of the sprite called [name], if it has any, to [newName]'s in the same folders, replacing a file
      * left there for an image of that name that no longer exists.
      */
@@ -150,5 +185,45 @@ public class SpriteFolderStore(
         public const val DIRECTORY: String = ".kubriko/sprites"
         public const val DEFAULT_TEXT: String = "{}\n"
         private const val EXTENSION = "json"
+        private const val SHEET = "sheet"
+        private val json = Json {
+            ignoreUnknownKeys = true
+            prettyPrint = true
+        }
+
+        /**
+         * How each sprite of the project at [rootDirectory] is cut into frames, by its name, as [State.sheets] says, read
+         * from the disk. Blocks.
+         */
+        public fun readSheets(rootDirectory: File): Map<String, SpriteSheet> {
+            val root = File(rootDirectory, DIRECTORY)
+            val files = root.walkTopDown().filter { it.isFile && it.extension == EXTENSION }.sortedBy { it.invariantSeparatorsPath }
+            return sheetsOf(files.groupBy { it.nameWithoutExtension })
+        }
+
+        private fun sheetsOf(filesByName: Map<String, List<File>>) = filesByName.mapNotNull { (name, files) ->
+            sheetOf(files.first())?.let { name to it }
+        }.toMap()
+
+        private fun sheetOf(file: File) = contentOf(file)?.get(SHEET)?.let { element ->
+            try {
+                json.decodeFromJsonElement(SpriteSheet.serializer(), element).takeIf { it.problem == null }
+            } catch (_: IllegalArgumentException) {
+                null
+            }
+        }
+
+        /**
+         * What [file] holds, or null when it can't be read or isn't a JSON object.
+         */
+        private fun contentOf(file: File) = try {
+            json.parseToJsonElement(file.readText()) as? JsonObject
+        } catch (_: IOException) {
+            null
+        } catch (_: SerializationException) {
+            null
+        }
+
+        private fun textOf(content: JsonObject) = if (content.isEmpty()) DEFAULT_TEXT else json.encodeToString(JsonObject.serializer(), content) + "\n"
     }
 }
