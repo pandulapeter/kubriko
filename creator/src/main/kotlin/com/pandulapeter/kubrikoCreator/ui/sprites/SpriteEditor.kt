@@ -68,7 +68,8 @@ import java.io.File
  * @param sheet How the sprite is cut into frames, if it is.
  * @param revision Changes whenever the image may have changed, so it is read again.
  * @param palette The project's palette, each `0xAARRGGBB`.
- * @param onCommand Applies a command unless it is rejected, returning why it was.
+ * @param onCommand Applies a command unless it is rejected, returning why it was, and calling its `onFailure` if
+ *   applying it fails after all.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -79,7 +80,7 @@ internal fun SpriteEditor(
     revision: Any?,
     palette: List<Long>,
     state: SpriteEditorState,
-    onCommand: (Invocation<*>) -> Rejection?,
+    onCommand: (Invocation<*>, onFailure: () -> Unit) -> Rejection?,
     modifier: Modifier = Modifier,
 ) {
     remember(path) { state.showSprite(path) }
@@ -92,19 +93,14 @@ internal fun SpriteEditor(
     }
     val frameIndex = state.frameIndex.coerceIn(0, frames.frames.size - 1)
     val frame = frames.frames[frameIndex]
-    val draw: (List<Pixel>) -> Unit = { pixels ->
-        if (pixels.isNotEmpty()) {
-            val pixelsToDraw = pixels.map { DrawPixels.DrawnPixel(it.x, it.y, it.color.toLong() and 0xFFFFFFFFL) }
-            if (onCommand(Invocation(DrawPixels, DrawPixels.Input(path, frameIndex, pixelsToDraw))) != null) state.pendingPixels = emptyList()
-        }
-    }
+    val draw: (List<Pixel>) -> Unit = { state.draw(it, path, frameIndex, onCommand) }
     var askedAction by remember { mutableStateOf<SpriteImageAction?>(null) }
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(canvasSize, frame.width, frame.height) {
         if (state.isFitPending && canvasSize != IntSize.Zero) state.zoomToFit(frame.width, frame.height, canvasSize.width.toFloat(), canvasSize.height.toFloat())
     }
-    val editImage: (EditSprite.Operation) -> Unit = { onCommand(Invocation(EditSprite, EditSprite.Input(path, it, frame = if (state.isEveryFrame) null else frameIndex))) }
+    val editImage: (EditSprite.Operation) -> Unit = { onCommand(Invocation(EditSprite, EditSprite.Input(path, it, frame = if (state.isEveryFrame) null else frameIndex))) {} }
     Column(
         modifier = modifier
             .focusRequester(focusRequester)
@@ -135,7 +131,7 @@ internal fun SpriteEditor(
                 state = state,
                 palette = palette,
                 frameColors = remember(frame) { frame.colors().take(MAXIMUM_FRAME_COLORS) },
-                onPaletteChange = { onCommand(Invocation(SetPalette, SetPalette.Input(it))) },
+                onPaletteChange = { onCommand(Invocation(SetPalette, SetPalette.Input(it))) {} },
             )
         }
         HorizontalDivider()
@@ -153,6 +149,18 @@ internal fun SpriteEditor(
             onDismiss = { askedAction = null },
         )
     }
+}
+
+/**
+ * Draws [pixels] on frame [frameIndex] of the sprite at [path] through [onCommand], as one step. They show over the frame
+ * ([SpriteEditorState.pendingPixels], which the canvas sets as it draws) until the image is read again, or until the
+ * write is refused or fails, which leaves the image as it was.
+ */
+internal fun SpriteEditorState.draw(pixels: List<Pixel>, path: String, frameIndex: Int, onCommand: (Invocation<*>, onFailure: () -> Unit) -> Rejection?) {
+    if (pixels.isEmpty()) return
+    val dropPending = { if (pendingPixels === pixels) pendingPixels = emptyList() }
+    val drawn = pixels.map { DrawPixels.DrawnPixel(it.x, it.y, it.color.toLong() and 0xFFFFFFFFL) }
+    if (onCommand(Invocation(DrawPixels, DrawPixels.Input(path, frameIndex, drawn)), dropPending) != null) dropPending()
 }
 
 @Composable

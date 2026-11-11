@@ -12,12 +12,14 @@ package com.pandulapeter.kubrikoCreator.commands.resources
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
+import com.pandulapeter.kubrikoCreator.commands.testScope
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import com.pandulapeter.kubrikoCreator.sprites.pixels.PixelImage
@@ -33,6 +35,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 @OptIn(EditorMutation::class)
 class SpriteDrawingCommandsTest {
@@ -178,5 +181,17 @@ class SpriteDrawingCommandsTest {
             Rejection(SpriteProblem.SPRITE_SIZE_INVALID, "4096"),
             ImportSpriteFrames.apply(context, ImportSpriteFrames.Input(listOf(tall.path), "drawable/tall.png")).failure,
         )
+    }
+
+    @Test
+    fun aDrawingWatchedForFailureHearsWhenItsWriteFails() = runTest {
+        val context = context()
+        context.spriteImageFile("drawable/ship.png").writeText("not an image")
+        val executor = CommandExecutor(context, testScope())
+        var failures = 0
+        val input = DrawPixels.Input("drawable/ship.png", pixels = listOf(DrawPixels.DrawnPixel(0, 0, red)))
+        assertNull(executor.dispatchIfValidWatching(Invocation(DrawPixels, input)) { failures++ })
+        testScheduler.advanceUntilIdle()
+        assertEquals(1, failures)
     }
 }

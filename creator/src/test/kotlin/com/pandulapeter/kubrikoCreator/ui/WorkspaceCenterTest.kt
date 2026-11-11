@@ -56,7 +56,7 @@ class WorkspaceCenterTest {
                     panelLayout = PanelLayout(emptyMap(), onSizeChange = { _, _ -> }, onSizeReset = {}),
                     onCommand = { _, _ -> },
                     currentBlockType = { null },
-                    onCommandIfValid = { null },
+                    onCommandIfValid = { _, _ -> null },
                     broughtBack = emptyFlow(),
                     onTypeSelected = {},
                     onPlayScene = {},

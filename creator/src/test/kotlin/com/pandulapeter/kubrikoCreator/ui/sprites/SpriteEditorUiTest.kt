@@ -78,7 +78,7 @@ class SpriteEditorUiTest {
                 revision = 0,
                 palette = listOf(0xFF00FF00),
                 state = state,
-                onCommand = { commands += it; null },
+                onCommand = { invocation, _ -> commands += invocation; null },
                 modifier = Modifier.fillMaxSize(),
             )
         }

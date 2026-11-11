@@ -59,7 +59,8 @@ import org.jetbrains.compose.resources.stringResource
  * @param shownAiStep The AI's step the type editor lights up, if any.
  * @param onCommand Applies a command, calling its `onSuccess` unless it is rejected.
  * @param currentBlockType The type of the given name as it is now, not as last composed.
- * @param onCommandIfValid Applies a command unless it is rejected, returning why it was.
+ * @param onCommandIfValid Applies a command unless it is rejected, returning why it was, and calling its `onFailure` if
+ *   applying it fails after all.
  * @param broughtBack The Actors each undo or redo put back, which the Scene editor selects.
  * @param editorAttention Told what the editors show, which the assistant offers.
  * @param markdownText The text of the page or document shown, once it is read, or null.
@@ -86,7 +87,7 @@ internal fun WorkspaceCenter(
     panelLayout: PanelLayout,
     onCommand: (Invocation<*>, onSuccess: () -> Unit) -> Unit,
     currentBlockType: (name: String) -> BlockTypeDefinition?,
-    onCommandIfValid: (Invocation<*>) -> Rejection?,
+    onCommandIfValid: (Invocation<*>, onFailure: () -> Unit) -> Rejection?,
     broughtBack: Flow<ActorsBroughtBack>,
     onTypeSelected: (String) -> Unit,
     onPlayScene: (sceneName: String) -> Unit,
@@ -138,7 +139,7 @@ internal fun WorkspaceCenter(
             isChangedByHand = selectedBlockType.name in changedByHand,
             onCommand = onCommand,
             currentBlockType = currentBlockType,
-            onCommandIfValid = onCommandIfValid,
+            onCommandIfValid = { onCommandIfValid(it) {} },
             onTypeSelected = onTypeSelected,
             highlight = shownAiStep?.let { it.step.highlightIn(selectedBlockType.name, it.flashKey) },
             editorAttention = editorAttention,

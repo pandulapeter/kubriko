@@ -106,6 +106,18 @@ public class CommandExecutor(
     }
 
     /**
+     * Applies [invocation] unless it is rejected, as [dispatchIfValid] does, and calls [onFailure] if applying it fails
+     * after all, for a caller showing the change before it is made.
+     *
+     * @return Why it was rejected, or null if it is being applied.
+     */
+    public fun dispatchIfValidWatching(invocation: Invocation<*>, onFailure: () -> Unit): Rejection? {
+        validate(invocation)?.let { return it }
+        scope.launch(start = CoroutineStart.UNDISPATCHED) { execute(invocation).report(onFailure = onFailure) }
+        return null
+    }
+
+    /**
      * Applies [command] in the background, for user interface callbacks, reporting a rejection through [onRejected].
      * A change that needs no disk or git access shows before this returns, unless an AI tool call holds the change lock, so
      * text fields never lag behind what was typed.
@@ -377,9 +389,12 @@ public class CommandExecutor(
         (if (steps.any { it.id == step.id }) steps.map { if (it.id == step.id) step else it } else steps + step).takeLast(AI_STEP_COUNT)
     }
 
-    private fun CommandOutcome.report(onSuccess: () -> Unit = {}) = when (this) {
+    private fun CommandOutcome.report(onSuccess: () -> Unit = {}, onFailure: () -> Unit = {}) = when (this) {
         is CommandOutcome.Success -> onSuccess()
-        is CommandOutcome.Rejected -> onRejected(rejection)
+        is CommandOutcome.Rejected -> {
+            onRejected(rejection)
+            onFailure()
+        }
     }
 
     private fun record(entry: HistoryEntry) {

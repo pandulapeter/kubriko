@@ -481,7 +481,7 @@ private fun WorkspaceCenterOf(
     panelLayout = panelLayout,
     onCommand = { invocation, onSuccess -> uiState.dispatch(invocation, onSuccess, controller.commands::dispatch) },
     currentBlockType = { controller.blockTypes?.get(it) },
-    onCommandIfValid = { controller.commands.dispatchIfValid(it) },
+    onCommandIfValid = controller.commands::dispatchIfValidWatching,
     broughtBack = controller.commands.broughtBack,
     onTypeSelected = { controller.selection.selectType(it) },
     onPlayScene = { controller.play(firstScene = it) },
