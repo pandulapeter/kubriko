@@ -125,19 +125,12 @@ class SidebarDragStateTest {
     }
 
     @Test
-    fun aFolderMovesIntoAnotherButNeverIntoItselfAndItsOpenFoldersFollowOnceItMoved() {
+    fun aFolderMovesIntoAnotherButNeverIntoItself() {
         val folderMoves = mutableListOf<Triple<FolderGroup, String, String>>()
-        var finishMove = {}
-        val followed = mutableListOf<Triple<String, String, String>>()
-        state.onMoveFolder = { group, path, folder, onMoved ->
-            folderMoves += Triple(group, path, folder)
-            finishMove = onMoved
-        }
-        state.onFolderMoved = { groupKey, path, newPath -> followed += Triple(groupKey, path, newPath) }
+        state.onMoveFolder = { group, path, folder -> folderMoves += Triple(group, path, folder) }
         state.target(SidebarDragState.FolderKey(FolderGroup.ACTOR_TYPES, "toys/balls"), Rect(0f, 200f, 260f, 230f))
         state.target(SidebarDragState.FolderKey(FolderGroup.ACTOR_TYPES, "toys"), Rect(0f, 230f, 260f, 260f), id = "Ball")
-        val toys = SidebarDragState.Dragged("toys", FolderGroup.ACTOR_TYPES, folder = "", movedFolderOf = "group")
-        state.start(toys, Offset(10f, 40f))
+        state.start(SidebarDragState.Dragged("toys", FolderGroup.ACTOR_TYPES, folder = "", isFolder = true), Offset(10f, 40f))
         for (inside in listOf(40f, 210f, 240f)) {
             state.moveTo(Offset(10f, inside))
             assertNull(state.hoveredFolder)
@@ -145,13 +138,10 @@ class SidebarDragStateTest {
         state.moveTo(Offset(400f, 50f))
         assertFalse(state.isOverScene, "A folder of Actor types isn't placed")
         state.end()
-        state.start(SidebarDragState.Dragged("toys/balls", FolderGroup.ACTOR_TYPES, folder = "toys", movedFolderOf = "group"), Offset(10f, 210f))
+        state.start(SidebarDragState.Dragged("toys/balls", FolderGroup.ACTOR_TYPES, folder = "toys", isFolder = true), Offset(10f, 210f))
         state.moveTo(Offset(10f, 10f))
         state.end()
         assertEquals(listOf(Triple(FolderGroup.ACTOR_TYPES, "toys/balls", "")), folderMoves)
         assertTrue(placed.isEmpty() && moved.isEmpty())
-        assertTrue(followed.isEmpty())
-        finishMove()
-        assertEquals(listOf(Triple("group", "toys/balls", "balls")), followed)
     }
 }

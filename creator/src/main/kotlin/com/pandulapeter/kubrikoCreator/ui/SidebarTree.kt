@@ -40,8 +40,6 @@ internal class SidebarTree(
         )
     }
 
-    fun followFolder(groupKey: String, path: String, newPath: String) = expansion.followFolder(groupKey, path, newPath)
-
     fun collapsedFolders(groupKey: String) = if (isFiltering) emptySet() else expansion.collapsedFolders(groupKey)
 
     fun toggledKotlinRows(groupKey: String) = if (isFiltering) emptySet() else expansion.toggledKotlinRows(outline, groupKey)

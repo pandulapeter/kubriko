@@ -65,7 +65,7 @@ class ProjectSidebarTest {
         onSelectionCleared = {},
         onCreateItem = { _, _ -> null },
         onCreateFolder = { _, _ -> null },
-        onRenameFolder = { _, _, _, _ -> null },
+        onRenameFolder = { _, _, _ -> null },
         onDeleteFolder = { _, _, _ -> },
         onRenameItem = { group, name, newName -> null.also { renamedItems += Triple(group, name, newName) } },
         onDeleteItem = { group, name -> deletedItems += group to name },
@@ -123,7 +123,7 @@ class ProjectSidebarTest {
     @Test
     fun draggingAFolderMovesItIntoAnotherButNeverIntoItself() = uiTest(width = 300, height = 600) {
         val moves = mutableListOf<Pair<String, String>>()
-        val dragState = SidebarDragState().apply { onMoveFolder = { _, path, folder, _ -> moves += path to folder } }
+        val dragState = SidebarDragState().apply { onMoveFolder = { _, path, folder -> moves += path to folder } }
         showing {
             ProjectSidebar(
                 modifier = Modifier.fillMaxSize(),

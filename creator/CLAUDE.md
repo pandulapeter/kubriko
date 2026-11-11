@@ -627,9 +627,11 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
 - Opening a closed folder, Kotlin container, group, or module opens it with every folder in it closed, so a deep tree opens
   a level at a time, and a row holding folders offers Expand all and Collapse all while it is pointed at. What is open is
   kept by key (`SidebarKeys`) over an outline of everything as if it were all open (`SidebarOutline`), so a folder keeps its
-  state while the rows around it come and go, and a moved or renamed folder takes it along once the move is done. It is
-  this computer's, kept per project (`SidebarExpansionMemory`, `.kubriko/local/sidebar.json`); since the types are read
-  after the files, a kept choice is forgotten only once what it is about was shown and is gone again. Those buttons are laid over the end of the row's name rather than given room
+  state while the rows around it come and go, and what is open in a folder follows it in every module whoever moves or
+  renames it (undo, redo, and an AI too), told by the command before anything moves (`FolderMoves`), since the moved folder
+  shows before any later notice would arrive. It is this computer's, kept per project (`SidebarFolderExpansion`,
+  `.kubriko/local/sidebar.json`); since the types are read after the files, a kept choice about what isn't shown is
+  forgotten only once the whole project was read. Those buttons are laid over the end of the row's name rather than given room
   of their own (`SidebarRowTitle`), so a long module or folder name isn't cut while nothing is pointed at. Every row of the
   sidebar's list moves with `sidebarItemMotion`, since a row that jumped among sliding ones looks broken, and the list
   starts with a row that never changes, so bands inserted above the first group keep the top in view.

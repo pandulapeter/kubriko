@@ -12,6 +12,7 @@ import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.AudioFolderIndex
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypes
+import com.pandulapeter.kubrikoCreator.commands.folders.FolderMoves
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.console.ConsoleLines
 import com.pandulapeter.kubrikoCreator.context.KeyedCache
@@ -75,6 +76,11 @@ public class CommandContext(
      * Where Kubriko Creator moved pages and documents to, so that the page editor follows them.
      */
     public val movedFiles: MovedFiles = MovedFiles()
+
+    /**
+     * Where commands move folders to, so that the sidebar's open folders follow them.
+     */
+    public val folderMoves: FolderMoves = FolderMoves()
 
     /**
      * The folders of the game's own `files` folders, which sounds and music are kept in, as of the last resource scan

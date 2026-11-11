@@ -35,18 +35,15 @@ internal class SidebarDragState(
      * @param group Its group, or null for a document.
      * @param folder The folder it is in now, for a document from the project's root.
      * @param module The module its group is shown in, which it can't be moved out of (unlike a document).
-     * @param movedFolderOf For a folder, by its path in [name], the key of its group's tree ([SidebarKeys]), whose open
-     *   and closed folders follow it ([onFolderMoved]); null for anything else.
+     * @param isFolder Whether it is a folder of [group], by its path in [name], moving with everything in it.
      */
     data class Dragged(
         val name: String,
         val group: FolderGroup?,
         val folder: String,
         val module: String = "",
-        val movedFolderOf: String? = null,
-    ) {
-        val isFolder get() = movedFolderOf != null
-    }
+        val isFolder: Boolean = false,
+    )
 
     /**
      * A folder row of the sidebar, or a group's header for an empty [path], in the group of [module]; for a null [group],
@@ -90,14 +87,9 @@ internal class SidebarDragState(
     var onMoveToFolder: (group: FolderGroup?, name: String, folder: String) -> Unit = { _, _, _ -> }
 
     /**
-     * Moves the folder at [path] of [group], with everything in it, into [folder], calling [onMoved] once it moved.
+     * Moves the folder at [path] of [group], with everything in it, into [folder].
      */
-    var onMoveFolder: (group: FolderGroup, path: String, folder: String, onMoved: () -> Unit) -> Unit = { _, _, _, _ -> }
-
-    /**
-     * Called once a folder of the group tree [groupKey] moved from [path] to [newPath], so that what was open in it stays so.
-     */
-    var onFolderMoved: (groupKey: String, path: String, newPath: String) -> Unit = { _, _, _ -> }
+    var onMoveFolder: (group: FolderGroup, path: String, folder: String) -> Unit = { _, _, _ -> }
 
     val isOverScene get() = dragged?.let { it.group == FolderGroup.ACTOR_TYPES && !it.isFolder } == true && sceneTarget?.bounds?.contains(pointer) == true
 
@@ -132,9 +124,7 @@ internal class SidebarDragState(
         when {
             scene != null -> scene.onDrop(dragged.name, pointer)
             folder == null || folder == dragged.folder -> Unit
-            dragged.group != null && dragged.movedFolderOf != null -> onMoveFolder(dragged.group, dragged.name, folder) {
-                onFolderMoved(dragged.movedFolderOf, dragged.name, FolderPaths.child(folder, FolderPaths.nameOf(dragged.name)))
-            }
+            dragged.group != null && dragged.isFolder -> onMoveFolder(dragged.group, dragged.name, folder)
             else -> onMoveToFolder(dragged.group, dragged.name, folder)
         }
     }

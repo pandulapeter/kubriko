@@ -24,6 +24,11 @@ internal object SidebarKeys {
     fun resourceGroup(module: String, group: ResourceGroup) = "$module|files:${group.name}"
 
     /**
+     * The tree [group]'s folders are shown in within [module]: sprites, sounds, and music are among the files' groups.
+     */
+    fun treeOf(module: String, group: FolderGroup) = ResourceGroup.entries.firstOrNull { it.folderGroup == group }?.let { resourceGroup(module, it) } ?: folderGroup(module, group)
+
+    /**
      * Where the documents of [module] are listed, whose folder rows are [folder]s of it.
      */
     fun documents(module: String) = "$module|documents"

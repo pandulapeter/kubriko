@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
+import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -47,7 +48,7 @@ class SidebarExpansionTest {
         val bosses = SidebarOutline(listOf(SidebarOutline.Node("scenes", parent = null, isFolder = false, isCollapsible = false), SidebarOutline.Node("scenes|bosses", parent = "scenes", isFolder = true)))
         expansion.toggle(bosses, "scenes|bosses")
         assertFalse(expansion.isExpanded(bosses, "scenes|bosses"))
-        expansion.forgetAllBut(SidebarOutline(listOf(SidebarOutline.Node("scenes", parent = null, isFolder = false, isCollapsible = false))))
+        expansion.forgetAllBut(SidebarOutline(listOf(SidebarOutline.Node("scenes", parent = null, isFolder = false, isCollapsible = false))), isProjectRead = false)
         assertTrue(expansion.isExpanded(bosses, "scenes|bosses"))
     }
 
@@ -60,35 +61,40 @@ class SidebarExpansionTest {
     )
 
     @Test
-    fun restoredChoicesWaitForWhatTheyAreAboutAndAreKeptUnderThoseMadeSince() {
+    fun restoredChoicesWaitForTheProjectToBeReadAndAreKeptUnderThoseMadeSince() {
         val expansion = SidebarExpansion()
         assertNull(expansion.keptChoices)
         val empty = outlineOf()
-        expansion.forgetAllBut(empty)
         expansion.toggle(outlineOf("levels"), levels)
         expansion.restore(mapOf(levels to true, deep to false, "module:gone" to false))
-        expansion.forgetAllBut(empty)
+        expansion.forgetAllBut(empty, isProjectRead = false)
         assertEquals(mapOf(deep to false, "module:gone" to false), expansion.keptChoices, "The choice made since wins, and goes once its folder does")
         val loaded = outlineOf("levels", "levels/deep")
-        expansion.forgetAllBut(loaded)
+        expansion.forgetAllBut(loaded, isProjectRead = false)
         assertFalse(expansion.isExpanded(loaded, deep))
-        expansion.forgetAllBut(empty)
-        assertEquals(mapOf("module:gone" to false), expansion.keptChoices)
+        expansion.forgetAllBut(loaded, isProjectRead = true)
+        assertEquals(mapOf(deep to false), expansion.keptChoices, "Once the project was read, what it doesn't show is gone")
     }
 
     @Test
     fun aMovedFolderTakesWhatIsOpenAndClosedInItAlong() {
         val expansion = SidebarExpansion().apply { restore(emptyMap()) }
         val before = outlineOf("levels", "levels/deep", "levels/deep/pit", "cave")
-        expansion.forgetAllBut(before)
+        expansion.forgetAllBut(before, isProjectRead = true)
         expansion.toggle(before, deep)
         expansion.toggle(before, SidebarKeys.folder("scenes", "cave"))
         expansion.followFolder("scenes", "levels", "cave/levels")
-        expansion.forgetAllBut(before)
+        expansion.forgetAllBut(before, isProjectRead = false)
         val after = outlineOf("cave", "cave/levels", "cave/levels/deep", "cave/levels/deep/pit")
-        expansion.forgetAllBut(after)
+        expansion.forgetAllBut(after, isProjectRead = true)
         assertFalse(expansion.isExpanded(after, SidebarKeys.folder("scenes", "cave/levels/deep")))
         assertTrue(expansion.isExpanded(after, SidebarKeys.folder("scenes", "cave/levels/deep/pit")))
         assertEquals(setOf("cave", "cave/levels/deep"), expansion.collapsedFolders("scenes"))
+    }
+
+    @Test
+    fun eachGroupsFoldersAreInATreeOfTheirOwnInEachModule() {
+        assertEquals(SidebarKeys.folderGroup("game", FolderGroup.SCENES), SidebarKeys.treeOf("game", FolderGroup.SCENES))
+        assertEquals(SidebarKeys.resourceGroup("game", ResourceGroup.SOUNDS), SidebarKeys.treeOf("game", FolderGroup.SOUNDS))
     }
 }

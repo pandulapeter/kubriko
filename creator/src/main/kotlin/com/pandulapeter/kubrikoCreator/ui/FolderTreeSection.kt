@@ -78,7 +78,7 @@ internal class FolderTreeActions(
     val onSelectionCleared: () -> Unit,
     val onCreateItem: (FolderGroup, name: String) -> Rejection?,
     val onCreateFolder: (FolderGroup, path: String) -> Rejection?,
-    val onRenameFolder: (FolderGroup, path: String, newName: String, onRenamed: () -> Unit) -> Rejection?,
+    val onRenameFolder: (FolderGroup, path: String, newName: String) -> Rejection?,
     val onDeleteFolder: (FolderGroup, path: String, isEmpty: Boolean) -> Unit,
     val onRenameItem: (FolderGroup, name: String, newName: String) -> Rejection?,
     val onDeleteItem: (FolderGroup, name: String) -> Unit,

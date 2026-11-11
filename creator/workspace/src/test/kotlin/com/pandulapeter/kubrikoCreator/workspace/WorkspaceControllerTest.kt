@@ -143,6 +143,15 @@ class WorkspaceControllerTest {
     }
 
     @Test
+    fun theProjectIsReadOnceItsFilesTypesAndPagesWereEachReadOnce() = runTest {
+        val io = StandardTestDispatcher(testScheduler)
+        val controller = createController(ioDispatcher = io, blockTypeRepository = FakeBlockTypeRepository(emptyList()))
+        assertFalse(controller.sidebarExpansion.isProjectRead.value)
+        testScheduler.runCurrent()
+        assertTrue(controller.sidebarExpansion.isProjectRead.value)
+    }
+
+    @Test
     fun theLayoutFollowsTheScanSoTheScenesFolderIsTheOneItFound() = runTest {
         val root = testDirectory()
         val shared = File(root, "shared").apply { mkdirs() }

@@ -44,16 +44,14 @@ internal fun FolderTreeFolder(
             isFolder = true,
             depth = row.depth + indent,
             initialName = row.name,
-            onName = { name ->
-                actions.onRenameFolder(group, row.path, name) { tree.followFolder(groupKey, row.path, FolderPaths.child(FolderPaths.parentOf(row.path), name)) }
-            },
+            onName = { name -> actions.onRenameFolder(group, row.path, name) },
             onNamingChange = onNamingChange,
         )
     } else {
         SidebarFolderRow(
             modifier = Modifier.folderDropTarget(dragState, SidebarDragState.FolderKey(group, row.path, module)).then(
                 if (isCreating) {
-                    Modifier.sidebarDragSource(dragState, SidebarDragState.Dragged(row.path, group, FolderPaths.parentOf(row.path), module, movedFolderOf = groupKey))
+                    Modifier.sidebarDragSource(dragState, SidebarDragState.Dragged(row.path, group, FolderPaths.parentOf(row.path), module, isFolder = true))
                 } else {
                     Modifier
                 },

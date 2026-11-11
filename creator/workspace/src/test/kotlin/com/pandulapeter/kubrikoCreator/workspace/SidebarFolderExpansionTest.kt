@@ -22,12 +22,12 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class SidebarExpansionMemoryTest {
+class SidebarFolderExpansionTest {
     private val root = testDirectory()
-    private val file = File(root, "${LocalProjectStore.FOLDER}/${SidebarExpansionMemory.FILE_NAME}")
+    private val file = File(root, "${LocalProjectStore.FOLDER}/${SidebarFolderExpansion.FILE_NAME}")
 
     private fun TestScope.memory() = StandardTestDispatcher(testScheduler).let { dispatcher ->
-        SidebarExpansionMemory(root, CoroutineScope(backgroundScope.coroutineContext + dispatcher), dispatcher)
+        SidebarFolderExpansion(root, CoroutineScope(backgroundScope.coroutineContext + dispatcher), dispatcher)
     }
 
     @Test

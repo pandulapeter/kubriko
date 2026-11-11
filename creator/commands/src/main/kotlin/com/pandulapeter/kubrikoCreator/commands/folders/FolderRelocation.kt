@@ -42,7 +42,8 @@ private fun CommandContext.validateRelocatedPages(group: FolderGroup, path: Stri
 
 /**
  * Moves the folder at [path] of [group], with everything in it, to [newPath], as renaming and moving a folder both do: a
- * Scene's or audio file's name is its path, so what uses it follows, and so do the screenplay's mentions of everything in it.
+ * Scene's or audio file's name is its path, so what uses it follows, and so do the screenplay's mentions of everything in
+ * it, and what shows the folder is told first ([FolderMoves]).
  *
  * @param movesOnly Whether an audio folder's files only move, leaving what uses them (how undo and redo move them).
  * @param back What moves it back from [newPath], moving only an audio folder's files when given true.
@@ -64,6 +65,7 @@ internal suspend fun CommandContext.relocateFolder(
     } else {
         emptyList<PathMove>() to emptyMap()
     }
+    folderMoves.onMoving(FolderMove(group, path, newPath))
     moveFolder(group, path, newPath, sceneNames)?.let { rejection -> return Applied(inverse = null, failure = rejection) }
     val inverse = if (!group.isAudio) {
         back(false)

@@ -45,11 +45,13 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -340,8 +342,18 @@ public class WorkspaceController(
      */
     public val screenplayOffer: ScreenplayOffer = ScreenplayOffer(project.rootDirectory, commands.context.screenplay.current, commands.context.screenplay.revision, scope, ioDispatcher)
 
+    private val isScanned = MutableStateFlow(false)
+
     /** Which of the sidebar's folders are open, as the user left them on this computer. */
-    public val sidebarExpansion: SidebarExpansionMemory = SidebarExpansionMemory(project.rootDirectory, scope, ioDispatcher)
+    public val sidebarExpansion: SidebarFolderExpansion = SidebarFolderExpansion(
+        rootDirectory = project.rootDirectory,
+        scope = scope,
+        ioDispatcher = ioDispatcher,
+        folderMoves = commands.context.folderMoves,
+        isProjectRead = combine(isScanned, blockTypes?.isLoaded ?: isScanned, commands.context.screenplay.revision) { isScanned, areTypesLoaded, pagesRevision ->
+            isScanned && areTypesLoaded && pagesRevision > 0
+        }.stateIn(scope, SharingStarted.Eagerly, false),
+    )
     private val missingReferences = MissingReferencesReport.of(blockTypes, resources, commands, scope, ::appendToConsole, ::reportUnexpectedProblem)
 
     private val watching = files.startWatching(::onProjectChanged)
@@ -413,6 +425,7 @@ public class WorkspaceController(
         commands.context.documents.refresh(resources[ResourceGroup.DOCUMENTS].orEmpty().map { it.relativePath }, scannedAt)
         _resources.value = resources
         _layout.value = layout
+        isScanned.value = true
         // After the new resources are in, so that Scenes outside the Scenes folder are found too.
         withContext(ioDispatcher) { scenes.refresh() }
     }

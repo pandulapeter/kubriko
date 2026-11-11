@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
+import com.pandulapeter.kubrikoCreator.commands.folders.FolderMoves
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
@@ -24,11 +25,16 @@ import java.io.File
  * Which of the sidebar's modules, groups, and folders the user opened or closed, by the sidebar's own keys, kept for the
  * project on this computer in `.kubriko/local/sidebar.json`, so the sidebar opens as it was left. What is kept is read as
  * soon as the project opens, and what is saved meanwhile is written only after that, so it never replaces what wasn't read yet.
+ *
+ * @param folderMoves The folders commands move, which what is open inside them follows.
+ * @param isProjectRead Whether everything the sidebar shows was read once, so a folder it doesn't show is gone.
  */
-public class SidebarExpansionMemory internal constructor(
+public class SidebarFolderExpansion internal constructor(
     rootDirectory: File,
     scope: CoroutineScope,
     ioDispatcher: CoroutineDispatcher,
+    public val folderMoves: FolderMoves = FolderMoves(),
+    public val isProjectRead: StateFlow<Boolean> = MutableStateFlow(true),
 ) {
     private val store = LocalProjectStore(rootDirectory, FILE_NAME, LocalSidebarExpansion.serializer())
     private val saves = Channel<Map<String, Boolean>>(Channel.CONFLATED)

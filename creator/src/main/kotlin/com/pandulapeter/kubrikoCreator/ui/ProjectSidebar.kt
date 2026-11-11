@@ -45,7 +45,7 @@ import com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.MenuIconButton
 import com.pandulapeter.kubrikoCreator.workspace.ProjectLayout
-import com.pandulapeter.kubrikoCreator.workspace.SidebarExpansionMemory
+import com.pandulapeter.kubrikoCreator.workspace.SidebarFolderExpansion
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_new
 import kubriko.creator.generated.resources.action_new_document
@@ -74,7 +74,7 @@ import org.jetbrains.compose.resources.stringResource
  *   the sidebar are added.
  * @param selectedDocument The path of the document shown in the center, if any.
  * @param spriteFolders The sprites' folders, which are Kubriko Creator's own ([SpriteFolderStore]).
- * @param expansionMemory Where what is open is kept for the next session, if anywhere.
+ * @param folderExpansion Where what is open is kept for the next session, if anywhere, and what it follows.
  */
 @Composable
 internal fun ProjectSidebar(
@@ -89,7 +89,7 @@ internal fun ProjectSidebar(
     layout: ProjectLayout = ProjectLayout(),
     gameModule: String? = null,
     spriteFolders: SpriteFolderStore.State = SpriteFolderStore.State(),
-    expansionMemory: SidebarExpansionMemory? = null,
+    folderExpansion: SidebarFolderExpansion? = null,
     flashedName: String? = null,
     flashKey: Any? = null,
 ) = Column(
@@ -97,13 +97,12 @@ internal fun ProjectSidebar(
 ) {
     var query by remember { mutableStateOf("") }
     var naming by remember { mutableStateOf<SidebarNaming?>(null) }
-    val expansion = rememberSidebarExpansion(expansionMemory, dragState)
     val isFiltering = query.isNotBlank()
     val modules = remember(resources, folderGroups, layout, gameModule, spriteFolders) { sidebarModules(resources, folderGroups, layout, gameModule, spriteFolders) }
     val isGrouped = modules.size > 1
     val structure = remember(modules) { modules.map { it.withoutSelection() } }
     val outline = remember(structure) { SidebarOutline(structure.flatMap { it.outlineNodes(isGrouped) }) }
-    LaunchedEffect(outline) { expansion.forgetAllBut(outline) }
+    val expansion = rememberSidebarExpansion(folderExpansion, outline) { group -> modules.map { SidebarKeys.treeOf(it.path, group) } }
     val shownModules = remember(query, modules) { if (isFiltering) filteredModules(modules, query) else modules }
     val tree = remember(outline, expansion, isFiltering) { SidebarTree(outline, expansion, isFiltering) }
     val listState = rememberLazyListState()

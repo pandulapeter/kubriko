@@ -80,6 +80,13 @@ public class BlockTypesController(
     private var emptyFolders = emptyMap<BlockTypeKind, Set<String>>()
     private val _folders = MutableStateFlow(emptyMap<BlockTypeKind, Set<String>>())
     override val folders: StateFlow<Map<BlockTypeKind, Set<String>>> = _folders.asStateFlow()
+    private val _isLoaded = MutableStateFlow(false)
+
+    /**
+     * Whether the types and their folders were read from disk, or reading them failed, so [types] and [folders] hold what
+     * there is rather than nothing yet.
+     */
+    public val isLoaded: StateFlow<Boolean> = _isLoaded.asStateFlow()
 
     /**
      * The generated files of types that no longer exist that the last regeneration kept, since they were changed by hand.
@@ -138,6 +145,7 @@ public class BlockTypesController(
                 if (exception is CancellationException) throw exception
                 setUnreadableFiles(listOf(UnreadableBlockTypeFile(DefinitionPaths.CREATOR_DIRECTORY, BlockTypeFileProblem.Unparsable(exception.message ?: exception.toString()))))
             }
+            _isLoaded.value = true
             for (request in writeRequests) {
                 delay(writeDelayInMilliseconds)
                 try {

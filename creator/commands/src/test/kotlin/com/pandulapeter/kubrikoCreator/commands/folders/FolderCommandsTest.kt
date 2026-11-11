@@ -98,4 +98,27 @@ class FolderCommandsTest {
         assertEquals(Rejection(LookupProblem.FOLDER_MISSING, "props"), context.rejection(MoveFolder, MoveFolder.Input(FolderGroup.ACTOR_TYPES, "enemies", "props")))
         assertEquals(Rejection(CommandProblem.NO_ACTOR_TYPES), commandContext(blockTypes = null).rejection(MoveFolder, MoveFolder.Input(FolderGroup.ACTOR_TYPES, "a", "")))
     }
+
+    @Test
+    fun everyMoveOfAFolderIsToldBeforeItHappensUndoAndRedoToo() = runTest {
+        val context = commandContext(bat, wall, game)
+        val told = mutableListOf<Pair<FolderMove, Set<String>>>()
+        val listening = context.folderMoves.listen { move -> told += move to context.actorFolders() }
+        CreateFolder.apply(context, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "cave"))
+        context.assertRoundTrip(Invocation(MoveFolder, MoveFolder.Input(FolderGroup.ACTOR_TYPES, "enemies", "cave"))) { context.actorFolders() }
+        RenameFolder.apply(context, RenameFolder.Input(FolderGroup.ACTOR_TYPES, "cave", "den"))
+        listening.close()
+        RenameFolder.apply(context, RenameFolder.Input(FolderGroup.ACTOR_TYPES, "den", "lair"))
+        val before = setOf("cave", "enemies", "enemies/flying")
+        val after = setOf("cave", "cave/enemies", "cave/enemies/flying")
+        assertEquals(
+            listOf(
+                FolderMove(FolderGroup.ACTOR_TYPES, "enemies", "cave/enemies") to before,
+                FolderMove(FolderGroup.ACTOR_TYPES, "cave/enemies", "enemies") to after,
+                FolderMove(FolderGroup.ACTOR_TYPES, "enemies", "cave/enemies") to before,
+                FolderMove(FolderGroup.ACTOR_TYPES, "cave", "den") to after,
+            ),
+            told,
+        )
+    }
 }

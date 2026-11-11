@@ -156,7 +156,9 @@ class BlockTypesControllerTest {
 
     @Test
     fun theStoredActorTypesAreLoadedWhenOpened() = runTest {
-        assertEquals(listOf(ball, wall), createController(FakeBlockTypeRepository(listOf(wall, ball))).actorTypes.value)
+        val controller = createController(FakeBlockTypeRepository(listOf(wall, ball)))
+        assertEquals(listOf(ball, wall), controller.actorTypes.value)
+        assertTrue(controller.isLoaded.value)
     }
 
     @Test
@@ -371,6 +373,7 @@ class BlockTypesControllerTest {
         controller.awaitWrites()
         assertEquals(listOf("save Wall"), repository.writes)
         assertEquals(1, unreadableReports.size)
+        assertTrue(controller.isLoaded.value)
     }
 
     @Test
