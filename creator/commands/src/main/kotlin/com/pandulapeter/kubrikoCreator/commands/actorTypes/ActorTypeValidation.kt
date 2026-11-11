@@ -193,7 +193,10 @@ private fun validatePropertyReference(reference: PropertyReference, scope: Block
 
 private fun missingActorType(name: String, scope: BlockScope) = missingActorType(name, scope.actorTypeNames, scope.managerTypes.map { it.name })
 
-private fun unknownKey(key: KeyChoice) =
+/**
+ * Why [key] can't be one an Event or a condition reacts to, naming the keys called similarly.
+ */
+internal fun unknownKey(key: KeyChoice) =
     SimilarNames.rejection(LookupProblem.GAME_KEY_UNKNOWN, LookupProblem.GAME_KEY_UNKNOWN_SIMILAR, key.composeKeyName, KeyChoice.all.map { it.composeKeyName }, key.composeKeyName)
 
 /**

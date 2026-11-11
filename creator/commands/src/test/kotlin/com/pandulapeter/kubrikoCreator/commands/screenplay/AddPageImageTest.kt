@@ -70,6 +70,15 @@ class AddPageImageTest {
     }
 
     @Test
+    fun `a sprite gone since it was validated is refused with the close names`() = runTest {
+        val context = context(SpriteFiles(mapOf("drawable/bat.png" to File("bat.png"))))
+        assertEquals(
+            Rejection(LookupProblem.SPRITE_MISSING_SIMILAR, "drawable/Bat.png", "drawable/bat.png"),
+            AddPageImage.apply(context, AddPageImage.Input("levels/cave", "Bat", sprite = "drawable/Bat.png")).failure,
+        )
+    }
+
+    @Test
     fun `a sprite is shown where it is, without a copy`() = runTest {
         val root = testDirectory()
         val sprite = File(root, "src/commonMain/composeResources/drawable/bat.png").apply { parentFile.mkdirs() }.apply { writeBytes(png()) }

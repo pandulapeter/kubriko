@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.scopeOf
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateBlock
@@ -108,11 +109,20 @@ class CloseMatchesTest {
             Rejection(LookupProblem.ACTOR_TYPE_IS_MANAGER_TYPE, "Score"),
             validateEvent(EventDefinition(EventType.COLLISION, otherActorType = "Score"), scope),
         )
+        val keyPressed = commandContext(paddle.copy(events = listOf(EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.A))))
+        assertEquals(
+            Rejection(LookupProblem.GAME_KEY_UNKNOWN_SIMILAR, "Space", "Spacebar, Backspace"),
+            SetEventKey.validate(keyPressed, SetEventKey.Input("Paddle", 0, KeyChoice("Space"))),
+        )
     }
 
     @Test
     fun filesScenesAndActorsOfferTheCloseNames() = runTest {
         val context = context()
+        assertEquals(
+            Rejection(LookupProblem.SCENE_MISSING_SIMILAR, "first", "levels/first"),
+            ReplaceScenes.validate(context, ReplaceScenes.Input(mapOf("first" to "[]"))),
+        )
         assertEquals(Rejection(LookupProblem.SCENE_MISSING_SIMILAR, "first", "levels/first"), context.validateScene("first"))
         assertEquals(
             Rejection(LookupProblem.SCENE_ACTOR_MISSING_SIMILAR, "levels/first", "leftpaddle", "leftPaddle"),

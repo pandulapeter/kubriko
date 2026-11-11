@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
+import com.pandulapeter.kubrikoCreator.commands.scenes.missingScene
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
@@ -32,7 +33,7 @@ internal object ReplaceScenes : WriteCommand<ReplaceScenes.Input> {
      * Checks only that each Scene is there: one with an Actor whose state can't be read is written all the same, keeping
      * that Actor as it is.
      */
-    override fun validate(context: CommandContext, input: Input) = input.contents.keys.firstOrNull { !context.scenes.exists(it) }?.let { Rejection(LookupProblem.SCENE_MISSING, it) }
+    override fun validate(context: CommandContext, input: Input) = input.contents.keys.firstOrNull { !context.scenes.exists(it) }?.let(context::missingScene)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val previous = withContext(context.ioDispatcher) {
