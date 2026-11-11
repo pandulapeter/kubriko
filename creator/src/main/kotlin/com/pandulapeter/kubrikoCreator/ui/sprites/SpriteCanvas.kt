@@ -15,6 +15,7 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -33,6 +34,7 @@ import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.isCtrlPressed
 import androidx.compose.ui.input.pointer.isMetaPressed
+import androidx.compose.ui.input.pointer.isPrimaryPressed
 import androidx.compose.ui.input.pointer.isSecondaryPressed
 import androidx.compose.ui.input.pointer.isTertiaryPressed
 import androidx.compose.ui.input.pointer.onPointerEvent
@@ -41,11 +43,14 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubrikoCreator.sprites.pixels.Pixel
 import com.pandulapeter.kubrikoCreator.sprites.pixels.PixelImage
+import com.pandulapeter.kubrikoCreator.window.LocalTrackpadPinches
 
 /**
  * The frame being edited, zoomed with its pixels kept sharp over a checkerboard, a grid between its pixels from
  * [SpriteEditorState.GRID_ZOOM], and what is being drawn, selected, or moved over it. A press draws with the left
- * button's color and the right button's; the middle button, or scrolling, pans, and scrolling with Ctrl or Cmd zooms.
+ * button's color and the right button's, and only a press of either starts one; the middle button, or scrolling, pans;
+ * scrolling with Ctrl or Cmd zooms, as does pinching a trackpad ([LocalTrackpadPinches]; on Windows a pinch arrives as
+ * such a scroll), a step at a time once their small movements add up to one ([SpriteZoomGestures]).
  *
  * @param onDraw Draws the given pixels on the frame, as one step.
  */
@@ -67,6 +72,9 @@ internal fun SpriteCanvas(
     val currentOnDraw by rememberUpdatedState(onDraw)
     val selectionColor = MaterialTheme.colorScheme.primary
     val canvasSize = remember { arrayOf(Size.Zero) }
+    val zoom = remember(state) { SpriteZoomGestures(state) }
+    val pinches = LocalTrackpadPinches.current
+    LaunchedEffect(pinches, zoom) { pinches.collect(zoom::onPinch) }
     fun geometry() = SpriteCanvasGeometry(canvasSize[0], currentFrame.width, currentFrame.height, state.zoom, state.pan)
     fun draw(pixels: List<Pixel>) = currentOnDraw(pixels)
     Box(
@@ -74,11 +82,15 @@ internal fun SpriteCanvas(
             .background(MaterialTheme.colorScheme.surfaceContainerLowest)
             .clipToBounds()
             .onPointerEvent(PointerEventType.Move) { event -> state.cursor = geometry().pixelAt(event.changes.first().position).takeIf { currentFrame.contains(it.x, it.y) } }
-            .onPointerEvent(PointerEventType.Exit) { state.cursor = null }
+            .onPointerEvent(PointerEventType.Enter) { zoom.isPointerOver = true }
+            .onPointerEvent(PointerEventType.Exit) {
+                state.cursor = null
+                zoom.isPointerOver = false
+            }
             .onPointerEvent(PointerEventType.Scroll) { event ->
                 val delta = event.changes.first().scrollDelta
                 if (event.keyboardModifiers.isCtrlPressed || event.keyboardModifiers.isMetaPressed) {
-                    if (delta.y < 0) state.zoomIn() else if (delta.y > 0) state.zoomOut()
+                    zoom.onZoomScroll(delta.y)
                 } else {
                     state.pan -= delta * PAN_PER_SCROLL
                 }
@@ -86,6 +98,9 @@ internal fun SpriteCanvas(
             .pointerInput(state) {
                 awaitEachGesture {
                     val press = awaitPointerEvent()
+                    // Only a button pressed starts something: never a scroll, nor a touch a mouse's surface takes for one.
+                    if (press.type != PointerEventType.Press) return@awaitEachGesture
+                    if (!press.buttons.isPrimaryPressed && !press.buttons.isSecondaryPressed && !press.buttons.isTertiaryPressed) return@awaitEachGesture
                     val down = press.changes.firstOrNull { it.pressed && !it.previousPressed } ?: return@awaitEachGesture
                     val isPanning = press.buttons.isTertiaryPressed
                     val isSecondary = press.buttons.isSecondaryPressed

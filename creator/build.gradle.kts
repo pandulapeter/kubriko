@@ -76,7 +76,7 @@ val creatorJavaLauncher = javaToolchains.launcherFor {
     languageVersion.set(JavaLanguageVersion.of(21))
     vendor.set(JvmVendorSpec.JETBRAINS)
 }.get()
-val creatorJvmArguments = if (System.getProperty("os.name").orEmpty().lowercase().contains("mac")) listOf("--add-exports=java.desktop/com.apple.eawt=ALL-UNNAMED") else emptyList()
+val creatorJvmArguments = if (System.getProperty("os.name").orEmpty().lowercase().contains("mac")) listOf("--add-exports=java.desktop/com.apple.eawt=ALL-UNNAMED", "--add-exports=java.desktop/com.apple.eawt.event=ALL-UNNAMED") else emptyList()
 
 /**
  * The app's runtime classpath, which the end-to-end checks (src/test/.../endToEnd) start it from in a JVM of its own, as

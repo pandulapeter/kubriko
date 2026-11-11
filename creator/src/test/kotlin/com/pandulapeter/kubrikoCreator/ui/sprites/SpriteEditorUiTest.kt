@@ -62,6 +62,13 @@ class SpriteEditorUiTest {
             release(MouseButton.Secondary)
         }
         assertEquals(listOf(Pixel(0, 3, red)), drawn.last())
+        val strokes = drawn.size
+        onRoot().performMouseInput {
+            moveTo(center)
+            scroll(-3f)
+            scroll(2f)
+        }
+        assertEquals(strokes, drawn.size, "scrolling draws nothing")
     }
 
     @Test

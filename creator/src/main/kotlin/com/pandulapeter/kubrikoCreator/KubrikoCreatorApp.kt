@@ -31,6 +31,7 @@ import com.pandulapeter.kubrikoCreator.ui.theme.ProvideInterfaceScale
 import com.pandulapeter.kubrikoCreator.ui.windowTitle
 import com.pandulapeter.kubrikoCreator.window.CreatorWindowExceptionHandler
 import com.pandulapeter.kubrikoCreator.window.ExtendedTitleBar
+import com.pandulapeter.kubrikoCreator.window.ProvideTrackpadPinches
 import com.pandulapeter.kubrikoCreator.window.TitleBarAppearance
 import com.pandulapeter.kubrikoCreator.window.TitleBarInsets
 import com.pandulapeter.kubrikoCreator.window.extendContentIntoTitleBar
@@ -95,6 +96,7 @@ fun main(args: Array<String>) {
                             CreatorTheme(settings.theme) {
                                 titleBar?.let { TitleBarAppearance(window = window, titleBar = it) }
                                 CompositionLocalProvider(LocalIsAiEnabled provides settings.isAiEnabled) {
+                                    ProvideTrackpadPinches(window.rootPane) {
                                     AppContent(
                                         screen = screen,
                                         recentProjects = recentProjects,
@@ -111,6 +113,7 @@ fun main(args: Array<String>) {
                                         creatorSettings = graph.creatorSettings,
                                         homeFolder = homeFolder,
                                     )
+                                    }
                                 }
                             }
                         }
