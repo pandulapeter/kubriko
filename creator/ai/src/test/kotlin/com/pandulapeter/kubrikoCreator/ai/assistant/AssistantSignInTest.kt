@@ -85,9 +85,9 @@ class AssistantSignInTest {
     @Test
     fun aSignInContinuedInTheSystemsTerminalEndsThePanelsAndSendsTheRefusedPromptsAgainOnceItWorks() = blockingTest {
         onMain { signIn.signIn(terminalMethod) }
-        while (terminals.channels.isEmpty()) delay(10)
+        awaitIdle(mainThread, io)
         onMain { signIn.signIn(terminalMethod, isInSystemTerminal = true) }
-        while (systemTerminals.channels.isEmpty()) delay(10)
+        awaitIdle(mainThread, io)
         assertTrue(terminals.channels.single().isStopped)
         assertEquals(listOf(terminalMethod.terminal), systemTerminals.commands)
         val session = signIn.session.first { it?.isInSystemTerminal == true }!!
