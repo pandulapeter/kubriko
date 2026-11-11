@@ -47,4 +47,11 @@ class SpriteFramesTest {
         val flipped = SpriteFrames.of(image, sheet.copy(originX = 0)).mapped(1, origin = { 2 to it.originY }, operation = PixelOperations::flippedHorizontally)!!
         assertEquals(0, flipped.sheet?.originX)
     }
+
+    @Test
+    fun theOnlyFrameMovesTheOriginAsEveryFrameWould() {
+        val single = SpriteSheet(frameWidth = 4, frameHeight = 2, frameCount = 1, framesPerRow = 1, originX = 1)
+        val flipped = SpriteFrames.of(image("abcd", "efgh"), single).mapped(0, origin = { 3 to it.originY }, operation = PixelOperations::flippedHorizontally)!!
+        assertEquals(3, flipped.sheet?.originX)
+    }
 }

@@ -35,7 +35,7 @@ public class SpriteFrames private constructor(
     /**
      * These frames with [operation] applied to frame [index], or to each of them for null; null when the frames it leaves
      * aren't all of one size (one frame of several turned to another size), which a sheet can't hold. A changed frame
-     * size changes the sheet's. When every frame changes, the sheet's origin follows the pixels as [origin] moves it (given
+     * size changes the sheet's. When every frame changes (or the only one), the sheet's origin follows the pixels as [origin] moves it (given
      * the sheet as it was); otherwise it stays, since the frames share it.
      */
     public fun mapped(
@@ -47,7 +47,7 @@ public class SpriteFrames private constructor(
         val first = mapped.first()
         if (mapped.any { it.width != first.width || it.height != first.height }) return null
         val changedSheet = sheet?.let { sheet ->
-            val (originX, originY) = if (index == null) origin(sheet) else sheet.originX to sheet.originY
+            val (originX, originY) = if (index == null || frames.size == 1) origin(sheet) else sheet.originX to sheet.originY
             sheet.copy(
                 frameWidth = first.width,
                 frameHeight = first.height,
