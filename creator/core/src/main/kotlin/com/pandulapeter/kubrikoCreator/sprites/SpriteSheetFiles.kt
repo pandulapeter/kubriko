@@ -12,14 +12,15 @@ package com.pandulapeter.kubrikoCreator.sprites
 import java.io.File
 
 /**
- * Reads the sheets kept in the sprites' files ([SpriteFolderStore]), parsing only the files whose length or modification
- * time changed since it last read them, since the code is regenerated from them after every batch of changes. Calls
- * block, and are safe from any thread.
+ * Reads the sheets kept in the sprites' files ([SpriteFolderStore]), parsing only the files whose text changed since it
+ * last read them, since the code is regenerated from them after every batch of changes. The text is compared rather than
+ * the files' length and time, which two quick writes of a sheet differing in one digit leave the same. Calls block, and
+ * are safe from any thread.
  */
 public class SpriteSheetFiles {
     private val known = HashMap<File, Known>()
 
-    private class Known(val length: Long, val lastModified: Long, val sheet: SpriteSheet?)
+    private class Known(val text: String?, val sheet: SpriteSheet?)
 
     /**
      * How each sprite of the project at [rootDirectory] is cut into frames, by its name, as [SpriteFolderStore.State.sheets]
@@ -36,10 +37,9 @@ public class SpriteSheetFiles {
         val firsts = filesByName.mapValues { (_, files) -> files.first() }
         known.keys.retainAll(firsts.values.toSet())
         return firsts.mapNotNull { (name, file) ->
-            val length = file.length()
-            val lastModified = file.lastModified()
-            val cached = known[file]?.takeIf { it.length == length && it.lastModified == lastModified }
-            val sheet = cached?.sheet ?: SpriteFolderStore.sheetOf(file).also { known[file] = Known(length, lastModified, it) }
+            val text = SpriteFolderStore.textOf(file)
+            val cached = known[file]?.takeIf { it.text == text }
+            val sheet = if (cached != null) cached.sheet else SpriteFolderStore.sheetOf(text).also { known[file] = Known(text, it) }
             sheet?.let { name to it }
         }.toMap()
     }

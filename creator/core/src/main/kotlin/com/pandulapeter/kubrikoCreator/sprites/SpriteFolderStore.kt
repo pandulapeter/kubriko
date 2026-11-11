@@ -143,7 +143,7 @@ public class SpriteFolderStore(
     @EditorMutation
     public fun setSheet(name: String, sheet: SpriteSheet?) {
         val files = filesOf(name)
-        val content = files.firstOrNull()?.let(::contentOf) ?: JsonObject(emptyMap())
+        val content = files.firstOrNull()?.let(::textOf)?.let(::contentOf) ?: JsonObject(emptyMap())
         val text = textOf(JsonObject(if (sheet == null) content - SHEET else content + (SHEET to json.encodeToJsonElement(SpriteSheet.serializer(), sheet))))
         val folder = state.value.folderOf[name].orEmpty()
         val target = files.firstOrNull() ?: File(File(directory, folder), "$name.$EXTENSION")
@@ -206,9 +206,18 @@ public class SpriteFolderStore(
             .groupBy { it.nameWithoutExtension }
 
         /**
-         * The sheet [file] keeps, or null if it keeps none, or one that can't be read or played.
+         * What [file] holds, or null when it can't be read.
          */
-        internal fun sheetOf(file: File) = contentOf(file)?.get(SHEET)?.let { element ->
+        internal fun textOf(file: File): String? = try {
+            file.readText()
+        } catch (_: IOException) {
+            null
+        }
+
+        /**
+         * The sheet a sprite's file holding [text] keeps, or null if it keeps none, or one that can't be read or played.
+         */
+        internal fun sheetOf(text: String?): SpriteSheet? = text?.let(::contentOf)?.get(SHEET)?.let { element ->
             try {
                 json.decodeFromJsonElement(SpriteSheet.serializer(), element).takeIf { it.problem == null }
             } catch (_: IllegalArgumentException) {
@@ -217,12 +226,10 @@ public class SpriteFolderStore(
         }
 
         /**
-         * What [file] holds, or null when it can't be read or isn't a JSON object.
+         * What a sprite's file holding [text] keeps, or null when it isn't a JSON object.
          */
-        private fun contentOf(file: File) = try {
-            json.parseToJsonElement(file.readText()) as? JsonObject
-        } catch (_: IOException) {
-            null
+        private fun contentOf(text: String) = try {
+            json.parseToJsonElement(text) as? JsonObject
         } catch (_: SerializationException) {
             null
         }

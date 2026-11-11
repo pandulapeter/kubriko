@@ -110,7 +110,7 @@ class SpriteFolderStoreTest {
     }
 
     @Test
-    fun aSheetsFileIsReadAgainOnlyOnceItChanged() {
+    fun aSheetsFileChangedWithinTheSameMomentAndLengthIsReadAgain() {
         val sheetFiles = SpriteSheetFiles()
         val sheet = SpriteSheet(frameWidth = 16, frameHeight = 16, frameCount = 4, framesPerRow = 2)
         store.setSheet("bat", sheet)
@@ -119,8 +119,6 @@ class SpriteFolderStoreTest {
         val stamp = file.lastModified()
         file.writeText(file.readText().replace("\"frameCount\": 4", "\"frameCount\": 2"))
         file.setLastModified(stamp)
-        assertEquals(mapOf("bat" to sheet), sheetFiles.read(root), "an unchanged length and time read nothing again")
-        file.setLastModified(stamp + 2_000)
         assertEquals(mapOf("bat" to sheet.copy(frameCount = 2)), sheetFiles.read(root))
         file.delete()
         assertEquals(emptyMap(), sheetFiles.read(root))
