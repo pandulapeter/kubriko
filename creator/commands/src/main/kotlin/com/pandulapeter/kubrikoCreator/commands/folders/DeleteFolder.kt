@@ -19,7 +19,9 @@ import com.pandulapeter.kubrikoCreator.commands.CompositeCommand
 import com.pandulapeter.kubrikoCreator.commands.DeletingCommand
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.USAGES
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireBlockTypes
+import com.pandulapeter.kubrikoCreator.commands.usagesDetails
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
@@ -27,9 +29,9 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonPrimitive
 
 @OptIn(EditorMutation::class)
 public object DeleteFolder : DeletingCommand<DeleteFolder.Input> {
@@ -75,14 +77,14 @@ public object DeleteFolder : DeletingCommand<DeleteFolder.Input> {
             .distinct()
             .sortedByDescending { it.count { character -> character == '/' } }
             .map { Invocation(DeleteFolder, Input(input.group, it, keepsContents = true)) }
-        if (deletes.isEmpty()) return CompositeCommand.apply(context, CompositeCommand.Input(folders))
         val usages = context.folderUsagesOf(folder, deletes, isAfterDeleting = true)
         val applied = CompositeCommand.apply(context, CompositeCommand.Input(deletes + folders))
         if (applied.failure != null) return applied
-        return applied.copy(details = JsonObject(applied.details.orEmpty() + (USAGES to JsonArray(usages.map { JsonPrimitive(it.toString()) }))))
+        val reportedByParts = applied.details?.get(USAGES)?.jsonArray?.mapTo(HashSet()) { it.jsonPrimitive.content }.orEmpty()
+        val reported = usagesReported(usages, reportedByParts)
+        val kept = applied.details.orEmpty() - USAGES
+        return applied.copy(details = if (reported.isEmpty()) kept.takeIf { it.isNotEmpty() }?.let(::JsonObject) else JsonObject(kept + usagesDetails(reported)))
     }
-
-    private const val USAGES = "usages"
 
     /**
      * @param keepsContents Whether it deletes only the folder and the folders in it, and only once nothing else is in

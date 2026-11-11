@@ -87,6 +87,11 @@ private suspend fun CommandContext.scenesWithout(subject: RelationSubject, usage
     }
 }
 
-private fun usagesDetails(usages: List<Usage>) = buildJsonObject {
-    putJsonArray("usages") { usages.forEach { add(it.toString()) } }
+/**
+ * The key of the usages a delete reports to the AI in its details ([usagesDetails]).
+ */
+internal const val USAGES = "usages"
+
+internal fun usagesDetails(usages: List<Usage>) = buildJsonObject {
+    putJsonArray(USAGES) { usages.forEach { add(it.toString()) } }
 }

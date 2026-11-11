@@ -26,7 +26,12 @@ import com.pandulapeter.kubrikoCreator.commands.project.CheckChange
 import com.pandulapeter.kubrikoCreator.commands.screenplay.CreatePage
 import com.pandulapeter.kubrikoCreator.commands.testScope
 import com.pandulapeter.kubrikoCreator.commands.usagesOf
+import com.pandulapeter.kubrikoCreator.context.RelationKind
+import com.pandulapeter.kubrikoCreator.context.RelationPlace
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
+import com.pandulapeter.kubrikoCreator.context.Usage
+import com.pandulapeter.kubrikoCreator.context.UsageEffect
+import com.pandulapeter.kubrikoCreator.context.UsagePlace
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonArray
@@ -166,6 +171,15 @@ class DeletingFullFolderTest {
         File(context.project.rootDirectory, "src/commonMain/composeResources/files/scenes/levels/1.json").delete()
         assertEquals(null, DeleteFolder.apply(context, DeleteFolder.Input(FolderGroup.SCENES, "levels")).failure)
         assertEquals(listOf("main"), context.scenes.names())
+    }
+
+    @Test
+    fun aMentionIsReportedAsTextOnlyIfItsDeleteTurnedItIntoText() {
+        val folder = RelationSubject.Folder(FolderGroup.SCENES, "levels")
+        val content = Usage(UsagePlace.InModel(RelationPlace.Scene("levels/1")), RelationKind.IS_IN, folder, UsageEffect.DELETED_WITH_FOLDER)
+        val unlinked = Usage(UsagePlace.Markdown("screenplay/intro.md"), RelationKind.MENTIONS, RelationSubject.Scene("levels/1"), UsageEffect.MENTION_TO_TEXT)
+        val changedMeanwhile = unlinked.copy(place = UsagePlace.Markdown("screenplay/outro.md"))
+        assertEquals(listOf(content, unlinked), usagesReported(listOf(content, unlinked, changedMeanwhile), setOf(unlinked.toString())))
     }
 
     @Test

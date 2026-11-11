@@ -79,6 +79,14 @@ internal suspend fun CommandContext.folderUsagesOf(
     return contents + if (isAfterDeleting) references.first().usagesAfterDeleting(outside) else outside
 }
 
+/**
+ * [usages] as the AI hears them once the folder's deletes are made, given what the deletes themselves reported
+ * ([reportedByParts], as text): a page's mention only if the delete of what it mentions turned it into text, since one
+ * changed after the usages were read is left as it is.
+ */
+internal fun usagesReported(usages: List<Usage>, reportedByParts: Set<String>) =
+    usages.filter { it.effect != UsageEffect.MENTION_TO_TEXT || it.toString() in reportedByParts }
+
 private fun Usage.ownerOrNull(): RelationSubject? = when (val place = place) {
     is UsagePlace.InModel -> place.place.owner
     is UsagePlace.Markdown -> PageNaming.nameOf(place.path)?.let(RelationSubject::Page)
