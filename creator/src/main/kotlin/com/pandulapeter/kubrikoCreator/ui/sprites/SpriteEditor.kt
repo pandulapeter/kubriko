@@ -60,6 +60,7 @@ import com.pandulapeter.kubrikoCreator.sprites.pixels.PixelImage
 import com.pandulapeter.kubrikoCreator.sprites.pixels.SpriteFrames
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.spriteLabel
 import com.pandulapeter.kubrikoCreator.ui.components.ProgressScreen
+import com.pandulapeter.kubrikoCreator.ui.historyStep
 import com.pandulapeter.kubrikoCreator.ui.text
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_close
@@ -242,21 +243,15 @@ internal fun SpriteEditorState.save(
  * on to the workspace once the draft has no steps left.
  */
 internal fun SpriteEditorState.onDraftKey(key: Key, isShortcut: Boolean, isShift: Boolean, onSave: () -> Unit): Boolean {
-    if (!isShortcut) return false
-    val isRedo = (key == Key.Z && isShift) || key == Key.Y
-    return when {
-        key == Key.S -> true.also { onSave() }
-        key == Key.Z || isRedo -> {
-            val isDone = draft?.let { if (isRedo) it.canRedo else it.canUndo } == true
-            if (isDone) {
-                floating = null
-                selection = null
-                if (isRedo) redo() else undo()
-            }
-            isDone
-        }
-        else -> false
+    if (isShortcut && key == Key.S) return true.also { onSave() }
+    val isUndo = historyStep(key, isShortcutPressed = isShortcut, isShiftPressed = isShift) ?: return false
+    val isDone = draft?.let { if (isUndo) it.canUndo else it.canRedo } == true
+    if (isDone) {
+        floating = null
+        selection = null
+        if (isUndo) undo() else redo()
     }
+    return isDone
 }
 
 /**

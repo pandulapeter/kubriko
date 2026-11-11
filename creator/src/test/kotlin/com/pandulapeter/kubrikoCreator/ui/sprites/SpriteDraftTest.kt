@@ -189,6 +189,7 @@ class SpriteDraftTest {
         assertTrue(state.onDraftKey(Key.Y, isShortcut = true, isShift = false) {})
         assertEquals(red, shown()[0, 0])
         assertFalse(state.onDraftKey(Key.S, isShortcut = false, isShift = false) {}, "S alone is the selection tool's")
+        assertFalse(state.onDraftKey(Key.Y, isShortcut = true, isShift = true) {}, "the workspace's own chords, no others")
     }
 
     @Test
