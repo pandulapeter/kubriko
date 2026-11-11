@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
@@ -56,8 +57,8 @@ class ScreenplayCommandsTest {
         assertEquals(Rejection(CommandProblem.PAGE_TAKEN, "Hero"), CreatePage.validate(context, CreatePage.Input("Hero", "")))
         assertEquals(Rejection(NameProblem.FOLDER_CHARACTERS), CreatePage.validate(context, CreatePage.Input("hero.md", "")))
         assertEquals(Rejection(CommandProblem.PAGE_TOO_LONG, PAGE_MAXIMUM_LENGTH.toString()), CreatePage.validate(context, CreatePage.Input("long", "x".repeat(PAGE_MAXIMUM_LENGTH + 1))))
-        assertEquals(Rejection(CommandProblem.PAGE_MISSING, "villain"), EditPage.validate(context, EditPage.Input("villain", "")))
-        assertEquals(Rejection(CommandProblem.PAGE_SECTION_MISSING_LISTED, "hero", "Enemies", "Moves, Planned"), EditPage.apply(context, EditPage.Input("hero", "## Enemies", section = "Enemies")).failure)
+        assertEquals(Rejection(LookupProblem.PAGE_MISSING, "villain"), EditPage.validate(context, EditPage.Input("villain", "")))
+        assertEquals(Rejection(LookupProblem.PAGE_SECTION_MISSING_LISTED, "hero", "Enemies", "Moves, Planned"), EditPage.apply(context, EditPage.Input("hero", "## Enemies", section = "Enemies")).failure)
         assertNull(MovePage.validate(context, MovePage.Input("hero", "HERO")))
         assertEquals(Rejection(CommandProblem.PAGE_TAKEN, "hero"), MovePage.validate(context, MovePage.Input("hero", "hero")))
     }

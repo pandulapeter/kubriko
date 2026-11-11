@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.screenplay
 
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 import com.pandulapeter.kubrikoCreator.commands.toRejection
@@ -27,7 +28,7 @@ internal const val DOCUMENT_MAXIMUM_LENGTH = 200_000
 internal fun CommandContext.validateDocument(path: String): Rejection? = if (documents.isKnown(path)) {
     null
 } else {
-    SimilarNames.rejection(CommandProblem.DOCUMENT_MISSING, CommandProblem.DOCUMENT_MISSING_SIMILAR, path, documents.paths(), path)
+    SimilarNames.rejection(LookupProblem.DOCUMENT_MISSING, LookupProblem.DOCUMENT_MISSING_SIMILAR, path, documents.paths(), path)
 }
 
 /**

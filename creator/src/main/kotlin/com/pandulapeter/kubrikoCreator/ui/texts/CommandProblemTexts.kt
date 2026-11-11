@@ -18,35 +18,27 @@ import kubriko.creator.generated.resources.error_command_actor_id_invalid
 import kubriko.creator.generated.resources.error_command_actor_id_letter_beyond_a_to_z
 import kubriko.creator.generated.resources.error_command_actor_id_repeated
 import kubriko.creator.generated.resources.error_command_actor_id_taken
-import kubriko.creator.generated.resources.error_command_actor_property_missing
 import kubriko.creator.generated.resources.error_command_actor_type_has_children
-import kubriko.creator.generated.resources.error_command_actor_type_missing
 import kubriko.creator.generated.resources.error_command_actors_empty
 import kubriko.creator.generated.resources.error_command_already_under_version_control
-import kubriko.creator.generated.resources.error_command_block_missing
 import kubriko.creator.generated.resources.error_command_change_missing
 import kubriko.creator.generated.resources.error_command_changed_outside
 import kubriko.creator.generated.resources.error_command_changes_not_written
 import kubriko.creator.generated.resources.error_command_commit_conflicts
 import kubriko.creator.generated.resources.error_command_commit_message_empty
 import kubriko.creator.generated.resources.error_command_description_invalid
-import kubriko.creator.generated.resources.error_command_document_missing
 import kubriko.creator.generated.resources.error_command_document_not_moved
 import kubriko.creator.generated.resources.error_command_document_taken
 import kubriko.creator.generated.resources.error_command_document_too_long
 import kubriko.creator.generated.resources.error_command_document_unreadable
-import kubriko.creator.generated.resources.error_command_event_missing
 import kubriko.creator.generated.resources.error_command_failed
 import kubriko.creator.generated.resources.error_command_first_scene_not_followed
 import kubriko.creator.generated.resources.error_command_game_notes_too_long
 import kubriko.creator.generated.resources.error_command_game_settings_unavailable
 import kubriko.creator.generated.resources.error_command_generated_code_not_written
-import kubriko.creator.generated.resources.error_command_index_invalid
 import kubriko.creator.generated.resources.error_command_input_invalid
-import kubriko.creator.generated.resources.error_command_manager_type_missing
 import kubriko.creator.generated.resources.error_command_markdown_missing
 import kubriko.creator.generated.resources.error_command_mentions_not_followed
-import kubriko.creator.generated.resources.error_command_music_missing
 import kubriko.creator.generated.resources.error_command_no_actor_types
 import kubriko.creator.generated.resources.error_command_no_repository
 import kubriko.creator.generated.resources.error_command_not_a_change
@@ -57,9 +49,7 @@ import kubriko.creator.generated.resources.error_command_page_image_not_viewable
 import kubriko.creator.generated.resources.error_command_page_image_source
 import kubriko.creator.generated.resources.error_command_page_image_unreadable
 import kubriko.creator.generated.resources.error_command_page_invalid
-import kubriko.creator.generated.resources.error_command_page_missing
 import kubriko.creator.generated.resources.error_command_page_not_moved
-import kubriko.creator.generated.resources.error_command_page_section_missing
 import kubriko.creator.generated.resources.error_command_page_taken
 import kubriko.creator.generated.resources.error_command_page_too_long
 import kubriko.creator.generated.resources.error_command_parent_cycle
@@ -71,39 +61,27 @@ import kubriko.creator.generated.resources.error_command_project_settings_unavai
 import kubriko.creator.generated.resources.error_command_property_inherited
 import kubriko.creator.generated.resources.error_command_property_kind_changed
 import kubriko.creator.generated.resources.error_command_property_kind_in_descendant
-import kubriko.creator.generated.resources.error_command_property_unknown
 import kubriko.creator.generated.resources.error_command_property_value_invalid
 import kubriko.creator.generated.resources.error_command_question_invalid
-import kubriko.creator.generated.resources.error_command_relations_property_missing
 import kubriko.creator.generated.resources.error_command_relations_subject
-import kubriko.creator.generated.resources.error_command_scene_actor_missing
 import kubriko.creator.generated.resources.error_command_scene_actor_not_block_built
 import kubriko.creator.generated.resources.error_command_scene_actor_without_position
 import kubriko.creator.generated.resources.error_command_scene_content_invalid
 import kubriko.creator.generated.resources.error_command_scene_invalid
 import kubriko.creator.generated.resources.error_command_scene_is_first
-import kubriko.creator.generated.resources.error_command_scene_missing
 import kubriko.creator.generated.resources.error_command_screenplay_settings_unreadable
 import kubriko.creator.generated.resources.error_command_screenplay_style
 import kubriko.creator.generated.resources.error_command_size_invalid
-import kubriko.creator.generated.resources.error_command_sound_missing
-import kubriko.creator.generated.resources.error_command_sprite_missing
 import kubriko.creator.generated.resources.error_command_summary_invalid
-import kubriko.creator.generated.resources.error_command_text_missing
 import kubriko.creator.generated.resources.error_command_text_size_invalid
 import kubriko.creator.generated.resources.error_command_timer_taken
-import kubriko.creator.generated.resources.error_command_timer_unknown
-import kubriko.creator.generated.resources.error_command_type_missing
-import kubriko.creator.generated.resources.error_command_unknown
 import kubriko.creator.generated.resources.error_command_upgrade_by_hand
 import kubriko.creator.generated.resources.error_command_upgrade_not_needed
 import kubriko.creator.generated.resources.error_folder_exists
-import kubriko.creator.generated.resources.error_folder_missing
 import kubriko.creator.generated.resources.error_folder_not_empty
 import kubriko.creator.generated.resources.error_folder_top
 import kubriko.creator.generated.resources.error_game_command_failed
 import kubriko.creator.generated.resources.error_game_duration_invalid
-import kubriko.creator.generated.resources.error_game_key_unknown
 import kubriko.creator.generated.resources.error_game_keys_count
 import kubriko.creator.generated.resources.error_game_keys_or_steps
 import kubriko.creator.generated.resources.error_game_no_answer
@@ -129,12 +107,9 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.ACTOR_ID_INVALID -> Res.string.error_command_actor_id_invalid
     CommandProblem.ACTOR_ID_REPEATED -> Res.string.error_command_actor_id_repeated
     CommandProblem.ACTOR_ID_TAKEN -> Res.string.error_command_actor_id_taken
-    CommandProblem.ACTOR_PROPERTY_MISSING -> Res.string.error_command_actor_property_missing
     CommandProblem.ACTOR_TYPE_HAS_CHILDREN -> Res.string.error_command_actor_type_has_children
-    CommandProblem.ACTOR_TYPE_MISSING -> Res.string.error_command_actor_type_missing
     CommandProblem.ACTORS_EMPTY -> Res.string.error_command_actors_empty
     CommandProblem.ALREADY_UNDER_VERSION_CONTROL -> Res.string.error_command_already_under_version_control
-    CommandProblem.BLOCK_MISSING -> Res.string.error_command_block_missing
     CommandProblem.BLOCKS_NOTHING_TO_REPLACE -> Res.string.error_blocks_nothing_to_replace
     CommandProblem.CHANGE_MISSING -> Res.string.error_command_change_missing
     CommandProblem.CHANGED_OUTSIDE -> Res.string.error_command_changed_outside
@@ -142,26 +117,20 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.COMMIT_CONFLICTS -> Res.string.error_command_commit_conflicts
     CommandProblem.COMMIT_MESSAGE_EMPTY -> Res.string.error_command_commit_message_empty
     CommandProblem.DESCRIPTION_INVALID -> Res.string.error_command_description_invalid
-    CommandProblem.EVENT_MISSING -> Res.string.error_command_event_missing
     CommandProblem.FAILED -> Res.string.error_command_failed
     CommandProblem.GAME_NOTES_TOO_LONG -> Res.string.error_command_game_notes_too_long
     CommandProblem.GENERATED_CODE_NOT_WRITTEN -> Res.string.error_command_generated_code_not_written
-    CommandProblem.INDEX_INVALID -> Res.string.error_command_index_invalid
     CommandProblem.INPUT_INVALID -> Res.string.error_command_input_invalid
-    CommandProblem.MANAGER_TYPE_MISSING -> Res.string.error_command_manager_type_missing
-    CommandProblem.MUSIC_MISSING -> Res.string.error_command_music_missing
     CommandProblem.NO_ACTOR_TYPES -> Res.string.error_command_no_actor_types
     CommandProblem.NO_REPOSITORY -> Res.string.error_command_no_repository
     CommandProblem.NOT_A_CHANGE -> Res.string.error_command_not_a_change
     CommandProblem.NOT_CHANGED_BY_HAND -> Res.string.error_command_not_changed_by_hand
     CommandProblem.NOTHING_TO_COMMIT -> Res.string.error_command_nothing_to_commit
     CommandProblem.NUMBER_INVALID -> Res.string.error_command_number_invalid
-    CommandProblem.DOCUMENT_MISSING -> Res.string.error_command_document_missing
     CommandProblem.DOCUMENT_NOT_MOVED -> Res.string.error_command_document_not_moved
     CommandProblem.DOCUMENT_TAKEN -> Res.string.error_command_document_taken
     CommandProblem.DOCUMENT_TOO_LONG -> Res.string.error_command_document_too_long
     CommandProblem.DOCUMENT_UNREADABLE -> Res.string.error_command_document_unreadable
-    CommandProblem.PAGE_MISSING -> Res.string.error_command_page_missing
     CommandProblem.PAGE_NOT_MOVED -> Res.string.error_command_page_not_moved
     CommandProblem.MENTIONS_NOT_FOLLOWED -> Res.string.error_command_mentions_not_followed
     CommandProblem.MARKDOWN_MISSING -> Res.string.error_command_markdown_missing
@@ -172,7 +141,6 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.SCREENPLAY_SETTINGS_UNREADABLE -> Res.string.error_command_screenplay_settings_unreadable
     CommandProblem.QUESTION_INVALID -> Res.string.error_command_question_invalid
     CommandProblem.SUMMARY_INVALID -> Res.string.error_command_summary_invalid
-    CommandProblem.PAGE_SECTION_MISSING -> Res.string.error_command_page_section_missing
     CommandProblem.PAGE_TAKEN -> Res.string.error_command_page_taken
     CommandProblem.PAGE_TOO_LONG -> Res.string.error_command_page_too_long
     CommandProblem.PAGE_INVALID -> Res.string.error_command_page_invalid
@@ -187,35 +155,23 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.PROPERTY_INHERITED -> Res.string.error_command_property_inherited
     CommandProblem.PROPERTY_KIND_CHANGED -> Res.string.error_command_property_kind_changed
     CommandProblem.PROPERTY_KIND_IN_DESCENDANT -> Res.string.error_command_property_kind_in_descendant
-    CommandProblem.PROPERTY_UNKNOWN -> Res.string.error_command_property_unknown
     CommandProblem.PROPERTY_VALUE_INVALID -> Res.string.error_command_property_value_invalid
-    CommandProblem.RELATIONS_PROPERTY_MISSING -> Res.string.error_command_relations_property_missing
     CommandProblem.RELATIONS_SUBJECT -> Res.string.error_command_relations_subject
-    CommandProblem.SCENE_ACTOR_MISSING -> Res.string.error_command_scene_actor_missing
     CommandProblem.SCENE_ACTOR_NOT_BLOCK_BUILT -> Res.string.error_command_scene_actor_not_block_built
     CommandProblem.SCENE_ACTOR_WITHOUT_POSITION -> Res.string.error_command_scene_actor_without_position
     CommandProblem.SCENE_CONTENT_INVALID -> Res.string.error_command_scene_content_invalid
     CommandProblem.SCENE_INVALID -> Res.string.error_command_scene_invalid
     CommandProblem.SCENE_IS_FIRST -> Res.string.error_command_scene_is_first
-    CommandProblem.SCENE_MISSING -> Res.string.error_command_scene_missing
     CommandProblem.SIZE_INVALID -> Res.string.error_command_size_invalid
-    CommandProblem.SOUND_MISSING -> Res.string.error_command_sound_missing
-    CommandProblem.SPRITE_MISSING -> Res.string.error_command_sprite_missing
-    CommandProblem.TEXT_MISSING -> Res.string.error_command_text_missing
     CommandProblem.TEXT_SIZE_INVALID -> Res.string.error_command_text_size_invalid
     CommandProblem.TIMER_TAKEN -> Res.string.error_command_timer_taken
-    CommandProblem.TIMER_UNKNOWN -> Res.string.error_command_timer_unknown
-    CommandProblem.TYPE_MISSING -> Res.string.error_command_type_missing
-    CommandProblem.UNKNOWN -> Res.string.error_command_unknown
     CommandProblem.UPGRADE_BY_HAND -> Res.string.error_command_upgrade_by_hand
     CommandProblem.UPGRADE_NOT_NEEDED -> Res.string.error_command_upgrade_not_needed
     CommandProblem.FOLDER_EXISTS -> Res.string.error_folder_exists
     CommandProblem.FOLDER_TOP -> Res.string.error_folder_top
-    CommandProblem.FOLDER_MISSING -> Res.string.error_folder_missing
     CommandProblem.FOLDER_NOT_EMPTY -> Res.string.error_folder_not_empty
     CommandProblem.GAME_COMMAND_FAILED -> Res.string.error_game_command_failed
     CommandProblem.GAME_DURATION_INVALID -> Res.string.error_game_duration_invalid
-    CommandProblem.GAME_KEY_UNKNOWN -> Res.string.error_game_key_unknown
     CommandProblem.GAME_KEYS_COUNT -> Res.string.error_game_keys_count
     CommandProblem.GAME_KEYS_OR_STEPS -> Res.string.error_game_keys_or_steps
     CommandProblem.GAME_STEPS_COUNT -> Res.string.error_game_steps_count
@@ -229,5 +185,4 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.SCENE_NAME_TAKEN -> Res.string.error_scene_name_taken
     CommandProblem.SCENE_NOT_MOVED -> Res.string.error_scene_not_moved
     CommandProblem.SCENE_NAMED_IN_CODE -> Res.string.warning_scene_named_in_code
-    else -> checkNotNull(lookupResource()) { "$this has no string." }
 }

@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.scenes
 import com.pandulapeter.kubrikoCreator.actors.NameFlaw
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
@@ -40,10 +41,10 @@ internal fun CommandContext.validateSceneActors(sceneName: String, actorIds: Lis
 /**
  * Why there is no Scene called [name], naming the Scenes called similarly.
  */
-internal fun CommandContext.missingScene(name: String) = SimilarNames.rejection(CommandProblem.SCENE_MISSING, CommandProblem.SCENE_MISSING_SIMILAR, name, scenes.names(), name)
+internal fun CommandContext.missingScene(name: String) = SimilarNames.rejection(LookupProblem.SCENE_MISSING, LookupProblem.SCENE_MISSING_SIMILAR, name, scenes.names(), name)
 
 private fun missingActor(sceneName: String, actorId: String, actors: List<SceneActorEntry>) =
-    SimilarNames.rejection(CommandProblem.SCENE_ACTOR_MISSING, CommandProblem.SCENE_ACTOR_MISSING_SIMILAR, actorId, actors.map { it.id }, sceneName, actorId)
+    SimilarNames.rejection(LookupProblem.SCENE_ACTOR_MISSING, LookupProblem.SCENE_ACTOR_MISSING_SIMILAR, actorId, actors.map { it.id }, sceneName, actorId)
 
 /**
  * Why [actorIds], the Actors a batch command names, can't be used: there are none, or one is given twice.

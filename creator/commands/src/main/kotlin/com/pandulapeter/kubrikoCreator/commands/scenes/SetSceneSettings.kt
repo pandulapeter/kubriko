@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
@@ -42,7 +43,7 @@ public object SetSceneSettings : WriteCommand<SetSceneSettings.Input> {
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateScene(input.scene) ?: when {
         listOfNotNull(input.x, input.y, input.width, input.height, input.cameraX, input.cameraY).any { !it.isFinite() } -> Rejection(CommandProblem.NUMBER_INVALID)
         listOfNotNull(input.width, input.height).any { it <= 0f } -> Rejection(CommandProblem.SIZE_INVALID)
-        !input.music.isNullOrEmpty() && context.audioFiles()?.music?.contains(input.music) == false -> Rejection(CommandProblem.MUSIC_MISSING, input.music)
+        !input.music.isNullOrEmpty() && context.audioFiles()?.music?.contains(input.music) == false -> Rejection(LookupProblem.MUSIC_MISSING, input.music)
         else -> input.actorId?.let { validateNewActorId(it, context.readScene(input.scene)) }
     }
 

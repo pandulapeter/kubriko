@@ -58,12 +58,12 @@ class SimilarNamesTest {
     @Test
     fun theRejectionNamesTheSimilarNamesOnlyWhenThereAreAny() {
         assertEquals(
-            Rejection(CommandProblem.TIMER_UNKNOWN_SIMILAR, "Ball", "spwan", "spawn"),
-            SimilarNames.rejection(CommandProblem.TIMER_UNKNOWN, CommandProblem.TIMER_UNKNOWN_SIMILAR, "spwan", listOf("spawn"), "Ball", "spwan"),
+            Rejection(LookupProblem.TIMER_UNKNOWN_SIMILAR, "Ball", "spwan", "spawn"),
+            SimilarNames.rejection(LookupProblem.TIMER_UNKNOWN, LookupProblem.TIMER_UNKNOWN_SIMILAR, "spwan", listOf("spawn"), "Ball", "spwan"),
         )
         assertEquals(
-            Rejection(CommandProblem.TIMER_UNKNOWN, "Ball", "blink"),
-            SimilarNames.rejection(CommandProblem.TIMER_UNKNOWN, CommandProblem.TIMER_UNKNOWN_SIMILAR, "blink", listOf("spawn"), "Ball", "blink"),
+            Rejection(LookupProblem.TIMER_UNKNOWN, "Ball", "blink"),
+            SimilarNames.rejection(LookupProblem.TIMER_UNKNOWN, LookupProblem.TIMER_UNKNOWN_SIMILAR, "blink", listOf("spawn"), "Ball", "blink"),
         )
     }
 }

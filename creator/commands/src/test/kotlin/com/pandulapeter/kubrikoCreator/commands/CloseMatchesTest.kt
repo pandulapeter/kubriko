@@ -67,21 +67,21 @@ class CloseMatchesTest {
     @Test
     fun typesOfferTheCloseNamesOrSayWhichKindTheNameIs() = runTest {
         val context = context()
-        assertEquals(Rejection(CommandProblem.TYPE_MISSING_SIMILAR, "paddle", "Paddle"), context.validateType("paddle"))
-        assertEquals(Rejection(CommandProblem.ACTOR_TYPE_MISSING_SIMILAR, "Padle", "Paddle"), context.validateActorType("Padle"))
-        assertEquals(Rejection(CommandProblem.ACTOR_TYPE_IS_MANAGER_TYPE, "Score"), context.validateActorType("Score"))
-        assertEquals(Rejection(CommandProblem.MANAGER_TYPE_MISSING_SIMILAR, "Scores", "Score"), context.validateManagerType("Scores"))
-        assertEquals(Rejection(CommandProblem.MANAGER_TYPE_IS_ACTOR_TYPE, "Paddle"), context.validateManagerType("Paddle"))
-        assertEquals(Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Ghost"), context.validateActorType("Ghost"))
+        assertEquals(Rejection(LookupProblem.TYPE_MISSING_SIMILAR, "paddle", "Paddle"), context.validateType("paddle"))
+        assertEquals(Rejection(LookupProblem.ACTOR_TYPE_MISSING_SIMILAR, "Padle", "Paddle"), context.validateActorType("Padle"))
+        assertEquals(Rejection(LookupProblem.ACTOR_TYPE_IS_MANAGER_TYPE, "Score"), context.validateActorType("Score"))
+        assertEquals(Rejection(LookupProblem.MANAGER_TYPE_MISSING_SIMILAR, "Scores", "Score"), context.validateManagerType("Scores"))
+        assertEquals(Rejection(LookupProblem.MANAGER_TYPE_IS_ACTOR_TYPE, "Paddle"), context.validateManagerType("Paddle"))
+        assertEquals(Rejection(LookupProblem.ACTOR_TYPE_MISSING, "Ghost"), context.validateActorType("Ghost"))
     }
 
     @Test
     fun whatATypeHoldsOffersTheCloseNamesOrTheIndexesThereAre() = runTest {
         val context = context()
-        assertEquals(Rejection(CommandProblem.PROPERTY_UNKNOWN_SIMILAR, "Paddle", "sped", "speed"), context.validateProperty("Paddle", "sped"))
-        assertEquals(Rejection(CommandProblem.EVENT_MISSING, "Paddle", "1", "0"), context.validateEvent("Paddle", 1))
-        assertEquals(Rejection(CommandProblem.EVENT_MISSING_NONE, "Score", "0"), context.validateEvent("Score", 0))
-        assertEquals(Rejection(CommandProblem.TEXT_MISSING_NONE, "Score", "0"), context.validateTextIndex("Score", 0))
+        assertEquals(Rejection(LookupProblem.PROPERTY_UNKNOWN_SIMILAR, "Paddle", "sped", "speed"), context.validateProperty("Paddle", "sped"))
+        assertEquals(Rejection(LookupProblem.EVENT_MISSING, "Paddle", "1", "0"), context.validateEvent("Paddle", 1))
+        assertEquals(Rejection(LookupProblem.EVENT_MISSING_NONE, "Score", "0"), context.validateEvent("Score", 0))
+        assertEquals(Rejection(LookupProblem.TEXT_MISSING_NONE, "Score", "0"), context.validateTextIndex("Score", 0))
     }
 
     @Test
@@ -97,15 +97,15 @@ class CloseMatchesTest {
             validateBlock(BlockDefinition.SetText("speed", ""), EventType.EVERY_FRAME, scope),
         )
         assertEquals(
-            Rejection(CommandProblem.SCENE_MISSING_SIMILAR, "first", "levels/first"),
+            Rejection(LookupProblem.SCENE_MISSING_SIMILAR, "first", "levels/first"),
             validateBlock(BlockDefinition.GoToScene("first"), EventType.EVERY_FRAME, scope),
         )
         assertEquals(
-            Rejection(CommandProblem.GAME_KEY_UNKNOWN_SIMILAR, "Space", "Spacebar, Backspace"),
+            Rejection(LookupProblem.GAME_KEY_UNKNOWN_SIMILAR, "Space", "Spacebar, Backspace"),
             validateEvent(EventDefinition(EventType.KEY_PRESSED, key = KeyChoice("Space")), scope),
         )
         assertEquals(
-            Rejection(CommandProblem.ACTOR_TYPE_IS_MANAGER_TYPE, "Score"),
+            Rejection(LookupProblem.ACTOR_TYPE_IS_MANAGER_TYPE, "Score"),
             validateEvent(EventDefinition(EventType.COLLISION, otherActorType = "Score"), scope),
         )
     }
@@ -113,20 +113,20 @@ class CloseMatchesTest {
     @Test
     fun filesScenesAndActorsOfferTheCloseNames() = runTest {
         val context = context()
-        assertEquals(Rejection(CommandProblem.SCENE_MISSING_SIMILAR, "first", "levels/first"), context.validateScene("first"))
+        assertEquals(Rejection(LookupProblem.SCENE_MISSING_SIMILAR, "first", "levels/first"), context.validateScene("first"))
         assertEquals(
-            Rejection(CommandProblem.SCENE_ACTOR_MISSING_SIMILAR, "levels/first", "leftpaddle", "leftPaddle"),
+            Rejection(LookupProblem.SCENE_ACTOR_MISSING_SIMILAR, "levels/first", "leftpaddle", "leftPaddle"),
             context.validateSceneActor("levels/first", "leftpaddle"),
         )
-        assertEquals(Rejection(CommandProblem.SPRITE_MISSING_SIMILAR, "drawable/paddle", "drawable/paddle.png"), context.validateSprite("drawable/paddle"))
-        assertEquals(Rejection(CommandProblem.PAGE_MISSING_SIMILAR, "Heroes", "heroes"), context.validatePage("Heroes"))
-        assertEquals(Rejection(CommandProblem.DOCUMENT_MISSING_SIMILAR, "combat.md", "docs/combat.md"), context.validateDocument("combat.md"))
-        assertEquals(Rejection(CommandProblem.FOLDER_MISSING_SIMILAR, "level", "levels"), context.validateFolder(FolderGroup.SCENES, "level", setOf("levels")))
+        assertEquals(Rejection(LookupProblem.SPRITE_MISSING_SIMILAR, "drawable/paddle", "drawable/paddle.png"), context.validateSprite("drawable/paddle"))
+        assertEquals(Rejection(LookupProblem.PAGE_MISSING_SIMILAR, "Heroes", "heroes"), context.validatePage("Heroes"))
+        assertEquals(Rejection(LookupProblem.DOCUMENT_MISSING_SIMILAR, "combat.md", "docs/combat.md"), context.validateDocument("combat.md"))
+        assertEquals(Rejection(LookupProblem.FOLDER_MISSING_SIMILAR, "level", "levels"), context.validateFolder(FolderGroup.SCENES, "level", setOf("levels")))
     }
 
     @Test
     fun toolsAndKeysOfferTheCloseNames() {
-        assertEquals(Rejection(CommandProblem.UNKNOWN_SIMILAR, "place_actr", "place_actor, place_actors"), CommandRegistry.editor.missing("place_actr"))
-        assertEquals(Rejection(CommandProblem.GAME_KEY_UNKNOWN_SIMILAR, "SPACEBAR", "SPACE"), unknownKeyName("SPACEBAR"))
+        assertEquals(Rejection(LookupProblem.UNKNOWN_SIMILAR, "place_actr", "place_actor, place_actors"), CommandRegistry.editor.missing("place_actr"))
+        assertEquals(Rejection(LookupProblem.GAME_KEY_UNKNOWN_SIMILAR, "SPACEBAR", "SPACE"), unknownKeyName("SPACEBAR"))
     }
 }

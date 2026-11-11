@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Descriptions
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.fits
@@ -86,8 +87,8 @@ internal fun CommandContext.validateActorValues(actor: SceneActorEntry, changes:
         else -> changes.properties.firstNotNullOfOrNull { value ->
             val property = definition?.properties?.firstOrNull { it.name == value.name }
                 ?: return@firstNotNullOfOrNull SimilarNames.rejection(
-                    CommandProblem.ACTOR_PROPERTY_MISSING,
-                    CommandProblem.ACTOR_PROPERTY_MISSING_SIMILAR,
+                    LookupProblem.ACTOR_PROPERTY_MISSING,
+                    LookupProblem.ACTOR_PROPERTY_MISSING_SIMILAR,
                     value.name,
                     definition?.properties.orEmpty().map { it.name },
                     actor.typeId,

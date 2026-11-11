@@ -215,7 +215,7 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
 - **Kinds:** a `ReadCommand` is never recorded. A `WriteCommand`'s `validate` returns a `Rejection` in the user's words: one
   entry per rule broken rather than a restatement of every rule (names are told apart through `NameFlaw`), and Events and
   Blocks named by their titles in the editor, with their IDs in brackets in `english`, which the AI reads. A rejection says
-  what to use instead, so the AI fixes the call without another read: a name that doesn't exist offers the close ones
+  what to use instead, so the AI fixes the call without another read: a name that doesn't exist (`LookupProblem`) offers the close ones
   (`SimilarNames`, through a `_SIMILAR` reason of its own, since a reason's arguments can't carry English) or says the name
   is of the other kind of type, and an index the ones there are. Its `apply`
   returns the inverse `Invocation` (none for git operations, which can't be undone); one that rewrites files without an inverse

@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.FakeProjectRunner
 import com.pandulapeter.kubrikoCreator.commands.GameStep
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.commands.PlayTargets
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -53,7 +54,7 @@ class GameCommandsTest {
         val executor = executor()
         assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_KEYS_OR_STEPS)), executor.call("press_keys", keys()))
         assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_KEYS_COUNT, "10")), executor.call("press_keys", keys(*Array(11) { "A" })))
-        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_KEY_UNKNOWN, "JUMP")), executor.call("press_keys", keys("LEFT", "JUMP")))
+        assertEquals(CommandOutcome.Rejected(Rejection(LookupProblem.GAME_KEY_UNKNOWN, "JUMP")), executor.call("press_keys", keys("LEFT", "JUMP")))
         assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_DURATION_INVALID, "10000")), executor.call("press_keys", keys("LEFT", milliseconds = 0)))
         assertTrue(runner.calls.isEmpty())
         assertIs<CommandOutcome.Success>(executor.call("press_keys", keys("left", "space")))
@@ -88,7 +89,7 @@ class GameCommandsTest {
         val stepsWithMilliseconds = buildJsonObject { put("steps", Json.parseToJsonElement("""[{"keys": ["A"]}]""")); put("milliseconds", 500) }
         assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_KEYS_OR_STEPS)), executor.call("press_keys", stepsWithMilliseconds))
         val unknownLater = buildJsonObject { put("steps", Json.parseToJsonElement("""[{"keys": ["A"]}, {"keys": ["JUMP"]}]""")) }
-        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_KEY_UNKNOWN, "JUMP")), executor.call("press_keys", unknownLater))
+        assertEquals(CommandOutcome.Rejected(Rejection(LookupProblem.GAME_KEY_UNKNOWN, "JUMP")), executor.call("press_keys", unknownLater))
         assertTrue(runner.calls.isEmpty())
     }
 
@@ -170,7 +171,7 @@ class GameCommandsTest {
         val context = commandContext(runner = runner)
         context.scenes.write("levels/bonus", "[]")
         val executor = CommandExecutor(context, testScope())
-        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.SCENE_MISSING, "levels/other")), executor.call("start_game", buildJsonObject { put("scene", "levels/other") }))
+        assertEquals(CommandOutcome.Rejected(Rejection(LookupProblem.SCENE_MISSING, "levels/other")), executor.call("start_game", buildJsonObject { put("scene", "levels/other") }))
         assertTrue(runner.calls.isEmpty())
         assertIs<CommandOutcome.Success>(executor.call("start_game", buildJsonObject { put("scene", "levels/bonus") }))
         assertEquals(listOf("start levels/bonus"), runner.calls)

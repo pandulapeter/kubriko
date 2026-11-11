@@ -23,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
@@ -119,7 +120,7 @@ class PropertyCommandsTest {
         assertEquals(Rejection(NameProblem.PROPERTY_TAKEN), AddProperty.validate(context, AddProperty.Input("Player", PropertyDefinition.Toggle("tiTLE"))))
         assertEquals(Rejection(NameProblem.PROPERTY_CHARACTERS), AddProperty.validate(context, AddProperty.Input("Player", PropertyDefinition.Toggle("is shielded"))))
         assertEquals(Rejection(CommandProblem.NUMBER_INVALID), AddProperty.validate(context, AddProperty.Input("Player", PropertyDefinition.Number("lives", Float.NaN))))
-        assertEquals(Rejection(CommandProblem.PROPERTY_UNKNOWN, "Player", "lives"), RemoveProperty.validate(context, RemoveProperty.Input("Player", "lives")))
+        assertEquals(Rejection(LookupProblem.PROPERTY_UNKNOWN, "Player", "lives"), RemoveProperty.validate(context, RemoveProperty.Input("Player", "lives")))
         assertEquals(Rejection(CommandProblem.PROPERTY_KIND_CHANGED), EditProperty.validate(context, EditProperty.Input("Player", "score", PropertyDefinition.Text("score"))))
         assertEquals(Rejection(NameProblem.PROPERTY_TAKEN), EditProperty.validate(context, EditProperty.Input("Player", "score", PropertyDefinition.Number("title"))))
         assertNull(EditProperty.validate(context, EditProperty.Input("Player", "score", PropertyDefinition.Number("score", 1f))))

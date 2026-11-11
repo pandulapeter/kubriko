@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.actors.timerNames
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
@@ -60,7 +61,7 @@ class TimerCommandsTest {
     @Test
     fun aTimerIsRenamedOnlyIfItIsUsedAndToAFreeValidName() = runTest {
         val context = commandContext(enemy, bat, game)
-        assertEquals(Rejection(CommandProblem.TIMER_UNKNOWN, "Bat", "fly"), RenameTimer.validate(context, RenameTimer.Input("Bat", "fly", "flap")))
+        assertEquals(Rejection(LookupProblem.TIMER_UNKNOWN, "Bat", "fly"), RenameTimer.validate(context, RenameTimer.Input("Bat", "fly", "flap")))
         assertEquals(Rejection(CommandProblem.TIMER_TAKEN), RenameTimer.validate(context, RenameTimer.Input("Bat", "spawn", "blink")))
         assertEquals(Rejection(NameProblem.TIMER_FIRST_CHARACTER), RenameTimer.validate(context, RenameTimer.Input("Bat", "spawn", "Spawn")))
         assertEquals(null, RenameTimer.validate(context, RenameTimer.Input("Game", "spawn", "blink")))

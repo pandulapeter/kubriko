@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
@@ -78,7 +79,7 @@ class SceneCommandsTest {
         assertEquals(null, CreateScene.validate(context, CreateScene.Input("build")))
         assertEquals(null, CreateScene.validate(context, CreateScene.Input("builds/1")))
         assertEquals(Rejection(CommandProblem.SCENE_CONTENT_INVALID), CreateScene.validate(context, CreateScene.Input("other", "{}")))
-        assertEquals(Rejection(CommandProblem.SCENE_MISSING, "other"), DeleteScene.validate(context, DeleteScene.Input("other")))
+        assertEquals(Rejection(LookupProblem.SCENE_MISSING, "other"), DeleteScene.validate(context, DeleteScene.Input("other")))
     }
 
     @Test
@@ -105,9 +106,9 @@ class SceneCommandsTest {
         assertEquals(Rejection(CommandProblem.ACTOR_ID_INVALID, "a b"), PlaceActor.validate(context, PlaceActor.Input("main", "Ball", 0f, 0f, actorId = "a b")))
         assertEquals(Rejection(CommandProblem.ACTOR_ID_LETTER_BEYOND_A_TO_Z, "labda-1á"), PlaceActor.validate(context, PlaceActor.Input("main", "Ball", 0f, 0f, actorId = "labda-1á")))
         assertEquals(Rejection(CommandProblem.ACTOR_ID_EMPTY), PlaceActor.validate(context, PlaceActor.Input("main", "Ball", 0f, 0f, actorId = "")))
-        assertEquals(Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Wall"), PlaceActor.validate(context, PlaceActor.Input("main", "Wall", 0f, 0f)))
+        assertEquals(Rejection(LookupProblem.ACTOR_TYPE_MISSING, "Wall"), PlaceActor.validate(context, PlaceActor.Input("main", "Wall", 0f, 0f)))
         assertEquals(Rejection(CommandProblem.NUMBER_INVALID), PlaceActor.validate(context, PlaceActor.Input("main", "Ball", Float.NaN, 0f)))
-        assertEquals(Rejection(CommandProblem.SCENE_MISSING, "other"), PlaceActor.validate(context, PlaceActor.Input("other", "Ball", 0f, 0f)))
+        assertEquals(Rejection(LookupProblem.SCENE_MISSING, "other"), PlaceActor.validate(context, PlaceActor.Input("other", "Ball", 0f, 0f)))
     }
 
     @Test
@@ -124,18 +125,18 @@ class SceneCommandsTest {
         val context = context(wall, music)
         assertEquals(listOf(music, wall), context.assertRoundTrip(Invocation(MoveActorOrder, MoveActorOrder.Input("main", "wall", 1))) { context.main() })
         assertEquals(listOf(wall, music), context.assertRoundTrip(Invocation(MoveActorOrder, MoveActorOrder.Input("main", "music", 1))) { context.main() })
-        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "2", "1"), MoveActorOrder.validate(context, MoveActorOrder.Input("main", "wall", 2)))
-        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "-1", "1"), MoveActorOrder.validate(context, MoveActorOrder.Input("main", "wall", -1)))
-        assertEquals(Rejection(CommandProblem.SCENE_ACTOR_MISSING, "main", "ghost"), MoveActorOrder.validate(context, MoveActorOrder.Input("main", "ghost", 0)))
+        assertEquals(Rejection(LookupProblem.INDEX_INVALID, "2", "1"), MoveActorOrder.validate(context, MoveActorOrder.Input("main", "wall", 2)))
+        assertEquals(Rejection(LookupProblem.INDEX_INVALID, "-1", "1"), MoveActorOrder.validate(context, MoveActorOrder.Input("main", "wall", -1)))
+        assertEquals(Rejection(LookupProblem.SCENE_ACTOR_MISSING, "main", "ghost"), MoveActorOrder.validate(context, MoveActorOrder.Input("main", "ghost", 0)))
     }
 
     @Test
     fun actorChangesAreValidated() = runTest {
         val context = context(wall, music)
-        assertEquals(Rejection(CommandProblem.SCENE_ACTOR_MISSING, "main", "ghost"), RemoveActor.validate(context, RemoveActor.Input("main", "ghost")))
+        assertEquals(Rejection(LookupProblem.SCENE_ACTOR_MISSING, "main", "ghost"), RemoveActor.validate(context, RemoveActor.Input("main", "ghost")))
         assertEquals(Rejection(CommandProblem.SCENE_ACTOR_WITHOUT_POSITION, "music"), MoveActor.validate(context, MoveActor.Input("main", "music", 0f, 0f)))
         assertEquals(Rejection(CommandProblem.ACTOR_ID_TAKEN, "wall"), RestoreActor.validate(context, RestoreActor.Input("main", 0, "Wall", "{}", "wall")))
-        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "3", "2"), RestoreActor.validate(context, RestoreActor.Input("main", 3, "Wall", "{}")))
+        assertEquals(Rejection(LookupProblem.INDEX_INVALID, "3", "2"), RestoreActor.validate(context, RestoreActor.Input("main", 3, "Wall", "{}")))
         assertEquals(Rejection(CommandProblem.SCENE_CONTENT_INVALID), RestoreActor.validate(context, RestoreActor.Input("main", 0, "Wall", "[]")))
         @OptIn(EditorMutation::class)
         context.scenes.write("main", "broken")
@@ -164,7 +165,7 @@ class SceneCommandsTest {
         val context = context()
         assertEquals(Rejection(CommandProblem.NUMBER_INVALID), SetSceneSettings.validate(context, SetSceneSettings.Input("main", cameraX = Float.POSITIVE_INFINITY)))
         assertEquals(Rejection(CommandProblem.SIZE_INVALID), SetSceneSettings.validate(context, SetSceneSettings.Input("main", width = 0f)))
-        assertEquals(Rejection(CommandProblem.SCENE_MISSING, "other"), SetSceneSettings.validate(context, SetSceneSettings.Input("other")))
+        assertEquals(Rejection(LookupProblem.SCENE_MISSING, "other"), SetSceneSettings.validate(context, SetSceneSettings.Input("other")))
     }
 
     @Test
@@ -175,7 +176,7 @@ class SceneCommandsTest {
         val cleared = context.assertRoundTrip(Invocation(SetSceneSettings, SetSceneSettings.Input("main", music = ""))) { context.main() }!!
         assertEquals("", SceneSettingsState.read(cleared[1].state).music)
         assertEquals(
-            Rejection(CommandProblem.MUSIC_MISSING, "files/music/ghost.mp3"),
+            Rejection(LookupProblem.MUSIC_MISSING, "files/music/ghost.mp3"),
             SetSceneSettings.validate(context, SetSceneSettings.Input("main", music = "files/music/ghost.mp3")),
         )
     }

@@ -65,7 +65,7 @@ class CompositeCommandTest {
     fun aRejectedPartRollsBackTheOnesBeforeIt() = runTest {
         val context = commandContext(ball)
         val applied = composite(width(10f), Invocation(EditProperty, EditProperty.Input("Ball", "x", PropertyDefinition.Number("y")))).apply(context)
-        assertEquals(Rejection(CommandProblem.PROPERTY_UNKNOWN, "Ball", "x"), applied.failure)
+        assertEquals(Rejection(LookupProblem.PROPERTY_UNKNOWN, "Ball", "x"), applied.failure)
         assertNull(applied.inverse)
         assertEquals(ball, context.blockTypes!!["Ball"])
     }

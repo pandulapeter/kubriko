@@ -31,4 +31,4 @@ internal fun Pair<DomainText, List<String>>.toRejection(): Rejection = Rejection
 /**
  * Why [index] can't be used where the valid indexes are 0 to [lastIndex], or null if it can.
  */
-internal fun validateIndex(index: Int, lastIndex: Int): Rejection? = if (index in 0..lastIndex) null else Rejection(CommandProblem.INDEX_INVALID, index.toString(), lastIndex.toString())
+internal fun validateIndex(index: Int, lastIndex: Int): Rejection? = if (index in 0..lastIndex) null else Rejection(LookupProblem.INDEX_INVALID, index.toString(), lastIndex.toString())

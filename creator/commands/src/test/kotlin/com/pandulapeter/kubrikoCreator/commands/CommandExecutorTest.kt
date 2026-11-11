@@ -235,7 +235,7 @@ class CommandExecutorTest {
         assertEquals(
             listOf(
                 AiStep(0, "add_block", CommandTarget.BlockType("Ball", 0, 1), isRunning = false, changesProject = true),
-                AiStep(1, "read_actor_type", CommandTarget.BlockType("Wall"), isRunning = false, rejection = Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Wall")),
+                AiStep(1, "read_actor_type", CommandTarget.BlockType("Wall"), isRunning = false, rejection = Rejection(LookupProblem.ACTOR_TYPE_MISSING, "Wall")),
             ),
             executor.aiSteps.value.take(2),
         )
@@ -348,7 +348,7 @@ class CommandExecutorTest {
     @Test
     fun unknownToolsAndInvalidInputAreRejected() = runTest {
         val (executor, _) = executor(ball)
-        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.UNKNOWN, "fly")), executor.call("fly", JsonObject(emptyMap())))
+        assertEquals(CommandOutcome.Rejected(Rejection(LookupProblem.UNKNOWN, "fly")), executor.call("fly", JsonObject(emptyMap())))
         listOf(
             buildJsonObject { put("actorType", "Ball"); put("shape", "triangle") },
             buildJsonObject { put("actorType", "Ball"); put("speed", 3) },

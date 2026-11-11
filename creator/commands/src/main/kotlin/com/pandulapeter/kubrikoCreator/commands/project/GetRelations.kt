@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.SimilarNames
@@ -55,7 +56,7 @@ public object GetRelations : ReadCommand<GetRelations.Input> {
         if (subject is RelationSubject.Property && context.blockTypes?.get(subject.owner)?.properties?.none { it.name == subject.name } != false) {
             val names = context.blockTypes?.get(subject.owner)?.properties.orEmpty().map { it.name }
             return CommandOutcome.Rejected(
-                SimilarNames.rejection(CommandProblem.RELATIONS_PROPERTY_MISSING, CommandProblem.RELATIONS_PROPERTY_MISSING_SIMILAR, input.property!!, names, input.property, input.type!!),
+                SimilarNames.rejection(LookupProblem.RELATIONS_PROPERTY_MISSING, LookupProblem.RELATIONS_PROPERTY_MISSING_SIMILAR, input.property!!, names, input.property, input.type!!),
             )
         }
         return CommandOutcome.Success(

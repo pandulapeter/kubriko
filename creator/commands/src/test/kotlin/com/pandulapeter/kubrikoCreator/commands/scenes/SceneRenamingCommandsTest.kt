@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
@@ -67,7 +68,7 @@ class SceneRenamingCommandsTest {
         )
         assertEquals(Rejection(CommandProblem.SCENE_NAME_TAKEN), RenameScene.validate(context, RenameScene.Input("level-2", "Levels/1-1")))
         assertEquals(Rejection(NameProblem.PATH_PART_EMPTY), RenameScene.validate(context, RenameScene.Input("level-2", "levels//2")))
-        assertEquals(Rejection(CommandProblem.SCENE_MISSING, "ghost"), RenameScene.validate(context, RenameScene.Input("ghost", "x")))
+        assertEquals(Rejection(LookupProblem.SCENE_MISSING, "ghost"), RenameScene.validate(context, RenameScene.Input("ghost", "x")))
         assertEquals(Rejection(CommandProblem.SCENE_FOLDER_RESERVED, "node_modules"), RenameScene.validate(context, RenameScene.Input("level-2", "node_modules/2")))
     }
 

@@ -37,6 +37,7 @@ import com.pandulapeter.kubrikoCreator.actors.store.BlockTypes
 import com.pandulapeter.kubrikoCreator.actors.timerName
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 
@@ -64,7 +65,7 @@ internal fun CommandContext.scopeOf(definition: BlockTypeDefinition) = BlockScop
  */
 internal fun CommandContext.validateType(name: String): Rejection? = when {
     blockTypes == null -> Rejection(CommandProblem.NO_ACTOR_TYPES)
-    blockTypes[name] == null -> SimilarNames.rejection(CommandProblem.TYPE_MISSING, CommandProblem.TYPE_MISSING_SIMILAR, name, blockTypes.types.value.map { it.name }, name)
+    blockTypes[name] == null -> SimilarNames.rejection(LookupProblem.TYPE_MISSING, LookupProblem.TYPE_MISSING_SIMILAR, name, blockTypes.types.value.map { it.name }, name)
     else -> null
 }
 
@@ -92,23 +93,23 @@ internal fun CommandContext.validateManagerType(name: String): Rejection? = when
  * Why there is no Actor type called [name] among [actorTypeNames]: it is one of [managerTypeNames], or similar to some.
  */
 internal fun missingActorType(name: String, actorTypeNames: List<String>, managerTypeNames: List<String>) = if (name in managerTypeNames) {
-    Rejection(CommandProblem.ACTOR_TYPE_IS_MANAGER_TYPE, name)
+    Rejection(LookupProblem.ACTOR_TYPE_IS_MANAGER_TYPE, name)
 } else {
-    SimilarNames.rejection(CommandProblem.ACTOR_TYPE_MISSING, CommandProblem.ACTOR_TYPE_MISSING_SIMILAR, name, actorTypeNames, name)
+    SimilarNames.rejection(LookupProblem.ACTOR_TYPE_MISSING, LookupProblem.ACTOR_TYPE_MISSING_SIMILAR, name, actorTypeNames, name)
 }
 
 private fun missingManagerType(name: String, managerTypeNames: List<String>, actorTypeNames: List<String>) = if (name in actorTypeNames) {
-    Rejection(CommandProblem.MANAGER_TYPE_IS_ACTOR_TYPE, name)
+    Rejection(LookupProblem.MANAGER_TYPE_IS_ACTOR_TYPE, name)
 } else {
-    SimilarNames.rejection(CommandProblem.MANAGER_TYPE_MISSING, CommandProblem.MANAGER_TYPE_MISSING_SIMILAR, name, managerTypeNames, name)
+    SimilarNames.rejection(LookupProblem.MANAGER_TYPE_MISSING, LookupProblem.MANAGER_TYPE_MISSING_SIMILAR, name, managerTypeNames, name)
 }
 
 internal fun CommandContext.validateEvent(typeName: String, eventIndex: Int): Rejection? = validateType(typeName) ?: run {
     val events = requireType(typeName).events
     when {
         eventIndex in events.indices -> null
-        events.isEmpty() -> Rejection(CommandProblem.EVENT_MISSING_NONE, typeName, eventIndex.toString())
-        else -> Rejection(CommandProblem.EVENT_MISSING, typeName, eventIndex.toString(), events.lastIndex.toString())
+        events.isEmpty() -> Rejection(LookupProblem.EVENT_MISSING_NONE, typeName, eventIndex.toString())
+        else -> Rejection(LookupProblem.EVENT_MISSING, typeName, eventIndex.toString(), events.lastIndex.toString())
     }
 }
 
@@ -116,14 +117,14 @@ internal fun CommandContext.validateBlock(typeName: String, eventIndex: Int, blo
     val blocks = requireType(typeName).events[eventIndex].blocks
     when {
         blockIndex in blocks.indices -> null
-        blocks.isEmpty() -> Rejection(CommandProblem.BLOCK_MISSING_NONE, typeName, eventIndex.toString(), blockIndex.toString())
-        else -> Rejection(CommandProblem.BLOCK_MISSING, typeName, eventIndex.toString(), blockIndex.toString(), blocks.lastIndex.toString())
+        blocks.isEmpty() -> Rejection(LookupProblem.BLOCK_MISSING_NONE, typeName, eventIndex.toString(), blockIndex.toString())
+        else -> Rejection(LookupProblem.BLOCK_MISSING, typeName, eventIndex.toString(), blockIndex.toString(), blocks.lastIndex.toString())
     }
 }
 
 internal fun CommandContext.validateProperty(typeName: String, propertyName: String): Rejection? = validateType(typeName) ?: run {
     val names = requireType(typeName).properties.map { it.name }
-    if (propertyName in names) null else SimilarNames.rejection(CommandProblem.PROPERTY_UNKNOWN, CommandProblem.PROPERTY_UNKNOWN_SIMILAR, propertyName, names, typeName, propertyName)
+    if (propertyName in names) null else SimilarNames.rejection(LookupProblem.PROPERTY_UNKNOWN, LookupProblem.PROPERTY_UNKNOWN_SIMILAR, propertyName, names, typeName, propertyName)
 }
 
 internal fun validateSize(width: Float, height: Float) = if (width.isFinite() && height.isFinite() && width > 0f && height > 0f) null else Rejection(CommandProblem.SIZE_INVALID)
@@ -166,11 +167,11 @@ private fun validateBlockValues(block: BlockDefinition, scope: BlockScope): Reje
 private fun validateBlockReferences(block: BlockDefinition, scope: BlockScope): Rejection? = when {
     block.actorTypeReference?.let { it !in scope.actorTypeNames } == true -> missingActorType(block.actorTypeReference.orEmpty(), scope)
     block is BlockDefinition.GoToScene && block.scene.isNotEmpty() && scope.sceneNames?.contains(block.scene) == false ->
-        SimilarNames.rejection(CommandProblem.SCENE_MISSING, CommandProblem.SCENE_MISSING_SIMILAR, block.scene, scope.sceneNames.orEmpty(), block.scene)
+        SimilarNames.rejection(LookupProblem.SCENE_MISSING, LookupProblem.SCENE_MISSING_SIMILAR, block.scene, scope.sceneNames.orEmpty(), block.scene)
     block is BlockDefinition.PlaySound && block.sound.isNotEmpty() && scope.audioFiles?.sounds?.contains(block.sound) == false ->
-        SimilarNames.rejection(CommandProblem.SOUND_MISSING, CommandProblem.SOUND_MISSING_SIMILAR, block.sound, scope.audioFiles?.sounds.orEmpty(), block.sound)
+        SimilarNames.rejection(LookupProblem.SOUND_MISSING, LookupProblem.SOUND_MISSING_SIMILAR, block.sound, scope.audioFiles?.sounds.orEmpty(), block.sound)
     block is BlockDefinition.PlayMusic && block.music.isNotEmpty() && scope.audioFiles?.music?.contains(block.music) == false ->
-        SimilarNames.rejection(CommandProblem.MUSIC_MISSING, CommandProblem.MUSIC_MISSING_SIMILAR, block.music, scope.audioFiles?.music.orEmpty(), block.music)
+        SimilarNames.rejection(LookupProblem.MUSIC_MISSING, LookupProblem.MUSIC_MISSING_SIMILAR, block.music, scope.audioFiles?.music.orEmpty(), block.music)
     else -> block.propertyReference?.let { reference -> validatePropertyReference(reference, scope) }
 }
 
@@ -193,7 +194,7 @@ private fun validatePropertyReference(reference: PropertyReference, scope: Block
 private fun missingActorType(name: String, scope: BlockScope) = missingActorType(name, scope.actorTypeNames, scope.managerTypes.map { it.name })
 
 private fun unknownKey(key: KeyChoice) =
-    SimilarNames.rejection(CommandProblem.GAME_KEY_UNKNOWN, CommandProblem.GAME_KEY_UNKNOWN_SIMILAR, key.composeKeyName, KeyChoice.all.map { it.composeKeyName }, key.composeKeyName)
+    SimilarNames.rejection(LookupProblem.GAME_KEY_UNKNOWN, LookupProblem.GAME_KEY_UNKNOWN_SIMILAR, key.composeKeyName, KeyChoice.all.map { it.composeKeyName }, key.composeKeyName)
 
 /**
  * Why [property] can't be one of [properties] (which it replaces, if [replacedName] names one of them).
@@ -241,7 +242,7 @@ internal fun CommandContext.validateNewParent(actorType: String, parent: String,
 internal fun CommandContext.validateSprite(sprite: String): Rejection? {
     val files = spriteFiles()
     return if (SpriteFiles.accessorOf(sprite) == null || files?.files?.containsKey(sprite) == false) {
-        SimilarNames.rejection(CommandProblem.SPRITE_MISSING, CommandProblem.SPRITE_MISSING_SIMILAR, sprite, files?.paths.orEmpty(), sprite)
+        SimilarNames.rejection(LookupProblem.SPRITE_MISSING, LookupProblem.SPRITE_MISSING_SIMILAR, sprite, files?.paths.orEmpty(), sprite)
     } else {
         null
     }

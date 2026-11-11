@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
@@ -86,8 +87,8 @@ class DocumentCommandsTest {
             Rejection(CommandProblem.DOCUMENT_TOO_LONG, DOCUMENT_MAXIMUM_LENGTH.toString()),
             CreateDocument.validate(context, CreateDocument.Input("long.md", "x".repeat(DOCUMENT_MAXIMUM_LENGTH + 1))),
         )
-        assertEquals(Rejection(CommandProblem.DOCUMENT_MISSING, "docs/notes.md"), EditDocument.validate(context, EditDocument.Input("docs/notes.md", "")))
-        assertEquals(Rejection(CommandProblem.PAGE_SECTION_MISSING, "README.md", "Moves"), EditDocument.apply(context, EditDocument.Input("README.md", "## Moves", section = "Moves")).failure)
+        assertEquals(Rejection(LookupProblem.DOCUMENT_MISSING, "docs/notes.md"), EditDocument.validate(context, EditDocument.Input("docs/notes.md", "")))
+        assertEquals(Rejection(LookupProblem.PAGE_SECTION_MISSING, "README.md", "Moves"), EditDocument.apply(context, EditDocument.Input("README.md", "## Moves", section = "Moves")).failure)
         assertEquals(Rejection(CommandProblem.DOCUMENT_TAKEN, "README.md"), MoveDocument.validate(context, MoveDocument.Input("README.md", "README.md")))
         assertEquals(Rejection(NameProblem.DOCUMENT_IN_SCREENPLAY), MoveDocument.validate(context, MoveDocument.Input("README.md", "screenplay/README.md")))
         assertNull(MoveDocument.validate(context, MoveDocument.Input("README.md", "readme.md")))
@@ -151,7 +152,7 @@ class DocumentCommandsTest {
         assertEquals(listOf("README.md", "docs/combat.md"), list.map { it.jsonPrimitive.content })
         val read = assertIs<CommandOutcome.Success>(ReadDocuments.read(context, ReadDocuments.Input(listOf("docs/combat.md")))).result.jsonObject
         assertEquals(combat, read.getValue("docs/combat.md").jsonPrimitive.content)
-        assertEquals(Rejection(CommandProblem.DOCUMENT_MISSING, "notes.md"), assertIs<CommandOutcome.Rejected>(ReadDocuments.read(context, ReadDocuments.Input(listOf("notes.md")))).rejection)
+        assertEquals(Rejection(LookupProblem.DOCUMENT_MISSING, "notes.md"), assertIs<CommandOutcome.Rejected>(ReadDocuments.read(context, ReadDocuments.Input(listOf("notes.md")))).rejection)
     }
 
     @Test

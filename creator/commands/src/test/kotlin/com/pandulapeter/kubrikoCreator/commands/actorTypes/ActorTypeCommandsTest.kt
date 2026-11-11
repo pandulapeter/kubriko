@@ -28,6 +28,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
@@ -100,7 +101,7 @@ class ActorTypeCommandsTest {
             context.rejection(CreateActorType, ActorTypeDefinition("Paddle", events = listOf(EventDefinition(EventType.EVERY_FRAME, otherActorType = "Ball")))),
         )
         assertEquals(
-            Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Ghost"),
+            Rejection(LookupProblem.ACTOR_TYPE_MISSING, "Ghost"),
             context.rejection(CreateActorType, ActorTypeDefinition("Paddle", events = listOf(EventDefinition(EventType.COLLISION, otherActorType = "Ghost")))),
         )
         assertNull(context.rejection(CreateActorType, ActorTypeDefinition("Paddle", events = listOf(EventDefinition(EventType.COLLISION, otherActorType = "Paddle")))))
@@ -113,7 +114,7 @@ class ActorTypeCommandsTest {
             context.rejection(CreateActorType, ActorTypeDefinition("Paddle", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetVelocity(Float.NaN, 0f)))))),
         )
         assertEquals(Rejection(NameProblem.TYPE_TAKEN), context.rejection(RenameActorType, RenameActorType.Input("Ball", "Wall")))
-        assertEquals(Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Ghost"), context.rejection(DeleteActorType, DeleteActorType.Input("Ghost")))
+        assertEquals(Rejection(LookupProblem.ACTOR_TYPE_MISSING, "Ghost"), context.rejection(DeleteActorType, DeleteActorType.Input("Ghost")))
     }
 
     @Test
@@ -121,12 +122,12 @@ class ActorTypeCommandsTest {
         val context = commandContext(ball.copy(properties = listOf(PropertyDefinition.Number("hp"))), wall, spriteFiles = SpriteFiles())
         val setsHp = EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetNumber("hp", 1f)))
         assertNull(context.rejection(CreateActorType, ActorTypeDefinition("Bat", parent = "Ball", events = listOf(setsHp))))
-        assertEquals(Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Nope"), context.rejection(CreateActorType, ActorTypeDefinition("Bat", parent = "Nope")))
+        assertEquals(Rejection(LookupProblem.ACTOR_TYPE_MISSING, "Nope"), context.rejection(CreateActorType, ActorTypeDefinition("Bat", parent = "Nope")))
         assertEquals(
-            Rejection(CommandProblem.SCENE_MISSING, "nowhere"),
+            Rejection(LookupProblem.SCENE_MISSING, "nowhere"),
             context.rejection(CreateActorType, ActorTypeDefinition("Bat", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.GoToScene("nowhere")))))),
         )
-        assertEquals(Rejection(CommandProblem.SPRITE_MISSING, "drawable/bat.png"), context.rejection(CreateActorType, ActorTypeDefinition("Bat", sprite = "drawable/bat.png")))
+        assertEquals(Rejection(LookupProblem.SPRITE_MISSING, "drawable/bat.png"), context.rejection(CreateActorType, ActorTypeDefinition("Bat", sprite = "drawable/bat.png")))
     }
 
     @Test
@@ -156,8 +157,8 @@ class ActorTypeCommandsTest {
         val resized = context.assertRoundTrip(Invocation(SetAppearance, SetAppearance.Input("Ball", sprite = "drawable/ball.png", width = 50f))) { context.ball() }
         assertEquals(ball.copy(sprite = "drawable/ball.png", width = 50f, height = 16f), resized)
         assertEquals(ball.copy(width = 50f, height = 16f), context.assertRoundTrip(Invocation(SetAppearance, SetAppearance.Input("Ball", sprite = ""))) { context.ball() })
-        assertEquals(Rejection(CommandProblem.SPRITE_MISSING, "drawable/ghost.png"), context.rejection(SetAppearance, SetAppearance.Input("Ball", sprite = "drawable/ghost.png")))
-        assertEquals(Rejection(CommandProblem.SPRITE_MISSING, "files/ball.png"), commandContext(ball).rejection(SetAppearance, SetAppearance.Input("Ball", sprite = "files/ball.png")))
+        assertEquals(Rejection(LookupProblem.SPRITE_MISSING, "drawable/ghost.png"), context.rejection(SetAppearance, SetAppearance.Input("Ball", sprite = "drawable/ghost.png")))
+        assertEquals(Rejection(LookupProblem.SPRITE_MISSING, "files/ball.png"), commandContext(ball).rejection(SetAppearance, SetAppearance.Input("Ball", sprite = "files/ball.png")))
         assertNull(commandContext(ball).rejection(SetAppearance, SetAppearance.Input("Ball", sprite = "drawable/unknown.png")))
         root.deleteRecursively()
     }
@@ -184,15 +185,15 @@ class ActorTypeCommandsTest {
     @Test
     fun eventChangesAreValidated() = runTest {
         val context = commandContext(ball, wall)
-        assertEquals(Rejection(CommandProblem.EVENT_MISSING, "Ball", "3", "2"), context.rejection(RemoveEvent, RemoveEvent.Input("Ball", 3)))
-        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "3", "2"), context.rejection(MoveEvent, MoveEvent.Input("Ball", 0, 3)))
+        assertEquals(Rejection(LookupProblem.EVENT_MISSING, "Ball", "3", "2"), context.rejection(RemoveEvent, RemoveEvent.Input("Ball", 3)))
+        assertEquals(Rejection(LookupProblem.INDEX_INVALID, "3", "2"), context.rejection(MoveEvent, MoveEvent.Input("Ball", 0, 3)))
         assertEquals(Rejection(PlacementProblem.KEY_NOT_ALLOWED), context.rejection(SetEventKey, SetEventKey.Input("Ball", 0, KeyChoice.A)))
         assertEquals(Rejection(PlacementProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED), context.rejection(SetEventOtherActorType, SetEventOtherActorType.Input("Ball", 0, "Wall")))
-        assertEquals(Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Ghost"), context.rejection(SetEventOtherActorType, SetEventOtherActorType.Input("Ball", 2, "Ghost")))
+        assertEquals(Rejection(LookupProblem.ACTOR_TYPE_MISSING, "Ghost"), context.rejection(SetEventOtherActorType, SetEventOtherActorType.Input("Ball", 2, "Ghost")))
         assertEquals(Rejection(PlacementProblem.KEY_NOT_ALLOWED), context.rejection(AddEvent, AddEvent.Input("Ball", EventType.EVERY_FRAME, key = KeyChoice.A)))
-        assertEquals(Rejection(CommandProblem.GAME_KEY_UNKNOWN, "Hyper"), context.rejection(SetEventKey, SetEventKey.Input("Ball", 1, KeyChoice("Hyper"))))
-        assertEquals(Rejection(CommandProblem.GAME_KEY_UNKNOWN, "Hyper"), context.rejection(AddEvent, AddEvent.Input("Ball", EventType.KEY_PRESSED, key = KeyChoice("Hyper"))))
-        assertEquals(Rejection(CommandProblem.GAME_KEY_UNKNOWN, "Hyper"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.KeyHeld(KeyChoice("Hyper"))))))
+        assertEquals(Rejection(LookupProblem.GAME_KEY_UNKNOWN, "Hyper"), context.rejection(SetEventKey, SetEventKey.Input("Ball", 1, KeyChoice("Hyper"))))
+        assertEquals(Rejection(LookupProblem.GAME_KEY_UNKNOWN, "Hyper"), context.rejection(AddEvent, AddEvent.Input("Ball", EventType.KEY_PRESSED, key = KeyChoice("Hyper"))))
+        assertEquals(Rejection(LookupProblem.GAME_KEY_UNKNOWN, "Hyper"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.KeyHeld(KeyChoice("Hyper"))))))
         assertEquals(KeyChoice("F5"), context.assertRoundTrip(Invocation(SetEventKey, SetEventKey.Input("Ball", 1, KeyChoice("F5")))) { context.ball() }!!.events[1].key)
     }
 
@@ -213,8 +214,8 @@ class ActorTypeCommandsTest {
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlaySound("files/sounds/hit.wav"))))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlayMusic("files/music/theme.mp3", isLooping = false))))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.StopMusic)))
-        assertEquals(Rejection(CommandProblem.SOUND_MISSING, "files/music/theme.mp3"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlaySound("files/music/theme.mp3"))))
-        assertEquals(Rejection(CommandProblem.MUSIC_MISSING, "files/sounds/hit.wav"), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.PlayMusic("files/sounds/hit.wav"))))
+        assertEquals(Rejection(LookupProblem.SOUND_MISSING, "files/music/theme.mp3"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlaySound("files/music/theme.mp3"))))
+        assertEquals(Rejection(LookupProblem.MUSIC_MISSING, "files/sounds/hit.wav"), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.PlayMusic("files/sounds/hit.wav"))))
         assertNull(commandContext(ball).rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlaySound("files/sounds/unknown.wav"))))
     }
 
@@ -225,8 +226,8 @@ class ActorTypeCommandsTest {
         val context = commandContext(ball, wall, rootDirectory = root)
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.GoToScene())))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.GoToScene("level-2"))))
-        assertEquals(Rejection(CommandProblem.SCENE_MISSING, "ghost"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.GoToScene("ghost"))))
-        assertEquals(Rejection(CommandProblem.SCENE_MISSING, "ghost"), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.GoToScene("ghost"))))
+        assertEquals(Rejection(LookupProblem.SCENE_MISSING, "ghost"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.GoToScene("ghost"))))
+        assertEquals(Rejection(LookupProblem.SCENE_MISSING, "ghost"), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.GoToScene("ghost"))))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.RestartScene)))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PauseGame(PauseAction.RESUME))))
         root.deleteRecursively()
@@ -266,7 +267,7 @@ class ActorTypeCommandsTest {
         val context = commandContext(ball, wall)
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor())))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.MoveTowardsNearest("Wall"))))
-        assertEquals(Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Brick"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor("Brick"))))
+        assertEquals(Rejection(LookupProblem.ACTOR_TYPE_MISSING, "Brick"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor("Brick"))))
         assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor("Wall", x = Float.NaN))))
         Invocation(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor("Wall", 1f, 2f))).apply(context)
         Invocation(RenameActorType, RenameActorType.Input("Wall", "Brick")).apply(context)
@@ -289,8 +290,8 @@ class ActorTypeCommandsTest {
         val context = commandContext(ball, wall)
         assertEquals(Rejection(PlacementProblem.BLOCK_REMOVE_OTHER_OUTSIDE_COLLISION), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.RemoveOther)))
         assertEquals(Rejection(PlacementProblem.BLOCK_BOUNCE_OFF_EDGE_OUTSIDE_EDGE_TOUCHED), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.BounceOffEdge)))
-        assertEquals(Rejection(CommandProblem.BLOCK_MISSING_NONE, "Ball", "1", "0"), context.rejection(RemoveBlock, RemoveBlock.Input("Ball", 1, 0)))
-        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "2", "1"), context.rejection(MoveBlock, MoveBlock.Input("Ball", 0, 0, 2)))
+        assertEquals(Rejection(LookupProblem.BLOCK_MISSING_NONE, "Ball", "1", "0"), context.rejection(RemoveBlock, RemoveBlock.Input("Ball", 1, 0)))
+        assertEquals(Rejection(LookupProblem.INDEX_INVALID, "2", "1"), context.rejection(MoveBlock, MoveBlock.Input("Ball", 0, 0, 2)))
         assertEquals(EditBlock.mergeKey(EditBlock.Input("Ball", 0, 1, jump)), EditBlock.mergeKey(EditBlock.Input("Ball", 0, 1, stop)))
     }
 

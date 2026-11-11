@@ -32,7 +32,7 @@ internal object ReplaceScenes : WriteCommand<ReplaceScenes.Input> {
      * Checks only that each Scene is there: one with an Actor whose state can't be read is written all the same, keeping
      * that Actor as it is.
      */
-    override fun validate(context: CommandContext, input: Input) = input.contents.keys.firstOrNull { !context.scenes.exists(it) }?.let { Rejection(CommandProblem.SCENE_MISSING, it) }
+    override fun validate(context: CommandContext, input: Input) = input.contents.keys.firstOrNull { !context.scenes.exists(it) }?.let { Rejection(LookupProblem.SCENE_MISSING, it) }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val previous = withContext(context.ioDispatcher) {

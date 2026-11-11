@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
@@ -124,7 +125,7 @@ class ProjectSettingsCommandsTest {
         projectReadingItsSettings()
         val context = commandContext(rootDirectory = root)
         val before = properties.readText()
-        assertEquals(Rejection(CommandProblem.SCENE_MISSING, "ghost"), Invocation(SetProjectSettings, SetProjectSettings.Input(firstScene = "ghost")).validate(context))
+        assertEquals(Rejection(LookupProblem.SCENE_MISSING, "ghost"), Invocation(SetProjectSettings, SetProjectSettings.Input(firstScene = "ghost")).validate(context))
         val executor = CommandExecutor(context, testScope())
         assertEquals(
             CommandOutcome.Rejected(Rejection(GameSettingsProblem.FRAME_RATE_INVALID, "1000")),

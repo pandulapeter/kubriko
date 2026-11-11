@@ -20,6 +20,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
@@ -42,7 +43,7 @@ public object RenameTimer : WriteCommand<RenameTimer.Input> {
         val timerNames = context.familyOf(input.actorType).flatMap { context.requireType(it).timerNames }
         when {
             input.oldName !in timerNames ->
-                SimilarNames.rejection(CommandProblem.TIMER_UNKNOWN, CommandProblem.TIMER_UNKNOWN_SIMILAR, input.oldName, timerNames, input.actorType, input.oldName)
+                SimilarNames.rejection(LookupProblem.TIMER_UNKNOWN, LookupProblem.TIMER_UNKNOWN_SIMILAR, input.oldName, timerNames, input.actorType, input.oldName)
             else -> TimerNaming.validate(input.newName)?.let(::Rejection) ?: if (input.newName in timerNames) Rejection(CommandProblem.TIMER_TAKEN) else null
         }
     }

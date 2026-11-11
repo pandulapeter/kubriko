@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.actors.withParents
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 import com.pandulapeter.kubrikoCreator.commands.screenplay.validatePageName
@@ -45,7 +46,7 @@ internal fun CommandContext.validateFolder(group: FolderGroup, path: String, fol
     if (group.kind != null && blockTypes == null) return Rejection(CommandProblem.NO_ACTOR_TYPES)
     if (path.isEmpty()) return null
     val existing = folders ?: foldersOf(group)
-    return if (path in existing) null else SimilarNames.rejection(CommandProblem.FOLDER_MISSING, CommandProblem.FOLDER_MISSING_SIMILAR, path, existing, path)
+    return if (path in existing) null else SimilarNames.rejection(LookupProblem.FOLDER_MISSING, LookupProblem.FOLDER_MISSING_SIMILAR, path, existing, path)
 }
 
 /**

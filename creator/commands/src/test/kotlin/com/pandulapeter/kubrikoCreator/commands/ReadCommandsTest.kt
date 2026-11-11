@@ -144,7 +144,7 @@ class ReadCommandsTest {
         )
         assertIs<CommandOutcome.Rejected>(executor.call("read_actor_type", buildJsonObject { put("actorType", "Ball"); put("eventIndex", 1) }))
         assertEquals(
-            CommandOutcome.Rejected(Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Wall")),
+            CommandOutcome.Rejected(Rejection(LookupProblem.ACTOR_TYPE_MISSING, "Wall")),
             executor.call("read_actor_type", buildJsonObject { put("actorType", "Wall") }),
         )
         assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.NO_ACTOR_TYPES)), executor(commandContext(blockTypes = null)).call("list_actor_types", JsonObject(emptyMap())))
@@ -169,7 +169,7 @@ class ReadCommandsTest {
         )
         assertEquals(setOf("total", "actors"), read.keys)
         assertEquals(2, read.getValue("total").jsonPrimitive.int)
-        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.SCENE_MISSING, "other")), executor.call("read_scene", buildJsonObject { put("scene", "other") }))
+        assertEquals(CommandOutcome.Rejected(Rejection(LookupProblem.SCENE_MISSING, "other")), executor.call("read_scene", buildJsonObject { put("scene", "other") }))
     }
 
     @Test
@@ -229,7 +229,7 @@ class ReadCommandsTest {
         val enemies = list { put("folder", "enemies"); put("count", 200) }
         assertEquals(150 + 1, enemies.names().size)
         assertEquals(listOf("enemies/flying"), enemies.getValue("folders").jsonArray.map { it.jsonPrimitive.content })
-        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.FOLDER_MISSING, "ghosts")), executor.call("list_actor_types", buildJsonObject { put("folder", "ghosts") }))
+        assertEquals(CommandOutcome.Rejected(Rejection(LookupProblem.FOLDER_MISSING, "ghosts")), executor.call("list_actor_types", buildJsonObject { put("folder", "ghosts") }))
         assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.PAGE_INVALID)), executor.call("list_actor_types", buildJsonObject { put("count", 0) }))
     }
 
@@ -254,7 +254,7 @@ class ReadCommandsTest {
             list { put("folder", "/ui/"); put("count", 1) }.getValue("managerTypes").jsonArray.single(),
         )
         assertEquals(listOf("ui/menus"), list { put("folder", "ui") }.getValue("folders").jsonArray.map { it.jsonPrimitive.content })
-        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.FOLDER_MISSING, "hud")), executor.call("list_manager_types", buildJsonObject { put("folder", "hud") }))
+        assertEquals(CommandOutcome.Rejected(Rejection(LookupProblem.FOLDER_MISSING, "hud")), executor.call("list_manager_types", buildJsonObject { put("folder", "hud") }))
         assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.PAGE_INVALID)), executor.call("list_manager_types", buildJsonObject { put("offset", -1) }))
         assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.NO_ACTOR_TYPES)), executor(commandContext(blockTypes = null)).call("list_manager_types", JsonObject(emptyMap())))
     }
@@ -285,7 +285,7 @@ class ReadCommandsTest {
         )
         assertEquals(listOf("levels/forest"), levels.getValue("folders").jsonArray.map { it.jsonPrimitive.content })
         assertEquals(listOf("levels/forest/2"), list { put("folder", "levels/forest"); put("offset", 2) }.names())
-        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.FOLDER_MISSING, "caves")), executor.call("list_scenes", buildJsonObject { put("folder", "caves") }))
+        assertEquals(CommandOutcome.Rejected(Rejection(LookupProblem.FOLDER_MISSING, "caves")), executor.call("list_scenes", buildJsonObject { put("folder", "caves") }))
         assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.PAGE_INVALID)), executor.call("list_scenes", buildJsonObject { put("count", 0) }))
     }
 
@@ -316,7 +316,7 @@ class ReadCommandsTest {
     fun theConsoleIsReadAsTextNewestLast() = runTest {
         val console = listOf(
             ConsoleEntry.Status(GitStatus.COMMITTED),
-            ConsoleEntry.Status(CommandProblem.SCENE_ACTOR_MISSING, isError = true, arguments = listOf("main", "3")),
+            ConsoleEntry.Status(LookupProblem.SCENE_ACTOR_MISSING, isError = true, arguments = listOf("main", "3")),
             ConsoleEntry.Problem("Unresolved reference: speed", "src/Ball.kt:3:5"),
             ConsoleEntry.Log("Hello", source = "Game", isImportant = false),
         )

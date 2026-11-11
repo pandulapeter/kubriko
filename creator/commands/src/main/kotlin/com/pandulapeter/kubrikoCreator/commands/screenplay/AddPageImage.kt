@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.CompositeCommand
 import com.pandulapeter.kubrikoCreator.commands.GameStep
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.ReplaceFiles
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
@@ -71,7 +72,7 @@ public object AddPageImage : WriteCommand<AddPageImage.Input> {
         val text = context.readMarkdown(pagePath) ?: return Applied.failed(Rejection(CommandProblem.DOCUMENT_UNREADABLE, pagePath))
         val root = context.project.rootDirectory
         val imagePath = if (image == null) {
-            context.spriteFiles()?.files?.get(input.sprite)?.let(context::projectPathOf) ?: return Applied.failed(Rejection(CommandProblem.SPRITE_MISSING, input.sprite.orEmpty()))
+            context.spriteFiles()?.files?.get(input.sprite)?.let(context::projectPathOf) ?: return Applied.failed(Rejection(LookupProblem.SPRITE_MISSING, input.sprite.orEmpty()))
         } else {
             val folder = File(root, pagePath).parentFile
             val taken = folder.list().orEmpty().mapTo(HashSet()) { it.lowercase() }

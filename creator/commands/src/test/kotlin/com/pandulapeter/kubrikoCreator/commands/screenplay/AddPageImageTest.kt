@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.FakeProjectRunner
 import com.pandulapeter.kubrikoCreator.commands.GameStep
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
@@ -99,12 +100,12 @@ class AddPageImageTest {
         val notAnImage = File(testDirectory(), "notes.png").apply { writeText("not an image") }
         assertEquals(Rejection(CommandProblem.PAGE_IMAGE_SOURCE), AddPageImage.validate(context, AddPageImage.Input("levels/cave", "x")))
         assertEquals(Rejection(CommandProblem.PAGE_IMAGE_SOURCE), AddPageImage.validate(context, AddPageImage.Input("levels/cave", "x", screenshot = true, file = "a.png")))
-        assertEquals(Rejection(CommandProblem.PAGE_MISSING, "forest"), AddPageImage.validate(context, AddPageImage.Input("forest", "x", screenshot = true)))
+        assertEquals(Rejection(LookupProblem.PAGE_MISSING, "forest"), AddPageImage.validate(context, AddPageImage.Input("forest", "x", screenshot = true)))
         assertEquals(Rejection(CommandProblem.PAGE_IMAGE_UNREADABLE, notAnImage.path), AddPageImage.apply(context, AddPageImage.Input("levels/cave", "x", file = notAnImage.path)).failure)
         assertEquals(Rejection(CommandProblem.PAGE_IMAGE_UNREADABLE, "/nowhere/a.png"), AddPageImage.apply(context, AddPageImage.Input("levels/cave", "x", file = "/nowhere/a.png")).failure)
         val source = File(testDirectory(), "a.png").apply { writeBytes(png()) }
         assertEquals(
-            Rejection(CommandProblem.PAGE_SECTION_MISSING_LISTED, "levels/cave", "Enemies", "Planned"),
+            Rejection(LookupProblem.PAGE_SECTION_MISSING_LISTED, "levels/cave", "Enemies", "Planned"),
             AddPageImage.apply(context, AddPageImage.Input("levels/cave", "x", file = source.path, section = "Enemies")).failure,
         )
         assertEquals(before, context.files())

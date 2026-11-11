@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
@@ -32,7 +33,7 @@ class ParentCommandsTest {
         val context = commandContext(enemy, bat, slime)
         assertEquals(Rejection(CommandProblem.PARENT_CYCLE, "Bat", "Enemy"), SetParent.validate(context, SetParent.Input("Enemy", "Bat")))
         assertEquals(Rejection(CommandProblem.PARENT_CYCLE, "Enemy", "Enemy"), SetParent.validate(context, SetParent.Input("Enemy", "Enemy")))
-        assertEquals(Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Ghost"), SetParent.validate(context, SetParent.Input("Bat", "Ghost")))
+        assertEquals(Rejection(LookupProblem.ACTOR_TYPE_MISSING, "Ghost"), SetParent.validate(context, SetParent.Input("Bat", "Ghost")))
         assertEquals(Rejection(CommandProblem.PARENT_PROPERTY_KIND, "hp", "Enemy"), SetParent.validate(context, SetParent.Input("Slime", "Enemy")))
         assertEquals(null, context.assertRoundTrip(Invocation(SetParent, SetParent.Input("Bat", null))) { context.blockTypes!!.actorType("Bat")!!.parent })
     }

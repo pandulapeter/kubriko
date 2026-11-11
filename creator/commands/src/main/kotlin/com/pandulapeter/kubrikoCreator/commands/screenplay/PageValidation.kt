@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.screenplay
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 import com.pandulapeter.kubrikoCreator.commands.toRejection
@@ -34,7 +35,7 @@ internal fun CommandContext.validatePage(name: String): Rejection? = if (screenp
 /**
  * Why there is no page called [name] among [names], naming the ones called similarly.
  */
-internal fun missingPage(name: String, names: List<String>) = SimilarNames.rejection(CommandProblem.PAGE_MISSING, CommandProblem.PAGE_MISSING_SIMILAR, name, names, name)
+internal fun missingPage(name: String, names: List<String>) = SimilarNames.rejection(LookupProblem.PAGE_MISSING, LookupProblem.PAGE_MISSING_SIMILAR, name, names, name)
 
 /**
  * Why the page or document [file], which holds [text], has no section headed [heading], naming the sections it has.
@@ -42,9 +43,9 @@ internal fun missingPage(name: String, names: List<String>) = SimilarNames.rejec
 internal fun missingSection(file: String, heading: String, text: String): Rejection {
     val headings = PageText.sectionsOf(text).map { it.heading }.distinct()
     return if (headings.isEmpty()) {
-        Rejection(CommandProblem.PAGE_SECTION_MISSING, file, heading)
+        Rejection(LookupProblem.PAGE_SECTION_MISSING, file, heading)
     } else {
-        Rejection(CommandProblem.PAGE_SECTION_MISSING_LISTED, file, heading, headings.joinToString())
+        Rejection(LookupProblem.PAGE_SECTION_MISSING_LISTED, file, heading, headings.joinToString())
     }
 }
 

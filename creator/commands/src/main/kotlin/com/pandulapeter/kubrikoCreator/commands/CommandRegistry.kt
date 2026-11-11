@@ -133,7 +133,7 @@ public class CommandRegistry(
     /**
      * Why there is no command called [name], naming the ones called similarly.
      */
-    internal fun missing(name: String): Rejection = SimilarNames.rejection(CommandProblem.UNKNOWN, CommandProblem.UNKNOWN_SIMILAR, name, commandsByName.keys, name)
+    internal fun missing(name: String): Rejection = SimilarNames.rejection(LookupProblem.UNKNOWN, LookupProblem.UNKNOWN_SIMILAR, name, commandsByName.keys, name)
 
     public val tools: List<ToolDefinition> by lazy {
         commands.map { command ->

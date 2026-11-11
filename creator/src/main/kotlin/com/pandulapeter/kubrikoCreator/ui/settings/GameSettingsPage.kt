@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
 import com.pandulapeter.kubrikoCreator.project.AspectRatio
 import com.pandulapeter.kubrikoCreator.project.GameSettings
@@ -74,7 +75,7 @@ internal fun GameSettingsPage(
         )
     }
     if (settings.firstScene !in scenes) {
-        ProblemText(CommandProblem.SCENE_MISSING.text(listOf(settings.firstScene)))
+        ProblemText(LookupProblem.SCENE_MISSING.text(listOf(settings.firstScene)))
     }
     SettingsRow(
         label = stringResource(Res.string.project_settings_aspect_ratio),

@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.foundation.DomainText
 import com.pandulapeter.kubrikoCreator.git.GitStatus
@@ -46,6 +47,7 @@ internal val DomainText.resource: StringResource
         is SceneStatus -> toResource()
         is GitStatus -> toResource()
         is CommandProblem -> toResource()
+        is LookupProblem -> toResource()
         is PlacementProblem -> toResource()
         is WorkspaceStatus -> toResource()
         is ScreenplayStyle.Rule -> toResource()

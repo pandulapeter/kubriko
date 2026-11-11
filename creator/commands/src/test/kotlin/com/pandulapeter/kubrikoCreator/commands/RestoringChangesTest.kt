@@ -103,8 +103,8 @@ class RestoringChangesTest {
         val context = commandContext(ActorTypeDefinition(name = "Player", events = listOf(EventDefinition(EventType.EVERY_FRAME))))
         val executor = executor(context)
         val rejected = assertIs<CommandOutcome.Rejected>(executor.execute(Invocation(AddBlock, AddBlock.Input("Player", 0, BlockDefinition.AddActor("Bat", 0f, 0f)))))
-        assertEquals(CommandProblem.ACTOR_TYPE_MISSING, rejected.rejection.reason)
-        assertEquals(CommandProblem.ACTOR_TYPE_MISSING, executor.validate(Invocation(CreateActorType, player.copy(name = "Enemy", events = listOf(player.events.first()))))?.reason)
+        assertEquals(LookupProblem.ACTOR_TYPE_MISSING, rejected.rejection.reason)
+        assertEquals(LookupProblem.ACTOR_TYPE_MISSING, executor.validate(Invocation(CreateActorType, player.copy(name = "Enemy", events = listOf(player.events.first()))))?.reason)
     }
 
     @Test

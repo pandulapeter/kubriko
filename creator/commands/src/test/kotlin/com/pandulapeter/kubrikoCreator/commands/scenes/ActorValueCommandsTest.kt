@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
@@ -85,12 +86,12 @@ class ActorValueCommandsTest {
     fun actorValuesAreValidated() = runTest {
         val context = context()
         fun rejection(input: SetActorValues.Input) = context.rejection(SetActorValues, input)
-        assertEquals(Rejection(CommandProblem.SCENE_ACTOR_MISSING, "main", "i2"), rejection(SetActorValues.Input("main", "i2", x = 1f)))
+        assertEquals(Rejection(LookupProblem.SCENE_ACTOR_MISSING, "main", "i2"), rejection(SetActorValues.Input("main", "i2", x = 1f)))
         assertEquals(Rejection(CommandProblem.NUMBER_INVALID), rejection(SetActorValues.Input("main", "i0", rotation = Float.NaN)))
         assertEquals(Rejection(CommandProblem.SIZE_INVALID), rejection(SetActorValues.Input("main", "i0", height = 0f)))
         assertEquals(Rejection(CommandProblem.SCENE_ACTOR_NOT_BLOCK_BUILT, "Wall"), rejection(SetActorValues.Input("main", "i1", color = 0xFF000000)))
         assertEquals(
-            Rejection(CommandProblem.ACTOR_PROPERTY_MISSING, "Brick", "lives"),
+            Rejection(LookupProblem.ACTOR_PROPERTY_MISSING, "Brick", "lives"),
             rejection(SetActorValues.Input("main", "i0", properties = listOf(ActorValueChanges.PropertyValue("lives", number = 1f)))),
         )
         assertEquals(
