@@ -13,18 +13,6 @@ Every kind of resource added, renamed, and deleted from Creator, folders for the
 few dozen Actor types, Scenes, or sprites. Folders are plain files where the format allows it, so the project stays readable in
 IntelliJ and git (`../CLAUDE.md` → Principles 1). Each addition lands with its command and AI tool.
 
-## Sprites, sounds, and music
-
-Today sprites, sounds, and music are copied into `composeResources` by hand, and none of them can be renamed or deleted from Creator.
-
-- **Adding:** sprites (PNG into `composeResources/drawable`) and sounds and music (into `composeResources/files`), chosen, dropped, or
-  pasted, with a name checked against the accessors Compose generates (`SpriteFiles`) and against the files already there.
-- **Renaming** follows every Actor type's appearance, every audio Block, the Scene settings' music, and the pages that mention it
-  (`withMentionsFollowed`), in one undo step.
-- **Deleting** cleans up what refers to it, as deleting an Actor type does (`deleteWithUsages`): its Blocks removed and an Actor
-  type's sprite cleared. A page showing a deleted sprite gets a copy of the image next to it first, so it keeps what it showed (undo
-  removes the copy).
-
 ## Deleting the other kinds
 
 - **A Timer:** its start and stop Blocks and its Event go with it.
@@ -33,7 +21,7 @@ Today sprites, sounds, and music are copied into `composeResources` by hand, and
 
 `ProjectReferences` gains each kind, so the confirmation, `check_change`, and the AI's result show them. Tested as
 `DeletingWithUsagesTest` and `DeletingEveryThingTest` test types, Scenes, and Properties: every usage, its cleanup, and a byte-for-byte
-undo; and a page's sprite images after a sprite rename.
+undo.
 
 ## Folders
 
@@ -55,7 +43,8 @@ undo; and a page's sprite images after a sprite rename.
   mention it. It reads `ProjectReferences`, which the deletes already use, rather than finding them again.
 - **Search in Blocks and pages:** texts in Log Blocks, screen texts, Kotlin Blocks, and the screenplay's pages, from the same panel.
 - **AI tools:** `search_project` (names, Block texts, and page texts, with paths) and `find_usages`, read-only; `find_usages` builds on
-  `ProjectRelations`, which `get_relations` already reads types, Properties, and Scenes from (sprites and sounds are added).
+  `ProjectRelations`, which `get_relations` already reads types, Properties, and Scenes from, and on `resourceUsagesOf` for sprites, sounds, and music,
+  which deletes already read.
 - **Searching conversations:** a search field over the open project's saved conversations, never another project's, that finds a query
   in what the user asked and what the agent answered, ignoring case, and lists the matches with the words around them highlighted;
   choosing one continues that conversation and scrolls to the match. `SavedConversation` keeps only the title, the start of the
@@ -67,5 +56,5 @@ undo; and a page's sprite images after a sprite rename.
 
 ## Order
 
-Adding, renaming, and deleting sprites, sounds, and music, then the other deletes, then folders, then the filter field and quick
+The other deletes, then folders, then the filter field and quick
 open, find usages, search in Blocks and pages with the AI tools, and searching conversations last.

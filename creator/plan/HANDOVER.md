@@ -26,22 +26,21 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-`ai-assistant.md` holds only what waits on others now, so it left the roadmap; start `01-resources-and-search.md` at its first item.
+Continue `01-resources-and-search.md` at its first item, Deleting the other kinds (a Timer, then a folder with what is in it).
 
-This session finished `ai-assistant.md`'s Guards, each reviewed with `/code-review` and its findings fixed in commits of
-their own:
-
-- More live scenarios: `AssistantLiveScenariosTest` gained the chips (an Event chip's link, a Scene chip's link, and a
-  Scene picture chip's image, a stand-in PNG), a settled convention written to the game's notes, and the `game-explorer`
-  subagent answering through Creator's read tools, asked for by name, since a live run showed the agent rightly doing a
-  five-read question itself.
-- The eval set: its requests and checks are `EvalSet` (`:creator:commands`' test fixtures), `EvalSetLiveTest` has the
-  real agent answer each on a fresh fixture and, with `KUBRIKO_CREATOR_EVAL_RECORD=true`, records its calls
-  (`EvalRecordings`), which `EvalSetTest` replays. All seven passed live and were recorded. The run showed models pausing
-  between `press_keys` steps with an empty step, which is now accepted.
+This session finished its first item, adding, renaming, and deleting sprites, sounds, and music: the `add_resource`,
+`rename_resource`, and `delete_resource` commands (`commands/resources`), and the sidebar's Add (New menu, a group's ⋮, a drop
+onto the sidebar, Paste), Rename in place, and Delete. `/code-review` ran on it; its nine findings were fixed in two commits of
+their own: the commands keep to the game's own module, names are checked against every drawable (vector drawables too) and
+every file the scan found (a sprite whose name makes no accessor can be renamed), a rename's undo puts back exactly what it
+changed and may bring back a name today's rules refuse, Kotlin Blocks still naming a renamed file are reported, a rename to the
+same name is refused, pasted text is never added as an image, and a rename walks the project once and reads Scenes only for music.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
+- Adding sprites, sounds, and music by dropping them from Finder onto the sidebar, through the file chooser, and by pasting
+  a copied image or copied files; and the game playing one added that way (a Compose resource accessor appears only once the
+  game builds, which Play does).
 - The live writers' room scenario: `KUBRIKO_CREATOR_CLAUDE_AGENT=true ./gradlew :creator:ai:test --tests "*AssistantLiveScenariosTest.aPitchInTheWritersRoom*"`
   (it spends a real Claude subscription's requests, up to an hour), then tune `AssistantSystemPrompt.WRITERS_ROOM` by what it does.
 - A project created from an idea, through to the room's first questions, in the real app (an end-to-end scenario could cover
@@ -56,6 +55,8 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
   the binary Creator downloaded is in the settings folder's `tools/agents`).
 - Codex started as a `codex-work` alias's account signing in to that `CODEX_HOME` (running `codex-acp` fetched from npm wasn't
   allowed in this session; it is listed under Codex's profile in `ai-assistant.md`).
+- The eval set has no request using the new resource tools yet; record one (`EvalSetLiveTest` with
+  `KUBRIKO_CREATOR_EVAL_RECORD=true`) once a live run can be spent on it.
 
 ## Before a release
 

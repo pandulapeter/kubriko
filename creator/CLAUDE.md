@@ -161,6 +161,7 @@ Besides its tests passing, a change:
 | `.kubriko/scenes.json` (Scene descriptions) | Creator | Read again whenever it is used; a file that can't be read holds none. |
 | `<package>/generated/*.kt` | Creator | Checksum mismatch → Creator stops updating it and offers to discard the edits. Committed, so projects build without Creator. |
 | `composeResources/files/scenes/**/*.json` | Shared | Sidebar refreshes; an open Scene shows the change. |
+| Sprites, sounds, and music (`composeResources/drawable/*`, the rest of `composeResources/files/**`) | Shared | Sidebar refreshes. Creator adds, renames, and deletes them only through the resource commands, which name each by its path from `composeResources` and act on every source set's copy in the game's own module (the one new Scenes go to; another module's are another `Res`), found on disk, since the last scan may be a second old, and refuse a name any image of `drawable` already makes into an accessor; their undo steps check only the structure (`validateRestoring`) for the same reason, and each raises `CommandContext.filesRevision`, which the watcher never reports, so the tree is scanned again. |
 | `screenplay/**/*.md` (the screenplay's pages) | Shared | Read again within a second; Creator writes them only through the page commands (`ScreenplayStore`), which check the folder again before writing, so a page made outside meanwhile is never written over. |
 | A page's images next to it (`screenplay/**/<page>-<n>.<ext>`) | Shared | Written only as new files by `add_page_image`, scaled to `PageImages.MAXIMUM_WIDTH` since pages live in git; moved with their page (renamed after it), and deleted with it only when no other page shows them and the user agrees, undo bringing back the bytes (`ReplaceFiles`). |
 | Every other Markdown file (the documents, outside build folders) | User | Rescanned within a second; Creator writes one only through the document commands (`DocumentStore`, which knows the paths from the last scan and its own writes), never over a file there, and undoes a delete only with the bytes it read, refusing a file that isn't UTF-8 text. |
@@ -259,7 +260,8 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   that name of another kind.
 - **Deletes clean up what refers to them** (`deleteWithUsages`): deleting an Actor type, Manager type, Scene, or Property
   removes its type's Actors from every Scene and the Blocks and Events that only mean something with it (an if Block with its
-  section), turns placeholders of its Properties and the pages' mentions of it into text (`UnlinkMentions`; documents are the user's,
+  section), draws a deleted sprite's Actor types as their shapes and clears a deleted music from the Scenes playing it, gives
+  each page showing a deleted sprite a copy of it next to it (`KeepPageImages`), turns placeholders of its Properties and the pages' mentions of it into text (`UnlinkMentions`; documents are the user's,
   so theirs are left, as renames leave them), and
   leaves Kotlin alone (listed instead), as one undo step that brings it all back byte for byte (`ReplaceTypes`, `ReplaceScenes`,
   internal like `CompositeCommand`). Deleting a page turns the links to it into text the same way, and the AI still hears which

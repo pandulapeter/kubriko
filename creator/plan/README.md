@@ -31,8 +31,8 @@ its file's Waiting on others. Inside a file, its Order section says what comes f
 loses its number and moves to Waiting below, and the rest are numbered again, since nothing in it can be worked on until what it
 waits for happens.
 
-1. [Resources and search](01-resources-and-search.md) - adding, renaming, and deleting sprites, sounds, and music, the remaining
-   deletes, folders, the sidebar filter, quick open, find usages, and searching conversations.
+1. [Resources and search](01-resources-and-search.md) - the remaining deletes, folders, the sidebar filter, quick open, find
+   usages, and searching conversations.
 2. [Blocks, Actor types, and Manager types](02-blocks.md) - Blocks for the simple behavior a first game still needs Kotlin for, the
    rest of the Block set, sprite sheets, UI elements, the Scene editor's handles and snapping, Convert to code, and the Paddle game
    template.
