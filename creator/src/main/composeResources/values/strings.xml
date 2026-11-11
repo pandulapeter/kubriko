@@ -809,7 +809,7 @@
     <string name="error_game_unsupported">This project's Kubriko version is too old for the game to be played from Kubriko Creator's tools.</string>
     <string name="error_game_no_answer">The game didn't answer.</string>
     <string name="error_game_command_failed">The game couldn't do that: %1$s</string>
-    <string name="error_game_keys_count">Press between 1 and %1$s keys at a time.</string>
+    <string name="error_game_keys_count">Press at most %1$s keys at a time.</string>
     <string name="error_game_keys_or_steps">Give either keys, with milliseconds if you like, or steps.</string>
     <string name="error_game_steps_count">Use between 1 and %1$s steps.</string>
     <string name="error_game_steps_duration">All the steps together may take at most %1$s milliseconds.</string>

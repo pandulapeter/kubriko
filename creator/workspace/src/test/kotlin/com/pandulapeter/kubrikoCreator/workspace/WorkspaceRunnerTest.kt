@@ -180,10 +180,10 @@ class WorkspaceRunnerTest {
                 else -> SessionMessage.CommandDone(command.id)
             }
         }
-        val steps = listOf(HeldKeys(listOf("UP"), 100), HeldKeys(listOf("SPACE"), 50))
+        val steps = listOf(HeldKeys(listOf("UP"), 100), HeldKeys(emptyList(), 20), HeldKeys(listOf("SPACE"), 50))
         assertEquals(listOf<Byte>(1, 2, 3), assertIs<GameStep.Done>(runner.pressKeySteps(steps, isCapturing = true)).png?.toList())
         assertEquals(
-            SessionCommand.PressKeySteps(channel.sent.filterIsInstance<SessionCommand.PressKeySteps>().single().id, listOf(KeyHold(listOf("UP"), 100), KeyHold(listOf("SPACE"), 50)), 1280),
+            SessionCommand.PressKeySteps(channel.sent.filterIsInstance<SessionCommand.PressKeySteps>().single().id, listOf(KeyHold(listOf("UP"), 100), KeyHold(emptyList(), 20), KeyHold(listOf("SPACE"), 50)), 1280),
             channel.sent.filterIsInstance<SessionCommand.PressKeySteps>().single(),
         )
         runner.stopGame()

@@ -92,9 +92,9 @@ internal class WorkspaceRunner(
             }
         }
         if (all != GameStep.Unsupported) return all
-        // A session older than the command plays the steps one at a time.
+        // A session older than the command plays the steps one at a time, and waits through a step holding nothing.
         val console = steps.flatMap { held ->
-            when (val pressed = pressKeys(held.keys, held.durationInMilliseconds)) {
+            when (val pressed = if (held.keys.isEmpty()) wait(held.durationInMilliseconds) else pressKeys(held.keys, held.durationInMilliseconds)) {
                 is GameStep.Done -> pressed.console
                 else -> return pressed
             }

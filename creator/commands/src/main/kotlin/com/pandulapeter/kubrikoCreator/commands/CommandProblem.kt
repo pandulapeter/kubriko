@@ -88,7 +88,7 @@ public enum class CommandProblem(override val english: String) : DomainText {
     FOLDER_NOT_EMPTY("%1\$s isn't empty. Move what's in it out first."),
     GAME_COMMAND_FAILED("The game couldn't do that: %1\$s"),
     GAME_DURATION_INVALID("Use between 1 and %1\$s milliseconds."),
-    GAME_KEYS_COUNT("Press between 1 and %1\$s keys at a time."),
+    GAME_KEYS_COUNT("Press at most %1\$s keys at a time."),
     GAME_KEYS_OR_STEPS("Give either keys, with milliseconds if you like, or steps."),
     GAME_STEPS_COUNT("Use between 1 and %1\$s steps."),
     GAME_STEPS_DURATION("All the steps together may take at most %1\$s milliseconds."),

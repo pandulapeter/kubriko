@@ -62,7 +62,7 @@ public object PressKeys : ActionCommand<PressKeys.Input> {
         if (steps.size > MAXIMUM_STEPS) return Rejection(CommandProblem.GAME_STEPS_COUNT, MAXIMUM_STEPS.toString())
         steps.forEach { step ->
             when {
-                step.keys.size !in 1..MAXIMUM_KEYS -> return Rejection(CommandProblem.GAME_KEYS_COUNT, MAXIMUM_KEYS.toString())
+                step.keys.size > MAXIMUM_KEYS -> return Rejection(CommandProblem.GAME_KEYS_COUNT, MAXIMUM_KEYS.toString())
                 step.milliseconds !in 1..MAXIMUM_MILLISECONDS -> return Rejection(CommandProblem.GAME_DURATION_INVALID, MAXIMUM_MILLISECONDS.toString())
             }
             step.keys.firstOrNull { !isKeyName(it) }?.let { return unknownKeyName(it) }
@@ -93,7 +93,7 @@ public object PressKeys : ActionCommand<PressKeys.Input> {
 
     @Serializable
     public data class Step(
-        @Description("Keys held together.")
+        @Description("Keys held together, or none for a pause with nothing held.")
         @SerialName("keys") val keys: List<String>,
         @Description("Milliseconds to hold them.")
         @SerialName("milliseconds") val milliseconds: Int = 150,

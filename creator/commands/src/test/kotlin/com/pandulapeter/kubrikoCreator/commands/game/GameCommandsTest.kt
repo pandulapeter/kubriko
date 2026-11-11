@@ -75,6 +75,14 @@ class GameCommandsTest {
     }
 
     @Test
+    fun aStepHoldingNoKeysIsAPause() = runTest {
+        val executor = executor()
+        val steps = buildJsonObject { put("steps", Json.parseToJsonElement("""[{"keys": ["A"], "milliseconds": 300}, {"keys": [], "milliseconds": 200}, {"keys": ["D"], "milliseconds": 300}]""")) }
+        assertIs<CommandOutcome.Success>(executor.call("press_keys", steps))
+        assertEquals(listOf("press A 300", "press  200", "press D 300"), runner.calls)
+    }
+
+    @Test
     fun stepsAreCheckedBeforeAnyReachesTheGame() = runTest {
         val executor = executor()
         val both = buildJsonObject {
