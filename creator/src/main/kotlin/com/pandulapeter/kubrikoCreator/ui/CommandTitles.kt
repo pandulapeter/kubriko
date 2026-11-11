@@ -74,6 +74,7 @@ import com.pandulapeter.kubrikoCreator.commands.project.ReadGameNotes
 import com.pandulapeter.kubrikoCreator.commands.project.RememberForNextTime
 import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
 import com.pandulapeter.kubrikoCreator.commands.project.SetGameNotes
+import com.pandulapeter.kubrikoCreator.commands.project.SetPlan
 import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
 import com.pandulapeter.kubrikoCreator.commands.project.SetTarget
 import com.pandulapeter.kubrikoCreator.commands.project.UpgradeProject
@@ -200,6 +201,7 @@ import kubriko.creator.generated.resources.command_set_event_timer
 import kubriko.creator.generated.resources.command_set_game_notes
 import kubriko.creator.generated.resources.command_set_kotlin_ui
 import kubriko.creator.generated.resources.command_set_parent
+import kubriko.creator.generated.resources.command_set_plan
 import kubriko.creator.generated.resources.command_set_project_settings
 import kubriko.creator.generated.resources.command_set_scene_settings
 import kubriko.creator.generated.resources.command_set_screenplay_reminders
@@ -310,6 +312,7 @@ private val commandTitles = mapOf(
     SetScreenplayReminders.name to Res.string.command_set_screenplay_reminders,
     AskUser.name to Res.string.command_ask_user,
     RememberForNextTime.name to Res.string.command_remember_for_next_time,
+    SetPlan.name to Res.string.command_set_plan,
     SetProjectSettings.name to Res.string.command_set_project_settings,
     SetTarget.name to Res.string.command_set_target,
     UpgradeProject.name to Res.string.command_upgrade_project,

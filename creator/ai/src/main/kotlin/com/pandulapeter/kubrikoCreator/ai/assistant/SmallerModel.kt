@@ -43,30 +43,49 @@ public data class SmallerModel(
          * The model a tier below the one the conversation uses, among the agent's [options], or null if the agent offers
          * no model option, the current model's tier isn't known, or nothing is a tier below it. The current model's tier
          * is read from its description only when its name doesn't say it, since an agent's default may name the model it
-         * stands for only there, while another's description may name a larger one it isn't. Of several models of that
-         * tier, the one of the shortest name is offered, the family's plain one rather than a variant (Flash, not
-         * Flash-Lite; Sonnet, not Sonnet with a longer context).
+         * stands for only there, while another's description may name a larger one it isn't.
+         *
+         * An agent may list several models of that tier, older ones and variants among them, so the one offered is the
+         * family's plain model (Flash, not Flash-Lite; Sonnet, not Sonnet with a longer context), then one of the current
+         * model's version (Sonnet 5.5 for Opus 5.5), then the one the agent names by the tier alone (`sonnet`, its alias
+         * for the newest), and then the first the agent lists.
          */
         public fun of(options: List<SessionConfigOption>): SmallerModel? {
             val option = options.filterIsInstance<SessionConfigOption.Select>().firstOrNull { it.category == SessionConfigOptionCategory.MODEL } ?: return null
             val choices = option.choices()
             val current = choices.firstOrNull { it.value == option.currentValue } ?: return null
-            val (family, tier) = tierOf(current) ?: tierOf(current.description.orEmpty()) ?: return null
+            val currentText = if (tierOf(current) == null) current.description.orEmpty() else current.name
+            val (family, tier) = tierOf(currentText) ?: return null
             if (tier == 0) return null
-            val smaller = choices.filter { it.value != current.value && tierOf(it) == family to tier - 1 }.minByOrNull { it.name.length } ?: return null
+            val tierName = families[family][tier - 1]
+            val currentWords = wordsOf(currentText)
+            val version = versionOf(currentText)
+            val smaller = choices.withIndex()
+                .filter { (_, choice) -> choice.value != current.value && tierOf(choice) == family to tier - 1 }
+                .minWithOrNull(
+                    compareBy<IndexedValue<SessionConfigSelectOption>> { (_, choice) -> (wordsOf(choice.name) - currentWords - families[family].toSet()).size }
+                        .thenBy { (_, choice) -> if (version != null && versionOf(choice.name) == version) 0 else 1 }
+                        .thenBy { (_, choice) -> if (choice.value.value.equals(tierName, ignoreCase = true)) 0 else 1 }
+                        .thenBy { it.index },
+                )?.value ?: return null
             return SmallerModel(option.id, smaller.value, smaller.name)
         }
 
         private fun tierOf(choice: SessionConfigSelectOption) = tierOf("${choice.value.value} ${choice.name}")
 
         private fun tierOf(text: String): Pair<Int, Int>? {
-            val words = text.lowercase().split(nonLetters).toSet()
+            val words = wordsOf(text)
             families.forEachIndexed { family, tiers ->
                 tiers.indexOfLast { it in words }.takeIf { it >= 0 }?.let { return family to it }
             }
             return null
         }
 
+        private fun wordsOf(text: String) = text.lowercase().split(nonLetters).filter { it.isNotEmpty() }.toSet()
+
+        private fun versionOf(text: String) = version.find(text)?.value
+
         private val nonLetters = Regex("[^a-z]+")
+        private val version = Regex("""\d+(\.\d+)*""")
     }
 }

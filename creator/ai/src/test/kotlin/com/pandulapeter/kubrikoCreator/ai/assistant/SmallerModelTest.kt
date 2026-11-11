@@ -68,6 +68,31 @@ class SmallerModelTest {
     }
 
     @Test
+    fun ofClaudesManyModelsTheAliasOfTheNewestIsOffered() {
+        val choices = listOf(
+            "default" to "Default (recommended)" to "Opus 5.5",
+            "opus" to "Opus 5.5" to "For complex work and everyday tasks",
+            "claude-fable-5-2" to "Fable 5.2" to "For your toughest challenges",
+            "sonnet" to "Sonnet 5.5" to "Most efficient for simpler tasks",
+            "haiku" to "Haiku 5.5" to "Fastest for quick answers",
+            "claude-haiku-4-5-20251001" to "Haiku 4.5" to "Fastest for quick answers",
+            "claude-sonnet-5" to "Sonnet 5" to "Efficient for routine tasks",
+            "claude-opus-5" to "Opus 5" to "Best for everyday, complex tasks",
+            "claude-sonnet-4-6" to "Sonnet 4.6" to "Efficient for routine tasks",
+        ).map { (valueAndName, description) -> SessionConfigSelectOption(SessionConfigValueId(valueAndName.first), valueAndName.second, description) }
+        assertEquals(smaller("sonnet", "Sonnet 5.5"), SmallerModel.of(models("opus", choices)))
+        assertEquals(smaller("sonnet", "Sonnet 5.5"), SmallerModel.of(models("default", choices)))
+        assertEquals(smaller("claude-sonnet-5", "Sonnet 5"), SmallerModel.of(models("claude-opus-5", choices)))
+        assertNull(SmallerModel.of(models("claude-fable-5-2", choices)))
+    }
+
+    @Test
+    fun ofModelsWithoutAnAliasOneOfTheCurrentVersionIsOffered() {
+        val choices = listOf("Opus 5", "Sonnet 4.6", "Sonnet 5").map { SessionConfigSelectOption(SessionConfigValueId(it.lowercase().replace(' ', '-')), it) }
+        assertEquals(smaller("sonnet-5", "Sonnet 5"), SmallerModel.of(models("opus-5", choices)))
+    }
+
+    @Test
     fun otherFamiliesAndGroupedOptionsAreRead() {
         val gemini = listOf(SessionConfigSelectOption(SessionConfigValueId("gemini-pro"), "Gemini 3 Pro"), SessionConfigSelectOption(SessionConfigValueId("gemini-flash"), "Gemini 3 Flash"))
         val grouped = SessionConfigSelectOptions.Grouped(listOf(SessionConfigSelectGroup(SessionConfigGroupId("gemini"), "Gemini", gemini)))

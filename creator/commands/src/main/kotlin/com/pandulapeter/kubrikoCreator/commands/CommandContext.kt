@@ -60,6 +60,11 @@ public class CommandContext(
     public val summaries: ConversationSummaries = ConversationSummaries()
 
     /**
+     * The plans the assistant's conversations laid out ([ConversationPlans]).
+     */
+    public val plans: ConversationPlans = ConversationPlans()
+
+    /**
      * Where Kubriko Creator moved pages and documents to, so that the page editor follows them.
      */
     public val movedFiles: MovedFiles = MovedFiles()

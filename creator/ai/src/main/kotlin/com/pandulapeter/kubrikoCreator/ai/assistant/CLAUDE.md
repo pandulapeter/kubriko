@@ -78,9 +78,11 @@ Hosts Agent Client Protocol agents through the official Kotlin SDK. Tests run `F
   Undo (`TurnReview`, shown only when the setting is on), which reverts the conversation's own changes through the undo history
   while they are the newest (`CommandExecutor.undoTurn`).
 - **Plans:** a plan the agent laid out in its last turn and started none of (`AssistantTranscript.isPlanAwaitingApproval`)
-  is approved from its checklist, whose Approve button sends the approval as the user's next message. The system prompt
-  asks the agent to end its turn on a plan rather than ask with `ask_user`, so this works for any agent that reports
-  plans, and the user can still answer with what to change instead. Where the agent offers a model a tier below the
+  is approved from its checklist, whose Approve button sends the approval as the user's next message. The agent lays it
+  out with Creator's own `set_plan` (`ConversationPlans`, shown as an ACP plan is), since Claude Code run through the SDK
+  has no todo or task tool to report one with (a live run showed it planning in prose); a plan an agent reports through
+  ACP shows the same. The system prompt asks the agent to end its turn on a plan rather than ask with `ask_user`, and
+  the user can still answer with what to change instead. Where the agent offers a model a tier below the
   conversation's (`SmallerModel`), a second button approves with that one, switching the conversation to it before the
   turn: the plan shows how much work is left, so the user, who pays, decides there. Tiers are known only by family words
   whose order is certain (Haiku, Sonnet, Opus; Flash, Pro), and a model of no known tier is offered nothing.

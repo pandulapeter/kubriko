@@ -230,8 +230,7 @@ public class AssistantController(
             end = { conversation -> owner?.closeConversation(conversation) },
             toolsIdOf = { conversation -> owner?.toolsIdOf(conversation) },
             forgetReads = { conversation -> owner?.forgetReads(conversation) },
-            changeLog = { openProject.changeLog() },
-            undoTurn = { toolsId, sinceRevision -> openProject.undoTurn(toolsId, sinceRevision) },
+            project = openProject,
             onTurnEnded = { id, title, lastAnswer, toolsId ->
                 val summary = toolsId?.let(openProject::takeSummary)
                 withContext(ioDispatcher) {

@@ -12,6 +12,9 @@ package com.pandulapeter.kubrikoCreator.ai.assistant
 import com.agentclientprotocol.model.AvailableCommand
 import com.agentclientprotocol.model.ContentBlock
 import com.agentclientprotocol.model.PermissionOption
+import com.agentclientprotocol.model.PlanEntry
+import com.agentclientprotocol.model.PlanEntryPriority
+import com.agentclientprotocol.model.PlanEntryStatus
 import com.agentclientprotocol.model.RequestPermissionOutcome
 import com.agentclientprotocol.model.SessionConfigId
 import com.agentclientprotocol.model.SessionConfigOption
@@ -21,6 +24,7 @@ import com.agentclientprotocol.model.StopReason
 import com.agentclientprotocol.protocol.JsonRpcException
 import com.agentclientprotocol.rpc.JsonRpcErrorCode
 import com.pandulapeter.kubrikoCreator.commands.ChangeLog
+import com.pandulapeter.kubrikoCreator.commands.PlanStepStatus
 import com.pandulapeter.kubrikoCreator.context.ChangesSummary
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -52,14 +56,13 @@ import kotlinx.coroutines.withTimeout
  * @param toolsIdOf The ID of the address at which a conversation reaches Kubriko Creator's tools.
  * @param forgetReads Forgets what a conversation read through its tools, after a cancelled turn whose results it may
  *   never have seen, so that its next reads are answered in full.
- * @param undoTurn Reverts what the conversation at a tool address changed after a revision, returning how many of its
- *   changes stay ([com.pandulapeter.kubrikoCreator.commands.CommandExecutor.undoTurn]).
+ * @param project The project open at the time: its changes, which a prompt sums up for the agent when someone else made
+ *   them since its last turn ([ChangesSummary]); reverting what the conversation changed after a revision (Undo); and
+ *   the plan the conversation lays out with Kubriko Creator's tool, which is shown as an ACP plan is.
  * @param onTurnEnded Called after each turn with the conversation's ID, title, the agent's last answer, and the ID of its
  *   tool address (which the summary it noted is kept by, [com.pandulapeter.kubrikoCreator.commands.ConversationSummaries]), so that it can
  *   be continued later.
  * @param onChangedFilesUnasked Called once the agent changed files with its own tools without asking.
- * @param changeLog The open project's changes, which a prompt sums up for the agent when someone else made them since
- *   its last turn ([ChangesSummary]).
  * @param lastMessageAt When the last message of a continued conversation was said, or null for a new one, which counts
  *   from now.
  * @param clock The time, in milliseconds since the epoch.
@@ -72,9 +75,8 @@ public class AssistantChat(
     private val end: suspend (AgentConversation) -> Unit,
     private val toolsIdOf: (AgentConversation) -> String? = { null },
     private val forgetReads: (AgentConversation) -> Unit = {},
-    private val changeLog: () -> ChangeLog? = { null },
     private val onTurnEnded: suspend (id: String, title: String, lastAnswer: String?, toolsId: String?) -> Unit = { _, _, _, _ -> },
-    private val undoTurn: suspend (toolsId: String, sinceRevision: Int) -> Int = { _, _ -> 0 },
+    private val project: OpenProjectAccess = OpenProjectAccess.None,
     private val onChangedFilesUnasked: () -> Unit = {},
     lastMessageAt: Long? = null,
     private val clock: () -> Long = System::currentTimeMillis,
@@ -213,7 +215,7 @@ public class AssistantChat(
         val conversation = conversation ?: return
         _isBusy.value = true
         lastModel = model
-        val log = changeLog()
+        val log = project.changeLog()
         val since = seenRevision
         val turnStart = log?.revision
         val turn = scope.launch(start = CoroutineStart.LAZY) {
@@ -295,7 +297,7 @@ public class AssistantChat(
     public fun undoChanges(sinceRevision: Int) {
         val toolsId = _toolsId.value ?: return
         scope.launch {
-            val remaining = undoTurn(toolsId, sinceRevision)
+            val remaining = project.undoTurn(toolsId, sinceRevision)
             val state = if (remaining == 0) TranscriptItem.TurnReview.State.UNDONE else TranscriptItem.TurnReview.State.PARTLY_UNDONE
             _transcript.update { it.withTurnReviewState(sinceRevision, state) }
         }
@@ -349,8 +351,21 @@ public class AssistantChat(
         isClosed = true
         pendingAnswer?.complete(RequestPermissionOutcome.Cancelled)
         scope.coroutineContext.job.cancelAndJoin()
+        _toolsId.value?.let(project::forgetPlan)
         conversation?.let { end(it) }
         conversation = null
+    }
+
+    /**
+     * Shows the plan the conversation at [toolsId] lays out with Kubriko Creator's tool as the agent's own plan, for an
+     * agent that reports none through ACP.
+     */
+    private fun followPlan(toolsId: String) {
+        scope.launch {
+            project.planOf(toolsId).collect { steps ->
+                _transcript.update { transcript -> transcript.withUpdate(SessionUpdate.PlanUpdate(steps.map { PlanEntry(it.text, PlanEntryPriority.MEDIUM, it.status.toPlanEntryStatus()) })) }
+            }
+        }
     }
 
     private fun connect() {
@@ -378,8 +393,9 @@ public class AssistantChat(
             }
             conversation = started
             _toolsId.value = toolsIdOf(started)
+            _toolsId.value?.let(::followPlan)
             _conversationId.value = started.id.value
-            seenRevision = changeLog()?.revision ?: 0
+            seenRevision = project.changeLog()?.revision ?: 0
             _state.value = ChatState.Ready
             scope.launch(start = CoroutineStart.UNDISPATCHED) { started.updates.collect { update -> _transcript.update { it.withUpdate(update) } } }
             scope.launch(start = CoroutineStart.UNDISPATCHED) { started.configOptions.collect { _configOptions.value = it } }
@@ -405,3 +421,9 @@ public class AssistantChat(
 private fun Throwable.isAuthRequired() = generateSequence(this) { it.cause }.any { it is JsonRpcException && it.code == JsonRpcErrorCode.AUTH_REQUIRED.code }
 
 private const val MODEL_SWITCH_TIMEOUT_IN_MILLISECONDS = 30_000L
+
+private fun PlanStepStatus.toPlanEntryStatus() = when (this) {
+    PlanStepStatus.PENDING -> PlanEntryStatus.PENDING
+    PlanStepStatus.IN_PROGRESS -> PlanEntryStatus.IN_PROGRESS
+    PlanStepStatus.COMPLETED -> PlanEntryStatus.COMPLETED
+}

@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.agentclientprotocol.model.ContentBlock
+import com.agentclientprotocol.model.PlanEntryStatus
 import com.agentclientprotocol.model.SessionConfigId
 import com.agentclientprotocol.model.SessionConfigOption
 import com.agentclientprotocol.model.SessionConfigOptionValue
@@ -19,6 +20,9 @@ import com.agentclientprotocol.model.ToolCallStatus
 import com.pandulapeter.kubrikoCreator.commands.AiStepOrigin
 import com.pandulapeter.kubrikoCreator.commands.ChangeLog
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.ConversationPlans
+import com.pandulapeter.kubrikoCreator.commands.PlanStep
+import com.pandulapeter.kubrikoCreator.commands.PlanStepStatus
 import com.pandulapeter.kubrikoCreator.testing.blockingTest
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -29,6 +33,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.yield
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
@@ -40,6 +45,7 @@ import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 
 class AssistantChatTest {
     private val mainThread = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
@@ -74,13 +80,26 @@ class AssistantChatTest {
             toolsIdOf = { "tools" },
             onTurnEnded = { _, title, lastAnswer, toolsId -> endedTurns += Triple(title, lastAnswer, toolsId) },
             forgetReads = { forgotten += it },
-            changeLog = { changeLog },
-            undoTurn = { toolsId, sinceRevision ->
-                undoneTurns += toolsId to sinceRevision
-                0
+            project = object : OpenProjectAccess {
+                override suspend fun digest(): String? = null
+
+                override fun changeLog(): ChangeLog? = changeLog
+
+                override suspend fun undoTurn(toolsId: String, sinceRevision: Int): Int {
+                    undoneTurns += toolsId to sinceRevision
+                    return 0
+                }
+
+                override fun takeSummary(toolsId: String): String? = null
+
+                override fun planOf(toolsId: String) = plans.of(toolsId)
+
+                override fun forgetPlan(toolsId: String) = plans.forget(toolsId)
             },
         )
     }
+
+    private val plans = ConversationPlans()
 
     private suspend fun AssistantChat.sendAndWait(text: String) {
         withContext(mainThread) { send(text) }
@@ -159,6 +178,20 @@ class AssistantChatTest {
         chat.isBusy.first { !it }
         assertEquals(FakeAgent.SLOW_MODEL, chat.currentModel())
         assertTrue(launcher.agents.single().prompts.isEmpty())
+    }
+
+    @Test
+    fun aPlanLaidOutWithCreatorsToolIsShownAsTheAgentsOwnAndForgottenWithTheConversation() = blockingTest {
+        val chat = readyChat()
+        chat.sendAndWait("hello")
+        plans.set("tools", listOf(PlanStep("Add lives", PlanStepStatus.PENDING), PlanStep("Lose a life", PlanStepStatus.PENDING)))
+        val transcript = withTimeout(10.seconds) { chat.transcript.first { it.plan.isNotEmpty() } }
+        assertEquals(listOf("Add lives", "Lose a life"), transcript.plan.map { it.content })
+        assertTrue(transcript.isPlanAwaitingApproval)
+        plans.set("tools", listOf(PlanStep("Add lives", PlanStepStatus.COMPLETED), PlanStep("Lose a life", PlanStepStatus.IN_PROGRESS)))
+        withTimeout(10.seconds) { chat.transcript.first { it.plan.firstOrNull()?.status == PlanEntryStatus.COMPLETED } }
+        withContext(mainThread) { chat.close() }
+        assertEquals(null, plans["tools"])
     }
 
     @Test

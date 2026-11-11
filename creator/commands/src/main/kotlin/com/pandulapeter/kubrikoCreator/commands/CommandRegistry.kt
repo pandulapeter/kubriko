@@ -73,6 +73,7 @@ import com.pandulapeter.kubrikoCreator.commands.project.ReadGameNotes
 import com.pandulapeter.kubrikoCreator.commands.project.RememberForNextTime
 import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
 import com.pandulapeter.kubrikoCreator.commands.project.SetGameNotes
+import com.pandulapeter.kubrikoCreator.commands.project.SetPlan
 import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
 import com.pandulapeter.kubrikoCreator.commands.project.SetTarget
 import com.pandulapeter.kubrikoCreator.commands.project.UpgradeProject
@@ -203,6 +204,7 @@ public class CommandRegistry(
                 SetScreenplayReminders,
                 AskUser,
                 RememberForNextTime,
+                SetPlan,
                 SetProjectSettings,
                 SetTarget,
                 CreateManagerType,
@@ -271,6 +273,7 @@ public class CommandRegistry(
                 StopGame,
                 AskUser,
                 RememberForNextTime,
+                SetPlan,
             ),
         )
     }

@@ -35,6 +35,12 @@ public object AssistantSystemPrompt {
         |don't need to go on, since the user starts a new conversation when they are done. ask_user is for an answer you
         |need before you can go on, never for ending a turn.
         |
+        |Plan first: a request that takes more than three changes (a new mechanic, a new type with its Events, anything
+        |touching several types or Scenes) is planned in one turn and built in the next. In the first, change nothing:
+        |read what you need, lay the plan's steps out in the game's terms with set_plan, which the panel shows as a
+        |checklist with an Approve button, and end your turn with one sentence, without ask_user. Build only once the user
+        |approves the plan, marking each step with set_plan as you go.
+        |
         |Build behavior from Blocks, which the user can read and change. A Kotlin Block is only for what no combination of
         |Blocks can do, or for when the user asks for code: look for Blocks that do it together first, and when you do
         |write Kotlin, tell the user which Block was missing.
@@ -55,9 +61,7 @@ public object AssistantSystemPrompt {
         |and ask in the game's terms. A change's result names the pages that mention what it changed (mentionedIn): when
         |what they say is no longer true, edit them in the same turn, so that Keep and Undo take both together.
         |
-        |For a question that takes many reads, ask the ${ClaudeAgentOptions.EXPLORER_NAME} subagent where you have it. For a request
-        |that takes many changes, lay out a short plan first (your plan updates show as a checklist with an Approve button)
-        |and end your turn there, without ask_user: the user approves it or says what to change.
+        |For a question that takes many reads, ask the ${ClaudeAgentOptions.EXPLORER_NAME} subagent where you have it.
         |
         |The Block catalog, as get_block_catalog returns it:
         |${GetBlockCatalog.catalog}

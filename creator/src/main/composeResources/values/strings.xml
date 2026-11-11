@@ -600,6 +600,7 @@
     <string name="error_command_page_missing">There's no page called %1$s.</string>
     <string name="error_command_page_missing_similar">There's no page called %1$s. Close matches: %2$s.</string>
     <string name="error_command_page_not_moved">Kubriko Creator couldn't move the page %1$s, so nothing changed. Another program may have its file open.</string>
+    <string name="error_command_plan_invalid">Give a plan of one to %1$s steps, each one line of at most %2$s characters.</string>
     <string name="error_command_summary_invalid">The summary can't be empty or longer than %1$s characters.</string>
     <string name="error_command_question_invalid">Ask a question with two to four different answers, each at most %1$s characters long.</string>
     <string name="error_command_screenplay_settings_unreadable">Kubriko Creator can't read %1$s right now, so it left it alone. Try again once no other program holds it.</string>
@@ -848,6 +849,7 @@
     <string name="command_add_document_to_screenplay">Add a document to the screenplay</string>
     <string name="command_ask_user">Ask you a question</string>
     <string name="command_remember_for_next_time">Note what to remember next time</string>
+    <string name="command_set_plan">Lay out the plan</string>
     <string name="command_set_screenplay_reminders">Turn the screenplay's reminders on or off</string>
     <string name="command_read_console">Read the console</string>
     <string name="command_get_version_control_status">Check version control</string>

@@ -66,7 +66,7 @@ class CommandRegistryTest {
         assertEquals(registry.commands.map { it is ReadCommand || (it is ActionCommand && it.leavesEverythingAsItWas) }, registry.tools.map { it.isReadOnly })
         assertEquals(registry.commands.map { it is ReadCommand }, registry.tools.map { it.readsProject })
         assertEquals(
-            setOf("ask_user", "remember_for_next_time"),
+            setOf("ask_user", "remember_for_next_time", "set_plan"),
             registry.tools.filter { it.isReadOnly && !it.readsProject }.map { it.name }.toSet(),
         )
         registry.commands.forEach { assertEquals(it, registry[it.name]) }

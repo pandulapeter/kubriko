@@ -11,8 +11,12 @@ package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.pandulapeter.kubrikoCreator.commands.ChangeLog
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
+import com.pandulapeter.kubrikoCreator.commands.ConversationPlans
 import com.pandulapeter.kubrikoCreator.commands.ConversationSummaries
+import com.pandulapeter.kubrikoCreator.commands.PlanStep
 import com.pandulapeter.kubrikoCreator.context.ConversationStart
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 /**
  * What a conversation needs from the project open at the time.
@@ -31,6 +35,12 @@ public interface OpenProjectAccess {
     /** What the conversation at a tool address noted for the next one since it last took it ([ConversationSummaries]). */
     public fun takeSummary(toolsId: String): String?
 
+    /** The plan the conversation at a tool address lays out with Kubriko Creator's tool, each time it sets one ([ConversationPlans]). */
+    public fun planOf(toolsId: String): Flow<List<PlanStep>>
+
+    /** Forgets the plan of the conversation at a tool address, once it ended. */
+    public fun forgetPlan(toolsId: String)
+
     public companion object {
         /** No project, ever. */
         public val None: OpenProjectAccess = object : OpenProjectAccess {
@@ -41,6 +51,10 @@ public interface OpenProjectAccess {
             override suspend fun undoTurn(toolsId: String, sinceRevision: Int): Int = 0
 
             override fun takeSummary(toolsId: String): String? = null
+
+            override fun planOf(toolsId: String): Flow<List<PlanStep>> = emptyFlow()
+
+            override fun forgetPlan(toolsId: String) = Unit
         }
 
         /** The project whose commands [executor] gives, if one is open. */
@@ -52,6 +66,12 @@ public interface OpenProjectAccess {
             override suspend fun undoTurn(toolsId: String, sinceRevision: Int): Int = executor()?.undoTurn(toolsId, sinceRevision) ?: 0
 
             override fun takeSummary(toolsId: String): String? = executor()?.context?.summaries?.take(toolsId)
+
+            override fun planOf(toolsId: String): Flow<List<PlanStep>> = executor()?.context?.plans?.of(toolsId) ?: emptyFlow()
+
+            override fun forgetPlan(toolsId: String) {
+                executor()?.context?.plans?.forget(toolsId)
+            }
         }
     }
 }

@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import com.agentclientprotocol.model.SessionConfigOption
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
@@ -69,6 +70,29 @@ class AssistantLiveScenariosTest {
             withTimeout(1.minutes) { chat.transcript.first { transcript -> transcript.items.any { it is TranscriptItem.TurnReview && it.state != TranscriptItem.TurnReview.State.OFFERED } } }
         }
         assertEquals(BreakoutFixture.ball, session.context.ball())
+    }
+
+    @Test
+    fun aRequestOfManyChangesIsPlannedFirstAndCarriedOutOnceApprovedWithASmallerModel() = live { session ->
+        val chat = session.chat()
+        chat.ask(
+            "Give the player three lives: keep them on a Manager type, show them on screen, take one away whenever the Ball " +
+                "leaves the bottom edge of the screen, and start the Scene again once none are left.",
+        )
+        val models = chat.configOptions.value.filterIsInstance<SessionConfigOption.Select>().map { option -> option.currentValue.value to option.choices().map { "${it.value.value}: ${it.name} (${it.description})" } }
+        println("Plan: ${chat.transcript.value.plan.map { "${it.status} ${it.content}" }}\nAnswer: ${chat.lastAnswer()}\nOptions: $models")
+        println("Tool calls: ${chat.transcript.value.items.filterIsInstance<TranscriptItem.ToolCall>().map { it.title }}")
+        assertTrue(chat.transcript.value.isPlanAwaitingApproval, "The turn didn't end on a plan to approve.")
+        assertEquals(null, session.executor.history.value.nextUndoCommandName, "Something changed before the plan was approved.")
+        val smaller = SmallerModel.of(chat.configOptions.value)
+        println("Smaller model: $smaller")
+        chat.ask("The plan is approved: go ahead.", model = smaller, timeout = 15.minutes)
+        println("Answer: ${chat.lastAnswer()}")
+        assertTrue(session.executor.history.value.nextUndoCommandName != null, "Nothing changed once the plan was approved.")
+        smaller?.let { model ->
+            val current = chat.configOptions.value.filterIsInstance<SessionConfigOption.Select>().first { it.id == model.option }.currentValue
+            assertEquals(model.value, current)
+        }
     }
 
     @Test
@@ -181,7 +205,7 @@ class AssistantLiveScenariosTest {
 
     private fun live(isBlank: Boolean = false, block: suspend TestScope.(LiveSession) -> Unit) {
         assumeTrue(isEnabled)
-        runTest(timeout = if (isBlank) 90.minutes else 15.minutes) {
+        runTest(timeout = if (isBlank) 90.minutes else 25.minutes) {
             val session = newSession(isBlank)
             try {
                 block(session)
@@ -194,10 +218,10 @@ class AssistantLiveScenariosTest {
     /**
      * Sends [text] and waits for the turn to end, in real time: [runTest]'s own clock would let the timeout pass at once.
      */
-    private suspend fun AssistantChat.ask(text: String, timeout: Duration = 5.minutes) = withContext(Dispatchers.Default) {
+    private suspend fun AssistantChat.ask(text: String, timeout: Duration = 5.minutes, model: SmallerModel? = null) = withContext(Dispatchers.Default) {
         withTimeout(timeout) {
             state.first { it == ChatState.Ready }
-            send(text)
+            send(text, model = model)
             isBusy.first { it }
             isBusy.first { !it }
         }
@@ -259,8 +283,7 @@ class AssistantLiveScenariosTest {
                 },
                 end = owner::closeConversation,
                 toolsIdOf = owner::toolsIdOf,
-                changeLog = { executor.changeLog },
-                undoTurn = executor::undoTurn,
+                project = OpenProjectAccess.of { executor },
                 onTurnEnded = { _, _, _, toolsId -> toolsId?.let(context.summaries::take)?.let { lastSummary = it } },
             )
         }
