@@ -55,7 +55,8 @@ internal suspend fun CommandContext.relocateFolder(
     movesOnly: Boolean,
     back: (movesOnly: Boolean) -> Invocation<*>,
 ): Applied {
-    val scenesBefore = if (group == FolderGroup.SCENES) sceneFilesWithin(path) else emptyMap()
+    val sceneNames = if (group == FolderGroup.SCENES) withContext(ioDispatcher) { scenes.scanNames() } else null
+    val scenesBefore = sceneNames?.let { sceneFilesWithin(it, path) }.orEmpty()
     val (audioMoves, audioRenames) = if (group.isAudio) {
         withContext(ioDispatcher) {
             audioFolderMoves(path, newPath) to audioFilesMovedWith(resourceFilesOnDisk().map { it.path }.distinct(), path, newPath)
@@ -63,7 +64,7 @@ internal suspend fun CommandContext.relocateFolder(
     } else {
         emptyList<PathMove>() to emptyMap()
     }
-    moveFolder(group, path, newPath)?.let { rejection -> return Applied(inverse = null, failure = rejection) }
+    moveFolder(group, path, newPath, sceneNames)?.let { rejection -> return Applied(inverse = null, failure = rejection) }
     val inverse = if (!group.isAudio) {
         back(false)
     } else {
@@ -86,8 +87,8 @@ internal suspend fun CommandContext.relocateFolder(
 }
 
 /**
- * The file of every Scene in [folder], by the Scene's name: a folder of Scenes may be in more than one module.
+ * The file of every Scene of [sceneNames] in [folder], by the Scene's name: a folder of Scenes may be in more than one module.
  */
-private suspend fun CommandContext.sceneFilesWithin(folder: String) = withContext(ioDispatcher) {
-    scenes.scanNames().filter { FolderPaths.isWithin(FolderPaths.parentOf(it), folder) }.associateWith { projectPathOf(scenes.fileOf(it)) }
+private suspend fun CommandContext.sceneFilesWithin(sceneNames: List<String>, folder: String) = withContext(ioDispatcher) {
+    sceneNames.filter { FolderPaths.isWithin(FolderPaths.parentOf(it), folder) }.associateWith { projectPathOf(scenes.fileOf(it)) }
 }

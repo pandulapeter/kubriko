@@ -49,10 +49,11 @@ internal suspend fun CommandContext.deleteFolder(group: FolderGroup, path: Strin
  * Moves the folder at [path] of [group], and everything in it, to [newPath]. It stops at the first Scene, page, or file
  * that can't be moved, moving back the ones moved before it, so that nothing changes.
  *
+ * @param sceneNames The names of the project's Scenes on disk, if they were just read; otherwise they are read here.
  * @return Why it couldn't be moved (the Scene or page that couldn't), or null if everything was.
  */
 @EditorMutation
-internal suspend fun CommandContext.moveFolder(group: FolderGroup, path: String, newPath: String): Rejection? {
+internal suspend fun CommandContext.moveFolder(group: FolderGroup, path: String, newPath: String, sceneNames: List<String>? = null): Rejection? {
     if (group == FolderGroup.SPRITES) {
         return if (withContext(ioDispatcher) { spriteFolders.moveFolder(path, newPath) }) null else Rejection(CommandProblem.RESOURCE_FOLDER_NOT_MOVED, path)
     }
@@ -65,7 +66,7 @@ internal suspend fun CommandContext.moveFolder(group: FolderGroup, path: String,
     foldersOf(group).filter { FolderPaths.isWithin(it, path) }.forEach { createFolder(group, moved(it)) }
     when (group) {
         FolderGroup.SCENES -> {
-            val renamed = withContext(ioDispatcher) { scenes.scanNames() }.filter { FolderPaths.isWithin(FolderPaths.parentOf(it), path) }.associateWith(::moved)
+            val renamed = (sceneNames ?: withContext(ioDispatcher) { scenes.scanNames() }).filter { FolderPaths.isWithin(FolderPaths.parentOf(it), path) }.associateWith(::moved)
             renameScenes(renamed)?.let { scene ->
                 deleteFolder(group, newPath)
                 return sceneNotMoved(scene)
