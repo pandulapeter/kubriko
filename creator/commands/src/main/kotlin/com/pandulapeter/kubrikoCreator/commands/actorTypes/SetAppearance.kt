@@ -45,8 +45,12 @@ public object SetAppearance : WriteCommand<SetAppearance.Input> {
         val definition = context.requireActorType(input.actorType)
         val sprite = input.sprite?.ifEmpty { null }
         val spriteSize = if (sprite != null && sprite != definition.sprite && input.width == null && input.height == null) {
-            context.spriteFolders.state.value.sheets.sheetOfSprite(sprite)?.let { it.frameWidth to it.frameHeight }
-                ?: context.spriteFiles()?.files?.get(sprite)?.let { file -> withContext(context.ioDispatcher) { SpriteFiles.sizeOf(file) } }
+            val imageSize = context.spriteFiles()?.files?.get(sprite)?.let { file -> withContext(context.ioDispatcher) { SpriteFiles.sizeOf(file) } }
+            // A sheet that no longer fits its image (one replaced outside Kubriko Creator) says nothing about its size.
+            context.spriteFolders.state.value.sheets.sheetOfSprite(sprite)
+                ?.takeIf { sheet -> imageSize == null || sheet.problemWithImage(imageSize.first, imageSize.second) == null }
+                ?.let { it.frameWidth to it.frameHeight }
+                ?: imageSize
         } else {
             null
         }

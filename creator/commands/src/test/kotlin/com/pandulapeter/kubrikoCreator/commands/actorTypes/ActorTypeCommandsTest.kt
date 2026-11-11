@@ -173,6 +173,10 @@ class ActorTypeCommandsTest {
         context.spriteFolders.setSheet("hero", SpriteSheet(frameWidth = 16, frameHeight = 16, frameCount = 4, framesPerRow = 4))
         val withSprite = context.assertRoundTrip(Invocation(SetAppearance, SetAppearance.Input("Ball", sprite = "drawable/hero.png"))) { context.ball() }
         assertEquals(ball.copy(sprite = "drawable/hero.png", width = 16f, height = 16f), withSprite)
+        SetAppearance.apply(context, SetAppearance.Input("Ball", sprite = ""))
+        ImageIO.write(BufferedImage(8, 8, BufferedImage.TYPE_INT_ARGB), "png", image)
+        SetAppearance.apply(context, SetAppearance.Input("Ball", sprite = "drawable/hero.png"))
+        assertEquals(ball.copy(sprite = "drawable/hero.png", width = 8f, height = 8f), context.ball(), "a sheet that no longer fits its image says nothing about the size")
         root.deleteRecursively()
     }
 
