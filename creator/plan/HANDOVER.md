@@ -26,32 +26,35 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Go on with `01-sprite-editor.md`, from its Files (New sprite, importing), then the editor and animation. Its first item,
-sprite sheets as an appearance, is done (adf9a30db..cfefeba2d) and was reviewed with `/code-review` twice (the item, then
-its fixes), every finding fixed in a commit of its own or answered below:
+Go on with `01-sprite-editor.md`, now only its animation side: the frame strip, onion skinning, and the preview. The user
+asked (2026-11-11) for everything up to and including the editor, after the in-app Assistant said it couldn't make a
+sprite; the AI's drawing tools came first for that reason. Done (82d823d14..c8a10a1c8), reviewed with `/code-review`
+twice (the work, then its fixes), every finding fixed in a commit of its own:
 
-- A sprite's sheet (`SpriteSheet`: frame size, count, frames per row, frames per second, and origin) is kept in its file in
-  `.kubriko/sprites` (`SpriteFolderStore.setSheet`), set through `set_sprite_sheet` (undo restores the files byte for
-  byte, through `ReplaceFiles`) and the appearance column's Frames dialog, and listed by `list_resources`.
-- Types drawn as a sheet are generated with `AnimatedSprite.fromAtlas`, stepped in `update` before any Event; a family's
-  base class plays them through `open` hooks (`actors/CLAUDE.md`). New Blocks: Set the frame (`setFrame`) and Set the
-  animation (`setAnimation`, speed and looping). `tintsSprite` multiplies a sprite by the color. The origin is the type's:
-  the final class sets the pivot from it as each Actor is created.
-- Format version 4 (`ReservedPropertyMigration.ANIMATION`, generalized from format 3's `look` migration) reserves
-  `animation`, `animationSpeed`, and `isAnimationLooping`, and covers the Blocks and `tintsSprite`.
-- A sheet change, from Creator or outside it, regenerates through `ProjectChanges.onSpriteSheets`, compared with what the
-  first scan read; `BlockTypeStore` reads the sheets itself (`SpriteSheetFiles`, parsing only changed text), so code
-  generated before the first scan or by a migration is never stale. That second read was a review finding kept on purpose.
-- The Scene editor's preview shows a sheet's first frame, tinted and turned around the origin, as the game does.
-- Kept on purpose from the second review: the generated `init` overrides a saved pivot, which only Kubriko's own scene
-  editor could have set (Creator's never does, and resizing puts it back in the middle).
-- `ProjectTemplateIntegrationTest` (every target, against a Maven Local publish) builds the Block project with an animated,
-  tinted sheet and both new Blocks.
+- A pixel model in `:creator:core` (`sprites/pixels`: `PixelImage`, `PixelShapes`, `PixelOperations`, `SpriteFrames`),
+  with no Skia.
+- The AI's tools: `create_sprite`, `draw_pixels` (single pixels, or rows of letters with a palette, which the editor
+  also uses for many pixels), `edit_sprite` (flip, turn, shift, resize the canvas, scale; one frame or every one, the
+  origin following the pixels), `read_sprite` (an image, scaled up, and optionally the pixels as rows), `set_palette`
+  (`.kubriko/palette.json`), and `import_sprite_frames`. Every change goes through `editSpriteImage`, whose undo writes
+  the image and the sheet back byte for byte (`ReplaceFiles`). Their problems are `SpriteProblem`, out of
+  `CommandProblem`, whose mapping had reached its size limit.
+- Writes are synchronous within their command (atomic, refused with the reason when they fail), rather than queued and
+  retried as the plan once said, so nothing is ever left unsaved for builds or git to wait for.
+- The sprite editor (`ui/sprites`), opened from the sidebar (`WorkspaceSelection.Sprite`): pencil, eraser, line,
+  rectangle, ellipse, fill, picker, and a selection that moves, copies, cuts, and pastes (between frames and sprites);
+  two colors, the project's palette, the frame's colors; zoom, grid, panning; the Image menu; frame arrows (which the
+  frame strip replaces). New sprite… and Sprite from frames… are in the sidebar's New menu.
+- `dispatchIfValidWatching` tells the editor when a stroke's write fails, so it stops showing it. Own writes of sprite
+  images raise `spriteImagesRevision`, followed at most once a second by the Scene view and the game.
 
-The tool list's budget went from 21,000 to 21,600 for `set_sprite_sheet`, `tintsSprite`, and the two Blocks.
+The tool list's budget went from 21,600 to 23,200 for the drawing tools.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
+- The sprite editor in the real app: drawing with each tool and both mouse buttons, the selection with copy, cut, and
+  paste, the Image menu, and a drawn sprite reaching the playing game; and the Assistant drawing a sprite with
+  `create_sprite` and `draw_pixels` (the alienshooter conversation that asked for a ship).
 - A sprite sheet playing in a real game, and the Frames dialog and the playing thumbnail in the real app: an end-to-end
   scenario under Xvfb could cut the Breakout ball's sprite into frames through `set_sprite_sheet` and check by pixels, in
   two `take_screenshot`s with an `actorType` crop, that its frame changes.
@@ -73,7 +76,7 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
 - Codex started as a `codex-work` alias's account signing in to that `CODEX_HOME` (running `codex-acp` fetched from npm wasn't
   allowed in this session; it is listed under Codex's profile in `ai-assistant.md`).
 - No live run has tried the agents' standing job of keeping the project organized in folders (`McpToolServer.INSTRUCTIONS`).
-- The eval set has no request using the new resource tools, `move_folder`, `set_sprite_sheet`, or the animation Blocks yet; record one (`EvalSetLiveTest` with
+- The eval set has no request using the new resource tools, `move_folder`, `set_sprite_sheet`, the animation Blocks, or the drawing tools yet; record one (`EvalSetLiveTest` with
   `KUBRIKO_CREATOR_EVAL_RECORD=true`) once a live run can be spent on it.
 
 ## Before a release

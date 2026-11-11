@@ -31,7 +31,7 @@ its file's Waiting on others. Inside a file, its Order section says what comes f
 loses its number and moves to Waiting below, and the rest are numbered again, since nothing in it can be worked on until what it
 waits for happens.
 
-1. [Sprite editor](01-sprite-editor.md) - a pixel-art editor for sprites and their animations, frame by frame with onion skinning,
+1. [Sprite editor](01-sprite-editor.md) - the animation side of the sprite editor: a frame strip, onion skinning, and a preview,
    like GameMaker 6.1's.
 2. [Search](02-search.md) - the sidebar filter, quick open, find usages, search in Blocks and pages, and searching conversations.
 3. [Blocks, Actor types, and Manager types](03-blocks.md) - Blocks for the simple behavior a first game still needs Kotlin for, the
