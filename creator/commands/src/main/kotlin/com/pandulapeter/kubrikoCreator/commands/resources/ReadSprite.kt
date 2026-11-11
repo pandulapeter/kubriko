@@ -38,6 +38,7 @@ public object ReadSprite : ReadCommand<ReadSprite.Input> {
     override suspend fun read(context: CommandContext, input: Input): CommandOutcome {
         (context.validateSprite(input.sprite) ?: context.validateFrame(input.sprite, input.frame))?.let { return CommandOutcome.Rejected(it) }
         val frames = context.readSpriteFrames(input.sprite) ?: return CommandOutcome.Rejected(Rejection(SpriteProblem.SPRITE_UNREADABLE, input.sprite))
+        frameMissingFrom(frames, input.sprite, input.frame)?.let { return CommandOutcome.Rejected(it) }
         val image = input.frame?.let(frames.frames::get) ?: frames.toImage()
         val colors = image.colors()
         if (input.asRows && (image.width > MAXIMUM_ROWS_SIZE || image.height > MAXIMUM_ROWS_SIZE || colors.size >= LETTERS.length)) {

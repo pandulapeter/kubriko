@@ -148,4 +148,15 @@ class SpriteDrawingCommandsTest {
         )
         assertEquals(Rejection(SpriteProblem.FRAMES_NONE), ImportSpriteFrames.validate(context, input.copy(files = emptyList())))
     }
+
+    @Test
+    fun aFrameOfASheetThatNoLongerFitsItsImageIsRefusedRatherThanReadPastIt() = runTest {
+        val context = context(PixelImage(2, 2), SpriteSheet(frameWidth = 2, frameHeight = 2, frameCount = 1, framesPerRow = 1))
+        context.spriteFolders.setSheet("ship", SpriteSheet(frameWidth = 1, frameHeight = 2, frameCount = 2, framesPerRow = 2))
+        context.spriteImageFile("drawable/ship.png").writeBytes(PixelImage(1, 2).toPng())
+        val missing = Rejection(SpriteProblem.SPRITE_FRAME_MISSING, "drawable/ship.png", "1", "0")
+        assertEquals(missing, DrawPixels.apply(context, DrawPixels.Input("drawable/ship.png", frame = 1, pixels = listOf(DrawPixels.DrawnPixel(0, 0, red)))).failure)
+        assertEquals(missing, EditSprite.apply(context, EditSprite.Input("drawable/ship.png", EditSprite.Operation.Flip(), frame = 1)).failure)
+        assertEquals(missing, assertIs<CommandOutcome.Rejected>(ReadSprite.read(context, ReadSprite.Input("drawable/ship.png", frame = 1))).rejection)
+    }
 }

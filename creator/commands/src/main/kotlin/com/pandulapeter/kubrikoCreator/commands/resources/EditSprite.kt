@@ -41,6 +41,7 @@ public object EditSprite : WriteCommand<EditSprite.Input> {
         }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied = context.editSpriteImage(input.sprite) { frames ->
+        frameMissingFrom(frames, input.sprite, input.frame)?.let { return@editSpriteImage SpriteEdit.Rejected(it) }
         val edited = frames.mapped(input.frame) { frame -> input.operation.applyTo(frame) }
         when {
             edited == null -> SpriteEdit.Rejected(Rejection(SpriteProblem.SPRITE_FRAME_SIZE_ALONE))

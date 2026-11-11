@@ -42,6 +42,7 @@ public object DrawPixels : WriteCommand<DrawPixels.Input> {
         }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied = context.editSpriteImage(input.sprite) { frames ->
+        frameMissingFrom(frames, input.sprite, input.frame)?.let { return@editSpriteImage SpriteEdit.Rejected(it) }
         val frame = frames.frames[input.frame]
         val pixels = input.drawnPixels()
         val outside = pixels.firstOrNull { !frame.contains(it.x, it.y) }

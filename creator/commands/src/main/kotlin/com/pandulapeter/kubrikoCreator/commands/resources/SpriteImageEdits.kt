@@ -56,6 +56,13 @@ internal fun CommandContext.validateFrame(path: String, frame: Int?): Rejection?
 }
 
 /**
+ * Why frame [frame] of the sprite at [path] isn't among [frames] as read: its sheet promised it, but no longer fits the
+ * image (one replaced outside Kubriko Creator), so the image is one frame. Null when it is there, or for every frame.
+ */
+internal fun frameMissingFrom(frames: SpriteFrames, path: String, frame: Int?): Rejection? =
+    if (frame == null || frame in frames.frames.indices) null else Rejection(SpriteProblem.SPRITE_FRAME_MISSING, path, frame.toString(), (frames.frames.size - 1).toString())
+
+/**
  * Changes the image of the sprite at [path] as [edit] says, given its frames: [edit] returns the frames to write, or a
  * rejection when it can't make the change. The image (and the sheet, when the frames changed size) is written through
  * [ReplaceFiles], whose inverse brings both back byte for byte.
