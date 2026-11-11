@@ -15,6 +15,9 @@ import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.SimilarNames
+import com.pandulapeter.kubrikoCreator.commands.screenplay.projectPathOf
+import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.foundation.moveWithoutReplacing
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import java.io.File
@@ -136,6 +139,18 @@ internal fun CommandContext.isGameResource(file: File): Boolean {
  * The module the game's own resources are in: the one holding the `composeResources` folder new ones go to.
  */
 private fun CommandContext.resourceModuleDirectory(): File = scenes.resourcesDirectory.absoluteFile.parentFile.parentFile.parentFile
+
+/**
+ * Moves each file of [moved] (pairs of where it was and where it went) back, the last first, saying in the console which
+ * couldn't be, since such a file stays where it went while the change reports that nothing changed. Blocks.
+ */
+internal fun CommandContext.moveBack(moved: List<Pair<File, File>>) {
+    moved.asReversed().forEach { (from, to) ->
+        if (!to.moveWithoutReplacing(from)) {
+            report(ConsoleEntry.Status(CommandProblem.RESOURCE_NOT_MOVED_BACK, isError = true, arguments = listOf(projectPathOf(to), projectPathOf(from))))
+        }
+    }
+}
 
 private fun pathFromComposeResources(resource: ProjectResource) = pathFromComposeResources(resource.relativePath)
 

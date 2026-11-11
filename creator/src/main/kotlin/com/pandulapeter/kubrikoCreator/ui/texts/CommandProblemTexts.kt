@@ -72,6 +72,7 @@ import kubriko.creator.generated.resources.error_command_resource_folder_not_mov
 import kubriko.creator.generated.resources.error_command_resource_kind_changed
 import kubriko.creator.generated.resources.error_command_resource_not_deleted
 import kubriko.creator.generated.resources.error_command_resource_not_moved
+import kubriko.creator.generated.resources.error_command_resource_not_moved_back
 import kubriko.creator.generated.resources.error_command_resource_path_invalid
 import kubriko.creator.generated.resources.error_command_resource_source_extension
 import kubriko.creator.generated.resources.error_command_resource_source_unreadable
@@ -180,6 +181,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.RESOURCE_MUSIC_NOT_FOLLOWED -> Res.string.warning_resource_music_not_followed
     CommandProblem.RESOURCE_NAMED_IN_CODE -> Res.string.warning_resource_named_in_code
     CommandProblem.RESOURCE_FOLDER_NOT_MOVED -> Res.string.error_command_resource_folder_not_moved
+    CommandProblem.RESOURCE_NOT_MOVED_BACK -> Res.string.error_command_resource_not_moved_back
     CommandProblem.RESOURCE_NOT_DELETED -> Res.string.error_command_resource_not_deleted
     CommandProblem.RESOURCE_NOT_MOVED -> Res.string.error_command_resource_not_moved
     CommandProblem.RESOURCE_PATH_INVALID -> Res.string.error_command_resource_path_invalid

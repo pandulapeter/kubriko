@@ -86,7 +86,7 @@ public object RenameResource : WriteCommand<RenameResource.Input> {
         files.forEach { file ->
             val target = movedResourceFile(file, path, newPath)
             if (!file.moveWithoutReplacing(target)) {
-                moved.asReversed().forEach { (from, to) -> to.moveWithoutReplacing(from) }
+                moveBack(moved)
                 return null
             }
             scenes.ownWrites.record(file)

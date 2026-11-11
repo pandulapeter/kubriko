@@ -78,6 +78,7 @@ public enum class CommandProblem(override val english: String) : DomainText {
     RESOURCE_MUSIC_NOT_FOLLOWED("%1\$s still play %2\$s as their music, since they couldn't be written: %3\$s"),
     RESOURCE_NAMED_IN_CODE("%1\$s still names %2\$s, which is now %3\$s. Change it there by hand."),
     RESOURCE_FOLDER_NOT_MOVED("Kubriko Creator couldn't move %1\$s, so nothing changed. Another program, such as the running game, may have a file in it open."),
+    RESOURCE_NOT_MOVED_BACK("Kubriko Creator couldn't move %1\$s back to %2\$s, so it's still there. Move it back by hand."),
     RESOURCE_NOT_DELETED("Kubriko Creator couldn't delete %1\$s, so nothing changed. Another program, such as the running game, may have it open."),
     RESOURCE_NOT_MOVED("Kubriko Creator couldn't rename %1\$s, so nothing changed. Another program, such as the running game, may have it open."),
     RESOURCE_PATH_INVALID("%1\$s can't be a sprite, sound, or music file. A sprite is a .png, .jpg, or .webp image right in drawable (drawable/ball.png); a sound is a .wav and music an .mp3 or .ogg file in files, outside files/scenes (files/sounds/hit.wav)."),

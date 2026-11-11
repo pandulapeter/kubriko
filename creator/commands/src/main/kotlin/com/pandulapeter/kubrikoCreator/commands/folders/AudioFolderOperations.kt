@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.resources.followInScenes
 import com.pandulapeter.kubrikoCreator.commands.resources.followInTypes
 import com.pandulapeter.kubrikoCreator.commands.resources.knownResourcePaths
+import com.pandulapeter.kubrikoCreator.commands.resources.moveBack
 import com.pandulapeter.kubrikoCreator.commands.resources.reportNamedInCode
 import com.pandulapeter.kubrikoCreator.commands.resources.resourceFilesOnDisk
 import com.pandulapeter.kubrikoCreator.commands.screenplay.projectPathOf
@@ -85,10 +86,15 @@ internal fun CommandContext.moveAudioFolder(path: String, newPath: String): Reje
         }
         contents.filter { it.isFile }.forEach { file ->
             val target = File(to, file.relativeTo(from).path)
-            if (target.exists() || !file.moveWithoutReplacing(target)) {
-                moved.asReversed().forEach { (source, destination) -> destination.moveWithoutReplacing(source) }
+            val rejection = when {
+                target.exists() -> Rejection(CommandProblem.RESOURCE_TAKEN, "files/" + target.relativeTo(files).invariantSeparatorsPath)
+                !file.moveWithoutReplacing(target) -> Rejection(CommandProblem.RESOURCE_FOLDER_NOT_MOVED, path)
+                else -> null
+            }
+            if (rejection != null) {
+                moveBack(moved)
                 deleteAudioFolder(newPath)
-                return Rejection(CommandProblem.RESOURCE_FOLDER_NOT_MOVED, path)
+                return rejection
             }
             scenes.ownWrites.record(file)
             scenes.ownWrites.record(target)

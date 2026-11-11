@@ -23,9 +23,11 @@ import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
+import com.pandulapeter.kubrikoCreator.commands.resources.moveBack
 import com.pandulapeter.kubrikoCreator.commands.usagesOf
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -36,6 +38,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+@OptIn(EditorMutation::class)
 class AudioFolderCommandsTest {
     private val wav = "RIFF\u0000\u0000\u0000\u0000WAVEfmt ".toByteArray(Charsets.ISO_8859_1)
     private val mp3 = "ID3\u0004rest".toByteArray(Charsets.ISO_8859_1)
@@ -181,5 +184,31 @@ class AudioFolderCommandsTest {
         inverse.copy(isRestoring = true).apply(context)
         assertEquals(before, context.blockTypes!!.types.value)
         assertTrue(context.directory("$common/files/sounds/enemies/deep/roar.wav").isFile)
+    }
+
+    @Test
+    fun aFileAlreadyWhereOneWouldMoveStopsTheMoveAndSaysSo() = runTest {
+        val context = context(sounds = listOf("files/sfx/a.wav", "files/sfx/b.wav"))
+        context.directory("$common/files/fx").mkdirs()
+        File(context.directory("$common/files/fx"), "b.wav").writeBytes(wav)
+        assertEquals(Rejection(CommandProblem.RESOURCE_TAKEN, "files/fx/b.wav"), context.moveAudioFolder("sfx", "fx"))
+        assertTrue(context.directory("$common/files/sfx/a.wav").isFile)
+        assertTrue(context.directory("$common/files/sfx/b.wav").isFile)
+    }
+
+    @Test
+    fun aFileThatCanNotBeMovedBackIsReported() = runTest {
+        val reported = ArrayList<ConsoleEntry>()
+        val context = context(report = { reported += it })
+        val locked = context.directory("$common/files/locked").apply { mkdirs() }
+        val moved = File(context.directory("$common/files/open").apply { mkdirs() }, "hit.wav").apply { writeBytes(wav) }
+        locked.setWritable(false)
+        try {
+            context.moveBack(listOf(File(locked, "hit.wav") to moved))
+        } finally {
+            locked.setWritable(true)
+        }
+        assertEquals(CommandProblem.RESOURCE_NOT_MOVED_BACK, (reported.single() as ConsoleEntry.Status).text)
+        assertTrue(moved.isFile)
     }
 }
