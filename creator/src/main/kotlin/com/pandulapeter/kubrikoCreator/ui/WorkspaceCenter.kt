@@ -24,7 +24,6 @@ import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
-import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import com.pandulapeter.kubrikoCreator.sprites.sheetOfSprite
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.ActorTypeHighlight
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.BlockTypeEditor
@@ -42,6 +41,7 @@ import com.pandulapeter.kubrikoCreator.ui.screenplay.PageImageSource
 import com.pandulapeter.kubrikoCreator.ui.screenplay.PageLinksState
 import com.pandulapeter.kubrikoCreator.ui.screenplay.markdownTitleOf
 import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberReviewOf
+import com.pandulapeter.kubrikoCreator.ui.sprites.SpriteEditing
 import com.pandulapeter.kubrikoCreator.ui.sprites.SpriteEditor
 import com.pandulapeter.kubrikoCreator.ui.sprites.SpriteEditorState
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
@@ -59,8 +59,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param shownAiStep The AI's step the type editor lights up, if any.
  * @param onCommand Applies a command, calling its `onSuccess` unless it is rejected.
  * @param currentBlockType The type of the given name as it is now, not as last composed.
- * @param onCommandIfValid Applies a command unless it is rejected, returning why it was, and calling its `onFailure` if
- *   applying it fails after all.
+ * @param onCommandIfValid Applies a command unless it is rejected, returning why it was.
  * @param broughtBack The Actors each undo or redo put back, which the Scene editor selects.
  * @param editorAttention Told what the editors show, which the assistant offers.
  * @param markdownText The text of the page or document shown, once it is read, or null.
@@ -68,9 +67,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param markdownLinks What the links of the page or document shown point at.
  * @param onAddPageImage Puts an image on the page shown, or null if a document is shown.
  * @param markdownIdentity What tells the page or document shown apart from the one before ([MarkdownIdentity]).
- * @param spriteSheets How the sprites cut into frames are cut, by their names.
- * @param spriteImagesRevision Changes whenever Kubriko Creator wrote a sprite's image, so the sprite editor reads it again.
- * @param palette The project's palette, each `0xAARRGGBB`.
+ * @param sprites What the sprite editor needs of the workspace.
  */
 @Composable
 internal fun WorkspaceCenter(
@@ -87,7 +84,7 @@ internal fun WorkspaceCenter(
     panelLayout: PanelLayout,
     onCommand: (Invocation<*>, onSuccess: () -> Unit) -> Unit,
     currentBlockType: (name: String) -> BlockTypeDefinition?,
-    onCommandIfValid: (Invocation<*>, onFailure: () -> Unit) -> Rejection?,
+    onCommandIfValid: (Invocation<*>) -> Rejection?,
     broughtBack: Flow<ActorsBroughtBack>,
     onTypeSelected: (String) -> Unit,
     onPlayScene: (sceneName: String) -> Unit,
@@ -100,9 +97,7 @@ internal fun WorkspaceCenter(
     markdownLinks: PageLinksState? = null,
     markdownIdentity: Any? = null,
     onAddPageImage: ((PageImageSource, section: String?) -> Unit)? = null,
-    spriteSheets: Map<String, SpriteSheet> = emptyMap(),
-    spriteImagesRevision: Int = 0,
-    palette: List<Long> = emptyList(),
+    sprites: SpriteEditing = SpriteEditing(),
 ) {
     val spriteEditorState = remember { SpriteEditorState() }
     val contentModifier = modifier.fadeInOnChange(shownContentKey(selection, sceneEditing))
@@ -135,11 +130,11 @@ internal fun WorkspaceCenter(
             blockTypes = blockTypes,
             sceneNames = sceneNames,
             audioFiles = audioFiles,
-            sprites = remember(resources, spriteSheets) { SpriteChoices(SpriteFiles.of(resources), spriteSheets) },
+            sprites = remember(resources, sprites.sheets) { SpriteChoices(SpriteFiles.of(resources), sprites.sheets) },
             isChangedByHand = selectedBlockType.name in changedByHand,
             onCommand = onCommand,
             currentBlockType = currentBlockType,
-            onCommandIfValid = { onCommandIfValid(it) {} },
+            onCommandIfValid = onCommandIfValid,
             onTypeSelected = onTypeSelected,
             highlight = shownAiStep?.let { it.step.highlightIn(selectedBlockType.name, it.flashKey) },
             editorAttention = editorAttention,
@@ -165,11 +160,10 @@ internal fun WorkspaceCenter(
                 modifier = contentModifier,
                 path = selection.path,
                 file = remember(resources, selection.path) { SpriteFiles.of(resources).files[selection.path] },
-                sheet = spriteSheets.sheetOfSprite(selection.path),
-                revision = spriteImagesRevision to resources,
-                palette = palette,
+                sheet = sprites.sheets.sheetOfSprite(selection.path),
+                revision = sprites.imagesRevision to resources,
                 state = spriteEditorState,
-                onCommand = onCommandIfValid,
+                editing = sprites,
             )
         }
     } else if (selection == WorkspaceSelection.None) {

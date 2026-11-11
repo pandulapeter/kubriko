@@ -24,6 +24,7 @@ import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextReplacement
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.resources.EditSprite
+import com.pandulapeter.kubrikoCreator.commands.resources.SaveSprite
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import com.pandulapeter.kubrikoCreator.sprites.pixels.Pixel
 import com.pandulapeter.kubrikoCreator.sprites.pixels.PixelImage
@@ -34,6 +35,8 @@ import com.pandulapeter.kubrikoCreator.testing.uiTest
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
+import kotlin.test.assertNull
 
 @OptIn(ExperimentalTestApi::class)
 class SpriteEditorUiTest {
@@ -84,9 +87,8 @@ class SpriteEditorUiTest {
                 file = file,
                 sheet = SpriteSheet(frameWidth = 4, frameHeight = 4, frameCount = 2, framesPerRow = 2),
                 revision = 0,
-                palette = listOf(0xFF00FF00),
                 state = state,
-                onCommand = { invocation, _ -> commands += invocation; null },
+                editing = SpriteEditing(palette = listOf(0xFF00FF00), onCommand = { invocation, onSuccess, _ -> null.also { commands += invocation; onSuccess() } }),
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -95,9 +97,57 @@ class SpriteEditorUiTest {
         saveSnapshot("sprite-editor")
         onNodeWithContentDescription("Next frame").performClick()
         onNodeWithText("Frame 2 of 2").assertExists()
+        onNodeWithText("Save").assertIsNotEnabled()
         onNodeWithText("Image").performClick()
-        onNodeWithText("Flip horizontally").performClick()
-        assertEquals(EditSprite.Input("drawable/hero.png", EditSprite.Operation.Flip(isVertical = false), frame = 1), commands.single().input)
+        onNodeWithText("Flip vertically").performClick()
+        assertEquals(emptyList(), commands, "the editor keeps its changes until they are saved")
+        assertEquals(blue, state.draft!!.current.frames[1][0, 3])
+        onNodeWithText("Save").performClick()
+        val saved = commands.single().input as SaveSprite.Input
+        assertEquals(blue, saved.frames.frames[1][0, 3])
+        assertEquals(red, saved.frames.frames[0][0, 0], "the other frame as it was")
+        onNodeWithText("Save").assertIsNotEnabled()
+    }
+
+    @Test
+    fun leavingASpriteWithChangesAsksWhetherToSaveThem() = uiTest(width = 900, height = 560) {
+        val file = File(testDirectory(), "hero.png").apply { writeBytes(PixelImage(4, 4).toPng()) }
+        val commands = mutableListOf<Invocation<*>>()
+        var guard: ((() -> Unit) -> Unit)? = null
+        val state = SpriteEditorState()
+        showing {
+            SpriteEditor(
+                path = "drawable/hero.png",
+                file = file,
+                sheet = null,
+                revision = 0,
+                state = state,
+                editing = SpriteEditing(onCommand = { invocation, onSuccess, _ -> null.also { commands += invocation; onSuccess() } }, onGuardLeaving = { guard = it }),
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+        waitUntil(timeoutMillis = 5_000) { state.draft != null }
+        assertNull(guard, "nothing to ask about yet")
+        runOnIdle { state.draw(0, listOf(Pixel(0, 0, red))) }
+        waitForIdle()
+        var left = 0
+        runOnIdle { guard!! { left++ } }
+        onNodeWithText("Save the changes to hero.png?").assertExists()
+        onNodeWithText("Cancel").performClick()
+        assertEquals(0, left)
+        runOnIdle { guard!! { left++ } }
+        onNode(hasText("Save") and androidx.compose.ui.test.hasAnyAncestor(androidx.compose.ui.test.isDialog())).performClick()
+        assertEquals(1, left)
+        assertIs<SaveSprite.Input>(commands.single().input)
+        waitForIdle()
+        assertNull(guard, "saved: nothing left to ask about")
+        runOnIdle { state.draw(0, listOf(Pixel(1, 0, red))) }
+        waitForIdle()
+        runOnIdle { guard!! { left++ } }
+        onNodeWithText("Don't save").performClick()
+        assertEquals(2, left)
+        assertEquals(1, commands.size)
+        assertEquals(PixelImage.TRANSPARENT, state.draft!!.current.frames.single()[1, 0])
     }
 
     @Test

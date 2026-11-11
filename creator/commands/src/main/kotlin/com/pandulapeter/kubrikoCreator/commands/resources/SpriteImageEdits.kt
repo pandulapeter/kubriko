@@ -59,7 +59,7 @@ internal fun CommandContext.validateFrame(path: String, frame: Int?): Rejection?
  * Why frame [frame] of the sprite at [path] isn't among [frames] as read: its sheet promised it, but no longer fits the
  * image (one replaced outside Kubriko Creator), so the image is one frame. Null when it is there, or for every frame.
  */
-internal fun frameMissingFrom(frames: SpriteFrames, path: String, frame: Int?): Rejection? =
+public fun frameMissingFrom(frames: SpriteFrames, path: String, frame: Int?): Rejection? =
     if (frame == null || frame in frames.frames.indices) null else Rejection(SpriteProblem.SPRITE_FRAME_MISSING, path, frame.toString(), (frames.frames.size - 1).toString())
 
 /**
@@ -100,10 +100,10 @@ internal suspend fun CommandContext.editSpriteImage(path: String, edit: (SpriteF
 }
 
 /**
- * What an edit of a sprite's image ([editSpriteImage]) comes to.
+ * What an edit of a sprite's frames comes to: the frames it leaves, or why it can't be made.
  */
-internal sealed interface SpriteEdit {
-    class Edited(val frames: SpriteFrames) : SpriteEdit
+public sealed interface SpriteEdit {
+    public class Edited(public val frames: SpriteFrames) : SpriteEdit
 
-    class Rejected(val rejection: Rejection) : SpriteEdit
+    public class Rejected(public val rejection: Rejection) : SpriteEdit
 }

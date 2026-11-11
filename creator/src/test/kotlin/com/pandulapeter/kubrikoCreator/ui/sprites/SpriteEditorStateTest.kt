@@ -121,24 +121,6 @@ class SpriteEditorStateTest {
     }
 
     @Test
-    fun drawnPixelsShowUntilTheyAreReadBackOrTheirWriteFails() {
-        val pixels = listOf(Pixel(0, 0, blue))
-        var failure: () -> Unit = {}
-        state.pendingPixels = pixels
-        state.draw(pixels, "drawable/ship.png", 0) { invocation, onFailure ->
-            assertEquals(com.pandulapeter.kubrikoCreator.commands.resources.DrawPixels.Input("drawable/ship.png", 0, listOf(com.pandulapeter.kubrikoCreator.commands.resources.DrawPixels.DrawnPixel(0, 0, 0xFF0000FF))), invocation.input)
-            failure = onFailure
-            null
-        }
-        assertEquals(pixels, state.pendingPixels)
-        failure()
-        assertEquals(emptyList(), state.pendingPixels)
-        state.pendingPixels = pixels
-        state.draw(pixels, "drawable/ship.png", 0) { _, _ -> com.pandulapeter.kubrikoCreator.commands.Rejection(com.pandulapeter.kubrikoCreator.commands.CommandProblem.INTERNAL, "") }
-        assertEquals(emptyList(), state.pendingPixels, "a refused stroke stops showing at once")
-    }
-
-    @Test
     fun floatingPixelsArePutDownOnTheirFrameBeforeTheFrameOrTheImageChanges() {
         state.selection = IntRect(0, 0, 2, 1)
         state.liftSelection(frame)

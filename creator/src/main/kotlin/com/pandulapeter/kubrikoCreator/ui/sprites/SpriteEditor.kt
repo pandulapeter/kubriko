@@ -20,8 +20,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,9 +33,11 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isMetaPressed
+import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
@@ -45,14 +49,20 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
-import com.pandulapeter.kubrikoCreator.commands.resources.DrawPixels
 import com.pandulapeter.kubrikoCreator.commands.resources.EditSprite
+import com.pandulapeter.kubrikoCreator.commands.resources.SaveSprite
 import com.pandulapeter.kubrikoCreator.commands.resources.SetPalette
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import com.pandulapeter.kubrikoCreator.sprites.pixels.Pixel
+import com.pandulapeter.kubrikoCreator.sprites.pixels.PixelImage
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.spriteLabel
 import com.pandulapeter.kubrikoCreator.ui.components.ProgressScreen
+import com.pandulapeter.kubrikoCreator.ui.text
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.action_close
+import kubriko.creator.generated.resources.sprite_editor_changed_elsewhere
+import kubriko.creator.generated.resources.sprite_editor_keep_mine
+import kubriko.creator.generated.resources.sprite_editor_load_change
 import kubriko.creator.generated.resources.sprite_editor_size
 import kubriko.creator.generated.resources.sprite_editor_size_and_cursor
 import kubriko.creator.generated.resources.sprite_editor_unreadable
@@ -61,15 +71,14 @@ import java.io.File
 
 /**
  * The sprite editor, showing the sprite at [path] (from `composeResources`): its tools, the frame shown, and the colors.
- * Every change is a command ([DrawPixels] for a stroke or a selection put down, [EditSprite] for the Image menu, and
- * [SetPalette]), so it is undone like any other and the AI can make it too.
+ * Unlike the rest of Kubriko Creator, it keeps what is drawn ([SpriteEditorState.draft], with undo and redo of its own)
+ * until it is saved ([SaveSprite], as one step of the workspace's history), and asks before the workspace shows something
+ * else while it holds changes, so a sprite reaches the game and git only as the user finished it. The palette is the
+ * project's, so a change to it ([SetPalette]) applies at once.
  *
  * @param file The sprite's image, or null while the scan hasn't found it.
  * @param sheet How the sprite is cut into frames, if it is.
  * @param revision Changes whenever the image may have changed, so it is read again.
- * @param palette The project's palette, each `0xAARRGGBB`.
- * @param onCommand Applies a command unless it is rejected, returning why it was, and calling its `onFailure` if
- *   applying it fails after all.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -78,38 +87,48 @@ internal fun SpriteEditor(
     file: File?,
     sheet: SpriteSheet?,
     revision: Any?,
-    palette: List<Long>,
     state: SpriteEditorState,
-    onCommand: (Invocation<*>, onFailure: () -> Unit) -> Rejection?,
+    editing: SpriteEditing,
     modifier: Modifier = Modifier,
 ) {
     remember(path) { state.showSprite(path) }
     val read = rememberSpriteFrames(file, sheet, revision)
-    LaunchedEffect(read) { state.pendingPixels = emptyList() }
+    LaunchedEffect(read) { (read as? SpriteFramesRead.Read)?.let { state.onRead(it.frames) } }
     val frames = when (read) {
         SpriteFramesRead.Reading -> return Box(modifier) { ProgressScreen(spriteLabel(path)) }
         SpriteFramesRead.Unreadable -> return Box(modifier) { UnreadableNotice(path) }
-        is SpriteFramesRead.Read -> read.frames
+        is SpriteFramesRead.Read -> state.draft?.current ?: read.frames
     }
     val frameIndex = state.frameIndex.coerceIn(0, frames.frames.size - 1)
     val frame = frames.frames[frameIndex]
-    val draw: (List<Pixel>) -> Unit = { state.draw(it, path, frameIndex, onCommand) }
+    val draw: (List<Pixel>) -> Unit = { state.draw(frameIndex, it) }
     var askedAction by remember { mutableStateOf<SpriteImageAction?>(null) }
+    var problem by remember { mutableStateOf<Rejection?>(null) }
+    var pendingLeave by remember { mutableStateOf<(() -> Unit)?>(null) }
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(canvasSize, frame.width, frame.height) {
         if (state.isFitPending && canvasSize != IntSize.Zero) state.zoomToFit(frame.width, frame.height, canvasSize.width.toFloat(), canvasSize.height.toFloat())
     }
+    val hasChanges = state.hasChanges
+    DisposableEffect(hasChanges, editing.onGuardLeaving) {
+        editing.onGuardLeaving(if (hasChanges) { proceed -> pendingLeave = proceed } else null)
+        onDispose { editing.onGuardLeaving(null) }
+    }
     val editImage: (EditSprite.Operation) -> Unit = {
         draw(state.settle(frame))
-        onCommand(Invocation(EditSprite, EditSprite.Input(path, it, frame = if (state.isEveryFrame) null else frameIndex))) {}
+        problem = state.edit(path, it, frameIndex = if (state.isEveryFrame) null else frameIndex)
     }
+    val save: (onSaved: () -> Unit) -> Unit = { onSaved -> problem = state.save(path, frame, frameIndex, editing.onCommand, onSaved) }
     Column(
         modifier = modifier
             .focusRequester(focusRequester)
             .focusable()
             .onPointerEvent(PointerEventType.Press, PointerEventPass.Initial) { focusRequester.requestFocus() }
-            .onKeyEvent { event -> event.type == KeyEventType.KeyDown && state.onKey(event.key, event.isCtrlPressed || event.isMetaPressed, frame, draw) },
+            .onKeyEvent { event ->
+                val isShortcut = event.isCtrlPressed || event.isMetaPressed
+                event.type == KeyEventType.KeyDown && (state.onDraftKey(event.key, isShortcut, event.isShiftPressed) { save {} } || state.onKey(event.key, isShortcut, frame, draw))
+            },
     ) {
         SpriteEditorToolbar(
             path = path,
@@ -118,15 +137,15 @@ internal fun SpriteEditor(
             onImageAction = { action -> action.operation?.let(editImage) ?: run { askedAction = action } },
             onFrameStep = { step ->
                 draw(state.settle(frame))
-                // What is drawn but not read back yet belongs to the frame left; it is saved all the same.
-                state.pendingPixels = emptyList()
                 state.frameIndex = (frameIndex + step).mod(frames.frames.size)
             },
             onFit = { state.zoomToFit(frame.width, frame.height, canvasSize.width.toFloat(), canvasSize.height.toFloat()) },
+            onSave = { save {} },
         )
         HorizontalDivider()
         SpriteToolOptionsBar(state = state)
         HorizontalDivider()
+        SpriteEditorNotices(path = path, state = state, problem = problem, onDismissProblem = { problem = null })
         Row(Modifier.weight(1f).fillMaxWidth()) {
             SpriteToolColumn(state = state, modifier = Modifier.fillMaxHeight())
             VerticalDivider()
@@ -140,9 +159,9 @@ internal fun SpriteEditor(
             SpriteColorsColumn(
                 modifier = Modifier.width(COLORS_WIDTH).fillMaxHeight(),
                 state = state,
-                palette = palette,
+                palette = editing.palette,
                 frameColors = remember(frame) { frame.colors().take(MAXIMUM_FRAME_COLORS) },
-                onPaletteChange = { onCommand(Invocation(SetPalette, SetPalette.Input(it))) {} },
+                onPaletteChange = { problem = editing.onCommand(Invocation(SetPalette, SetPalette.Input(it)), {}, {}) },
             )
         }
         HorizontalDivider()
@@ -160,18 +179,85 @@ internal fun SpriteEditor(
             onDismiss = { askedAction = null },
         )
     }
+    pendingLeave?.let { proceed ->
+        SpriteUnsavedDialog(
+            path = path,
+            onSave = {
+                pendingLeave = null
+                save(proceed)
+            },
+            onDiscard = {
+                pendingLeave = null
+                state.discard()
+                proceed()
+            },
+            onDismiss = { pendingLeave = null },
+        )
+    }
 }
 
 /**
- * Draws [pixels] on frame [frameIndex] of the sprite at [path] through [onCommand], as one step. They show over the frame
- * ([SpriteEditorState.pendingPixels]) until the image is read again, or until the write is refused or fails, which
- * leaves the image as it was.
+ * Saves the draft through [onCommand] (putting down what floats on [frame], frame [frameIndex], first), calling [onSaved]
+ * once it is saved, or at once when there is nothing to save. A save refused or failing brings the changes back.
+ *
+ * @return Why the save was refused, or null.
  */
-internal fun SpriteEditorState.draw(pixels: List<Pixel>, path: String, frameIndex: Int, onCommand: (Invocation<*>, onFailure: () -> Unit) -> Rejection?) {
-    if (pixels.isEmpty()) return
-    pendingPixels = pixels
-    val dropPending = { if (pendingPixels === pixels) pendingPixels = emptyList() }
-    if (onCommand(Invocation(DrawPixels, DrawPixels.inputOf(path, frameIndex, pixels)), dropPending) != null) dropPending()
+internal fun SpriteEditorState.save(
+    path: String,
+    frame: PixelImage,
+    frameIndex: Int,
+    onCommand: (Invocation<*>, onSuccess: () -> Unit, onFailure: () -> Unit) -> Rejection?,
+    onSaved: () -> Unit,
+): Rejection? {
+    draw(frameIndex, settle(frame))
+    val frames = draft?.takeIf { it.isChanged }?.current ?: return null.also { onSaved() }
+    val previouslySaved = markSaved() ?: return null
+    keepOwnChanges()
+    return onCommand(Invocation(SaveSprite, SaveSprite.Input(path, frames)), onSaved) { onSaveFailed(previouslySaved) }?.also { onSaveFailed(previouslySaved) }
+}
+
+/**
+ * What a key does to the draft, with Ctrl or Cmd held when [isShortcut]: saving it ([onSave]), and undoing and redoing its
+ * steps, which let go of the selection and what floats first. Returns whether the key did something, so undo and redo go
+ * on to the workspace once the draft has no steps left.
+ */
+internal fun SpriteEditorState.onDraftKey(key: Key, isShortcut: Boolean, isShift: Boolean, onSave: () -> Unit): Boolean {
+    if (!isShortcut) return false
+    val isRedo = (key == Key.Z && isShift) || key == Key.Y
+    return when {
+        key == Key.S -> true.also { onSave() }
+        key == Key.Z || isRedo -> {
+            val isDone = draft?.let { if (isRedo) it.canRedo else it.canUndo } == true
+            if (isDone) {
+                floating = null
+                selection = null
+                if (isRedo) redo() else undo()
+            }
+            isDone
+        }
+        else -> false
+    }
+}
+
+/**
+ * What the sprite editor tells above its canvas: that the sprite changed elsewhere while it holds changes, and why the
+ * last thing asked of it was refused.
+ */
+@Composable
+private fun SpriteEditorNotices(path: String, state: SpriteEditorState, problem: Rejection?, onDismissProblem: () -> Unit) {
+    if (state.outsideChange != null) {
+        SpriteEditorNotice(text = stringResource(Res.string.sprite_editor_changed_elsewhere, spriteLabel(path)), isError = false) {
+            TextButton(onClick = state::keepOwnChanges) { Text(stringResource(Res.string.sprite_editor_keep_mine)) }
+            TextButton(onClick = state::loadOutsideChange) { Text(stringResource(Res.string.sprite_editor_load_change)) }
+        }
+        HorizontalDivider()
+    }
+    if (problem != null) {
+        SpriteEditorNotice(text = problem.reason.text(problem.arguments), isError = true) {
+            TextButton(onClick = onDismissProblem) { Text(stringResource(Res.string.action_close)) }
+        }
+        HorizontalDivider()
+    }
 }
 
 @Composable

@@ -75,10 +75,12 @@ fun main(args: Array<String>) {
                 icon = painterResource(Res.drawable.ic_icon),
                 state = windowState,
                 onCloseRequest = {
-                    if (isQuitting.compareAndSet(false, true)) {
-                        graph.scope.launch {
-                            graph.shutdown()
-                            exitApplication()
+                    (screen as? AppScreen.Workspace).leaving {
+                        if (isQuitting.compareAndSet(false, true)) {
+                            graph.scope.launch {
+                                graph.shutdown()
+                                exitApplication()
+                            }
                         }
                     }
                 },
@@ -101,12 +103,12 @@ fun main(args: Array<String>) {
                                         screen = screen,
                                         recentProjects = recentProjects,
                                         defaultParentDirectory = defaultParentDirectory,
-                                        onNewProject = controller::showNewProject,
+                                        onNewProject = { (screen as? AppScreen.Workspace).leaving { controller.showNewProject() } },
                                         onForgetRecentProject = controller::forgetRecentProject,
                                         onCreateProject = controller::createProject,
                                         onCancelCreatingProject = controller::cancelCreatingProject,
-                                        onOpenProject = controller::openProject,
-                                        onCloseProject = controller::closeProject,
+                                        onOpenProject = { file -> (screen as? AppScreen.Workspace).leaving { controller.openProject(file) } },
+                                        onCloseProject = { (screen as? AppScreen.Workspace).leaving { controller.closeProject() } },
                                         mcp = graph.mcp,
                                         aiClients = graph.aiClients,
                                         assistant = graph.assistant,
@@ -123,3 +125,9 @@ fun main(args: Array<String>) {
         }
     }
 }
+
+/**
+ * Runs [proceed] once the workspace may be left (asking about the sprite editor's unsaved changes first), or at once when
+ * no project is open.
+ */
+private fun AppScreen.Workspace?.leaving(proceed: () -> Unit) = if (this == null) proceed() else controller.selection.leaving(proceed)

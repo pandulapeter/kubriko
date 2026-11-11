@@ -70,6 +70,7 @@ import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberPageImageAdder
 import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberPageLinks
 import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberPageReviews
 import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettingsPage
+import com.pandulapeter.kubrikoCreator.ui.sprites.rememberSpriteEditing
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
@@ -438,7 +439,7 @@ private fun FollowingAiSteps(
     val currentSelection by rememberUpdatedState(selection)
     val target = followedAiStep?.selectionToFollow()
     LaunchedEffect(followedAiStep?.id, target) {
-        if (!isAiEnabled || !isFollowing || target == currentSelection) return@LaunchedEffect
+        if (!isAiEnabled || !isFollowing || target == currentSelection || controller.selection.isLeaveGuarded) return@LaunchedEffect
         when (target) {
             is WorkspaceSelection.BlockType -> controller.selection.selectType(target.name)
             is WorkspaceSelection.Scene -> controller.selection.openScene(target.name)
@@ -481,7 +482,7 @@ private fun WorkspaceCenterOf(
     panelLayout = panelLayout,
     onCommand = { invocation, onSuccess -> uiState.dispatch(invocation, onSuccess, controller.commands::dispatch) },
     currentBlockType = { controller.blockTypes?.get(it) },
-    onCommandIfValid = controller.commands::dispatchIfValidWatching,
+    onCommandIfValid = controller.commands::dispatchIfValid,
     broughtBack = controller.commands.broughtBack,
     onTypeSelected = { controller.selection.selectType(it) },
     onPlayScene = { controller.play(firstScene = it) },
@@ -494,7 +495,5 @@ private fun WorkspaceCenterOf(
     markdownLinks = rememberPageLinks(controller.commands.context, controller.selection, selection, markdownText, blockTypes, resources),
     markdownIdentity = rememberMarkdownIdentity(selection, controller.commands.context.movedFiles),
     onAddPageImage = rememberPageImageAdder(selection) { controller.commands.dispatch(it) },
-    spriteSheets = controller.commands.context.spriteFolders.state.collectAsState().value.sheets,
-    spriteImagesRevision = controller.commands.context.spriteImagesRevision.collectAsState().value,
-    palette = controller.commands.context.palette.colors.collectAsState().value,
+    sprites = rememberSpriteEditing(controller.commands, controller.selection),
 )

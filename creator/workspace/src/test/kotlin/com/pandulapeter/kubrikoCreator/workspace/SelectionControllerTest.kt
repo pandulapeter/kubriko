@@ -182,4 +182,23 @@ class SelectionControllerTest {
         assertEquals(WorkspaceSelection.None, controller.selection.current.value)
         assertNull(controller.blockTypes!!.selectedName.value)
     }
+
+    @Test
+    fun aLeaveGuardDecidesWhetherTheCenterShowsSomethingElse() = runTest {
+        val controller = createController()
+        controller.selection.openSprite("drawable/hero.png")
+        var asked: (() -> Unit)? = null
+        controller.selection.leaveGuard = { proceed -> asked = proceed }
+        assertTrue(controller.selection.isLeaveGuarded)
+        controller.selection.openSprite("drawable/hero.png")
+        assertNull(asked, "showing what is shown asks nothing")
+        controller.selection.selectType("Player")
+        assertEquals(WorkspaceSelection.Sprite("drawable/hero.png"), controller.selection.current.value, "nothing changes while it asks")
+        asked!!()
+        assertEquals(WorkspaceSelection.BlockType("Player"), controller.selection.current.value)
+        controller.selection.leaveGuard = null
+        assertFalse(controller.selection.isLeaveGuarded)
+        controller.selection.clear()
+        assertEquals(WorkspaceSelection.None, controller.selection.current.value)
+    }
 }

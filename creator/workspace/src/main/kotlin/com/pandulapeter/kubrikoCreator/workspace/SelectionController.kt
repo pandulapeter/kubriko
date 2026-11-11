@@ -35,6 +35,25 @@ public class SelectionController internal constructor(
     private val openText = MutableStateFlow<WorkspaceSelection?>(null)
 
     /**
+     * What is asked before the center shows something else, the project closes, or Creator quits, while what it shows
+     * holds changes not saved yet (the sprite editor's): it calls the given continuation once they are saved or
+     * discarded, or never when the user stays. Null while there is nothing to ask about.
+     */
+    public var leaveGuard: ((proceed: () -> Unit) -> Unit)? = null
+
+    /**
+     * Whether leaving what the center shows would ask first ([leaveGuard]), so that following the AI's steps doesn't.
+     */
+    public val isLeaveGuarded: Boolean get() = leaveGuard != null
+
+    /**
+     * Runs [proceed] once leaving what the center shows is fine: at once, or after [leaveGuard] asked.
+     */
+    public fun leaving(proceed: () -> Unit) {
+        leaveGuard?.invoke(proceed) ?: proceed()
+    }
+
+    /**
      * One value for the center, the sidebar highlight, and the AI panel. A shown Scene wins over a type name left behind.
      */
     public val current: StateFlow<WorkspaceSelection> = combine(blockTypes?.selectedName ?: flowOf(null), sceneEditing.state, openText, ::selectionOf)
@@ -47,9 +66,11 @@ public class SelectionController internal constructor(
      */
     public fun selectType(name: String): Boolean {
         if (blockTypes?.get(name) == null) return false
-        sceneEditing.close()
-        openText.value = null
-        blockTypes.select(name)
+        leaving {
+            sceneEditing.close()
+            openText.value = null
+            blockTypes.select(name)
+        }
         return true
     }
 
@@ -61,9 +82,11 @@ public class SelectionController internal constructor(
     public fun openScene(name: String): Boolean {
         val scene = sceneOf(name) ?: return false
         if (sceneEditing.state.value.sceneName == name) return true
-        blockTypes?.select(null)
-        openText.value = null
-        sceneEditing.open(scene)
+        leaving {
+            blockTypes?.select(null)
+            openText.value = null
+            sceneEditing.open(scene)
+        }
         return true
     }
 
@@ -85,16 +108,19 @@ public class SelectionController internal constructor(
     /**
      * Shows nothing: closes the Scene and deselects the type.
      */
-    public fun clear() {
+    public fun clear(): Unit = leaving {
         sceneEditing.close()
         blockTypes?.select(null)
         openText.value = null
     }
 
     private fun openText(selection: WorkspaceSelection) {
-        sceneEditing.close()
-        blockTypes?.select(null)
-        openText.value = selection
+        if (current.value == selection) return
+        leaving {
+            sceneEditing.close()
+            blockTypes?.select(null)
+            openText.value = selection
+        }
     }
 
     private fun selectionOf(selectedName: String?, state: SceneEditingState, text: WorkspaceSelection?): WorkspaceSelection =

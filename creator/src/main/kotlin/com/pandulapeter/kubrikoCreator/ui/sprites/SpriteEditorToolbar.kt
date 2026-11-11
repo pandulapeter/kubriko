@@ -10,10 +10,13 @@
 package com.pandulapeter.kubrikoCreator.ui.sprites
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,6 +30,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.action_save
 import kubriko.creator.generated.resources.ic_chevron
 import kubriko.creator.generated.resources.ic_fit_screen
 import kubriko.creator.generated.resources.ic_zoom_in
@@ -44,9 +48,10 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * Above the sprite editor's canvas: the sprite's name, the frame shown (stepped through for a sprite cut into frames),
- * the zoom, and the Image menu, whose operations change the frame shown or, by the switch, every frame.
+ * the zoom, the Image menu, whose operations change the frame shown or, by the switch, every frame, and saving.
  *
  * @param onFrameStep Shows the frame that many frames on (or back, below 0), going round.
+ * @param onSave Saves the changes the editor holds, offered while it holds some.
  */
 @Composable
 internal fun SpriteEditorToolbar(
@@ -56,6 +61,7 @@ internal fun SpriteEditorToolbar(
     onImageAction: (SpriteImageAction) -> Unit,
     onFrameStep: (Int) -> Unit,
     onFit: () -> Unit,
+    onSave: () -> Unit,
 ) = Row(
     modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
     verticalAlignment = Alignment.CenterVertically,
@@ -100,5 +106,13 @@ internal fun SpriteEditorToolbar(
             checked = state.isEveryFrame,
             onCheckedChange = { state.isEveryFrame = it },
         )
+    }
+    Button(
+        modifier = Modifier.heightIn(min = 32.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+        enabled = state.hasChanges,
+        onClick = onSave,
+    ) {
+        Text(stringResource(Res.string.action_save))
     }
 }

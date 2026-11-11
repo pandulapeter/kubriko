@@ -690,12 +690,16 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
 - What the center shows is one `WorkspaceSelection` (a type, a Scene being prepared, open, or failed, a page, a document, a sprite, or nothing),
   changed only through `SelectionController`, the one place that pairs selecting a type with closing the Scene. The workspace screen's
   own panels, dialogs, and the AI step the user went back to live in `WorkspaceUiState`, a plain class its tests reach without a UI.
-- The sprite editor (`ui/sprites`) changes a sprite only through commands, so its steps are undone like any other and
-  the AI can make each: a stroke, a shape, or a fill is one `draw_pixels` of the pixels it changed when the pointer is
-  let go, and pixels lifted or pasted float until they are put down, as one step that clears where they came from.
-  What it draws shows over the frame until the image is read again (`pendingPixels`), so nothing flickers back while
-  the write is under way. Its `SpriteEditorState` lives as long as the workspace, so the colors, the tool, and what was
-  copied go from one sprite to the next, while the view and the selection start over.
+- The sprite editor (`ui/sprites`) is the one exception to saving every change as it is made: it keeps what is drawn in a
+  `SpriteDraft` (with undo and redo of its own, stroke by stroke) until the user saves it, as an image editor does, so a
+  half-drawn sprite reaches neither the game nor git; the save is one `SaveSprite` command (not a tool: the AI draws
+  through `DrawPixels` and `EditSprite`, which save as they go), and the Image menu applies `EditSprite.edited` to the
+  draft, so it changes pixels exactly as the AI's command. Undo and redo pass on to the workspace once the draft has no
+  steps left. While it holds changes it sets `SelectionController.leaveGuard`, so showing something else, closing the
+  project, or quitting asks to save first, and following the AI's steps pauses. A change to the sprite from elsewhere
+  replaces an unchanged draft, and is offered beside a changed one rather than dropping either. Its `SpriteEditorState`
+  lives as long as the workspace, so the colors, the tool, and what was copied go from one sprite to the next, while the
+  view and the selection start over.
 - The type editor's selected Event is its `ListItemKeys` key, not its index (`EventSelectionState`), so it stays on the same
   Event through undo, redo, and the AI's Event changes; an added Event is selected only once its add succeeded, found
   by its key in the type as it is at that moment (an add may wait behind an AI tool call that changes the Events).

@@ -63,9 +63,7 @@ internal fun SpriteCanvas(
     modifier: Modifier = Modifier,
 ) {
     val bitmap = remember(frame) { frame.toImageBitmap() }
-    val overlay = remember(frame.width, frame.height, state.pendingPixels, state.strokeShape) {
-        overlayOf(frame.width, frame.height, state.pendingPixels + state.strokeShape)?.toImageBitmap()
-    }
+    val overlay = remember(frame.width, frame.height, state.strokeShape) { overlayOf(frame.width, frame.height, state.strokeShape)?.toImageBitmap() }
     val floatingImage = state.floating?.image
     val floatingBitmap = remember(floatingImage) { floatingImage?.toImageBitmap() }
     val currentFrame by rememberUpdatedState(frame)

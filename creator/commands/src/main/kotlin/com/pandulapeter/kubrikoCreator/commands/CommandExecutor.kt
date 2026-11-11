@@ -106,14 +106,14 @@ public class CommandExecutor(
     }
 
     /**
-     * Applies [invocation] unless it is rejected, as [dispatchIfValid] does, and calls [onFailure] if applying it fails
-     * after all, for a caller showing the change before it is made.
+     * Applies [invocation] unless it is rejected, as [dispatchIfValid] does, calling [onSuccess] once it was applied and
+     * [onFailure] if applying it fails after all, for a caller that waits for either (a save before closing).
      *
      * @return Why it was rejected, or null if it is being applied.
      */
-    public fun dispatchIfValidWatching(invocation: Invocation<*>, onFailure: () -> Unit): Rejection? {
+    public fun dispatchIfValidWatching(invocation: Invocation<*>, onSuccess: () -> Unit, onFailure: () -> Unit): Rejection? {
         validate(invocation)?.let { return it }
-        launch(invocation, onFailure = onFailure)
+        launch(invocation, onSuccess, onFailure)
         return null
     }
 

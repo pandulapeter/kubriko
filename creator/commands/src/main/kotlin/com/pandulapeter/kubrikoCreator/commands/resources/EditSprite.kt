@@ -21,6 +21,7 @@ import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import com.pandulapeter.kubrikoCreator.sprites.pixels.CanvasAnchor
 import com.pandulapeter.kubrikoCreator.sprites.pixels.PixelImage
 import com.pandulapeter.kubrikoCreator.sprites.pixels.PixelOperations
+import com.pandulapeter.kubrikoCreator.sprites.pixels.SpriteFrames
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -47,15 +48,24 @@ public object EditSprite : WriteCommand<EditSprite.Input> {
     }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied = context.editSpriteImage(input.sprite) { frames ->
-        frameMissingFrom(frames, input.sprite, input.frame)?.let { return@editSpriteImage SpriteEdit.Rejected(it) }
-        val (frameWidth, frameHeight) = input.operation.sizeOf(frames.frameWidth, frames.frameHeight)
+        edited(frames, input.sprite, input.operation, input.frame)
+    }
+
+    /**
+     * [frames] of the sprite at [sprite] with [operation] applied to frame [frame], or to each of them for null, as this
+     * command applies it (the sprite editor applies it to what it holds the same way), or why it can't be.
+     */
+    public fun edited(frames: SpriteFrames, sprite: String, operation: Operation, frame: Int?): SpriteEdit {
+        validateOperation(operation)?.let { return SpriteEdit.Rejected(it) }
+        frameMissingFrom(frames, sprite, frame)?.let { return SpriteEdit.Rejected(it) }
+        val (frameWidth, frameHeight) = operation.sizeOf(frames.frameWidth, frames.frameHeight)
         val columns = frames.sheet?.let { minOf(it.framesPerRow, it.frameCount) } ?: 1
         val rows = frames.sheet?.rowCount ?: 1
         // Checked before any pixel is touched, so a slip of a scale can't build an image too large to hold.
         if (frameWidth.toLong() * columns > MAXIMUM_SIZE || frameHeight.toLong() * rows > MAXIMUM_SIZE) {
-            return@editSpriteImage SpriteEdit.Rejected(Rejection(SpriteProblem.SPRITE_SIZE_INVALID, MAXIMUM_SIZE.toString()))
+            return SpriteEdit.Rejected(Rejection(SpriteProblem.SPRITE_SIZE_INVALID, MAXIMUM_SIZE.toString()))
         }
-        frames.mapped(input.frame, origin = input.operation::originOf, operation = input.operation::applyTo)?.let(SpriteEdit::Edited)
+        return frames.mapped(frame, origin = operation::originOf, operation = operation::applyTo)?.let(SpriteEdit::Edited)
             ?: SpriteEdit.Rejected(Rejection(SpriteProblem.SPRITE_FRAME_SIZE_ALONE))
     }
 

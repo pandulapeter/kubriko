@@ -18,8 +18,12 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
+import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.resources.EditSprite
+import com.pandulapeter.kubrikoCreator.commands.resources.SpriteEdit
 import com.pandulapeter.kubrikoCreator.sprites.pixels.Pixel
 import com.pandulapeter.kubrikoCreator.sprites.pixels.PixelImage
+import com.pandulapeter.kubrikoCreator.sprites.pixels.SpriteFrames
 
 /**
  * What the sprite editor keeps besides the sprite itself: the tool and its options, the two colors (the left mouse
@@ -82,10 +86,17 @@ internal class SpriteEditorState {
         private set
 
     /**
-     * The pixels drawn but not shown by the frames read yet: they are drawn over them until the next read, so a stroke
-     * doesn't flicker back while its write is under way.
+     * What the editor holds of the sprite shown, its changes not saved yet included; null until the sprite is read.
      */
-    var pendingPixels by mutableStateOf<List<Pixel>>(emptyList())
+    var draft by mutableStateOf<SpriteDraft?>(null)
+        private set
+
+    /**
+     * The sprite as another hand left it (the AI's, or another program's) while the editor held changes of its own, which
+     * it keeps until the user loads these instead ([loadOutsideChange]) or saves over them; null while there is none.
+     */
+    var outsideChange by mutableStateOf<SpriteFrames?>(null)
+        private set
 
     private var shownSprite: String? = null
 
@@ -107,7 +118,89 @@ internal class SpriteEditorState {
         clearStroke()
         selection = null
         floating = null
-        pendingPixels = emptyList()
+        draft = null
+        outsideChange = null
+    }
+
+    /**
+     * Takes in the sprite's [frames] as just read from the disk: what the editor shows from now on while it holds no
+     * changes, nothing new when they are what it saved, and an [outsideChange] to decide about while it holds changes.
+     */
+    fun onRead(frames: SpriteFrames) {
+        val current = draft
+        when {
+            current != null && current.isSaved(frames) -> outsideChange = null
+            current == null || !current.isChanged -> draft = SpriteDraft(frames)
+            else -> outsideChange = frames
+        }
+    }
+
+    /**
+     * Draws [pixels] on frame [frameIndex] of the draft, as one step to undo.
+     */
+    fun draw(frameIndex: Int, pixels: List<Pixel>) {
+        val current = draft ?: return
+        if (pixels.isEmpty()) return
+        val frame = current.current.frames.getOrNull(frameIndex) ?: return
+        draft = current.with(current.current.withFrame(frameIndex, frame.with(pixels)))
+    }
+
+    /**
+     * Applies [operation] to frame [frameIndex] of the draft (each frame for null), as `edit_sprite` would, returning why
+     * it can't be, or null once it is applied.
+     */
+    fun edit(path: String, operation: EditSprite.Operation, frameIndex: Int?): Rejection? {
+        val current = draft ?: return null
+        return when (val edited = EditSprite.edited(current.current, path, operation, frameIndex)) {
+            is SpriteEdit.Edited -> null.also { draft = current.with(edited.frames) }
+            is SpriteEdit.Rejected -> edited.rejection
+        }
+    }
+
+    fun undo(): Boolean = draft?.takeIf { it.canUndo }?.let { draft = it.undone() } != null
+
+    fun redo(): Boolean = draft?.takeIf { it.canRedo }?.let { draft = it.redone() } != null
+
+    /**
+     * Marks the draft saved as its save starts, returning what was saved before, for [onSaveFailed].
+     */
+    fun markSaved(): SpriteFrames? = draft?.let { current -> current.saved.also { draft = current.markedSaved() } }
+
+    /**
+     * Brings the draft's changes back after its save failed.
+     */
+    fun onSaveFailed(previouslySaved: SpriteFrames) {
+        draft = draft?.unsaved(previouslySaved)
+    }
+
+    /**
+     * Whether leaving the sprite would lose anything: changes not saved, or pixels floating.
+     */
+    val hasChanges: Boolean get() = draft?.isChanged == true || floating != null
+
+    /**
+     * Drops the draft's changes and what floats, showing the sprite as it was saved, or as it was changed elsewhere since.
+     */
+    fun discard() {
+        draft = draft?.let { SpriteDraft(outsideChange ?: it.saved) }
+        outsideChange = null
+        floating = null
+        selection = null
+    }
+
+    /**
+     * Shows the sprite as the other hand left it ([outsideChange]), dropping the draft's changes.
+     */
+    fun loadOutsideChange() {
+        outsideChange?.let { draft = SpriteDraft(it) }
+        outsideChange = null
+    }
+
+    /**
+     * Keeps the draft's changes over the [outsideChange], which saving then writes over.
+     */
+    fun keepOwnChanges() {
+        outsideChange = null
     }
 
     fun zoomIn() {

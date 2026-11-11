@@ -786,6 +786,11 @@
     <string name="sprite_editor_frame_colors">In this frame</string>
     <string name="sprite_editor_size">%1$d by %2$d pixels</string>
     <string name="sprite_editor_size_and_cursor">%1$s, the pointer at %2$d, %3$d</string>
+    <string name="sprite_editor_unsaved_title">Save the changes to %1$s?</string>
+    <string name="sprite_editor_unsaved_message">The sprite editor keeps what you draw until you save it. Changes you don't save are lost.</string>
+    <string name="sprite_editor_changed_elsewhere">%1$s was changed outside the sprite editor while it holds changes you haven't saved. Saving writes over that change.</string>
+    <string name="sprite_editor_load_change">Load that change</string>
+    <string name="sprite_editor_keep_mine">Keep mine</string>
     <string name="sprite_editor_unreadable">%1$s can't be read: it isn't a PNG, JPEG, or WebP image, or it is gone.</string>
     <string name="sprite_operation_shift_x">Right</string>
     <string name="sprite_operation_shift_y">Down</string>
@@ -1196,6 +1201,7 @@
     <string name="assistant_api_key_hint">sk-ant-…</string>
     <string name="assistant_api_key_failed">The key couldn't be kept in your system's keychain.</string>
     <string name="action_save">Save</string>
+    <string name="action_dont_save">Don't save</string>
     <string name="action_close">Close</string>
     <string name="action_get_api_key">Get a key</string>
     <string name="action_continue_in_terminal">Continue in a terminal</string>
