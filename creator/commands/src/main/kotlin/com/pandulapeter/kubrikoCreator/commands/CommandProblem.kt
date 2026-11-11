@@ -81,6 +81,7 @@ public enum class CommandProblem(override val english: String) : DomainText {
     RESOURCE_PATH_INVALID("%1\$s can't be a sprite, sound, or music file. A sprite is a .png, .jpg, or .webp image right in drawable (drawable/ball.png); a sound is a .wav and music an .mp3 or .ogg file in files, outside files/scenes (files/sounds/hit.wav)."),
     RESOURCE_SOURCE_EXTENSION("%1\$s is a .%2\$s file, so the path it's added at ends with .%2\$s too."),
     RESOURCE_SOURCE_UNREADABLE("Kubriko Creator couldn't read %1\$s."),
+    RESOURCE_UNCHANGED("%1\$s already has that name."),
     RESOURCE_TAKEN("There's already a file at %1\$s, or one the game would mix up with it, differing only in capital letters, dashes, or underscores."),
     RELATIONS_SUBJECT("Name either a type (with a Property of it, optionally) or a Scene."),
     SCENE_ACTOR_NOT_BLOCK_BUILT("%1\$s isn't a block-built Actor type, so it has no color or Properties to set."),

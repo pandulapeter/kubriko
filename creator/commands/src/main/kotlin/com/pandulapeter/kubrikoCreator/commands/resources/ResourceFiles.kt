@@ -10,20 +10,33 @@
 package com.pandulapeter.kubrikoCreator.commands.resources
 
 import com.pandulapeter.kubrikoCreator.actors.ResourceKind
-import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.SimilarNames
-import com.pandulapeter.kubrikoCreator.project.ProjectTree
+import com.pandulapeter.kubrikoCreator.project.ProjectResource
+import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import java.io.File
 
 /**
- * The sprites, sounds, and music of the project as the last resource scan found them, by their paths from
- * `composeResources`, or null if they aren't known.
+ * The files of the game's own resources the last resource scan found, by their paths from `composeResources`, or null
+ * if they aren't known: those of the module new resources go to ([isGameResource]), sprites, sounds, and music, and
+ * every other image of `drawable`, which the game would mix up with a sprite of the same name.
  */
 internal fun CommandContext.knownResourcePaths(): List<String>? {
+    val resources = scannedResources() ?: return fallbackResourcePaths()
+    return listOf(ResourceGroup.SPRITES, ResourceGroup.SOUNDS, ResourceGroup.MUSIC)
+        .flatMap { resources[it].orEmpty() }
+        .filter { isGameResource(it.file) }
+        .mapNotNull(::pathFromComposeResources)
+        .distinct()
+}
+
+/**
+ * What the scan knows when only its sprites and audio are given (as in tests that need no more).
+ */
+private fun CommandContext.fallbackResourcePaths(): List<String>? {
     val sprites = spriteFiles()?.paths ?: return null
     val audio = audioFiles() ?: return null
     return sprites + audio.sounds + audio.music
@@ -33,7 +46,7 @@ internal fun CommandContext.knownResourcePaths(): List<String>? {
  * Why there's no sprite, sound, or music file at [path] to change, or null if there is one, or the files aren't known.
  */
 internal fun CommandContext.validateExistingResource(path: String): Rejection? {
-    val known = knownResourcePaths() ?: return null
+    val known = knownResourcePaths()?.filter { ResourceKind.of(it) != null } ?: return null
     return if (ResourceKind.of(path) == null || path !in known) {
         SimilarNames.rejection(LookupProblem.RESOURCE_MISSING, LookupProblem.RESOURCE_MISSING_SIMILAR, path, known, path)
     } else {
@@ -54,25 +67,52 @@ internal fun CommandContext.validateNewResource(path: String, except: String? = 
 
 /**
  * Whether the game would mix up the files at [first] and [second]: one path differing only in capital letters, which a
- * Mac or Windows takes for the same file, or two sprites with the same resource accessor.
+ * Mac or Windows takes for the same file, or two images of `drawable` (sprites, vector drawables, or any other) with
+ * the same resource accessor, which Compose's resources refuse to build.
  */
 internal fun areMixedUp(first: String, second: String): Boolean {
     if (first.equals(second, ignoreCase = true)) return true
-    val firstAccessor = SpriteFiles.accessorOf(first) ?: return false
-    return SpriteFiles.accessorOf(second)?.equals(firstAccessor, ignoreCase = true) == true
+    val firstAccessor = drawableAccessorOf(first) ?: return false
+    return drawableAccessorOf(second)?.equals(firstAccessor, ignoreCase = true) == true
+}
+
+private fun drawableAccessorOf(path: String): String? {
+    val segments = path.split('/')
+    if (segments.size != 2 || segments[0] != DRAWABLE) return null
+    return segments[1].substringBeforeLast('.').replace('-', '_')
 }
 
 /**
- * Every file of the project whose path from its `composeResources` folder is [path] (one per source set that has one),
- * found on disk, since what the last scan knows may be a second old. Blocks.
+ * The game's own resource files on disk ([isGameResource]) with their paths from `composeResources`: sprites, sounds,
+ * music, and the other images of `drawable`. Found on disk, since what the last scan knows may be a second old. Blocks.
  */
-internal fun CommandContext.resourceFilesAt(path: String): List<File> = resourceFiles().filter { (relative, _) -> relative == path }.map { it.second }
+internal fun CommandContext.resourceFilesOnDisk(): List<ResourceFile> = File(resourceModuleDirectory(), SOURCES).walkTopDown()
+        .filter { it.isFile && isGameResource(it) }
+        .mapNotNull { file -> pathFromComposeResources(file.invariantSeparatorsPath)?.let { ResourceFile(it, file) } }
+        .toList()
 
 /**
- * Whether a file the game would mix up with [path] is on disk, apart from those at [except]. Blocks.
+ * A file of the game's own resources, with its [path] from its `composeResources` folder.
  */
-internal fun CommandContext.isResourceTakenOnDisk(path: String, except: String? = null): Boolean =
-    resourceFiles().any { (relative, _) -> relative != except && areMixedUp(relative, path) }
+internal data class ResourceFile(
+    val path: String,
+    val file: File,
+)
+
+/**
+ * The files at [path] among [files] (one per source set that has one).
+ */
+internal fun List<ResourceFile>.at(path: String): List<File> = filter { it.path == path && ResourceKind.of(it.path) != null }.map { it.file }
+
+/**
+ * Whether a file the game would mix up with [path] is among [files], apart from those at [except].
+ */
+internal fun List<ResourceFile>.isTaken(path: String, except: String? = null): Boolean = any { it.path != except && areMixedUp(it.path, path) }
+
+/**
+ * Every file at [path] (one per source set that has one), found on disk. Blocks.
+ */
+internal fun CommandContext.resourceFilesAt(path: String): List<File> = resourceFilesOnDisk().at(path)
 
 /**
  * The file [file] (at [path] from its `composeResources` folder) becomes at [newPath].
@@ -82,14 +122,28 @@ internal fun movedResourceFile(file: File, path: String, newPath: String): File 
     return File(composeResources, newPath)
 }
 
-private fun CommandContext.resourceFiles(): List<Pair<String, File>> {
-    val marker = "/${ResourceKind.COMPOSE_RESOURCES}/"
-    return ProjectTree.walk(project.rootDirectory)
-        .filter { it.isFile }
-        .mapNotNull { file ->
-            val path = "/" + file.relativeTo(project.rootDirectory).invariantSeparatorsPath
-            val start = path.lastIndexOf(marker).takeIf { it >= 0 } ?: return@mapNotNull null
-            path.substring(start + marker.length).takeIf { ResourceKind.of(it) != null }?.let { it to file }
-        }
-        .toList()
+/**
+ * Whether [file] is one of the game's own resources: in the `composeResources` folder of a source set of the module new
+ * resources go to (`src/<source set>/composeResources`), so that a module nested in it, or beside it, whose `Res` is
+ * another, is never changed by a command meant for the game's.
+ */
+internal fun CommandContext.isGameResource(file: File): Boolean {
+    val segments = file.absoluteFile.relativeToOrNull(resourceModuleDirectory())?.invariantSeparatorsPath?.split('/') ?: return false
+    return segments.size > 3 && segments[0] == SOURCES && segments[2] == ResourceKind.COMPOSE_RESOURCES
 }
+
+/**
+ * The module the game's own resources are in: the one holding the `composeResources` folder new ones go to.
+ */
+private fun CommandContext.resourceModuleDirectory(): File = scenes.resourcesDirectory.absoluteFile.parentFile.parentFile.parentFile
+
+private fun pathFromComposeResources(resource: ProjectResource) = pathFromComposeResources(resource.relativePath)
+
+private fun pathFromComposeResources(path: String): String? {
+    val marker = "/${ResourceKind.COMPOSE_RESOURCES}/"
+    val start = "/$path".lastIndexOf(marker).takeIf { it >= 0 } ?: return null
+    return "/$path".substring(start + marker.length).takeIf { ResourceKind.of(it) != null || drawableAccessorOf(it) != null }
+}
+
+private const val DRAWABLE = "drawable"
+private const val SOURCES = "src"

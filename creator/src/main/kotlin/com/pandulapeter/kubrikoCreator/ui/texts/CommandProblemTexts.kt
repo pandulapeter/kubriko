@@ -74,6 +74,7 @@ import kubriko.creator.generated.resources.error_command_resource_path_invalid
 import kubriko.creator.generated.resources.error_command_resource_source_extension
 import kubriko.creator.generated.resources.error_command_resource_source_unreadable
 import kubriko.creator.generated.resources.error_command_resource_taken
+import kubriko.creator.generated.resources.error_command_resource_unchanged
 import kubriko.creator.generated.resources.error_command_scene_actor_not_block_built
 import kubriko.creator.generated.resources.error_command_scene_actor_without_position
 import kubriko.creator.generated.resources.error_command_scene_content_invalid
@@ -181,6 +182,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.RESOURCE_SOURCE_EXTENSION -> Res.string.error_command_resource_source_extension
     CommandProblem.RESOURCE_SOURCE_UNREADABLE -> Res.string.error_command_resource_source_unreadable
     CommandProblem.RESOURCE_TAKEN -> Res.string.error_command_resource_taken
+    CommandProblem.RESOURCE_UNCHANGED -> Res.string.error_command_resource_unchanged
     CommandProblem.SCENE_ACTOR_NOT_BLOCK_BUILT -> Res.string.error_command_scene_actor_not_block_built
     CommandProblem.SCENE_ACTOR_WITHOUT_POSITION -> Res.string.error_command_scene_actor_without_position
     CommandProblem.SCENE_CONTENT_INVALID -> Res.string.error_command_scene_content_invalid

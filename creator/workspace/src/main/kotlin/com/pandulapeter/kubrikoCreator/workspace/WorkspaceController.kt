@@ -8,8 +8,6 @@
  * https://mozilla.org/MPL/2.0/.
  */
 package com.pandulapeter.kubrikoCreator.workspace
-import com.pandulapeter.kubrikoCreator.actors.AudioFiles
-import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypesController
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
@@ -306,10 +304,7 @@ public class WorkspaceController(
                 classpathFile = SessionInitScript.buildClasspathFileOf(project.rootDirectory),
             ),
             ioDispatcher = ioDispatcher,
-            scannedFiles = ScannedFiles(
-                audioFiles = { AudioFiles.ofScanned(_resources.value) },
-                spriteFiles = { SpriteFiles.of(_resources.value) },
-            ),
+            scannedFiles = ScannedFiles.of(_resources::value),
             report = ::appendToConsole,
             buildFiles = object : ProjectBuildFiles {
                 override fun current() = _projectUpgrade.value

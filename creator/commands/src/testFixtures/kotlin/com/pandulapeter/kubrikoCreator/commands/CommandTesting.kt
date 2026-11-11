@@ -24,6 +24,7 @@ import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
+import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.template.GameTargets
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
@@ -73,6 +74,7 @@ public fun TestScope.commandContext(
     runner: ProjectRunner = FakeProjectRunner(),
     audioFiles: AudioFiles? = null,
     spriteFiles: SpriteFiles? = null,
+    resources: Map<ResourceGroup, List<ProjectResource>>? = null,
     documents: List<String> = emptyList(),
     report: (ConsoleEntry) -> Unit = {},
     onProjectUpgraded: () -> Unit = {},
@@ -92,7 +94,7 @@ public fun TestScope.commandContext(
     scenes = SceneStore(rootDirectory, writeText = sceneWriteText, readText = sceneReadText, homeDirectory = sceneHomeDirectory, sceneResources = sceneResources),
     runner = runner,
     ioDispatcher = ioDispatcher,
-    scannedFiles = ScannedFiles(audioFiles = { audioFiles }, spriteFiles = { spriteFiles }),
+    scannedFiles = ScannedFiles(audioFiles = { audioFiles }, spriteFiles = { spriteFiles }, resources = { resources }),
     report = report,
     buildFiles = object : ProjectBuildFiles {
         override fun current() = projectUpgrade()

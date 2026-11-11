@@ -50,7 +50,7 @@ public object AddResource : WriteCommand<AddResource.Input> {
             }
             when {
                 !ResourceKind.isContentOf(bytes, input.path.substringAfterLast('.')) -> Rejection(CommandProblem.RESOURCE_CONTENT_MISMATCH, input.file, input.path.substringAfterLast('.').lowercase())
-                context.isResourceTakenOnDisk(input.path) -> Rejection(CommandProblem.RESOURCE_TAKEN, input.path)
+                context.resourceFilesOnDisk().isTaken(input.path) -> Rejection(CommandProblem.RESOURCE_TAKEN, input.path)
                 else -> {
                     ReplaceFiles.writeNew(context, context.projectPathOf(File(context.scenes.resourcesDirectory, input.path)), bytes)
                     null

@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.context
 
+import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.scenes.firstSceneSettings
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
@@ -53,7 +54,7 @@ internal suspend fun CommandContext.projectReferences(subject: RelationSubject):
             // Documents are the user's, which Creator changes only when asked to, so only pages are cleaned up.
             markdown = screenplayTexts().markdown.filterKeys { PageNaming.nameOf(it) != null },
             mentionedPath = mentionedPathOf(subject),
-            sceneMusic = if (subject is RelationSubject.Resource) sceneMusic() else emptyMap(),
+            sceneMusic = if (subject is RelationSubject.Resource && ResourceKind.of(subject.path) == ResourceKind.MUSIC) sceneMusic() else emptyMap(),
         )
     }
 }

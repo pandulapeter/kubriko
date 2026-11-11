@@ -17,6 +17,8 @@ import com.pandulapeter.kubrikoCreator.context.KeyedCache
 import com.pandulapeter.kubrikoCreator.context.ScreenplayTexts
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
+import com.pandulapeter.kubrikoCreator.project.ProjectResource
+import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.screenplay.DocumentStore
 import com.pandulapeter.kubrikoCreator.screenplay.MovedFiles
@@ -86,6 +88,11 @@ public class CommandContext(
      * The images Actor types can be drawn as, or null if they aren't known, so they aren't checked.
      */
     public val spriteFiles: () -> SpriteFiles? = scannedFiles.spriteFiles
+
+    /**
+     * Every file the last resource scan found, by group, or null before the first scan.
+     */
+    internal val scannedResources: () -> Map<ResourceGroup, List<ProjectResource>>? = scannedFiles.resources
 
     private val _filesRevision = MutableStateFlow(0)
 
