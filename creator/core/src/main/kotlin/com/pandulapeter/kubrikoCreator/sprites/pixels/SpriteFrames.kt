@@ -35,21 +35,27 @@ public class SpriteFrames private constructor(
     /**
      * These frames with [operation] applied to frame [index], or to each of them for null; null when the frames it leaves
      * aren't all of one size (one frame of several turned to another size), which a sheet can't hold. A changed frame
-     * size changes the sheet's, keeping its origin where it was in the frame, as a part of its size.
+     * size changes the sheet's. When every frame changes, the sheet's origin follows the pixels as [origin] moves it (given
+     * the sheet as it was); otherwise it stays, since the frames share it.
      */
-    public fun mapped(index: Int?, operation: (PixelImage) -> PixelImage): SpriteFrames? {
+    public fun mapped(
+        index: Int?,
+        origin: (SpriteSheet) -> Pair<Int?, Int?> = { it.originX to it.originY },
+        operation: (PixelImage) -> PixelImage,
+    ): SpriteFrames? {
         val mapped = frames.mapIndexed { frameIndex, frame -> if (index == null || frameIndex == index) operation(frame) else frame }
         val first = mapped.first()
         if (mapped.any { it.width != first.width || it.height != first.height }) return null
-        val resizedSheet = sheet?.takeIf { first.width != frameWidth || first.height != frameHeight }?.let { sheet ->
+        val changedSheet = sheet?.let { sheet ->
+            val (originX, originY) = if (index == null) origin(sheet) else sheet.originX to sheet.originY
             sheet.copy(
                 frameWidth = first.width,
                 frameHeight = first.height,
-                originX = sheet.originX?.let { (it.toLong() * first.width / sheet.frameWidth).toInt() },
-                originY = sheet.originY?.let { (it.toLong() * first.height / sheet.frameHeight).toInt() },
+                originX = originX?.coerceIn(0, first.width),
+                originY = originY?.coerceIn(0, first.height),
             )
         }
-        return SpriteFrames(image, cutBy, resizedSheet ?: sheet, mapped)
+        return SpriteFrames(image, cutBy, changedSheet, mapped)
     }
 
     /**

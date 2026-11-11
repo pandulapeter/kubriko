@@ -49,12 +49,12 @@ public enum class CanvasAnchor {
     /**
      * How far the image moves right when the canvas grows by [growth] pixels across.
      */
-    internal fun offsetAcross(growth: Int): Int = offsetOf(ordinal % 3, growth)
+    public fun offsetAcross(growth: Int): Int = offsetOf(ordinal % 3, growth)
 
     /**
      * How far the image moves down when the canvas grows by [growth] pixels down.
      */
-    internal fun offsetDown(growth: Int): Int = offsetOf(ordinal / 3, growth)
+    public fun offsetDown(growth: Int): Int = offsetOf(ordinal / 3, growth)
 
     private fun offsetOf(place: Int, growth: Int) = when (place) {
         0 -> 0

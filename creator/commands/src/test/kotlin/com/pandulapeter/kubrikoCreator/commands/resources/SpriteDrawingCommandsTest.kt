@@ -194,4 +194,16 @@ class SpriteDrawingCommandsTest {
         testScheduler.advanceUntilIdle()
         assertEquals(1, failures)
     }
+
+    @Test
+    fun theOriginTurnsAndFlipsWithEveryFrame() {
+        val sheet = SpriteSheet(frameWidth = 32, frameHeight = 16, frameCount = 1, framesPerRow = 1, originX = 0, originY = 8)
+        assertEquals(8 to 0, EditSprite.Operation.Rotate(isClockwise = true).originOf(sheet))
+        assertEquals(8 to 32, EditSprite.Operation.Rotate(isClockwise = false).originOf(sheet))
+        assertEquals(32 to 8, EditSprite.Operation.Flip().originOf(sheet))
+        assertEquals(0 to 8, EditSprite.Operation.Flip(isVertical = true).originOf(sheet))
+        assertEquals(4 to 12, EditSprite.Operation.ResizeCanvas(40, 24, com.pandulapeter.kubrikoCreator.sprites.pixels.CanvasAnchor.CENTER).originOf(sheet))
+        assertEquals(0 to 24, EditSprite.Operation.Scale(3).originOf(sheet))
+        assertEquals(null to null, EditSprite.Operation.Rotate().originOf(sheet.copy(originX = null, originY = null)))
+    }
 }

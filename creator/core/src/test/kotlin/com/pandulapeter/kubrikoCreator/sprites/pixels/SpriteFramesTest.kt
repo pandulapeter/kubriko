@@ -27,7 +27,7 @@ class SpriteFramesTest {
 
     @Test
     fun framesOfTheSameSizeGoBackOverTheImageKeepingWhatIsOutsideThem() {
-        val flipped = SpriteFrames.of(image, sheet).mapped(1, PixelOperations::flippedHorizontally)!!
+        val flipped = SpriteFrames.of(image, sheet).mapped(1, operation = PixelOperations::flippedHorizontally)!!
         assertEquals(listOf("abdcz", "ef..z"), flipped.toImage().rows())
         assertEquals(sheet, flipped.sheet)
         val drawn = SpriteFrames.of(image, sheet).withFrame(2, image("yy"))
@@ -35,10 +35,16 @@ class SpriteFramesTest {
     }
 
     @Test
-    fun framesOfANewSizeMakeANewImageAndSheetKeepingTheOrigin() {
-        val scaled = SpriteFrames.of(image, sheet.copy(originX = 1, originY = 1)).mapped(null) { PixelOperations.scaled(it, 2) }!!
+    fun framesOfANewSizeMakeANewImageAndSheetWithTheOriginWhereItWasMoved() {
+        val scaled = SpriteFrames.of(image, sheet.copy(originX = 1, originY = 1)).mapped(null, origin = { it.originX!! * 2 to it.originY!! * 2 }) { PixelOperations.scaled(it, 2) }!!
         assertEquals(sheet.copy(frameWidth = 4, frameHeight = 2, originX = 2, originY = 2), scaled.sheet)
         assertEquals(listOf("aabbccdd", "aabbccdd", "eeff....", "eeff...."), scaled.toImage().rows())
         assertNull(SpriteFrames.of(image, sheet).mapped(0) { PixelOperations.scaled(it, 2) }, "one frame of several can't change its size")
+    }
+
+    @Test
+    fun oneFrameOfSeveralLeavesTheOriginTheyShare() {
+        val flipped = SpriteFrames.of(image, sheet.copy(originX = 0)).mapped(1, origin = { 2 to it.originY }, operation = PixelOperations::flippedHorizontally)!!
+        assertEquals(0, flipped.sheet?.originX)
     }
 }

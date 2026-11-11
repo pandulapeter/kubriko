@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateSprite
 import com.pandulapeter.kubrikoCreator.schema.Description
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import com.pandulapeter.kubrikoCreator.sprites.pixels.CanvasAnchor
 import com.pandulapeter.kubrikoCreator.sprites.pixels.PixelImage
 import com.pandulapeter.kubrikoCreator.sprites.pixels.PixelOperations
@@ -49,7 +50,7 @@ public object EditSprite : WriteCommand<EditSprite.Input> {
         if (frameWidth.toLong() * columns > MAXIMUM_SIZE || frameHeight.toLong() * rows > MAXIMUM_SIZE) {
             return@editSpriteImage SpriteEdit.Rejected(Rejection(SpriteProblem.SPRITE_SIZE_INVALID, MAXIMUM_SIZE.toString()))
         }
-        frames.mapped(input.frame) { frame -> input.operation.applyTo(frame) }?.let(SpriteEdit::Edited)
+        frames.mapped(input.frame, origin = input.operation::originOf, operation = input.operation::applyTo)?.let(SpriteEdit::Edited)
             ?: SpriteEdit.Rejected(Rejection(SpriteProblem.SPRITE_FRAME_SIZE_ALONE))
     }
 
@@ -81,6 +82,11 @@ public object EditSprite : WriteCommand<EditSprite.Input> {
          */
         public fun sizeOf(width: Int, height: Int): Pair<Int, Int> = width to height
 
+        /**
+         * Where [sheet]'s origin goes when this is applied to every frame, following the pixels around it.
+         */
+        public fun originOf(sheet: SpriteSheet): Pair<Int?, Int?> = sheet.originX to sheet.originY
+
         @Serializable
         @SerialName("flip")
         @Description("Mirrors it, left to right, or top to bottom.")
@@ -89,6 +95,12 @@ public object EditSprite : WriteCommand<EditSprite.Input> {
             @SerialName("isVertical") val isVertical: Boolean = false,
         ) : Operation {
             override fun applyTo(image: PixelImage): PixelImage = if (isVertical) PixelOperations.flippedVertically(image) else PixelOperations.flippedHorizontally(image)
+
+            override fun originOf(sheet: SpriteSheet): Pair<Int?, Int?> = if (isVertical) {
+                sheet.originX to sheet.originY?.let { sheet.frameHeight - it }
+            } else {
+                sheet.originX?.let { sheet.frameWidth - it } to sheet.originY
+            }
         }
 
         @Serializable
@@ -101,6 +113,13 @@ public object EditSprite : WriteCommand<EditSprite.Input> {
             override fun applyTo(image: PixelImage): PixelImage = PixelOperations.rotated(image, isClockwise)
 
             override fun sizeOf(width: Int, height: Int): Pair<Int, Int> = height to width
+
+            override fun originOf(sheet: SpriteSheet): Pair<Int?, Int?> {
+                if (sheet.originX == null && sheet.originY == null) return null to null
+                val x = sheet.originX ?: (sheet.frameWidth / 2)
+                val y = sheet.originY ?: (sheet.frameHeight / 2)
+                return if (isClockwise) (sheet.frameHeight - y) to x else y to (sheet.frameWidth - x)
+            }
         }
 
         @Serializable
@@ -129,6 +148,9 @@ public object EditSprite : WriteCommand<EditSprite.Input> {
             override fun applyTo(image: PixelImage): PixelImage = PixelOperations.resizedCanvas(image, width, height, anchor)
 
             override fun sizeOf(width: Int, height: Int): Pair<Int, Int> = this.width to this.height
+
+            override fun originOf(sheet: SpriteSheet): Pair<Int?, Int?> =
+                sheet.originX?.let { it + anchor.offsetAcross(width - sheet.frameWidth) } to sheet.originY?.let { it + anchor.offsetDown(height - sheet.frameHeight) }
         }
 
         @Serializable
@@ -142,6 +164,8 @@ public object EditSprite : WriteCommand<EditSprite.Input> {
 
             override fun sizeOf(width: Int, height: Int): Pair<Int, Int> = (width.toLong() * factor).coerceAtMost(Int.MAX_VALUE.toLong()).toInt() to
                 (height.toLong() * factor).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+
+            override fun originOf(sheet: SpriteSheet): Pair<Int?, Int?> = sheet.originX?.let { it * factor } to sheet.originY?.let { it * factor }
         }
     }
 }
