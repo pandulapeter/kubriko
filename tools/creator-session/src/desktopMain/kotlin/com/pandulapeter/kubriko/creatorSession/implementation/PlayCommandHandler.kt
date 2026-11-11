@@ -10,11 +10,13 @@
 package com.pandulapeter.kubriko.creatorSession.implementation
 
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.creator.CreatorEntryPoint
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionCommand
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.ViewportManager
 import org.jetbrains.skia.EncodedImageFormat
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.Rect
@@ -46,6 +48,8 @@ internal class PlayCommandHandler(
     private val findWindow: () -> Window? = ::findGameWindow,
     private val sleep: (Long) -> Unit = Thread::sleep,
     private val hasActorsInView: () -> Boolean? = ::hasEntryPointsActorsInView,
+    private val locateActors: (actorType: String) -> ActorRegion? = ::locateEntryPointsActors,
+    private val entryPointReportsInstances: () -> Boolean = { entryPoint?.getRunningInstances() != null },
 ) {
     private val worker = Executors.newSingleThreadExecutor { runnable -> Thread(runnable, "kubriko-creator-commands").apply { isDaemon = true } }
 
@@ -85,6 +89,11 @@ internal class PlayCommandHandler(
                 // Actors are culled into view on a tick, and drawn on a frame after it.
                 sleep(DRAW_SETTLE_TIME_IN_MILLISECONDS)
                 SessionMessage.CommandDone(command.id)
+            }
+            is SessionCommand.LocateActors -> {
+                if (entryPointReportsInstances() == false) throw CommandException("The game's CreatorEntryPoint doesn't report its Kubriko instances.")
+                val region = locateActors(command.actorType) ?: throw CommandException("No Actor of type ${command.actorType} is in view.")
+                SessionMessage.ActorsLocated(command.id, region.left, region.top, region.right, region.bottom)
             }
         }
     } catch (exception: CommandException) {
@@ -202,6 +211,25 @@ internal class PlayCommandHandler(
          * reports none.
          */
         private fun hasEntryPointsActorsInView() = entryPoint?.getRunningInstances()?.any { it.hasActorsInView() }
+
+        /**
+         * The region the Actors of the class named [actorType] in view take up, in the first of the entry point's
+         * instances that has any, or null.
+         */
+        private fun locateEntryPointsActors(actorType: String) = entryPoint?.getRunningInstances()?.firstNotNullOfOrNull { it.regionOf(actorType) }
+
+        private fun Kubriko.regionOf(actorType: String) = try {
+            val viewport = get<ViewportManager>()
+            ActorRegion.of(
+                bounds = get<ActorManager>().visibleActorsWithinViewport.value
+                    .filter { it::class.simpleName == actorType }
+                    .mapNotNull { (it as? Positionable)?.body?.axisAlignedBoundingBox },
+                viewTopLeft = viewport.topLeft.value,
+                viewBottomRight = viewport.bottomRight.value,
+            )
+        } catch (_: IllegalStateException) {
+            null
+        }
 
         private fun Kubriko.hasActorsInView() = try {
             get<ActorManager>().visibleActorsWithinViewport.value.isNotEmpty()

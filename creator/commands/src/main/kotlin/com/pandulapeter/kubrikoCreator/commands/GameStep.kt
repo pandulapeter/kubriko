@@ -19,10 +19,12 @@ public sealed interface GameStep {
     /**
      * @param console What the console showed meanwhile.
      * @param png The screenshot, for [ProjectRunner.captureScreen].
+     * @param region Where the Actors are, for [ProjectRunner.locateActors].
      */
     public class Done(
         public val console: List<ConsoleEntry>,
         public val png: ByteArray? = null,
+        public val region: ScreenRegion? = null,
     ) : GameStep
 
     public data object NotPlaying : GameStep

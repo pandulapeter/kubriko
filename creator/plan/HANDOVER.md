@@ -17,7 +17,8 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 - Ask before every push (`git log origin/main..HEAD` shows what would go).
 - `library.version` is 0.8.1, unreleased (0.8.0 is on Maven Central). It holds library changes Creator uses: `Logger.log` building
-  its list once, and the `SpriteManager.newInstance(imageLoader, …)` overload.
+  its list once, the `SpriteManager.newInstance(imageLoader, …)` overload, and session protocol 4 (`LocateActors`), which
+  `take_screenshot`'s `actorType` needs.
 - `README.md` → Roadmap is in dependency order as of 2026-11-09: every file depends only on the ones before it, so work goes
   file by file from `01`. Leftovers that waited on later work were moved into the file they wait for, and what waits on something
   outside this repository is under its file's Waiting on others (ACP protocol 2, the Kotlin SDK's `systemPrompt`, Codex's quota
@@ -50,6 +51,9 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
 - A project created from an idea, through to the room's first questions, in the real app (an end-to-end scenario could cover
   it under Xvfb, but it needs a signed-in agent).
 - Pasting an image from the system clipboard, and dropping one from Finder, onto a page.
+- `take_screenshot`'s `actorType` crop on a real game (`ActorRegion` maps `ViewportManager`'s visible scene bounds onto the
+  window, which assumes the viewport fills it, as the templates' does); an end-to-end scenario under Xvfb could check the
+  crop by pixels.
 - A real agent other than Claude Agent switched to its read-only mode, and one that edits without asking being marked
   (Codex's `read-only` sandbox once it has quota again, after Nov 21, 2026).
 - Google Antigravity's tools turned off through Creator itself rather than a hand-written ACP client (the same `_meta`;

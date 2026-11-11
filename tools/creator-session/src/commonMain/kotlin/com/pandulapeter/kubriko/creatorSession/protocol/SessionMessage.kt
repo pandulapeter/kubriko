@@ -87,6 +87,20 @@ sealed interface SessionMessage {
     ) : SessionMessage
 
     /**
+     * The answer to a [SessionCommand.LocateActors]: the region its Actors take up, as fractions of the game's view, from
+     * 0 to 1 (its left edge is 0, its right edge 1). Added in protocol version 4.
+     */
+    @Serializable
+    @SerialName("actorsLocated")
+    data class ActorsLocated(
+        val id: Int,
+        val left: Float,
+        val top: Float,
+        val right: Float,
+        val bottom: Float,
+    ) : SessionMessage
+
+    /**
      * The [SessionCommand] with [id] couldn't be carried out. Added in protocol version 2.
      *
      * @param message A human-readable description of the problem, in English.

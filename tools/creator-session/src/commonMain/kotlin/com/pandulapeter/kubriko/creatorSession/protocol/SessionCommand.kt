@@ -71,4 +71,17 @@ sealed interface SessionCommand {
         override val id: Int,
         val timeoutInMilliseconds: Long,
     ) : SessionCommand
+
+    /**
+     * Finds where the Actors of the class named [actorType] (its simple name) are within the game's view, answered with a
+     * [SessionMessage.ActorsLocated] holding the region all of them that are in view take up, so that a screenshot can be
+     * cropped to them. Fails for a game whose entry point doesn't report its instances, or with none of them in view.
+     * Added in protocol version 4.
+     */
+    @Serializable
+    @SerialName("locateActors")
+    data class LocateActors(
+        override val id: Int,
+        val actorType: String,
+    ) : SessionCommand
 }

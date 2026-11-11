@@ -35,6 +35,13 @@ public class FakeProjectRunner(
 
     override suspend fun captureScreen() = step.also { calls += "screenshot" }
 
+    /**
+     * What [locateActors] answers; [step] while null.
+     */
+    var located: GameStep? = null
+
+    override suspend fun locateActors(actorType: String) = (located ?: step).also { calls += "locate $actorType" }
+
     private val PlayTarget.suffix get() = if (this == PlayTarget.DESKTOP) "" else " on $id"
 
     companion object {

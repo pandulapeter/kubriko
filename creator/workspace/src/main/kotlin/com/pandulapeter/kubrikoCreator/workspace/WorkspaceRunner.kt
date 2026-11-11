@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.commands.GameStep
 import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.commands.PlayTargets
 import com.pandulapeter.kubrikoCreator.commands.ProjectRunner
+import com.pandulapeter.kubrikoCreator.commands.ScreenRegion
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filterIsInstance
@@ -82,6 +83,10 @@ internal class WorkspaceRunner(
         sessions.request(ANSWER_TIMEOUT) { id -> SessionCommand.CaptureScreen(id, SCREENSHOT_WIDTH) }
     }
 
+    override suspend fun locateActors(actorType: String) = step {
+        sessions.request(ANSWER_TIMEOUT, SessionController.LOCATE_ACTORS_PROTOCOL_VERSION) { id -> SessionCommand.LocateActors(id, actorType) }
+    }
+
     /**
      * Brings the desktop game to the front (Kubriko pauses games whose window isn't focused), does [action] with the answer
      * to that, and turns the final answer into a [GameStep] with the console lines of the time it took.
@@ -98,6 +103,7 @@ internal class WorkspaceRunner(
             is GameAnswer.Answered -> when (val message = answer.message) {
                 is SessionMessage.CommandFailed -> GameStep.Failed(message.message)
                 is SessionMessage.Screenshot -> GameStep.Done(console, png = Base64.getDecoder().decode(message.png))
+                is SessionMessage.ActorsLocated -> GameStep.Done(console, region = ScreenRegion(message.left, message.top, message.right, message.bottom))
                 else -> GameStep.Done(console)
             }
             GameAnswer.NotPlaying -> GameStep.NotPlaying

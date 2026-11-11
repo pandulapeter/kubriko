@@ -64,6 +64,11 @@ public interface ProjectRunner {
     public suspend fun captureScreen(): GameStep
 
     /**
+     * Finds the region of the running game's view that its Actors of [actorType] in view take up.
+     */
+    public suspend fun locateActors(actorType: String): GameStep
+
+    /**
      * @param isSuccessful Whether the build succeeded, or the game started.
      * @param console What the console showed meanwhile.
      */

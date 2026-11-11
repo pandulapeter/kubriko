@@ -179,7 +179,7 @@ internal class SessionController(
             ),
         )
         is SessionMessage.Failure -> console.append(ConsoleEntry.SessionFailure(message.message))
-        is SessionMessage.CommandDone, is SessionMessage.Screenshot, is SessionMessage.CommandFailed -> Unit
+        is SessionMessage.CommandDone, is SessionMessage.Screenshot, is SessionMessage.ActorsLocated, is SessionMessage.CommandFailed -> Unit
     }
 
     companion object {
@@ -194,6 +194,11 @@ internal class SessionController(
          * The first protocol version whose sessions take [SessionCommand.AwaitActorsDrawn].
          */
         const val AWAIT_ACTORS_DRAWN_PROTOCOL_VERSION = 3
+
+        /**
+         * The first protocol version whose sessions take [SessionCommand.LocateActors].
+         */
+        const val LOCATE_ACTORS_PROTOCOL_VERSION = 4
     }
 
     /**
@@ -221,6 +226,7 @@ internal class SessionController(
     private fun SessionMessage.answers(id: Int) = when (this) {
         is SessionMessage.CommandDone -> this.id == id
         is SessionMessage.Screenshot -> this.id == id
+        is SessionMessage.ActorsLocated -> this.id == id
         is SessionMessage.CommandFailed -> this.id == id
         is SessionMessage.Hello, is SessionMessage.Log, is SessionMessage.Failure -> false
     }

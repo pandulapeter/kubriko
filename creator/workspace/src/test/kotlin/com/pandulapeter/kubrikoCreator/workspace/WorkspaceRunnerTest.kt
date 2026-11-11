@@ -16,6 +16,7 @@ import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
 import com.pandulapeter.kubrikoCreator.commands.GameStep
 import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.commands.ProjectRunner
+import com.pandulapeter.kubrikoCreator.commands.ScreenRegion
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.testing.FakeProjectBuild
@@ -164,6 +165,23 @@ class WorkspaceRunnerTest {
         assertEquals(GameStep.Failed("The game hasn't drawn anything yet."), runner.captureScreen())
         assertTrue(runner.stopGame().isSuccessful, "the game was running")
         assertEquals(SessionState.Idle, sessions.state.value)
+    }
+
+    @Test
+    fun actorsAreLocatedOnlyBySessionsThatCanLocateThem() = runTest {
+        val runner = createRunner()
+        assertTrue(startGame(runner).isSuccessful)
+        channel.answer = { command ->
+            when (command) {
+                is SessionCommand.LocateActors -> SessionMessage.ActorsLocated(command.id, 0.1f, 0.2f, 0.3f, 0.4f)
+                else -> SessionMessage.CommandDone(command.id)
+            }
+        }
+        assertEquals(ScreenRegion(0.1f, 0.2f, 0.3f, 0.4f), assertIs<GameStep.Done>(runner.locateActors("Ship")).region)
+        assertEquals("Ship", channel.sent.filterIsInstance<SessionCommand.LocateActors>().single().actorType)
+        runner.stopGame()
+        assertTrue(startGame(runner, protocolVersion = 3).isSuccessful)
+        assertEquals(GameStep.Unsupported, runner.locateActors("Ship"))
     }
 
     @Test

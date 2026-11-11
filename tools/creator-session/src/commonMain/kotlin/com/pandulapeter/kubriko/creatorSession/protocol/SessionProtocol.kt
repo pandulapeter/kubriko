@@ -33,7 +33,7 @@ object SessionProtocol {
      * The protocol version this module speaks. Raised with every message or command added, so that it tells the other
      * side which ones exist.
      */
-    const val VERSION = 3
+    const val VERSION = 4
 
     /**
      * The system property that holds the localhost port Kubriko Creator listens on. Without it, the session runs

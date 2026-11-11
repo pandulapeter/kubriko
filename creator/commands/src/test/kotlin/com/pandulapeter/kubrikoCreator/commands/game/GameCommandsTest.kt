@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.commands.GameStep
 import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.commands.PlayTargets
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.ScreenRegion
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.testScope
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
@@ -28,6 +29,9 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
+import javax.imageio.ImageIO
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -93,6 +97,30 @@ class GameCommandsTest {
         assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_NO_ANSWER)), executor.call("press_keys", steps))
         assertEquals(listOf("press A 150"), runner.calls)
     }
+
+    @Test
+    fun aScreenshotIsCroppedToAnActorTypeWithRoomAroundIt() = runTest {
+        val executor = executor()
+        runner.located = GameStep.Done(console = emptyList(), region = ScreenRegion(0.4f, 0.4f, 0.6f, 0.6f))
+        runner.step = GameStep.Done(console = emptyList(), png = png(width = 200, height = 100))
+        val image = assertIs<CommandOutcome.Success>(executor.call("take_screenshot", buildJsonObject { put("actorType", "Ship") })).image!!
+        val cropped = ImageIO.read(image.inputStream())
+        assertEquals(80 to 40, cropped.width to cropped.height)
+        assertEquals(listOf("locate Ship", "screenshot"), runner.calls)
+    }
+
+    @Test
+    fun anActorTypeNotInViewIsReportedWithoutAScreenshot() = runTest {
+        val executor = executor()
+        runner.located = GameStep.Failed("No Actor of type Ship is in view.")
+        assertEquals(
+            CommandOutcome.Rejected(Rejection(CommandProblem.GAME_COMMAND_FAILED, "No Actor of type Ship is in view.")),
+            executor.call("take_screenshot", buildJsonObject { put("actorType", "Ship") }),
+        )
+        assertEquals(listOf("locate Ship"), runner.calls)
+    }
+
+    private fun png(width: Int, height: Int) = ByteArrayOutputStream().also { ImageIO.write(BufferedImage(width, height, BufferedImage.TYPE_INT_RGB), "png", it) }.toByteArray()
 
     @Test
     fun waitingIsLimitedAndScreenshotsComeBackAsImages() = runTest {

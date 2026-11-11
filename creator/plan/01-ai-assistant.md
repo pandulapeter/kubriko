@@ -26,7 +26,6 @@ the game is shown to the user too.
 - **More health checks:** a Scene nothing goes to other than the first (needs the first Scene known from `Game.kt`), and the
   findings shown where their subject is edited, beside the map's list.
 - **Fewer retries:** validation rejections that say precisely what to change, for every rejection that doesn't yet.
-- **Cheaper screenshots:** `take_screenshot` cropped to an Actor (the region crop exists).
 - **Planning first:** approving a plan from its checklist (an Approve button that answers the agent) rather than in a reply, and
   model hints (a smaller model for small edits) that the user decides on, since they pay.
 

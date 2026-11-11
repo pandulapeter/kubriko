@@ -124,4 +124,25 @@ class PlayCommandHandlerTest {
         )
         assertEquals(emptyList(), sleeps)
     }
+
+    @Test
+    fun actorsAreLocatedWithinTheView() {
+        val handler = PlayCommandHandler(
+            send = {},
+            findWindow = { null },
+            locateActors = { type -> ActorRegion(0.1f, 0.2f, 0.3f, 0.4f).takeIf { type == "Ship" } },
+            entryPointReportsInstances = { true },
+        )
+        assertEquals(SessionMessage.ActorsLocated(1, 0.1f, 0.2f, 0.3f, 0.4f), handler.carryOut(SessionCommand.LocateActors(1, "Ship")))
+        assertEquals(SessionMessage.CommandFailed(2, "No Actor of type Drifter is in view."), handler.carryOut(SessionCommand.LocateActors(2, "Drifter")))
+    }
+
+    @Test
+    fun gamesThatDontReportTheirInstancesCantLocateActors() {
+        val handler = PlayCommandHandler(send = {}, findWindow = { null }, locateActors = { error("not asked") }, entryPointReportsInstances = { false })
+        assertEquals(
+            SessionMessage.CommandFailed(1, "The game's CreatorEntryPoint doesn't report its Kubriko instances."),
+            handler.carryOut(SessionCommand.LocateActors(1, "Ship")),
+        )
+    }
 }
