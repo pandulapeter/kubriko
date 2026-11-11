@@ -140,4 +140,16 @@ class AudioFolderCommandsTest {
         DeleteFolder.apply(context, DeleteFolder.Input(FolderGroup.SOUNDS, "sounds/empty", keepsContents = true))
         assertFalse(folder.exists())
     }
+
+    @Test
+    fun aFolderCalledLikeABuildFolderIsMovedAndKeptLikeAnyOther() = runTest {
+        val context = context(sounds = listOf("files/sfx/build/hit.wav"))
+        context.directory("$common/files/empty/out").mkdirs()
+        File(context.directory("$common/files/empty/out"), "data.json").writeText("{}")
+        assertTrue("sfx/build" in context.foldersOf(FolderGroup.SOUNDS))
+        assertNull(RenameFolder.apply(context, RenameFolder.Input(FolderGroup.SOUNDS, "sfx", "fx")).failure)
+        assertTrue(context.directory("$common/files/fx/build/hit.wav").isFile)
+        DeleteFolder.apply(context, DeleteFolder.Input(FolderGroup.SOUNDS, "empty", keepsContents = true))
+        assertTrue(context.directory("$common/files/empty/out/data.json").isFile)
+    }
 }

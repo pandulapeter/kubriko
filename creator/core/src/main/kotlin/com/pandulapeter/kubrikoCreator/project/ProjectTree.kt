@@ -43,6 +43,12 @@ public object ProjectTree {
     }
 
     /**
+     * Every file and folder under [folder], a folder inside a source folder (a `composeResources` folder's), top down,
+     * skipping nothing, as [walk] skips nothing inside source folders: a resource folder may be called `build` too.
+     */
+    public fun walkWithinSources(folder: File): Sequence<File> = folder.walkTopDown()
+
+    /**
      * Whether [file] is inside the `src` folder of one of [root]'s modules, at any depth.
      */
     internal fun isWithinSources(root: File, file: File) = "src" in file.relativeTo(root).invariantSeparatorsPath.split('/').dropLast(1)

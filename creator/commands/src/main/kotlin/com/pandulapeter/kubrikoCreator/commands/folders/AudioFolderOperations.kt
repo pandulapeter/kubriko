@@ -45,7 +45,7 @@ internal fun CommandContext.createAudioFolder(path: String) {
 @EditorMutation
 internal fun CommandContext.deleteAudioFolder(path: String) {
     val deleted = filesDirectories().map { File(it, path) }.count { folder ->
-        folder.isDirectory && ProjectTree.walk(folder).none { it.isFile } && folder.deleteRecursively()
+        folder.isDirectory && ProjectTree.walkWithinSources(folder).none { it.isFile } && folder.deleteRecursively()
     }
     if (deleted > 0) onFilesChanged()
 }
@@ -64,7 +64,7 @@ internal fun CommandContext.moveAudioFolder(path: String, newPath: String): Reje
         val from = File(files, path)
         if (!from.isDirectory) return@forEach
         val to = File(files, newPath)
-        val contents = ProjectTree.walk(from).filter { it != from }.toList()
+        val contents = ProjectTree.walkWithinSources(from).filter { it != from }.toList()
         contents.filter { it.isDirectory }.forEach { File(to, it.relativeTo(from).path).mkdirs() }
         to.mkdirs()
         contents.filter { it.isFile }.forEach { file ->

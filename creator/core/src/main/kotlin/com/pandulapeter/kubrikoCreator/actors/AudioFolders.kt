@@ -39,7 +39,7 @@ public object AudioFolders {
     public fun foldersBeside(composeResources: File): Set<String> = filesDirectoriesBeside(composeResources)
         .filter { it.isDirectory }
         .flatMapTo(sortedSetOf()) { files ->
-            ProjectTree.walk(files)
+            ProjectTree.walkWithinSources(files)
                 .filter { it.isDirectory && it != files }
                 .map { it.relativeTo(files).invariantSeparatorsPath }
                 .filterNot(ResourceKind::isScenesFolder)
