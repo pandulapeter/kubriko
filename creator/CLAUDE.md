@@ -258,7 +258,9 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   kind, which wouldn't load; a Property's kind can't change. Renaming a Property renames it through the family of the Actor type that
   declares it, and is refused on one that only inherits it; adding a Property or a parent is refused when a descendant has one of
   that name of another kind.
-- **Deletes clean up what refers to them** (`deleteWithUsages`): deleting an Actor type, Manager type, Scene, or Property
+- **Deletes clean up what refers to them** (`deleteWithUsages`): a Timer, which exists only while its Events and Blocks
+  name it, is deleted by that cleanup alone, across every type sharing it (`timerSharersOf`, one subject whichever of them
+  it is asked through); deleting an Actor type, Manager type, Scene, or Property
   removes its type's Actors from every Scene and the Blocks and Events that only mean something with it (an if Block with its
   section), draws a deleted sprite's Actor types as their shapes and clears a deleted music from the Scenes playing it, gives
   each page showing a deleted sprite a copy of it next to it (`KeepPageImages`), turns placeholders of its Properties and the pages' mentions of it into text (`UnlinkMentions`; documents are the user's,

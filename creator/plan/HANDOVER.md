@@ -26,15 +26,21 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `01-resources-and-search.md` at its first item, Deleting the other kinds (a Timer, then a folder with what is in it).
+Continue `01-resources-and-search.md` at its first item, Deleting a full folder.
 
-This session finished its first item, adding, renaming, and deleting sprites, sounds, and music: the `add_resource`,
-`rename_resource`, and `delete_resource` commands (`commands/resources`), and the sidebar's Add (New menu, a group's ⋮, a drop
-onto the sidebar, Paste), Rename in place, and Delete. `/code-review` ran on it; its nine findings were fixed in two commits of
-their own: the commands keep to the game's own module, names are checked against every drawable (vector drawables too) and
-every file the scan found (a sprite whose name makes no accessor can be renamed), a rename's undo puts back exactly what it
-changed and may bring back a name today's rules refuse, Kotlin Blocks still naming a renamed file are reported, a rename to the
-same name is refused, pasted text is never added as an image, and a rename walks the project once and reads Scenes only for music.
+The last two items finished, each reviewed with `/code-review` and its findings fixed in commits of their own:
+
+- Adding, renaming, and deleting sprites, sounds, and music: the `add_resource`, `rename_resource`, and `delete_resource`
+  commands (`commands/resources`), and the sidebar's Add (New menu, a group's ⋮, a drop onto the sidebar, Paste), Rename in
+  place, and Delete. The review's nine findings: the commands keep to the game's own module, names are checked against every
+  drawable and every file the scan found, a rename's undo puts back exactly what it changed, Kotlin Blocks still naming a
+  renamed file are reported, a rename to the same name is refused, and pasted text is never added as an image.
+- Deleting a Timer (`delete_timer`, and Delete this Timer… in a timerFinished Event's Timer menu): its timerFinished Events and
+  Timer Blocks go across the family, and Kotlin using its generated members is listed. The review's ten findings: a stray
+  `timer` field on another kind of Event is no Timer (`timerNames` and renames read `trigger`), Kotlin using a Timer's members
+  is listed on delete and followed on rename, one Timer is one subject whichever type of its family it is asked through, which
+  types share a Timer is one rule in core (`timerSharersOf`, which `BlockScope` uses too), and references read Scenes and pages
+  only for subjects they can hold.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
