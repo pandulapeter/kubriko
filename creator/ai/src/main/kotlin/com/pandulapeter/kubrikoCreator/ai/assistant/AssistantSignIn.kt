@@ -133,11 +133,15 @@ internal class AssistantSignIn(
             val session = try {
                 SignInSession(method, withContext(ioDispatcher) { launcher.launch(command) }, scope, ioDispatcher, isInSystemTerminal)
             } catch (_: IOException) {
-                if (isInSystemTerminal) _systemTerminalFailed.value = true
                 null
             } finally {
                 if (isInSystemTerminal) _isOpeningSystemTerminal.value = false
-            } ?: return@launch
+            }
+            if (session == null) {
+                // Only once it no longer says it is opening, so whoever sees the failure sees it done.
+                if (isInSystemTerminal) _systemTerminalFailed.value = true
+                return@launch
+            }
             val displaced = _session.value
             _session.value = session
             displaced?.stop()

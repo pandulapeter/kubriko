@@ -133,7 +133,7 @@ class DeletingEveryThingTest {
             listOfNotNull((type as? ActorTypeDefinition)?.sprite) + type.events.flatMap { event ->
                 event.blocks.mapNotNull { (it as? BlockDefinition.PlaySound)?.sound ?: (it as? BlockDefinition.PlayMusic)?.music }
             }
-        }.filter { ResourceKind.of(it) != null }.distinct()
+        }.filter { ResourceKind.of(it) != null && canBeAFile(it) }.distinct()
         assertTrue(paths.size >= 3, "EveryBlockTypes uses a sprite, a sound, and music.")
         paths.forEach { path ->
             val context = commandContext(*types.toTypedArray())
@@ -151,6 +151,12 @@ class DeletingEveryThingTest {
             }
         }
     }
+
+    /**
+     * Whether a file can be named [path] on this system: Windows refuses a quote, which one of [EveryBlockTypes]' sounds
+     * has so that the generated code's escaping is tested.
+     */
+    private fun canBeAFile(path: String) = !System.getProperty("os.name").orEmpty().startsWith("Windows") || path.none { it in "\"<>|?*:" }
 
     @Test
     fun noTimerIsUsedOnceDeleted() = runTest {
