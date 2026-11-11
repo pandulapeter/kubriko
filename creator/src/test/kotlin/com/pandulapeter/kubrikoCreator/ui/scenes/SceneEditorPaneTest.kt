@@ -14,6 +14,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -91,6 +92,7 @@ class SceneEditorPaneTest {
         var highlight by mutableStateOf<SceneHighlight?>(null)
         showPane(MutableSharedFlow(), actors = { listOf(bigBall) }, previews = mapOf("Ball" to blue), highlight = { highlight })
         waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText(INSPECTOR_HINT)).fetchSemanticsNodes().isNotEmpty() }
+        waitUntil(timeoutMillis = 5_000) { ballColor() == Color(blue.color) }
         mainClock.autoAdvance = false
         val before = ballColor()
         highlight = SceneHighlight(key = 1, actorIds = setOf("ball"))
@@ -110,6 +112,7 @@ class SceneEditorPaneTest {
         var highlight by mutableStateOf<SceneHighlight?>(null)
         showPane(MutableSharedFlow(), actors = { listOf(bigBall) }, previews = mapOf("Ball" to blue), highlight = { highlight })
         waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText(INSPECTOR_HINT)).fetchSemanticsNodes().isNotEmpty() }
+        waitUntil(timeoutMillis = 5_000) { ballColor() == Color(blue.color) }
         mainClock.autoAdvance = false
         val before = ballColor()
         highlight = SceneHighlight(key = 1, actorIds = setOf("ball"), startedAt = System.currentTimeMillis() - 10_000)

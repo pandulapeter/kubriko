@@ -37,8 +37,6 @@ the disk on the main thread, each file followed with its own read of the Kotlin 
 followed again rather than putting back, a misleading message for a name clash and silent failed move-backs, duplicated
 mappings, and each group showing the other's empty default folder. The Kotlin package tree bullet was already done.
 
-`SceneEditorPaneTest.theActorsTheAiChangedLightUp` failed once in a full `:creator:test` run and passed three times alone.
-
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
 - Adding sprites, sounds, and music by dropping them from Finder onto the sidebar, through the file chooser, and by pasting
