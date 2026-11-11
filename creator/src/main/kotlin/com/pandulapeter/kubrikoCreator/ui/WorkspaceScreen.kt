@@ -493,4 +493,5 @@ private fun WorkspaceCenterOf(
     markdownLinks = rememberPageLinks(controller.commands.context, controller.selection, selection, markdownText, blockTypes, resources),
     markdownIdentity = rememberMarkdownIdentity(selection, controller.commands.context.movedFiles),
     onAddPageImage = rememberPageImageAdder(selection) { controller.commands.dispatch(it) },
+    spriteSheets = controller.commands.context.spriteFolders.state.collectAsState().value.sheets,
 )

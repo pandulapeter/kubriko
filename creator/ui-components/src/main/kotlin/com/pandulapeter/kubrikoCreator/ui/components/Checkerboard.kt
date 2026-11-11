@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 /**
  * Draws the gray checkerboard that shows through translucent colors drawn on top.
  */
-internal fun Modifier.checkerboard(squareSize: Dp = 6.dp) = drawBehind {
+public fun Modifier.checkerboard(squareSize: Dp = 6.dp): Modifier = drawBehind {
     val square = squareSize.toPx()
     drawRect(CHECKERBOARD_LIGHT)
     var y = 0f

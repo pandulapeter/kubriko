@@ -13,18 +13,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.File
-import org.jetbrains.skia.Image as SkiaImage
 
 /**
  * An image of a Markdown text, read from [file] off the main thread and drawn no wider than it is (in the interface's
@@ -36,9 +30,7 @@ internal fun MarkdownImage(
     file: File?,
     fallback: @Composable () -> Unit,
 ) {
-    val bitmap = produceState<ImageBitmap?>(null, file, file?.lastModified()) {
-        value = file?.let { withContext(Dispatchers.IO) { runCatching { SkiaImage.makeFromEncoded(it.readBytes()).toComposeImageBitmap() }.getOrNull() } }
-    }.value
+    val bitmap = rememberImageFile(file)
     if (bitmap == null) {
         fallback()
         return

@@ -27,6 +27,7 @@ import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.BlockTypeEditor
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.Inheritance
+import com.pandulapeter.kubrikoCreator.ui.actorTypes.SpriteChoices
 import com.pandulapeter.kubrikoCreator.ui.screenplay.PageEditor
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ic_actor_type
@@ -146,7 +147,7 @@ class HealthHintsTest {
                 BlockTypeEditor(
                     definition = ball,
                     scope = BlockScope.of(ball, listOf(ball)),
-                    sprites = emptyList(),
+                    sprites = SpriteChoices(),
                     inheritance = Inheritance(),
                     isChangedByHand = false,
                     onCommand = { _, _ -> },

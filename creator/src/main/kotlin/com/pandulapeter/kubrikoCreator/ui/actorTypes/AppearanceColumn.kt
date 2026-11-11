@@ -19,12 +19,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.ColorField
+import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import kubriko.creator.generated.resources.Res
@@ -33,21 +36,24 @@ import kubriko.creator.generated.resources.actor_type_collision_shape
 import kubriko.creator.generated.resources.actor_type_height
 import kubriko.creator.generated.resources.actor_type_shape_circle
 import kubriko.creator.generated.resources.actor_type_shape_rectangle
+import kubriko.creator.generated.resources.actor_type_tints_sprite
 import kubriko.creator.generated.resources.actor_type_width
 import kubriko.creator.generated.resources.ic_palette
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * How an Actor type looks: its sprite, or its shape and color, and the size it is placed with. With a sprite, the
- * shape is only its collision mask's.
+ * How an Actor type looks: its sprite (with how it is cut into frames, and whether it is tinted with the color), or
+ * its shape and color, and the size it is placed with. With a sprite, the shape is only its collision mask's.
  *
- * @param sprites The images it can be drawn as, by their path from `composeResources`.
+ * @param sprites The images it can be drawn as.
+ * @param onSheetChange Cuts the sprite at the given path into frames, or shows it whole for null.
  */
 @Composable
 internal fun AppearanceColumn(
     definition: ActorTypeDefinition,
-    sprites: List<String>,
+    sprites: SpriteChoices,
     onChange: (SetAppearance.Input) -> Unit,
+    onSheetChange: (path: String, SpriteSheet?) -> Unit,
     modifier: Modifier = Modifier,
 ) = Column(
     modifier = modifier,
@@ -63,9 +69,28 @@ internal fun AppearanceColumn(
     ) {
         SpriteChoice(
             sprite = definition.sprite,
-            sprites = sprites,
+            sprites = sprites.paths,
             onSpriteChange = { onChange(SetAppearance.Input(definition.name, sprite = it)) },
         )
+        definition.sprite?.let { sprite ->
+            SpriteFramesRow(
+                path = sprite,
+                sprites = sprites,
+                tint = if (definition.tintsSprite) Color(definition.color) else null,
+                onSheetChange = { onSheetChange(sprite, it) },
+            )
+            LabeledSwitch(
+                label = stringResource(Res.string.actor_type_tints_sprite),
+                checked = definition.tintsSprite,
+                onCheckedChange = { onChange(SetAppearance.Input(definition.name, tintsSprite = it)) },
+            )
+        }
+        if (definition.sprite == null || definition.tintsSprite) {
+            ColorField(
+                color = definition.color,
+                onColorChange = { onChange(SetAppearance.Input(definition.name, color = it)) },
+            )
+        }
         if (definition.sprite != null) {
             Text(
                 text = stringResource(Res.string.actor_type_collision_shape),
@@ -82,12 +107,6 @@ internal fun AppearanceColumn(
                     label = { Text(stringResource(shape.title)) },
                 )
             }
-        }
-        if (definition.sprite == null) {
-            ColorField(
-                color = definition.color,
-                onColorChange = { onChange(SetAppearance.Input(definition.name, color = it)) },
-            )
         }
         NumberField(
             modifier = Modifier.fillMaxWidth(),

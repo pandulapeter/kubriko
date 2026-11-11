@@ -43,7 +43,7 @@ class BlockTypeEditorEventSelectionTest {
             BlockTypeEditor(
                 definition = definition,
                 scope = BlockScope.of(definition, listOf(definition)),
-                sprites = emptyList(),
+                sprites = SpriteChoices(),
                 inheritance = Inheritance(),
                 isChangedByHand = false,
                 onCommand = onCommand,

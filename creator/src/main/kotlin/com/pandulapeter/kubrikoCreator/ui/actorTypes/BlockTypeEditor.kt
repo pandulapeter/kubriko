@@ -58,7 +58,7 @@ import org.jetbrains.compose.resources.stringResource
  * and the palette of Blocks to add.
  *
  * @param scope What its Blocks can refer to.
- * @param sprites The images an Actor type can be drawn as, by their path from `composeResources`.
+ * @param sprites The images an Actor type can be drawn as.
  * @param inheritance What an Actor type gets from its parent, and the parents it can have.
  * @param onCommandIfValid Applies a command unless it is rejected, returning why it was: how renames are made.
  * @param currentDefinition The type as it is now, which an add that succeeded reads to find the Event it made, since
@@ -70,7 +70,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun BlockTypeEditor(
     definition: BlockTypeDefinition,
     scope: BlockScope,
-    sprites: List<String>,
+    sprites: SpriteChoices,
     inheritance: Inheritance,
     isChangedByHand: Boolean,
     onCommand: (Invocation<*>, onSuccess: () -> Unit) -> Unit,
@@ -260,7 +260,7 @@ private fun TypeDetails(
 @Composable
 private fun PropertiesColumn(
     definition: BlockTypeDefinition,
-    sprites: List<String>,
+    sprites: SpriteChoices,
     propertyKeys: List<Long>,
     inheritedProperties: List<PropertyDefinition>,
     actions: BlockTypeEditorActions,
@@ -275,6 +275,7 @@ private fun PropertiesColumn(
                     definition = definition,
                     sprites = sprites,
                     onChange = actions::setAppearance,
+                    onSheetChange = actions::setSpriteSheet,
                 )
                 HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
             }

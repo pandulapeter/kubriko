@@ -24,7 +24,9 @@ import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.BlockTypeEditor
+import com.pandulapeter.kubrikoCreator.ui.actorTypes.SpriteChoices
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.TypeEditorContextCache
 import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
 import com.pandulapeter.kubrikoCreator.ui.components.ProgressScreen
@@ -61,6 +63,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param markdownLinks What the links of the page or document shown point at.
  * @param onAddPageImage Puts an image on the page shown, or null if a document is shown.
  * @param markdownIdentity What tells the page or document shown apart from the one before ([MarkdownIdentity]).
+ * @param spriteSheets How the sprites cut into frames are cut, by their names.
  */
 @Composable
 internal fun WorkspaceCenter(
@@ -90,6 +93,7 @@ internal fun WorkspaceCenter(
     markdownLinks: PageLinksState? = null,
     markdownIdentity: Any? = null,
     onAddPageImage: ((PageImageSource, section: String?) -> Unit)? = null,
+    spriteSheets: Map<String, SpriteSheet> = emptyMap(),
 ) {
     val contentModifier = modifier.fadeInOnChange(shownContentKey(selection, sceneEditing))
     val markdownTitle = markdownTitleOf(selection)
@@ -143,7 +147,7 @@ internal fun WorkspaceCenter(
                 modifier = contentModifier,
                 definition = selectedBlockType,
                 scope = context.scope,
-                sprites = remember(resources) { SpriteFiles.of(resources).paths },
+                sprites = remember(resources, spriteSheets) { SpriteChoices(SpriteFiles.of(resources), spriteSheets) },
                 inheritance = context.inheritance,
                 isChangedByHand = selectedBlockType.name in changedByHand,
                 onCommand = onCommand,

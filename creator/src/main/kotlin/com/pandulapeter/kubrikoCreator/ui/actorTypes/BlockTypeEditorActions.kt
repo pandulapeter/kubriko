@@ -48,6 +48,8 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.RemoveText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.SetKotlinUi
 import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
+import com.pandulapeter.kubrikoCreator.commands.resources.SetSpriteSheet
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 
 /**
  * The commands the type editor of [definition] dispatches through [onCommand], one function per thing it changes.
@@ -75,6 +77,8 @@ internal class BlockTypeEditorActions(
     fun discardChangesMadeByHand() = dispatch(Invocation(DiscardChangesMadeByHand, DiscardChangesMadeByHand.Input(name)))
 
     fun setAppearance(input: SetAppearance.Input) = dispatch(Invocation(SetAppearance, input))
+
+    fun setSpriteSheet(path: String, sheet: SpriteSheet?) = dispatch(Invocation(SetSpriteSheet, SetSpriteSheet.Input(path, sheet)))
 
     fun addProperty(property: PropertyDefinition) = dispatch(Invocation(AddProperty, AddProperty.Input(name, property)))
 
