@@ -363,7 +363,7 @@ public class AssistantChat(
     private fun followPlan(toolsId: String) {
         scope.launch {
             project.planOf(toolsId).collect { steps ->
-                _transcript.update { transcript -> transcript.withUpdate(SessionUpdate.PlanUpdate(steps.map { PlanEntry(it.text, PlanEntryPriority.MEDIUM, it.status.toPlanEntryStatus()) })) }
+                _transcript.update { transcript -> transcript.withCreatorPlan(steps.map { PlanEntry(it.text, PlanEntryPriority.MEDIUM, it.status.toPlanEntryStatus()) }) }
             }
         }
     }

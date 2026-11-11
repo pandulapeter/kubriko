@@ -102,6 +102,16 @@ class AssistantTranscriptTest {
     }
 
     @Test
+    fun oncePlannedWithCreatorsToolTheAgentsAcpPlansNoLongerReplaceIt() {
+        val creators = listOf(PlanEntry("Add Lives", PlanEntryPriority.MEDIUM, PlanEntryStatus.PENDING))
+        val acp = listOf(PlanEntry("Read the Ball", PlanEntryPriority.MEDIUM, PlanEntryStatus.IN_PROGRESS))
+        val transcript = AssistantTranscript().with(SessionUpdate.PlanUpdate(acp)).withCreatorPlan(creators)
+        assertEquals(creators, transcript.plan)
+        assertEquals(creators, transcript.with(SessionUpdate.PlanUpdate(acp), SessionUpdate.PlanRemoved("plan")).plan)
+        assertTrue(transcript.isPlanAwaitingApproval)
+    }
+
+    @Test
     fun aPlanAnAgentStartedWithoutMarkingItOrWhoseTurnDidntEndAsMeantAwaitsNothing() {
         val proposed = AssistantTranscript().with(SessionUpdate.PlanUpdate(listOf(PlanEntry("Add Lives", PlanEntryPriority.MEDIUM, PlanEntryStatus.PENDING))))
         assertTrue(proposed.with(SessionUpdate.ToolCall(ToolCallId("1"), "mcp__kubriko-creator__list_scenes")).isPlanAwaitingApproval)

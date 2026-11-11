@@ -23,12 +23,15 @@ import com.pandulapeter.kubrikoCreator.commands.CommandRegistry
  * @param plan The agent's latest plan, shown as a checklist.
  * @param isPlanNew Whether the agent reported [plan] after the user's last message and changed nothing since, in a turn
  *   that ended as the agent meant it to, so the user hasn't answered it yet and nothing of it has been done.
+ * @param isPlanFromCreator Whether the agent lays its plan out with Kubriko Creator's `set_plan`, whose plans then take the
+ *   place of any it reports through ACP, so that two plans of one agent never take turns on the checklist.
  * @param usage What the conversation uses and cost, where the agent reports it.
  */
 public data class AssistantTranscript(
     val items: List<TranscriptItem> = emptyList(),
     val plan: List<PlanEntry> = emptyList(),
     val isPlanNew: Boolean = false,
+    val isPlanFromCreator: Boolean = false,
     val usage: ConversationUsage? = null,
 ) {
     /**
@@ -72,11 +75,19 @@ public data class AssistantTranscript(
                 if (transcript.isPlanNew && title != null && title != previous?.title && changesProject(title)) transcript.copy(isPlanNew = false) else transcript
             }
         }
-        is SessionUpdate.PlanUpdate -> copy(plan = update.entries, isPlanNew = true)
-        is SessionUpdate.PlanRemoved -> copy(plan = emptyList(), isPlanNew = false)
+        is SessionUpdate.PlanUpdate -> if (isPlanFromCreator) this else withPlan(update.entries)
+        is SessionUpdate.PlanRemoved -> if (isPlanFromCreator) this else copy(plan = emptyList(), isPlanNew = false)
         is SessionUpdate.UsageUpdate -> copy(usage = ConversationUsage(update.used, update.size, update.cost?.amount, update.cost?.currency))
         else -> this
     }
+
+    /**
+     * Shows [entries], the plan the agent laid out with Kubriko Creator's `set_plan`, from now on in place of any it reports
+     * through ACP.
+     */
+    internal fun withCreatorPlan(entries: List<PlanEntry>) = withPlan(entries).copy(isPlanFromCreator = true)
+
+    private fun withPlan(entries: List<PlanEntry>) = copy(plan = entries, isPlanNew = true)
 
     /**
      * Notes how a turn ended, unless the agent simply finished it.
