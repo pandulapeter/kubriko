@@ -19,6 +19,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
@@ -113,12 +116,17 @@ internal class ProjectChanges(
     }
 
     /**
-     * Follows Kubriko Creator's own writes of sprites' images, which the watcher never reports: as an image changed outside
-     * it, the Scene view is built again and the playing game follows.
+     * Follows Kubriko Creator's own writes of sprites' images, which the watcher never reports, as each raises [revision]:
+     * as for an image changed outside it, the Scene view is built again and the playing game follows, once a burst of
+     * writes (strokes drawn one after the other) settles for [SPRITE_IMAGES_SETTLING_IN_MILLISECONDS].
      */
-    fun onSpriteImagesWritten() {
-        following(markSceneOutdated)
-        following(onCodeChanged)
+    fun followSpriteImageWrites(revision: Flow<Int>) {
+        scope.launch {
+            revision.drop(1).debounce(SPRITE_IMAGES_SETTLING_IN_MILLISECONDS).collect {
+                following(markSceneOutdated)
+                following(onCodeChanged)
+            }
+        }
     }
 
     private val spriteSheetsLock = Any()
@@ -204,3 +212,9 @@ internal class ProjectChanges(
         SceneChange.FoldersChanged -> emptyList()
     }
 }
+
+/**
+ * How long Kubriko Creator's own writes of sprites' images have to stop for before they are followed
+ * ([ProjectChanges.followSpriteImageWrites]), so a burst of strokes rebuilds the Scene view and reaches the game once.
+ */
+internal const val SPRITE_IMAGES_SETTLING_IN_MILLISECONDS = 1_000L

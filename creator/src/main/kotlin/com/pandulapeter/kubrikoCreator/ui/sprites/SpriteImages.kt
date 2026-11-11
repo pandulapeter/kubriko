@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ui.sprites
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asComposeImageBitmap
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
@@ -44,15 +45,39 @@ internal fun PixelImage.toImageBitmap(): ImageBitmap {
 }
 
 /**
- * The frames of the sprite in [file], cut as [sheet] says, read off the main thread, and read again whenever [revision]
- * changes (an edit written, or the file changed outside); the frames read before stay shown meanwhile. Its caller shows
- * one sprite (keyed by it), so frames never outlive theirs.
+ * The frames of the sprite in [file], cut as [sheet] says, read off the main thread whenever [revision] changes (an edit
+ * written, or the files scanned again after a change outside), and decoded again only when the file's length or time
+ * changed, since one write raises both; the frames read before stay shown meanwhile. Its caller shows one sprite (keyed by
+ * it), so frames never outlive theirs.
  */
 @Composable
-internal fun rememberSpriteFrames(file: File?, sheet: SpriteSheet?, revision: Any?): SpriteFramesRead = produceState<SpriteFramesRead>(SpriteFramesRead.Reading, file, sheet, revision) {
-    val image = file?.let { withContext(Dispatchers.IO) { runCatching { PixelImage.of(it.readBytes()) }.getOrNull() } }
-    value = image?.let { SpriteFramesRead.Read(SpriteFrames.of(it, sheet?.takeIf { sheet -> sheet.problemWithImage(it.width, it.height) == null })) } ?: SpriteFramesRead.Unreadable
-}.value
+internal fun rememberSpriteFrames(file: File?, sheet: SpriteSheet?, revision: Any?): SpriteFramesRead {
+    val reader = remember { SpriteImageReader() }
+    return produceState<SpriteFramesRead>(SpriteFramesRead.Reading, file, sheet, revision) {
+        val image = file?.let { withContext(Dispatchers.IO) { reader.read(it) } }
+        value = image?.let { SpriteFramesRead.Read(SpriteFrames.of(it, sheet?.takeIf { sheet -> sheet.problemWithImage(it.width, it.height) == null })) } ?: SpriteFramesRead.Unreadable
+    }.value
+}
+
+/**
+ * Reads sprites' images, decoding one again only when its file's length or time changed since it was last read. Blocks.
+ */
+internal class SpriteImageReader {
+    private var lastFile: File? = null
+    private var lastStamp: Pair<Long, Long>? = null
+    private var lastImage: PixelImage? = null
+
+    @Synchronized
+    fun read(file: File): PixelImage? {
+        val stamp = file.length() to file.lastModified()
+        if (file != lastFile || stamp != lastStamp || lastImage == null) {
+            lastImage = runCatching { PixelImage.of(file.readBytes()) }.getOrNull()
+            lastFile = file
+            lastStamp = stamp
+        }
+        return lastImage
+    }
+}
 
 /**
  * What reading a sprite's frames ([rememberSpriteFrames]) came to so far.

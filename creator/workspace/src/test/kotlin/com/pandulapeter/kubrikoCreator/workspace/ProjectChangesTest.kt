@@ -21,6 +21,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -96,6 +97,20 @@ class ProjectChangesTest {
         router.onSpriteSheetsScanned(scanned = emptyMap(), now = bat)
         router.onSpriteSheetsScanned(scanned = bat, now = bat)
         assertEquals(listOf("regenerate", "scene outdated", "code changed"), calls)
+    }
+
+    @Test
+    fun aBurstOfSpriteImageWritesIsFollowedOnceItSettles() = runTest {
+        val revision = MutableStateFlow(0)
+        router(isUnconfined = false).followSpriteImageWrites(revision)
+        runCurrent()
+        repeat(3) {
+            revision.value++
+            advanceTimeBy(400)
+        }
+        assertEquals(emptyList(), calls)
+        advanceTimeBy(1_100)
+        assertEquals(listOf("scene outdated", "code changed"), calls)
     }
 
     @Test

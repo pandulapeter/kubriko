@@ -167,4 +167,15 @@ class SpriteEditorStateTest {
         assertEquals(0xFFCCCCCC.toInt(), overlay[1, 0])
         assertNull(overlayOf(2, 1, emptyList()))
     }
+
+    @Test
+    fun anImageIsDecodedAgainOnlyOnceItsFileChanged() {
+        val file = java.io.File(com.pandulapeter.kubrikoCreator.testing.testDirectory(), "ship.png").apply { writeBytes(frame.toPng()) }
+        val reader = SpriteImageReader()
+        val first = reader.read(file)
+        kotlin.test.assertSame(first, reader.read(file))
+        file.writeBytes(PixelImage(2, 2).toPng())
+        file.setLastModified(file.lastModified() + 2_000)
+        assertEquals(PixelImage(2, 2), reader.read(file))
+    }
 }
