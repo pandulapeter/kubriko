@@ -46,8 +46,11 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.put
 import java.io.IOException
 import java.net.InetAddress
 import java.net.ServerSocket
@@ -75,8 +78,12 @@ class McpToolServerTest {
 
     private suspend fun TestScope.start(executor: CommandExecutor?): Int = start { executor }
 
-    private suspend fun TestScope.start(token: String? = this@McpToolServerTest.token, executor: () -> CommandExecutor?): Int {
-        val started = McpToolServer(executor = executor, callDispatcher = Dispatchers.Default, version = "1.0.0")
+    private suspend fun TestScope.start(
+        token: String? = this@McpToolServerTest.token,
+        onToolCalled: (String, JsonObject, Boolean) -> Unit = { _, _, _ -> },
+        executor: () -> CommandExecutor?,
+    ): Int {
+        val started = McpToolServer(executor = executor, callDispatcher = Dispatchers.Default, version = "1.0.0", onToolCalled = onToolCalled)
         server = started
         return withContext(Dispatchers.IO) { started.start(port = 0, token = token) }
     }
@@ -178,6 +185,25 @@ class McpToolServerTest {
         assertEquals("create_actor_type", logged.toolName)
         assertEquals("""{"name":"Ball"}""", logged.arguments)
         assertTrue(logged.isError)
+    }
+
+    @Test
+    fun everyCallIsHandedOverWithItsWholeInput() = runTest {
+        val handedOver = mutableListOf<Triple<String, JsonObject, Boolean>>()
+        val executor = CommandExecutor(commandContext(ActorTypeDefinition("Ball")), testScope())
+        val started = start(onToolCalled = { name, arguments, isError -> synchronized(handedOver) { handedOver += Triple(name, arguments, isError) } }) { executor }
+        val description = "d".repeat(McpToolCall.PREVIEW_LENGTH * 2)
+        connected(started) {
+            callTool("create_actor_type", mapOf("name" to "Ball"))
+            callTool("create_actor_type", mapOf("name" to "Paddle", "description" to description))
+        }
+        assertEquals(
+            listOf(
+                Triple("create_actor_type", buildJsonObject { put("name", "Ball") }, true),
+                Triple("create_actor_type", buildJsonObject { put("name", "Paddle"); put("description", description) }, false),
+            ),
+            synchronized(handedOver) { handedOver.toList() },
+        )
     }
 
     @Test

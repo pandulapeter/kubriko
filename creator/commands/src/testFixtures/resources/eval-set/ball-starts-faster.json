@@ -1,0 +1,5 @@
+[
+  {"tool":"read_actor_type","arguments":{"actorType":"Ball"}},
+  {"tool":"edit_block","arguments":{"actorType":"Ball","eventIndex":0,"blockIndex":0,"block":{"type":"setVelocity","x":300,"y":-450}}},
+  {"tool":"remember_for_next_time","arguments":{"summary":"The Ball's starting velocity is 1.5 times faster: (300, -450) instead of (200, -300). Nothing is open."}}
+]

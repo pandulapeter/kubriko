@@ -1,0 +1,6 @@
+[
+  {"tool":"get_project_digest","arguments":{}},
+  {"tool":"read_manager_type","arguments":{"managerType":"Game","detail":"json"}},
+  {"tool":"edit_text","arguments":{"managerType":"Game","index":0,"text":{"text":"Score: {score}","position":"top","size":24,"color":"#202020"}}},
+  {"tool":"remember_for_next_time","arguments":{"summary":"Moved the Game Manager's score text from the top left to the top center of the screen; the lives text stays at the top left. Nothing is open."}}
+]

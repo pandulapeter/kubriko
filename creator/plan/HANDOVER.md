@@ -26,14 +26,19 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Start `01-ai-assistant.md` at its first item (the eval set, under Guards).
+`01-ai-assistant.md` holds only what waits on others now, so start `02-resources-and-search.md` at its first item.
 
-This session finished More live scenarios: `AssistantLiveScenariosTest` gained the chips (an Event chip's link, a Scene
-chip's link, and a Scene picture chip's image, a stand-in PNG), a settled convention written to the game's notes, and the
-`game-explorer` subagent answering through Creator's read tools; all three passed against the real Claude Agent. The explorer
-is asked for by name, since a live run showed the agent rightly doing a five-read question itself; the scenario guards the
-subagent's wiring, not the model's choice. Its `/code-review` findings were fixed in a commit of their own (stricter
-answers, the explorer's reads tied to the time its hand-over ran); none is left open.
+This session finished `01-ai-assistant.md`'s Guards, each reviewed with `/code-review` and its findings fixed in commits of
+their own:
+
+- More live scenarios: `AssistantLiveScenariosTest` gained the chips (an Event chip's link, a Scene chip's link, and a
+  Scene picture chip's image, a stand-in PNG), a settled convention written to the game's notes, and the `game-explorer`
+  subagent answering through Creator's read tools, asked for by name, since a live run showed the agent rightly doing a
+  five-read question itself.
+- The eval set: its requests and checks are `EvalSet` (`:creator:commands`' test fixtures), `EvalSetLiveTest` has the
+  real agent answer each on a fresh fixture and, with `KUBRIKO_CREATOR_EVAL_RECORD=true`, records its calls
+  (`EvalRecordings`), which `EvalSetTest` replays. All seven passed live and were recorded. The run showed models pausing
+  between `press_keys` steps with an empty step, which is now accepted.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 

@@ -18,7 +18,7 @@ whose exhaustive `when`s then show every place it needs.
 Kotlin Blocks are for advanced cases only: the agent writes one only when no combination of Blocks can do the job or the user asks
 for code (`AssistantSystemPrompt`). The first writers' room game (a side-scrolling shooter with scrolling stars and exploding aliens)
 needed twelve Kotlin Blocks, all for simple behavior. Each item replaces some of them, and the section is done when the eval set
-(`EvalSetTest`) builds the same game with no Kotlin Block left.
+(`EvalSet`) builds the same game with no Kotlin Block left.
 
 - **Random values:** any number a Block takes can be a fixed number, a random number between two (whole or not), or a Property, as one
   value type every number field shares rather than a random variant of each Block. A Property as a value covers "Set velocity to the

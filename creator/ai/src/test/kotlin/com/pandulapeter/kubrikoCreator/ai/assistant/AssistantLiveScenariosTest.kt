@@ -16,43 +16,29 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
-import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
-import com.pandulapeter.kubrikoCreator.commands.commandContext
-import com.pandulapeter.kubrikoCreator.commands.testScope
 import com.pandulapeter.kubrikoCreator.context.BreakoutFixture
 import com.pandulapeter.kubrikoCreator.context.screenplayTexts
-import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
-import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
-import com.pandulapeter.kubrikoCreator.mcp.clients.ShellProcessRunner
 import com.pandulapeter.kubrikoCreator.project.GameNotes
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import com.pandulapeter.kubrikoCreator.screenplay.PageText
 import com.pandulapeter.kubrikoCreator.screenplay.ScreenplayStyle
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import org.junit.Assume.assumeTrue
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
-import java.io.File
 import javax.imageio.ImageIO
-import kotlin.io.path.createTempDirectory
 import kotlin.math.hypot
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -63,7 +49,6 @@ import kotlin.time.Duration.Companion.seconds
  * configuration other than the default one. Answers vary, so each checks what the project became rather than the words.
  */
 class AssistantLiveScenariosTest {
-    private val isEnabled = System.getenv("KUBRIKO_CREATOR_CLAUDE_AGENT") == "true"
 
     @Test
     fun aChangeIsMadeThroughCreatorsToolsAndUndoneFromItsCard() = live { session ->
@@ -263,34 +248,8 @@ class AssistantLiveScenariosTest {
     private suspend fun LiveSession.hasPlayableSlice() = context.blockTypes!!.types.value.isNotEmpty() &&
         withContext(Dispatchers.IO) { context.scenes.names().any { context.scenes.actors(it)?.isNotEmpty() == true } }
 
-    private fun live(isBlank: Boolean = false, block: suspend TestScope.(LiveSession) -> Unit) {
-        assumeTrue(isEnabled)
-        runTest(timeout = if (isBlank) 90.minutes else 25.minutes) {
-            val session = newSession(isBlank)
-            try {
-                block(session)
-            } finally {
-                session.close()
-            }
-        }
-    }
-
-    /**
-     * Sends [text] and waits for the turn to end, in real time: [runTest]'s own clock would let the timeout pass at once.
-     */
-    private suspend fun AssistantChat.ask(
-        text: String,
-        timeout: Duration = 5.minutes,
-        model: SmallerModel? = null,
-        chips: List<AttentionChip> = emptyList(),
-        picture: ByteArray? = null,
-    ) = withContext(Dispatchers.Default) {
-        withTimeout(timeout) {
-            state.first { it == ChatState.Ready }
-            send(text, model = model) { AttentionChip.contentOf(chips) { picture } }
-            isBusy.first { it }
-            isBusy.first { !it }
-        }
+    private fun live(isBlank: Boolean = false, block: suspend TestScope.(LiveSession) -> Unit) = liveTest(if (isBlank) 90.minutes else 25.minutes) {
+        withLiveSession(isBlank) { block(it) }
     }
 
     /**
@@ -314,80 +273,7 @@ class AssistantLiveScenariosTest {
         return handOver >= 0 && drop(handOver + 1).any { it.creatorToolName?.startsWith("read_") == true }
     }
 
-    private fun AssistantChat.lastAnswer() = transcript.value.items.filterIsInstance<TranscriptItem.AgentMessage>().lastOrNull()?.text.orEmpty()
-
     private fun CommandContext.ball() = blockTypes!!.get("Ball") as ActorTypeDefinition
-
-    /**
-     * The real Claude Agent with Kubriko Creator's tools on a fresh Breakout fixture.
-     */
-    private inner class LiveSession {
-        val mainThread = Dispatchers.Default
-        private val scope = CoroutineScope(SupervisorJob() + mainThread)
-        val projectDirectory = createTempDirectory().toFile()
-        val projectPath: String = projectDirectory.path
-        private val npx = File(assertNotNull(ShellProcessRunner().locate("npx"), "Node.js isn't installed."))
-        private val configDirectory = System.getenv("KUBRIKO_CREATOR_CLAUDE_CONFIG_DIR")
-        lateinit var context: CommandContext
-        lateinit var executor: CommandExecutor
-
-        @Volatile
-        var lastSummary: String? = null
-        val toolServer = McpToolServer(executor = { executor }, callDispatcher = mainThread, version = "1.0.0")
-        private var assistant = newAssistant()
-
-        @OptIn(EditorMutation::class)
-        fun TestScope.prepare(isBlank: Boolean) {
-            context = commandContext(*if (isBlank) emptyArray() else BreakoutFixture.types.toTypedArray(), rootDirectory = projectDirectory)
-            if (!isBlank) context.scenes.write("level-1", BreakoutFixture.level)
-            executor = CommandExecutor(context, testScope())
-        }
-
-        private fun newAssistant() = Assistant(
-            agent = AcpAgent(
-                command = RegistryAgent.npxCommand(RegistryAgent.claude.distribution as AgentDistribution.Npx, npx, AgentProfile.claude.environment + listOfNotNull(configDirectory?.let { "CLAUDE_CONFIG_DIR" to it })),
-                launcher = ProcessAgentLauncher(projectDirectory),
-                clientInfo = AcpAgent.clientInfo("1.0.0"),
-                scope = scope,
-                ioDispatcher = Dispatchers.IO,
-            ),
-            toolServer = toolServer,
-            ioDispatcher = Dispatchers.IO,
-            profile = AgentProfile.claude,
-            systemPrompt = AssistantSystemPrompt::withProject,
-        )
-
-        suspend fun chat(resuming: String? = null, rules: String? = null, projectContext: String? = null) = withContext(mainThread) {
-            val owner = assistant
-            AssistantChat(
-                parentScope = scope,
-                start = { permissions, onHistory ->
-                    if (resuming == null) {
-                        owner.newConversation(projectDirectory, permissions, projectContext, rules)
-                    } else {
-                        owner.resumeConversation(projectDirectory, resuming, permissions, onHistory, rules)
-                    }
-                },
-                end = owner::closeConversation,
-                toolsIdOf = owner::toolsIdOf,
-                project = OpenProjectAccess.of { executor },
-                onTurnEnded = { turn -> turn.toolsId?.let(context.summaries::take)?.let { lastSummary = it } },
-            )
-        }
-
-        fun restartAgent() {
-            assistant.close()
-            assistant = newAssistant()
-        }
-
-        fun close() {
-            assistant.close()
-            scope.cancel()
-            projectDirectory.deleteRecursively()
-        }
-    }
-
-    private fun TestScope.newSession(isBlank: Boolean) = LiveSession().apply { prepare(isBlank) }
 
     private companion object {
         /**

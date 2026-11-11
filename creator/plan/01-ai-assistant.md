@@ -11,14 +11,8 @@
 
 What is left of the assistant panel (`:creator:ai`'s `ai/assistant`, `ui/assistant`) and the MCP server (`mcp`) that needs no other
 plan. Searching conversations comes with the rest of search (`02-resources-and-search.md`), and the AI's view of the running game
-with the debugger (`07-debugger.md`). Every new tool keeps `TokenBudgetTest` within its budget and joins `EvalSetTest` where models
+with the debugger (`07-debugger.md`). Every new tool keeps `TokenBudgetTest` within its budget and joins `EvalSet` where models
 call it.
-
-## Guards
-
-- The eval set (`EvalSetTest`) with calls recorded from real sessions rather than written by hand, more requests ("stop the paddle on
-  key release"), and an opt-in live run that has a real agent answer each request against a scratch project, like the template
-  integration test.
 
 ## Waiting on others
 

@@ -90,7 +90,7 @@ code that is truly used once. Kotlin stays the last resort, and when it is neede
   once.
 - **Tested:** generator tests for each place one lives, every parameter kind, results as values and Conditions, and a Kotlin body;
   `EveryBlockTypes` calls one of each; `GeneratedCodeGoldenTest` pins them; the allocation rules hold for a call in `update`;
-  `EvalSetTest` gains requests that should end in a custom Block ("make all three enemies explode the same way") and one that
+  `EvalSet` gains requests that should end in a custom Block ("make all three enemies explode the same way") and one that
   should end in a Kotlin body rather than a Kotlin Block.
 
 **Sharing between projects:** "Add to my Blocks" copies a project custom Block (and its Kotlin body) into a library in Creator's

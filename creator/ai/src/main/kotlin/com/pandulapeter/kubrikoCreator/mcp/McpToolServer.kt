@@ -70,6 +70,8 @@ import java.util.concurrent.ConcurrentHashMap
  * @param executor The command executor of the open project, or null if none is open.
  * @param callDispatcher Where tool calls run: the main thread, which the command history is confined to.
  * @param beforeEngineStart Runs right before the engine starts listening; tests use it to stop the server meanwhile.
+ * @param onToolCalled Called after every tool call with its whole input, which [calls] keeps only the start of; the eval
+ *   set's live run records real sessions' calls with it.
  */
 public class McpToolServer(
     private val executor: () -> CommandExecutor?,
@@ -77,6 +79,7 @@ public class McpToolServer(
     private val version: String,
     private val registry: CommandRegistry = CommandRegistry.editor,
     private val beforeEngineStart: suspend () -> Unit = {},
+    private val onToolCalled: (toolName: String, arguments: JsonObject, isError: Boolean) -> Unit = { _, _, _ -> },
 ) {
     private val _calls = MutableStateFlow(emptyList<McpToolCall>())
 
@@ -258,6 +261,7 @@ public class McpToolServer(
 
     private fun result(toolName: String, arguments: JsonObject, text: String, isError: Boolean, image: ByteArray? = null): CallToolResult {
         _calls.update { (it + McpToolCall.of(toolName, arguments.toString(), text, isError)).takeLast(LOG_SIZE) }
+        onToolCalled(toolName, arguments, isError)
         return CallToolResult(
             content = listOfNotNull(TextContent(text), image?.let { ImageContent(data = Base64.getEncoder().encodeToString(it), mimeType = "image/png") }),
             isError = isError,

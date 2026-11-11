@@ -60,8 +60,11 @@ model and code generators (`core/src/main/kotlin/com/pandulapeter/kubrikoCreator
   - `KUBRIKO_CREATOR_CLAUDE_AGENT=true` (`KUBRIKO_CREATOR_CLAUDE_CONFIG_DIR` picks a Claude Code configuration) runs the real
     Claude Agent on an existing login: `ClaudeAgentLiveTest`, and `AssistantLiveScenariosTest`'s headless conversations on the
     Breakout fixture, which check what the project became, not the words. They cost a few requests on the user's subscription,
-    so run them (`./gradlew :creator:ai:test --tests "*AssistantLiveScenariosTest*" --rerun`) when the assistant's behaviour changed; `EvalSetTest`
-    replays recorded tool calls for free.
+    so run them (`./gradlew :creator:ai:test --tests "*AssistantLiveScenariosTest*" --rerun`) when the assistant's behaviour changed.
+    `EvalSetLiveTest` has the agent answer every request of the eval set (`EvalSet`), each on a fresh fixture; with
+    `KUBRIKO_CREATOR_EVAL_RECORD=true` it writes the calls of each request that passed as its recording (`EvalRecordings`,
+    in `:creator:commands`' test fixtures' resources), which `EvalSetTest` replays for free. Record again after a tool's input
+    changes, rather than editing a recording by hand.
 - Controllers are tested against fakes in `testing/` (`FakeProjectBuild`, `FakeSessionChannel`, `FakeBlockTypeRepository`, `FakeGitRepository`),
   file code against real temporary folders, git against real temporary repositories (JGit needs no installed git), and sockets,
   the MCP server, and shell commands for real on localhost. Tests on real threads use `testing/blockingTest`, and assert that
@@ -511,8 +514,9 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   touches Claude.ai credentials; Claude Code signs in by itself, through Anthropic's own flow, and runs unmodified from the registry's
   adapter. Creator may say in plain text that it runs Claude Code, but no feature carries Claude Code's or Anthropic's names or logos:
   the panel is "Assistant", and the agent "Claude Agent", as the registry names it.
-- **Guards:** `EvalSetTest` replays the calls models make for realistic requests, so a tool change that would break them fails
-  without tokens, and `TokenBudgetTest` keeps the tool list, the tools loaded from the start, the digest, and the big reads under
+- **Guards:** `EvalSetTest` replays the calls a real agent made for realistic requests (recorded by `EvalSetLiveTest`, never written
+  by hand, since what models really call is what breaks), each request checked by what the project became, so a tool change that
+  would break them fails without tokens, and `TokenBudgetTest` keeps the tool list, the tools loaded from the start, the digest, and the big reads under
   budgets set just above what they cost.
 - **Round trips cost most:** every call re-reads the whole conversation, so the tools a session uses most are loaded from the
   start (`CommandRegistry.alwaysLoaded`, sent as `anthropic/alwaysLoad`, since a schema the model looks up stays in the

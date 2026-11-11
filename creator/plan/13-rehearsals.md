@@ -206,7 +206,7 @@ Test files are Kotlin the user may also write by hand, so Creator writes them on
 - **Health checks:** failing rehearsals, rehearsals that don't compile, and rehearsals that name something deleted.
 - **Outside agents** get the same tools over MCP; one that writes files itself (Claude Code in a terminal) is picked up by the watcher.
   The template's `AGENTS.md` says what rehearsals are, where they go, which kit they use, and how to run them (`./gradlew desktopTest`).
-- **Guards:** `EvalSetTest` requests that write, run, and fix rehearsals ("the ball sometimes goes through the paddle"),
+- **Guards:** `EvalSet` requests that write, run, and fix rehearsals ("the ball sometimes goes through the paddle"),
   `TokenBudgetTest` budgets for the new tools and the digest line, `AiFeaturesOffTest` covers the new setting and the assistant's
   entries, and a live scenario (`AssistantLiveScenariosTest`) on the Breakout fixture: asked to make a brick take two hits, the agent
   changes the type, adds a rehearsal of it, runs it, and ends with every rehearsal passing. Unit tests hold an edit of a hand-written
@@ -224,7 +224,7 @@ on its editor's header as a type's are.
   way; what a rehearsal touches includes the custom Blocks it calls.
 - **My Blocks** (the library shared between projects) keeps a custom Block's tests with it, and copies them into a project with it.
 - **Tested:** the command's file against the template, a passing and a failing test of a Kotlin body in
-  `ProjectTemplateIntegrationTest`, and an `EvalSetTest` request that writes a Kotlin body and its test.
+  `ProjectTemplateIntegrationTest`, and an `EvalSet` request that writes a Kotlin body and its test.
 
 ## Later
 
