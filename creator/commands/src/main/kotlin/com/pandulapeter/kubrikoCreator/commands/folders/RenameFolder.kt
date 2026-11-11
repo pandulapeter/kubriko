@@ -15,12 +15,10 @@ import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.CompositeCommand
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
-import com.pandulapeter.kubrikoCreator.commands.resources.followInScenes
-import com.pandulapeter.kubrikoCreator.commands.resources.followInTypes
-import com.pandulapeter.kubrikoCreator.commands.resources.reportNamedInCode
 import com.pandulapeter.kubrikoCreator.commands.resources.resourceFilesOnDisk
 import com.pandulapeter.kubrikoCreator.commands.screenplay.projectPathOf
 import com.pandulapeter.kubrikoCreator.commands.screenplay.validatePageName
@@ -33,6 +31,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @OptIn(EditorMutation::class)
 public object RenameFolder : WriteCommand<RenameFolder.Input> {
@@ -71,7 +70,15 @@ public object RenameFolder : WriteCommand<RenameFolder.Input> {
             emptyList<PathMove>() to emptyMap()
         }
         context.moveFolder(input.group, input.path, newPath)?.let { rejection -> return Applied(inverse = null, failure = rejection) }
-        audioRenames.forEach { (path, renamed) -> context.followAudioFile(path, renamed) }
+        val renamingBack = Invocation(RenameFolder, Input(input.group, newPath, FolderPaths.nameOf(input.path)))
+        val inverse = if (input.group.resourceKind == null) {
+            renamingBack
+        } else {
+            // Restoring, since the resource scan that knows the moved files may come after the undo.
+            val movingBack = renamingBack.copy(input = renamingBack.input.copy(movesOnly = true), isRestoring = true)
+            val restoring = listOf(movingBack) + if (input.movesOnly) emptyList() else context.followAudioFiles(audioRenames)
+            restoring.singleOrNull() ?: Invocation(CompositeCommand, CompositeCommand.Input(restoring))
+        }
         val moves = when (val kind = input.group.kind) {
             null -> if (input.group.resourceKind != null) {
                 audioMoves
@@ -84,17 +91,7 @@ public object RenameFolder : WriteCommand<RenameFolder.Input> {
             }
             else -> listOf(PathMove(DefinitionPaths.folderPath(kind, input.path), DefinitionPaths.folderPath(kind, newPath)))
         }
-        return context.withMentionsFollowed(moves, Applied(inverse = Invocation(RenameFolder, Input(input.group, newPath, FolderPaths.nameOf(input.path)))))
-    }
-
-    /**
-     * Makes what uses the sound or music file at [path] use it at [newPath], as renaming it would; undoing the folder's
-     * rename moves it back the same way.
-     */
-    private suspend fun CommandContext.followAudioFile(path: String, newPath: String) {
-        reportNamedInCode(path, newPath)
-        followInTypes(path, newPath)
-        followInScenes(path, newPath)
+        return context.withMentionsFollowed(moves, Applied(inverse = inverse))
     }
 
     /**
@@ -106,6 +103,10 @@ public object RenameFolder : WriteCommand<RenameFolder.Input> {
 
     private fun renamed(input: Input) = FolderPaths.child(FolderPaths.parentOf(input.path), input.newName)
 
+    /**
+     * @param movesOnly Whether an audio folder's files only move, leaving what uses them: how undo and redo move them,
+     *   while the steps beside it put back exactly what the rename changed.
+     */
     @Serializable
     public data class Input(
         @Description("What the folder holds.")
@@ -114,5 +115,6 @@ public object RenameFolder : WriteCommand<RenameFolder.Input> {
         @SerialName("path") val path: String,
         @Description("Its new name (only the last part of the path changes).")
         @SerialName("newName") val newName: String,
+        @Transient val movesOnly: Boolean = false,
     )
 }

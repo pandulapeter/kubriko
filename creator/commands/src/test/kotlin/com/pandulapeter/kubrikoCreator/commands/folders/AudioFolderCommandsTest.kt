@@ -24,6 +24,7 @@ import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.usagesOf
+import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.test.TestScope
@@ -56,11 +57,12 @@ class AudioFolderCommandsTest {
         sounds: List<String> = emptyList(),
         music: List<String> = emptyList(),
         resources: String = common,
+        report: (ConsoleEntry) -> Unit = {},
     ): CommandContext {
         val root = testDirectory()
         sounds.forEach { File(root, "$resources/$it").apply { parentFile.mkdirs() }.writeBytes(wav) }
         music.forEach { File(root, "$resources/$it").apply { parentFile.mkdirs() }.writeBytes(mp3) }
-        return commandContext(*types, rootDirectory = root, spriteFiles = SpriteFiles(emptyMap()), audioFiles = AudioFiles(sounds, music))
+        return commandContext(*types, rootDirectory = root, spriteFiles = SpriteFiles(emptyMap()), audioFiles = AudioFiles(sounds, music), report = report)
     }
 
     private fun CommandContext.directory(path: String) = File(project.rootDirectory, path)
@@ -165,5 +167,19 @@ class AudioFolderCommandsTest {
         val context = context(sounds = listOf("files/sfx/hit.wav"))
         assertEquals(Rejection(CommandProblem.AUDIO_FOLDER_RESERVED, "Scenes"), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.SOUNDS, "Scenes")))
         assertEquals(Rejection(CommandProblem.AUDIO_FOLDER_RESERVED, "SCENES"), RenameFolder.validate(context, RenameFolder.Input(FolderGroup.SOUNDS, "sfx", "SCENES")))
+    }
+
+    @Test
+    fun undoingARenamePutsBackExactlyWhatItChanged() = runTest {
+        val dangling = ActorTypeDefinition(name = "Ghost", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.PlaySound("files/sounds/foes/hit.wav")))))
+        val reported = ArrayList<ConsoleEntry>()
+        val context = context(player, dangling, sounds = listOf("files/sounds/enemies/hit.wav", "files/sounds/enemies/deep/roar.wav"), report = { reported += it })
+        File(context.project.rootDirectory, "src/commonMain/kotlin/Game.kt").apply { parentFile.mkdirs() }.writeText("val a = \"files/sounds/enemies/hit.wav\"\nval b = \"files/sounds/enemies/deep/roar.wav\"")
+        val before = context.blockTypes!!.types.value
+        val inverse = RenameFolder.apply(context, RenameFolder.Input(FolderGroup.SOUNDS, "sounds/enemies", "foes")).inverse!!
+        assertEquals(2, reported.size, reported.toString())
+        inverse.copy(isRestoring = true).apply(context)
+        assertEquals(before, context.blockTypes!!.types.value)
+        assertTrue(context.directory("$common/files/sounds/enemies/deep/roar.wav").isFile)
     }
 }

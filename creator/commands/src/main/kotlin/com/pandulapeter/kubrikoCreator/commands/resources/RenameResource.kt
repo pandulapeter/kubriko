@@ -70,7 +70,8 @@ public object RenameResource : WriteCommand<RenameResource.Input> {
         val movingBack = Invocation(RenameResource, Input(input.newPath, input.path, movesOnly = true), isRestoring = true)
         if (input.movesOnly) return Applied(inverse = movingBack)
         context.reportNamedInCode(input.path, input.newPath)
-        val restoring = listOfNotNull(movingBack, context.followInTypes(input.path, input.newPath), context.followInScenes(input.path, input.newPath))
+        val renames = mapOf(input.path to input.newPath)
+        val restoring = listOfNotNull(movingBack, context.followInTypes(renames), context.followInScenes(renames))
         return context.withMentionsFollowed(moves, Applied(inverse = restoring.singleOrNull() ?: Invocation(CompositeCommand, CompositeCommand.Input(restoring))))
     }
 

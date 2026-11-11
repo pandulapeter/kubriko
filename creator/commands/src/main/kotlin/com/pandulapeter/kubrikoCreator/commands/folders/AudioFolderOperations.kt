@@ -14,10 +14,15 @@ import com.pandulapeter.kubrikoCreator.actors.FolderPaths
 import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
+import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.resources.followInScenes
+import com.pandulapeter.kubrikoCreator.commands.resources.followInTypes
 import com.pandulapeter.kubrikoCreator.commands.resources.knownResourcePaths
+import com.pandulapeter.kubrikoCreator.commands.resources.reportNamedInCode
 import com.pandulapeter.kubrikoCreator.commands.resources.resourceFilesOnDisk
 import com.pandulapeter.kubrikoCreator.commands.screenplay.projectPathOf
+import com.pandulapeter.kubrikoCreator.context.withKotlinFilesHeld
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.foundation.moveWithoutReplacing
 import com.pandulapeter.kubrikoCreator.project.ProjectTree
@@ -123,4 +128,17 @@ internal fun CommandContext.holdsAudioOnDisk(path: String): Boolean = resourceFi
 private fun isAudioWithin(resourcePath: String, folder: String): Boolean {
     val kind = ResourceKind.of(resourcePath)
     return kind != null && kind != ResourceKind.SPRITE && FolderPaths.isWithin(ResourceKind.audioFolderOf(resourcePath), folder)
+}
+
+/**
+ * Makes what uses each sound or music file of [renames] (from `composeResources`) use its new path, as renaming each
+ * would, in one pass: the hand-written Kotlin read once, and the Scenes written together.
+ *
+ * @return What puts back the types and Scenes it changed exactly, or nothing if it changed none.
+ */
+@EditorMutation
+internal suspend fun CommandContext.followAudioFiles(renames: Map<String, String>): List<Invocation<*>> {
+    if (renames.isEmpty()) return emptyList()
+    withKotlinFilesHeld { renames.forEach { (path, newPath) -> reportNamedInCode(path, newPath) } }
+    return listOfNotNull(followInTypes(renames), followInScenes(renames))
 }

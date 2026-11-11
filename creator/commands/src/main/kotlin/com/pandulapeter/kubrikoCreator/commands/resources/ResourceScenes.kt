@@ -18,10 +18,17 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
  * [newPath] instead (empty for none), by the Scene's name; Scenes that play other music, or can't be read, are left out.
  * Blocks.
  */
-internal fun CommandContext.scenesWithMusicReplaced(sceneNames: Collection<String>, oldPath: String, newPath: String): Map<String, String> = sceneNames.mapNotNull { name ->
+internal fun CommandContext.scenesWithMusicReplaced(sceneNames: Collection<String>, oldPath: String, newPath: String): Map<String, String> =
+    scenesWithMusicReplaced(sceneNames, mapOf(oldPath to newPath))
+
+/**
+ * The text each Scene of [sceneNames] playing the music at one of [renames]' keys would have playing its value
+ * instead, as [scenesWithMusicReplaced] does for one. Blocks.
+ */
+internal fun CommandContext.scenesWithMusicReplaced(sceneNames: Collection<String>, renames: Map<String, String>): Map<String, String> = sceneNames.mapNotNull { name ->
     val actors = scenes.actors(name) ?: return@mapNotNull null
     val index = SceneSettingsState.indexIn(actors).takeIf { it >= 0 } ?: return@mapNotNull null
     val settings = actors[index]
-    if (SceneSettingsState.read(settings.state).music != oldPath) return@mapNotNull null
+    val newPath = renames[SceneSettingsState.read(settings.state).music] ?: return@mapNotNull null
     name to SceneDocument.format(actors.toMutableList().apply { set(index, settings.copy(state = SceneSettingsState.withMusic(settings.state, newPath))) })
 }.toMap()
