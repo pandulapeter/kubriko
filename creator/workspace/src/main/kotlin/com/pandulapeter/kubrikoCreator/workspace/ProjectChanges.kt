@@ -121,8 +121,10 @@ internal class ProjectChanges(
 
     /**
      * Takes the sheets the first scan read ([scanned]) as what later ones are compared with, since the opening generates
-     * the code from them anyway, then follows the sheets the sprites' store has [now], which a change made since may
-     * already have moved on from. Only the first scan's call counts.
+     * the code from them anyway, then follows the sheets the sprites' store has [now], which a change made while the scan
+     * ran may already have moved on from, and which the store's own updates may have reported before there was anything
+     * to compare them with. Only the first scan's call sets what is compared with. Called on the main thread, once the
+     * scan's resources are published, as every follower runs.
      */
     fun onSpriteSheetsScanned(scanned: Map<String, SpriteSheet>, now: Map<String, SpriteSheet>) {
         synchronized(spriteSheetsLock) { if (knownSpriteSheets == null) knownSpriteSheets = scanned }

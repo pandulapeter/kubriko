@@ -32,6 +32,7 @@ import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingController
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneRuntimeSetup
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import com.pandulapeter.kubrikoCreator.template.GameTargets
 import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
 import com.pandulapeter.kubrikoCreator.template.TargetHost
@@ -418,9 +419,10 @@ public class WorkspaceController(
     private suspend fun scanResourcesNow(snapshot: ProjectSnapshot?) {
         val scannedAt = files.ownWrites.generation
         val currentSnapshot = snapshot?.takeIf { it.ownWriteGeneration == scannedAt }
+        var spriteSheets = emptyMap<String, SpriteSheet>()
         val (resources, layout) = withContext(ioDispatcher) {
             commands.context.audioFolders.refresh()
-            changes.onSpriteSheetsScanned(commands.context.spriteFolders.refresh().sheets, commands.context.spriteFolders.state.value.sheets)
+            spriteSheets = commands.context.spriteFolders.refresh().sheets
             files.scanResources(project.rootDirectory, currentSnapshot).let { resources ->
                 resources to ProjectLayout.of(project.rootDirectory, resources, generatedPath, sceneHome, currentSnapshot, commands.context.audioFolders.folders())
             }
@@ -429,6 +431,7 @@ public class WorkspaceController(
         _resources.value = resources
         _layout.value = layout
         isScanned.value = true
+        changes.onSpriteSheetsScanned(spriteSheets, commands.context.spriteFolders.state.value.sheets)
         // After the new resources are in, so that Scenes outside the Scenes folder are found too.
         withContext(ioDispatcher) { scenes.refresh() }
     }
