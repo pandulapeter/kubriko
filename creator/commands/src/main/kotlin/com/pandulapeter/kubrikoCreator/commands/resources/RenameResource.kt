@@ -67,6 +67,7 @@ public object RenameResource : WriteCommand<RenameResource.Input> {
         if (moves.isEmpty()) return Applied.failed(Rejection(LookupProblem.RESOURCE_MISSING, input.path))
         if (ResourceKind.of(input.path) == ResourceKind.SPRITE) {
             withContext(context.ioDispatcher) { context.spriteFolders.rename(ResourceKind.nameOf(input.path), ResourceKind.nameOf(input.newPath)) }
+            context.onSpriteImagesChanged()
         }
         context.onFilesChanged()
         // Restoring, since the resource scan that knows the new name may come after the undo.

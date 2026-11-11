@@ -131,8 +131,11 @@ class ResourceCommandsTest {
         CreatePage.apply(context, CreatePage.Input("README", "# Game\n\n![The ball](../$resources/drawable/ball.png)\n\nIt bounces like a [ball](../$resources/drawable/ball.png).\n"))
 
         assertNull(Invocation(RenameResource, RenameResource.Input("drawable/ball.png", "drawable/orb.png")).validate(context))
+        val imagesRevision = context.spriteImagesRevision.value
         assertNull(RenameResource.apply(context, RenameResource.Input("drawable/ball.png", "drawable/orb.png")).failure)
+        assertEquals(imagesRevision + 1, context.spriteImagesRevision.value, "the Scene view and the game follow a sprite renamed in Kubriko Creator")
         RenameResource.apply(context, RenameResource.Input("files/sounds/hit.wav", "files/effects/bounce.wav"))
+        assertEquals(imagesRevision + 1, context.spriteImagesRevision.value, "a sound is no sprite")
         RenameResource.apply(context, RenameResource.Input("files/music/theme.mp3", "files/music/song.mp3"))
 
         val renamed = context.blockTypes!!["Ball"] as ActorTypeDefinition
