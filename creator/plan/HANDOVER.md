@@ -26,25 +26,35 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Start `01-sprite-editor.md`, which the user moved ahead of search and the Blocks (2026-11-11) to see something visual sooner,
-beginning with its sprite sheets.
+Go on with `01-sprite-editor.md`, from its Files (New sprite, importing), then the editor and animation. Its first item,
+sprite sheets as an appearance, is done (adf9a30db..cfefeba2d) and was reviewed with `/code-review` twice (the item, then
+its fixes), every finding fixed in a commit of its own or answered below:
 
-The last item finished, folders' last bullet, was reviewed with `/code-review` and every finding fixed in a commit of its own:
+- A sprite's sheet (`SpriteSheet`: frame size, count, frames per row, frames per second, and origin) is kept in its file in
+  `.kubriko/sprites` (`SpriteFolderStore.setSheet`), set through `set_sprite_sheet` (undo restores the files byte for
+  byte, through `ReplaceFiles`) and the appearance column's Frames dialog, and listed by `list_resources`.
+- Types drawn as a sheet are generated with `AnimatedSprite.fromAtlas`, stepped in `update` before any Event; a family's
+  base class plays them through `open` hooks (`actors/CLAUDE.md`). New Blocks: Set the frame (`setFrame`) and Set the
+  animation (`setAnimation`, speed and looping). `tintsSprite` multiplies a sprite by the color. The origin is the type's:
+  the final class sets the pivot from it as each Actor is created.
+- Format version 4 (`ReservedPropertyMigration.ANIMATION`, generalized from format 3's `look` migration) reserves
+  `animation`, `animationSpeed`, and `isAnimationLooping`, and covers the Blocks and `tintsSprite`.
+- A sheet change, from Creator or outside it, regenerates through `ProjectChanges.onSpriteSheets`, compared with what the
+  first scan read; `BlockTypeStore` reads the sheets itself (`SpriteSheetFiles`, parsing only changed text), so code
+  generated before the first scan or by a migration is never stale. That second read was a review finding kept on purpose.
+- The Scene editor's preview shows a sheet's first frame, tinted and turned around the origin, as the game does.
+- Kept on purpose from the second review: the generated `init` overrides a saved pivot, which only Kubriko's own scene
+  editor could have set (Creator's never does, and resizing puts it back in the middle).
+- `ProjectTemplateIntegrationTest` (every target, against a Maven Local publish) builds the Block project with an animated,
+  tinted sheet and both new Blocks.
 
-- Dragging a whole folder into another (`move_folder`, which shares everything that follows a folder with `rename_folder`
-  through `relocateFolder`; the sidebar's folder rows drag as items do, never into themselves).
-- Which folders are open is kept per project in `.kubriko/local/sidebar.json` (`SidebarFolderExpansion`), follows every
-  folder a command moves (`FolderMoves`), and forgets what isn't shown once the whole project was read.
-- Review fixes: a page's state before an AI turn followed back through folder moves and renames, what is open following
-  undo, redo, the AI, and every module (rather than only the dragging gesture), stale kept choices forgotten, the
-  sidebar's state tied to its project, `move_folder`'s audio wording, and one validation and one Scene scan fewer.
-- `WorkspaceController` was at its 500-line limit, so its format status moved to `ProjectFormatState` first.
-- The flaky `AssistantSignInTest` on CI's Linux runner (it asserted before the sign-in settled) waits with `awaitIdle` now.
-
-The tool list's budget went from 20,900 to 21,000 for `move_folder`.
+The tool list's budget went from 21,000 to 21,600 for `set_sprite_sheet`, `tintsSprite`, and the two Blocks.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
+- A sprite sheet playing in a real game, and the Frames dialog and the playing thumbnail in the real app: an end-to-end
+  scenario under Xvfb could cut the Breakout ball's sprite into frames through `set_sprite_sheet` and check by pixels, in
+  two `take_screenshot`s with an `actorType` crop, that its frame changes.
 - Adding sprites, sounds, and music by dropping them from Finder onto the sidebar, through the file chooser, and by pasting
   a copied image or copied files; and the game playing one added that way (a Compose resource accessor appears only once the
   game builds, which Play does).
@@ -63,7 +73,7 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
 - Codex started as a `codex-work` alias's account signing in to that `CODEX_HOME` (running `codex-acp` fetched from npm wasn't
   allowed in this session; it is listed under Codex's profile in `ai-assistant.md`).
 - No live run has tried the agents' standing job of keeping the project organized in folders (`McpToolServer.INSTRUCTIONS`).
-- The eval set has no request using the new resource tools or `move_folder` yet; record one (`EvalSetLiveTest` with
+- The eval set has no request using the new resource tools, `move_folder`, `set_sprite_sheet`, or the animation Blocks yet; record one (`EvalSetLiveTest` with
   `KUBRIKO_CREATOR_EVAL_RECORD=true`) once a live run can be spent on it.
 
 ## Before a release

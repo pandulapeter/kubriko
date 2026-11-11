@@ -10,24 +10,15 @@
 # Sprite editor
 
 A pixel-art editor for sprites and their animations, inspired by GameMaker 6.1's sprite and image editors: a beginner draws the ball, the
-paddle, or a walking character without leaving Creator, frame by frame, with onion skinning. It starts with sprite sheets as an
-appearance (Sprite sheets, below), which give it something to edit.
-
-## Sprite sheets
-
-- **Appearance:** sprite sheets with animation settings (static sprites exist): the frame size, frame count, frames per row, frames
-  per second, and origin kept in the sprite's own file in `.kubriko/sprites` (`SpriteFolderStore`, which holds its folder), Blocks to set the frame,
-  speed, and looping, a sprite thumbnail in the appearance column, and tinting a sprite with the color. Each is a property of the
-  type's batched look (`core/.../actors/CLAUDE.md`), and a sprite sheet joins the game's one atlas whole (`AnimatedSprite.fromAtlas`,
-  `GeneratedSprites`). Layer and drawing order come with the Visible Trait (`04-reuse-and-traits.md`).
+paddle, or a walking character without leaving Creator, frame by frame, with onion skinning. It edits the sprite sheets
+Actor types are already drawn as (`SpriteSheet`, kept in each sprite's file in `.kubriko/sprites`, set through
+`set_sprite_sheet`).
 
 ## Files
 
 - **The PNG sprite sheet is the source of truth**, in the project's `composeResources/drawable`. Kubriko's sprites plugin already plays an
   animation from a sheet (`AnimatedSprite`: frames of one size in rows, `framesPerRow` wide), so that is the format under the hood, not
   a format of Creator's own or GIF: the game and IntelliJ need nothing else (`../CLAUDE.md` → Principles 1).
-- The sprite's file in `.kubriko/sprites` keeps what the sheet can't (frame size, frame count, frames per row, frames per second, and the
-  origin), as sprite sheets already use it. Deleting it leaves a plain image, which can be opened again by entering the frame size.
 - New sprites are added, renamed, and deleted as the sidebar already does; the editor adds New sprite and opens a
   sprite from the sidebar.
 - A new sprite starts as one fully transparent frame of the size the user picks (32 by 32 by default).
@@ -68,14 +59,9 @@ appearance (Sprite sheets, below), which give it something to edit.
 - The frames, their operations, and the sheet's store go into `:creator:core` (which runs no engine), the commands into
   `:creator:commands`, and the editor into the app's `ui`.
 
-## Sprites in the game
-
-A sheet the editor changes reaches the game through the appearance sprite sheets have (Sprite sheets, above), and a
-new Actor type's size defaults to the frame size of the sprite it is given.
-
 ## Order
 
-Sprite sheets first, since the editor edits them and the game plays them, then the files, the editor, and animation.
+The files first, then the editor, and animation.
 
 ## Later
 
