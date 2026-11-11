@@ -55,6 +55,34 @@ public object DrawPixels : WriteCommand<DrawPixels.Input> {
 
     private const val LEAVE = "."
 
+    /**
+     * The input drawing [pixels] on [frame] of [sprite]: single pixels while they are few, and rows of letters over the
+     * part they cover once they are many (a fill of a large image), which take far less memory than a pixel each.
+     */
+    public fun inputOf(sprite: String, frame: Int, pixels: List<Pixel>): Input {
+        val colors = pixels.map { it.color }.distinct()
+        if (pixels.size <= MAXIMUM_SINGLE_PIXELS || colors.size > PALETTE_LETTERS.length) {
+            return Input(sprite, frame, pixels = pixels.map { DrawnPixel(it.x, it.y, it.color.toLong() and 0xFFFFFFFFL) })
+        }
+        val left = pixels.minOf { it.x }
+        val top = pixels.minOf { it.y }
+        val width = pixels.maxOf { it.x } - left + 1
+        val rows = Array(pixels.maxOf { it.y } - top + 1) { CharArray(width) { LEAVE.single() } }
+        val letterOf = colors.withIndex().associate { (index, color) -> color to PALETTE_LETTERS[index] }
+        pixels.forEach { rows[it.y - top][it.x - left] = letterOf.getValue(it.color) }
+        return Input(
+            sprite = sprite,
+            frame = frame,
+            rows = rows.map(::String),
+            left = left,
+            top = top,
+            palette = letterOf.map { (color, letter) -> PaletteColor(letter.toString(), color.toLong() and 0xFFFFFFFFL) },
+        )
+    }
+
+    private const val MAXIMUM_SINGLE_PIXELS = 1024
+    private const val PALETTE_LETTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
     @Serializable
     public data class Input(
         @Description("The sprite's path from composeResources, like drawable/ship.png.")

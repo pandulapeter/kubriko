@@ -49,13 +49,13 @@ class SpriteEditorStateTest {
     fun shapesFillsAndTheEraserDrawWhatTheirToolsCover() {
         state.tool = SpriteTool.RECTANGLE
         state.isShapeFilled = true
-        assertEquals(4, state.also { it.startStroke(IntOffset(2, 2), false); it.continueStroke(IntOffset(3, 3)) }.finishStroke(frame).size)
+        assertEquals(4, state.also { it.startStroke(frame, IntOffset(2, 2), false); it.continueStroke(IntOffset(3, 3)) }.finishStroke().size)
         state.tool = SpriteTool.FILL
-        state.startStroke(IntOffset(0, 0), false)
-        assertEquals(listOf(Pixel(0, 0, blue), Pixel(1, 0, blue)), state.finishStroke(frame).sortedBy { it.x })
+        state.startStroke(frame, IntOffset(0, 0), false)
+        assertEquals(listOf(Pixel(0, 0, blue), Pixel(1, 0, blue)), state.finishStroke().sortedBy { it.x })
         state.tool = SpriteTool.ERASER
-        state.startStroke(IntOffset(1, 0), false)
-        assertEquals(listOf(Pixel(1, 0, PixelImage.TRANSPARENT)), state.finishStroke(frame))
+        state.startStroke(frame, IntOffset(1, 0), false)
+        assertEquals(listOf(Pixel(1, 0, PixelImage.TRANSPARENT)), state.finishStroke())
     }
 
     @Test
@@ -148,5 +148,23 @@ class SpriteEditorStateTest {
         assertNull(state.floating)
         assertNull(state.selection)
         assertEquals(emptyList(), state.settle(frame))
+    }
+
+    @Test
+    fun aLongPencilStrokeCoversEachPixelOnceAsItGoes() {
+        state.startStroke(frame, IntOffset(0, 3), isSecondary = false)
+        (1..3).forEach { state.continueStroke(IntOffset(it, 3)) }
+        state.continueStroke(IntOffset(0, 3))
+        assertEquals((0..3).map { Pixel(it, 3, blue) }, state.strokePreview)
+        assertEquals((0..3).map { Pixel(it, 3, blue) }, state.finishStroke())
+        assertEquals(emptyList(), state.strokePreview)
+    }
+
+    @Test
+    fun whatIsDrawnButNotReadBackIsOneOverlayWithErasedPixelsShownAsSuch() {
+        val overlay = overlayOf(2, 1, listOf(Pixel(0, 0, blue), Pixel(1, 0, PixelImage.TRANSPARENT)))!!
+        assertEquals(blue, overlay[0, 0])
+        assertEquals(0xFFCCCCCC.toInt(), overlay[1, 0])
+        assertNull(overlayOf(2, 1, emptyList()))
     }
 }

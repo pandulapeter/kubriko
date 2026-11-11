@@ -166,8 +166,7 @@ internal fun SpriteEditor(
 internal fun SpriteEditorState.draw(pixels: List<Pixel>, path: String, frameIndex: Int, onCommand: (Invocation<*>, onFailure: () -> Unit) -> Rejection?) {
     if (pixels.isEmpty()) return
     val dropPending = { if (pendingPixels === pixels) pendingPixels = emptyList() }
-    val drawn = pixels.map { DrawPixels.DrawnPixel(it.x, it.y, it.color.toLong() and 0xFFFFFFFFL) }
-    if (onCommand(Invocation(DrawPixels, DrawPixels.Input(path, frameIndex, drawn)), dropPending) != null) dropPending()
+    if (onCommand(Invocation(DrawPixels, DrawPixels.inputOf(path, frameIndex, pixels)), dropPending) != null) dropPending()
 }
 
 @Composable

@@ -52,11 +52,16 @@ internal class SpriteEditorState {
      */
     var cursor by mutableStateOf<IntOffset?>(null)
 
+    private val strokePoints = ArrayList<IntOffset>()
+    private var strokeFrame: PixelImage? = null
+    private var strokeColor = PixelImage.TRANSPARENT
+    private val strokeCovered = LinkedHashMap<IntOffset, Pixel>()
+
     /**
-     * The pixels the pointer passed since it was pressed with a stroke tool, and whether with the right button, which
-     * draws in [secondaryColor]; null while no stroke is drawn.
+     * The pixels the stroke being drawn covers so far, worked out as the pointer moves (a pencil's only along its newest
+     * part), so drawing a frame reads them as they are.
      */
-    var stroke by mutableStateOf<Stroke?>(null)
+    var strokePreview by mutableStateOf<List<Pixel>>(emptyList())
         private set
 
     var selection by mutableStateOf<IntRect?>(null)
@@ -91,7 +96,7 @@ internal class SpriteEditorState {
         isFitPending = true
         frameIndex = 0
         pan = Offset.Zero
-        stroke = null
+        clearStroke()
         selection = null
         floating = null
         pendingPixels = emptyList()
@@ -115,28 +120,47 @@ internal class SpriteEditorState {
         isFitPending = false
     }
 
-    fun startStroke(at: IntOffset, isSecondary: Boolean) {
-        stroke = Stroke(listOf(at), isSecondary)
+    /**
+     * Starts a stroke of the tool on [frame] at [at], with the right button's color when [isSecondary].
+     */
+    fun startStroke(frame: PixelImage, at: IntOffset, isSecondary: Boolean) {
+        clearStroke()
+        strokeFrame = frame
+        strokeColor = if (isSecondary) secondaryColor else primaryColor
+        strokePoints += at
+        updateStroke(listOf(at))
     }
 
     fun continueStroke(at: IntOffset) {
-        val current = stroke ?: return
-        if (current.points.last() != at) stroke = current.copy(points = current.points + at)
+        if (strokeFrame == null || strokePoints.last() == at) return
+        val previous = strokePoints.last()
+        strokePoints += at
+        updateStroke(listOf(previous, at))
     }
 
     /**
-     * Ends the stroke, returning the pixels it draws on [frame], none when there was no stroke.
+     * Ends the stroke, returning the pixels it draws, none when there was no stroke.
      */
-    fun finishStroke(frame: PixelImage): List<Pixel> {
-        val finished = stroke ?: return emptyList()
-        stroke = null
-        return strokePixels(tool, finished.points, frame, if (finished.isSecondary) secondaryColor else primaryColor, isShapeFilled, isFillContiguous)
+    fun finishStroke(): List<Pixel> = strokePreview.also { clearStroke() }
+
+    private fun updateStroke(newPart: List<IntOffset>) {
+        val frame = strokeFrame ?: return
+        if (tool == SpriteTool.PENCIL || tool == SpriteTool.ERASER) {
+            strokePixels(tool, newPart, frame, strokeColor).forEach { strokeCovered.putIfAbsent(IntOffset(it.x, it.y), it) }
+        } else {
+            strokeCovered.clear()
+            strokePixels(tool, listOf(strokePoints.first(), strokePoints.last()), frame, strokeColor, isShapeFilled, isFillContiguous)
+                .forEach { strokeCovered[IntOffset(it.x, it.y)] = it }
+        }
+        strokePreview = strokeCovered.values.toList()
     }
 
-    /**
-     * The pixels the stroke being drawn covers on [frame], to show before it is let go.
-     */
-    fun strokePreview(frame: PixelImage): List<Pixel> = stroke?.let { strokePixels(tool, it.points, frame, if (it.isSecondary) secondaryColor else primaryColor, isShapeFilled, isFillContiguous) }.orEmpty()
+    private fun clearStroke() {
+        strokePoints.clear()
+        strokeCovered.clear()
+        strokeFrame = null
+        strokePreview = emptyList()
+    }
 
     fun pickColor(frame: PixelImage, at: IntOffset, isSecondary: Boolean) {
         if (!frame.contains(at.x, at.y)) return
@@ -213,14 +237,6 @@ internal class SpriteEditorState {
 
     private fun clearedPixels(frame: PixelImage, area: IntRect) = (area.top until area.bottom).flatMap { y -> (area.left until area.right).map { x -> Pixel(x, y, PixelImage.TRANSPARENT) } }
         .filter { frame.contains(it.x, it.y) && frame[it.x, it.y] != PixelImage.TRANSPARENT }
-
-    /**
-     * A stroke being drawn: the pixels the pointer passed, in order.
-     */
-    data class Stroke(
-        val points: List<IntOffset>,
-        val isSecondary: Boolean,
-    )
 
     companion object {
         val ZOOM_STEPS = listOf(1, 2, 3, 4, 6, 8, 12, 16, 24, 32)

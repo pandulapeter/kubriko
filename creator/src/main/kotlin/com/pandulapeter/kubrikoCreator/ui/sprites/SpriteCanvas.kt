@@ -58,6 +58,11 @@ internal fun SpriteCanvas(
     modifier: Modifier = Modifier,
 ) {
     val bitmap = remember(frame) { frame.toImageBitmap() }
+    val overlay = remember(frame.width, frame.height, state.pendingPixels, state.strokePreview) {
+        overlayOf(frame.width, frame.height, state.pendingPixels + state.strokePreview)?.toImageBitmap()
+    }
+    val floatingImage = state.floating?.image
+    val floatingBitmap = remember(floatingImage) { floatingImage?.toImageBitmap() }
     val currentFrame by rememberUpdatedState(frame)
     val currentOnDraw by rememberUpdatedState(onDraw)
     val selectionColor = MaterialTheme.colorScheme.primary
@@ -113,10 +118,25 @@ internal fun SpriteCanvas(
                 filterQuality = FilterQuality.None,
             )
             clipRect(imageBounds.left, imageBounds.top, imageBounds.right, imageBounds.bottom) {
-                drawPixels(geometry, state.pendingPixels + state.strokePreview(frame), state.zoom)
-                state.floating?.let { floating ->
+                overlay?.let {
+                    drawImage(
+                        image = it,
+                        dstOffset = IntOffset(geometry.topLeft.x.toInt(), geometry.topLeft.y.toInt()),
+                        dstSize = IntSize(geometry.imageSize.width.toInt(), geometry.imageSize.height.toInt()),
+                        filterQuality = FilterQuality.None,
+                    )
+                }
+                val floating = state.floating
+                if (floating != null && floatingBitmap != null) {
                     floating.liftedFrom?.let { area -> geometry.boundsOf(area).let { (topLeft, areaSize) -> drawCheckerboard(Rect(topLeft, areaSize)) } }
-                    drawPixels(geometry, floating.pixelsOn(PixelImage(frame.width, frame.height)).filter { floating.bounds.containsPixel(IntOffset(it.x, it.y)) }, state.zoom)
+                    val (topLeft, floatingSize) = geometry.boundsOf(floating.bounds)
+                    drawCheckerboard(Rect(topLeft, floatingSize))
+                    drawImage(
+                        image = floatingBitmap,
+                        dstOffset = IntOffset(topLeft.x.toInt(), topLeft.y.toInt()),
+                        dstSize = IntSize(floatingSize.width.toInt(), floatingSize.height.toInt()),
+                        filterQuality = FilterQuality.None,
+                    )
                 }
             }
             if (state.zoom >= SpriteEditorState.GRID_ZOOM) drawGrid(geometry, frame.width, frame.height, state.zoom, GRID_COLOR)
@@ -126,14 +146,6 @@ internal fun SpriteCanvas(
             }
             state.cursor?.let { cursor -> drawRect(selectionColor.copy(alpha = 0.6f), geometry.positionOf(cursor.x, cursor.y), Size(state.zoom.toFloat(), state.zoom.toFloat()), style = Stroke(1f)) }
         }
-    }
-}
-
-private fun DrawScope.drawPixels(geometry: SpriteCanvasGeometry, pixels: List<Pixel>, zoom: Int) {
-    val pixelSize = Size(zoom.toFloat(), zoom.toFloat())
-    pixels.forEach { pixel ->
-        val topLeft = geometry.positionOf(pixel.x, pixel.y)
-        if (pixel.color == PixelImage.TRANSPARENT) drawCheckerboard(Rect(topLeft, pixelSize)) else drawRect(Color(pixel.color), topLeft, pixelSize)
     }
 }
 

@@ -81,3 +81,18 @@ internal data class FloatingPixels(
         return (cleared + placed).filter { frame.contains(it.x, it.y) }
     }
 }
+
+/**
+ * What is drawn but not read back yet ([pixels]) as one image of a frame's size, to lay over it in one go: see-through
+ * pixels (what the eraser takes) as the checkerboard's light gray, so they show as erased. Null for none.
+ */
+internal fun overlayOf(width: Int, height: Int, pixels: List<Pixel>): PixelImage? {
+    if (pixels.isEmpty()) return null
+    val overlay = IntArray(width * height)
+    pixels.forEach { pixel ->
+        if (pixel.x in 0 until width && pixel.y in 0 until height) overlay[pixel.y * width + pixel.x] = if (pixel.color == PixelImage.TRANSPARENT) ERASED else pixel.color
+    }
+    return PixelImage(width, height, overlay)
+}
+
+private const val ERASED = 0xFFCCCCCC.toInt()

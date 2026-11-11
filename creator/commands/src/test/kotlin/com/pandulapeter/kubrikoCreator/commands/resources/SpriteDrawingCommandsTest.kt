@@ -206,4 +206,16 @@ class SpriteDrawingCommandsTest {
         assertEquals(0 to 24, EditSprite.Operation.Scale(3).originOf(sheet))
         assertEquals(null to null, EditSprite.Operation.Rotate().originOf(sheet.copy(originX = null, originY = null)))
     }
+
+    @Test
+    fun manyPixelsAreDrawnAsRowsOfLettersAndComeOutTheSame() = runTest {
+        val context = context(PixelImage(64, 64))
+        val pixels = (0 until 64).flatMap { y -> (0 until 40).map { x -> com.pandulapeter.kubrikoCreator.sprites.pixels.Pixel(x, y, if (x % 2 == 0) red.toInt() else blue.toInt()) } }
+        val input = DrawPixels.inputOf("drawable/ship.png", 0, pixels)
+        assertEquals(64, input.rows.size)
+        assertEquals(emptyList(), input.pixels)
+        DrawPixels.apply(context, input)
+        assertEquals(PixelImage(64, 64).with(pixels), context.image())
+        assertEquals(3, DrawPixels.inputOf("drawable/ship.png", 0, pixels.take(3)).pixels.size)
+    }
 }

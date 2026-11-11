@@ -25,10 +25,10 @@ internal sealed interface SpriteGesture {
      */
     fun finish(draw: (List<Pixel>) -> Unit)
 
-    private class Drawing(private val state: SpriteEditorState, private val frame: PixelImage) : SpriteGesture {
+    private class Drawing(private val state: SpriteEditorState) : SpriteGesture {
         override fun moveTo(pixel: IntOffset) = state.continueStroke(pixel)
 
-        override fun finish(draw: (List<Pixel>) -> Unit) = draw(state.finishStroke(frame))
+        override fun finish(draw: (List<Pixel>) -> Unit) = draw(state.finishStroke())
     }
 
     private class Picking(private val state: SpriteEditorState, private val frame: PixelImage, private val isSecondary: Boolean) : SpriteGesture {
@@ -63,8 +63,8 @@ internal sealed interface SpriteGesture {
         fun start(state: SpriteEditorState, frame: PixelImage, pixel: IntOffset, isSecondary: Boolean, draw: (List<Pixel>) -> Unit): SpriteGesture = when {
             state.tool == SpriteTool.PICKER -> Picking(state, frame, isSecondary).also { it.moveTo(pixel) }
             state.tool != SpriteTool.SELECT -> {
-                state.startStroke(pixel, isSecondary)
-                Drawing(state, frame)
+                state.startStroke(frame, pixel, isSecondary)
+                Drawing(state)
             }
             state.floating?.bounds?.containsPixel(pixel) == true -> Moving(state, pixel)
             else -> {
