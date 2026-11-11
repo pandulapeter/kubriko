@@ -61,6 +61,7 @@ And the best way, of course, is having fun while creating your very own games!
 ## 🏗️ Project structure
 Besides hosting the engine's source code, this repository also serves as the documentation for its feature set. Each top-level folder / module has its own Readme file that contains general information about the relevant piece of functionality:
 - [app](https://github.com/pandulapeter/kubriko/tree/main/app) - The menu system for the showcase app. It ties together the modules located in the `examples` folder.
+- [creator](https://github.com/pandulapeter/kubriko/tree/main/creator) - Kubriko Creator, a standalone desktop game editor. It's in the early stages of development and not yet released.
 - [documentation](https://github.com/pandulapeter/kubriko/tree/main/documentation) - Contains markdown files with an overview of the Kubriko API.
 - [engine](https://github.com/pandulapeter/kubriko/tree/main/engine) - Defines the core components of Kubriko.
 - [examples](https://github.com/pandulapeter/kubriko/tree/main/examples) - Contains the implementation modules of the games, demos, and tests from the Showcase app.
