@@ -183,6 +183,17 @@ class DeletingFullFolderTest {
     }
 
     @Test
+    fun anAiDeletingAFolderHearsWhichPagesMentionedWhatWasInIt() = runTest {
+        val context = commandContext()
+        CreatePage.apply(context, CreatePage.Input("levels/cave", "# Cave\n\nNext to the [pit](deep/pit.md).\n"))
+        CreatePage.apply(context, CreatePage.Input("levels/deep/pit", "# Pit\n\nDeep.\n"))
+        CreatePage.apply(context, CreatePage.Input("intro", "# Intro\n\nStarts in the [cave](levels/cave.md).\n"))
+        val executor = CommandExecutor(context = context, scope = testScope())
+        val result = assertIs<CommandOutcome.Success>(executor.call("delete_folder", buildJsonObject { put("group", "pages"); put("path", "levels") })).result.jsonObject
+        assertEquals(listOf("screenplay/intro.md"), result.getValue("mentionedIn").jsonArray.map { it.jsonPrimitive.content })
+    }
+
+    @Test
     fun anEmptyFolderIsDeletedWithTheFoldersInIt() = runTest {
         val context = commandContext(ball)
         CreateFolder.apply(context, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "props"))

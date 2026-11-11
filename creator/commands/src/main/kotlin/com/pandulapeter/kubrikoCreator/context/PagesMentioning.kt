@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.context
 import com.pandulapeter.kubrikoCreator.actors.DefinitionPaths
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.folders.contentDeletesOf
 import com.pandulapeter.kubrikoCreator.commands.resources.resourceFilesAt
 import com.pandulapeter.kubrikoCreator.commands.screenplay.projectPathOf
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
@@ -38,6 +39,19 @@ internal fun CommandContext.mentionedPathOf(subject: RelationSubject): String? =
     is RelationSubject.Page -> PageNaming.pathOf(subject.name)
     is RelationSubject.Resource -> resourceFilesAt(subject.path).minByOrNull { !it.startsWith(scenes.resourcesDirectory) }?.let(::projectPathOf)
     is RelationSubject.Property, is RelationSubject.Image, is RelationSubject.Timer, is RelationSubject.Folder -> null
+}
+
+/**
+ * The paths from the project's root of the pages that mention what deleting [subject] deletes (everything in it, for
+ * a folder), leaving out the pages it deletes too. Reads the disk.
+ */
+internal fun CommandContext.pagesMentioningDeleted(subject: RelationSubject): List<String> {
+    val paths = if (subject is RelationSubject.Folder) {
+        contentDeletesOf(subject).mapNotNull { delete -> delete.deletedSubject?.let { mentionedPathOf(it) } }
+    } else {
+        listOfNotNull(mentionedPathOf(subject))
+    }
+    return pagesMentioning(paths) - paths.toSet()
 }
 
 /**

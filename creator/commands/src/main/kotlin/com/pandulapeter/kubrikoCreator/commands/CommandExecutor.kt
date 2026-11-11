@@ -11,8 +11,8 @@ package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.context.Usage
 import com.pandulapeter.kubrikoCreator.context.mentionPathsOf
-import com.pandulapeter.kubrikoCreator.context.mentionedPathOf
 import com.pandulapeter.kubrikoCreator.context.pagesMentioning
+import com.pandulapeter.kubrikoCreator.context.pagesMentioningDeleted
 import com.pandulapeter.kubrikoCreator.context.writeSummary
 import com.pandulapeter.kubrikoCreator.foundation.reportProblem
 import com.pandulapeter.kubrikoCreator.scenes.SceneChange
@@ -129,7 +129,7 @@ public class CommandExecutor(
         if (isByAi) invocation.validateByAi(context)?.let { return AppliedChange(CommandOutcome.Rejected(it)) }
         // A delete leaves nothing to find the pages that mentioned it by (its mentions become plain text), so they are found before it.
         val deleted = invocation.deletedSubject.takeIf { isByAi }
-        val mentionedBefore = if (deleted == null) emptyList() else mentionPathsOrNone { context.pagesMentioning(listOfNotNull(context.mentionedPathOf(deleted))) }
+        val mentionedBefore = if (deleted == null) emptyList() else mentionPathsOrNone { context.pagesMentioningDeleted(deleted) }
         val applied = try {
             invocation.apply(context)
         } catch (exception: Exception) {
