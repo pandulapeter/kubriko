@@ -93,6 +93,26 @@ class SmallerModelTest {
     }
 
     @Test
+    fun aCurrentModelNamedOnlyByItsValueIsKnownByIt() {
+        val choices = listOf(
+            SessionConfigSelectOption(SessionConfigValueId("claude-opus-4-5"), "Recommended"),
+            SessionConfigSelectOption(SessionConfigValueId("claude-sonnet-4-0"), "Older"),
+            SessionConfigSelectOption(SessionConfigValueId("claude-sonnet-4-5"), "Newer"),
+        )
+        assertEquals(smaller("claude-sonnet-4-5", "Newer"), SmallerModel.of(models("claude-opus-4-5", choices)))
+    }
+
+    @Test
+    fun aContextSizeIsntAVersionAndAVersionMayBeInTheDescription() {
+        val choices = listOf(
+            SessionConfigSelectOption(SessionConfigValueId("opus[1m]"), "Opus (1M context)", "Opus 4.6 with a long context"),
+            SessionConfigSelectOption(SessionConfigValueId("claude-sonnet-4-5"), "Sonnet", "Sonnet 4.5"),
+            SessionConfigSelectOption(SessionConfigValueId("claude-sonnet-4-6"), "Sonnet", "Sonnet 4.6"),
+        )
+        assertEquals(smaller("claude-sonnet-4-6", "Sonnet"), SmallerModel.of(models("opus[1m]", choices)))
+    }
+
+    @Test
     fun otherFamiliesAndGroupedOptionsAreRead() {
         val gemini = listOf(SessionConfigSelectOption(SessionConfigValueId("gemini-pro"), "Gemini 3 Pro"), SessionConfigSelectOption(SessionConfigValueId("gemini-flash"), "Gemini 3 Flash"))
         val grouped = SessionConfigSelectOptions.Grouped(listOf(SessionConfigSelectGroup(SessionConfigGroupId("gemini"), "Gemini", gemini)))

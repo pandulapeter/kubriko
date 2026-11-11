@@ -54,17 +54,17 @@ public data class SmallerModel(
             val option = options.filterIsInstance<SessionConfigOption.Select>().firstOrNull { it.category == SessionConfigOptionCategory.MODEL } ?: return null
             val choices = option.choices()
             val current = choices.firstOrNull { it.value == option.currentValue } ?: return null
-            val currentText = if (tierOf(current) == null) current.description.orEmpty() else current.name
+            val currentText = if (tierOf(current) == null) current.description.orEmpty() else "${current.value.value} ${current.name}"
             val (family, tier) = tierOf(currentText) ?: return null
             if (tier == 0) return null
             val tierName = families[family][tier - 1]
             val currentWords = wordsOf(currentText)
-            val version = versionOf(currentText)
+            val version = versionOf(current)
             val smaller = choices.withIndex()
                 .filter { (_, choice) -> choice.value != current.value && tierOf(choice) == family to tier - 1 }
                 .minWithOrNull(
                     compareBy<IndexedValue<SessionConfigSelectOption>> { (_, choice) -> (wordsOf(choice.name) - currentWords - families[family].toSet()).size }
-                        .thenBy { (_, choice) -> if (version != null && versionOf(choice.name) == version) 0 else 1 }
+                        .thenBy { (_, choice) -> if (version != null && versionOf(choice) == version) 0 else 1 }
                         .thenBy { (_, choice) -> if (choice.value.value.equals(tierName, ignoreCase = true)) 0 else 1 }
                         .thenBy { it.index },
                 )?.value ?: return null
@@ -83,9 +83,18 @@ public data class SmallerModel(
 
         private fun wordsOf(text: String) = text.lowercase().split(nonLetters).filter { it.isNotEmpty() }.toSet()
 
-        private fun versionOf(text: String) = version.find(text)?.value
+        /**
+         * The version [choice] names, from its name, its description, or its value (where dashes stand for dots, as in
+         * `claude-sonnet-4-5`), the first that names one; a number before letters (a 1M context) isn't one.
+         */
+        private fun versionOf(choice: SessionConfigSelectOption) = versionIn(choice.name)
+            ?: choice.description?.let(::versionIn)
+            ?: versionIn(choice.value.value.replace(versionDash, "."))
+
+        private fun versionIn(text: String) = version.find(text)?.value
 
         private val nonLetters = Regex("[^a-z]+")
-        private val version = Regex("""\d+(\.\d+)*""")
+        private val version = Regex("""(?<![\w.])\d+(\.\d+)*(?![\w.])""")
+        private val versionDash = Regex("""(?<=\d)-(?=\d)""")
     }
 }
