@@ -19,7 +19,7 @@ appearance (Sprite sheets, below), which give it something to edit.
   per second, and origin kept in the sprite's own file in `.kubriko/sprites` (`SpriteFolderStore`, which holds its folder), Blocks to set the frame,
   speed, and looping, a sprite thumbnail in the appearance column, and tinting a sprite with the color. Each is a property of the
   type's batched look (`core/.../actors/CLAUDE.md`), and a sprite sheet joins the game's one atlas whole (`AnimatedSprite.fromAtlas`,
-  `GeneratedSprites`). Layer and drawing order come with the Visible Trait (`05-reuse-and-traits.md`).
+  `GeneratedSprites`). Layer and drawing order come with the Visible Trait (`04-reuse-and-traits.md`).
 
 ## Files
 

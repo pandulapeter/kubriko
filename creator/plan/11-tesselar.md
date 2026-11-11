@@ -22,7 +22,7 @@ flattened Tesselar game replaces it.
 ## Playing it
 
 Its `:app:web`, `:app:android`, and `app/ios/iosApp` (with the shared `[iOS] Tesselar` scheme) and its four shared IntelliJ run
-configurations play from Creator through Entry points (`11-project-upkeep.md`), which tells `:editor:model` and `:editor:region` apart
+configurations play from Creator through Entry points (`10-project-upkeep.md`), which tells `:editor:model` and `:editor:region` apart
 as tools that run from the Tools menu. Checked by playing each target and running each tool from Creator.
 
 ## Its editors inside Creator

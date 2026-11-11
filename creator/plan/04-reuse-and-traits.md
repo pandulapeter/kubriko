@@ -12,7 +12,7 @@
 What GameMaker had for games past a few objects: parent objects, scripts, and settings per object (persistent, visible, depth), plus
 Kubriko's own Traits. Without them, 20 enemy types are 20 copies of the same Blocks, and a growing game leaves Creator for Kotlin.
 Every addition lands with its command, AI tool, generator tests, and a case in the integration test's every-Block types, as in
-`04-blocks.md`.
+`03-blocks.md`.
 
 **Order:** custom Blocks (on types and in the project, then parameters, results, and local values, then Kotlin bodies, then
 sharing between projects), then Traits, then the rest. Each is generated into ordinary Kotlin, as now: no runtime interpreter. Both
@@ -46,7 +46,7 @@ same Blocks written inline cost.
 The ladder the editor, the docs, and the system prompt (`AssistantSystemPrompt`) keep: a built-in Block, then a custom Block the
 project already has, then a new custom Block built from Blocks, then a custom Block with a Kotlin body, and a Kotlin Block only for
 code that is truly used once. Kotlin stays the last resort, and when it is needed it arrives named, with parameters, and tested
-(`13-rehearsals.md`), rather than as a verbatim snippet.
+(`12-rehearsals.md`), rather than as a verbatim snippet.
 
 - **Where one lives** decides what it reaches:
   - **On an Actor type:** a method of its Actors, reaching the type's Properties, Timers, and look, inherited by children and
@@ -60,7 +60,7 @@ code that is truly used once. Kotlin stays the last resort, and when it is neede
   Palette category (one of the built-in ones, or the project's own), an icon, and a description the Palette and the AI's
   catalog show, so a custom Block reads like the rest and the Block card needs no special case.
 - **Parameters:** number, text, toggle, key, color, sound, sprite, Actor type, and Scene, each with a default, so dropping one in
-  works at once. A number parameter takes the shared value type (`04-blocks.md` → Random values: a number, a random range, a
+  works at once. A number parameter takes the shared value type (`03-blocks.md` → Random values: a number, a random range, a
   Property, an edge), so "Spawn a Drifter at {y}" is called with a random y. Generated as primitive parameters (an Actor type or
   Scene as the generated ID), so no call boxes or allocates.
 - **Results:** a number, text, or toggle result, ended by a "Result" Block. A number or text result is one more source of the shared
@@ -81,7 +81,7 @@ code that is truly used once. Kotlin stays the last resort, and when it is neede
   Block, offers the values the user picks as parameters, and offers to replace the same run wherever else it appears, in one undo
   step. "Put the Blocks back" reverses it at one call or every one. Deleting a custom Block that is still called offers that instead.
 - **Renames and references** follow as for Properties: a renamed custom Block or parameter changes every call and its Kotlin body
-  (`KotlinIdentifiers`), find usages (`03-search.md`) lists the calls, and a call to a deleted one shows on its card
+  (`KotlinIdentifiers`), find usages (`02-search.md`) lists the calls, and a call to a deleted one shows on its card
   and in the health checks, as a missing choice does.
 - **The AI:** commands (`:creator:commands`, each with its tool, validation, and inverse) to create, edit, and delete custom Blocks,
   their parameters, and their bodies; `get_block_catalog` lists the project's own beside the built-in ones; the digest names them
@@ -98,7 +98,7 @@ settings folder, which every project's Palette offers in a My Blocks category; u
 never depends on anything outside its folder and builds in IntelliJ as before. Only a custom Block that names nothing of its project
 (no type, Manager, sound, sprite, or Scene of its own, which become parameters first) can be added, and each copy remembers the
 version it came from, so a newer one in the library is offered as a diff, never applied silently. A shared collection beyond the
-user's own (bundled with Creator, or from others) waits for demand (`14-later.md`).
+user's own (bundled with Creator, or from others) waits for demand (`13-later.md`).
 
 ## Kubriko Traits
 

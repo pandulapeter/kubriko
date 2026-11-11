@@ -26,27 +26,22 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `01-folders.md`, its one bullet: the expanded folders kept per project in `.kubriko/local`, and dragging a whole
-folder into another. Then `02-sprite-editor.md`, which the user moved ahead of search and the Blocks (2026-11-11) to see
-something visual sooner, starting with its sprite sheets.
+Start `01-sprite-editor.md`, which the user moved ahead of search and the Blocks (2026-11-11) to see something visual sooner,
+beginning with its sprite sheets.
 
-The last items finished, each reviewed with `/code-review` and every finding fixed in a commit of its own:
+The last item finished, folders' last bullet, was reviewed with `/code-review` and every finding fixed in a commit of its own:
 
-- Sound and music folders (the real folders of the game's `files` folders, every source set's together, in
-  `FolderGroup.SOUNDS` and `MUSIC`, kept by `AudioFolderIndex`). Ten review fixes: walks skipping folders called `build`, a
-  rename merging into a folder the group doesn't show, `Scenes` reserved only in lower case, validation walking the disk,
-  each file followed separately, an undo that followed again, a misleading clash message and silent failed move-backs,
-  duplicated mappings, and each group showing the other's default folder.
-- Sprite folders (virtual, `SpriteFolderStore` in `.kubriko/sprites/<folder>/<name>.json`, folders as directories as the
-  types' are, rather than the folder written inside the file the plan named, so empty folders need nothing more;
-  `move_sprite_to_folder`). Ten review fixes: a folder kept by the file of an image deleted outside, a sprite with files
-  in two folders, a move losing its file when the write failed, no tool listing resources (`list_resources` now), dead
-  imports and helper, source sets not told apart, stale KDoc, and a serial comma.
-- Every agent is told to keep the project organized in folders as it grows (`McpToolServer.INSTRUCTIONS`), the user's
-  priority (no technical debt for users to inherit). No live run has tried it yet; record an eval request for it
-  (`EvalSetLiveTest` with `KUBRIKO_CREATOR_EVAL_RECORD=true`) once one can be spent.
+- Dragging a whole folder into another (`move_folder`, which shares everything that follows a folder with `rename_folder`
+  through `relocateFolder`; the sidebar's folder rows drag as items do, never into themselves).
+- Which folders are open is kept per project in `.kubriko/local/sidebar.json` (`SidebarFolderExpansion`), follows every
+  folder a command moves (`FolderMoves`), and forgets what isn't shown once the whole project was read.
+- Review fixes: a page's state before an AI turn followed back through folder moves and renames, what is open following
+  undo, redo, the AI, and every module (rather than only the dragging gesture), stale kept choices forgotten, the
+  sidebar's state tied to its project, `move_folder`'s audio wording, and one validation and one Scene scan fewer.
+- `WorkspaceController` was at its 500-line limit, so its format status moved to `ProjectFormatState` first.
+- The flaky `AssistantSignInTest` on CI's Linux runner (it asserted before the sign-in settled) waits with `awaitIdle` now.
 
-The tool list's budget went from 20,500 to 20,900 for the new folder groups, `move_sprite_to_folder`, and `list_resources`.
+The tool list's budget went from 20,900 to 21,000 for `move_folder`.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
@@ -67,7 +62,8 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
   the binary Creator downloaded is in the settings folder's `tools/agents`).
 - Codex started as a `codex-work` alias's account signing in to that `CODEX_HOME` (running `codex-acp` fetched from npm wasn't
   allowed in this session; it is listed under Codex's profile in `ai-assistant.md`).
-- The eval set has no request using the new resource tools yet; record one (`EvalSetLiveTest` with
+- No live run has tried the agents' standing job of keeping the project organized in folders (`McpToolServer.INSTRUCTIONS`).
+- The eval set has no request using the new resource tools or `move_folder` yet; record one (`EvalSetLiveTest` with
   `KUBRIKO_CREATOR_EVAL_RECORD=true`) once a live run can be spent on it.
 
 ## Before a release

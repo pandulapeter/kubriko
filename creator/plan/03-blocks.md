@@ -23,7 +23,7 @@ needed twelve Kotlin Blocks, all for simple behavior. Each item replaces some of
 - **Random values:** any number a Block takes can be a fixed number, a random number between two (whole or not), or a Property, as one
   value type every number field shares rather than a random variant of each Block. A Property as a value covers "Set velocity to the
   speed Property" too. A format raise; every random value draws from one generated `Random`, which rehearsals later seed
-  (`13-rehearsals.md`). Covers an enemy appearing at a random height (`jumpTo` with a random y) and filling the sky with stars at
+  (`12-rehearsals.md`). Covers an enemy appearing at a random height (`jumpTo` with a random y) and filling the sky with stars at
   random places.
 - **The edges as values:** the same value type also takes an edge of the Scene's bounds (or of the screen, when the Scene has none,
   as the edge Event already decides) plus an offset, and a random number between two edges. "Add a Drifter at the right edge + 50, at
@@ -64,7 +64,7 @@ needed twelve Kotlin Blocks, all for simple behavior. Each item replaces some of
 - **Size and scale Blocks:** a box collision mask keeps the size it was built with, so the generated code builds a new mask when the
   size changes.
 - **More Events:** removed from the Scene, and key released and held.
-  Pointer and gamepad Events come with their Traits (`05-reuse-and-traits.md`).
+  Pointer and gamepad Events come with their Traits (`04-reuse-and-traits.md`).
 - **More drag and drop:** dragging a Block into another Event.
 - **Simple and Advanced mode:** Simple hides Kotlin files, Kotlin Blocks, and Gradle output; switching never changes the project.
 
