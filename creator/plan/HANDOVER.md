@@ -26,22 +26,21 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Start `01-ai-assistant.md` at its first item (More health checks, under Context for large games).
+Start `01-ai-assistant.md` at its first item (Fewer retries, under Context for large games).
 
-This session finished two items, each reviewed with `/code-review`, with the findings fixed in commits of their own:
+This session finished More health checks, reviewed with `/code-review`, with the findings fixed in commits of their own:
 
-- Paging: `list_manager_types` and `list_scenes` page by folder like `list_actor_types`, all three through `folderPage`
-  (`commands/folders`), built on `foldersOf` and `validateFolder`. The review found that `list_scenes` missed the folders
-  of Scenes in other modules. It left two minor findings on purpose: each page walks the Scenes folder for empty folders,
-  as the folder commands do, and each listed Scene is looked up twice in the store's cache.
-- "Last time" summaries: the user chose a tool over asking when a conversation is left, since the next conversation
-  starts as soon as the project opens. `remember_for_next_time` notes what a conversation did and what is still open. The
-  system prompt asks for it once a request is done, and the next conversation hears it in place of the last answer. The
-  review's fixes: an earlier summary is told with the answer that came after it (`isSummaryEarlier`), a stopped turn saves
-  what it noted, and `ask_user` and the new tool are read-only (`ActionCommand.leavesEverythingAsItWas`). One finding was
-  left: the summary is taken from the open project, not the chat's own, but conversations end when the project changes.
-  A live scenario (`AssistantLiveScenariosTest.aFinishedRequestIsNotedForTheNextConversation`) passed with the real
-  Claude Agent. The tool list budget is now 19,900, and the tools loaded from the start 3,900.
+- The unreached-Scene check leaves out the Scene `game.firstScene` names (read from `gradle.properties` when the build
+  reads it) and says which one the game starts with, and a first Scene that doesn't exist is a finding of its own
+  (`FIRST_SCENE_MISSING`), shown as a notice under the toolbar that opens Project settings → Game.
+- The findings show quietly where their subject is edited (`HealthHintsList` in the type, Scene, and page editors), from
+  one `ProjectHealth` (formerly `ScreenplayHealth`) that the sidebar's dots and the Game map read too, so the map no
+  longer works them out a second time. Where a finding is shown and fixed is `HealthFindingPlace`.
+- The review's fixes: a missing first Scene is never named as the one the game starts with; the settings are read on the
+  IO dispatcher; the AI hears how to fix a missing first Scene and `get_health_checks`' description names it; the
+  findings are worked out again after AI steps and files changed outside Creator (`gradle.properties` is now watched,
+  `ProjectChange.GAME_SETTINGS`) rather than on every Scene editor state; and without a known first Scene, the editors
+  leave the hedged unreached-Scene findings to the map. The review found nothing it left open.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 

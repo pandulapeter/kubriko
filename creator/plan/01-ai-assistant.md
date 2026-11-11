@@ -20,8 +20,6 @@ Creator computes compact, always fresh context from its own model of the game, w
 understanding and the model pays for it. These serve the panel and outside MCP clients alike, and whatever helps the AI understand
 the game is shown to the user too.
 
-- **More health checks:** a Scene nothing goes to other than the first (needs the first Scene known from `Game.kt`), and the
-  findings shown where their subject is edited, beside the map's list.
 - **Fewer retries:** validation rejections that say precisely what to change, for every rejection that doesn't yet.
 - **Planning first:** approving a plan from its checklist (an Approve button that answers the agent) rather than in a reply, and
   model hints (a smaller model for small edits) that the user decides on, since they pay.
