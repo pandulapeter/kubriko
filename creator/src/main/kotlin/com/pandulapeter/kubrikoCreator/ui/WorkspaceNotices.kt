@@ -22,10 +22,12 @@ import androidx.compose.runtime.setValue
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiActivityBar
+import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettingsPage
 import com.pandulapeter.kubrikoCreator.ui.theme.CreatorMotion
 
 /**
- * The bars under the workspace's toolbar: the AI's activity, why the project can't be changed, and its template upgrade.
+ * The bars under the workspace's toolbar: the AI's activity, why the project can't be changed, what about its settings
+ * keeps the game from starting, and its template upgrade.
  *
  * @param readOnlyReason Why the project may not be changed, if it may not.
  * @param isUpgradeNeeded Whether the project's template files can be upgraded.
@@ -52,6 +54,16 @@ internal fun WorkspaceNotices(
         exit = NoticeExit,
     ) {
         shownReadOnlyReason?.let { ReadOnlyProjectNotice(reason = it) }
+    }
+    val settingsFindings = LocalHealthHints.current.ofPlace(HealthFindingPlace.GameSettings)
+    var shownSettingsFindings by remember { mutableStateOf(settingsFindings) }
+    if (settingsFindings.isNotEmpty()) shownSettingsFindings = settingsFindings
+    AnimatedVisibility(
+        visible = settingsFindings.isNotEmpty(),
+        enter = NoticeEnter,
+        exit = NoticeExit,
+    ) {
+        GameSettingsNotice(findings = shownSettingsFindings, onOpenSettings = { uiState.showProjectSettings(ProjectSettingsPage.GAME) })
     }
     AnimatedVisibility(
         visible = isUpgradeNeeded && !uiState.isUpgradeNoticeDismissed,

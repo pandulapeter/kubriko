@@ -17,14 +17,15 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.context.HealthFinding
-import com.pandulapeter.kubrikoCreator.context.RelationSubject
+import com.pandulapeter.kubrikoCreator.ui.HealthFindingPlace
+import com.pandulapeter.kubrikoCreator.ui.place
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.game_map_worth_a_look
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * What about the game is worth a look, at the top of the map, each opening what it is about on a click: a missing first
- * Scene opens the settings that name it.
+ * What about the game is worth a look, at the top of the map, each opening where it is fixed ([HealthFindingPlace]) on a
+ * click.
  */
 internal fun LazyListScope.healthSection(
     findings: List<HealthFinding>,
@@ -44,13 +45,12 @@ internal fun LazyListScope.healthSection(
     items(findings, key = { "health:$it" }) { finding ->
         Text(
             modifier = Modifier.gameMapRow {
-                if (finding.kind == HealthFinding.Kind.FIRST_SCENE_MISSING) return@gameMapRow onGameSettingsSelected()
-                when (val subject = finding.subject) {
-                    is RelationSubject.Type -> onTypeSelected(subject.name)
-                    is RelationSubject.Property -> onTypeSelected(subject.owner)
-                    is RelationSubject.Scene -> onSceneSelected(subject.name)
-                    is RelationSubject.Page -> onPageSelected(subject.name)
-                    is RelationSubject.Image -> Unit
+                when (val place = finding.place) {
+                    is HealthFindingPlace.Type -> onTypeSelected(place.name)
+                    is HealthFindingPlace.Scene -> onSceneSelected(place.name)
+                    is HealthFindingPlace.Page -> onPageSelected(place.name)
+                    HealthFindingPlace.GameSettings -> onGameSettingsSelected()
+                    null -> Unit
                 }
             },
             text = finding.text(),

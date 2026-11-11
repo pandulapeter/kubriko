@@ -22,19 +22,19 @@ import kotlinx.coroutines.flow.StateFlow
 
 /**
  * The project's findings ([com.pandulapeter.kubrikoCreator.workspace.ProjectHealth]) by where they show: the screenplay's
- * by the sidebar row they are about (a type, a Scene, or a page), as a quiet hint beside its name, and all of them by the
- * editor of what they are about, a Property's in its type's.
+ * by the sidebar row they are about (a type, a Scene, or a page), as a quiet hint beside its name, and all of them by
+ * where they are fixed ([HealthFindingPlace]).
  */
 internal class HealthHints(
     private val rows: Map<Pair<FolderGroup, String>, List<HealthFinding>> = emptyMap(),
-    private val editors: Map<RelationSubject, List<HealthFinding>> = emptyMap(),
+    private val places: Map<HealthFindingPlace, List<HealthFinding>> = emptyMap(),
 ) {
     fun ofRow(group: FolderGroup, name: String): List<HealthFinding> = rows[group to name].orEmpty()
 
     /**
-     * The findings the editor of [subject] (a type, a Scene, or a page) shows.
+     * The findings [place] shows.
      */
-    fun ofEditor(subject: RelationSubject): List<HealthFinding> = editors[subject].orEmpty()
+    fun ofPlace(place: HealthFindingPlace): List<HealthFinding> = places[place].orEmpty()
 }
 
 /**
@@ -54,7 +54,8 @@ internal fun rememberHealthHints(findings: StateFlow<List<HealthFinding>?>, type
 
 /**
  * The hints [findings] give: the sidebar's rows only the screenplay's, since the rest belong to the Game map and the
- * editors.
+ * editors; and the places all but the Scenes nothing goes to while the first Scene isn't known, since one of those is
+ * the first, which would always show one.
  */
 internal fun healthHintsOf(findings: List<HealthFinding>, types: List<BlockTypeDefinition>): HealthHints {
     val managerTypes = types.filterIsInstance<ManagerTypeDefinition>().mapTo(HashSet()) { it.name }
@@ -67,13 +68,11 @@ internal fun healthHintsOf(findings: List<HealthFinding>, types: List<BlockTypeD
                 is RelationSubject.Property, is RelationSubject.Image -> null
             }
         }.filterKeys { it != null }.mapKeys { checkNotNull(it.key) },
-        editors = findings.groupBy { finding ->
-            when (val subject = finding.subject) {
-                is RelationSubject.Property -> RelationSubject.Type(subject.owner)
-                is RelationSubject.Type, is RelationSubject.Scene, is RelationSubject.Page -> subject
-                is RelationSubject.Image -> null
-            }
-        }.filterKeys { it != null }.mapKeys { checkNotNull(it.key) },
+        places = findings
+            .filterNot { it.kind == HealthFinding.Kind.UNREACHED_SCENE && it.detail == null }
+            .groupBy { it.place }
+            .filterKeys { it != null }
+            .mapKeys { checkNotNull(it.key) },
     )
 }
 

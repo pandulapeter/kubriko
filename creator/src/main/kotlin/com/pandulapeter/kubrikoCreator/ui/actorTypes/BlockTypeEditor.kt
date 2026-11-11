@@ -39,7 +39,7 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
-import com.pandulapeter.kubrikoCreator.context.RelationSubject
+import com.pandulapeter.kubrikoCreator.ui.HealthFindingPlace
 import com.pandulapeter.kubrikoCreator.ui.HealthHintsList
 import com.pandulapeter.kubrikoCreator.ui.WriteDescriptionButton
 import com.pandulapeter.kubrikoCreator.ui.components.DescriptionPreview
@@ -241,7 +241,7 @@ private fun TypeDetails(
     )
     HealthHintsList(
         modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
-        subject = RelationSubject.Type(definition.name),
+        place = HealthFindingPlace.Type(definition.name),
     )
     if (isChangedByHand) {
         ChangedByHandNotice(

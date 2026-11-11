@@ -25,7 +25,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.ui.gameMap.text
 import com.pandulapeter.kubrikoCreator.ui.theme.CreatorMotion
 import kubriko.creator.generated.resources.Res
@@ -35,17 +34,17 @@ import kubriko.creator.generated.resources.health_hints_more
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * What about [subject] is worth a look ([LocalHealthHints]), shown quietly in its editor, the first few at once; nothing
- * when there is nothing to say.
+ * What about the subject of the editor at [place] is worth a look ([LocalHealthHints]), shown quietly in it, the first
+ * few at once; nothing when there is nothing to say.
  */
 @Composable
 internal fun HealthHintsList(
-    subject: RelationSubject,
+    place: HealthFindingPlace,
     modifier: Modifier = Modifier,
 ) {
-    val findings = LocalHealthHints.current.ofEditor(subject)
+    val findings = LocalHealthHints.current.ofPlace(place)
     if (findings.isEmpty()) return
-    var isExpanded by remember(subject) { mutableStateOf(false) }
+    var isExpanded by remember(place) { mutableStateOf(false) }
     Column(
         modifier = modifier.animateContentSize(CreatorMotion.medium()),
         verticalArrangement = Arrangement.spacedBy(2.dp),

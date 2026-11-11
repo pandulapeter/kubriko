@@ -42,11 +42,11 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.PlaceActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
-import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneView
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
+import com.pandulapeter.kubrikoCreator.ui.HealthFindingPlace
 import com.pandulapeter.kubrikoCreator.ui.HealthHintsList
 import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
 import com.pandulapeter.kubrikoCreator.ui.WriteDescriptionButton
@@ -321,6 +321,6 @@ private fun SceneDetails(
     )
     HealthHintsList(
         modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 8.dp),
-        subject = RelationSubject.Scene(state.sceneName),
+        place = HealthFindingPlace.Scene(state.sceneName),
     )
 }

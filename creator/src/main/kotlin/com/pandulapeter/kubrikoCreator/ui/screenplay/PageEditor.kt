@@ -37,10 +37,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.screenplay.PageChunks
 import com.pandulapeter.kubrikoCreator.screenplay.PageText
 import com.pandulapeter.kubrikoCreator.screenplay.ScreenplayStyle
+import com.pandulapeter.kubrikoCreator.ui.HealthFindingPlace
 import com.pandulapeter.kubrikoCreator.ui.HealthHintsList
 import com.pandulapeter.kubrikoCreator.ui.assistant.LocalWritersRoom
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
@@ -145,7 +145,7 @@ internal fun PageEditor(
                 TextButton(onClick = state::append) { Text(stringResource(Res.string.page_add_paragraph)) }
             }
             if (showsWritingHints) {
-                HealthHintsList(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp), subject = RelationSubject.Page(name))
+                HealthHintsList(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp), place = HealthFindingPlace.Page(name))
                 WritingHints(remember(state.text) { ScreenplayStyle.problemsOf(state.text) })
             }
         }

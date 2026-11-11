@@ -628,8 +628,11 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
 - The health checks (`ProjectHealth`, kept up to date only while the workspace collects them) show quietly where their
   subject is edited (`HealthHintsList` in the type, Scene, and page editors, a Property's in its type's), besides the
   Game map's list; only the screenplay's also mark the sidebar row they are about with a dot (`HealthHints`), since a
-  dot on every row nothing goes to would be noise. The unreached-Scene check leaves out the Scene the game starts with
-  when its settings name it, and says so. The project's Markdown is
+  dot on every row nothing goes to would be noise. Where a finding is shown and fixed is `HealthFindingPlace`, so the
+  map and the editors never route one differently; a first Scene that doesn't exist keeps the game from starting, so it
+  is a notice under the toolbar (`GameSettingsNotice`) rather than a hint. The unreached-Scene check leaves out the
+  Scene the game starts with when its settings name one that exists, and says so; without one, the editors leave the
+  check's findings to the map, since one of those Scenes is the first. The project's Markdown is
   read once per change to a page or document (`screenplayTexts`, keyed by their revisions, which every write Creator makes
   among the pages raises, images included), while what the pages link to is looked at afresh every time.
 - Documents (every Markdown file outside `screenplay/`) have no group: each is a row in the band of the folder it is

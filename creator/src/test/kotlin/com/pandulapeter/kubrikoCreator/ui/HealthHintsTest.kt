@@ -79,11 +79,30 @@ class HealthHintsTest {
             findings = listOf(unmentionedBall, unreadSpeed, unusedBall, unreachedBonus, untitledHero, HealthFinding(HealthFinding.Kind.UNUSED_PAGE_IMAGE, RelationSubject.Image("screenplay/a.png"))),
             types = listOf(ActorTypeDefinition(name = "Ball")),
         )
-        assertEquals(listOf(unmentionedBall, unreadSpeed, unusedBall), hints.ofEditor(RelationSubject.Type("Ball")))
-        assertEquals(listOf(unreachedBonus), hints.ofEditor(RelationSubject.Scene("bonus")))
-        assertEquals(listOf(untitledHero), hints.ofEditor(RelationSubject.Page("hero")))
-        assertEquals(emptyList(), hints.ofEditor(RelationSubject.Scene("main")))
+        assertEquals(listOf(unmentionedBall, unreadSpeed, unusedBall), hints.ofPlace(HealthFindingPlace.Type("Ball")))
+        assertEquals(listOf(unreachedBonus), hints.ofPlace(HealthFindingPlace.Scene("bonus")))
+        assertEquals(listOf(untitledHero), hints.ofPlace(HealthFindingPlace.Page("hero")))
+        assertEquals(emptyList(), hints.ofPlace(HealthFindingPlace.Scene("main")))
         assertEquals(emptyList(), hints.ofRow(FolderGroup.SCENES, "bonus"), "Only the screenplay's findings mark the sidebar's rows.")
+    }
+
+    @Test
+    fun aMissingFirstSceneGoesToTheGameSettingsAndAnUnreachedSceneThatMayBeTheFirstNowhere() {
+        val missing = HealthFinding(HealthFinding.Kind.FIRST_SCENE_MISSING, RelationSubject.Scene("intro"))
+        val hints = healthHintsOf(listOf(missing, HealthFinding(HealthFinding.Kind.UNREACHED_SCENE, RelationSubject.Scene("main"))), emptyList())
+        assertEquals(listOf(missing), hints.ofPlace(HealthFindingPlace.GameSettings))
+        assertEquals(emptyList(), hints.ofPlace(HealthFindingPlace.Scene("intro")))
+        assertEquals(emptyList(), hints.ofPlace(HealthFindingPlace.Scene("main")), "Without a known first Scene, main may well be it.")
+    }
+
+    @Test
+    fun aMissingFirstSceneIsANoticeOpeningTheGameSettings() = uiTest(width = 900, height = 80) {
+        var opened = 0
+        showing { GameSettingsNotice(findings = listOf(HealthFinding(HealthFinding.Kind.FIRST_SCENE_MISSING, RelationSubject.Scene("intro"))), onOpenSettings = { opened++ }) }
+        onNodeWithText("The game starts with intro, which doesn't exist. Choose another in Project settings.").assertExists()
+        onNodeWithText("Project settings").performClick()
+        assertEquals(1, opened)
+        saveSnapshot("game-settings-notice")
     }
 
     @Test
@@ -91,7 +110,7 @@ class HealthHintsTest {
         val findings = listOf("speed", "lives", "combo", "bonus").map { HealthFinding(HealthFinding.Kind.UNREAD_PROPERTY, RelationSubject.Property("Game", it)) }
         showing {
             CompositionLocalProvider(LocalHealthHints provides healthHintsOf(findings, listOf(ManagerTypeDefinition(name = "Game")))) {
-                HealthHintsList(subject = RelationSubject.Type("Game"))
+                HealthHintsList(place = HealthFindingPlace.Type("Game"))
             }
         }
         onNodeWithText("Worth a look").assertExists()
@@ -108,7 +127,7 @@ class HealthHintsTest {
     fun anEditorWithNothingWorthALookShowsNothing() = uiTest(width = 360, height = 80) {
         showing {
             CompositionLocalProvider(LocalHealthHints provides healthHintsOf(listOf(unmentionedBall), emptyList())) {
-                HealthHintsList(subject = RelationSubject.Type("Paddle"))
+                HealthHintsList(place = HealthFindingPlace.Type("Paddle"))
             }
         }
         onNodeWithText("Worth a look").assertDoesNotExist()
