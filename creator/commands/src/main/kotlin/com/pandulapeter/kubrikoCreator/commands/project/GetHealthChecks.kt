@@ -19,8 +19,9 @@ import kotlinx.serialization.json.JsonPrimitive
 
 public object GetHealthChecks : ReadCommand<NoInput> {
     override val name: String = "get_health_checks"
-    override val description: String = "Lists what about the game is worth a look, computed from Kubriko Creator's model of it: Actor types nothing places or adds, " +
-        "Scenes nothing goes to, Properties nothing reads, timerFinished or collision Events that can never fire, and pages' images unused or gone. Not all are mistakes."
+    override val description: String = "Lists what about the game is worth a look: a first Scene that doesn't exist, Actor types nothing " +
+        "places or adds, Scenes nothing goes to, Properties nothing reads, timerFinished or collision Events that can never fire, what names something " +
+        "deleted, and pages' images unused or gone. Not all are mistakes."
     override val inputSerializer: KSerializer<NoInput> = NoInput.serializer()
 
     override suspend fun read(context: CommandContext, input: NoInput): CommandOutcome =
