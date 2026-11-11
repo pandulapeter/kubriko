@@ -15,6 +15,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import com.agentclientprotocol.model.AvailableCommand
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
@@ -34,7 +35,7 @@ class AssistantComposerTest {
                 isEnabled = true,
                 isBusy = true,
                 isAnswering = true,
-                onSend = { sent += it },
+                onSend = { sent += it; true },
                 onStop = { stops++ },
             )
         }
@@ -55,7 +56,7 @@ class AssistantComposerTest {
                 commands = emptyList(),
                 isEnabled = true,
                 isBusy = true,
-                onSend = { sent += it },
+                onSend = { sent += it; true },
                 onStop = {},
             )
         }
@@ -63,5 +64,23 @@ class AssistantComposerTest {
         onNodeWithContentDescription("Send").assertDoesNotExist()
         onNodeWithContentDescription("Stop").assertExists()
         assertEquals(emptyList(), sent)
+    }
+
+    @Test
+    fun textNotTakenStaysAndNoSlashCommandIsOfferedAsAnAnswer() = uiTest {
+        showing {
+            AssistantComposer(
+                commands = listOf(AvailableCommand("compact", "Compacts the conversation")),
+                isEnabled = true,
+                isBusy = true,
+                isAnswering = true,
+                onSend = { false },
+                onStop = {},
+            )
+        }
+        onNode(hasSetTextAction()).performTextInput("/comp")
+        onNodeWithText("/compact").assertDoesNotExist()
+        onNodeWithContentDescription("Answer").performClick()
+        onNodeWithText("/comp").assertExists()
     }
 }

@@ -157,7 +157,10 @@ private fun AssistantPanelContent(
             onShowStep = onShowStep,
             questions = questions,
             onAnswer = onAnswer,
-            onStartNew = model::newChat,
+            onStartNew = {
+                model.newChat()
+                model.currentChat.value !== current
+            },
         ) { isPromptRefused ->
             AssistantSignInArea(
                 session = session,
@@ -196,7 +199,7 @@ private fun ChatContent(
     onShowStep: (AiStep) -> Unit,
     questions: List<UserQuestions.Question>,
     onAnswer: (id: Long, answer: String) -> Unit,
-    onStartNew: () -> Unit,
+    onStartNew: () -> Boolean,
     modifier: Modifier = Modifier,
     signInArea: @Composable (isPromptRefused: Boolean) -> Unit,
 ) = Column(
@@ -209,7 +212,8 @@ private fun ChatContent(
     val toolsId by chat.toolsId.collectAsState()
     val steps = remember(transcript.items, aiSteps, toolsId) { aiStepsOf(transcript.items, aiSteps, toolsId) }
     val transcriptQuestions = remember(transcript.items, questions, toolsId) { questionsOf(transcript.items, questions, toolsId) }
-    val waitingQuestion = remember(transcriptQuestions, transcript.items, isBusy) { transcriptQuestions.waitingQuestion(transcript.items, isBusy) }
+    val waitingQuestions = remember(transcriptQuestions, transcript.items, isBusy) { transcriptQuestions.waitingQuestions(transcript.items, isBusy) }
+    val waitingQuestion = waitingQuestions.lastOrNull()
     val answering = rememberCoroutineScope()
     Box(
         modifier = Modifier.weight(1f).fillMaxWidth(),
@@ -226,6 +230,7 @@ private fun ChatContent(
                 onUndoChanges = chat::undoChanges,
                 questions = transcriptQuestions,
                 canSendMessage = state == ChatState.Ready && !isBusy,
+                composerQuestionId = waitingQuestion?.id,
                 onAnswer = { question, answer, isLate ->
                     onAnswer(question.id, answer)
                     if (isLate) answering.launch { chat.send(getString(Res.string.assistant_question_late_answer, question.text, answer)) }
@@ -272,9 +277,11 @@ private fun ChatContent(
     NewConversationOffer(
         isShown = isNewConversationOffered(chat.isEmpty.collectAsState().value, isBusy, isWaitingForAnswer = waitingQuestion != null),
         onStartNew = {
-            // A question nobody answers would keep the agent waiting in a conversation the user has left.
-            if (waitingQuestion != null) chat.stop()
-            onStartNew()
+            if (onStartNew() && waitingQuestions.isNotEmpty()) {
+                chat.stop()
+                // An agent that doesn't cancel its call on stopping would otherwise keep its question waiting for good.
+                waitingQuestions.forEach { onAnswer(it.id, UserQuestions.LEFT_UNANSWERED) }
+            }
         },
     )
     HorizontalDivider()
@@ -284,11 +291,15 @@ private fun ChatContent(
         isBusy = isBusy,
         isAnswering = waitingQuestion != null,
         onSend = { text ->
-            if (waitingQuestion != null) {
-                onAnswer(waitingQuestion.id, text)
-            } else {
-                val chips = attention.filter { it.isSentWith(toggled) }
-                chat.send(text) { AttentionChip.contentOf(chips, captureScreenshot) }
+            // The transcript lags behind the questions, so only one still asked takes the answer.
+            val question = waitingQuestion?.takeIf { waiting -> questions.any { it.id == waiting.id } }
+            when {
+                question != null -> true.also { onAnswer(question.id, text) }
+                chat.isBusy.value -> false
+                else -> true.also {
+                    val chips = attention.filter { it.isSentWith(toggled) }
+                    chat.send(text) { AttentionChip.contentOf(chips, captureScreenshot) }
+                }
             }
         },
         onStop = chat::stop,

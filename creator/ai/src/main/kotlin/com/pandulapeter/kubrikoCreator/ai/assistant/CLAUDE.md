@@ -78,7 +78,8 @@ Hosts Agent Client Protocol agents through the official Kotlin SDK. Tests run `F
   Undo (`TurnReview`, shown only when the setting is on), which reverts the conversation's own changes through the undo history
   while they are the newest (`CommandExecutor.undoTurn`).
 - **Leaving a conversation:** once it holds something and its agent isn't working, the panel offers a new one above the
-  composer (`NewConversationOffer`), stopping a turn that waits for an answer, since a follow-up question shouldn't hold the
-  user in a conversation they are done with; the system prompt tells the agent to stop once a request is done rather than
-  offer more. While the agent waits for an answer, the composer answers the question (`waitingQuestion`), so there is
-  always one field to type in.
+  composer (`NewConversationOffer`), stopping a turn that waits for an answer and answering its questions for the user
+  (`UserQuestions.LEFT_UNANSWERED`, since an agent may not cancel the call that asked), as a follow-up question shouldn't
+  hold the user in a conversation they are done with; the system prompt tells the agent to stop once a request is done
+  rather than offer more. While the agent waits, the composer answers its newest question (`waitingQuestions`), and every
+  other card keeps a field of its own, so there is always one field to type each answer in.

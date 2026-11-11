@@ -13,9 +13,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -58,12 +60,13 @@ class QuestionCardsTest {
                 isBusy = true,
                 steps = emptyMap(),
                 onShowStep = {},
-                questions = TranscriptQuestions(mapOf(ToolCallId("toolu_1") to question), emptyList()),
+                questions = TranscriptQuestions(mapOf(ToolCallId("toolu_1") to question), listOf(other)),
+                composerQuestionId = question.id,
                 onAnswer = { question, answer, isLate -> answers += Triple(question.id, answer, isLate) },
             )
         }
         saveSnapshot("question-in-conversation")
-        onNodeWithText("Another answer").assertDoesNotExist()
+        onAllNodesWithText("Another answer").assertCountEquals(1)
         onNodeWithText("The agent stopped waiting", substring = true).assertDoesNotExist()
         onNodeWithText("Working", substring = true).assertDoesNotExist()
         onNodeWithText("Flies").performClick()
@@ -95,6 +98,7 @@ class QuestionCardsTest {
     }
 
     private val question = UserQuestions.Question(1, "How does the hero get around?", listOf("Runs and jumps", "Flies"), AiStepOrigin("tools", "toolu_1"))
+    private val other = UserQuestions.Question(2, "What does the hero look like?", listOf("A knight"), AiStepOrigin("tools"))
 
     private fun askingCall(status: ToolCallStatus) = TranscriptItem.ToolCall(ToolCallId("toolu_1"), "mcp__kubriko-creator__ask_user", status = status)
 }

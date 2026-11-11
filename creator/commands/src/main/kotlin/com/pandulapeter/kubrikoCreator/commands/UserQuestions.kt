@@ -38,6 +38,14 @@ public class UserQuestions {
         val answer: CompletableDeferred<String>,
     )
 
+    public companion object {
+        /**
+         * The answer a question gets when the user leaves its conversation without answering, so the call that asked
+         * it ends even where the agent doesn't cancel it.
+         */
+        public const val LEFT_UNANSWERED: String = "The user left this conversation without answering."
+    }
+
     private val ids = AtomicLong()
     private val lock = Any()
     private val waiting = ArrayList<Pending>()

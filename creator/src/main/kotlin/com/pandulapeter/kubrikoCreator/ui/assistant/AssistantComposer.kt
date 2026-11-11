@@ -53,14 +53,16 @@ import org.jetbrains.compose.resources.stringResource
  *
  * @param isEnabled Whether the conversation takes prompts.
  * @param isBusy Whether the agent works on a turn, which Stop ends.
- * @param isAnswering Whether the turn waits for the user to answer the agent's question, which what is sent then answers.
+ * @param isAnswering Whether the turn waits for the user to answer the agent's question, which what is sent then answers
+ *   (slash commands aren't offered meanwhile, since one would only be sent as the answer).
+ * @param onSend Sends the text, returning whether it was taken; the field keeps text that wasn't.
  */
 @Composable
 internal fun AssistantComposer(
     commands: List<AvailableCommand>,
     isEnabled: Boolean,
     isBusy: Boolean,
-    onSend: (String) -> Unit,
+    onSend: (String) -> Boolean,
     onStop: () -> Unit,
     modifier: Modifier = Modifier,
     isAnswering: Boolean = false,
@@ -69,11 +71,10 @@ internal fun AssistantComposer(
 ) {
     var value by remember { mutableStateOf(TextFieldValue()) }
     val text = value.text
-    val completions = remember(text, commands) { slashCompletions(text, commands) }
+    val completions = remember(text, commands, isAnswering) { if (isAnswering) emptyList() else slashCompletions(text, commands) }
     fun send() {
         if (!isEnabled || (isBusy && !isAnswering) || text.isBlank()) return
-        onSend(text.trim())
-        value = TextFieldValue()
+        if (onSend(text.trim())) value = TextFieldValue()
     }
     fun complete(command: AvailableCommand) {
         val completed = "/${command.name} "

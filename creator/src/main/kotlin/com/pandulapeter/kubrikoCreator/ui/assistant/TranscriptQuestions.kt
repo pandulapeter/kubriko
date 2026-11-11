@@ -40,20 +40,14 @@ internal fun questionsOf(items: List<TranscriptItem>, questions: List<UserQuesti
 }
 
 /**
- * The question the agent waits for the user to answer, rather than working: the one asked last if several wait, or null.
- * The composer answers it, so a turn held up by a question never leaves the user without a field to type in.
+ * The questions the agent waits for the user to answer, rather than working, the oldest first: every one whose asking call
+ * still runs, and those whose call isn't known.
  */
-internal fun TranscriptQuestions.waitingQuestion(items: List<TranscriptItem>, isBusy: Boolean): UserQuestions.Question? {
-    if (!isBusy) return null
-    trailing.lastOrNull()?.let { return it }
-    val asking = items.lastOrNull { it is TranscriptItem.ToolCall && it.id in byToolCall && !isLate(it, isBusy = true) } as? TranscriptItem.ToolCall
-    return asking?.let { byToolCall[it.id] }
+internal fun TranscriptQuestions.waitingQuestions(items: List<TranscriptItem>, isBusy: Boolean): List<UserQuestions.Question> {
+    if (!isBusy) return emptyList()
+    val placed = items.mapNotNull { item -> (item as? TranscriptItem.ToolCall)?.takeIf { !isLate(it, isBusy = true) }?.let { byToolCall[it.id] } }
+    return (placed + trailing).sortedBy { it.id }
 }
-
-/**
- * Whether the agent waits for the user to answer one of these questions, rather than working.
- */
-internal fun TranscriptQuestions.isWaitingForAnswer(items: List<TranscriptItem>, isBusy: Boolean) = waitingQuestion(items, isBusy) != null
 
 /**
  * Whether the agent stopped waiting for a question's answer: its turn ended, or the call that asked it ([toolCall], when

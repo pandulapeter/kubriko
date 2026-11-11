@@ -17,7 +17,6 @@ import com.pandulapeter.kubrikoCreator.commands.UserQuestions
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class TranscriptQuestionsTest {
@@ -58,23 +57,21 @@ class TranscriptQuestionsTest {
 
     @Test
     fun theAgentWaitsForAnAnswerOnlyWhileItsTurnRunsAndTheAskingCallDoes() {
-        val placed = TranscriptQuestions(mapOf(ToolCallId("a") to question(1, "one", "a")), emptyList())
-        assertTrue(placed.isWaitingForAnswer(listOf(call("a")), isBusy = true))
-        assertFalse(placed.isWaitingForAnswer(listOf(call("a", ToolCallStatus.FAILED)), isBusy = true))
-        assertFalse(placed.isWaitingForAnswer(listOf(call("a")), isBusy = false))
-        assertTrue(TranscriptQuestions(emptyMap(), listOf(question(2, "one"))).isWaitingForAnswer(emptyList(), isBusy = true))
-        assertFalse(TranscriptQuestions.None.isWaitingForAnswer(listOf(call("a")), isBusy = true))
+        val first = question(1, "one", "a")
+        val placed = TranscriptQuestions(mapOf(ToolCallId("a") to first), emptyList())
+        assertEquals(listOf(first), placed.waitingQuestions(listOf(call("a")), isBusy = true))
+        assertEquals(emptyList(), placed.waitingQuestions(listOf(call("a", ToolCallStatus.FAILED)), isBusy = true))
+        assertEquals(emptyList(), placed.waitingQuestions(listOf(call("a")), isBusy = false))
+        assertEquals(emptyList(), TranscriptQuestions.None.waitingQuestions(listOf(call("a")), isBusy = true))
     }
 
     @Test
-    fun theQuestionWaitedForIsTheOneAskedLastWhoseCallStillRuns() {
-        val first = question(1, "one", "a")
-        val second = question(2, "one", "b")
-        val placed = TranscriptQuestions(mapOf(ToolCallId("a") to first, ToolCallId("b") to second), emptyList())
-        assertEquals(second, placed.waitingQuestion(listOf(call("a"), call("b")), isBusy = true))
-        assertEquals(first, placed.waitingQuestion(listOf(call("a"), call("b", ToolCallStatus.FAILED)), isBusy = true))
-        assertNull(placed.waitingQuestion(listOf(call("a"), call("b")), isBusy = false))
-        val trailing = question(3, "one")
-        assertEquals(trailing, TranscriptQuestions(mapOf(ToolCallId("a") to first), listOf(trailing)).waitingQuestion(listOf(call("a")), isBusy = true))
+    fun theQuestionsWaitedForAreInTheOrderTheyWereAskedWhereverTheyAreShown() {
+        val trailing = question(1, "one")
+        val older = question(2, "one", "a")
+        val newer = question(3, "one", "b")
+        val questions = TranscriptQuestions(mapOf(ToolCallId("b") to newer, ToolCallId("a") to older), listOf(trailing))
+        assertEquals(listOf(trailing, older, newer), questions.waitingQuestions(listOf(call("b"), call("a")), isBusy = true))
+        assertEquals(listOf(trailing, older), questions.waitingQuestions(listOf(call("a"), call("b", ToolCallStatus.COMPLETED)), isBusy = true))
     }
 }

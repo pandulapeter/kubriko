@@ -59,8 +59,11 @@ internal class FakeAssistantPanelModel(
         calls += "findConfigurations"
     }
 
+    var onNewChat: () -> Unit = {}
+
     override fun newChat() {
         calls += "newChat"
+        onNewChat()
     }
 
     override fun startWritersRoom(prompt: String) {

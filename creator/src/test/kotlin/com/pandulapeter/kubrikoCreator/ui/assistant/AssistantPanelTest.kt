@@ -354,19 +354,38 @@ class AssistantPanelTest {
     }
 
     @Test
-    fun leavingAConversationWhoseAgentWaitsForAnAnswerStopsItsTurn() = uiTest {
+    fun leavingAConversationWhoseAgentWaitsForAnAnswerStopsItsTurnAndAnswersForTheUser() = uiTest {
         val chat = readyChat()
-        val model = FakeAssistantPanelModel().apply { currentChat.value = chat }
+        val model = FakeAssistantPanelModel().apply {
+            currentChat.value = chat
+            onNewChat = { currentChat.value = null }
+        }
         val question = UserQuestions.Question(1, "Anything else?", listOf("Yes", "No"), AiStepOrigin(TOOLS_ID))
+        val answered = mutableListOf<Pair<Long, String>>()
         var questions by mutableStateOf(emptyList<UserQuestions.Question>())
-        showing { AssistantPanel(model = model, aiSteps = emptyList(), onShowStep = {}, questions = questions) }
+        showing { AssistantPanel(model = model, aiSteps = emptyList(), onShowStep = {}, questions = questions, onAnswer = { id, answer -> answered += id to answer }) }
         runBlocking { withContext(mainThread) { chat.send("wait") } }
         waitUntil(timeoutMillis = 10_000) { chat.isBusy.value }
         onNodeWithText("Done? Start a new conversation").assertDoesNotExist()
         questions = listOf(question)
         onNodeWithText("Done? Start a new conversation").performClick()
         waitUntil(timeoutMillis = 10_000) { !chat.isBusy.value }
-        assertEquals(1, model.calls.count { it == "newChat" })
+        assertEquals(listOf(1L to UserQuestions.LEFT_UNANSWERED), answered)
+    }
+
+    @Test
+    fun aConversationThatCouldntBeLeftKeepsItsTurn() = uiTest {
+        val chat = readyChat()
+        val model = FakeAssistantPanelModel().apply { currentChat.value = chat }
+        val question = UserQuestions.Question(1, "Anything else?", listOf("Yes", "No"), AiStepOrigin(TOOLS_ID))
+        val answered = mutableListOf<Pair<Long, String>>()
+        showing { AssistantPanel(model = model, aiSteps = emptyList(), onShowStep = {}, questions = listOf(question), onAnswer = { id, answer -> answered += id to answer }) }
+        runBlocking { withContext(mainThread) { chat.send("wait") } }
+        waitUntil(timeoutMillis = 10_000) { chat.isBusy.value }
+        onNodeWithText("Done? Start a new conversation").performClick()
+        waitForIdle()
+        assertTrue(chat.isBusy.value)
+        assertEquals(emptyList(), answered)
     }
 
     private companion object {

@@ -90,6 +90,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param onUndoChanges Reverts what the turn that began at a revision changed.
  * @param questions The agent's questions waiting for an answer, each under the tool call that asked it ([questionsOf]).
  * @param canSendMessage Whether the conversation takes a message now, which a late answer ([isLate]) is sent as.
+ * @param composerQuestionId The question the composer answers ([waitingQuestions]' newest), whose card needs no field of its own.
  * @param onAnswer Answers a question, telling whether the agent stopped waiting for it.
  */
 @Composable
@@ -104,6 +105,7 @@ internal fun AssistantTranscriptList(
     onUndoChanges: (sinceRevision: Int) -> Unit = {},
     questions: TranscriptQuestions = TranscriptQuestions.None,
     canSendMessage: Boolean = false,
+    composerQuestionId: Long? = null,
     onAnswer: (question: UserQuestions.Question, answer: String, isLate: Boolean) -> Unit = { _, _, _ -> },
 ) {
     val shownItems = remember(items, isTurnReviewShown) { if (isTurnReviewShown) items else items.filterNot { it is TranscriptItem.TurnReview } }
@@ -143,7 +145,7 @@ internal fun AssistantTranscriptList(
                         onShowStep = onShowStep,
                     )
                     questions.byToolCall[item.id]?.let { question ->
-                        TranscriptQuestion(question, isLate(item, isBusy), canSendMessage, onAnswer)
+                        TranscriptQuestion(question, isLate(item, isBusy), canSendMessage, question.id == composerQuestionId, onAnswer)
                     }
                 }
                 is TranscriptItem.TurnChanges -> TurnChangesCard(changes = item)
@@ -160,9 +162,9 @@ internal fun AssistantTranscriptList(
             }
         }
         items(questions.trailing, key = { "question-${it.id}" }) { question ->
-            TranscriptQuestion(question, isLate(toolCall = null, isBusy = isBusy), canSendMessage, onAnswer)
+            TranscriptQuestion(question, isLate(toolCall = null, isBusy = isBusy), canSendMessage, question.id == composerQuestionId, onAnswer)
         }
-        if (isBusy && last !is TranscriptItem.AgentMessage && !questions.isWaitingForAnswer(shownItems, isBusy)) {
+        if (isBusy && last !is TranscriptItem.AgentMessage && questions.waitingQuestions(shownItems, isBusy).isEmpty()) {
             item { Working() }
         }
     }
@@ -173,13 +175,14 @@ private fun TranscriptQuestion(
     question: UserQuestions.Question,
     isLate: Boolean,
     canSendMessage: Boolean,
+    isAnsweredByComposer: Boolean,
     onAnswer: (question: UserQuestions.Question, answer: String, isLate: Boolean) -> Unit,
 ) = QuestionCard(
     question = question,
     onAnswer = { onAnswer(question, it, isLate) },
     isLate = isLate,
     isEnabled = !isLate || canSendMessage,
-    hasOwnAnswerField = isLate,
+    hasOwnAnswerField = isLate || !isAnsweredByComposer,
 )
 
 @Composable
