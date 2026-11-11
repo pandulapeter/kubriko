@@ -49,15 +49,16 @@ import kubriko.creator.generated.resources.ic_sprite
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The header of a group of [module]'s files that aren't types or Scenes, then, while it is open in [tree], its files: the
- * Kotlin files, sounds, and music as trees ([resourceTreeItems]), sprites by name. A group with none is only its header,
- * faded, which says where such files go without a line of its own for each. In the module new resources go to (the one
- * making Scenes), the sprites', sounds', and music's header offers adding and pasting more (and the sounds' and music's
- * a new folder, and taking a file dropped on it out of its folder), and each of their files Rename (typed in place) and
- * Delete, in its ⋮ and right-click menu; another module's are another `Res`, which the game's commands never change.
+ * The header of a group of [module]'s files that aren't types or Scenes, then, while it is open in [tree], its files as
+ * a tree: the Kotlin files by package, and the sprites, sounds, and music by their folders ([resourceTreeItems]). A group
+ * with none is only its header, faded, which says where such files go without a line of its own for each. In the module
+ * new resources go to (the one making Scenes), the sprites', sounds', and music's header offers adding and pasting more
+ * and a new folder, and takes a file dropped on it out of its folder, and each of their files offers Rename (typed in
+ * place) and Delete, in its ⋮ and right-click menu; another module's are another `Res`, which the game's commands never
+ * change.
  *
  * @param rows The trees' rows ([SidebarRows]), worked out outside the list's builder.
- * @param folderActions What the sounds' and music's folders and files do.
+ * @param folderActions What the sprites', sounds', and music's folders and files do.
  * @param naming What is being named in the sidebar, if anything.
  */
 internal fun LazyListScope.resourceGroupSection(

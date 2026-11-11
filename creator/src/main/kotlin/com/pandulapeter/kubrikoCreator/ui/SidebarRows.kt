@@ -14,7 +14,7 @@ import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 
 /**
- * The rows of the sidebar's trees: each group's of each module shown with its contents (its sounds' and music's too),
+ * The rows of the sidebar's trees: each group's of each module shown with its contents (its sprites', sounds', and music's too),
  * each one's documents, and its Kotlin files', worked out outside the sidebar's list, so that building the list again (which a selection or an AI
  * step's flash does) works none of them out. Each tree keeps the rows of the one before when what it is made of is
  * equal, so opening one folder or selecting an item works out no other tree again.
@@ -38,7 +38,7 @@ internal class SidebarRows private constructor(
         ?: module.folderGroups[group]?.let { groupTree(it, tree.collapsedFolders(SidebarKeys.folderGroup(module.path, group)), previous = null) }
 
     /**
-     * The rows of the sounds or music [group] of [module], made then and there if they weren't worked out beforehand.
+     * The rows of the sprites, sounds, or music [group] of [module], made then and there if they weren't worked out beforehand.
      */
     fun resourceTreeOf(module: SidebarModule, group: ResourceGroup, tree: SidebarTree): Tree<FolderTreeRow>? = treeAt(SidebarKeys.resourceGroup(module.path, group))
         ?: module.resourceTrees[group]?.let { groupTree(it, tree.collapsedFolders(SidebarKeys.resourceGroup(module.path, group)), previous = null) }

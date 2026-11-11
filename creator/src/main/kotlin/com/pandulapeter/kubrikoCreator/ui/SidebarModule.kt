@@ -24,7 +24,7 @@ import com.pandulapeter.kubrikoCreator.project.ResourceGroup
  *   which is open at first while the others start closed, so a project of many modules opens on the game.
  * @param folderGroups Its groups with folders: the types in the module their code is generated into, and its Scenes.
  * @param resources Its files, by group.
- * @param resourceTrees Its sounds and music as trees of their folders ([resourceTreesOf]).
+ * @param resourceTrees Its sprites, sounds, and music as trees of their folders ([resourceTreesOf]).
  * @param resourceGroups The groups of its files that aren't types or Scenes it lists ([shownResourceGroups]; in a project
  *   of several modules, Kotlin files only in a module that has some).
  * @param creatingGroups The groups new items and folders can be made in here: those whose files Kubriko Creator puts in
