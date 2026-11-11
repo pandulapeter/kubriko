@@ -26,23 +26,15 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Start `01-ai-assistant.md` at its first item (A smaller tool list, under Context for large games).
+Start `01-ai-assistant.md` at its first item ("Last time" summaries, under Context for large games).
 
-This session finished The panel's three items, reviewed with `/code-review`, its findings fixed in two commits of their own
-(Antigravity's tools turned off whenever it shows its `_meta` extension, not only with the appended prompt; a configuration
-chosen in settings waiting for the panel; the configuration's description naming its tool; one helper opening the agents' log):
-
-- Kubriko's sources: a live scenario (`AssistantLiveScenariosTest.kubrikosApiIsLookedUp…`) showed Claude reaching for
-  `get_kubriko_api` by itself and never reading Kubriko's sources with its own tools, so the tool's description stayed.
-- AI in Creator settings: Assistant (the agent and its configuration) and AI connection (port, token, commands) pages,
-  listed only while AI features are on; the MCP panel's Advanced is a button opening that page (`LocalOpenCreatorSettings`).
-  An agent chosen there (`isPanelShown = false`) starts at once only if it has worked before, and a configuration chosen
-  there never does, since saved conversations don't say which account they ran as; the panel opens a conversation whenever
-  it is shown without one.
-- Google Antigravity's own tools: `AntigravityMeta` turns off `edit_file`, `create_file`, and `run_command`, the names a real
-  session showed `disabledTools` takes (its model calls them `replace_file_content`, `write_to_file`, and `run_command`, and
-  the first two are not turned off by those names); it has no read-only mode. The appended system prompt was seen working in
-  the same real session.
+This session paged `list_manager_types` and `list_scenes` by folder like `list_actor_types`, all three through one
+`folderPage` (`commands/folders`) built on `foldersOf` and `validateFolder`, and reviewed it with `/code-review`. Its findings
+were fixed in a commit of their own: `list_scenes` missed the folders of Scenes in other modules, and the folder rules were
+duplicated. Two minor findings were left on purpose. `list_scenes` still walks the Scenes folder once per page for empty
+folders, as the folder commands do, since there is no index of them. Each listed Scene is still looked up twice in the store's
+cache. The tool list budget rose to 19,800 for the six new parameters. The earlier session's "A smaller tool list" had already
+landed, in `09d110bdc`, with its review fixes in `e29bdc62d`.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
