@@ -9,11 +9,13 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.scenes
 
+import com.pandulapeter.kubrikoCreator.actors.FolderPaths
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
-import com.pandulapeter.kubrikoCreator.commands.DEFAULT_LIST_PAGE_SIZE
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
-import com.pandulapeter.kubrikoCreator.commands.folderPage
+import com.pandulapeter.kubrikoCreator.commands.folders.DEFAULT_LIST_PAGE_SIZE
+import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
+import com.pandulapeter.kubrikoCreator.commands.folders.folderPage
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
@@ -28,17 +30,17 @@ public object ListScenes : ReadCommand<ListScenes.Input> {
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override suspend fun read(context: CommandContext, input: Input): CommandOutcome = withContext(context.ioDispatcher) {
-        folderPage(
+        context.folderPage(
+            group = FolderGroup.SCENES,
             items = context.scenes.names(),
-            folders = context.scenes.folders(),
             folder = input.folder,
             offset = input.offset,
             count = input.count,
             itemsKey = "scenes",
-            folderOf = { it.substringBeforeLast('/', "") },
+            folderOf = FolderPaths::parentOf,
         ) { name ->
             put("name", name)
-            if (context.validateScene(name) == null) put("actorCount", context.readScene(name).size) else put("isValid", false)
+            if (context.scenes.isValid(name)) put("actorCount", context.readScene(name).size) else put("isValid", false)
         }
     }
 

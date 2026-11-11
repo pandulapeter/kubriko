@@ -9,14 +9,14 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
-import com.pandulapeter.kubrikoCreator.commands.DEFAULT_LIST_PAGE_SIZE
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
 import com.pandulapeter.kubrikoCreator.commands.Rejection
-import com.pandulapeter.kubrikoCreator.commands.folderPage
+import com.pandulapeter.kubrikoCreator.commands.folders.DEFAULT_LIST_PAGE_SIZE
+import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
+import com.pandulapeter.kubrikoCreator.commands.folders.folderPage
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
@@ -35,9 +35,9 @@ public object ListActorTypes : ReadCommand<ListActorTypes.Input> {
     override suspend fun read(context: CommandContext, input: Input): CommandOutcome {
         val types = context.blockTypes ?: return CommandOutcome.Rejected(Rejection(CommandProblem.NO_ACTOR_TYPES))
         val changedByHand = types.changedByHand.value
-        return folderPage(
+        return context.folderPage(
+            group = FolderGroup.ACTOR_TYPES,
             items = types.actorTypes.value,
-            folders = types.folders.value[BlockTypeKind.ACTOR].orEmpty(),
             folder = input.folder,
             offset = input.offset,
             count = input.count,

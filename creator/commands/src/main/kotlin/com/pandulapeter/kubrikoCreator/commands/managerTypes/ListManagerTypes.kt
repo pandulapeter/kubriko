@@ -9,16 +9,16 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.managerTypes
 
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
-import com.pandulapeter.kubrikoCreator.commands.DEFAULT_LIST_PAGE_SIZE
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.serialName
-import com.pandulapeter.kubrikoCreator.commands.folderPage
+import com.pandulapeter.kubrikoCreator.commands.folders.DEFAULT_LIST_PAGE_SIZE
+import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
+import com.pandulapeter.kubrikoCreator.commands.folders.folderPage
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
@@ -31,15 +31,15 @@ import kotlinx.serialization.json.putJsonArray
 public object ListManagerTypes : ReadCommand<ListManagerTypes.Input> {
     override val name: String = "list_manager_types"
     override val description: String = "Lists the block-built Manager types a page at a time, as list_actor_types does, " +
-        "each with its Properties (name and kind), which Blocks of every type can use."
+        "each with its Properties (name and kind), which Blocks of every type can use, and the Events it reacts to."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override suspend fun read(context: CommandContext, input: Input): CommandOutcome {
         val types = context.blockTypes ?: return CommandOutcome.Rejected(Rejection(CommandProblem.NO_ACTOR_TYPES))
         val changedByHand = types.changedByHand.value
-        return folderPage(
+        return context.folderPage(
+            group = FolderGroup.MANAGER_TYPES,
             items = types.managerTypes.value,
-            folders = types.folders.value[BlockTypeKind.MANAGER].orEmpty(),
             folder = input.folder,
             offset = input.offset,
             count = input.count,

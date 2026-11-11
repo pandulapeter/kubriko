@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.commands.folders.DEFAULT_LIST_PAGE_SIZE
 import com.pandulapeter.kubrikoCreator.commands.scenes.ReadScene
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
@@ -23,10 +24,14 @@ import com.pandulapeter.kubrikoCreator.git.ChangeKind
 import com.pandulapeter.kubrikoCreator.git.FileChange
 import com.pandulapeter.kubrikoCreator.git.GitStatus
 import com.pandulapeter.kubrikoCreator.git.RepositoryStatus
+import com.pandulapeter.kubrikoCreator.project.ProjectResource
+import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
+import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
 import com.pandulapeter.kubrikoCreator.testing.FakeGitRepository
+import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -40,6 +45,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -281,6 +287,29 @@ class ReadCommandsTest {
         assertEquals(listOf("levels/forest/2"), list { put("folder", "levels/forest"); put("offset", 2) }.names())
         assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.FOLDER_MISSING, "caves")), executor.call("list_scenes", buildJsonObject { put("folder", "caves") }))
         assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.PAGE_INVALID)), executor.call("list_scenes", buildJsonObject { put("count", 0) }))
+    }
+
+    @Test
+    fun scenesOfAnotherModuleAreListedInTheirFolders() = runTest {
+        val rootDirectory = testDirectory()
+        val otherScene = File(rootDirectory, "editor/src/commonMain/composeResources/files/scenes/tools/grid.json").apply {
+            parentFile.mkdirs()
+            writeText(scene)
+        }
+        val context = commandContext(
+            ball,
+            rootDirectory = rootDirectory,
+            sceneHomeDirectory = File(rootDirectory, SceneStore.DEFAULT_SCENE_DIRECTORY),
+            sceneResources = { listOf(ProjectResource(ResourceGroup.SCENES, otherScene, "tools/grid.json", module = "editor")) },
+        )
+        val executor = executor(context)
+
+        val all = executor.read("list_scenes").jsonObject
+        assertEquals(listOf("tools"), all.getValue("folders").jsonArray.map { it.jsonPrimitive.content })
+        assertEquals(
+            Json.parseToJsonElement("""{"total":1,"scenes":[{"name":"tools/grid","actorCount":2}],"folders":[]}"""),
+            executor.read("list_scenes", buildJsonObject { put("folder", "tools") }),
+        )
     }
 
     @Test

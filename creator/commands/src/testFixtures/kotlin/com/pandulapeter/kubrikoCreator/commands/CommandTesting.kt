@@ -23,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.console.ConsoleLines
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
+import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.template.GameTargets
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
@@ -81,12 +82,14 @@ public fun TestScope.commandContext(
     ioDispatcher: CoroutineDispatcher = UnconfinedTestDispatcher(testScheduler),
     sceneWriteText: (File, String) -> Unit = { file, text -> file.writeTextAtomically(text) },
     sceneReadText: (File) -> String = { file -> file.readText() },
+    sceneHomeDirectory: File? = null,
+    sceneResources: () -> List<ProjectResource> = { emptyList() },
 ) = CommandContext(
     project = CreatorProject(rootDirectory = rootDirectory, name = "game"),
     console = MutableStateFlow(ConsoleLines(entries = console)),
     blockTypes = blockTypes,
     git = git,
-    scenes = SceneStore(rootDirectory, writeText = sceneWriteText, readText = sceneReadText) { emptyList() },
+    scenes = SceneStore(rootDirectory, writeText = sceneWriteText, readText = sceneReadText, homeDirectory = sceneHomeDirectory, sceneResources = sceneResources),
     runner = runner,
     ioDispatcher = ioDispatcher,
     scannedFiles = ScannedFiles(audioFiles = { audioFiles }, spriteFiles = { spriteFiles }),

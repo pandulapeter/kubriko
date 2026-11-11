@@ -38,11 +38,11 @@ internal fun CommandContext.itemsOf(group: FolderGroup): List<Pair<String, Strin
 }
 
 /**
- * Why there is no folder at [path] in [group] (the top of the group, an empty path, always exists).
+ * Why there is no folder at [path] in [group] (the top of the group, an empty path, always exists), given its [folders].
  */
-internal fun CommandContext.validateFolder(group: FolderGroup, path: String): Rejection? = when {
+internal fun CommandContext.validateFolder(group: FolderGroup, path: String, folders: Set<String>? = null): Rejection? = when {
     group.kind != null && blockTypes == null -> Rejection(CommandProblem.NO_ACTOR_TYPES)
-    path.isNotEmpty() && path !in foldersOf(group) -> Rejection(CommandProblem.FOLDER_MISSING, path)
+    path.isNotEmpty() && path !in (folders ?: foldersOf(group)) -> Rejection(CommandProblem.FOLDER_MISSING, path)
     else -> null
 }
 
