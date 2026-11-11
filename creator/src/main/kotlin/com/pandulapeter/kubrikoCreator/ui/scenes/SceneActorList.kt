@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,7 +44,7 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * The Actors of the open Scene in the order they are added, by type and ID, filtered by what is typed, for Scenes too
  * dense to click into. The selected one is scrolled to whenever it is selected elsewhere, and those that couldn't be
- * created ([uncreatedIds]) say so. The rows of the Actors [highlight] names light up.
+ * created ([uncreatedIds]) say so. The rows of the Actors [flash] names light up with it.
  */
 @Composable
 internal fun SceneActorList(
@@ -52,7 +53,7 @@ internal fun SceneActorList(
     selectedId: String?,
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier,
-    highlight: SceneHighlight? = null,
+    flash: SceneFlash? = null,
 ) = Column(
     modifier = modifier,
 ) {
@@ -90,7 +91,7 @@ internal fun SceneActorList(
                 id = entry.id,
                 isCreated = entry.id !in uncreatedIds,
                 isSelected = entry.id == selectedId,
-                flashKey = highlight?.takeIf { entry.id in it.actorIds }?.key,
+                flash = flash?.takeIf { entry.id in it.actorIds }?.strength,
                 onClick = { onSelect(entry.id) },
             )
         }
@@ -103,13 +104,13 @@ private fun SceneActorRow(
     id: String,
     isCreated: Boolean,
     isSelected: Boolean,
-    flashKey: Any?,
+    flash: State<Float>?,
     onClick: () -> Unit,
 ) = Column(
     modifier = Modifier
         .fillMaxWidth()
         .background(if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow)
-        .flashBackground(flashKey)
+        .then(if (flash == null) Modifier else Modifier.flashBackground(flash))
         .clickable(onClick = onClick)
         .padding(horizontal = 12.dp, vertical = 4.dp),
 ) {

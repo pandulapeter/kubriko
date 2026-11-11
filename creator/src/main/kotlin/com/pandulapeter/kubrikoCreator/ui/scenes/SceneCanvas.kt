@@ -31,8 +31,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.DrawStyle
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -48,6 +51,7 @@ import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -57,7 +61,6 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
 import com.pandulapeter.kubrikoCreator.ui.components.FLASH_MAXIMUM_ALPHA
-import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashStrength
 
 /**
  * The Scene as the game draws it, with the selected Actor outlined. A click selects the Actor on top, dragging it moves
@@ -70,7 +73,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashStrength
  * @param previews The looks of the Actor types whose Actors [view] draws itself until they are compiled.
  * @param isSceneReadable Whether the Scene file can be changed at all, which one that can't be read can't.
  * @param pictureHost Offered a picture of the Scene as drawn, without the selection's outline, while the canvas shows it.
- * @param highlight Actors to light up, each drawn over in the flash's color as it fades.
+ * @param flash Actors to light up, each drawn over in the flash's color as it fades.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -87,7 +90,7 @@ internal fun SceneCanvas(
     onPlace: (actorTypeName: String, x: Float, y: Float) -> Unit,
     modifier: Modifier = Modifier,
     pictureHost: ScenePictureHost? = null,
-    highlight: SceneHighlight? = null,
+    flash: SceneFlash? = null,
 ) {
     val currentOnPlace by rememberUpdatedState(onPlace)
     DisposableEffect(dragState) {
@@ -165,28 +168,29 @@ internal fun SceneCanvas(
             },
     ) {
         SceneViewport(view.kubriko, pictureHost, background = MaterialTheme.colorScheme.surfaceContainerLowest)
-        SceneOverlay(view = view, selectedId = selectedId, highlight = highlight, dragRevision = dragRevision)
+        SceneOverlay(view = view, selectedId = selectedId, flash = flash, dragRevision = dragRevision)
     }
 }
 
 /**
- * What the canvas draws over the Scene: the Actors [highlight] lights up, and the selected Actor's outline, following the
+ * What the canvas draws over the Scene: the Actors [flash] lights up, and the selected Actor's outline, following the
  * camera, a drag ([dragRevision]), and the Actors created from the Scene's content.
  */
 @Composable
 private fun SceneOverlay(
     view: SceneView,
     selectedId: String?,
-    highlight: SceneHighlight?,
+    flash: SceneFlash?,
     dragRevision: Int,
 ) {
     val loadRevision by view.loadRevision.collectAsState()
     val cameraPosition by view.viewportManager.cameraPosition.collectAsState()
     val scaleFactor by view.viewportManager.scaleFactor.collectAsState()
     val viewportSize by view.viewportManager.size.collectAsState()
-    val flashStrength = rememberFlashStrength(highlight?.key)
     val flashColor = MaterialTheme.colorScheme.tertiary
     val selectionColor = MaterialTheme.colorScheme.primary
+    val selectionStrokeWidth = with(LocalDensity.current) { SELECTION_STROKE_WIDTH.toPx() }
+    val selectionStroke = remember(selectionStrokeWidth) { Stroke(width = selectionStrokeWidth) }
     Canvas(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -196,32 +200,24 @@ private fun SceneOverlay(
         viewportSize
         dragRevision
         loadRevision
-        val strength = flashStrength.value
+        val strength = flash?.strength?.value ?: 0f
         if (strength > 0f) {
-            highlight?.actorIds?.forEach { id ->
-                val (topLeft, size) = screenBoundsOf(view, id) ?: return@forEach
-                drawRect(color = flashColor.copy(alpha = FLASH_MAXIMUM_ALPHA * strength), topLeft = topLeft, size = size)
-            }
+            val color = flashColor.copy(alpha = FLASH_MAXIMUM_ALPHA * strength)
+            val actorIds = flash?.actorIds.orEmpty()
+            for (index in actorIds.indices) drawActorBounds(view, actorIds[index], color)
         }
-        val (topLeft, size) = selectedId?.let { screenBoundsOf(view, it) } ?: return@Canvas
-        drawRect(
-            color = selectionColor,
-            topLeft = topLeft,
-            size = size,
-            style = Stroke(width = SELECTION_STROKE_WIDTH.toPx()),
-        )
+        selectedId?.let { drawActorBounds(view, it, selectionColor, selectionStroke) }
     }
 }
 
 /**
- * Where the Actor called [actorId] is drawn on the canvas, as its top left corner and its size, or null if [view] doesn't
- * show it.
+ * Draws over the Actor called [actorId] where [view] shows it, if it does, in [color], filled or in [style].
  */
-private fun screenBoundsOf(view: SceneView, actorId: String): Pair<Offset, Size>? {
-    val bounds = view.boundsOf(actorId) ?: return null
+private fun DrawScope.drawActorBounds(view: SceneView, actorId: String, color: Color, style: DrawStyle = Fill) {
+    val bounds = view.boundsOf(actorId) ?: return
     val topLeft = view.toScreen(SceneOffset(bounds.left.sceneUnit, bounds.top.sceneUnit))
     val bottomRight = view.toScreen(SceneOffset(bounds.right.sceneUnit, bounds.bottom.sceneUnit))
-    return topLeft to Size(bottomRight.x - topLeft.x, bottomRight.y - topLeft.y)
+    drawRect(color = color, topLeft = topLeft, size = Size(bottomRight.x - topLeft.x, bottomRight.y - topLeft.y), style = style)
 }
 
 /**

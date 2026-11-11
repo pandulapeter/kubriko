@@ -125,6 +125,7 @@ internal fun SceneEditorPane(
     modifier = modifier,
 ) {
     val selection = rememberSceneSelection(state, broughtBack)
+    val flash = rememberSceneFlash(highlight)
     val view = rememberSceneView(state, onViewFailed) ?: return@Column ProgressScreen(stringResource(Res.string.scene_preparing, state.scene.name))
     SelectingRestoredActor(selection, view)
     var isActorListShown by remember { mutableStateOf(false) }
@@ -170,7 +171,7 @@ internal fun SceneEditorPane(
                     entries = view.entries,
                     uncreatedIds = view.uncreatedIds,
                     selectedId = selection.selectedId,
-                    highlight = highlight,
+                    flash = flash,
                     onSelect = { actorId ->
                         if (view.isBackground(actorId)) {
                             isSettingsShown = true
@@ -194,7 +195,7 @@ internal fun SceneEditorPane(
                 onRemove = onRemove,
                 dragState = actorTypeDragState,
                 pictureHost = pictureHost,
-                highlight = highlight,
+                flash = flash,
                 onPlace = { actorTypeName, x, y ->
                     val actorId = SceneDocument.newId(view.entries.map { it.id })
                     selection.select(actorId)

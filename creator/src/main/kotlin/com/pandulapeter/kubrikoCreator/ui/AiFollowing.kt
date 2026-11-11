@@ -51,10 +51,11 @@ internal fun AiStep.highlightIn(actorTypeName: String?, flashKey: Any? = this.fl
  * or names no Actors that are still there.
  *
  * @param flashKey What makes them light up, a new one each time.
+ * @param startedAt When they first lit up ([SceneHighlight.startedAt]).
  */
-internal fun AiStep.highlightInScene(sceneName: String?, flashKey: Any? = this.flashKey) = (target as? CommandTarget.Scene)
+internal fun AiStep.highlightInScene(sceneName: String?, flashKey: Any? = this.flashKey, startedAt: Long? = null) = (target as? CommandTarget.Scene)
     ?.takeIf { it.name == sceneName && it.actorIds.isNotEmpty() }
-    ?.let { target -> flashKey?.let { SceneHighlight(key = it, actorIds = target.actorIds.toSet()) } }
+    ?.let { target -> flashKey?.let { SceneHighlight(key = it, actorIds = target.actorIds.toSet(), startedAt = startedAt) } }
 
 /**
  * The name of the Actor type, Manager type, or Scene this step lights up in the sidebar.

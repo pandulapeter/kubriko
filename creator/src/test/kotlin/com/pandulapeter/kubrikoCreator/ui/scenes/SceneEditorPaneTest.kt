@@ -89,7 +89,7 @@ class SceneEditorPaneTest {
     @Test
     fun theActorsTheAiChangedLightUp() = uiTest(width = 900, height = 600) {
         var highlight by mutableStateOf<SceneHighlight?>(null)
-        showPane(MutableSharedFlow(), actors = { listOf(ball.copy(state = SceneDocument.blockBuiltState(0f, 0f, 160f, 100f))) }, previews = mapOf("Ball" to ActorTypeLook(ActorShape.RECTANGLE, color = 0xFF3366CC, width = 120f, height = 80f)), highlight = { highlight })
+        showPane(MutableSharedFlow(), actors = { listOf(bigBall) }, previews = mapOf("Ball" to blue), highlight = { highlight })
         waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText(INSPECTOR_HINT)).fetchSemanticsNodes().isNotEmpty() }
         mainClock.autoAdvance = false
         val before = ballColor()
@@ -98,9 +98,28 @@ class SceneEditorPaneTest {
         mainClock.advanceTimeByFrame()
         saveSnapshot("scene-editor-ai-highlight")
         assertNotEquals(before, ballColor())
+        highlight = null
+        mainClock.advanceTimeByFrame()
+        assertNotEquals(before, ballColor(), "The flash ended at once rather than fading out.")
         mainClock.advanceTimeBy(3_000)
         assertEquals(before, ballColor())
     }
+
+    @Test
+    fun actorsThatLitUpBeforeTheSceneWasOpenedAgainDontLightUpAnew() = uiTest(width = 900, height = 600) {
+        var highlight by mutableStateOf<SceneHighlight?>(null)
+        showPane(MutableSharedFlow(), actors = { listOf(bigBall) }, previews = mapOf("Ball" to blue), highlight = { highlight })
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText(INSPECTOR_HINT)).fetchSemanticsNodes().isNotEmpty() }
+        mainClock.autoAdvance = false
+        val before = ballColor()
+        highlight = SceneHighlight(key = 1, actorIds = setOf("ball"), startedAt = System.currentTimeMillis() - 10_000)
+        mainClock.advanceTimeByFrame()
+        mainClock.advanceTimeByFrame()
+        assertEquals(before, ballColor())
+    }
+
+    private val bigBall = ball.copy(state = SceneDocument.blockBuiltState(0f, 0f, 160f, 100f))
+    private val blue = ActorTypeLook(ActorShape.RECTANGLE, color = 0xFF3366CC, width = 120f, height = 80f)
 
     /**
      * The color at the middle of the Ball, which the Scene's camera centers.

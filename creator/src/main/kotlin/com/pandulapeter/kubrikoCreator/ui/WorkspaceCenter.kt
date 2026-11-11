@@ -95,6 +95,8 @@ internal fun WorkspaceCenter(
     val markdownTitle = markdownTitleOf(selection)
     val actorTypes = remember(blockTypes) { blockTypes.filterIsInstance<ActorTypeDefinition>() }
     val audioFiles = remember(resources) { AudioFiles.ofScanned(resources) }
+    // Kept here rather than in the Scene's pane, so that a Scene opened again goes on with its flash instead of starting it anew.
+    val flashStartedAt = remember(shownAiStep?.flashKey) { System.currentTimeMillis() }
     when (sceneEditing) {
         is SceneEditingState.Open -> SceneEditorPane(
             modifier = contentModifier,
@@ -111,7 +113,7 @@ internal fun WorkspaceCenter(
             onClose = onCloseScene,
             onViewFailed = { exception, isShowingOlderClasses -> onSceneViewFailed(sceneEditing.revision, exception, isShowingOlderClasses) },
             pictureHost = editorAttention,
-            highlight = shownAiStep?.let { it.step.highlightInScene(sceneEditing.sceneName, it.flashKey) },
+            highlight = shownAiStep?.let { it.step.highlightInScene(sceneEditing.sceneName, it.flashKey, flashStartedAt) },
         )
         is SceneEditingState.Unsupported -> SceneNotice(
             modifier = contentModifier,

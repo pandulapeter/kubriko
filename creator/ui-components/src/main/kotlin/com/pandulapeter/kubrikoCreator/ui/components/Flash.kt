@@ -25,22 +25,35 @@ import androidx.compose.ui.graphics.Color
  * what just changed. The animation is read while drawing, so it doesn't recompose what it is on.
  */
 @Composable
-public fun Modifier.flashBackground(key: Any?, color: Color = MaterialTheme.colorScheme.tertiary): Modifier {
-    val strength = rememberFlashStrength(key)
-    return drawBehind { drawRect(color.copy(alpha = FLASH_MAXIMUM_ALPHA * strength.value)) }
-}
+public fun Modifier.flashBackground(key: Any?, color: Color = MaterialTheme.colorScheme.tertiary): Modifier = flashBackground(rememberFlashStrength(key), color)
+
+/**
+ * Draws a background in [color] as strong as [strength] ([rememberFlashStrength]), for several things that light up
+ * together from one flash, so that one shown later (a row scrolled into view) doesn't flash again.
+ */
+@Composable
+public fun Modifier.flashBackground(strength: State<Float>, color: Color = MaterialTheme.colorScheme.tertiary): Modifier =
+    drawBehind { drawRect(color.copy(alpha = FLASH_MAXIMUM_ALPHA * strength.value)) }
 
 /**
  * How strongly a flash shows, from 1 right when [key] becomes a new non-null value down to 0 as it fades away, for
  * drawing one that [flashBackground] can't (over a canvas, around a shape). Read it while drawing, so that the flash
  * redraws without recomposing.
+ *
+ * @param startedAt When the flash started, in milliseconds since the epoch, for one that started before this was shown
+ *   (what a Scene reopened since lit up), which then goes on from as far as it got, or null for one starting now.
  */
 @Composable
-public fun rememberFlashStrength(key: Any?): State<Float> {
+public fun rememberFlashStrength(key: Any?, startedAt: Long? = null): State<Float> {
     val strength = remember { Animatable(0f) }
     LaunchedEffect(key) {
-        if (key != null) strength.snapTo(1f)
-        strength.animateTo(0f, tween(if (key == null) FADE_OUT_DURATION else FLASH_DURATION))
+        if (key == null) {
+            strength.animateTo(0f, tween(FADE_OUT_DURATION))
+            return@LaunchedEffect
+        }
+        val elapsed = startedAt?.let { (System.currentTimeMillis() - it).coerceIn(0L, FLASH_DURATION.toLong()).toInt() } ?: 0
+        strength.snapTo(1f - elapsed.toFloat() / FLASH_DURATION)
+        strength.animateTo(0f, tween(FLASH_DURATION - elapsed))
     }
     return strength.asState()
 }
