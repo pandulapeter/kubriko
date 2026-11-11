@@ -150,6 +150,15 @@ class DeletingFullFolderTest {
         CreatePage.apply(context, CreatePage.Input("levels/deep/pit", "# Pit\n\nDeep.\n"))
         CreatePage.apply(context, CreatePage.Input("intro", "# Intro\n\nStarts in the [cave](levels/cave.md).\n"))
         File(context.project.rootDirectory, "screenplay/levels/cave-1.png").writeText("png")
+        assertEquals(
+            listOf(
+                "screenplay/levels/cave.md is in folder levels: it is deleted with the folder.",
+                "screenplay/levels/deep/pit.md is in folder levels: it is deleted with the folder.",
+                "screenplay/levels/cave-1.png is in folder levels: it is deleted with the folder.",
+                "screenplay/intro.md mentions Page levels/cave: the mention becomes plain text.",
+            ),
+            context.usagesOf(RelationSubject.Folder(FolderGroup.PAGES, "levels")).map { it.toString() },
+        )
         val after = context.assertRoundTrip(deleting(FolderGroup.PAGES, "levels")) { context.files() to context.screenplay.scanFolders() }
         assertEquals(mapOf("screenplay/intro.md" to "# Intro\n\nStarts in the cave.\n"), after.first)
         assertEquals(emptySet(), after.second)

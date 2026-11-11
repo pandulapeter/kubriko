@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeletePage
+import com.pandulapeter.kubrikoCreator.commands.screenplay.markdownTexts
 import com.pandulapeter.kubrikoCreator.context.RelationKind
 import com.pandulapeter.kubrikoCreator.context.RelationPlace
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
@@ -24,7 +25,9 @@ import com.pandulapeter.kubrikoCreator.context.Usage
 import com.pandulapeter.kubrikoCreator.context.UsageEffect
 import com.pandulapeter.kubrikoCreator.context.UsagePlace
 import com.pandulapeter.kubrikoCreator.context.projectReferences
+import com.pandulapeter.kubrikoCreator.screenplay.PageImages
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
+import kotlinx.coroutines.withContext
 
 /**
  * The deletes of everything in [folder] and the folders in it, each the command deleting it on its own, so each
@@ -55,7 +58,7 @@ internal fun CommandContext.contentDeletesOf(folder: RelationSubject.Folder): Li
 }
 
 /**
- * What deleting [folder] deletes and changes: a row for each thing in it, then every usage of those things outside
+ * What deleting [folder] deletes and changes: a row for each thing in it (a page's images too), then every usage of those things outside
  * the folder, as [deletes] ([contentDeletesOf]) would clean them up. A usage inside the folder goes with it, so it
  * isn't listed.
  *
@@ -75,8 +78,23 @@ internal suspend fun CommandContext.folderUsagesOf(
         .flatMap { index -> references[index].usagesOf(subjects[index]) }
         .filterNot { usage -> usage.ownerOrNull() in deleted }
         .distinct()
-    val contents = subjects.map { subject -> Usage(placeOf(subject), RelationKind.IS_IN, folder, UsageEffect.DELETED_WITH_FOLDER) }
+    val contents = (subjects.map(::placeOf) + pageImagesDeletedWith(subjects).map(UsagePlace::Markdown))
+        .map { place -> Usage(place, RelationKind.IS_IN, folder, UsageEffect.DELETED_WITH_FOLDER) }
     return contents + if (isAfterDeleting) references.first().usagesAfterDeleting(outside) else outside
+}
+
+/**
+ * The images the pages among [subjects] take with them (each page's own, which no page or document outside them
+ * shows), by their paths from the project's root.
+ */
+private suspend fun CommandContext.pageImagesDeletedWith(subjects: List<RelationSubject>): List<String> {
+    val pages = subjects.filterIsInstance<RelationSubject.Page>().map { it.name }
+    if (pages.isEmpty()) return emptyList()
+    return withContext(ioDispatcher) {
+        val deletedPaths = pages.mapTo(HashSet(), PageNaming::pathOf)
+        val otherFiles = markdownTexts().filterKeys { it !in deletedPaths }
+        pages.flatMap { PageImages.unusedImagesOf(project.rootDirectory, it, otherFiles) }.distinct()
+    }
 }
 
 /**
