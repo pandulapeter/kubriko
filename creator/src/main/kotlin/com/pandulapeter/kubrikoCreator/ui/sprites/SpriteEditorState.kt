@@ -188,6 +188,12 @@ internal class SpriteEditorState {
     }
 
     /**
+     * Gets [frame] ready for what changes the frame shown or the whole image: puts the floating pixels down, returning the
+     * pixels that draws, and lets go of the selection, which belongs to the frame as it is now.
+     */
+    fun settle(frame: PixelImage): List<Pixel> = putDown(frame).also { selection = null }
+
+    /**
      * Drops the floating pixels, returning the pixels that clear where they were lifted from on [frame] (none for pasted
      * ones), which leaves them deleted.
      */

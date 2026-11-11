@@ -100,7 +100,10 @@ internal fun SpriteEditor(
     LaunchedEffect(canvasSize, frame.width, frame.height) {
         if (state.isFitPending && canvasSize != IntSize.Zero) state.zoomToFit(frame.width, frame.height, canvasSize.width.toFloat(), canvasSize.height.toFloat())
     }
-    val editImage: (EditSprite.Operation) -> Unit = { onCommand(Invocation(EditSprite, EditSprite.Input(path, it, frame = if (state.isEveryFrame) null else frameIndex))) {} }
+    val editImage: (EditSprite.Operation) -> Unit = {
+        draw(state.settle(frame))
+        onCommand(Invocation(EditSprite, EditSprite.Input(path, it, frame = if (state.isEveryFrame) null else frameIndex))) {}
+    }
     Column(
         modifier = modifier
             .focusRequester(focusRequester)
@@ -113,6 +116,10 @@ internal fun SpriteEditor(
             frameCount = frames.frames.size,
             state = state,
             onImageAction = { action -> action.operation?.let(editImage) ?: run { askedAction = action } },
+            onFrameStep = { step ->
+                draw(state.settle(frame))
+                state.frameIndex = (frameIndex + step).mod(frames.frames.size)
+            },
             onFit = { state.zoomToFit(frame.width, frame.height, canvasSize.width.toFloat(), canvasSize.height.toFloat()) },
         )
         HorizontalDivider()

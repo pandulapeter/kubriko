@@ -45,6 +45,8 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * Above the sprite editor's canvas: the sprite's name, the frame shown (stepped through for a sprite cut into frames),
  * the zoom, and the Image menu, whose operations change the frame shown or, by the switch, every frame.
+ *
+ * @param onFrameStep Shows the frame that many frames on (or back, below 0), going round.
  */
 @Composable
 internal fun SpriteEditorToolbar(
@@ -52,6 +54,7 @@ internal fun SpriteEditorToolbar(
     frameCount: Int,
     state: SpriteEditorState,
     onImageAction: (SpriteImageAction) -> Unit,
+    onFrameStep: (Int) -> Unit,
     onFit: () -> Unit,
 ) = Row(
     modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
@@ -70,14 +73,14 @@ internal fun SpriteEditorToolbar(
             modifier = Modifier.rotate(90f),
             icon = Res.drawable.ic_chevron,
             label = Res.string.sprite_editor_previous_frame,
-            onClick = { state.frameIndex = (state.frameIndex - 1).mod(frameCount) },
+            onClick = { onFrameStep(-1) },
         )
         Text(stringResource(Res.string.sprite_editor_frame, state.frameIndex + 1, frameCount), style = MaterialTheme.typography.bodySmall)
         IconActionButton(
             modifier = Modifier.rotate(-90f),
             icon = Res.drawable.ic_chevron,
             label = Res.string.sprite_editor_next_frame,
-            onClick = { state.frameIndex = (state.frameIndex + 1).mod(frameCount) },
+            onClick = { onFrameStep(1) },
         )
     }
     Spacer(Modifier.weight(1f))

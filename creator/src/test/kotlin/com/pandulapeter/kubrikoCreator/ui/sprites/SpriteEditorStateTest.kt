@@ -137,4 +137,16 @@ class SpriteEditorStateTest {
         state.draw(pixels, "drawable/ship.png", 0) { _, _ -> com.pandulapeter.kubrikoCreator.commands.Rejection(com.pandulapeter.kubrikoCreator.commands.CommandProblem.INTERNAL, "") }
         assertEquals(emptyList(), state.pendingPixels, "a refused stroke stops showing at once")
     }
+
+    @Test
+    fun floatingPixelsArePutDownOnTheirFrameBeforeTheFrameOrTheImageChanges() {
+        state.selection = IntRect(0, 0, 2, 1)
+        state.liftSelection(frame)
+        state.floating = state.floating?.copy(position = IntOffset(1, 1))
+        val putDown = state.settle(frame)
+        assertEquals(Pixel(1, 1, red), putDown.first { it.color == red })
+        assertNull(state.floating)
+        assertNull(state.selection)
+        assertEquals(emptyList(), state.settle(frame))
+    }
 }
