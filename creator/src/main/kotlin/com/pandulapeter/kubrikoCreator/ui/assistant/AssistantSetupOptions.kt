@@ -14,6 +14,7 @@ import com.agentclientprotocol.model.SessionConfigOption
 import com.agentclientprotocol.model.SessionConfigSelectOption
 import com.agentclientprotocol.model.SessionConfigSelectOptions
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentConfiguration
+import com.pandulapeter.kubrikoCreator.ai.assistant.choices
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.WithTooltip
 import kubriko.creator.generated.resources.Res
@@ -42,7 +43,7 @@ internal fun AssistantSetupOptions(
         }
     }
     configOptions.filterIsInstance<SessionConfigOption.Select>().forEach { option ->
-        val choices = choicesOf(option)
+        val choices = option.choices()
         AssistantSetupRow(option.name) {
             WithTooltip(option.description ?: option.name) {
                 MenuButton(
@@ -61,10 +62,5 @@ internal fun AssistantSetupOptions(
  * What the session's options are set to, by the names of their current choices, for summing the setup up in a line.
  */
 internal fun currentChoices(configOptions: List<SessionConfigOption>): List<String> = configOptions.filterIsInstance<SessionConfigOption.Select>().mapNotNull { option ->
-    choicesOf(option).firstOrNull { it.value == option.currentValue }?.name
-}
-
-internal fun choicesOf(option: SessionConfigOption.Select) = when (val options = option.options) {
-    is SessionConfigSelectOptions.Flat -> options.options
-    is SessionConfigSelectOptions.Grouped -> options.groups.flatMap { it.options }
+    option.choices().firstOrNull { it.value == option.currentValue }?.name
 }

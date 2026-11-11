@@ -47,6 +47,18 @@ class SmallerModelTest {
     }
 
     @Test
+    fun aModelsNameOutweighsALargerOneItsDescriptionNames() {
+        val choices = claude.map { if (it.value.value == "sonnet") it.copy(description = "Sonnet 4.6 · Use Opus for harder tasks") else it }
+        assertEquals(smaller("haiku", "Haiku"), SmallerModel.of(models("sonnet", choices)))
+    }
+
+    @Test
+    fun theFamilysPlainModelIsOfferedRatherThanAVariant() {
+        val gemini = listOf("Gemini 2.5 Pro", "Gemini 2.5 Flash-Lite", "Gemini 2.5 Flash").map { SessionConfigSelectOption(SessionConfigValueId(it.lowercase().replace(' ', '-')), it) }
+        assertEquals(smaller("gemini-2.5-flash", "Gemini 2.5 Flash"), SmallerModel.of(models("gemini-2.5-pro", gemini)))
+    }
+
+    @Test
     fun nothingIsOfferedBelowTheSmallestOrForAModelOfNoKnownTier() {
         assertNull(SmallerModel.of(models("haiku")))
         assertNull(SmallerModel.of(models("fable", claude + SessionConfigSelectOption(SessionConfigValueId("fable"), "Fable"))))

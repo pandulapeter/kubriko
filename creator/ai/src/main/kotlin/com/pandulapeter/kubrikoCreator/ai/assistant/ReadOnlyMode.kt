@@ -86,11 +86,6 @@ internal sealed interface ReadOnlyMode {
 
         private fun ClientSession.selects() = if (configOptionsSupported) configOptions.value.filterIsInstance<SessionConfigOption.Select>() else emptyList()
 
-        private fun SessionConfigOption.Select.choices(): List<SessionConfigSelectOption> = when (val options = options) {
-            is SessionConfigSelectOptions.Flat -> options.options
-            is SessionConfigSelectOptions.Grouped -> options.groups.flatMap { it.options }
-        }
-
         /**
          * Whether [name] says read-only, however it is written (`read-only`, `readOnly`, `Read only`).
          */

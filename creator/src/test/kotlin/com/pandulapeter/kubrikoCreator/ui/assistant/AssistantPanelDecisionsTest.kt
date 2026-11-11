@@ -29,6 +29,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.RegistryAgent
 import com.pandulapeter.kubrikoCreator.ai.assistant.SavedConversation
 import com.pandulapeter.kubrikoCreator.ai.assistant.SignInMethod
 import com.pandulapeter.kubrikoCreator.ai.assistant.TranscriptItem
+import com.pandulapeter.kubrikoCreator.ai.assistant.choices
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.awaitCancellation
@@ -82,7 +83,7 @@ class AssistantPanelDecisionsTest {
                 ),
             ),
         )
-        assertEquals(listOf(sonnet, opus), choicesOf(option))
+        assertEquals(listOf(sonnet, opus), option.choices())
     }
 
     @Test
