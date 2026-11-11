@@ -9,9 +9,11 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
+import com.pandulapeter.kubriko.creatorSession.protocol.KeyHold
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionCommand
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubrikoCreator.commands.GameStep
+import com.pandulapeter.kubrikoCreator.commands.HeldKeys
 import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.commands.PlayTargets
 import com.pandulapeter.kubrikoCreator.commands.ProjectRunner
@@ -83,8 +85,29 @@ internal class WorkspaceRunner(
         sessions.request(ANSWER_TIMEOUT) { id -> SessionCommand.CaptureScreen(id, SCREENSHOT_WIDTH) }
     }
 
-    override suspend fun locateActors(actorType: String) = step {
-        sessions.request(ANSWER_TIMEOUT, SessionController.LOCATE_ACTORS_PROTOCOL_VERSION) { id -> SessionCommand.LocateActors(id, actorType) }
+    override suspend fun pressKeySteps(steps: List<HeldKeys>, isCapturing: Boolean): GameStep {
+        val all = step {
+            sessions.request(steps.sumOf { it.durationInMilliseconds } + ANSWER_TIMEOUT, SessionController.KEY_STEPS_PROTOCOL_VERSION) { id ->
+                SessionCommand.PressKeySteps(id, steps.map { KeyHold(it.keys, it.durationInMilliseconds) }, SCREENSHOT_WIDTH.takeIf { isCapturing })
+            }
+        }
+        if (all != GameStep.Unsupported) return all
+        // A session older than the command plays the steps one at a time.
+        val console = steps.flatMap { held ->
+            when (val pressed = pressKeys(held.keys, held.durationInMilliseconds)) {
+                is GameStep.Done -> pressed.console
+                else -> return pressed
+            }
+        }
+        if (!isCapturing) return GameStep.Done(console)
+        return when (val screen = captureScreen()) {
+            is GameStep.Done -> GameStep.Done(console + screen.console, screen.png)
+            else -> screen
+        }
+    }
+
+    override suspend fun captureActors(actorTypes: List<String>) = step {
+        sessions.request(ANSWER_TIMEOUT, SessionController.CAPTURE_ACTORS_PROTOCOL_VERSION) { id -> SessionCommand.CaptureActors(id, SCREENSHOT_WIDTH, actorTypes) }
     }
 
     /**
@@ -103,7 +126,11 @@ internal class WorkspaceRunner(
             is GameAnswer.Answered -> when (val message = answer.message) {
                 is SessionMessage.CommandFailed -> GameStep.Failed(message.message)
                 is SessionMessage.Screenshot -> GameStep.Done(console, png = Base64.getDecoder().decode(message.png))
-                is SessionMessage.ActorsLocated -> GameStep.Done(console, region = ScreenRegion(message.left, message.top, message.right, message.bottom))
+                is SessionMessage.ActorsCaptured -> GameStep.Done(
+                    console = console,
+                    png = Base64.getDecoder().decode(message.png),
+                    region = message.region?.let { ScreenRegion(it.left, it.top, it.right, it.bottom) },
+                )
                 else -> GameStep.Done(console)
             }
             GameAnswer.NotPlaying -> GameStep.NotPlaying

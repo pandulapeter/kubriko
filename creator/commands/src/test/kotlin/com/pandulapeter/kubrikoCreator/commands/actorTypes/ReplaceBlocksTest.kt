@@ -57,6 +57,7 @@ class ReplaceBlocksTest {
         assertEquals(Rejection(CommandProblem.BLOCKS_NOTHING_TO_REPLACE), ReplaceBlocks.validate(context, ReplaceBlocks.Input("Ball", 0, 0, count = -1, blocks = listOf(log))))
         assertEquals(Rejection(CommandProblem.BLOCK_MISSING, "Ball", "0", "4"), ReplaceBlocks.validate(context, ReplaceBlocks.Input("Ball", 0, 4, blocks = listOf(log))))
         assertEquals(Rejection(CommandProblem.BLOCK_MISSING, "Ball", "0", "3"), ReplaceBlocks.validate(context, ReplaceBlocks.Input("Ball", 0, 2, count = 2)))
+        assertEquals(Rejection(CommandProblem.BLOCK_MISSING, "Ball", "0", "3"), ReplaceBlocks.validate(context, ReplaceBlocks.Input("Ball", 0, 1, count = Int.MAX_VALUE)))
         assertEquals(Rejection(CommandProblem.EVENT_MISSING, "Ball", "2"), ReplaceBlocks.validate(context, ReplaceBlocks.Input("Ball", 2, 0, blocks = listOf(log))))
         assertNull(ReplaceBlocks.validate(context, ReplaceBlocks.Input("Ball", 0, 3, blocks = listOf(log))))
     }

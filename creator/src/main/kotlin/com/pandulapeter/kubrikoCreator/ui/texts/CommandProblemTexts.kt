@@ -109,6 +109,7 @@ import kubriko.creator.generated.resources.error_game_no_answer
 import kubriko.creator.generated.resources.error_game_not_on_desktop
 import kubriko.creator.generated.resources.error_game_not_running
 import kubriko.creator.generated.resources.error_game_steps_count
+import kubriko.creator.generated.resources.error_game_steps_duration
 import kubriko.creator.generated.resources.error_game_unsupported
 import kubriko.creator.generated.resources.error_mcp_internal
 import kubriko.creator.generated.resources.error_scene_folder_reserved
@@ -216,6 +217,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.GAME_KEYS_COUNT -> Res.string.error_game_keys_count
     CommandProblem.GAME_KEYS_OR_STEPS -> Res.string.error_game_keys_or_steps
     CommandProblem.GAME_STEPS_COUNT -> Res.string.error_game_steps_count
+    CommandProblem.GAME_STEPS_DURATION -> Res.string.error_game_steps_duration
     CommandProblem.GAME_NO_ANSWER -> Res.string.error_game_no_answer
     CommandProblem.GAME_NOT_ON_DESKTOP -> Res.string.error_game_not_on_desktop
     CommandProblem.GAME_NOT_RUNNING -> Res.string.error_game_not_running

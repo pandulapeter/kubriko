@@ -9,11 +9,14 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
+import com.pandulapeter.kubriko.creatorSession.protocol.ImageRegion
+import com.pandulapeter.kubriko.creatorSession.protocol.KeyHold
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionCommand
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
 import com.pandulapeter.kubrikoCreator.commands.GameStep
+import com.pandulapeter.kubrikoCreator.commands.HeldKeys
 import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.commands.ProjectRunner
 import com.pandulapeter.kubrikoCreator.commands.ScreenRegion
@@ -168,20 +171,52 @@ class WorkspaceRunnerTest {
     }
 
     @Test
-    fun actorsAreLocatedOnlyBySessionsThatCanLocateThem() = runTest {
+    fun stepsArePlayedAsOneCommandOrOneAtATimeBySessionsOlderThanIt() = runTest {
         val runner = createRunner()
         assertTrue(startGame(runner).isSuccessful)
         channel.answer = { command ->
             when (command) {
-                is SessionCommand.LocateActors -> SessionMessage.ActorsLocated(command.id, 0.1f, 0.2f, 0.3f, 0.4f)
+                is SessionCommand.PressKeySteps -> SessionMessage.Screenshot(command.id, "AQID")
                 else -> SessionMessage.CommandDone(command.id)
             }
         }
-        assertEquals(ScreenRegion(0.1f, 0.2f, 0.3f, 0.4f), assertIs<GameStep.Done>(runner.locateActors("Ship")).region)
-        assertEquals("Ship", channel.sent.filterIsInstance<SessionCommand.LocateActors>().single().actorType)
+        val steps = listOf(HeldKeys(listOf("UP"), 100), HeldKeys(listOf("SPACE"), 50))
+        assertEquals(listOf<Byte>(1, 2, 3), assertIs<GameStep.Done>(runner.pressKeySteps(steps, isCapturing = true)).png?.toList())
+        assertEquals(
+            SessionCommand.PressKeySteps(channel.sent.filterIsInstance<SessionCommand.PressKeySteps>().single().id, listOf(KeyHold(listOf("UP"), 100), KeyHold(listOf("SPACE"), 50)), 1280),
+            channel.sent.filterIsInstance<SessionCommand.PressKeySteps>().single(),
+        )
         runner.stopGame()
         assertTrue(startGame(runner, protocolVersion = 3).isSuccessful)
-        assertEquals(GameStep.Unsupported, runner.locateActors("Ship"))
+        channel.sent.clear()
+        channel.answer = { command ->
+            when (command) {
+                is SessionCommand.CaptureScreen -> SessionMessage.Screenshot(command.id, "AQID")
+                else -> SessionMessage.CommandDone(command.id)
+            }
+        }
+        assertEquals(listOf<Byte>(1, 2, 3), assertIs<GameStep.Done>(runner.pressKeySteps(steps, isCapturing = true)).png?.toList())
+        assertEquals(listOf(listOf("UP"), listOf("SPACE")), channel.sent.filterIsInstance<SessionCommand.PressKeys>().map { it.keys })
+        assertEquals(1, channel.sent.filterIsInstance<SessionCommand.CaptureScreen>().size)
+    }
+
+    @Test
+    fun actorsAreCapturedWithWhereTheyAreOnlyBySessionsThatCanFindThem() = runTest {
+        val runner = createRunner()
+        assertTrue(startGame(runner).isSuccessful)
+        channel.answer = { command ->
+            when (command) {
+                is SessionCommand.CaptureActors -> SessionMessage.ActorsCaptured(command.id, "AQID", ImageRegion(0.1f, 0.2f, 0.3f, 0.4f))
+                else -> SessionMessage.CommandDone(command.id)
+            }
+        }
+        val captured = assertIs<GameStep.Done>(runner.captureActors(listOf("Enemy", "Bat")))
+        assertEquals(ScreenRegion(0.1f, 0.2f, 0.3f, 0.4f), captured.region)
+        assertEquals(listOf<Byte>(1, 2, 3), captured.png?.toList())
+        assertEquals(listOf("Enemy", "Bat"), channel.sent.filterIsInstance<SessionCommand.CaptureActors>().single().actorTypes)
+        runner.stopGame()
+        assertTrue(startGame(runner, protocolVersion = 3).isSuccessful)
+        assertEquals(GameStep.Unsupported, runner.captureActors(listOf("Enemy")))
     }
 
     @Test

@@ -477,9 +477,11 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   valid JSON.
 - **Game tools** (`start_game`, `press_keys`, `take_screenshot`, and others) bring the game window to the front before every step,
   since Kubriko pauses unfocused games, and screenshots come from the game's own `SkiaLayer`, so they need no OS permission; `start_game` waits until the game has drawn Actors, where the session and the entry point
-  can report them, and `take_screenshot` crops to an Actor type's Actors from where the session reports them (as fractions
-  of the view, from `ViewportManager`'s visible scene bounds), with room around them, since the session can't know the
-  pixels.
+  can report them. What depends on the game's timing is one session command, since the game keeps running between
+  commands: `press_keys` steps are played by one `PressKeySteps`, and `take_screenshot`'s `actorType` crop locates the
+  Actors (the type's and its descendants' classes) in the same moment as it captures (`CaptureActors`), on the thread the
+  game ticks on, since a body computes its bounds as they are read. Sessions older than protocol 4 play the steps one at a
+  time, and get the whole view with a note in place of the crop.
 - **Context:** every conversation starts with the fixed system prompt, then the project digest and the game's notes, so the cached
   prefix stays the same. A conversation's reads remember what they returned (`ConversationReads`, forgotten with the conversation
   and when a turn is cancelled) and answer again with what changed (`ResultDelta`; `full: true` for the whole); outside clients

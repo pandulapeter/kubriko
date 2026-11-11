@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.GameStep
+import com.pandulapeter.kubrikoCreator.commands.HeldKeys
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.coroutines.Dispatchers
@@ -38,25 +39,22 @@ public object PressKeys : ActionCommand<PressKeys.Input> {
     override suspend fun run(context: CommandContext, input: Input): CommandOutcome {
         val steps = stepsOf(input) ?: return CommandOutcome.Rejected(Rejection(CommandProblem.GAME_KEYS_OR_STEPS))
         rejectionOf(steps)?.let { return CommandOutcome.Rejected(it) }
-        val console = steps.flatMap { step ->
-            when (val done = context.runner.pressKeys(step.keys.map { it.uppercase() }, step.milliseconds.toLong())) {
-                is GameStep.Done -> done.console
-                else -> return done.toOutcome()
-            }
-        }
-        val width = input.screenshotWidth ?: return GameStep.Done(console).toOutcome()
-        return when (val screen = context.runner.captureScreen()) {
+        val held = steps.map { step -> HeldKeys(step.keys.map { it.uppercase() }, step.milliseconds.toLong()) }
+        val width = input.screenshotWidth
+        return when (val step = context.runner.pressKeySteps(held, isCapturing = width != null)) {
             is GameStep.Done -> GameStep.Done(
-                console = console + screen.console,
-                png = screen.png?.let { png -> withContext(Dispatchers.Default) { ScreenshotImage.edited(png, width.coerceIn(ScreenshotImage.widths)) } },
+                console = step.console,
+                png = step.png?.takeIf { width != null }?.let { png ->
+                    withContext(Dispatchers.Default) { ScreenshotImage.edited(png, checkNotNull(width).coerceIn(ScreenshotImage.widths)) }
+                },
             )
-            else -> screen
+            else -> step
         }.toOutcome()
     }
 
     private fun stepsOf(input: Input) = when {
-        input.steps.isEmpty() -> listOf(Step(input.keys, input.milliseconds))
-        input.keys.isEmpty() -> input.steps
+        input.steps.isEmpty() && input.keys.isNotEmpty() -> listOf(Step(input.keys, input.milliseconds ?: DEFAULT_MILLISECONDS))
+        input.keys.isEmpty() && input.milliseconds == null && input.steps.isNotEmpty() -> input.steps
         else -> null
     }
 
@@ -69,8 +67,8 @@ public object PressKeys : ActionCommand<PressKeys.Input> {
             }
             step.keys.firstOrNull { !isKeyName(it) }?.let { return Rejection(CommandProblem.GAME_KEY_UNKNOWN, it) }
         }
-        if (steps.sumOf { it.milliseconds } > MAXIMUM_TOTAL_MILLISECONDS) {
-            return Rejection(CommandProblem.GAME_DURATION_INVALID, MAXIMUM_TOTAL_MILLISECONDS.toString())
+        if (steps.sumOf { it.milliseconds.toLong() } > MAXIMUM_TOTAL_MILLISECONDS) {
+            return Rejection(CommandProblem.GAME_STEPS_DURATION, MAXIMUM_TOTAL_MILLISECONDS.toString())
         }
         return null
     }
@@ -79,13 +77,14 @@ public object PressKeys : ActionCommand<PressKeys.Input> {
     private const val MAXIMUM_MILLISECONDS = 10_000
     private const val MAXIMUM_STEPS = 20
     private const val MAXIMUM_TOTAL_MILLISECONDS = 30_000
+    private const val DEFAULT_MILLISECONDS = 150
 
     @Serializable
     public data class Input(
         @Description("Keys held together, named as in Java's KeyEvent without VK_: LEFT, RIGHT, UP, DOWN, SPACE, ENTER, ESCAPE, SHIFT, CONTROL, A to Z, 0 to 9.")
         @SerialName("keys") val keys: List<String> = emptyList(),
-        @Description("Milliseconds to hold them, at most 10000; a tap is about 100.")
-        @SerialName("milliseconds") val milliseconds: Int = 150,
+        @Description("Milliseconds to hold them, at most 10000; a tap is about 100, and 150 if left out.")
+        @SerialName("milliseconds") val milliseconds: Int? = null,
         @Description("Holds one after another, in place of keys: at most 20, 30000 milliseconds together.")
         @SerialName("steps") val steps: List<Step> = emptyList(),
         @Description("An image of the game once released, this many pixels wide at most (160 to 1280).")

@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.creatorSession.implementation
 
+import com.pandulapeter.kubriko.creatorSession.protocol.KeyHold
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionCommand
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import java.awt.AWTEvent
@@ -126,23 +127,24 @@ class PlayCommandHandlerTest {
     }
 
     @Test
-    fun actorsAreLocatedWithinTheView() {
-        val handler = PlayCommandHandler(
-            send = {},
-            findWindow = { null },
-            locateActors = { type -> ActorRegion(0.1f, 0.2f, 0.3f, 0.4f).takeIf { type == "Ship" } },
-            entryPointReportsInstances = { true },
-        )
-        assertEquals(SessionMessage.ActorsLocated(1, 0.1f, 0.2f, 0.3f, 0.4f), handler.carryOut(SessionCommand.LocateActors(1, "Ship")))
-        assertEquals(SessionMessage.CommandFailed(2, "No Actor of type Drifter is in view."), handler.carryOut(SessionCommand.LocateActors(2, "Drifter")))
+    fun stepsAreCheckedBeforeAnyKeyIsPressed() {
+        val steps = SessionCommand.PressKeySteps(1, listOf(KeyHold(listOf("LEFT"), 100), KeyHold(listOf("JUMP"), 100)))
+        assertEquals(SessionMessage.CommandFailed(1, "There's no key called JUMP."), handler.carryOut(steps))
+        assertTrue(received.isEmpty())
     }
 
     @Test
-    fun gamesThatDontReportTheirInstancesCantLocateActors() {
-        val handler = PlayCommandHandler(send = {}, findWindow = { null }, locateActors = { error("not asked") }, entryPointReportsInstances = { false })
+    fun gamesThatDontReportTheirInstancesCantCaptureTheirActors() {
+        val handler = PlayCommandHandler(send = {}, findWindow = { error("not looked for") }, locateActors = { _, _ -> error("not asked") }, entryPointReportsInstances = { false })
         assertEquals(
             SessionMessage.CommandFailed(1, "The game's CreatorEntryPoint doesn't report its Kubriko instances."),
-            handler.carryOut(SessionCommand.LocateActors(1, "Ship")),
+            handler.carryOut(SessionCommand.CaptureActors(1, 1280, listOf("Ship"))),
         )
+    }
+
+    @Test
+    fun actorsAreCapturedOnlyOnceTheGameHasAWindow() {
+        val handler = PlayCommandHandler(send = {}, findWindow = { null }, sleep = { sleeps += it }, locateActors = { _, _ -> error("not asked") }, entryPointReportsInstances = { true })
+        assertEquals(SessionMessage.CommandFailed(1, "The game has no window yet."), handler.carryOut(SessionCommand.CaptureActors(1, 1280, listOf("Ship"))))
     }
 }

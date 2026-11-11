@@ -73,15 +73,28 @@ sealed interface SessionCommand {
     ) : SessionCommand
 
     /**
-     * Finds where the Actors of the class named [actorType] (its simple name) are within the game's view, answered with a
-     * [SessionMessage.ActorsLocated] holding the region all of them that are in view take up, so that a screenshot can be
-     * cropped to them. Fails for a game whose entry point doesn't report its instances, or with none of them in view.
-     * Added in protocol version 4.
+     * Holds the keys of each of [steps] down together for its duration, one step after the other with no pause between
+     * them, then answers with a [SessionMessage.Screenshot] at most [screenshotWidth] pixels wide, or with a
+     * [SessionMessage.CommandDone] when it is null. Added in protocol version 4.
      */
     @Serializable
-    @SerialName("locateActors")
-    data class LocateActors(
+    @SerialName("pressKeySteps")
+    data class PressKeySteps(
         override val id: Int,
-        val actorType: String,
+        val steps: List<KeyHold>,
+        val screenshotWidth: Int? = null,
+    ) : SessionCommand
+
+    /**
+     * Captures what the game's window shows, like [CaptureScreen], and finds in the same moment where its Actors whose
+     * classes have one of the simple names [actorTypes] are, answered with a [SessionMessage.ActorsCaptured]. Fails for a
+     * game whose entry point doesn't report its instances. Added in protocol version 4.
+     */
+    @Serializable
+    @SerialName("captureActors")
+    data class CaptureActors(
+        override val id: Int,
+        val maximumWidth: Int,
+        val actorTypes: List<String>,
     ) : SessionCommand
 }

@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.game
 
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
@@ -50,7 +51,7 @@ class GameCommandsTest {
     @Test
     fun keyPressesAreCheckedBeforeTheyReachTheGame() = runTest {
         val executor = executor()
-        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_KEYS_COUNT, "10")), executor.call("press_keys", keys()))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_KEYS_OR_STEPS)), executor.call("press_keys", keys()))
         assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_KEYS_COUNT, "10")), executor.call("press_keys", keys(*Array(11) { "A" })))
         assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_KEY_UNKNOWN, "JUMP")), executor.call("press_keys", keys("LEFT", "JUMP")))
         assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_DURATION_INVALID, "10000")), executor.call("press_keys", keys("LEFT", milliseconds = 0)))
@@ -83,7 +84,9 @@ class GameCommandsTest {
         val tooMany = buildJsonObject { put("steps", JsonArray(List(21) { Json.parseToJsonElement("""{"keys": ["A"]}""") })) }
         assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_STEPS_COUNT, "20")), executor.call("press_keys", tooMany))
         val tooLong = buildJsonObject { put("steps", Json.parseToJsonElement("""[{"keys": ["A"], "milliseconds": 10000}, {"keys": ["A"], "milliseconds": 10000}, {"keys": ["A"], "milliseconds": 10000}, {"keys": ["A"], "milliseconds": 1}]""")) }
-        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_DURATION_INVALID, "30000")), executor.call("press_keys", tooLong))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_STEPS_DURATION, "30000")), executor.call("press_keys", tooLong))
+        val stepsWithMilliseconds = buildJsonObject { put("steps", Json.parseToJsonElement("""[{"keys": ["A"]}]""")); put("milliseconds", 500) }
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_KEYS_OR_STEPS)), executor.call("press_keys", stepsWithMilliseconds))
         val unknownLater = buildJsonObject { put("steps", Json.parseToJsonElement("""[{"keys": ["A"]}, {"keys": ["JUMP"]}]""")) }
         assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_KEY_UNKNOWN, "JUMP")), executor.call("press_keys", unknownLater))
         assertTrue(runner.calls.isEmpty())
@@ -99,25 +102,37 @@ class GameCommandsTest {
     }
 
     @Test
-    fun aScreenshotIsCroppedToAnActorTypeWithRoomAroundIt() = runTest {
-        val executor = executor()
-        runner.located = GameStep.Done(console = emptyList(), region = ScreenRegion(0.4f, 0.4f, 0.6f, 0.6f))
-        runner.step = GameStep.Done(console = emptyList(), png = png(width = 200, height = 100))
-        val image = assertIs<CommandOutcome.Success>(executor.call("take_screenshot", buildJsonObject { put("actorType", "Ship") })).image!!
+    fun aScreenshotIsCroppedToAnActorTypeAndTheTypesInheritingFromItWithRoomAround() = runTest {
+        val enemy = ActorTypeDefinition("Enemy")
+        val executor = CommandExecutor(commandContext(enemy, ActorTypeDefinition("Bat", parent = "Enemy"), ActorTypeDefinition("Rock"), runner = runner), testScope())
+        runner.capturedActors = GameStep.Done(console = emptyList(), png = png(width = 200, height = 100), region = ScreenRegion(0.375f, 0.375f, 0.625f, 0.625f))
+        val image = assertIs<CommandOutcome.Success>(executor.call("take_screenshot", buildJsonObject { put("actorType", "Enemy") })).image!!
         val cropped = ImageIO.read(image.inputStream())
-        assertEquals(80 to 40, cropped.width to cropped.height)
-        assertEquals(listOf("locate Ship", "screenshot"), runner.calls)
+        assertEquals(100 to 50, cropped.width to cropped.height)
+        assertEquals(listOf("capture Enemy+Bat"), runner.calls)
     }
 
     @Test
-    fun anActorTypeNotInViewIsReportedWithoutAScreenshot() = runTest {
+    fun withoutTheActorTypeInViewOrAGameThatCanLocateItTheWholeViewIsShownWithANote() = runTest {
         val executor = executor()
-        runner.located = GameStep.Failed("No Actor of type Ship is in view.")
+        runner.capturedActors = GameStep.Done(console = emptyList(), png = png(width = 200, height = 100))
+        val notInView = assertIs<CommandOutcome.Success>(executor.call("take_screenshot", buildJsonObject { put("actorType", "Ship") }))
+        assertEquals(200, ImageIO.read(notInView.image!!.inputStream()).width)
+        assertEquals(JsonPrimitive("No Actor of type Ship is in view, so this is the whole view."), (notInView.result as JsonObject)["note"])
+        runner.capturedActors = GameStep.Unsupported
+        runner.step = GameStep.Done(console = emptyList(), png = png(width = 200, height = 100))
+        val unsupported = assertIs<CommandOutcome.Success>(executor.call("take_screenshot", buildJsonObject { put("actorType", "Ship") }))
+        assertEquals(JsonPrimitive("The game's Kubriko version can't locate Actors, so this is the whole view."), (unsupported.result as JsonObject)["note"])
+        assertEquals(listOf("capture Ship", "capture Ship", "screenshot"), runner.calls)
+    }
+
+    @Test
+    fun aGameThatCantCaptureItsActorsSaysWhy() = runTest {
+        runner.capturedActors = GameStep.Failed("The game's CreatorEntryPoint doesn't report its Kubriko instances.")
         assertEquals(
-            CommandOutcome.Rejected(Rejection(CommandProblem.GAME_COMMAND_FAILED, "No Actor of type Ship is in view.")),
-            executor.call("take_screenshot", buildJsonObject { put("actorType", "Ship") }),
+            CommandOutcome.Rejected(Rejection(CommandProblem.GAME_COMMAND_FAILED, "The game's CreatorEntryPoint doesn't report its Kubriko instances.")),
+            executor().call("take_screenshot", buildJsonObject { put("actorType", "Ship") }),
         )
-        assertEquals(listOf("locate Ship"), runner.calls)
     }
 
     private fun png(width: Int, height: Int) = ByteArrayOutputStream().also { ImageIO.write(BufferedImage(width, height, BufferedImage.TYPE_INT_RGB), "png", it) }.toByteArray()

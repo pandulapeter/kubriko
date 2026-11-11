@@ -94,7 +94,7 @@ public fun BlockTypeDefinition.withBlockRemoved(eventIndex: Int, blockIndex: Int
  */
 public fun BlockTypeDefinition.withBlocksReplaced(eventIndex: Int, blockIndex: Int, count: Int, blocks: List<BlockDefinition>): BlockTypeDefinition =
     withEvent(eventIndex) { event ->
-        if (blockIndex < 0 || count < 0 || blockIndex + count > event.blocks.size) {
+        if (blockIndex !in 0..event.blocks.size || count < 0 || count > event.blocks.size - blockIndex) {
             event
         } else {
             event.copy(blocks = event.blocks.subList(0, blockIndex) + blocks + event.blocks.subList(blockIndex + count, event.blocks.size))

@@ -35,12 +35,21 @@ public class FakeProjectRunner(
 
     override suspend fun captureScreen() = step.also { calls += "screenshot" }
 
-    /**
-     * What [locateActors] answers; [step] while null.
-     */
-    var located: GameStep? = null
+    override suspend fun pressKeySteps(steps: List<HeldKeys>, isCapturing: Boolean): GameStep {
+        steps.forEach { held ->
+            calls += "press ${held.keys.joinToString("+")} ${held.durationInMilliseconds}"
+            if (step !is GameStep.Done) return step
+        }
+        if (isCapturing) calls += "screenshot"
+        return step
+    }
 
-    override suspend fun locateActors(actorType: String) = (located ?: step).also { calls += "locate $actorType" }
+    /**
+     * What [captureActors] answers; [step] while null.
+     */
+    var capturedActors: GameStep? = null
+
+    override suspend fun captureActors(actorTypes: List<String>) = (capturedActors ?: step).also { calls += "capture ${actorTypes.joinToString("+")}" }
 
     private val PlayTarget.suffix get() = if (this == PlayTarget.DESKTOP) "" else " on $id"
 

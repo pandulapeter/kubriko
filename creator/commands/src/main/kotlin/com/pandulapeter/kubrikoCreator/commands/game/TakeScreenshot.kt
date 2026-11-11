@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.game
 
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.commands.ActionCommand
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
@@ -31,25 +32,40 @@ public object TakeScreenshot : ActionCommand<TakeScreenshot.Input> {
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Game
 
     override suspend fun run(context: CommandContext, input: Input): CommandOutcome {
-        val located = input.actorType?.let { actorType ->
-            when (val step = context.runner.locateActors(actorType)) {
-                is GameStep.Done -> step
-                else -> return step.toOutcome()
-            }
+        val actorType = input.actorType ?: return capture(context.runner.captureScreen(), input.width, ScreenRegion(input.left, input.top, input.right, input.bottom))
+        val step = context.runner.captureActors(classNamesOf(context, actorType))
+        val region = (step as? GameStep.Done)?.region
+        return when {
+            step == GameStep.Unsupported -> capture(context.runner.captureScreen(), input.width, WHOLE_VIEW, note = CANT_LOCATE)
+            step is GameStep.Done && region == null -> capture(step, input.width, WHOLE_VIEW, note = NOT_IN_VIEW.format(actorType))
+            else -> capture(step, input.width, region?.withMargin(ACTOR_MARGIN, MINIMUM_ACTOR_MARGIN) ?: WHOLE_VIEW)
         }
-        val region = located?.region?.withMargin(ACTOR_MARGIN, MINIMUM_ACTOR_MARGIN) ?: ScreenRegion(input.left, input.top, input.right, input.bottom)
-        return when (val step = context.runner.captureScreen()) {
-            is GameStep.Done -> GameStep.Done(
-                console = located?.console.orEmpty() + step.console,
-                png = step.png?.let { png ->
-                    withContext(Dispatchers.Default) {
-                        ScreenshotImage.edited(png, input.width.coerceIn(ScreenshotImage.widths), region.left, region.top, region.right, region.bottom)
-                    }
-                },
-            )
-            else -> step
-        }.toOutcome()
     }
+
+    /**
+     * The class names of [actorType] and every Actor type inheriting from it, whose Actors stand for it; just its name for
+     * a type Kubriko Creator doesn't know, such as one written in Kotlin.
+     */
+    private fun classNamesOf(context: CommandContext, actorType: String): List<String> {
+        val actorTypes = context.blockTypes?.actorTypes?.value.orEmpty()
+        return if (actorTypes.any { it.name == actorType }) ActorTypeFamily(actorTypes).familyOf(actorType) else listOf(actorType)
+    }
+
+    private suspend fun capture(step: GameStep, width: Int, region: ScreenRegion, note: String? = null) = when (step) {
+        is GameStep.Done -> GameStep.Done(
+            console = step.console,
+            png = step.png?.let { png ->
+                withContext(Dispatchers.Default) {
+                    ScreenshotImage.edited(png, width.coerceIn(ScreenshotImage.widths), region.left, region.top, region.right, region.bottom)
+                }
+            },
+        )
+        else -> step
+    }.toOutcome(note)
+
+    private val WHOLE_VIEW = ScreenRegion(0f, 0f, 1f, 1f)
+    private const val CANT_LOCATE = "The game's Kubriko version can't locate Actors, so this is the whole view."
+    private const val NOT_IN_VIEW = "No Actor of type %s is in view, so this is the whole view."
 
     /**
      * How much room is left around the Actors a screenshot is cropped to, as a fraction of their size and at least of the

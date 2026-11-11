@@ -9,9 +9,12 @@
  */
 package com.pandulapeter.kubriko.creatorSession.implementation
 
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.creator.CreatorEntryPoint
+import com.pandulapeter.kubriko.creatorSession.protocol.ImageRegion
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionCommand
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubriko.helpers.extensions.get
@@ -48,7 +51,7 @@ internal class PlayCommandHandler(
     private val findWindow: () -> Window? = ::findGameWindow,
     private val sleep: (Long) -> Unit = Thread::sleep,
     private val hasActorsInView: () -> Boolean? = ::hasEntryPointsActorsInView,
-    private val locateActors: (actorType: String) -> ActorRegion? = ::locateEntryPointsActors,
+    private val locateActors: (actorTypes: Set<String>, imageSize: IntSize) -> ImageRegion? = ::locateEntryPointsActors,
     private val entryPointReportsInstances: () -> Boolean = { entryPoint?.getRunningInstances() != null },
 ) {
     private val worker = Executors.newSingleThreadExecutor { runnable -> Thread(runnable, "kubriko-creator-commands").apply { isDaemon = true } }
@@ -90,10 +93,26 @@ internal class PlayCommandHandler(
                 sleep(DRAW_SETTLE_TIME_IN_MILLISECONDS)
                 SessionMessage.CommandDone(command.id)
             }
-            is SessionCommand.LocateActors -> {
-                if (entryPointReportsInstances() == false) throw CommandException("The game's CreatorEntryPoint doesn't report its Kubriko instances.")
-                val region = locateActors(command.actorType) ?: throw CommandException("No Actor of type ${command.actorType} is in view.")
-                SessionMessage.ActorsLocated(command.id, region.left, region.top, region.right, region.bottom)
+            is SessionCommand.PressKeySteps -> {
+                val holds = command.steps.map { step -> step.keys.map { name -> keyCodeOf(name) ?: throw CommandException("There's no key called $name.") } to step.durationInMilliseconds }
+                val window = requireWindow()
+                if (!awaitFocus { window.isFocused }) throw CommandException(
+                    "The game's window didn't get the keyboard focus, so no keys were pressed. Another app may have taken it; try again.",
+                )
+                holds.forEach { (keyCodes, duration) -> pressKeys(window, keyCodes, duration) }
+                command.screenshotWidth?.let { width ->
+                    SessionMessage.Screenshot(command.id, Base64.getEncoder().encodeToString(onEventThread { encode(grab(window), width) }))
+                } ?: SessionMessage.CommandDone(command.id)
+            }
+            is SessionCommand.CaptureActors -> {
+                if (!entryPointReportsInstances()) throw CommandException("The game's CreatorEntryPoint doesn't report its Kubriko instances.")
+                val window = requireWindow()
+                // On the thread the game ticks on, so the Actors are where the image shows them, and reading their bounds races nothing.
+                val (png, region) = onEventThread {
+                    val image = grab(window)
+                    encode(image, command.maximumWidth) to locateActors(command.actorTypes.toSet(), IntSize(image.width, image.height))
+                }
+                SessionMessage.ActorsCaptured(command.id, Base64.getEncoder().encodeToString(png), region)
             }
         }
     } catch (exception: CommandException) {
@@ -155,10 +174,15 @@ internal class PlayCommandHandler(
         Toolkit.getDefaultToolkit().getAWTEventListeners(AWTEvent.KEY_EVENT_MASK).forEach { it.eventDispatched(event) }
     }
 
-    private fun capture(window: Window, maximumWidth: Int): ByteArray {
+    private fun capture(window: Window, maximumWidth: Int) = encode(grab(window), maximumWidth)
+
+    private fun grab(window: Window): Image {
         val layer = window.descendants().filterIsInstance<SkiaLayer>().maxByOrNull { it.width * it.height }
             ?: throw CommandException("The game's window has nothing to capture.")
-        val image = Image.makeFromBitmap(layer.screenshot() ?: throw CommandException("The game hasn't drawn anything yet."))
+        return Image.makeFromBitmap(layer.screenshot() ?: throw CommandException("The game hasn't drawn anything yet."))
+    }
+
+    private fun encode(image: Image, maximumWidth: Int): ByteArray {
         val scale = (maximumWidth.toFloat() / image.width).coerceAtMost(1f)
         val scaled = if (scale < 1f) {
             val width = (image.width * scale).toInt().coerceAtLeast(1)
@@ -213,19 +237,25 @@ internal class PlayCommandHandler(
         private fun hasEntryPointsActorsInView() = entryPoint?.getRunningInstances()?.any { it.hasActorsInView() }
 
         /**
-         * The region the Actors of the class named [actorType] in view take up, in the first of the entry point's
-         * instances that has any, or null.
+         * Where the Actors in view whose classes have one of the simple names [actorTypes] are in an image of the game's
+         * window [imageSize] pixels large, in the first of the entry point's instances that has any, or null. Reads the
+         * Actors' bounds, which their bodies compute when read, so it runs on the thread the game ticks on.
          */
-        private fun locateEntryPointsActors(actorType: String) = entryPoint?.getRunningInstances()?.firstNotNullOfOrNull { it.regionOf(actorType) }
+        private fun locateEntryPointsActors(actorTypes: Set<String>, imageSize: IntSize) =
+            entryPoint?.getRunningInstances()?.firstNotNullOfOrNull { it.regionOf(actorTypes, imageSize) }
 
-        private fun Kubriko.regionOf(actorType: String) = try {
+        private fun Kubriko.regionOf(actorTypes: Set<String>, imageSize: IntSize) = try {
             val viewport = get<ViewportManager>()
-            ActorRegion.of(
+            val viewportSize = viewport.size.value
+            ActorImageRegion.of(
                 bounds = get<ActorManager>().visibleActorsWithinViewport.value
-                    .filter { it::class.simpleName == actorType }
+                    .filter { it::class.simpleName in actorTypes }
                     .mapNotNull { (it as? Positionable)?.body?.axisAlignedBoundingBox },
                 viewTopLeft = viewport.topLeft.value,
                 viewBottomRight = viewport.bottomRight.value,
+                viewportSize = IntSize(viewportSize.width.toInt(), viewportSize.height.toInt()),
+                imageSize = imageSize,
+                alignment = (viewport.aspectRatioMode.value as? ViewportManager.AspectRatioMode.Fixed)?.alignment ?: Alignment.Center,
             )
         } catch (_: IllegalStateException) {
             null

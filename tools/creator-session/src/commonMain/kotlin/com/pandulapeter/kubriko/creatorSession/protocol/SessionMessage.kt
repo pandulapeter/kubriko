@@ -87,17 +87,17 @@ sealed interface SessionMessage {
     ) : SessionMessage
 
     /**
-     * The answer to a [SessionCommand.LocateActors]: the region its Actors take up, as fractions of the game's view, from
-     * 0 to 1 (its left edge is 0, its right edge 1). Added in protocol version 4.
+     * The answer to a [SessionCommand.CaptureActors]. Added in protocol version 4.
+     *
+     * @param png The captured image, PNG-encoded, in Base64.
+     * @param region Where the Actors are in it, or null when none of them is in view.
      */
     @Serializable
-    @SerialName("actorsLocated")
-    data class ActorsLocated(
+    @SerialName("actorsCaptured")
+    data class ActorsCaptured(
         val id: Int,
-        val left: Float,
-        val top: Float,
-        val right: Float,
-        val bottom: Float,
+        val png: String,
+        val region: ImageRegion?,
     ) : SessionMessage
 
     /**

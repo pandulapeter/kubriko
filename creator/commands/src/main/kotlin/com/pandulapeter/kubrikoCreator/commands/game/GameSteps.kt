@@ -20,10 +20,16 @@ import java.awt.event.KeyEvent
 
 /**
  * The outcome of a tool that did [this] with the running game: the console lines it produced (and the screenshot it
- * took), or why it couldn't.
+ * took, with a [note] on it), or why it couldn't.
  */
-internal suspend fun GameStep.toOutcome() = when (this) {
-    is GameStep.Done -> CommandOutcome.Success(result = buildJsonObject { put("console", console.toJsonArray()) }, image = png)
+internal suspend fun GameStep.toOutcome(note: String? = null) = when (this) {
+    is GameStep.Done -> CommandOutcome.Success(
+        result = buildJsonObject {
+            put("console", console.toJsonArray())
+            note?.let { put("note", it) }
+        },
+        image = png,
+    )
     else -> CommandOutcome.Rejected(checkNotNull(rejection()))
 }
 

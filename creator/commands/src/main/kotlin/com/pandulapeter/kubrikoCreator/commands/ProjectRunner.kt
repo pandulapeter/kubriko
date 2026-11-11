@@ -64,9 +64,16 @@ public interface ProjectRunner {
     public suspend fun captureScreen(): GameStep
 
     /**
-     * Finds the region of the running game's view that its Actors of [actorType] in view take up.
+     * Holds the keys of each of [steps] down in the running game for its duration, one after the other, then captures what
+     * it shows (as [captureScreen] does) when [isCapturing].
      */
-    public suspend fun locateActors(actorType: String): GameStep
+    public suspend fun pressKeySteps(steps: List<HeldKeys>, isCapturing: Boolean): GameStep
+
+    /**
+     * Captures what the running game shows, as [captureScreen] does, with the region its Actors whose classes have one of
+     * the simple names [actorTypes] take up in that moment ([GameStep.Done.region], null when none is in view).
+     */
+    public suspend fun captureActors(actorTypes: List<String>): GameStep
 
     /**
      * @param isSuccessful Whether the build succeeded, or the game started.

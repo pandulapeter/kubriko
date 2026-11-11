@@ -24,7 +24,8 @@ class SessionProtocolTest {
             SessionMessage.CommandDone(id = 1),
             SessionMessage.Screenshot(id = 2, png = "iVBORw0KGgo="),
             SessionMessage.CommandFailed(id = 3, message = "No window."),
-            SessionMessage.ActorsLocated(id = 4, left = 0.25f, top = 0.5f, right = 0.75f, bottom = 1f),
+            SessionMessage.ActorsCaptured(id = 4, png = "iVBORw0KGgo=", region = ImageRegion(0.25f, 0.5f, 0.75f, 1f)),
+            SessionMessage.ActorsCaptured(id = 5, png = "iVBORw0KGgo=", region = null),
         ).forEach { message ->
             val line = SessionProtocol.encode(message)
             assertFalse('\n' in line)
@@ -39,7 +40,8 @@ class SessionProtocolTest {
             SessionCommand.PressKeys(id = 2, keys = listOf("LEFT", "SPACE"), durationInMilliseconds = 250),
             SessionCommand.CaptureScreen(id = 3, maximumWidth = 1280),
             SessionCommand.AwaitActorsDrawn(id = 4, timeoutInMilliseconds = 5000),
-            SessionCommand.LocateActors(id = 5, actorType = "Ship"),
+            SessionCommand.PressKeySteps(id = 5, steps = listOf(KeyHold(listOf("UP"), 1800), KeyHold(listOf("SPACE"), 100)), screenshotWidth = 640),
+            SessionCommand.CaptureActors(id = 6, maximumWidth = 1280, actorTypes = listOf("Enemy", "Bat")),
         ).forEach { command ->
             val line = SessionProtocol.encodeCommand(command)
             assertFalse('\n' in line)
@@ -58,8 +60,10 @@ class SessionProtocolTest {
             """{"type":"commandDone","id":1}""" to SessionMessage.CommandDone(id = 1),
             """{"type":"screenshot","id":2,"png":"iVBORw0KGgo="}""" to SessionMessage.Screenshot(id = 2, png = "iVBORw0KGgo="),
             """{"type":"commandFailed","id":3,"message":"No window."}""" to SessionMessage.CommandFailed(id = 3, message = "No window."),
-            """{"type":"actorsLocated","id":4,"left":0.25,"top":0.5,"right":0.75,"bottom":1.0}""" to
-                SessionMessage.ActorsLocated(id = 4, left = 0.25f, top = 0.5f, right = 0.75f, bottom = 1f),
+            """{"type":"actorsCaptured","id":4,"png":"iVBORw0KGgo=","region":{"left":0.25,"top":0.5,"right":0.75,"bottom":1.0}}""" to
+                SessionMessage.ActorsCaptured(id = 4, png = "iVBORw0KGgo=", region = ImageRegion(0.25f, 0.5f, 0.75f, 1f)),
+            """{"type":"actorsCaptured","id":5,"png":"iVBORw0KGgo=","region":null}""" to
+                SessionMessage.ActorsCaptured(id = 5, png = "iVBORw0KGgo=", region = null),
         ).forEach { (line, message) ->
             assertEquals(message, SessionProtocol.decode(line))
             assertEquals(line, SessionProtocol.encode(message))
@@ -71,7 +75,10 @@ class SessionProtocolTest {
             """{"type":"captureScreen","id":3,"maximumWidth":1280}""" to SessionCommand.CaptureScreen(id = 3, maximumWidth = 1280),
             """{"type":"awaitActorsDrawn","id":4,"timeoutInMilliseconds":5000}""" to
                 SessionCommand.AwaitActorsDrawn(id = 4, timeoutInMilliseconds = 5000),
-            """{"type":"locateActors","id":5,"actorType":"Ship"}""" to SessionCommand.LocateActors(id = 5, actorType = "Ship"),
+            """{"type":"pressKeySteps","id":5,"steps":[{"keys":["UP"],"durationInMilliseconds":1800}],"screenshotWidth":640}""" to
+                SessionCommand.PressKeySteps(id = 5, steps = listOf(KeyHold(listOf("UP"), 1800)), screenshotWidth = 640),
+            """{"type":"captureActors","id":6,"maximumWidth":1280,"actorTypes":["Enemy","Bat"]}""" to
+                SessionCommand.CaptureActors(id = 6, maximumWidth = 1280, actorTypes = listOf("Enemy", "Bat")),
         ).forEach { (line, command) ->
             assertEquals(command, SessionProtocol.decodeCommand(line))
             assertEquals(line, SessionProtocol.encodeCommand(command))

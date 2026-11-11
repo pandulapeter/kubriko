@@ -19,7 +19,7 @@ public sealed interface GameStep {
     /**
      * @param console What the console showed meanwhile.
      * @param png The screenshot, for [ProjectRunner.captureScreen].
-     * @param region Where the Actors are, for [ProjectRunner.locateActors].
+     * @param region Where the Actors are in [png], for [ProjectRunner.captureActors].
      */
     public class Done(
         public val console: List<ConsoleEntry>,
