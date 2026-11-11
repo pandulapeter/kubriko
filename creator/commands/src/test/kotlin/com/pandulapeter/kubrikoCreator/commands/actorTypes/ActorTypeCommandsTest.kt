@@ -39,6 +39,7 @@ import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -160,6 +161,18 @@ class ActorTypeCommandsTest {
         assertEquals(Rejection(LookupProblem.SPRITE_MISSING, "drawable/ghost.png"), context.rejection(SetAppearance, SetAppearance.Input("Ball", sprite = "drawable/ghost.png")))
         assertEquals(Rejection(LookupProblem.SPRITE_MISSING, "files/ball.png"), commandContext(ball).rejection(SetAppearance, SetAppearance.Input("Ball", sprite = "files/ball.png")))
         assertNull(commandContext(ball).rejection(SetAppearance, SetAppearance.Input("Ball", sprite = "drawable/unknown.png")))
+        root.deleteRecursively()
+    }
+
+    @Test
+    @OptIn(EditorMutation::class)
+    fun choosingASpriteCutIntoFramesSizesTheActorTypeToAFrame() = runTest {
+        val root = createTempDirectory().toFile()
+        val image = File(root, "hero.png").apply { ImageIO.write(BufferedImage(64, 16, BufferedImage.TYPE_INT_ARGB), "png", this) }
+        val context = commandContext(ball, rootDirectory = root, spriteFiles = SpriteFiles(mapOf("drawable/hero.png" to image)))
+        context.spriteFolders.setSheet("hero", SpriteSheet(frameWidth = 16, frameHeight = 16, frameCount = 4, framesPerRow = 4))
+        val withSprite = context.assertRoundTrip(Invocation(SetAppearance, SetAppearance.Input("Ball", sprite = "drawable/hero.png"))) { context.ball() }
+        assertEquals(ball.copy(sprite = "drawable/hero.png", width = 16f, height = 16f), withSprite)
         root.deleteRecursively()
     }
 

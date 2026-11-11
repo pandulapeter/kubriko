@@ -21,6 +21,7 @@ import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
+import com.pandulapeter.kubrikoCreator.sprites.sheetOfSprite
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
@@ -30,7 +31,7 @@ import kotlinx.serialization.Serializable
 public object SetAppearance : WriteCommand<SetAppearance.Input> {
     override val name: String = "set_appearance"
     override val description: String = "Changes how the Actors of a block-built Actor type look. Properties left out stay as they are. " +
-        "Choosing a sprite also sets the size to the image's, unless a width or height is given."
+        "Choosing a sprite also sets the size to the image's (a frame's, for one cut into frames), unless a width or height is given."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.BlockType(input.actorType)
@@ -44,7 +45,8 @@ public object SetAppearance : WriteCommand<SetAppearance.Input> {
         val definition = context.requireActorType(input.actorType)
         val sprite = input.sprite?.ifEmpty { null }
         val spriteSize = if (sprite != null && sprite != definition.sprite && input.width == null && input.height == null) {
-            context.spriteFiles()?.files?.get(sprite)?.let { file -> withContext(context.ioDispatcher) { SpriteFiles.sizeOf(file) } }
+            context.spriteFolders.state.value.sheets.sheetOfSprite(sprite)?.let { it.frameWidth to it.frameHeight }
+                ?: context.spriteFiles()?.files?.get(sprite)?.let { file -> withContext(context.ioDispatcher) { SpriteFiles.sizeOf(file) } }
         } else {
             null
         }
