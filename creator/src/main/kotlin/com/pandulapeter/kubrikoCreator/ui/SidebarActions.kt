@@ -92,9 +92,8 @@ internal fun rememberFolderTreeActions(
         onCreateFolder = { group, path -> commands.dispatchIfValid(Invocation(CreateFolder, CreateFolder.Input(group, path))) },
         onRenameFolder = { group, path, newName -> commands.dispatchIfValid(Invocation(RenameFolder, RenameFolder.Input(group, path, newName))) },
         onDeleteFolder = { group, path, isEmpty ->
-            val invocation = Invocation(DeleteFolder, DeleteFolder.Input(group, path))
-            // An empty folder takes nothing with it, so it goes without asking, as it always has.
-            if (isEmpty) commands.dispatch(invocation) else uiState.dispatch(invocation = invocation, onSuccess = {}, dispatch = commands::dispatch)
+            val invocation = folderDeleteOf(group, path, isEmpty)
+            if (invocation.input.keepsContents) commands.dispatch(invocation) else uiState.dispatch(invocation = invocation, onSuccess = {}, dispatch = commands::dispatch)
         },
         onRenameItem = { group, name, newName ->
             commands.dispatchIfValid(
@@ -181,3 +180,9 @@ internal fun rememberResourceActions(commands: CommandExecutor, uiState: Workspa
  */
 internal fun freePageName(name: String, isTaken: (String) -> Boolean): String =
     generateSequence(1) { it + 1 }.map { if (it == 1) name else "$name $it" }.first { !isTaken(it) }
+
+/**
+ * The delete of the folder at [path] of [group]: a folder shown [isEmpty] takes nothing with it, so it goes without a
+ * confirmation, but as a delete of the folder alone, which the command refuses if something was put in it since.
+ */
+internal fun folderDeleteOf(group: FolderGroup, path: String, isEmpty: Boolean) = Invocation(DeleteFolder, DeleteFolder.Input(group, path, keepsContents = isEmpty))
