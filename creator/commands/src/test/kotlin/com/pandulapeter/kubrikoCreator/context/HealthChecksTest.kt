@@ -129,13 +129,15 @@ class HealthChecksTest {
         }
         assertEquals(listOf(HealthFinding(HealthFinding.Kind.UNREACHED_SCENE, RelationSubject.Scene("secret"), "level-1")), unreached("level-1", scenes.keys.toList()))
         assertEquals(emptyList(), unreached("main", listOf("main")), "A game of one Scene, which it starts with")
+        assertEquals(listOf(HealthFinding(HealthFinding.Kind.FIRST_SCENE_MISSING, RelationSubject.Scene("main"))), unreached("main", listOf("level-1")), "A game of one Scene, which it doesn't start with")
         assertEquals(
             listOf(
                 HealthFinding(HealthFinding.Kind.FIRST_SCENE_MISSING, RelationSubject.Scene("main")),
-                HealthFinding(HealthFinding.Kind.UNREACHED_SCENE, RelationSubject.Scene("level-1"), "main"),
+                HealthFinding(HealthFinding.Kind.UNREACHED_SCENE, RelationSubject.Scene("level-1")),
+                HealthFinding(HealthFinding.Kind.UNREACHED_SCENE, RelationSubject.Scene("secret")),
             ),
-            unreached("main", listOf("level-1")),
-            "A game of one Scene, which it doesn't start with",
+            unreached("main", scenes.keys.toList()),
+            "With the first Scene missing, any other may be the one to start with",
         )
     }
 
@@ -156,8 +158,8 @@ class HealthChecksTest {
         assertEquals(
             listOf(
                 HealthFinding(HealthFinding.Kind.FIRST_SCENE_MISSING, RelationSubject.Scene("intro")),
-                HealthFinding(HealthFinding.Kind.UNREACHED_SCENE, RelationSubject.Scene("bonus"), "intro"),
-                HealthFinding(HealthFinding.Kind.UNREACHED_SCENE, RelationSubject.Scene("main"), "intro"),
+                HealthFinding(HealthFinding.Kind.UNREACHED_SCENE, RelationSubject.Scene("bonus")),
+                HealthFinding(HealthFinding.Kind.UNREACHED_SCENE, RelationSubject.Scene("main")),
             ),
             context.healthFindings().filter { it.kind in sceneKinds },
         )

@@ -73,13 +73,15 @@ internal object HealthChecks {
     }
 
     /**
-     * The Scenes nothing goes to, and the first Scene if it is missing. Without knowing [firstScene] (a project whose
-     * build doesn't read its settings), any Scene may be the one the game starts with, so only a game of several has any.
+     * The Scenes nothing goes to, and the first Scene if it is missing. Without knowing which Scene the game starts with (a
+     * project whose build doesn't read its settings, or whose first Scene is missing), any one of them may be, so only a
+     * game of several has any, and none names a first Scene.
      */
     private fun sceneFindings(sceneNames: Collection<String>, reached: Set<String>, firstScene: String?) = buildList {
         if (firstScene != null && firstScene !in sceneNames) add(HealthFinding(HealthFinding.Kind.FIRST_SCENE_MISSING, RelationSubject.Scene(firstScene)))
-        if (firstScene != null || sceneNames.size > 1) {
-            sceneNames.sorted().filterNot { it in reached || it == firstScene }.forEach { add(HealthFinding(HealthFinding.Kind.UNREACHED_SCENE, RelationSubject.Scene(it), firstScene)) }
+        val knownFirstScene = firstScene?.takeIf { it in sceneNames }
+        if (knownFirstScene != null || sceneNames.size > 1) {
+            sceneNames.sorted().filterNot { it in reached || it == knownFirstScene }.forEach { add(HealthFinding(HealthFinding.Kind.UNREACHED_SCENE, RelationSubject.Scene(it), knownFirstScene)) }
         }
     }
 }

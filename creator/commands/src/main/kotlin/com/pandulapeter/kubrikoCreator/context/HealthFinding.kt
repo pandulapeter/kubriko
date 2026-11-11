@@ -33,7 +33,7 @@ public data class HealthFinding(
 
         /**
          * A Scene no goToScene Block goes to, other than the one the game starts with: [detail], when the project's
-         * settings name it, and without it, any one of them may be.
+         * settings name one that exists, and without it, any one of them may be.
          */
         UNREACHED_SCENE,
 
