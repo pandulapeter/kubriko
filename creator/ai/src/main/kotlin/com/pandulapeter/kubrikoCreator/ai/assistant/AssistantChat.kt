@@ -183,13 +183,16 @@ public class AssistantChat(
     /**
      * Sends [text] to the agent with [context] (what the user is looking at, [AttentionChip], gathered once the turn
      * starts) ahead of it, unless a prompt runs or the conversation isn't ready.
+     *
+     * @param model A model to switch the conversation to first, so the turn runs on it, as approving a plan with a smaller
+     *   one does; the turn fails, sending nothing, if the agent refuses it.
      */
-    public fun send(text: String, context: suspend () -> List<ContentBlock> = { emptyList() }) {
+    public fun send(text: String, model: SmallerModel? = null, context: suspend () -> List<ContentBlock> = { emptyList() }) {
         if (_isBusy.value || text.isBlank() || _state.value != ChatState.Ready || conversation == null) return
         _transcript.update { it.withUserMessage(text) }
         _lastMessageAt.value = clock()
         _isEmpty.value = false
-        prompt(text, context)
+        prompt(text, model, context)
     }
 
     /**
@@ -202,7 +205,7 @@ public class AssistantChat(
         prompt(text) { lastContext }
     }
 
-    private fun prompt(text: String, context: suspend () -> List<ContentBlock>) {
+    private fun prompt(text: String, model: SmallerModel? = null, context: suspend () -> List<ContentBlock>) {
         val conversation = conversation ?: return
         _isBusy.value = true
         val log = changeLog()
@@ -210,6 +213,7 @@ public class AssistantChat(
         val turnStart = log?.revision
         val turn = scope.launch(start = CoroutineStart.LAZY) {
             try {
+                model?.let { conversation.setConfigOption(it.option, SessionConfigOptionValue.of(it.value.value)) }
                 lastContext = context()
                 turnGatheringContext = null
                 turnStart?.let { seenRevision = it }

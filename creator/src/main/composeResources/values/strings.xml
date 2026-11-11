@@ -1003,7 +1003,8 @@
     <string name="assistant_setup_configuration">Configuration</string>
     <string name="assistant_plan">Plan</string>
     <string name="assistant_plan_approve">Approve</string>
-    <string name="assistant_plan_approve_hint">or say below what to change</string>
+    <string name="assistant_plan_approve_hint">Or say below what to change.</string>
+    <string name="assistant_plan_approve_with">Approve with %1$s</string>
     <string name="assistant_plan_approved">The plan is approved: go ahead.</string>
     <string name="assistant_permission">The assistant asks to use %1$s.</string>
     <string name="assistant_permission_outside">This changes files without Kubriko Creator, so the editor won't show it and Undo can't revert it. Commit your project first to be able to go back.</string>

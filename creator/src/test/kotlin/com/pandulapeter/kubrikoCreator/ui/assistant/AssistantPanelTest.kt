@@ -29,6 +29,9 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.text.TextLayoutResult
+import com.agentclientprotocol.model.SessionConfigId
+import com.agentclientprotocol.model.SessionConfigOption
+import com.agentclientprotocol.model.SessionConfigOptionValue
 import com.pandulapeter.kubrikoCreator.ai.assistant.AcpAgent
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentChoice
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentCommand
@@ -37,6 +40,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantChat
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantPanelModel
 import com.pandulapeter.kubrikoCreator.ai.assistant.AuthStatus
 import com.pandulapeter.kubrikoCreator.ai.assistant.ChatState
+import com.pandulapeter.kubrikoCreator.ai.assistant.FakeAgent
 import com.pandulapeter.kubrikoCreator.ai.assistant.FakeAgentLauncher
 import com.pandulapeter.kubrikoCreator.ai.assistant.RegistryAgent
 import com.pandulapeter.kubrikoCreator.commands.AiStepOrigin
@@ -354,6 +358,22 @@ class AssistantPanelTest {
         assertEquals(listOf("propose", "The plan is approved: go ahead."), launcher.agents.single().prompts)
         waitUntil(timeoutMillis = 10_000) { !chat.isBusy.value }
         onNodeWithText("Approve").assertDoesNotExist()
+    }
+
+    @Test
+    fun aPlanIsApprovedWithASmallerModelTheAgentOffers() = uiTest {
+        val chat = readyChat()
+        val model = FakeAssistantPanelModel().apply { currentChat.value = chat }
+        showing { AssistantPanel(model = model, aiSteps = emptyList(), onShowStep = {}) }
+        runBlocking { withContext(mainThread) { chat.setConfigOption(SessionConfigId(FakeAgent.MODEL), SessionConfigOptionValue.of("opus")) } }
+        waitUntil(timeoutMillis = 10_000) { chat.configOptions.value.any { (it as? SessionConfigOption.Select)?.currentValue?.value == "opus" } }
+        runBlocking { withContext(mainThread) { chat.send("propose") } }
+        waitUntil(timeoutMillis = 10_000) { chat.transcript.value.isPlanAwaitingApproval && !chat.isBusy.value }
+        saveSnapshot("assistant-plan-approval-smaller-model")
+        onNodeWithText("Approve with Sonnet").performClick()
+        waitUntil(timeoutMillis = 10_000) { launcher.agents.single().prompts.size == 2 }
+        waitUntil(timeoutMillis = 10_000) { chat.configOptions.value.any { (it as? SessionConfigOption.Select)?.currentValue?.value == "sonnet" } }
+        assertEquals("The plan is approved: go ahead.", launcher.agents.single().prompts.last())
     }
 
     @Test

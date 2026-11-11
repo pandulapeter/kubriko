@@ -13,6 +13,7 @@ import com.agentclientprotocol.model.ContentBlock
 import com.agentclientprotocol.model.SessionConfigId
 import com.agentclientprotocol.model.SessionConfigOption
 import com.agentclientprotocol.model.SessionConfigOptionValue
+import com.agentclientprotocol.model.SessionConfigValueId
 import com.agentclientprotocol.model.StopReason
 import com.agentclientprotocol.model.ToolCallStatus
 import com.pandulapeter.kubrikoCreator.commands.AiStepOrigin
@@ -107,6 +108,16 @@ class AssistantChatTest {
         assertContains(summary, "add_block at Ball#1.0")
         assertFalse("Ball#1.1" in summary)
         assertEquals(listOf("hello", "hello", "hello"), launcher.agents.single().prompts)
+    }
+
+    @Test
+    fun aMessageSentWithAModelRunsOnIt() = blockingTest {
+        val chat = readyChat()
+        withContext(mainThread) { chat.send("model", model = SmallerModel(SessionConfigId(FakeAgent.MODEL), SessionConfigValueId("opus"), "Opus")) }
+        chat.isBusy.first { !it }
+        assertEquals(TranscriptItem.AgentMessage("opus"), chat.transcript.value.items.last())
+        chat.sendAndWait("model")
+        assertEquals(TranscriptItem.AgentMessage("opus"), chat.transcript.value.items.last())
     }
 
     @Test

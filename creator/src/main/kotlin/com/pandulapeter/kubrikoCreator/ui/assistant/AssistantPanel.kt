@@ -41,6 +41,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.AuthStatus
 import com.pandulapeter.kubrikoCreator.ai.assistant.ChatState
 import com.pandulapeter.kubrikoCreator.ai.assistant.FailureReason
 import com.pandulapeter.kubrikoCreator.ai.assistant.SignInMethod
+import com.pandulapeter.kubrikoCreator.ai.assistant.SmallerModel
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.UserQuestions
 import com.pandulapeter.kubrikoCreator.ui.LocalAiActivitySettings
@@ -251,10 +252,7 @@ private fun ChatContent(
             )
         }
     }
-    if (transcript.plan.isNotEmpty()) {
-        HorizontalDivider()
-        PlanChecklist(transcript.plan, onApprove = { text: String -> chat.send(text) }.takeIf { isPlanApprovalOffered(transcript, state, isBusy) })
-    }
+    ChatPlan(chat, transcript, isApprovalOffered = isPlanApprovalOffered(transcript, state, isBusy))
     signInArea(transcript.needsSignIn)
     permissionRequest?.let { request ->
         PermissionCard(
@@ -304,6 +302,26 @@ private fun ChatContent(
             }
         },
         onStop = chat::stop,
+    )
+}
+
+/**
+ * The conversation's plan, if the agent laid one out, with Approve, and Approve with a smaller model where the agent offers
+ * one, while [isApprovalOffered].
+ */
+@Composable
+private fun ChatPlan(
+    chat: AssistantChat,
+    transcript: AssistantTranscript,
+    isApprovalOffered: Boolean,
+) {
+    if (transcript.plan.isEmpty()) return
+    val configOptions by chat.configOptions.collectAsState()
+    HorizontalDivider()
+    PlanChecklist(
+        entries = transcript.plan,
+        smallerModel = remember(configOptions) { SmallerModel.of(configOptions) },
+        onApprove = { text: String, model: SmallerModel? -> chat.send(text, model = model) }.takeIf { isApprovalOffered },
     )
 }
 

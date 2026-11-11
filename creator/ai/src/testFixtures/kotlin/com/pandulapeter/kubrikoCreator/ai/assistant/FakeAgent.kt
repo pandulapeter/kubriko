@@ -79,6 +79,7 @@ import kotlin.time.Duration
  * - `later`: ends the turn, then sends a message outside any prompt;
  * - `tool`: a plan, a tool call of Kubriko Creator's that completes, and a message;
  * - `propose`: a plan of two steps it hasn't started, and a message asking for its approval;
+ * - `model`: says which model the conversation uses (`sonnet` or `opus`);
  * - `mode`: says whether the conversation is in its read-only mode (`read-only`) or not (`writable`);
  * - `write`: edits a file with its own tool without asking, or, in its read-only mode, says it can't (`refused`).
  *
@@ -221,6 +222,7 @@ public class FakeAgent(
                             SessionConfigSelectOption(SessionConfigValueId("opus"), "Opus"),
                         ),
                     ),
+                    category = SessionConfigOptionCategory.MODEL,
                 ),
                 SessionConfigOption.select(
                     id = SANDBOX,
@@ -297,6 +299,7 @@ public class FakeAgent(
                     emit(Event.SessionUpdateEvent(SessionUpdate.ToolCall(ToolCallId("write-1"), "Write notes.txt", kind = ToolKind.EDIT, status = ToolCallStatus.PENDING)))
                     emit(Event.SessionUpdateEvent(SessionUpdate.ToolCallUpdate(ToolCallId("write-1"), status = ToolCallStatus.COMPLETED)))
                 }
+                "model" -> emit(Event.SessionUpdateEvent(message(model)))
                 "mode" -> emit(Event.SessionUpdateEvent(message(if (isReadOnly) READ_ONLY else "writable")))
                 "wait" -> awaitCancellation()
                 "crash" -> {
