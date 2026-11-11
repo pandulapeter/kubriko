@@ -121,38 +121,42 @@ private fun ResourceTreeItem(
     dragState: SidebarDragState,
     onNamingChange: (SidebarNaming?) -> Unit,
     modifier: Modifier = Modifier,
-) = if (isChangeable && ResourceKind.of(row.name) != null && isRenaming) {
-    SidebarNameField(
-        modifier = modifier,
-        group = group,
-        isFolder = false,
-        depth = row.depth + indent,
-        initialName = ResourceKind.nameOf(row.name),
-        onName = { name -> actions.onRenameItem(group, row.name, name) },
-        onNamingChange = onNamingChange,
-    )
-} else {
-    SidebarItem(
-        modifier = if (isChangeable && ResourceKind.of(row.name) != null) {
-            modifier
-                .itemDropTarget(dragState, SidebarDragState.FolderKey(group, folder, module), id = Triple(module, group, row.name))
-                .sidebarDragSource(dragState, SidebarDragState.Dragged(row.name, group, folder, module))
-        } else {
-            modifier
-        },
-        icon = group.icon,
-        accent = Accent.CODE,
-        text = FolderPaths.nameOf(row.name),
-        detail = if (ResourceKind.of(row.name) == null) FolderPaths.nameOf(FolderPaths.parentOf(row.name)) else null,
-        depth = row.depth + indent,
-        onClick = null,
-        actions = if (isChangeable && ResourceKind.of(row.name) != null) {
-            listOf(
-                ContextAction(stringResource(Res.string.action_rename), Res.drawable.ic_edit) { onNamingChange(SidebarNaming.RenamedItem(group, row.name)) },
-                ContextAction(stringResource(group.deleteItemLabel), Res.drawable.ic_delete, isDestructive = true) { actions.onDeleteItem(group, row.name) },
-            )
-        } else {
-            emptyList()
-        },
-    )
+) {
+    val isOwnFile = ResourceKind.of(row.name) != null
+    val canChange = isChangeable && isOwnFile
+    if (canChange && isRenaming) {
+        SidebarNameField(
+            modifier = modifier,
+            group = group,
+            isFolder = false,
+            depth = row.depth + indent,
+            initialName = ResourceKind.nameOf(row.name),
+            onName = { name -> actions.onRenameItem(group, row.name, name) },
+            onNamingChange = onNamingChange,
+        )
+    } else {
+        SidebarItem(
+            modifier = if (canChange) {
+                modifier
+                    .itemDropTarget(dragState, SidebarDragState.FolderKey(group, folder, module), id = Triple(module, group, row.name))
+                    .sidebarDragSource(dragState, SidebarDragState.Dragged(row.name, group, folder, module))
+            } else {
+                modifier
+            },
+            icon = group.icon,
+            accent = Accent.CODE,
+            text = FolderPaths.nameOf(row.name),
+            detail = if (!isOwnFile) FolderPaths.nameOf(FolderPaths.parentOf(row.name)) else null,
+            depth = row.depth + indent,
+            onClick = null,
+            actions = if (canChange) {
+                listOf(
+                    ContextAction(stringResource(Res.string.action_rename), Res.drawable.ic_edit) { onNamingChange(SidebarNaming.RenamedItem(group, row.name)) },
+                    ContextAction(stringResource(group.deleteItemLabel), Res.drawable.ic_delete, isDestructive = true) { actions.onDeleteItem(group, row.name) },
+                )
+            } else {
+                emptyList()
+            },
+        )
+    }
 }
