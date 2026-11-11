@@ -205,6 +205,7 @@ class SpriteDrawingCommandsTest {
         assertEquals(4 to 12, EditSprite.Operation.ResizeCanvas(40, 24, com.pandulapeter.kubrikoCreator.sprites.pixels.CanvasAnchor.CENTER).originOf(sheet))
         assertEquals(0 to 24, EditSprite.Operation.Scale(3).originOf(sheet))
         assertEquals(null to null, EditSprite.Operation.Rotate().originOf(sheet.copy(originX = null, originY = null)))
+        assertEquals(null to 4, EditSprite.Operation.Rotate().originOf(sheet.copy(originX = 4, originY = null)), "an unset coordinate stays unset")
     }
 
     @Test

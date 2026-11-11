@@ -122,11 +122,13 @@ public object EditSprite : WriteCommand<EditSprite.Input> {
 
             override fun sizeOf(width: Int, height: Int): Pair<Int, Int> = height to width
 
-            override fun originOf(sheet: SpriteSheet): Pair<Int?, Int?> {
-                if (sheet.originX == null && sheet.originY == null) return null to null
-                val x = sheet.originX ?: (sheet.frameWidth / 2)
-                val y = sheet.originY ?: (sheet.frameHeight / 2)
-                return if (isClockwise) (sheet.frameHeight - y) to x else y to (sheet.frameWidth - x)
+            /**
+             * Each coordinate comes from the other one turned, and stays unset (the middle) when that one is.
+             */
+            override fun originOf(sheet: SpriteSheet): Pair<Int?, Int?> = if (isClockwise) {
+                sheet.originY?.let { sheet.frameHeight - it } to sheet.originX
+            } else {
+                sheet.originY to sheet.originX?.let { sheet.frameWidth - it }
             }
         }
 
