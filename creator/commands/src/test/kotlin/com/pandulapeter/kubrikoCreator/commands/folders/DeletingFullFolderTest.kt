@@ -151,6 +151,15 @@ class DeletingFullFolderTest {
     }
 
     @Test
+    fun aFolderLeftOnDiskByAFileNothingListsIsStillUndone() = runTest {
+        val context = commandContext(ball)
+        listOf("levels/1", "levels/deep/2", "main").forEach { context.writeScene(it, "[]") }
+        File(context.project.rootDirectory, "src/commonMain/composeResources/files/scenes/levels/.DS_Store").writeText("")
+        val after = context.assertRoundTrip(deleting(FolderGroup.SCENES, "levels")) { context.scenes.names() }
+        assertEquals(listOf("main"), after)
+    }
+
+    @Test
     fun anEmptyFolderIsDeletedWithTheFoldersInIt() = runTest {
         val context = commandContext(ball)
         CreateFolder.apply(context, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "props"))

@@ -31,6 +31,13 @@ public object CreateFolder : WriteCommand<CreateFolder.Input> {
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateNewFolder(input.group, input.path)
 
+    /**
+     * Accepts a folder that is still there: deleting one leaves its directory while a file nothing lists is in it (a
+     * `.DS_Store`, or an image another page shows), and undoing that delete has to go on.
+     */
+    override fun validateRestoring(context: CommandContext, input: Input): Rejection? =
+        if (input.path in context.foldersOf(input.group)) null else validate(context, input)
+
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         context.createFolder(input.group, input.path)
         return Applied(inverse = Invocation(DeleteFolder, DeleteFolder.Input(input.group, input.path, keepsContents = true)))
