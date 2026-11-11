@@ -26,20 +26,25 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Start `01-ai-assistant.md` at its first item (Planning first, under Context for large games).
+Start `01-ai-assistant.md` at its first item (Lighting Scenes up beyond the sidebar, under The activity view).
 
-This session finished Fewer retries, reviewed with `/code-review`, with the findings fixed in commits of their own:
+This session finished Fewer retries and Planning first, each reviewed with `/code-review`, with the findings fixed in
+commits of their own; neither review left anything open.
 
-- A rejection of something a command names but can't find (`LookupProblem`, split from `CommandProblem`) says what to
-  use instead: the close names (`SimilarNames`: case, a typo or two, or one file name holding the other, through a
-  `_SIMILAR` reason), that a type is of the other kind, that a Block's Property exists but of another kind, or the
-  indexes there are. A missing section lists the quoted headings, or only the close ones past twelve.
-- The review's fixes: `set_event_key`, `add_page_image`, and restored Scenes offer close names too; only file names are
-  looked for in each other, so a shared folder makes no match; the strings are mapped exhaustively again (the new enum);
-  the Block range messages read right for any count; `read_pages` scans once. The review found nothing it left open.
+- Fewer retries: a rejection of something a command names but can't find (`LookupProblem`) says what to use instead: the
+  close names (`SimilarNames`), that a type is of the other kind, that a Block's Property exists but of another kind, or
+  the indexes there are; a missing section lists the quoted headings, or only the close ones past twelve.
+- Planning first: a plan the agent laid out in its last turn and started none of is approved from its checklist
+  (`isPlanAwaitingApproval`, `PlanApproval`), whose Approve sends the approval as the next message; the system prompt
+  has the agent end its turn on a plan rather than ask. Where the agent offers a model a tier below the conversation's
+  (`SmallerModel`: Haiku, Sonnet, Opus; Flash, Pro), Approve with it switches the conversation first; a refused switch
+  takes the approval back and offers the plan again (`FailureReason.MODEL_NOT_SWITCHED`).
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
+- Claude Agent laying out a plan (its TodoWrite plan updates) and ending its turn on it, rather than asking with
+  `ask_user`, and Approve with Sonnet on its real model option (whose values and descriptions `SmallerModelTest` only
+  imitates): a live scenario in `AssistantLiveScenariosTest` could check both.
 - The live writers' room scenario: `KUBRIKO_CREATOR_CLAUDE_AGENT=true ./gradlew :creator:ai:test --tests "*AssistantLiveScenariosTest.aPitchInTheWritersRoom*"`
   (it spends a real Claude subscription's requests, up to an hour), then tune `AssistantSystemPrompt.WRITERS_ROOM` by what it does.
 - A project created from an idea, through to the room's first questions, in the real app (an end-to-end scenario could cover

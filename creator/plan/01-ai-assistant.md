@@ -14,15 +14,6 @@ plan. Searching conversations comes with the rest of search (`02-resources-and-s
 with the debugger (`07-debugger.md`). Every new tool keeps `TokenBudgetTest` within its budget and joins `EvalSetTest` where models
 call it.
 
-## Context for large games
-
-Creator computes compact, always fresh context from its own model of the game, where a generic coding agent greps its way to
-understanding and the model pays for it. These serve the panel and outside MCP clients alike, and whatever helps the AI understand
-the game is shown to the user too.
-
-- **Planning first:** approving a plan from its checklist (an Approve button that answers the agent) rather than in a reply, and
-  model hints (a smaller model for small edits) that the user decides on, since they pay.
-
 ## The activity view
 
 - Lighting Scenes up beyond the sidebar (opening one compiles the project).
