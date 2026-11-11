@@ -167,13 +167,19 @@ public interface AssistantPanelModel {
 
     /**
      * Runs [choice] from now on, which ends every conversation and starts a new one.
+     *
+     * @param isPanelShown Whether the choice was made where the panel shows what starting the agent does (a download, a
+     *   sign-in). Made elsewhere (Creator settings), a new conversation starts only for an agent that has worked before, and
+     *   the panel starts one for any other once it is shown.
      */
-    public fun selectAgent(choice: AgentChoice)
+    public fun selectAgent(choice: AgentChoice, isPanelShown: Boolean = true)
 
     /**
      * Uses [configuration] from now on: its own agent, so every conversation ends, and a new one starts.
+     *
+     * @param isPanelShown As for [selectAgent].
      */
-    public fun selectConfiguration(configuration: AgentConfiguration)
+    public fun selectConfiguration(configuration: AgentConfiguration, isPanelShown: Boolean = true)
 
     /**
      * Signs in with [method]: in the panel's terminal for a terminal method, otherwise by the agent itself. Once a

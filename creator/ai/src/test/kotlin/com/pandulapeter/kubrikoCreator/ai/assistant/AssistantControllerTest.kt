@@ -603,6 +603,38 @@ class AssistantControllerTest {
     }
 
     @Test
+    fun anAgentChosenWithoutThePanelThatHasNotWorkedBeforeWaitsForThePanel() = blockingTest {
+        val registry = registry(CODEX)
+        registry.refresh()
+        val controller = controller(registry)
+        controller.startChat().state.first { it == ChatState.Ready }
+        val codex = controller.agents.first { it.size == 2 }.single { it.id == "codex-acp" }
+        onMain { controller.selectAgent(AgentChoice.Registry(codex), isPanelShown = false) }
+        withTimeout(5.seconds) { while (!launcher.channels.first().isStopped) delay(10) }
+        awaitIdle(mainThread, io)
+        assertEquals("Codex", controller.agent.value.name)
+        assertEquals(emptyList(), controller.chats.value)
+        assertEquals(1, commands.size)
+        onMain { controller.newChat() }
+        controller.currentChat.value!!.state.first { it == ChatState.Ready }
+        assertEquals(listOf("--yes", "@zed-industries/codex-acp@2.4.0"), commands.last().arguments)
+    }
+
+    @Test
+    fun anAgentChosenWithoutThePanelThatWorkedBeforeStartsAtOnce() = blockingTest {
+        SavedConversationStore(File(settingsDirectory, "conversations.json")).save(SavedConversation("/projects/other", "codex-acp", "earlier", "Earlier", 500))
+        val registry = registry(CODEX)
+        registry.refresh()
+        val controller = controller(registry)
+        controller.startChat().state.first { it == ChatState.Ready }
+        val codex = controller.agents.first { it.size == 2 }.single { it.id == "codex-acp" }
+        onMain { controller.selectAgent(AgentChoice.Registry(codex), isPanelShown = false) }
+        controller.currentChat.first { it != null }!!.state.first { it == ChatState.Ready }
+        assertEquals(1, controller.chats.value.size)
+        assertEquals(listOf("--yes", "@zed-industries/codex-acp@2.4.0"), commands.last().arguments)
+    }
+
+    @Test
     fun twoSwitchesInARowEndOnTheLastAgent() = blockingTest {
         val registry = registry(CODEX, GEMINI)
         registry.refresh()

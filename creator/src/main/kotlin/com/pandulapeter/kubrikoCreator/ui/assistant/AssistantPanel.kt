@@ -112,10 +112,9 @@ private fun AssistantPanelContent(
     val chat by model.currentChat.collectAsState()
     val signInMethods by model.signInMethods.collectAsState()
     val hasApiKey by model.hasApiKey.collectAsState()
-    LaunchedEffect(Unit) {
-        model.findConfigurations()
-        if (model.currentChat.value == null) model.newChat()
-    }
+    LaunchedEffect(Unit) { model.findConfigurations() }
+    // The agent chosen in Creator settings ends the conversations without starting a new one while the panel may be hidden.
+    LaunchedEffect(chat == null) { if (model.currentChat.value == null) model.newChat() }
     ConversationBar(
         canDelete = chat?.isEmpty?.collectAsState()?.value == false,
         onDelete = { chat?.let(model::delete) },

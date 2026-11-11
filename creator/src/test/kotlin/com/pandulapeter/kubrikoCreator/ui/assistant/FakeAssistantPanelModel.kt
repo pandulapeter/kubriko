@@ -79,11 +79,11 @@ internal class FakeAssistantPanelModel(
         calls += "delete"
     }
 
-    override fun selectAgent(choice: AgentChoice) {
+    override fun selectAgent(choice: AgentChoice, isPanelShown: Boolean) {
         selectedAgents += choice
     }
 
-    override fun selectConfiguration(configuration: AgentConfiguration) {
+    override fun selectConfiguration(configuration: AgentConfiguration, isPanelShown: Boolean) {
         calls += "selectConfiguration"
     }
 

@@ -124,6 +124,10 @@ class AssistantPanelDecisionsTest {
             listOf(AgentMenuItem.Agent(AgentChoice.Registry(claude)), AgentMenuItem.Agent(AgentChoice.Custom("goose acp")), AgentMenuItem.EnterCustom),
             agentMenuItems(listOf(claude), customAgentCommand = "goose acp"),
         )
+        assertEquals(
+            listOf(AgentMenuItem.Agent(AgentChoice.Registry(claude)), AgentMenuItem.Agent(AgentChoice.Custom("goose acp")), AgentMenuItem.OpenLog),
+            agentMenuItems(listOf(claude), customAgentCommand = "goose acp", canEnterCustom = false, hasLog = true),
+        )
     }
 
     @Test

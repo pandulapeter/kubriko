@@ -58,6 +58,10 @@ import org.jetbrains.compose.resources.stringResource
 import java.io.File
 import kotlin.math.roundToInt
 
+/**
+ * Creator settings, opened on [initialPage] if one is given, with [aiPages] (the assistant's and the AI connection's)
+ * after the AI page while AI features are on.
+ */
 @Composable
 internal fun CreatorSettingsDialog(
     settings: CreatorSettings,
@@ -70,12 +74,15 @@ internal fun CreatorSettingsDialog(
     onAiFollowDelayChange: (Int) -> Unit,
     onTurnReviewShownChange: (Boolean) -> Unit,
     onDismiss: () -> Unit,
+    initialPage: CreatorSettingsPage? = null,
+    aiPages: List<DialogPage> = emptyList(),
 ) = MasterDetailDialog(
     title = stringResource(Res.string.settings_title),
     onDismiss = onDismiss,
+    initialPageKey = initialPage?.key,
     pages = listOf(
         DialogPage(
-            key = "appearance",
+            key = CreatorSettingsPage.APPEARANCE.key,
             icon = Res.drawable.ic_palette,
             title = stringResource(Res.string.settings_section_appearance),
         ) {
@@ -87,7 +94,7 @@ internal fun CreatorSettingsDialog(
             )
         },
         DialogPage(
-            key = "editor",
+            key = CreatorSettingsPage.EDITOR.key,
             icon = Res.drawable.ic_folder_open,
             title = stringResource(Res.string.settings_section_editor),
         ) {
@@ -98,7 +105,7 @@ internal fun CreatorSettingsDialog(
             )
         },
         DialogPage(
-            key = "ai",
+            key = CreatorSettingsPage.AI.key,
             icon = Res.drawable.ic_ai,
             title = stringResource(Res.string.settings_section_ai),
         ) {
@@ -110,7 +117,7 @@ internal fun CreatorSettingsDialog(
                 onTurnReviewShownChange = onTurnReviewShownChange,
             )
         },
-    ),
+    ) + aiPages.takeIf { settings.isAiEnabled }.orEmpty(),
 )
 
 @Composable

@@ -167,9 +167,6 @@ private fun AiPanelContent(
             onDisconnect = aiClients::disconnect,
             onConnectConfigFile = aiClients::connectConfigFile,
             onDisconnectConfigFile = aiClients::disconnectConfigFile,
-            onPortChange = mcp::setPort,
-            onRegenerateToken = mcp::regenerateToken,
-            onCommandChange = aiClients::setCommand,
         )
         AiPanelView.GAME_MAP -> GameMapPanel(
             modifier = content,

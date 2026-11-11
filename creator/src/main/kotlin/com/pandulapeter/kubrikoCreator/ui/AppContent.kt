@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,12 +30,25 @@ import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
 import com.pandulapeter.kubrikoCreator.recent.RecentProject
 import com.pandulapeter.kubrikoCreator.settings.CreatorSettingsController
 import com.pandulapeter.kubrikoCreator.template.NewProjectForm
+import com.pandulapeter.kubrikoCreator.ui.components.DialogPage
 import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
 import com.pandulapeter.kubrikoCreator.ui.components.ProgressScreen
+import com.pandulapeter.kubrikoCreator.ui.components.openInSystemEditor
+import com.pandulapeter.kubrikoCreator.ui.mcp.AiConnectionSettings
+import com.pandulapeter.kubrikoCreator.ui.settings.AssistantSettingsPage
 import com.pandulapeter.kubrikoCreator.ui.settings.CreatorSettingsDialog
+import com.pandulapeter.kubrikoCreator.ui.settings.CreatorSettingsPage
+import com.pandulapeter.kubrikoCreator.ui.settings.LocalOpenCreatorSettings
+import com.pandulapeter.kubrikoCreator.ui.settings.OpenCreatorSettings
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.app_name
+import kubriko.creator.generated.resources.ic_send
+import kubriko.creator.generated.resources.ic_web
 import kubriko.creator.generated.resources.opening_project
+import kubriko.creator.generated.resources.settings_section_ai_connection
+import kubriko.creator.generated.resources.settings_section_ai_connection_description
+import kubriko.creator.generated.resources.settings_section_assistant
+import kubriko.creator.generated.resources.settings_section_assistant_description
 import kubriko.creator.generated.resources.window_title_project
 import org.jetbrains.compose.resources.stringResource
 import java.io.File
@@ -60,6 +74,13 @@ internal fun AppContent(
     color = MaterialTheme.colorScheme.surface,
 ) {
     var isShowingSettings by remember { mutableStateOf(false) }
+    var settingsPage by remember { mutableStateOf<CreatorSettingsPage?>(null) }
+    val openSettings = remember {
+        OpenCreatorSettings { page ->
+            settingsPage = page
+            isShowingSettings = true
+        }
+    }
     val settings by creatorSettings.settings.collectAsState()
     val panelLayout = remember(settings.panelWidths, creatorSettings) {
         PanelLayout(settings.panelWidths, creatorSettings::setPanelSize, creatorSettings::resetPanelSize)
@@ -76,6 +97,8 @@ internal fun AppContent(
             onAiFollowDelayChange = creatorSettings::setAiFollowDelay,
             onTurnReviewShownChange = creatorSettings::setTurnReviewShown,
             onDismiss = { isShowingSettings = false },
+            initialPage = settingsPage,
+            aiPages = aiSettingsPages(mcp = mcp, aiClients = aiClients, assistant = assistant),
         )
     }
     Column(
@@ -88,7 +111,10 @@ internal fun AppContent(
             modifier = Modifier.weight(1f),
         ) {
             val aiActivitySettings = remember(settings, creatorSettings) { AiActivitySettings.of(settings, creatorSettings::setFollowingAi) }
-            CompositionLocalProvider(LocalAiActivitySettings provides aiActivitySettings) {
+            CompositionLocalProvider(
+                LocalAiActivitySettings provides aiActivitySettings,
+                LocalOpenCreatorSettings provides openSettings,
+            ) {
                 ScreenContent(
                 screen = screen,
                 recentProjects = recentProjects,
@@ -103,7 +129,10 @@ internal fun AppContent(
                 aiClients = aiClients,
                 assistant = assistant,
                     panelLayout = panelLayout,
-                    onOpenSettings = { isShowingSettings = true },
+                    onOpenSettings = {
+                        settingsPage = null
+                        isShowingSettings = true
+                    },
                 )
             }
         }
@@ -165,6 +194,49 @@ private fun ScreenContent(
         )
     }
 }
+
+/**
+ * The pages of Creator settings about the assistant and the AI connection, from their controllers.
+ */
+@Composable
+private fun aiSettingsPages(
+    mcp: McpController,
+    aiClients: AiClientsController,
+    assistant: AssistantController,
+) = listOf(
+    DialogPage(
+        key = CreatorSettingsPage.ASSISTANT.key,
+        icon = Res.drawable.ic_send,
+        title = stringResource(Res.string.settings_section_assistant),
+        description = stringResource(Res.string.settings_section_assistant_description),
+    ) {
+        LaunchedEffect(Unit) { assistant.findConfigurations() }
+        AssistantSettingsPage(
+            agent = assistant.agent.collectAsState().value,
+            agents = assistant.agents.collectAsState().value,
+            customAgentCommand = assistant.customAgentCommand,
+            changingFilesUnasked = assistant.agentsChangingFilesUnasked.collectAsState().value,
+            configuration = assistant.configuration.collectAsState().value,
+            configurations = assistant.configurations.collectAsState().value,
+            onAgentSelected = { assistant.selectAgent(it, isPanelShown = false) },
+            onConfigurationSelected = { assistant.selectConfiguration(it, isPanelShown = false) },
+            onOpenLog = assistant.errorLogFile?.let { file -> { if (file.isFile) openInSystemEditor(file) } },
+        )
+    },
+    DialogPage(
+        key = CreatorSettingsPage.AI_CONNECTION.key,
+        icon = Res.drawable.ic_web,
+        title = stringResource(Res.string.settings_section_ai_connection),
+        description = stringResource(Res.string.settings_section_ai_connection_description),
+    ) {
+        AiConnectionSettings(
+            settings = mcp.settings.collectAsState().value,
+            onPortChange = mcp::setPort,
+            onRegenerateToken = mcp::regenerateToken,
+            onCommandChange = aiClients::setCommand,
+        )
+    },
+)
 
 /**
  * The window's title: the open project's name, or the app's.

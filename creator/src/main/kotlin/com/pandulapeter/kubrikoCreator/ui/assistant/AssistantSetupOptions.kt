@@ -17,8 +17,6 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.AgentConfiguration
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.WithTooltip
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.ai_client_variant
-import kubriko.creator.generated.resources.assistant_configuration_menu
 import kubriko.creator.generated.resources.assistant_setup_configuration
 import org.jetbrains.compose.resources.stringResource
 
@@ -34,17 +32,13 @@ internal fun AssistantSetupOptions(
     onConfigurationSelected: (AgentConfiguration) -> Unit,
     onConfigOptionSelected: (SessionConfigOption.Select, SessionConfigSelectOption) -> Unit,
 ) {
-    if (configuration != null && (configurations.size > 1 || configuration.alias != null)) {
+    if (configuration != null && isConfigurationChoice(configuration, configurations)) {
         AssistantSetupRow(stringResource(Res.string.assistant_setup_configuration)) {
-            WithTooltip(stringResource(Res.string.assistant_configuration_menu, configuration.client.displayName)) {
-                MenuButton(
-                    label = configuration.title(),
-                    options = configurations,
-                    optionText = { it.title() },
-                    onSelected = onConfigurationSelected,
-                    isWrapping = true,
-                )
-            }
+            ConfigurationMenu(
+                configuration = configuration,
+                configurations = configurations,
+                onSelected = onConfigurationSelected,
+            )
         }
     }
     configOptions.filterIsInstance<SessionConfigOption.Select>().forEach { option ->
@@ -69,9 +63,6 @@ internal fun AssistantSetupOptions(
 internal fun currentChoices(configOptions: List<SessionConfigOption>): List<String> = configOptions.filterIsInstance<SessionConfigOption.Select>().mapNotNull { option ->
     choicesOf(option).firstOrNull { it.value == option.currentValue }?.name
 }
-
-@Composable
-private fun AgentConfiguration.title() = variant?.let { stringResource(Res.string.ai_client_variant, client.displayName, it) } ?: client.displayName
 
 internal fun choicesOf(option: SessionConfigOption.Select) = when (val options = option.options) {
     is SessionConfigSelectOptions.Flat -> options.options

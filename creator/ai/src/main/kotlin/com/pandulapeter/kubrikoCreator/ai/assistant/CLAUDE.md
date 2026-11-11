@@ -24,6 +24,8 @@ Hosts Agent Client Protocol agents through the official Kotlin SDK. Tests run `F
 - **Starting with a project:** an agent that has worked before (it holds a saved conversation about any project) opens a
   conversation as soon as a project opens, whether or not the panel is shown, so what needs one taking prompts (writing
   descriptions) works from the start; any other agent waits for the panel, since starting it may download it or ask to sign in.
+  The same holds for an agent or configuration chosen in Creator settings (`isPanelShown = false`): the panel opens a
+  conversation whenever it is shown without one.
 - **Agents:** Claude Agent is the one fully supported agent (`RegistryAgent.isTested`); every other ACP Registry agent runs on
   generic fallbacks chosen from its `initialize` answer (`AgentProfile.fallback`), with as little per-agent code as possible, and
   is shown as untested. Such an agent hears the system prompt ahead of its first prompt, unless it advertises appending it

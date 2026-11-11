@@ -110,7 +110,7 @@ public class AssistantController(
         settings = settings,
         host = host,
         resendRefused = { chats.value.forEach { it.resendAfterSignIn() } },
-        restart = ::restartAgent,
+        restart = { restartAgent() },
     )
 
     override val download: StateFlow<AgentDownload?> = commands.download
@@ -252,16 +252,16 @@ public class AssistantController(
         if (chatList.open.value.isEmpty()) newChat()
     }
 
-    override fun selectAgent(choice: AgentChoice) {
+    override fun selectAgent(choice: AgentChoice, isPanelShown: Boolean) {
         if (!host.isOn) return
-        if (selection.select(choice)) restartAgent()
+        if (selection.select(choice)) restartAgent(isPanelShown)
     }
 
-    override fun selectConfiguration(configuration: AgentConfiguration) {
+    override fun selectConfiguration(configuration: AgentConfiguration, isPanelShown: Boolean) {
         if (!host.isOn) return
         if (!configurationList.select(configuration)) return
         settings.update { it.copy(configurationAliases = configurationList.chosenAliases) }
-        restartAgent()
+        restartAgent(isPanelShown)
     }
 
     override fun signIn(method: SignInMethod) {
@@ -329,10 +329,14 @@ public class AssistantController(
      * Ends every conversation and opens a new one with the agent as it is now; a writers' room whose idea the agent hasn't
      * answered is started again with it, so the idea isn't lost.
      */
-    private fun restartAgent() {
+    private fun restartAgent(isPanelShown: Boolean = true) {
         val unansweredWritersRooms = chatList.open.value.mapNotNull { it.unansweredFirstPrompt }
         endChats(isAgentReplaced = true)
-        if (unansweredWritersRooms.isEmpty()) newChat() else unansweredWritersRooms.forEach(::startWritersRoom)
+        when {
+            unansweredWritersRooms.isNotEmpty() -> unansweredWritersRooms.forEach(::startWritersRoom)
+            isPanelShown -> newChat()
+            else -> project?.let(::startIfSetUp)
+        }
     }
 
     private fun endChats(isAgentReplaced: Boolean = false) {

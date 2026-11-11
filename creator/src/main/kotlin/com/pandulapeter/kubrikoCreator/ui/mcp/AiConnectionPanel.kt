@@ -23,10 +23,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
@@ -35,14 +31,15 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.mcp.McpServerState
 import com.pandulapeter.kubrikoCreator.mcp.McpSettings
 import com.pandulapeter.kubrikoCreator.mcp.McpToolCall
-import com.pandulapeter.kubrikoCreator.mcp.clients.AiClient
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientSetup
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientStatus
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiConfigFileClient
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
+import com.pandulapeter.kubrikoCreator.ui.settings.CreatorSettingsPage
+import com.pandulapeter.kubrikoCreator.ui.settings.LocalOpenCreatorSettings
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.action_open_ai_connection_settings
 import kubriko.creator.generated.resources.ai_client_variant
-import kubriko.creator.generated.resources.ai_connection_advanced
 import kubriko.creator.generated.resources.ai_connection_calls
 import kubriko.creator.generated.resources.ai_connection_calls_empty
 import kubriko.creator.generated.resources.ai_connection_enabled
@@ -56,8 +53,8 @@ import kubriko.creator.generated.resources.ic_history
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The AI connection: AI tools such as Claude Code connected in one click, the address for any other one, the
- * settings few people need, and the tool calls they made.
+ * The AI connection: AI tools such as Claude Code connected in one click, the address for any other one, a way to the
+ * settings few people need (in Creator settings), and the tool calls they made.
  */
 @Composable
 internal fun AiConnectionPanel(
@@ -73,12 +70,8 @@ internal fun AiConnectionPanel(
     onDisconnect: (AiClientSetup) -> Unit,
     onConnectConfigFile: (AiConfigFileClient) -> Unit,
     onDisconnectConfigFile: (AiConfigFileClient) -> Unit,
-    onPortChange: (Int) -> Boolean,
-    onRegenerateToken: () -> Unit,
-    onCommandChange: (AiClient, String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var isAdvancedOpen by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { onRefreshClients() }
     LazyColumn(
         modifier = modifier,
@@ -90,16 +83,11 @@ internal fun AiConnectionPanel(
                 clientSetups = clientSetups,
                 configFileClients = configFileClients,
                 clientStatuses = clientStatuses,
-                isAdvancedOpen = isAdvancedOpen,
-                onAdvancedOpenChange = { isAdvancedOpen = it },
                 onEnabledChange = onEnabledChange,
                 onConnect = onConnect,
                 onDisconnect = onDisconnect,
                 onConnectConfigFile = onConnectConfigFile,
                 onDisconnectConfigFile = onDisconnectConfigFile,
-                onPortChange = onPortChange,
-                onRegenerateToken = onRegenerateToken,
-                onCommandChange = onCommandChange,
             )
         }
         item {
@@ -130,16 +118,11 @@ private fun ConnectionSettings(
     clientSetups: List<AiClientSetup>,
     configFileClients: List<AiConfigFileClient>,
     clientStatuses: Map<String, AiClientStatus>,
-    isAdvancedOpen: Boolean,
-    onAdvancedOpenChange: (Boolean) -> Unit,
     onEnabledChange: (Boolean) -> Unit,
     onConnect: (AiClientSetup) -> Unit,
     onDisconnect: (AiClientSetup) -> Unit,
     onConnectConfigFile: (AiConfigFileClient) -> Unit,
     onDisconnectConfigFile: (AiConfigFileClient) -> Unit,
-    onPortChange: (Int) -> Boolean,
-    onRegenerateToken: () -> Unit,
-    onCommandChange: (AiClient, String) -> Unit,
 ) = Column(
     modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
     verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -184,16 +167,9 @@ private fun ConnectionSettings(
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
-    TextButton(onClick = { onAdvancedOpenChange(!isAdvancedOpen) }) {
-        Text(stringResource(Res.string.ai_connection_advanced))
-    }
-    if (isAdvancedOpen) {
-        AiConnectionAdvanced(
-            settings = settings,
-            onPortChange = onPortChange,
-            onRegenerateToken = onRegenerateToken,
-            onCommandChange = onCommandChange,
-        )
+    val openSettings = LocalOpenCreatorSettings.current
+    TextButton(onClick = { openSettings.open(CreatorSettingsPage.AI_CONNECTION) }) {
+        Text(stringResource(Res.string.action_open_ai_connection_settings))
     }
 }
 

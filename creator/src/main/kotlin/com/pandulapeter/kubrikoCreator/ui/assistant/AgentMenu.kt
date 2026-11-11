@@ -25,7 +25,7 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * The agent the assistant runs, as a menu of the registry's agents, the custom one if the user entered it, entering a
- * custom agent, and opening the agents' log, when there is one. Untested agents, and those seen changing files without
+ * custom agent (where [onEnterCustomAgent] can show the form), and opening the agents' log, when there is one. Untested agents, and those seen changing files without
  * asking ([changingFilesUnasked], by [AgentChoice.identity]), are marked as such.
  */
 @Composable
@@ -35,12 +35,12 @@ internal fun AgentMenu(
     customAgentCommand: String?,
     changingFilesUnasked: Set<String>,
     onSelected: (AgentChoice) -> Unit,
-    onEnterCustomAgent: () -> Unit,
+    onEnterCustomAgent: (() -> Unit)?,
     onOpenLog: (() -> Unit)? = null,
 ) = WithTooltip(stringResource(Res.string.assistant_agent_menu)) {
     MenuButton(
         label = agent.label(changingFilesUnasked),
-        options = agentMenuItems(agents, customAgentCommand, hasLog = onOpenLog != null),
+        options = agentMenuItems(agents, customAgentCommand, canEnterCustom = onEnterCustomAgent != null, hasLog = onOpenLog != null),
         optionText = { item ->
             when (item) {
                 is AgentMenuItem.Agent -> item.choice.label(changingFilesUnasked)
@@ -51,7 +51,7 @@ internal fun AgentMenu(
         onSelected = { item ->
             when (item) {
                 is AgentMenuItem.Agent -> onSelected(item.choice)
-                AgentMenuItem.EnterCustom -> onEnterCustomAgent()
+                AgentMenuItem.EnterCustom -> onEnterCustomAgent?.invoke()
                 AgentMenuItem.OpenLog -> onOpenLog?.invoke()
             }
         },
@@ -70,14 +70,16 @@ internal sealed interface AgentMenuItem {
 }
 
 /**
- * What the agent menu offers: the registry's agents in their order, the custom agent once there is one, entering one, and
- * the agents' log where there is one.
+ * What the agent menu offers: the registry's agents in their order, the custom agent once there is one, entering one where
+ * that can be done, and the agents' log where there is one.
  */
-internal fun agentMenuItems(agents: List<RegistryAgent>, customAgentCommand: String?, hasLog: Boolean = false): List<AgentMenuItem> =
+internal fun agentMenuItems(agents: List<RegistryAgent>, customAgentCommand: String?, canEnterCustom: Boolean = true, hasLog: Boolean = false): List<AgentMenuItem> =
     agents.map { AgentMenuItem.Agent(AgentChoice.Registry(it)) } +
-        listOfNotNull(customAgentCommand?.let { AgentMenuItem.Agent(AgentChoice.Custom(it)) }) +
-        AgentMenuItem.EnterCustom +
-        listOfNotNull(AgentMenuItem.OpenLog.takeIf { hasLog })
+        listOfNotNull(
+            customAgentCommand?.let { AgentMenuItem.Agent(AgentChoice.Custom(it)) },
+            AgentMenuItem.EnterCustom.takeIf { canEnterCustom },
+            AgentMenuItem.OpenLog.takeIf { hasLog },
+        )
 
 @Composable
 private fun AgentChoice.label(changingFilesUnasked: Set<String>) = when {

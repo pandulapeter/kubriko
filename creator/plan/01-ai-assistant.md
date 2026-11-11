@@ -16,10 +16,7 @@ call it.
 
 ## The panel
 
-1. **AI in Creator settings:** the defaults behind the AI panel that aren't about one conversation (the MCP server's port, token, and
-   commands from Advanced; the agent and the configuration each agent runs as) as a section of Creator settings, hidden with the rest when
-   AI features are off.
-2. **Google Antigravity's own file tools off:** it takes `enabledTools` and `disabledTools` under `_meta.antigravity` on
+1. **Google Antigravity's own file tools off:** it takes `enabledTools` and `disabledTools` under `_meta.antigravity` on
    `session/new`, `session/load`, and `session/resume` (a list or a comma-separated string), so its tools that edit, delete, or
    run could be turned off as Claude Agent's are, which needs their names from a real session's tool calls.
 

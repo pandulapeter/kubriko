@@ -48,10 +48,11 @@ import kubriko.creator.generated.resources.ic_refresh
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * What most users never need to change: the port, the token, and the commands that run each AI tool.
+ * What most users never need to change, on its page of Creator settings: the port, the token, and the commands that run
+ * each AI tool.
  */
 @Composable
-internal fun AiConnectionAdvanced(
+internal fun AiConnectionSettings(
     settings: McpSettings,
     onPortChange: (Int) -> Boolean,
     onRegenerateToken: () -> Unit,
