@@ -63,9 +63,13 @@ class ReservedPropertyMigrationTest {
                 events = everyFrame(BlockDefinition.Kotlin("animationSpeed += 1f")),
             ),
         )
+        sceneFile.apply { parentFile.mkdirs() }.writeText(
+            SceneDocument.format(listOf(SceneActorEntry(typeId = "Hero", state = """{"animationSpeed":3.0,"isAnimationLooping":true}""", id = "h"))),
+        )
         val hero = migratedTypes().getValue("Hero") as ActorTypeDefinition
         assertEquals(listOf(PropertyDefinition.Number("animationSpeed2", 2f), PropertyDefinition.Toggle("isAnimationLooping2")), hero.properties)
         assertEquals(everyFrame(BlockDefinition.Kotlin("animationSpeed2 += 1f")), hero.events)
+        assertEquals("""{"animationSpeed2":3.0,"isAnimationLooping2":true}""", SceneDocument.parse(sceneFile.readText()).single().state)
     }
 
     @Test

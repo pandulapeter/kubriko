@@ -40,12 +40,28 @@ import java.io.File
  */
 internal class ReservedPropertyMigration(private vararg val reservedNames: String) : FormatMigration {
 
-    override fun migrate(rootDirectory: File) = reservedNames.forEach { migrate(rootDirectory, it) }
-
-    private fun migrate(rootDirectory: File, reservedName: String) {
+    override fun migrate(rootDirectory: File) {
         val store = BlockTypeStore.open(rootDirectory) ?: return
-        val types = store.load(isCheckingPropertyNames = false).types
+        val loaded = store.load(isCheckingPropertyNames = false).types
         val renamedTypes = LinkedHashMap<String, BlockTypeDefinition>()
+        val sceneRenames = HashMap<String, MutableList<Pair<String, String>>>()
+        reservedNames.forEach { reservedName ->
+            val types = loaded.map { renamedTypes[it.name] ?: it }
+            rename(reservedName, types, renamedTypes).forEach { (typeName, newName) ->
+                sceneRenames.getOrPut(typeName) { ArrayList() } += reservedName to newName
+            }
+        }
+        if (sceneRenames.isNotEmpty()) renameSceneValues(rootDirectory, sceneRenames)
+        val (declarers, users) = loaded.filter { it.name in renamedTypes }.partition { type -> reservedNames.any { type.declares(it) } }
+        (users + declarers).forEach { store.save(renamedTypes.getValue(it.name)) }
+    }
+
+    /**
+     * Renames the Property [reservedName] of [types] (as the names before it left them) into [renamedTypes].
+     *
+     * @return The new name of the Property the Actors of each Actor type keep in the Scenes, by the type's name.
+     */
+    private fun rename(reservedName: String, types: List<BlockTypeDefinition>, renamedTypes: MutableMap<String, BlockTypeDefinition>): Map<String, String> {
         fun current(type: BlockTypeDefinition) = renamedTypes[type.name] ?: type
         fun put(type: BlockTypeDefinition, changed: BlockTypeDefinition) {
             if (changed != current(type)) renamedTypes[type.name] = changed
@@ -76,16 +92,14 @@ internal class ReservedPropertyMigration(private vararg val reservedNames: Strin
             }
             users.forEach { newNamesByType[it.name] = newName }
         }
-        if (newNamesByType.isNotEmpty()) renameSceneValues(rootDirectory, reservedName, newNamesByType)
-        val (declarers, users) = types.filter { it.name in renamedTypes }.partition { it.declares(reservedName) }
-        (users + declarers).forEach { store.save(renamedTypes.getValue(it.name)) }
+        return newNamesByType
     }
 
     /**
-     * Renames the value [reservedName] in the states of the Actors of the types in [newNamesByType] to the type's new
-     * name, in every Scene file that can be read.
+     * Renames the values in the states of the Actors of the types in [renamesByType] (each an old and a new name, in
+     * order), in every Scene file that can be read, each written once.
      */
-    private fun renameSceneValues(rootDirectory: File, reservedName: String, newNamesByType: Map<String, String>) {
+    private fun renameSceneValues(rootDirectory: File, renamesByType: Map<String, List<Pair<String, String>>>) {
         ResourceScanner.scan(rootDirectory)[ResourceGroup.SCENES].orEmpty().forEach { resource ->
             val actors = try {
                 SceneDocument.parse(resource.file.readText())
@@ -93,8 +107,10 @@ internal class ReservedPropertyMigration(private vararg val reservedNames: Strin
                 return@forEach
             }
             val renamed = actors.map { actor ->
-                newNamesByType[actor.typeId]?.let { newName ->
-                    SceneDocument.withStateChanged(actor.state) { it.withValueRenamed(reservedName, newName) }?.let { actor.copy(state = it) }
+                renamesByType[actor.typeId]?.let { renames ->
+                    SceneDocument.withStateChanged(actor.state) { state ->
+                        renames.fold(state) { renamedState, (oldName, newName) -> renamedState.withValueRenamed(oldName, newName) }
+                    }?.let { actor.copy(state = it) }
                 } ?: actor
             }
             if (renamed != actors) resource.file.writeTextAtomically(SceneDocument.format(renamed))
