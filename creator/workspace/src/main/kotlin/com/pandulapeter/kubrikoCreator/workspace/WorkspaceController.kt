@@ -326,6 +326,7 @@ public class WorkspaceController(
 
     /** Creates what the sidebar names in place. */
     public val creation: WorkspaceCreation = WorkspaceCreation(commands, selection)
+    private val aiStepNumbering = AiStepNumbering(project.rootDirectory, commands, scope, ioDispatcher)
 
     /** Emits whenever the watcher finds files changed outside Kubriko Creator, which the health checks and the map read. */
     private val changedOutside = MutableSharedFlow<Unit>(extraBufferCapacity = 1)

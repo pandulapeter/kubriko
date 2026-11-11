@@ -66,6 +66,14 @@ public class CommandExecutor(
      */
     public val aiSteps: StateFlow<List<AiStep>> = _aiSteps.asStateFlow()
     private var nextAiStepId = 0
+
+    /**
+     * Numbers the AI's next steps from [next] on, if no step took that number yet, so that a project's steps go on from where
+     * its last session left off rather than from 1 every time Kubriko Creator starts. It never numbers two steps alike.
+     */
+    public fun continueAiStepsFrom(next: Int) {
+        if (next > nextAiStepId) nextAiStepId = next
+    }
     private val _broughtBack = MutableSharedFlow<ActorsBroughtBack>(extraBufferCapacity = BROUGHT_BACK_BUFFER, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     /**

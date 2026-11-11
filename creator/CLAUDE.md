@@ -468,7 +468,8 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   Scene's is off until the user turns it on.
 - **Following the AI** goes only to what a step changes (`AiStep.changesProject`): the Actor type, Manager type, or Scene,
   lighting up its Event or Block, or the Scene's Actors it changed (`CommandTarget.Scene.actorIds`; a placed Actor's ID
-  is known only once it is placed, so a change can name what it was about through `Applied.target`). Each followed step stays at least the settings' delay (`AiStepPacing`), so quick steps
+  is known only once it is placed, so a change can name what it was about through `Applied.target`). Steps are numbered
+  per project, going on from the last session's (`AiStepNumbering`, in `.kubriko/local/`). Each followed step stays at least the settings' delay (`AiStepPacing`), so quick steps
   don't flash. Following, that delay, and Keep and Undo after a turn are Creator settings (`LocalAiActivitySettings`),
   and the activity bar's Follow switch writes the same setting.
 - **The MCP server** (`mcp/McpToolServer`) listens on `127.0.0.1` only; every request needs the token (a header, or `?token=` for
