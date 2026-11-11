@@ -284,7 +284,7 @@ class AssistantLiveScenariosTest {
                 end = owner::closeConversation,
                 toolsIdOf = owner::toolsIdOf,
                 project = OpenProjectAccess.of { executor },
-                onTurnEnded = { _, _, _, toolsId -> toolsId?.let(context.summaries::take)?.let { lastSummary = it } },
+                onTurnEnded = { turn -> turn.toolsId?.let(context.summaries::take)?.let { lastSummary = it } },
             )
         }
 

@@ -25,6 +25,8 @@ import kotlinx.serialization.Serializable
  * @param isWritersRoom Whether it is a conversation in the writers' room, which is continued with its rules.
  * @param summary What the agent noted last for the next conversation about the project (`remember_for_next_time`).
  * @param isSummaryEarlier Whether turns that noted nothing came after the [summary], so that [lastAnswer] is newer.
+ * @param planAwaitingApproval The steps of the plan the agent laid out with `set_plan` and waited to have approved
+ *   ([EndedTurn.planAwaitingApproval]).
  */
 @Serializable
 public data class SavedConversation(
@@ -37,4 +39,5 @@ public data class SavedConversation(
     @SerialName("isWritersRoom") val isWritersRoom: Boolean = false,
     @SerialName("summary") val summary: String? = null,
     @SerialName("isSummaryEarlier") val isSummaryEarlier: Boolean = false,
+    @SerialName("planAwaitingApproval") val planAwaitingApproval: List<String> = emptyList(),
 )

@@ -69,7 +69,7 @@ class AssistantChatTest {
     private val undoneTurns = CopyOnWriteArrayList<Pair<String, Int>>()
     private val endedTurns = CopyOnWriteArrayList<Triple<String, String?, String?>>()
 
-    private suspend fun newChat(changeLog: ChangeLog? = null) = withContext(mainThread) {
+    private suspend fun newChat(changeLog: ChangeLog? = null, planAwaitingApproval: List<String> = emptyList()) = withContext(mainThread) {
         AssistantChat(
             parentScope = scope,
             start = { permissions, _ -> agent.newConversation(File("/projects/breakout"), permissions = permissions) },
@@ -78,7 +78,11 @@ class AssistantChatTest {
                 conversation.close()
             },
             toolsIdOf = { "tools" },
-            onTurnEnded = { _, title, lastAnswer, toolsId -> endedTurns += Triple(title, lastAnswer, toolsId) },
+            onTurnEnded = { turn ->
+                endedTurns += Triple(turn.title, turn.lastAnswer, turn.toolsId)
+                endedPlans += turn.planAwaitingApproval
+            },
+            planAwaitingApproval = planAwaitingApproval,
             forgetReads = { forgotten += it },
             project = object : OpenProjectAccess {
                 override suspend fun digest(): String? = null
@@ -104,6 +108,7 @@ class AssistantChatTest {
 
     private val plans = ConversationPlans()
     private val forgottenPlans = CopyOnWriteArrayList<String>()
+    private val endedPlans = CopyOnWriteArrayList<List<String>>()
 
     private suspend fun AssistantChat.sendAndWait(text: String) {
         withContext(mainThread) { send(text) }
@@ -217,6 +222,26 @@ class AssistantChatTest {
         assertEquals(ToolCallStatus.COMPLETED, toolCall.status)
         assertEquals("List the Scenes", chat.transcript.value.plan.single().content)
         assertEquals(TranscriptItem.AgentMessage("Done"), chat.transcript.value.items.last())
+    }
+
+    @Test
+    fun aTurnEndingOnAPlanToApproveKeepsItsStepsWithTheConversation() = blockingTest {
+        val chat = readyChat()
+        withContext(mainThread) { chat.send("edit") }
+        val request = chat.permissionRequest.first { it != null }!!
+        plans.set("tools", listOf(PlanStep("Add lives", PlanStepStatus.PENDING)))
+        withTimeout(10.seconds) { chat.transcript.first { it.plan.isNotEmpty() } }
+        withContext(mainThread) { chat.answer(request.options.first()) }
+        chat.isBusy.first { !it }
+        chat.sendAndWait("hello")
+        assertEquals(listOf(listOf("Add lives"), emptyList()), endedPlans)
+    }
+
+    @Test
+    fun aContinuedConversationOffersThePlanItWaitedOnAgain() = blockingTest {
+        val chat = newChat(planAwaitingApproval = listOf("Add lives", "Lose a life")).also { chat -> chat.state.first { it == ChatState.Ready } }
+        assertEquals(listOf("Add lives", "Lose a life"), chat.transcript.value.plan.map { it.content })
+        assertTrue(chat.transcript.value.isPlanAwaitingApproval)
     }
 
     @Test

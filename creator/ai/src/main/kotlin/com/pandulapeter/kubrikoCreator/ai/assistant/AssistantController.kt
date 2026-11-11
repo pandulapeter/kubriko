@@ -214,12 +214,17 @@ public class AssistantController(
     override fun resume(conversation: SavedConversation) {
         if (!host.isOn) return
         chatList.onResumed(conversation.id)
-        openChat(lastMessageAt = conversation.updatedAt, isWritersRoom = conversation.isWritersRoom) { owner, directory, permissions, onHistory ->
+        openChat(lastMessageAt = conversation.updatedAt, isWritersRoom = conversation.isWritersRoom, planAwaitingApproval = conversation.planAwaitingApproval) { owner, directory, permissions, onHistory ->
             owner.resumeConversation(directory, conversation.id, permissions, onHistory, rules = AssistantSystemPrompt.WRITERS_ROOM.takeIf { conversation.isWritersRoom })
         }
     }
 
-    private fun openChat(lastMessageAt: Long? = null, firstPrompt: String? = null, isWritersRoom: Boolean = false, start: suspend (Assistant, File, PermissionHandler, suspend (SessionUpdate) -> Unit) -> AgentConversation) {
+    private fun openChat(
+        lastMessageAt: Long? = null,
+        firstPrompt: String? = null,
+        isWritersRoom: Boolean = false,
+        planAwaitingApproval: List<String> = emptyList(),
+        start: suspend (Assistant, File, PermissionHandler, suspend (SessionUpdate) -> Unit) -> AgentConversation) {
         val directory = project ?: return
         val agentId = selection.agent.value.id
         val agentIdentity = selection.agent.value.identity
@@ -231,11 +236,10 @@ public class AssistantController(
             toolsIdOf = { conversation -> owner?.toolsIdOf(conversation) },
             forgetReads = { conversation -> owner?.forgetReads(conversation) },
             project = openProject,
-            onTurnEnded = { id, title, lastAnswer, toolsId ->
-                val summary = toolsId?.let(openProject::takeSummary)
-                withContext(ioDispatcher) {
-                    storage.conversations?.save(SavedConversation(directory.absolutePath, agentId, id, title, clock(), lastAnswer?.take(LastConversation.ANSWER_LENGTH), isWritersRoom, summary))
-                }
+            onTurnEnded = { turn ->
+                val summary = turn.toolsId?.let(openProject::takeSummary)
+                val saved = SavedConversation(directory.absolutePath, agentId, turn.id, turn.title, clock(), turn.lastAnswer?.take(LastConversation.ANSWER_LENGTH), isWritersRoom, summary)
+                withContext(ioDispatcher) { storage.conversations?.save(saved.copy(planAwaitingApproval = turn.planAwaitingApproval)) }
             },
             onChangedFilesUnasked = {
                 settings.update { it.takeIf { agentIdentity in it.agentsChangingFilesUnasked } ?: it.withChangingFilesUnasked(agentIdentity) }
@@ -243,6 +247,7 @@ public class AssistantController(
             lastMessageAt = lastMessageAt,
             clock = clock,
             firstPrompt = firstPrompt,
+            planAwaitingApproval = planAwaitingApproval,
         )
         chatList.add(chat)
     }

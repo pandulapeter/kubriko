@@ -59,15 +59,15 @@ import kotlinx.coroutines.withTimeout
  * @param project The project open at the time: its changes, which a prompt sums up for the agent when someone else made
  *   them since its last turn ([ChangesSummary]); reverting what the conversation changed after a revision (Undo); and
  *   the plan the conversation lays out with Kubriko Creator's tool, which is shown as an ACP plan is.
- * @param onTurnEnded Called after each turn with the conversation's ID, title, the agent's last answer, and the ID of its
- *   tool address (which the summary it noted is kept by, [com.pandulapeter.kubrikoCreator.commands.ConversationSummaries]), so that it can
- *   be continued later.
+ * @param onTurnEnded Called after each turn with what keeping the conversation needs, so that it can be continued later.
  * @param onChangedFilesUnasked Called once the agent changed files with its own tools without asking.
  * @param lastMessageAt When the last message of a continued conversation was said, or null for a new one, which counts
  *   from now.
  * @param clock The time, in milliseconds since the epoch.
  * @param firstPrompt What is sent as soon as the conversation is ready, for one started with a request, such as the
  *   writers' room's.
+ * @param planAwaitingApproval The steps of a continued conversation's plan that waited to be approved when it was kept
+ *   ([EndedTurn.planAwaitingApproval]), offered again once it is loaded.
  */
 public class AssistantChat(
     parentScope: CoroutineScope,
@@ -75,12 +75,13 @@ public class AssistantChat(
     private val end: suspend (AgentConversation) -> Unit,
     private val toolsIdOf: (AgentConversation) -> String? = { null },
     private val forgetReads: (AgentConversation) -> Unit = {},
-    private val onTurnEnded: suspend (id: String, title: String, lastAnswer: String?, toolsId: String?) -> Unit = { _, _, _, _ -> },
+    private val onTurnEnded: suspend (EndedTurn) -> Unit = {},
     private val project: OpenProjectAccess = OpenProjectAccess.None,
     private val onChangedFilesUnasked: () -> Unit = {},
     lastMessageAt: Long? = null,
     private val clock: () -> Long = System::currentTimeMillis,
     firstPrompt: String? = null,
+    private val planAwaitingApproval: List<String> = emptyList(),
 ) {
     private val scope = CoroutineScope(parentScope.coroutineContext + SupervisorJob(parentScope.coroutineContext[Job]))
     private var pendingFirstPrompt = firstPrompt
@@ -283,7 +284,16 @@ public class AssistantChat(
      */
     private suspend fun saveTurn(conversation: AgentConversation) {
         val title = _transcript.value.title ?: return
-        onTurnEnded(conversation.id.value, title, _transcript.value.items.filterIsInstance<TranscriptItem.AgentMessage>().lastOrNull()?.text, _toolsId.value)
+        val transcript = _transcript.value
+        onTurnEnded(
+            EndedTurn(
+                id = conversation.id.value,
+                title = title,
+                lastAnswer = transcript.items.filterIsInstance<TranscriptItem.AgentMessage>().lastOrNull()?.text,
+                toolsId = _toolsId.value,
+                planAwaitingApproval = if (transcript.isPlanFromCreator && transcript.isPlanAwaitingApproval) transcript.plan.map { it.content } else emptyList(),
+            ),
+        )
     }
 
     /**
@@ -393,6 +403,9 @@ public class AssistantChat(
             }
             conversation = started
             _toolsId.value = toolsIdOf(started)
+            if (planAwaitingApproval.isNotEmpty() && _transcript.value.plan.isEmpty()) {
+                _transcript.update { transcript -> transcript.withCreatorPlan(planAwaitingApproval.map { PlanEntry(it, PlanEntryPriority.MEDIUM, PlanEntryStatus.PENDING) }) }
+            }
             _toolsId.value?.let(::followPlan)
             _conversationId.value = started.id.value
             seenRevision = project.changeLog()?.revision ?: 0
