@@ -32,7 +32,8 @@ This session finished More live scenarios: `AssistantLiveScenariosTest` gained t
 chip's link, and a Scene picture chip's image, a stand-in PNG), a settled convention written to the game's notes, and the
 `game-explorer` subagent answering through Creator's read tools; all three passed against the real Claude Agent. The explorer
 is asked for by name, since a live run showed the agent rightly doing a five-read question itself; the scenario guards the
-subagent's wiring, not the model's choice. Its `/code-review` is noted below.
+subagent's wiring, not the model's choice. Its `/code-review` findings were fixed in a commit of their own (stricter
+answers, the explorer's reads tied to the time its hand-over ran); none is left open.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 

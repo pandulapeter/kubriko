@@ -183,19 +183,19 @@ class AssistantLiveScenariosTest {
         val chat = session.chat()
         val event = AttentionChip.Event("Ball", isManager = false, index = BRICK_COLLISION, type = EventType.COLLISION)
         chat.ask("Add a Log Block saying \"here\" at the end of this Event.", chips = listOf(event))
-        val events = session.context.ball().events
-        assertEquals(BlockDefinition.Log("here"), events[BRICK_COLLISION].blocks.last())
-        assertEquals(1, events.sumOf { it.blocks.count { block -> block is BlockDefinition.Log } }, "The Log Block went elsewhere too.")
+        assertEquals(BlockDefinition.Log("here"), session.context.ball().events[BRICK_COLLISION].blocks.last())
+        val logs = session.context.blockTypes!!.types.value.sumOf { type -> type.events.sumOf { it.blocks.count { block -> block is BlockDefinition.Log } } }
+        assertEquals(1, logs, "The Log Block went elsewhere too.")
         chat.ask("How many gold bricks does this Scene place? Answer with the number alone, and change nothing.", chips = listOf(AttentionChip.Scene("level-1")))
         println("Gold bricks: ${chat.lastAnswer()}")
-        assertContains(chat.lastAnswer(), "4")
+        assertTrue(Regex("\\b(4|four)\\b", RegexOption.IGNORE_CASE).containsMatchIn(chat.lastAnswer()), "The Scene wasn't read.")
         chat.ask(
             "How many white squares does the picture of this Scene show? Answer with the number alone, and change nothing.",
             chips = listOf(AttentionChip.SceneScreen("level-1")),
             picture = squares(SQUARES),
         )
         println("Squares: ${chat.lastAnswer()}")
-        assertTrue(chat.lastAnswer().contains("$SQUARES") || chat.lastAnswer().contains("three", ignoreCase = true), "The picture wasn't read.")
+        assertTrue(Regex("\\b($SQUARES|seven)\\b", RegexOption.IGNORE_CASE).containsMatchIn(chat.lastAnswer()), "The picture wasn't read.")
     }
 
     @Test
@@ -208,7 +208,7 @@ class AssistantLiveScenariosTest {
         val notes = withContext(Dispatchers.IO) { GameNotes.read(session.projectDirectory) }
         println("Notes: $notes")
         assertNotNull(notes, "Nothing was added to the game's notes.")
-        assertContains(notes, "[")
+        assertTrue(Regex("\\[Ball]|bracket", RegexOption.IGNORE_CASE).containsMatchIn(notes), "The convention isn't in the game's notes.")
         val collision = session.context.ball().events[BRICK_COLLISION]
         assertEquals(BlockDefinition.Log("[Ball] hit"), collision.blocks.last())
     }
@@ -216,16 +216,17 @@ class AssistantLiveScenariosTest {
     @Test
     fun theGameExplorerAnswersThroughCreatorsReadTools() = live { session ->
         val chat = session.chat()
+        val readsWhileExploring = launch(Dispatchers.Default) {
+            chat.transcript.first { transcript -> transcript.items.filterIsInstance<TranscriptItem.ToolCall>().hasReadsDuringAHandOver() }
+        }
         // Named outright: whether a question takes enough reads to hand over is the model's call, while what can break here is the subagent's wiring.
         chat.ask(
             "Ask the ${ClaudeAgentOptions.EXPLORER_NAME} subagent to list every way the player gains points or loses a life, naming the type and " +
                 "Event of each, then pass its answer on. Change nothing.",
         )
-        val calls = chat.transcript.value.items.filterIsInstance<TranscriptItem.ToolCall>()
-        calls.forEach { println("Tool call: ${it.kind} ${it.status} ${it.title}") }
-        val handOver = calls.indexOfFirst { it.kind == ToolKind.THINK && it.creatorToolName == null }
-        assertTrue(handOver >= 0, "The subagent wasn't asked.")
-        assertTrue(calls.drop(handOver + 1).any { it.creatorToolName == "read_actor_type" && it.status == ToolCallStatus.COMPLETED }, "The subagent read nothing through Creator's tools.")
+        chat.transcript.value.items.filterIsInstance<TranscriptItem.ToolCall>().forEach { println("Tool call: ${it.kind} ${it.status} ${it.title}") }
+        assertTrue(readsWhileExploring.isCompleted, "The subagent wasn't asked, or read nothing through Creator's tools while it ran.")
+        readsWhileExploring.cancel()
         assertContains(chat.lastAnswer(), "Ball")
         assertEquals(null, session.executor.history.value.nextUndoCommandName)
     }
@@ -302,6 +303,15 @@ class AssistantLiveScenariosTest {
         repeat(count) { graphics.fillRect(SQUARE_SIZE * (it * 2 + 1), SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE) }
         graphics.dispose()
         return ByteArrayOutputStream().also { ImageIO.write(image, "png", it) }.toByteArray()
+    }
+
+    /**
+     * Whether Creator's reads ran while a hand-over to a subagent (an agent's own call of the thinking kind) hadn't ended:
+     * the main agent waits for the subagent meanwhile, so those reads are the subagent's.
+     */
+    private fun List<TranscriptItem.ToolCall>.hasReadsDuringAHandOver(): Boolean {
+        val handOver = indexOfFirst { it.kind == ToolKind.THINK && it.creatorToolName == null && it.status != ToolCallStatus.COMPLETED && it.status != ToolCallStatus.FAILED }
+        return handOver >= 0 && drop(handOver + 1).any { it.creatorToolName?.startsWith("read_") == true }
     }
 
     private fun AssistantChat.lastAnswer() = transcript.value.items.filterIsInstance<TranscriptItem.AgentMessage>().lastOrNull()?.text.orEmpty()
@@ -388,12 +398,12 @@ class AssistantLiveScenariosTest {
         /**
          * The index of the Ball's collision with Brick among its Events in [BreakoutFixture].
          */
-        const val BRICK_COLLISION = 2
+        val BRICK_COLLISION = BreakoutFixture.ball.events.indexOfFirst { it.type == EventType.COLLISION && it.otherActorType == "Brick" }
 
         /**
          * How many squares the stand-in picture of the Scene shows, and how wide each is, in pixels.
          */
-        const val SQUARES = 3
+        const val SQUARES = 7
         const val SQUARE_SIZE = 40
 
         /**
