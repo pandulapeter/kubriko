@@ -23,6 +23,9 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.agentclientprotocol.model.AuthMethodId
+import com.agentclientprotocol.model.PlanEntry
+import com.agentclientprotocol.model.PlanEntryPriority
+import com.agentclientprotocol.model.PlanEntryStatus
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentChoice
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentDownload
@@ -70,6 +73,34 @@ class AssistantPanelPartsTest {
         onNodeWithText("With your message", substring = true).performClick()
         onNodeWithText("Scene picture").performClick()
         onNodeWithText("With your message: Scene level-1 · Scene picture · Game screenshot").assertExists()
+    }
+
+    @Test
+    fun aPlanOpensWhenLaidOutClosesOnceDoneAndOpensAndClosesFromItsTitle() = uiTest {
+        fun plan(vararg steps: Pair<String, PlanEntryStatus>) = steps.map { (content, status) -> PlanEntry(content, PlanEntryPriority.MEDIUM, status) }
+        var entries by mutableStateOf(plan("Add a Lives Property" to PlanEntryStatus.PENDING, "Lose a life when the ball falls" to PlanEntryStatus.PENDING))
+        var isAwaitingApproval by mutableStateOf(true)
+        showing { PlanChecklist(entries = entries, smallerModel = null, onApprove = { _: String, _: Any? -> }.takeIf { isAwaitingApproval }) }
+        onNodeWithText("Lose a life when the ball falls").assertExists()
+        onNodeWithText("0 of 2 done").assertExists()
+        onNodeWithText("Plan").performClick()
+        onNodeWithText("Lose a life when the ball falls").assertDoesNotExist()
+        onNodeWithText("Approve").assertExists()
+        saveSnapshot("assistant-plan-collapsed")
+        isAwaitingApproval = false
+        entries = plan("Add a Lives Property" to PlanEntryStatus.COMPLETED, "Lose a life when the ball falls" to PlanEntryStatus.IN_PROGRESS)
+        onNodeWithText("1 of 2 done").assertExists()
+        onNodeWithText("Lose a life when the ball falls").assertDoesNotExist()
+        onNodeWithText("Plan").performClick()
+        onNodeWithText("Lose a life when the ball falls").assertExists()
+        entries = plan("Add a Lives Property" to PlanEntryStatus.COMPLETED, "Lose a life when the ball falls" to PlanEntryStatus.COMPLETED)
+        onNodeWithText("2 of 2 done").assertExists()
+        onNodeWithText("Lose a life when the ball falls").assertDoesNotExist()
+        onNodeWithText("Plan").performClick()
+        onNodeWithText("Lose a life when the ball falls").assertExists()
+        onNodeWithText("Plan").performClick()
+        entries = plan("Show the lives" to PlanEntryStatus.PENDING)
+        onNodeWithText("Show the lives").assertExists()
     }
 
     @Test

@@ -198,4 +198,13 @@ class AssistantPanelDecisionsTest {
         assertFalse(isPlanApprovalOffered(isPlanAwaitingApproval = true, ChatState.Ready, isBusy = false, isAnyQuestionOpen = true))
         assertFalse(isPlanApprovalOffered(isPlanAwaitingApproval = false, ChatState.Ready, isBusy = false, isAnyQuestionOpen = false))
     }
+
+    @Test
+    fun aPlanIsFinishedOnceEveryStepIsDone() {
+        fun entry(status: PlanEntryStatus) = PlanEntry("Step", PlanEntryPriority.MEDIUM, status)
+        assertTrue(isPlanFinished(listOf(entry(PlanEntryStatus.COMPLETED), entry(PlanEntryStatus.COMPLETED))))
+        assertFalse(isPlanFinished(listOf(entry(PlanEntryStatus.COMPLETED), entry(PlanEntryStatus.IN_PROGRESS))))
+        assertFalse(isPlanFinished(listOf(entry(PlanEntryStatus.PENDING))))
+        assertFalse(isPlanFinished(emptyList()))
+    }
 }
