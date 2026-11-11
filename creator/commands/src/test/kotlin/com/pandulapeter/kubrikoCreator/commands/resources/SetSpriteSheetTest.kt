@@ -71,6 +71,15 @@ class SetSpriteSheetTest {
     }
 
     @Test
+    fun aFileMadeOutsideCreatorSinceTheLastScanIsBroughtBackByUndo() = runTest {
+        val context = context()
+        val file = File(context.project.rootDirectory, ".kubriko/sprites/foes/bat.json").apply { parentFile.mkdirs() }
+        file.writeText("{}\n")
+        context.assertRoundTrip(Invocation(SetSpriteSheet, SetSpriteSheet.Input("drawable/bat.png", sheet))) { file.takeIf { it.isFile }?.readText() }
+        assertEquals("foes", context.spriteFolders.state.value.folderOf["bat"])
+    }
+
+    @Test
     fun onlyASpriteThatExistsIsCutAndOnlyIntoFramesThatCanBePlayed() = runTest {
         val context = context()
         assertEquals(Rejection(LookupProblem.RESOURCE_MISSING, "files/sounds/hit.wav"), SetSpriteSheet.validate(context, SetSpriteSheet.Input("files/sounds/hit.wav", sheet)))

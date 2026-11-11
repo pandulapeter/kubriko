@@ -55,6 +55,8 @@ public object SetSpriteSheet : WriteCommand<SetSpriteSheet.Input> {
         val root = context.project.rootDirectory
         val previous = try {
             withContext(context.ioDispatcher) {
+                // Read again, since git or another program may have made or moved the sprite's file since the last scan.
+                context.spriteFolders.refresh()
                 val before = context.spriteFolders.filesOf(name).associate { it.relativeTo(root).invariantSeparatorsPath to it.readBytes() }
                 context.spriteFolders.setSheet(name, input.sheet)
                 before + context.spriteFolders.filesOf(name).map { it.relativeTo(root).invariantSeparatorsPath }.filter { it !in before }.associateWith { null }
