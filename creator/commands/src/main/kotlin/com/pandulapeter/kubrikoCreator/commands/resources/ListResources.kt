@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.resources
 
-import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
@@ -21,6 +20,7 @@ import com.pandulapeter.kubrikoCreator.commands.folders.folderPage
 import com.pandulapeter.kubrikoCreator.commands.folders.itemsOf
 import com.pandulapeter.kubrikoCreator.schema.Description
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
+import com.pandulapeter.kubrikoCreator.sprites.sheetOfSprite
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -47,7 +47,7 @@ public object ListResources : ReadCommand<ListResources.Input> {
             put("path", path)
             put("folder", folder)
             if (input.group == FolderGroup.SPRITES) {
-                context.spriteFolders.state.value.sheets[ResourceKind.nameOf(path)]?.let { put("sheet", Json.encodeToJsonElement(SpriteSheet.serializer(), it)) }
+                context.spriteFolders.state.value.sheets.sheetOfSprite(path)?.let { put("sheet", Json.encodeToJsonElement(SpriteSheet.serializer(), it)) }
             }
         }
     }

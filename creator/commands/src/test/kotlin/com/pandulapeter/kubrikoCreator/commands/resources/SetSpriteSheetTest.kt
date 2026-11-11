@@ -75,6 +75,8 @@ class SetSpriteSheetTest {
         val context = context()
         assertEquals(Rejection(LookupProblem.RESOURCE_MISSING, "files/sounds/hit.wav"), SetSpriteSheet.validate(context, SetSpriteSheet.Input("files/sounds/hit.wav", sheet)))
         assertEquals(LookupProblem.RESOURCE_MISSING, SetSpriteSheet.validate(context, SetSpriteSheet.Input("drawable/owl.png", sheet))?.reason)
+        // Only an image right in drawable is a sprite, whose name, which its sheet is kept by, is unique.
+        assertEquals(Rejection(LookupProblem.RESOURCE_MISSING, "drawable/extra/bat.png"), SetSpriteSheet.validate(context, SetSpriteSheet.Input("drawable/extra/bat.png", sheet)))
         assertEquals(Rejection(SpriteSheetProblem.FRAME_COUNT), SetSpriteSheet.validate(context, SetSpriteSheet.Input("drawable/bat.png", sheet.copy(frameCount = 0))))
     }
 

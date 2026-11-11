@@ -14,9 +14,15 @@ import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 
 /**
- * How [definition]'s sprite is cut into frames, from sheets by their sprites' names, if it is drawn as a sprite (one its
- * generated class can show: right in `drawable`) that is.
+ * How [definition]'s sprite is cut into frames, from sheets by their sprites' names, if it is drawn as one that is.
  */
-public fun Map<String, SpriteSheet>.sheetOf(definition: ActorTypeDefinition): SpriteSheet? = definition.sprite
-    ?.takeIf { SpriteFiles.accessorOf(it) != null }
+public fun Map<String, SpriteSheet>.sheetOf(definition: ActorTypeDefinition): SpriteSheet? = definition.sprite?.let(::sheetOfSprite)
+
+/**
+ * How the image at [path] (from `composeResources`) is cut into frames, from sheets by their sprites' names, if it is one
+ * that is. Only an image right in `drawable` can be: sprites are named after their files, which is unique only there,
+ * as their resource accessors are.
+ */
+public fun Map<String, SpriteSheet>.sheetOfSprite(path: String): SpriteSheet? = path
+    .takeIf { SpriteFiles.accessorOf(it) != null }
     ?.let { get(ResourceKind.nameOf(it)) }

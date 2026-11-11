@@ -9,9 +9,9 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
-import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
+import com.pandulapeter.kubrikoCreator.sprites.sheetOfSprite
 import java.io.File
 
 /**
@@ -30,5 +30,5 @@ internal data class SpriteChoices(
 
     fun fileOf(path: String): File? = files.files[path]
 
-    fun sheetOf(path: String): SpriteSheet? = sheets[ResourceKind.nameOf(path)]
+    fun sheetOf(path: String): SpriteSheet? = sheets.sheetOfSprite(path)
 }

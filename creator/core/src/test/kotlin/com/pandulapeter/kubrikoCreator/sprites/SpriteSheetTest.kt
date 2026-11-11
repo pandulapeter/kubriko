@@ -47,6 +47,14 @@ class SpriteSheetTest {
     }
 
     @Test
+    fun onlyASpriteRightInDrawableHasASheet() {
+        val sheets = mapOf("bat" to sheet)
+        assertEquals(sheet, sheets.sheetOfSprite("drawable/bat.png"))
+        assertNull(sheets.sheetOfSprite("drawable/extra/bat.png"))
+        assertNull(sheets.sheetOfSprite("files/bat.png"))
+    }
+
+    @Test
     fun aStripIsGuessedAsSquareFramesInOneRow() {
         assertEquals(SpriteSheet(frameWidth = 16, frameHeight = 16, frameCount = 4, framesPerRow = 4), SpriteSheet.guessFor(64, 16))
         assertEquals(SpriteSheet(frameWidth = 16, frameHeight = 16, frameCount = 1, framesPerRow = 1), SpriteSheet.guessFor(16, 40))
