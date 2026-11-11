@@ -26,20 +26,18 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `01-resources-and-search.md` at its first item, Folders.
+Continue `01-resources-and-search.md` at Folders, with its Sprites bullet (virtual folders), then the expanded folders kept
+in `.kubriko/local` and dragging whole folders.
 
-The last item finished: deleting a full folder (`delete_folder` on any folder, its contents deleted through their own
-deletes as one undo step, `RelationSubject.Folder` listing the contents and only the usages outside it in the
-confirmation, `check_change`, and the AI's result; the sidebar offers Delete on every folder and asks only for a full one).
-Its `/code-review` found ten things, each fixed in a commit of its own: undoing a folder whose directory a file nothing
-lists kept (a `.DS_Store`), a folder the sidebar showed empty but filled since being deleted unasked, the Scenes and pages
-found by a scan rather than the names each delete checks (and a Scene already gone outside Creator kept by name), page
-mentions reported as unlinked where they weren't, the AI's `mentionedIn` missing for a folder, page images deleted without
-being listed, and N full reads of the project for N deletes; with the usages details shared and one path for empty folders.
+The last item finished: sound and music folders (the real folders of the game's `files` folders, every source set's
+together, in `FolderGroup.SOUNDS` and `MUSIC`, kept by `AudioFolderIndex`, shown as trees below the default folder while it
+holds everything). Its `/code-review` found ten things, each fixed in a commit of its own: walks skipping folders called
+`build`, a rename merging into a folder the group doesn't show, `Scenes` reserved only in lower case, validation walking
+the disk on the main thread, each file followed with its own read of the Kotlin and write of the Scenes, an undo that
+followed again rather than putting back, a misleading message for a name clash and silent failed move-backs, duplicated
+mappings, and each group showing the other's empty default folder. The Kotlin package tree bullet was already done.
 
-The same session fixed two failing CI tests: a race in `AssistantSignIn` (a system terminal that can't be opened was
-reported before it stopped saying it was opening) and `DeletingEveryThingTest` on Windows, which can't name a file after
-`EveryBlockTypes`' quoted sound.
+`SceneEditorPaneTest.theActorsTheAiChangedLightUp` failed once in a full `:creator:test` run and passed three times alone.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
