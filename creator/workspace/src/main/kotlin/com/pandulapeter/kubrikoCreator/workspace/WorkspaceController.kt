@@ -51,7 +51,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
@@ -367,16 +366,12 @@ public class WorkspaceController(
         }
         changes.refreshResources()
         scope.launch { merge(commands.context.documents.structureRevision.drop(1), commands.context.filesRevision.drop(1)).collect { changes.refreshResources() } }
-        scope.launch {
-            // From the first scan on, since the opening regenerates anyway and the sheets read before it are no change.
-            isScanned.first { it }
-            commands.context.spriteFolders.state.map { it.sheets }.distinctUntilChanged().drop(1).collect { changes.onSpriteSheetsChanged() }
-        }
+        scope.launch { commands.context.spriteFolders.state.collect { changes.onSpriteSheets(it.sheets) } }
         refreshScreenplay()
         refreshProjectUpgrade()
         blockTypes?.let { types ->
             scope.launch {
-                combine(types.actorTypes, _resources, commands.context.spriteFolders.state) { _, _, _ -> }.collect { sceneEditing.onActorTypesChanged() }
+                combine(types.actorTypes, _resources, commands.context.spriteFolders.state.map { it.sheets }.distinctUntilChanged()) { _, _, _ -> }.collect { sceneEditing.onActorTypesChanged() }
             }
         }
     }
@@ -425,7 +420,7 @@ public class WorkspaceController(
         val currentSnapshot = snapshot?.takeIf { it.ownWriteGeneration == scannedAt }
         val (resources, layout) = withContext(ioDispatcher) {
             commands.context.audioFolders.refresh()
-            commands.context.spriteFolders.refresh()
+            changes.onSpriteSheetsScanned(commands.context.spriteFolders.refresh().sheets, commands.context.spriteFolders.state.value.sheets)
             files.scanResources(project.rootDirectory, currentSnapshot).let { resources ->
                 resources to ProjectLayout.of(project.rootDirectory, resources, generatedPath, sceneHome, currentSnapshot, commands.context.audioFolders.folders())
             }

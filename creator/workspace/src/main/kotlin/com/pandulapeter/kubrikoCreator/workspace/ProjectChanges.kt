@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.foundation.reportProblem
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
 import com.pandulapeter.kubrikoCreator.project.ProjectSnapshot
 import com.pandulapeter.kubrikoCreator.scenes.SceneChange
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
@@ -111,14 +112,38 @@ internal class ProjectChanges(
         }
     }
 
+    private val spriteSheetsLock = Any()
+
     /**
-     * Follows a change to how sprites are cut into frames, whoever made it: the types drawn as them are generated again,
-     * so the Scene view and the playing game follow their code.
+     * How the sprites are cut into frames as last followed, or null before the first scan read them.
      */
-    fun onSpriteSheetsChanged() {
-        following(regenerate)
-        following(markSceneOutdated)
-        following(onCodeChanged)
+    private var knownSpriteSheets: Map<String, SpriteSheet>? = null
+
+    /**
+     * Takes the sheets the first scan read ([scanned]) as what later ones are compared with, since the opening generates
+     * the code from them anyway, then follows the sheets the sprites' store has [now], which a change made since may
+     * already have moved on from. Only the first scan's call counts.
+     */
+    fun onSpriteSheetsScanned(scanned: Map<String, SpriteSheet>, now: Map<String, SpriteSheet>) {
+        synchronized(spriteSheetsLock) { if (knownSpriteSheets == null) knownSpriteSheets = scanned }
+        onSpriteSheets(now)
+    }
+
+    /**
+     * Follows how the sprites are cut into frames as the sprites' store has them now, whoever changed them: once they
+     * differ from what was last followed, the types drawn as them are generated again, so the Scene view and the playing
+     * game follow their code. Nothing is followed before the first scan.
+     */
+    fun onSpriteSheets(sheets: Map<String, SpriteSheet>) {
+        val hasChanged = synchronized(spriteSheetsLock) {
+            val known = knownSpriteSheets
+            (known != null && known != sheets).also { if (it) knownSpriteSheets = sheets }
+        }
+        if (hasChanged) {
+            following(regenerate)
+            following(markSceneOutdated)
+            following(onCodeChanged)
+        }
     }
 
     /**

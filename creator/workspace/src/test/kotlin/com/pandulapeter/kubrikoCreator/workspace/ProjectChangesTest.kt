@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.project.FileStamp
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
 import com.pandulapeter.kubrikoCreator.project.ProjectSnapshot
 import com.pandulapeter.kubrikoCreator.scenes.SceneChange
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -73,6 +74,28 @@ class ProjectChangesTest {
             assertEquals(listOf("renamed a to b", "scenes changed [a, b]", "code changed", "git"), calls)
         }
         assertEquals<List<Throwable>>(problemsFound, problems)
+    }
+
+    @Test
+    fun spriteSheetsAreFollowedFromWhatTheFirstScanReadOn() = runTest {
+        val router = router()
+        val bat = mapOf("bat" to SpriteSheet(frameWidth = 8, frameHeight = 8, frameCount = 2, framesPerRow = 2))
+        router.onSpriteSheets(bat)
+        router.onSpriteSheetsScanned(scanned = bat, now = bat)
+        router.onSpriteSheets(bat)
+        assertEquals(emptyList(), calls)
+        router.onSpriteSheets(emptyMap())
+        router.onSpriteSheets(emptyMap())
+        assertEquals(listOf("regenerate", "scene outdated", "code changed"), calls)
+    }
+
+    @Test
+    fun aSpriteSheetChangedWhileTheFirstScanEndedIsFollowed() = runTest {
+        val router = router()
+        val bat = mapOf("bat" to SpriteSheet(frameWidth = 8, frameHeight = 8, frameCount = 2, framesPerRow = 2))
+        router.onSpriteSheetsScanned(scanned = emptyMap(), now = bat)
+        router.onSpriteSheetsScanned(scanned = bat, now = bat)
+        assertEquals(listOf("regenerate", "scene outdated", "code changed"), calls)
     }
 
     @Test

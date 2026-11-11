@@ -55,18 +55,20 @@ public class SpriteFolderStore(
     private var filesByName: Map<String, List<File>> = emptyMap()
 
     /**
-     * Reads the folders again. Blocks. A sprite with files in several folders (two branches moving it, merged) is in the
-     * first of them by path, and every change to it acts on all of them.
+     * Reads the folders again, returning the [state] it read. Blocks. A sprite with files in several folders (two branches
+     * moving it, merged) is in the first of them by path, and every change to it acts on all of them.
      */
-    public fun refresh(): Unit = synchronized(this) {
+    public fun refresh(): State = synchronized(this) {
         val root = directory
         val files = root.walkTopDown().filter { it != root }.sortedBy { it.invariantSeparatorsPath }.toList()
         filesByName = files.filter { it.isFile && it.extension == EXTENSION }.groupBy { it.nameWithoutExtension }
-        _state.value = State(
+        val state = State(
             folders = files.filter { it.isDirectory }.mapTo(sortedSetOf()) { it.relativeTo(root).invariantSeparatorsPath },
             folderOf = filesByName.mapValues { (_, named) -> named.first().parentFile.relativeTo(root).invariantSeparatorsPath },
             sheets = sheetFiles.sheetsOf(filesByName),
         )
+        _state.value = state
+        state
     }
 
     @EditorMutation
