@@ -116,6 +116,12 @@ public class CommandContext(
     internal val screenplayTextsCache = KeyedCache<ScreenplayTexts>()
 
     /**
+     * The hand-written Kotlin read once for a change made of many deletes
+     * ([com.pandulapeter.kubrikoCreator.context.withKotlinFilesHeld]), or null outside one.
+     */
+    internal var heldKotlinFiles: Map<String, String>? = null
+
+    /**
      * Returns once every change made so far is on disk, or writing them failed, for what reads the files (git, and builds);
      * whether they all are on disk.
      */

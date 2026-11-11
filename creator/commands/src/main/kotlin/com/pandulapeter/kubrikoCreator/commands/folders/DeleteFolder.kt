@@ -23,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.commands.USAGES
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireBlockTypes
 import com.pandulapeter.kubrikoCreator.commands.usagesDetails
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
+import com.pandulapeter.kubrikoCreator.context.withKotlinFilesHeld
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.KSerializer
@@ -77,8 +78,9 @@ public object DeleteFolder : DeletingCommand<DeleteFolder.Input> {
             .distinct()
             .sortedByDescending { it.count { character -> character == '/' } }
             .map { Invocation(DeleteFolder, Input(input.group, it, keepsContents = true)) }
-        val usages = context.folderUsagesOf(folder, deletes, isAfterDeleting = true)
-        val applied = CompositeCommand.apply(context, CompositeCommand.Input(deletes + folders))
+        val (usages, applied) = context.withKotlinFilesHeld {
+            context.folderUsagesOf(folder, deletes, isAfterDeleting = true) to CompositeCommand.apply(context, CompositeCommand.Input(deletes + folders))
+        }
         if (applied.failure != null) return applied
         val reportedByParts = applied.details?.get(USAGES)?.jsonArray?.mapTo(HashSet()) { it.jsonPrimitive.content }.orEmpty()
         val reported = usagesReported(usages, reportedByParts)

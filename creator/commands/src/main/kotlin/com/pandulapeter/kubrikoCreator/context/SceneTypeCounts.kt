@@ -54,15 +54,16 @@ internal suspend fun CommandContext.projectReferences(subjects: List<RelationSub
     return withContext(ioDispatcher) {
         val mentionedPaths = subjects.map { mentionedPathOf(it) }
         val firstScene = firstSceneSettings(project.rootDirectory)?.firstScene
-        val kotlinFiles = if (subjects.any(ProjectReferences::readsKotlinFiles)) HandWrittenKotlin.read(project.rootDirectory) else emptyMap()
+        val kotlinFiles = if (subjects.any(ProjectReferences::readsKotlinFiles)) handWrittenKotlin() else emptyMap()
         // Documents are the user's, which Creator changes only when asked to, so only pages are cleaned up; and
         // pages are read only for what they can link to.
         val markdown = if (mentionedPaths.all { it == null }) emptyMap() else screenplayTexts().markdown.filterKeys { PageNaming.nameOf(it) != null }
         val music = if (subjects.any { it is RelationSubject.Resource && ResourceKind.of(it.path) == ResourceKind.MUSIC }) sceneMusic() else emptyMap()
+        val relations = ProjectRelations(types, sceneCounts)
         mentionedPaths.map { mentionedPath ->
             ProjectReferences(
                 types = types,
-                sceneTypeCounts = sceneCounts,
+                relations = relations,
                 firstScene = firstScene,
                 kotlinFiles = kotlinFiles,
                 markdown = if (mentionedPath == null) emptyMap() else markdown,

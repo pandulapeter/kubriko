@@ -9,7 +9,9 @@
  */
 package com.pandulapeter.kubrikoCreator.context
 
+import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.project.ProjectTree
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
 
@@ -33,4 +35,23 @@ internal object HandWrittenKotlin {
             }
         }
         .toMap()
+}
+
+/**
+ * The project's hand-written Kotlin ([HandWrittenKotlin.read]), or what [withKotlinFilesHeld] holds. Reads the disk.
+ */
+internal fun CommandContext.handWrittenKotlin(): Map<String, String> = heldKotlinFiles ?: HandWrittenKotlin.read(project.rootDirectory)
+
+/**
+ * Runs [block] with the hand-written Kotlin read once for every delete it makes, rather than once by each: deletes
+ * never rewrite it, so it stays as read until [block] ends.
+ */
+internal suspend fun <T> CommandContext.withKotlinFilesHeld(block: suspend () -> T): T {
+    if (heldKotlinFiles != null) return block()
+    heldKotlinFiles = withContext(ioDispatcher) { HandWrittenKotlin.read(project.rootDirectory) }
+    try {
+        return block()
+    } finally {
+        heldKotlinFiles = null
+    }
 }

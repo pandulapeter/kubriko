@@ -26,7 +26,7 @@ import com.pandulapeter.kubrikoCreator.screenplay.PageLinks
  * Scene, and hand-written Kotlin: what deleting that part changes, shows, and is refused for. Deletes, their confirmation,
  * and `check_change` all read it, so none can miss what another sees.
  *
- * @param sceneTypeCounts The number of Actors of each type ID that each Scene places, by the Scene's name.
+ * @param relations The relations between the parts of the project, which the references of several subjects share.
  * @param firstScene The Scene the game starts with, if its settings name one.
  * @param kotlinFiles The text of every hand-written Kotlin file, by its path from the project's root (only those
  *   [readsKotlinFiles] says the usages of a subject need).
@@ -38,15 +38,14 @@ import com.pandulapeter.kubrikoCreator.screenplay.PageLinks
  */
 internal class ProjectReferences(
     private val types: List<BlockTypeDefinition>,
-    sceneTypeCounts: Map<String, Map<String, Int>>,
+    val relations: ProjectRelations,
     private val firstScene: String?,
     private val kotlinFiles: Map<String, String>,
     private val markdown: Map<String, String> = emptyMap(),
     val mentionedPath: String? = null,
     private val sceneMusic: Map<String, String> = emptyMap(),
 ) {
-    val relations = ProjectRelations(types, sceneTypeCounts)
-    private val family = ActorTypeFamily(types.filterIsInstance<ActorTypeDefinition>())
+    private val family by lazy { ActorTypeFamily(types.filterIsInstance<ActorTypeDefinition>()) }
 
     /**
      * Every usage of [subject] outside itself, in the order of the project: Kubriko Creator's model first, then the
