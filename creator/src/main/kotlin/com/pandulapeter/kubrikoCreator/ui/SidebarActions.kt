@@ -11,7 +11,9 @@ package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import com.pandulapeter.kubrikoCreator.actors.FolderPaths
+import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
@@ -23,6 +25,10 @@ import com.pandulapeter.kubrikoCreator.commands.folders.MoveToFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.RenameFolder
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
+import com.pandulapeter.kubrikoCreator.commands.resources.AddResource
+import com.pandulapeter.kubrikoCreator.commands.resources.DeleteResource
+import com.pandulapeter.kubrikoCreator.commands.resources.RenameResource
+import com.pandulapeter.kubrikoCreator.commands.resources.newResourcePathsOf
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.RenameScene
 import com.pandulapeter.kubrikoCreator.commands.screenplay.AddDocumentToScreenplay
@@ -33,6 +39,10 @@ import com.pandulapeter.kubrikoCreator.screenplay.DocumentNaming
 import com.pandulapeter.kubrikoCreator.workspace.SelectionController
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceCreation
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Where the sidebar's items are dragged: a dropped one moves to its folder through a command.
@@ -132,6 +142,30 @@ internal fun rememberDocumentActions(
             }
         },
     )
+}
+
+/**
+ * What the sidebar's sprites, sounds, and music do, each through the command for it: files chosen, dropped, or pasted
+ * are added under their own names ([newResourcePathsOf]), and a delete waits for its confirmation
+ * ([WorkspaceUiState.dispatch]). The clipboard is read off the main thread, in a scope that outlives the sidebar.
+ */
+@Composable
+internal fun rememberResourceActions(commands: CommandExecutor, uiState: WorkspaceUiState): ResourceActions {
+    val scope = rememberCoroutineScope()
+    val chooseTitles = ResourceKind.entries.associateWith { stringResource(it.addLabel) }
+    return remember(commands, uiState, scope, chooseTitles) {
+        val add = { sources: List<ResourceSource> ->
+            val paths = commands.context.newResourcePathsOf(sources.map { it.name })
+            sources.zip(paths).forEach { (source, path) -> if (path != null) commands.dispatch(Invocation(AddResource, AddResource.Input(source.file.path, path))) }
+        }
+        ResourceActions(
+            onChoose = { kind -> add(pickResourceFiles(kind, chooseTitles.getValue(kind))) },
+            onAdd = add,
+            onPaste = { scope.launch { withContext(Dispatchers.IO) { pastedResources() }.takeIf { it.isNotEmpty() }?.let(add) } },
+            onRename = { path, newName -> commands.dispatchIfValid(Invocation(RenameResource, RenameResource.Input(path, ResourceKind.renamed(path, newName)))) },
+            onDelete = { path -> uiState.dispatch(Invocation(DeleteResource, DeleteResource.Input(path)), onSuccess = {}, dispatch = commands::dispatch) },
+        )
+    }
 }
 
 /**

@@ -98,6 +98,11 @@ internal sealed interface SidebarNaming {
     data class RenamedDocument(val path: String) : SidebarNaming
 
     data object NewProjectDocument : SidebarNaming
+
+    /**
+     * A sprite, sound, or music file being renamed, by its path from the project's root.
+     */
+    data class RenamedResource(val relativePath: String) : SidebarNaming
 }
 
 /**

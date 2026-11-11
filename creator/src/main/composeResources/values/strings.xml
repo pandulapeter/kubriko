@@ -753,6 +753,12 @@
     <string name="new_scene_hint">New Scene name</string>
     <string name="new_page_hint">New page name</string>
     <string name="new_document_hint">New document name</string>
+    <string name="new_resource_hint">File name</string>
+    <string name="action_add_sprite">Add sprite…</string>
+    <string name="action_add_sound">Add sound…</string>
+    <string name="action_add_music">Add music…</string>
+    <string name="action_paste">Paste</string>
+    <string name="action_delete_resource">Delete file</string>
     <string name="document_delete_title">Delete %1$s?</string>
     <string name="page_delete_title">Delete the page %1$s?</string>
     <string name="page_delete_text">The page is deleted from the screenplay. Undo brings it all back as it was, with its images.</string>

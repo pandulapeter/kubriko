@@ -9,24 +9,30 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
+import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 
 /**
- * What the sidebar's New menu makes: an item of a group with folders, or a document at the project's top.
+ * What the sidebar's New menu makes: an item of a group with folders, a sprite, sound, or music chosen from this
+ * computer, or a document at the project's top.
  */
 internal sealed interface SidebarNewItem {
 
     data class GroupItem(val group: FolderGroup) : SidebarNewItem
+
+    data class Resource(val kind: ResourceKind) : SidebarNewItem
 
     data object Document : SidebarNewItem
 }
 
 /**
  * What the New menu offers for [modules]: an item of every group one of them is creating in, in the groups' order, then
- * a document, which can always be made.
+ * a file of every kind of resource and a document, which can always be added.
  */
 internal fun sidebarNewItems(modules: List<SidebarModule>): List<SidebarNewItem> =
-    FolderGroup.entries.filter { group -> modules.any { group in it.creatingGroups } }.map(SidebarNewItem::GroupItem) + SidebarNewItem.Document
+    FolderGroup.entries.filter { group -> modules.any { group in it.creatingGroups } }.map(SidebarNewItem::GroupItem) +
+        ResourceKind.entries.map(SidebarNewItem::Resource) +
+        SidebarNewItem.Document
 
 /**
  * Where choosing a [SidebarNewItem] names it: [naming] shown in the row of [revealKey], once the module bands in
@@ -40,7 +46,7 @@ internal class SidebarNewTarget(
 
 /**
  * Where this is named among [modules]: an item in the group of the module creating in it, a document at the top of the
- * sidebar; null for a group no module creates in.
+ * sidebar; null for a group no module creates in, and for a resource, which is named after the file chosen.
  */
 internal fun SidebarNewItem.target(modules: List<SidebarModule>): SidebarNewTarget? = when (this) {
     is SidebarNewItem.GroupItem -> modules.firstOrNull { group in it.creatingGroups }?.let { module ->
@@ -51,6 +57,7 @@ internal fun SidebarNewItem.target(modules: List<SidebarModule>): SidebarNewTarg
             openedKeys = generateSequence(module.path) { parents[it] }.map(SidebarKeys::module).toList(),
         )
     }
+    is SidebarNewItem.Resource -> null
     SidebarNewItem.Document -> SidebarNewTarget(SidebarNaming.NewProjectDocument, NEW_PROJECT_DOCUMENT_KEY, emptyList())
 }
 

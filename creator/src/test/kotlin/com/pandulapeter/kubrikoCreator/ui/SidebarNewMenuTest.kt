@@ -23,6 +23,7 @@ import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.pressKey
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.project.ProjectModule
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
@@ -66,11 +67,12 @@ class SidebarNewMenuTest {
     fun theMenuOffersWhatSomeModuleCreatesAndADocumentAlways() {
         val modules = sidebarModules(resources, folderGroups, layout)
         assertEquals(
-            FolderGroup.entries.map(SidebarNewItem::GroupItem) + SidebarNewItem.Document,
+            FolderGroup.entries.map(SidebarNewItem::GroupItem) + ResourceKind.entries.map(SidebarNewItem::Resource) + SidebarNewItem.Document,
             sidebarNewItems(modules),
         )
         val toolsOnly = sidebarModules(resources, emptyMap(), ProjectLayout(modules = mapOf("tools" to ProjectModule(false))))
-        assertEquals(listOf(SidebarNewItem.Document), sidebarNewItems(toolsOnly))
+        assertEquals(ResourceKind.entries.map(SidebarNewItem::Resource) + SidebarNewItem.Document, sidebarNewItems(toolsOnly))
+        assertNull(SidebarNewItem.Resource(ResourceKind.SPRITE).target(modules))
         assertNull(SidebarNewItem.GroupItem(FolderGroup.SCENES).target(toolsOnly))
         val scene = SidebarNewItem.GroupItem(FolderGroup.SCENES).target(modules)!!
         assertEquals(SidebarNaming.NewItem(FolderGroup.SCENES), scene.naming)

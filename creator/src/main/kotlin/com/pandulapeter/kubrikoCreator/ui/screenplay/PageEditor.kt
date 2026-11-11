@@ -51,6 +51,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
 import com.pandulapeter.kubrikoCreator.ui.components.openInBrowser
 import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
 import com.pandulapeter.kubrikoCreator.ui.components.rightClickMenu
+import com.pandulapeter.kubrikoCreator.ui.fileDropTarget
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kubriko.creator.generated.resources.Res
@@ -112,7 +113,7 @@ internal fun PageEditor(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .then(if (images == null) Modifier else Modifier.pageImageDropTarget { files -> images.onStart(); files.forEach { images.onChoose(PageImageSource.ImageFile(it)) } })
+            .then(if (images == null) Modifier else Modifier.fileDropTarget(::imageFilesAmong) { files -> images.onStart(); files.forEach { images.onChoose(PageImageSource.ImageFile(it)) } })
             .verticalScroll(rememberScrollState()),
         contentAlignment = Alignment.TopCenter,
     ) {

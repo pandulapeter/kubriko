@@ -68,6 +68,8 @@ import org.jetbrains.compose.resources.stringResource
  * @param dragState Where types, Scenes, pages, and documents are dragged to: folders (bands too, for documents), and
  *   the open Scene.
  * @param documentActions What the documents listed in each band do ([documentRows]); a band offers New document too.
+ * @param resourceActions What the sprites, sounds, and music do ([resourceGroupSection]); files of theirs dropped onto
+ *   the sidebar are added.
  * @param selectedDocument The path of the document shown in the center, if any.
  */
 @Composable
@@ -78,6 +80,7 @@ internal fun ProjectSidebar(
     folderActions: FolderTreeActions,
     dragState: SidebarDragState,
     documentActions: DocumentActions,
+    resourceActions: ResourceActions = ResourceActions(),
     selectedDocument: String? = null,
     layout: ProjectLayout = ProjectLayout(),
     gameModule: String? = null,
@@ -114,6 +117,7 @@ internal fun ProjectSidebar(
         onQueryChange = { query = it },
         newItems = remember(modules) { sidebarNewItems(modules) },
         onNew = { item ->
+            if (item is SidebarNewItem.Resource) resourceActions.onChoose(item.kind)
             item.target(modules)?.let { target ->
                 query = ""
                 target.openedKeys.forEach(tree::expand)
@@ -123,7 +127,7 @@ internal fun ProjectSidebar(
         },
     )
     LazyColumn(
-        modifier = Modifier.weight(1f).pointerInput(folderActions) { detectTapGestures { folderActions.onSelectionCleared() } },
+        modifier = Modifier.weight(1f).pointerInput(folderActions) { detectTapGestures { folderActions.onSelectionCleared() } }.fileDropTarget(::resourceFilesAmong, resourceActions.onAdd),
         state = listState,
     ) {
         // A first row that is always there, so the list keeps its top in place, not whatever row came first: module bands
@@ -157,6 +161,7 @@ internal fun ProjectSidebar(
                 moduleSections(
                     module = module,
                     folderActions = folderActions,
+                    resourceActions = resourceActions,
                     dragState = dragState,
                     tree = tree,
                     naming = naming,
@@ -178,17 +183,20 @@ internal fun ProjectSidebar(
                 )
             }
         }
-        if (isFiltering && shownModules.isEmpty()) {
-            item(key = "filter-none") {
-                Text(
-                    modifier = sidebarItemMotion(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)),
-                    text = stringResource(Res.string.choice_none_found),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
+        if (isFiltering && shownModules.isEmpty()) noneFoundRow()
     }
+}
+
+/**
+ * What the sidebar shows when nothing matches the filter.
+ */
+private fun LazyListScope.noneFoundRow() = item(key = "filter-none") {
+    Text(
+        modifier = sidebarItemMotion(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)),
+        text = stringResource(Res.string.choice_none_found),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 /**
@@ -197,6 +205,7 @@ internal fun ProjectSidebar(
 private fun LazyListScope.moduleSections(
     module: SidebarModule,
     folderActions: FolderTreeActions,
+    resourceActions: ResourceActions,
     dragState: SidebarDragState,
     tree: SidebarTree,
     naming: SidebarNaming?,
@@ -217,7 +226,7 @@ private fun LazyListScope.moduleSections(
             flash = flash,
         )
     }
-    module.resourceGroups.forEach { group -> resourceGroupSection(module, group, tree, rows) }
+    module.resourceGroups.forEach { group -> resourceGroupSection(module, group, tree, rows, resourceActions, naming, onNamingChange) }
 }
 
 /**
@@ -245,12 +254,14 @@ private fun SidebarTopRow(
         optionText = { item ->
             when (item) {
                 is SidebarNewItem.GroupItem -> stringResource(item.group.newItemLabel)
+                is SidebarNewItem.Resource -> stringResource(item.kind.addLabel)
                 SidebarNewItem.Document -> stringResource(Res.string.action_new_document)
             }
         },
         optionIcon = { item ->
             when (item) {
                 is SidebarNewItem.GroupItem -> item.group.icon
+                is SidebarNewItem.Resource -> item.kind.icon
                 SidebarNewItem.Document -> Res.drawable.ic_file
             }
         },
