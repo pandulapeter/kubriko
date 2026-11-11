@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
+import com.pandulapeter.kubrikoCreator.actors.AudioFolderIndex
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypes
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
@@ -73,6 +74,12 @@ public class CommandContext(
      * Where Kubriko Creator moved pages and documents to, so that the page editor follows them.
      */
     public val movedFiles: MovedFiles = MovedFiles()
+
+    /**
+     * The folders of the game's own `files` folders, which sounds and music are kept in, as of the last resource scan
+     * and the commands' changes since.
+     */
+    public val audioFolders: AudioFolderIndex = AudioFolderIndex { scenes.resourcesDirectory }
 
     /**
      * The screenplay's pages, whose writes are recorded as Kubriko Creator's own with the Scenes'.

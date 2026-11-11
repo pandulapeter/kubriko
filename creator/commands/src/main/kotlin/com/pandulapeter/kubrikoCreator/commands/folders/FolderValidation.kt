@@ -32,7 +32,7 @@ internal fun CommandContext.foldersOf(group: FolderGroup): Set<String> = when (g
     FolderGroup.SCENES -> (scenes.folders() + scenes.names().map(FolderPaths::parentOf).filter { it.isNotEmpty() }).withParents()
     FolderGroup.PAGES -> (screenplay.folders() + screenplay.names().map(PageNaming::folderOf).filter { it.isNotEmpty() }).withParents()
     FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> blockTypes?.folders?.value?.get(checkNotNull(group.kind)).orEmpty()
-    FolderGroup.SOUNDS, FolderGroup.MUSIC -> AudioFolders.ofKind(checkNotNull(group.resourceKind), AudioFolders.foldersBeside(scenes.resourcesDirectory), knownAudioFiles())
+    FolderGroup.SOUNDS, FolderGroup.MUSIC -> AudioFolders.ofKind(checkNotNull(group.resourceKind), audioFolders.folders(), knownAudioFiles())
 }
 
 /**

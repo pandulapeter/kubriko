@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
-import com.pandulapeter.kubrikoCreator.actors.AudioFolders
 import com.pandulapeter.kubrikoCreator.project.ProjectModule
 import com.pandulapeter.kubrikoCreator.project.ProjectModules
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
@@ -24,8 +23,8 @@ import java.io.File
  * Modules are named as [com.pandulapeter.kubrikoCreator.project.ProjectResource.module] names them.
  *
  * @param sceneFolders The folders of the Scenes folder new Scenes go to, empty ones too.
- * @param audioFolders The folders of the game's own `files` folders ([AudioFolders.foldersBeside]), empty ones too,
- *   which sounds and music are shown in.
+ * @param audioFolders The folders of the game's own `files` folders
+ *   ([com.pandulapeter.kubrikoCreator.actors.AudioFolders]), empty ones too, which sounds and music are shown in.
  * @param typeModule The module the block-built types' code is generated into, or null for a project without them.
  * @param sceneModule The module new Scenes and Scene folders go to.
  * @param modules Every module of the project ([ProjectModules]), by its folder.
@@ -44,6 +43,7 @@ public data class ProjectLayout(
          *
          * @param sceneHome The Scenes folder the game loads its Scenes from, when known ([SceneStore]'s `homeDirectory`).
          * @param snapshot The files as the watcher found them for that scan, if it was made from them.
+         * @param audioFolders The game's audio folders, as the command context's index knows them after that scan.
          */
         fun of(
             rootDirectory: File,
@@ -51,11 +51,12 @@ public data class ProjectLayout(
             generatedPath: String?,
             sceneHome: File? = null,
             snapshot: ProjectSnapshot? = null,
+            audioFolders: Set<String> = emptySet(),
         ): ProjectLayout {
             val sceneDirectory = SceneStore.newSceneDirectoryOf(rootDirectory, resources[ResourceGroup.SCENES].orEmpty(), sceneHome)
             return ProjectLayout(
                 sceneFolders = SceneStore.foldersIn(sceneDirectory),
-                audioFolders = AudioFolders.foldersBeside(sceneDirectory.parentFile.parentFile),
+                audioFolders = audioFolders,
                 typeModule = generatedPath?.let { ResourceScanner.moduleOf(rootDirectory, it) },
                 sceneModule = ResourceScanner.moduleOf(rootDirectory, sceneDirectory.relativeTo(rootDirectory).invariantSeparatorsPath),
                 modules = ProjectModules.find(rootDirectory, snapshot),

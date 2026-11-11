@@ -426,7 +426,10 @@ public class WorkspaceController(
         val scannedAt = files.ownWrites.generation
         val currentSnapshot = snapshot?.takeIf { it.ownWriteGeneration == scannedAt }
         val (resources, layout) = withContext(ioDispatcher) {
-            files.scanResources(project.rootDirectory, currentSnapshot).let { it to ProjectLayout.of(project.rootDirectory, it, generatedPath, sceneHome, currentSnapshot) }
+            commands.context.audioFolders.refresh()
+            files.scanResources(project.rootDirectory, currentSnapshot).let { resources ->
+                resources to ProjectLayout.of(project.rootDirectory, resources, generatedPath, sceneHome, currentSnapshot, commands.context.audioFolders.folders())
+            }
         }
         commands.context.documents.refresh(resources[ResourceGroup.DOCUMENTS].orEmpty().map { it.relativePath }, scannedAt)
         _resources.value = resources
