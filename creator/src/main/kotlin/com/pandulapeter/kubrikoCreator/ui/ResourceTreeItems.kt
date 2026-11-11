@@ -95,6 +95,7 @@ internal fun LazyListScope.resourceTreeItems(
                 folder = groupRows.folderOfItem[row.name].orEmpty(),
                 isChangeable = isChangeable,
                 isRenaming = naming == SidebarNaming.RenamedItem(folderGroup, row.name),
+                isSelected = row.name == state.selectedName,
                 actions = actions,
                 dragState = dragState,
                 onNamingChange = onNamingChange,
@@ -106,7 +107,7 @@ internal fun LazyListScope.resourceTreeItems(
 /**
  * A file of [group]'s tree in [module], by its path from `composeResources` (or for an image the game doesn't take for a
  * sprite, from the project's root, which is only shown), in [folder], [indent] levels further in, or the field renaming
- * it while [isRenaming].
+ * it while [isRenaming]. A sprite opens in the sprite editor when clicked, and is lit up while it is open ([isSelected]).
  */
 @Composable
 private fun ResourceTreeItem(
@@ -117,12 +118,14 @@ private fun ResourceTreeItem(
     folder: String,
     isChangeable: Boolean,
     isRenaming: Boolean,
+    isSelected: Boolean,
     actions: FolderTreeActions,
     dragState: SidebarDragState,
     onNamingChange: (SidebarNaming?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val isOwnFile = ResourceKind.of(row.name) != null
+    val isEditable = ResourceKind.of(row.name) == ResourceKind.SPRITE
     val canChange = isChangeable && isOwnFile
     if (canChange && isRenaming) {
         SidebarNameField(
@@ -148,7 +151,12 @@ private fun ResourceTreeItem(
             text = FolderPaths.nameOf(row.name),
             detail = if (!isOwnFile) otherImageDetailOf(row.name) else null,
             depth = row.depth + indent,
-            onClick = null,
+            isSelected = isSelected,
+            onClick = if (isEditable) {
+                { if (isSelected) actions.onSelectionCleared() else actions.onSelected(group, row.name) }
+            } else {
+                null
+            },
             actions = if (canChange) {
                 listOf(
                     ContextAction(stringResource(Res.string.action_rename), Res.drawable.ic_edit) { onNamingChange(SidebarNaming.RenamedItem(group, row.name)) },
