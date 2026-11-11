@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.folders
 import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.LookupProblem
@@ -24,6 +25,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.io.IOException
 
 @OptIn(EditorMutation::class)
 public object MoveSpriteToFolder : WriteCommand<MoveSpriteToFolder.Input> {
@@ -41,7 +43,11 @@ public object MoveSpriteToFolder : WriteCommand<MoveSpriteToFolder.Input> {
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val name = ResourceKind.nameOf(input.sprite)
         val folder = context.spriteFolders.state.value.folderOf[name].orEmpty()
-        withContext(context.ioDispatcher) { context.spriteFolders.move(name, input.folder) }
+        try {
+            withContext(context.ioDispatcher) { context.spriteFolders.move(name, input.folder) }
+        } catch (exception: IOException) {
+            return Applied.failed(Rejection(CommandProblem.SPRITE_NOT_MOVED, input.sprite, exception.message ?: exception.toString()))
+        }
         return Applied(inverse = Invocation(MoveSpriteToFolder, input.copy(folder = folder)))
     }
 

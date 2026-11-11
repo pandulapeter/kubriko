@@ -13,8 +13,10 @@ import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import java.io.File
+import java.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -39,8 +41,9 @@ class SpriteFolderStoreTest {
         assertEquals("enemies", store.state.value.folderOf["bat"])
         store.move("bat", "")
         assertNull(store.state.value.folderOf["bat"])
-        assertNull(store.fileOf("bat"))
+        assertEquals(emptyList(), store.filesOf("bat"))
         File(root, ".kubriko/sprites/enemies/owl.json").writeText("{\"frames\":4}\n")
+        store.refresh()
         store.move("owl", "")
         assertEquals("{\"frames\":4}\n", File(root, ".kubriko/sprites/owl.json").readText())
     }
@@ -56,5 +59,36 @@ class SpriteFolderStoreTest {
         store.rename("bat", "owl")
         assertEquals(mapOf("owl" to "foes/flying"), store.state.value.folderOf)
         assertFalse(File(root, ".kubriko/sprites/foes/flying/bat.json").exists())
+    }
+
+    @Test
+    fun aSpriteInTwoFoldersIsInTheFirstAndMovesAndRenamesWithAllOfThem() {
+        File(root, ".kubriko/sprites/enemies").mkdirs()
+        File(root, ".kubriko/sprites/foes").mkdirs()
+        File(root, ".kubriko/sprites/foes/bat.json").writeText(SpriteFolderStore.DEFAULT_TEXT)
+        File(root, ".kubriko/sprites/enemies/bat.json").writeText(SpriteFolderStore.DEFAULT_TEXT)
+        store.refresh()
+        assertEquals("enemies", store.state.value.folderOf["bat"])
+        store.rename("bat", "owl")
+        assertEquals(2, store.filesOf("owl").size)
+        store.move("owl", "foes")
+        assertEquals(listOf(File(root, ".kubriko/sprites/foes/owl.json")), store.filesOf("owl"))
+        assertFalse(File(root, ".kubriko/sprites/enemies/owl.json").exists())
+    }
+
+    @Test
+    fun aMoveThatCanNotBeWrittenLeavesTheSpriteWhereItWas() {
+        store.createFolder("enemies")
+        store.move("bat", "enemies")
+        val locked = File(root, ".kubriko/sprites/locked").apply { mkdirs() }
+        store.refresh()
+        locked.setWritable(false)
+        try {
+            assertFailsWith<IOException> { store.move("bat", "locked") }
+        } finally {
+            locked.setWritable(true)
+        }
+        store.refresh()
+        assertEquals("enemies", store.state.value.folderOf["bat"])
     }
 }

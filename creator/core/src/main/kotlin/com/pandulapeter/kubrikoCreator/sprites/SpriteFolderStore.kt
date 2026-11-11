@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.sprites
 
-import com.pandulapeter.kubrikoCreator.actors.FolderPaths
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.foundation.moveWithoutReplacing
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
@@ -43,17 +42,20 @@ public class SpriteFolderStore(
     private val _state = MutableStateFlow(State())
     public val state: StateFlow<State> = _state.asStateFlow()
 
+    @Volatile
+    private var filesByName: Map<String, List<File>> = emptyMap()
+
     /**
-     * Reads the folders again. Blocks.
+     * Reads the folders again. Blocks. A sprite with files in several folders (two branches moving it, merged) is in the
+     * first of them by path, and every change to it acts on all of them.
      */
     public fun refresh(): Unit = synchronized(this) {
         val root = directory
-        val files = root.walkTopDown().filter { it != root }.toList()
+        val files = root.walkTopDown().filter { it != root }.sortedBy { it.invariantSeparatorsPath }.toList()
+        filesByName = files.filter { it.isFile && it.extension == EXTENSION }.groupBy { it.nameWithoutExtension }
         _state.value = State(
             folders = files.filter { it.isDirectory }.mapTo(sortedSetOf()) { it.relativeTo(root).invariantSeparatorsPath },
-            folderOf = files.filter { it.isFile && it.extension == EXTENSION }.associate { file ->
-                file.nameWithoutExtension to (file.parentFile.relativeTo(root).invariantSeparatorsPath)
-            },
+            folderOf = filesByName.mapValues { (_, named) -> named.first().parentFile.relativeTo(root).invariantSeparatorsPath },
         )
     }
 
@@ -100,43 +102,49 @@ public class SpriteFolderStore(
     }
 
     /**
-     * Puts the sprite called [name] in [folder] (empty for none), keeping what its file holds.
+     * Puts the sprite called [name] in [folder] (empty for none), keeping what its file holds. The new file is written
+     * before the old ones go, so a write that fails ([java.io.IOException], thrown on) changes nothing.
      */
     @EditorMutation
     public fun move(name: String, folder: String) {
-        val text = fileOf(name)?.let { file -> file.readText().also { file.delete(); ownWrites.record(file) } } ?: DEFAULT_TEXT
-        if (folder.isNotEmpty() || text != DEFAULT_TEXT) {
-            val target = File(File(directory, folder), "$name.$EXTENSION")
+        val files = filesOf(name)
+        val text = files.firstOrNull()?.readText() ?: DEFAULT_TEXT
+        val target = File(File(directory, folder), "$name.$EXTENSION")
+        val isKept = folder.isNotEmpty() || text != DEFAULT_TEXT
+        if (isKept) {
             target.parentFile.mkdirs()
             target.writeTextAtomically(text)
             ownWrites.record(target)
         }
-        refresh()
-    }
-
-    /**
-     * Renames the file of the sprite called [name], if it has one, to [newName]'s in the same folder.
-     */
-    @EditorMutation
-    public fun rename(name: String, newName: String) {
-        val file = fileOf(name) ?: return
-        val target = File(file.parentFile, "$newName.$EXTENSION")
-        if (file.moveWithoutReplacing(target)) {
+        files.filter { !isKept || it.absoluteFile != target.absoluteFile }.forEach { file ->
+            file.delete()
             ownWrites.record(file)
-            ownWrites.record(target)
         }
         refresh()
     }
 
     /**
-     * The file of the sprite called [name], found on disk, or null if it has none. Blocks.
+     * Renames the files of the sprite called [name], if it has any, to [newName]'s in the same folders, replacing a file
+     * left there for an image of that name that no longer exists.
      */
-    public fun fileOf(name: String): File? = directory.walkTopDown().firstOrNull { it.isFile && it.name == "$name.$EXTENSION" }
+    @EditorMutation
+    public fun rename(name: String, newName: String) {
+        filesOf(name).forEach { file ->
+            val target = File(file.parentFile, "$newName.$EXTENSION")
+            target.delete()
+            if (file.moveWithoutReplacing(target)) {
+                ownWrites.record(file)
+                ownWrites.record(target)
+            }
+        }
+        refresh()
+    }
 
     /**
-     * The path from the project's root of the file the sprite called [name] has in [folder].
+     * The files of the sprite called [name], as of the last [refresh] (which every change here makes): one, or none for a
+     * sprite in no folder, or several when it was put in more than one.
      */
-    public fun projectPathOf(name: String, folder: String): String = listOf(DIRECTORY, FolderPaths.child(folder, "$name.$EXTENSION")).joinToString("/")
+    public fun filesOf(name: String): List<File> = filesByName[name].orEmpty()
 
     public companion object {
         public const val DIRECTORY: String = ".kubriko/sprites"

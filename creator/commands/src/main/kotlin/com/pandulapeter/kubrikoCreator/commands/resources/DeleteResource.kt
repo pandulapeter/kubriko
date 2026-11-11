@@ -51,13 +51,13 @@ public object DeleteResource : DeletingCommand<DeleteResource.Input> {
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         if (!input.keepsUsages) return context.deleteWithUsages(subject(input), Invocation(DeleteResource, input.copy(keepsUsages = true)))
-        val (paths, spriteFolderFile) = withContext(context.ioDispatcher) {
-            val spriteFolderFile = if (ResourceKind.of(input.path) == ResourceKind.SPRITE) context.spriteFolders.fileOf(ResourceKind.nameOf(input.path)) else null
-            context.resourceFilesAt(input.path).map(context::projectPathOf) to spriteFolderFile?.let(context::projectPathOf)
+        val (paths, spriteFolderFiles) = withContext(context.ioDispatcher) {
+            val spriteFolderFiles = if (ResourceKind.of(input.path) == ResourceKind.SPRITE) context.spriteFolders.filesOf(ResourceKind.nameOf(input.path)) else emptyList()
+            context.resourceFilesAt(input.path).map(context::projectPathOf) to spriteFolderFiles.map(context::projectPathOf)
         }
         if (paths.isEmpty()) return Applied.failed(Rejection(LookupProblem.RESOURCE_MISSING, input.path))
         return try {
-            ReplaceFiles.apply(context, ReplaceFiles.Input((paths + listOfNotNull(spriteFolderFile)).associateWith { null }))
+            ReplaceFiles.apply(context, ReplaceFiles.Input((paths + spriteFolderFiles).associateWith { null }))
         } catch (_: IOException) {
             Applied.failed(Rejection(CommandProblem.RESOURCE_NOT_DELETED, input.path))
         }
