@@ -212,6 +212,20 @@ Test files are Kotlin the user may also write by hand, so Creator writes them on
   changes the type, adds a rehearsal of it, runs it, and ends with every rehearsal passing. Unit tests hold an edit of a hand-written
   file with the setting off, allowed, rejected, and cancelled with its turn.
 
+## Custom Blocks' tests
+
+Custom Blocks (`04-reuse-and-traits.md`) are where a project's reusable logic lives, so each can have rehearsals of its own, shown
+on its editor's header as a type's are.
+
+- **A Kotlin body comes with a test:** its creation command writes a test file beside it (`src/desktopTest/kotlin/<package>/blocks/
+  <Name>Test.kt`), calling the function directly when it touches no Actor and through `rehearse { }` when it does, and the system
+  prompt asks the AI to cover each parameter's edges (zero, negative, the default) and to run them before ending its turn.
+- **One built from Blocks** gets "Write a rehearsal with the assistant" like a type, since its generated function is called the same
+  way; what a rehearsal touches includes the custom Blocks it calls.
+- **My Blocks** (the library shared between projects) keeps a custom Block's tests with it, and copies them into a project with it.
+- **Tested:** the command's file against the template, a passing and a failing test of a Kotlin body in
+  `ProjectTemplateIntegrationTest`, and an `EvalSetTest` request that writes a Kotlin body and its test.
+
 ## Later
 
 - **The other targets' rehearsals:** the web's in the headless Chrome Creator already finds (`HeadlessChrome`), iOS's on a simulator,
@@ -227,4 +241,4 @@ Test files are Kotlin the user may also write by hand, so Creator writes them on
 
 Finding the tests first, then running them with the panel, the sidebar group, and the read and run tools, which together serve every
 project that already has tests. Then the kit and its template step (a library release), then writing rehearsals, the setting, and the
-AI's side of them, then the writers' room's and the screenplay's part.
+AI's side of them, then custom Blocks' tests, then the writers' room's and the screenplay's part.

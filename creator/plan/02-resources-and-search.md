@@ -49,7 +49,7 @@ undo; and a page's sprite images after a sprite rename.
 - **The sidebar's filter field** (`SidebarFilter.kt`): Cmd/Ctrl+F to focus it, the matches highlighted, and matching words anywhere
   (`brk` finds `Brick` too, as IDEs do).
 - **Quick open** (Cmd/Ctrl+P, or Shift twice): a list over everything (types, Scenes, pages, sprites, sounds, Kotlin files, and
-  Properties and functions by their type) that opens the chosen one.
+  Properties and custom Blocks by their type) that opens the chosen one.
 - **Find usages:** from a type, Property, sprite, sound, or Scene, every Block, condition, text, Scene, and collision Event that refers
   to it, each one clickable (opening the type at that Event and Block, or the Scene with that Actor selected), and the pages that
   mention it. It reads `ProjectReferences`, which the deletes already use, rather than finding them again.

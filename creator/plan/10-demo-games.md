@@ -19,7 +19,7 @@ builds and plays every one, and each comes with a short tour of what to look at 
 | 2 | Paddle and bricks (the Paddle game template, `03-blocks.md`) | Collision, a score Manager type, text, sounds, and winning and losing |
 | 3 | Top-down space shooter | Spawning and removing Actors, keyboard and gamepad input, particles, and increasing difficulty |
 | 4 | Side-scrolling platformer | Physics, sprites and animation, a following camera, and several levels as Scenes |
-| 5 | Small adventure with menus | Title and pause menus, saved progress (persistence), Traits and functions, and some hand-written Kotlin next to the Blocks |
+| 5 | Small adventure with menus | Title and pause menus, saved progress (persistence), Traits and custom Blocks, and some hand-written Kotlin next to the Blocks |
 
 Original games in common genres, with their own art and sounds (licensed for reuse, so users may ship games made from them). More can
 follow once these five work, such as one exported to every platform.

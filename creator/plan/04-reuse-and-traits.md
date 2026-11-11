@@ -14,10 +14,11 @@ Kubriko's own Traits. Without them, 20 enemy types are 20 copies of the same Blo
 Every addition lands with its command, AI tool, generator tests, and a case in the integration test's every-Block types, as in
 `03-blocks.md`.
 
-**Order:** functions, then Traits, then the rest. Each is generated into ordinary Kotlin, as now: no runtime interpreter. Both
+**Order:** custom Blocks (on types and in the project, then parameters, results, and local values, then Kotlin bodies, then
+sharing between projects), then Traits, then the rest. Each is generated into ordinary Kotlin, as now: no runtime interpreter. Both
 build on how code is generated (`:creator:core`'s `actors.codegen`): a Block is one descriptor (`BlockKind`), its code a structured
 `BlockCode` that names its imports and features, one emitter writes every Actor class, standalone or in a family
-(`ActorClassEmitter`), and each kind of Event is a function of its own (`EventFunctions`). A function is then one more member the
+(`ActorClassEmitter`), and each kind of Event is a function of its own (`EventFunctions`). A custom Block is then one more member the
 emitter writes, and a Trait one more feature `BlockCode` reports; their commands go into `:creator:commands`.
 
 ## Parent Actor types
@@ -33,17 +34,71 @@ What parent Actor types (`ActorTypeFamily`, `set_parent`) still lack:
 - **Other Actors' Properties:** once Blocks can read another Actor's Property (`other.hp`), a parent's work for every child, and
   counting Actors of a type includes children.
 
-## Functions
+## Custom Blocks
 
-Named Block lists with parameters (number, text, toggle) and an optional result, called by a "Run function" Block, like GameMaker's
-scripts:
+The user's own Blocks: a named list of Blocks with parameters and an optional result, shown in the Palette and on the Event's
+card exactly like a built-in one, like GameMaker's scripts. They serve three needs with one feature: a long run of Blocks that
+repeats (a "die" sequence of a sound, a burst, a score change, and a removal) becomes one readable Block; behavior Creator has no
+Block for is written once, named, and reused instead of pasted as Kotlin Blocks; and the AI extends the Block set for the
+project it works in. Each is generated into an ordinary Kotlin function, with no interpreter, so a custom Block costs what the
+same Blocks written inline cost.
 
-- **On an Actor type:** methods of its Actors, inherited by children and overridable (the parent's runs through "Run the parent's
-  function"). Generated as Kotlin functions on the class (and the family's base class). A Kotlin Block's `return` ends its
-  Event's function, so "Run function" and function results must not change what an existing Kotlin Block's `return` does.
-- **On a Manager type:** game-wide ones (`Game.resetLevel()`), callable from any type through the Manager, as Properties are now.
-- **Local values:** temporary number, text, and toggle values inside one Event or function (generated as local `var`s), for
+The ladder the editor, the docs, and the system prompt (`AssistantSystemPrompt`) keep: a built-in Block, then a custom Block the
+project already has, then a new custom Block built from Blocks, then a custom Block with a Kotlin body, and a Kotlin Block only for
+code that is truly used once. Kotlin stays the last resort, and when it is needed it arrives named, with parameters, and tested
+(`13-rehearsals.md`), rather than as a verbatim snippet.
+
+- **Where one lives** decides what it reaches:
+  - **On an Actor type:** a method of its Actors, reaching the type's Properties, Timers, and look, inherited by children and
+    overridable (the parent's runs through "Run the parent's Block"). Generated on the class (and the family's base class).
+  - **On a Manager type:** game-wide (`Game.resetLevel()`), callable from any type through the Manager, as its Properties are now.
+  - **In the project:** `.kubriko/blocks/<Name>.json` (Creator-owned, committed), for any Actor type: it acts on the Actor running
+    it through what every generated Actor has (position, velocity, size, look, removal, which a generated interface every type
+    implements gives it) and on Managers' Properties. What a type keeps for itself reaches it through a parameter or a
+    function on that type. Generated into `GeneratedBlocks.kt` as top-level functions with that interface as their receiver.
+- **The sentence:** each has one, with its parameters as fields ("Shake the camera by {strength} for {seconds} seconds"), a
+  Palette category (one of the built-in ones, or the project's own), an icon, and a description the Palette and the AI's
+  catalog show, so a custom Block reads like the rest and the Block card needs no special case.
+- **Parameters:** number, text, toggle, key, color, sound, sprite, Actor type, and Scene, each with a default, so dropping one in
+  works at once. A number parameter takes the shared value type (`03-blocks.md` → Random values: a number, a random range, a
+  Property, an edge), so "Spawn a Drifter at {y}" is called with a random y. Generated as primitive parameters (an Actor type or
+  Scene as the generated ID), so no call boxes or allocates.
+- **Results:** a number, text, or toggle result, ended by a "Result" Block. A number or text result is one more source of the shared
+  value type ("the distance to the Player"), and a toggle result a Condition ("If it is on the ground"), so a check written once
+  is used everywhere.
+- **Local values:** temporary number, text, and toggle values inside one Event or custom Block (generated as local `var`s), for
   calculations that don't belong in a Property.
+- **The body** is Blocks by default, edited in the center like an Event, with the parameters and local values as values its
+  Blocks take. A **Kotlin body** is the escape hatch: one function in the project's own sources
+  (`src/commonMain/kotlin/<package>/blocks/<Name>.kt`, a row of `../CLAUDE.md` → Files and ownership: Shared, written by its
+  command and then the user's), whose signature Creator writes from the parameters and keeps in step on a rename, and which the
+  generated call reaches. A `return` in a Kotlin Block ends the custom Block it sits in, as it ends an Event today, so a result
+  never changes what an existing Kotlin Block's `return` does.
+- **Placement** follows from the body: a custom Block whose Blocks only work in some Events (`other` in a collision, a Manager
+  type's texts) carries the union of their `PlacementProblem`s, so the Palette offers it only where it compiles. A custom Block that
+  reaches itself through others is rejected, so a beginner never meets a stack overflow; Repeat is the loop.
+- **From existing Blocks:** "Turn into a Block" on a selected run of Blocks (the editor's multi-select) moves them into a new custom
+  Block, offers the values the user picks as parameters, and offers to replace the same run wherever else it appears, in one undo
+  step. "Put the Blocks back" reverses it at one call or every one. Deleting a custom Block that is still called offers that instead.
+- **Renames and references** follow as for Properties: a renamed custom Block or parameter changes every call and its Kotlin body
+  (`KotlinIdentifiers`), find usages (`02-resources-and-search.md`) lists the calls, and a call to a deleted one shows on its card
+  and in the health checks, as a missing choice does.
+- **The AI:** commands (`:creator:commands`, each with its tool, validation, and inverse) to create, edit, and delete custom Blocks,
+  their parameters, and their bodies; `get_block_catalog` lists the project's own beside the built-in ones; the digest names them
+  in one line. The system prompt keeps the ladder above: before adding the same Blocks to a third place it makes a custom Block,
+  and when it writes Kotlin it writes a Kotlin body with parameters and a test rather than a Kotlin Block, unless the code is used
+  once.
+- **Tested:** generator tests for each place one lives, every parameter kind, results as values and Conditions, and a Kotlin body;
+  `EveryBlockTypes` calls one of each; `GeneratedCodeGoldenTest` pins them; the allocation rules hold for a call in `update`;
+  `EvalSetTest` gains requests that should end in a custom Block ("make all three enemies explode the same way") and one that
+  should end in a Kotlin body rather than a Kotlin Block.
+
+**Sharing between projects:** "Add to my Blocks" copies a project custom Block (and its Kotlin body) into a library in Creator's
+settings folder, which every project's Palette offers in a My Blocks category; using one copies it into the project, so a project
+never depends on anything outside its folder and builds in IntelliJ as before. Only a custom Block that names nothing of its project
+(no type, Manager, sound, sprite, or Scene of its own, which become parameters first) can be added, and each copy remembers the
+version it came from, so a newer one in the library is offered as a diff, never applied silently. A shared collection beyond the
+user's own (bundled with Creator, or from others) waits for demand (`14-later.md`).
 
 ## Kubriko Traits
 

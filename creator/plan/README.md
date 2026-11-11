@@ -36,7 +36,8 @@ its file's Waiting on others. Inside a file, its Order section says what comes f
 3. [Blocks, Actor types, and Manager types](03-blocks.md) - Blocks for the simple behavior a first game still needs Kotlin for, the
    rest of the Block set, sprite sheets, UI elements, the Scene editor's handles and snapping, Convert to code, and the Paddle game
    template.
-4. [Reuse, Traits, and bigger games](04-reuse-and-traits.md) - parent types, functions, Traits, what bigger games need, and the
+4. [Reuse, Traits, and bigger games](04-reuse-and-traits.md) - parent types, custom Blocks (the user's and the AI's own,
+   with parameters, results, and Kotlin bodies, shared between projects), Traits, what bigger games need, and the
    platformer and top-down templates.
 5. [Sprite editor](05-sprite-editor.md) - a pixel-art editor for sprites and their animations, frame by frame with onion skinning,
    like GameMaker 6.1's.
@@ -86,6 +87,7 @@ project file, are in `../CLAUDE.md`.
 | Actor | An instance placed in a Scene | Instance |
 | Event | A Trait callback (`update`, `onCollisionDetected`, …) | Event |
 | Block | One generated statement inside an Event | Action |
+| Custom Block | A generated Kotlin function: Blocks (or a Kotlin body) with parameters and a result | Script |
 | Kotlin Block | A verbatim Kotlin snippet | "Execute code" |
 | Manager type | A class extending `Manager`: game-wide state and logic | Global variables, or a controller object |
 | Property | An `@Exposed` property (or a Manager's `var`) | Variable |
