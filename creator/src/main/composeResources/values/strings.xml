@@ -276,6 +276,7 @@
     <string name="block_parameter_looping">Looping</string>
     <string name="timer_new">New Timer…</string>
     <string name="timer_rename">Rename this Timer…</string>
+    <string name="timer_delete">Delete this Timer…</string>
     <string name="timer_name_placeholder">Timer name, like spawnEnemy</string>
     <string name="event_timer_finished">When a Timer finishes</string>
     <string name="command_set_event_timer">Change Timer</string>
@@ -715,6 +716,7 @@
     <string name="command_move_actor_order">Reorder Actor</string>
     <string name="command_restore_actor">Restore Actor</string>
     <string name="command_rename_scene">Rename Scene</string>
+    <string name="command_delete_timer">Delete Timer</string>
     <string name="command_add_resource">Add sprite, sound, or music</string>
     <string name="command_rename_resource">Rename sprite, sound, or music</string>
     <string name="command_delete_resource">Delete sprite, sound, or music</string>
@@ -948,12 +950,14 @@
     <string name="game_map_names_in_kotlin">Names %1$s in Kotlin</string>
     <string name="game_map_starts_with">Starts with %1$s</string>
     <string name="game_map_mentions">Mentions %1$s</string>
+    <string name="game_map_uses_timer">Uses %1$s</string>
     <string name="game_map_drawn_as">Is drawn as %1$s</string>
     <string name="game_map_plays">Plays %1$s</string>
     <string name="game_map_shows">Shows %1$s</string>
     <string name="delete_confirmation_title_type">Delete %1$s?</string>
     <string name="delete_confirmation_title_scene">Delete the Scene %1$s?</string>
     <string name="delete_confirmation_title_resource">Delete %1$s?</string>
+    <string name="delete_confirmation_title_timer">Delete the Timer %1$s?</string>
     <string name="delete_confirmation_title_property">Remove the Property %1$s?</string>
     <string name="delete_confirmation_loading">Looking for what uses it…</string>
     <string name="delete_confirmation_none">Nothing else uses it. You can undo this.</string>

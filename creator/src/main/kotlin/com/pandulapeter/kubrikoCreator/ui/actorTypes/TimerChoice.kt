@@ -27,6 +27,7 @@ import com.pandulapeter.kubrikoCreator.ui.toFieldError
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_add
 import kubriko.creator.generated.resources.action_rename
+import kubriko.creator.generated.resources.timer_delete
 import kubriko.creator.generated.resources.timer_name_placeholder
 import kubriko.creator.generated.resources.timer_new
 import kubriko.creator.generated.resources.timer_rename
@@ -34,7 +35,8 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * Which Timer an Event or a Block is about: one of [timerNames] (the Timers the type and its family use), or a new
- * one, named in place. With [onRename], the menu also renames [timer] wherever it is used.
+ * one, named in place. With [onRename], the menu also renames [timer] wherever it is used, and with [onDelete] deletes
+ * it with everything using it, once that is confirmed.
  */
 @Composable
 internal fun TimerChoice(
@@ -42,15 +44,20 @@ internal fun TimerChoice(
     timerNames: List<String>,
     onSelected: (String) -> Unit,
     onRename: ((String) -> Unit)? = null,
+    onDelete: (() -> Unit)? = null,
 ) {
     var naming by remember { mutableStateOf<TimerOption?>(null) }
     when (val option = naming) {
         null -> MenuButton(
             label = timer,
-            options = timerOptions(timer, timerNames, canRename = onRename != null),
+            options = timerOptions(timer, timerNames, canRename = onRename != null, canDelete = onDelete != null),
             optionText = { it.text() },
             onSelected = { selected ->
-                if (selected is TimerOption.Existing) onSelected(selected.name) else naming = selected
+                when (selected) {
+                    is TimerOption.Existing -> onSelected(selected.name)
+                    TimerOption.Delete -> onDelete?.invoke()
+                    TimerOption.New, TimerOption.Rename -> naming = selected
+                }
             },
         )
         else -> Box(
@@ -81,10 +88,11 @@ internal fun TimerChoice(
 
 /**
  * What the Timer menu offers: the Timers in use (with [timer] among them, even if nothing else uses it), naming a new
- * one, and renaming [timer] if [canRename].
+ * one, renaming [timer] if [canRename], and deleting it if [canDelete].
  */
-internal fun timerOptions(timer: String, timerNames: List<String>, canRename: Boolean) = (timerNames + timer).distinct().sorted().map(TimerOption::Existing) +
-    listOfNotNull(TimerOption.New, TimerOption.Rename.takeIf { canRename })
+internal fun timerOptions(timer: String, timerNames: List<String>, canRename: Boolean, canDelete: Boolean = false) =
+    (timerNames + timer).distinct().sorted().map(TimerOption::Existing) +
+        listOfNotNull(TimerOption.New, TimerOption.Rename.takeIf { canRename }, TimerOption.Delete.takeIf { canDelete })
 
 /**
  * Why [name] can't be the name of a new Timer, or of [timer] renamed, among [timerNames], or null if it can. Naming a
@@ -102,6 +110,8 @@ internal sealed interface TimerOption {
     data object New : TimerOption
 
     data object Rename : TimerOption
+
+    data object Delete : TimerOption
 }
 
 @Composable
@@ -109,4 +119,5 @@ private fun TimerOption.text() = when (this) {
     is TimerOption.Existing -> name
     TimerOption.New -> stringResource(Res.string.timer_new)
     TimerOption.Rename -> stringResource(Res.string.timer_rename)
+    TimerOption.Delete -> stringResource(Res.string.timer_delete)
 }

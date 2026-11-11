@@ -151,6 +151,7 @@ internal fun BlockTypeEditor(
                         onKeyChange = { key -> eventIndex?.let { actions.setEventKey(it, key) } },
                         onTimerChange = { timer -> eventIndex?.let { actions.setEventTimer(it, timer) } },
                         onTimerRename = actions::renameTimer,
+                        onTimerDelete = actions::deleteTimer,
                         onOtherActorTypeChange = { other -> eventIndex?.let { actions.setEventOtherActorType(it, other) } },
                         onBlockChange = { blockIndex, block -> eventIndex?.let { actions.editBlock(it, blockIndex, block) } },
                         dragState = dragState,

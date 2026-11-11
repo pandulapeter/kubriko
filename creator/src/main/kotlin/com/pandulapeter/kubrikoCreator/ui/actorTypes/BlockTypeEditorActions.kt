@@ -25,6 +25,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddEvent
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteTimer
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DiscardChangesMadeByHand
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditProperty
@@ -118,6 +119,8 @@ internal class BlockTypeEditorActions(
     )
 
     fun renameTimer(oldName: String, newName: String) = dispatch(Invocation(RenameTimer, RenameTimer.Input(name, oldName, newName)))
+
+    fun deleteTimer(timer: String) = dispatch(Invocation(DeleteTimer, DeleteTimer.Input(name, timer)))
 
     fun addBlock(eventIndex: Int, kind: BlockKind, gap: Int? = null) = dispatch(
         Invocation(AddBlock, AddBlock.Input(name, eventIndex, kind.createDefault(), index = gap)),

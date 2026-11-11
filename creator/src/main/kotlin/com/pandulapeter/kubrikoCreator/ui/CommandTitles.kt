@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddEvent
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteTimer
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DiscardChangesMadeByHand
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditProperty
@@ -139,6 +140,7 @@ import kubriko.creator.generated.resources.command_delete_manager_type
 import kubriko.creator.generated.resources.command_delete_page
 import kubriko.creator.generated.resources.command_delete_resource
 import kubriko.creator.generated.resources.command_delete_scene
+import kubriko.creator.generated.resources.command_delete_timer
 import kubriko.creator.generated.resources.command_discard_changes
 import kubriko.creator.generated.resources.command_discard_changes_made_by_hand
 import kubriko.creator.generated.resources.command_edit_block
@@ -258,6 +260,7 @@ private val commandTitles = mapOf(
     RemoveProperty.name to Res.string.command_remove_property,
     RenameActorType.name to Res.string.command_rename_actor_type,
     RenameTimer.name to Res.string.command_rename_timer,
+    DeleteTimer.name to Res.string.command_delete_timer,
     SetAppearance.name to Res.string.command_set_appearance,
     SetEventKey.name to Res.string.command_set_event_key,
     SetEventOtherActorType.name to Res.string.command_set_event_other_actor_type,

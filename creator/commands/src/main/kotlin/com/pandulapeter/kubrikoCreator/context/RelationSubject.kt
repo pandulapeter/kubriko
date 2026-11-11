@@ -11,7 +11,7 @@ package com.pandulapeter.kubrikoCreator.context
 
 /**
  * What a relation refers to: an Actor type or Manager type, one of their Properties, a Scene, a page of the screenplay,
- * a sprite, sound, or music file, or an image next to the pages.
+ * a Timer, a sprite, sound, or music file, or an image next to the pages.
  */
 public sealed interface RelationSubject {
 
@@ -44,6 +44,16 @@ public sealed interface RelationSubject {
         val name: String,
     ) : RelationSubject {
         override fun toString(): String = "Page $name"
+    }
+
+    /**
+     * A Timer, by the type it was asked about through ([owner]): the Timers of an Actor type are its whole family's.
+     */
+    public data class Timer(
+        val owner: String,
+        val name: String,
+    ) : RelationSubject {
+        override fun toString(): String = "Timer $name of $owner"
     }
 
     /**

@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.timerNames
@@ -24,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
+import com.pandulapeter.kubrikoCreator.context.timerSharersOf
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.KSerializer
@@ -40,7 +40,7 @@ public object RenameTimer : WriteCommand<RenameTimer.Input> {
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.BlockType(input.actorType)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateType(input.actorType) ?: run {
-        val timerNames = context.familyOf(input.actorType).flatMap { context.requireType(it).timerNames }
+        val timerNames = context.timerNamesOf(input.actorType)
         when {
             input.oldName !in timerNames ->
                 SimilarNames.rejection(LookupProblem.TIMER_UNKNOWN, LookupProblem.TIMER_UNKNOWN_SIMILAR, input.oldName, timerNames, input.actorType, input.oldName)
@@ -49,22 +49,12 @@ public object RenameTimer : WriteCommand<RenameTimer.Input> {
     }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        context.familyOf(input.actorType).forEach { name ->
+        timerSharersOf(input.actorType, context.requireBlockTypes.types.value, ActorTypeFamily(context.requireBlockTypes.actorTypes.value)).forEach { name ->
             context.requireType(name).let { definition ->
                 if (input.oldName in definition.timerNames) context.requireBlockTypes.put(definition.withTimerRenamed(input.oldName, input.newName))
             }
         }
         return Applied(inverse = Invocation(RenameTimer, input.copy(oldName = input.newName, newName = input.oldName)))
-    }
-
-    /**
-     * The types whose generated classes share the Timers of [typeName]: every Actor type in its family, or the Manager
-     * type alone.
-     */
-    private fun CommandContext.familyOf(typeName: String) = if (requireType(typeName) is ActorTypeDefinition) {
-        ActorTypeFamily(requireBlockTypes.actorTypes.value).let { family -> family.familyOf(family.rootOf(typeName)) }
-    } else {
-        listOf(typeName)
     }
 
     @Serializable

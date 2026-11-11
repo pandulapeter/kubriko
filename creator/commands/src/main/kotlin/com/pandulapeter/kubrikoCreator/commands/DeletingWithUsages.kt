@@ -29,14 +29,15 @@ import kotlinx.serialization.json.putJsonArray
 import java.io.File
 
 /**
- * Deletes [subject] by applying [delete], which deletes only it, after cleaning up what Kubriko Creator owns that refers
+ * Deletes [subject] by applying [delete], which deletes only it (none for a Timer, which is only what refers to it),
+ * after cleaning up what Kubriko Creator owns that refers
  * to it ([com.pandulapeter.kubrikoCreator.context.ProjectReferences]): the Actors of its type leave every Scene, Blocks and
  * Events that only mean something with it are removed, placeholders of its Properties become text, and so do the pages'
  * mentions of it; a sprite's Actor types are drawn as their shapes, a music's Scenes play none, and the pages showing
  * a sprite show a copy of it kept next to them. All of it is one step, undone together, and the AI hears every usage
  * and what happened to it, Kotlin left to change included.
  */
-internal suspend fun CommandContext.deleteWithUsages(subject: RelationSubject, delete: Invocation<*>): Applied {
+internal suspend fun CommandContext.deleteWithUsages(subject: RelationSubject, delete: Invocation<*>?): Applied {
     val references = projectReferences(subject)
     val usages = references.usagesOf(subject)
     val mentioning = usages.filter { it.effect == UsageEffect.MENTION_TO_TEXT }.mapNotNull { (it.place as? UsagePlace.Markdown)?.path }.distinct()
@@ -47,7 +48,7 @@ internal suspend fun CommandContext.deleteWithUsages(subject: RelationSubject, d
     val parts = buildList {
         scenesWithout(subject, usages).takeIf { it.isNotEmpty() }?.let { add(Invocation(ReplaceScenes, ReplaceScenes.Input(it))) }
         references.typesAfterDeleting(usages).takeIf { it.isNotEmpty() }?.let { add(Invocation(ReplaceTypes, ReplaceTypes.Input(it))) }
-        add(delete)
+        delete?.let(::add)
         references.mentionedPath?.takeIf { mentioning.isNotEmpty() }?.let { add(Invocation(UnlinkMentions, UnlinkMentions.Input(it, mentioning))) }
         shownImage?.let { add(Invocation(KeepPageImages, it)) }
     }
@@ -76,7 +77,7 @@ private suspend fun CommandContext.scenesWithout(subject: RelationSubject, usage
             scenesWith(UsageEffect.ACTORS_REMOVED).associateWith { scene -> SceneDocument.format(checkNotNull(scenes.actors(scene)).filter { it.typeId != subject.name }) }
         }
         is RelationSubject.Resource -> withContext(ioDispatcher) { scenesWithMusicReplaced(scenesWith(UsageEffect.MUSIC_CLEARED), subject.path, "") }
-        is RelationSubject.Scene, is RelationSubject.Property, is RelationSubject.Page, is RelationSubject.Image -> emptyMap()
+        is RelationSubject.Scene, is RelationSubject.Property, is RelationSubject.Page, is RelationSubject.Image, is RelationSubject.Timer -> emptyMap()
     }
 }
 

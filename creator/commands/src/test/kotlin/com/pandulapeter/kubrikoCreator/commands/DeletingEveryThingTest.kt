@@ -19,7 +19,9 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
 import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.actors.actorTypeReference
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
+import com.pandulapeter.kubrikoCreator.actors.timerNames
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteTimer
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveProperty
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
 import com.pandulapeter.kubrikoCreator.commands.resources.DeleteResource
@@ -127,6 +129,24 @@ class DeletingEveryThingTest {
                         assertTrue(block != BlockDefinition.PlaySound(path) && (block as? BlockDefinition.PlayMusic)?.music != path, "${type.name} still has $block.")
                     }
                 }
+            }
+        }
+    }
+
+    @Test
+    fun noTimerIsUsedOnceDeleted() = runTest {
+        val types = EveryBlockTypes.all
+        val timers = types.flatMap { type -> type.timerNames.map { type.name to it } }
+        assertTrue(timers.isNotEmpty(), "EveryBlockTypes uses Timers.")
+        timers.forEach { (typeName, timer) ->
+            val context = commandContext(*types.toTypedArray())
+            val invocation = Invocation(DeleteTimer, DeleteTimer.Input(typeName, timer))
+            assertNull(invocation.validate(context))
+            assertNull(invocation.apply(context).failure)
+            val family = ActorTypeFamily(context.blockTypes!!.actorTypes.value)
+            val sharers = if (types.first { it.name == typeName } is ActorTypeDefinition) family.familyOf(family.rootOf(typeName)) else listOf(typeName)
+            context.blockTypes!!.types.value.filter { it.name in sharers }.forEach { type ->
+                assertTrue(timer !in type.timerNames, "${type.name} still uses the Timer $timer.")
             }
         }
     }

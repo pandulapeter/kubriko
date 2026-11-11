@@ -36,6 +36,11 @@ public enum class RelationKind(
     MENTIONS("mentions"),
 
     /**
+     * A timerFinished Event, or a Block starting or stopping a Timer, which only [ProjectReferences] reports.
+     */
+    USES_TIMER("uses"),
+
+    /**
      * An Actor type's sprite, which only [ProjectReferences] reports.
      */
     DRAWN_AS("is drawn as"),

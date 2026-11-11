@@ -35,6 +35,20 @@ class TimerChoiceTest {
             timerOptions("spawn", listOf("spawn", "blink"), canRename = true),
         )
         assertEquals(listOf(TimerOption.Existing("timer"), TimerOption.New), timerOptions("timer", emptyList(), canRename = false))
+        assertEquals(
+            listOf(TimerOption.Existing("spawn"), TimerOption.New, TimerOption.Rename, TimerOption.Delete),
+            timerOptions("spawn", listOf("spawn"), canRename = true, canDelete = true),
+        )
+    }
+
+    @Test
+    fun deletingIsOfferedWhereTheTimerCanBeDeleted() = uiTest(width = 360, height = 300) {
+        val deleted = mutableListOf<Unit>()
+        showing { TimerChoice(timer = "spawn", timerNames = listOf("spawn"), onSelected = {}, onRename = {}, onDelete = { deleted += Unit }) }
+        onNodeWithText("spawn").performClick()
+        saveSnapshot("timer-menu-delete")
+        onNodeWithText("Delete this Timer…").performClick()
+        assertEquals(1, deleted.size)
     }
 
     @Test

@@ -46,6 +46,7 @@ internal fun HealthFinding.text(): String {
         is RelationSubject.Page -> subject.name
         is RelationSubject.Image -> subject.path
         is RelationSubject.Resource -> subject.path
+        is RelationSubject.Timer -> stringResource(Res.string.block_property_of_manager, subject.name, subject.owner)
     }
     return when (kind) {
         HealthFinding.Kind.UNUSED_ACTOR_TYPE -> stringResource(Res.string.health_unused_actor_type, subjectText)

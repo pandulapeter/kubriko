@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameTimer
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.commands.resources.RenameResource
 import com.pandulapeter.kubrikoCreator.commands.scenes.RenameScene
@@ -56,10 +57,11 @@ class RenamingFollowsReferencesTest {
     private val pageKinds = setOf(RelationKind.MENTIONS)
     private val spriteKinds = setOf(RelationKind.DRAWN_AS, RelationKind.SHOWS, RelationKind.NAMES_IN_KOTLIN, RelationKind.MENTIONS)
     private val audioKinds = setOf(RelationKind.PLAYS, RelationKind.NAMES_IN_KOTLIN, RelationKind.MENTIONS)
+    private val timerKinds = setOf(RelationKind.USES_TIMER)
 
     @Test
     fun everyKindOfReferenceIsCoveredByARename() {
-        assertEquals(RelationKind.entries.toSet(), actorTypeKinds + managerTypeKinds + sceneKinds + propertyKinds + pageKinds + spriteKinds + audioKinds)
+        assertEquals(RelationKind.entries.toSet(), actorTypeKinds + managerTypeKinds + sceneKinds + propertyKinds + pageKinds + spriteKinds + audioKinds + timerKinds)
     }
 
     private fun CommandContext.writeFile(path: String, text: String) = File(project.rootDirectory, path).apply { parentFile.mkdirs() }.writeText(text)
@@ -176,6 +178,22 @@ class RenamingFollowsReferencesTest {
         CreatePage.apply(context, CreatePage.Input("README", "# Game\n\nThe [theme](../src/commonMain/composeResources/files/music/theme.mp3) plays.\n"))
         context.assertFollowed(RelationSubject.Resource("files/music/theme.mp3"), RelationSubject.Resource("files/music/song.mp3"), audioKinds) {
             RenameResource.apply(context, RenameResource.Input("files/music/theme.mp3", "files/music/song.mp3"))
+        }
+    }
+
+    @Test
+    fun renamingATimerFollowsEveryReferenceToIt() = runTest {
+        val enemy = ActorTypeDefinition(
+            name = "Enemy",
+            events = listOf(
+                EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.StartTimer("spawn"))),
+                EventDefinition(EventType.TIMER_FINISHED, timer = "spawn"),
+            ),
+        )
+        val boss = ActorTypeDefinition(name = "Boss", parent = "Enemy", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.StopTimer("spawn")))))
+        val context = commandContext(enemy, boss)
+        context.assertFollowed(RelationSubject.Timer("Enemy", "spawn"), RelationSubject.Timer("Enemy", "wave"), timerKinds) {
+            RenameTimer.apply(context, RenameTimer.Input("Boss", "spawn", "wave"))
         }
     }
 }

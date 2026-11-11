@@ -221,4 +221,5 @@ private fun subjectText(subject: RelationSubject) = when (subject) {
     is RelationSubject.Page -> subject.name
     is RelationSubject.Image -> subject.path
     is RelationSubject.Resource -> subject.path
+    is RelationSubject.Timer -> stringResource(Res.string.block_property_of_manager, subject.name, subject.owner)
 }

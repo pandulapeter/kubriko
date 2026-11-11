@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddEvent
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteTimer
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DiscardChangesMadeByHand
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditProperty
@@ -223,6 +224,7 @@ public class CommandRegistry(
                 SetEventKey,
                 SetEventTimer,
                 RenameTimer,
+                DeleteTimer,
                 SetEventOtherActorType,
                 AddBlock,
                 EditBlock,

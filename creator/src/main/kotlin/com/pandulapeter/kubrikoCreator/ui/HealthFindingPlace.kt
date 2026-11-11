@@ -36,6 +36,7 @@ internal val HealthFinding.place: HealthFindingPlace?
         when (val subject = subject) {
             is RelationSubject.Type -> HealthFindingPlace.Type(subject.name)
             is RelationSubject.Property -> HealthFindingPlace.Type(subject.owner)
+            is RelationSubject.Timer -> HealthFindingPlace.Type(subject.owner)
             is RelationSubject.Scene -> HealthFindingPlace.Scene(subject.name)
             is RelationSubject.Page -> HealthFindingPlace.Page(subject.name)
             is RelationSubject.Image, is RelationSubject.Resource -> null

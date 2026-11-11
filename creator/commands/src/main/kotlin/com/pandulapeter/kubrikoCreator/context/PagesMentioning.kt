@@ -37,7 +37,7 @@ internal fun CommandContext.mentionedPathOf(subject: RelationSubject): String? =
     is RelationSubject.Scene -> mentionPathsOf(listOf(CommandTarget.Scene(subject.name))).firstOrNull()
     is RelationSubject.Page -> PageNaming.pathOf(subject.name)
     is RelationSubject.Resource -> resourceFilesAt(subject.path).minByOrNull { !it.startsWith(scenes.resourcesDirectory) }?.let(::projectPathOf)
-    is RelationSubject.Property, is RelationSubject.Image -> null
+    is RelationSubject.Property, is RelationSubject.Image, is RelationSubject.Timer -> null
 }
 
 /**

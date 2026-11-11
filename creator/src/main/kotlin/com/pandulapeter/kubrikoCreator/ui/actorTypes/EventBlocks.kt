@@ -66,6 +66,7 @@ internal fun EventBlocks(
     onKeyChange: (KeyChoice) -> Unit,
     onTimerChange: (String) -> Unit,
     onTimerRename: (oldName: String, newName: String) -> Unit,
+    onTimerDelete: (String) -> Unit,
     onOtherActorTypeChange: (String) -> Unit,
     dragState: BlockDragState,
     onBlockChange: (blockIndex: Int, BlockDefinition) -> Unit,
@@ -112,6 +113,7 @@ internal fun EventBlocks(
                     timerNames = scope.timerNames,
                     onSelected = onTimerChange,
                     onRename = { onTimerRename(timer, it) },
+                    onDelete = { onTimerDelete(timer) },
                 )
             }
             EventType.COLLISION -> ActorTypeChoice(
