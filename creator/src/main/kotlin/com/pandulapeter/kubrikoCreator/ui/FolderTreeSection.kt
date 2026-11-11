@@ -9,13 +9,10 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import com.pandulapeter.kubrikoCreator.actors.FolderPaths
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
@@ -23,9 +20,7 @@ import com.pandulapeter.kubrikoCreator.ui.actorTypes.accent
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.icon
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
-import com.pandulapeter.kubrikoCreator.ui.components.NewNameField
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.action_add
 import kubriko.creator.generated.resources.action_delete_actor_type
 import kubriko.creator.generated.resources.action_delete_manager_type
 import kubriko.creator.generated.resources.action_delete_page
@@ -37,11 +32,9 @@ import kubriko.creator.generated.resources.action_new_scene
 import kubriko.creator.generated.resources.action_rename
 import kubriko.creator.generated.resources.ic_delete
 import kubriko.creator.generated.resources.ic_edit
-import kubriko.creator.generated.resources.ic_folder_open
 import kubriko.creator.generated.resources.ic_page
 import kubriko.creator.generated.resources.ic_scene
 import kubriko.creator.generated.resources.new_actor_type_hint
-import kubriko.creator.generated.resources.new_folder_hint
 import kubriko.creator.generated.resources.new_manager_type_hint
 import kubriko.creator.generated.resources.new_page_hint
 import kubriko.creator.generated.resources.new_scene_hint
@@ -215,67 +208,6 @@ internal fun LazyListScope.folderTreeSection(
 }
 
 /**
- * A folder of [group]'s tree in [module], [indent] levels further in, or the field renaming it, followed by the field
- * naming a new folder in it while one is.
- */
-@Composable
-private fun FolderTreeFolder(
-    module: String,
-    group: FolderGroup,
-    row: FolderTreeRow.Folder,
-    indent: Int,
-    isCreating: Boolean,
-    actions: FolderTreeActions,
-    dragState: SidebarDragState,
-    tree: SidebarTree,
-    naming: SidebarNaming?,
-    onNamingChange: (SidebarNaming?) -> Unit,
-    modifier: Modifier = Modifier,
-) = Column(modifier) {
-    val key = SidebarKeys.folder(SidebarKeys.folderGroup(module, group), row.path)
-    if (isCreating && naming == SidebarNaming.RenamedFolder(group, row.path)) {
-        SidebarNameField(
-            group = group,
-            isFolder = true,
-            depth = row.depth + indent,
-            initialName = row.name,
-            onName = { name -> actions.onRenameFolder(group, row.path, name) },
-            onNamingChange = onNamingChange,
-        )
-    } else {
-        SidebarFolderRow(
-            modifier = Modifier.folderDropTarget(dragState, SidebarDragState.FolderKey(group, row.path, module)),
-            name = row.name,
-            depth = row.depth + indent,
-            isExpanded = row.isExpanded,
-            onToggle = { tree.toggle(key) },
-            actions = if (isCreating) {
-                folderActions(
-                    onNewFolder = {
-                        tree.expand(key)
-                        onNamingChange(SidebarNaming.NewFolder(group, row.path))
-                    },
-                    onRename = { onNamingChange(SidebarNaming.RenamedFolder(group, row.path)) },
-                    onDelete = { actions.onDeleteFolder(group, row.path, row.isEmpty) },
-                )
-            } else {
-                emptyList()
-            },
-            subfolderActions = tree.subfolderActions(key),
-        )
-    }
-    if (isCreating && naming == SidebarNaming.NewFolder(group, row.path)) {
-        SidebarNameField(
-            group = group,
-            isFolder = true,
-            depth = row.depth + indent + 1,
-            onName = { name -> actions.onCreateFolder(group, FolderPaths.child(row.path, name)) },
-            onNamingChange = onNamingChange,
-        )
-    }
-}
-
-/**
  * An item of [group]'s tree in [module], in [folder], [indent] levels further in, or the field renaming it while
  * [isRenaming].
  */
@@ -326,32 +258,6 @@ private fun FolderTreeItem(
             ContextAction(stringResource(Res.string.action_rename), Res.drawable.ic_edit) { onNamingChange(SidebarNaming.RenamedItem(group, row.name)) },
             ContextAction(stringResource(group.deleteItemLabel), Res.drawable.ic_delete, isDestructive = true) { actions.onDeleteItem(group, row.name) },
         ),
-    )
-}
-
-/**
- * A name being typed in [group]'s tree, at [depth], looking like the row it names: a folder's when [isFolder], an item's
- * otherwise. [onName] says why a name can't be used, or null once it is used, which ends the naming.
- */
-@Composable
-private fun SidebarNameField(
-    group: FolderGroup,
-    isFolder: Boolean,
-    depth: Int,
-    onName: (String) -> Rejection?,
-    onNamingChange: (SidebarNaming?) -> Unit,
-    modifier: Modifier = Modifier,
-    initialName: String = "",
-) = Box(modifier) {
-    NewNameField(
-        placeholder = if (isFolder) Res.string.new_folder_hint else group.newItemHint,
-        initialName = initialName,
-        indent = SIDEBAR_ROW_START + SIDEBAR_INDENT * depth,
-        confirmLabel = if (initialName.isEmpty()) Res.string.action_add else Res.string.action_rename,
-        icon = if (isFolder) Res.drawable.ic_folder_open else group.icon,
-        iconTint = if (isFolder) Color.Unspecified else group.accent.color,
-        onCreate = { name -> onName(name).also { if (it == null) onNamingChange(null) }?.toFieldError() },
-        onCancel = { onNamingChange(null) },
     )
 }
 
