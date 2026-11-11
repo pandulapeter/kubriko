@@ -127,10 +127,10 @@ public class Assistant(
 
     /**
      * The `_meta` that hands the agent [systemPrompt]: its profile's, or the one it advertises in [capabilities]
-     * ([AppendedSystemPrompt]), or null for an agent that takes neither.
+     * ([AntigravityMeta], which also turns off its tools that change files), or null for an agent that takes neither.
      */
     private fun sessionMetaOf(capabilities: AgentCapabilities, systemPrompt: String): JsonElement? = profile.sessionMeta?.invoke(systemPrompt)
-        ?: AppendedSystemPrompt.meta(systemPrompt).takeIf { AppendedSystemPrompt.isAdvertised(capabilities) }
+        ?: AntigravityMeta.meta(systemPrompt, isKeepingOffFiles = !profile.keepsOffFiles).takeIf { AntigravityMeta.isAdvertised(capabilities) }
 
     /**
      * Opens an address of the tools for the conversation [start] starts in the agent's working folder, allowing Creator's

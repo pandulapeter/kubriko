@@ -14,12 +14,6 @@ plan. Searching conversations comes with the rest of search (`02-resources-and-s
 with the debugger (`07-debugger.md`). Every new tool keeps `TokenBudgetTest` within its budget and joins `EvalSetTest` where models
 call it.
 
-## The panel
-
-1. **Google Antigravity's own file tools off:** it takes `enabledTools` and `disabledTools` under `_meta.antigravity` on
-   `session/new`, `session/load`, and `session/resume` (a list or a comma-separated string), so its tools that edit, delete, or
-   run could be turned off as Claude Agent's are, which needs their names from a real session's tool calls.
-
 ## Context for large games
 
 Creator computes compact, always fresh context from its own model of the game, where a generic coding agent greps its way to

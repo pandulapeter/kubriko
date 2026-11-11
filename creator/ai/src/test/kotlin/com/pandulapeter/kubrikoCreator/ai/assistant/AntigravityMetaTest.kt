@@ -16,9 +16,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class AppendedSystemPromptTest {
+class AntigravityMetaTest {
 
-    private fun advertises(meta: String?) = AppendedSystemPrompt.isAdvertised(AgentCapabilities(_meta = meta?.let(Json::parseToJsonElement)))
+    private fun advertises(meta: String?) = AntigravityMeta.isAdvertised(AgentCapabilities(_meta = meta?.let(Json::parseToJsonElement)))
 
     @Test
     fun onlyAnAgentAdvertisingAppendingTakesTheSystemPromptSo() {
@@ -33,10 +33,14 @@ class AppendedSystemPromptTest {
     }
 
     @Test
-    fun theSystemPromptIsAppendedUnderTheAgentsOwnNamespace() {
+    fun theSystemPromptIsAppendedUnderTheAgentsOwnNamespaceWithItsToolsThatChangeFilesOff() {
+        assertEquals(
+            Json.parseToJsonElement("""{"antigravity": {"systemPrompt": {"append": "Be helpful."}, "disabledTools": ["edit_file", "create_file", "run_command"]}}"""),
+            AntigravityMeta.meta("Be helpful.", isKeepingOffFiles = true),
+        )
         assertEquals(
             Json.parseToJsonElement("""{"antigravity": {"systemPrompt": {"append": "Be helpful."}}}"""),
-            AppendedSystemPrompt.meta("Be helpful."),
+            AntigravityMeta.meta("Be helpful.", isKeepingOffFiles = false),
         )
     }
 }

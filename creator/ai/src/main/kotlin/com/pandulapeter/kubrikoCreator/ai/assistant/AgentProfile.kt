@@ -16,7 +16,7 @@ import kotlinx.serialization.json.JsonElement
  * agent checked in a real session gets a profile; every other one runs on [fallback].
  *
  * @param sessionMeta The `_meta` a conversation starts with, given the system prompt, or null for an agent that gets the
- *   system prompt as it advertises taking it ([AppendedSystemPrompt]), or else as its first prompt's leading text.
+ *   system prompt as it advertises taking it ([AntigravityMeta]), or else as its first prompt's leading text.
  * @param alwaysUsesHttpTools Whether the agent reaches Kubriko Creator's tools over HTTP even without advertising it.
  * @param keepsOffFiles Whether [sessionMeta] already turns off the agent's own edits and commands; otherwise its
  *   conversations are switched to its read-only mode where it offers one ([ReadOnlyMode]). Either way, what it asks to

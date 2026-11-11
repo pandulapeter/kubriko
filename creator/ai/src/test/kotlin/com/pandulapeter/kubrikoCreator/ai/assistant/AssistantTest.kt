@@ -165,7 +165,7 @@ class AssistantTest {
     }
 
     @Test
-    fun anAgentAdvertisingAnAppendedSystemPromptGetsItThroughEveryConversationsMetaInstead() = blockingTest {
+    fun anAgentAdvertisingAnAppendedSystemPromptGetsItWithItsFileToolsOffThroughEveryConversationsMeta() = blockingTest {
         val advertising = buildJsonObject { putJsonObject("antigravity") { putJsonObject("systemPrompt") { put("append", true) } } }
         val launcher = FakeAgentLauncher(fakeAgent = { FakeAgent(capabilitiesMeta = advertising) })
         val assistant = assistant(AgentProfile.fallback, launcher)
@@ -173,8 +173,8 @@ class AssistantTest {
         conversation.prompt(listOf(ContentBlock.Text("hello")))
         assistant.resumeConversation(projectDirectory, "earlier")
         val agent = launcher.agents.single()
-        assertEquals(AppendedSystemPrompt.meta("$SYSTEM_PROMPT\n\nAsk first."), agent.newSessions.single()._meta)
-        assertEquals(AppendedSystemPrompt.meta(SYSTEM_PROMPT), agent.loadedSessionParameters.single()._meta)
+        assertEquals(AntigravityMeta.meta("$SYSTEM_PROMPT\n\nAsk first.", isKeepingOffFiles = true), agent.newSessions.single()._meta)
+        assertEquals(AntigravityMeta.meta(SYSTEM_PROMPT, isKeepingOffFiles = true), agent.loadedSessionParameters.single()._meta)
         assertEquals(emptyList(), agent.leadingTexts)
         launcher.close()
     }

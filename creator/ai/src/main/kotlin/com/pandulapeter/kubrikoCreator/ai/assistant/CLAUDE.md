@@ -29,13 +29,15 @@ Hosts Agent Client Protocol agents through the official Kotlin SDK. Tests run `F
 - **Agents:** Claude Agent is the one fully supported agent (`RegistryAgent.isTested`); every other ACP Registry agent runs on
   generic fallbacks chosen from its `initialize` answer (`AgentProfile.fallback`), with as little per-agent code as possible, and
   is shown as untested. Such an agent hears the system prompt ahead of its first prompt, unless it advertises appending it
-  to its own through a conversation's `_meta` (`AppendedSystemPrompt`, Google Antigravity's extension), which also reaches
+  to its own through a conversation's `_meta` (`AntigravityMeta`, Google Antigravity's extension), which also reaches
   a continued conversation. An agent a vendor publishes in the registry counts as meant for hosting, so vendors' terms don't gate it;
   names and icons follow each vendor's trademark rules.
 - **Nothing of any agent ships with Creator:** the registry's distribution fetches it on first use. Bundling would mean
   redistributing a proprietary binary and preinstalling Claude Code, which its terms tie to the Commercial Terms.
 - **Creator's tools make every change:** the agent gets neither file system nor terminal access, Claude Agent has `Bash`,
-  `Write`, `Edit`, and `NotebookEdit` disallowed, and every other agent's conversations are switched to its read-only mode or
+  `Write`, `Edit`, and `NotebookEdit` disallowed, Google Antigravity (which has no read-only mode) has its `edit_file`,
+  `create_file`, and `run_command` turned off through the same `_meta` (`AntigravityMeta`; names checked in a real session, the
+  ones its tool calls' titles show, not its model's), and every other agent's conversations are switched to its read-only mode or
   sandbox where it offers one (`ReadOnlyMode`), again whenever they are loaded: only a value named read-only, never a plan mode,
   since Claude Code's refuses MCP tools that change something, Creator's among them. What an agent still asks to edit,
   delete, move, or execute itself goes to the user, as every change outside Creator is confirmed, with the agent's diffs and
