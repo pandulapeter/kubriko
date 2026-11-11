@@ -112,7 +112,7 @@ public data class HealthFinding(
         } else {
             "$subject: no goToScene Block goes to it, and the game starts with $detail."
         }
-        Kind.FIRST_SCENE_MISSING -> "$subject: the game starts with it (game.firstScene in gradle.properties), but it doesn't exist."
+        Kind.FIRST_SCENE_MISSING -> "$subject: the game starts with it, but it doesn't exist; create it, or choose another with set_project_settings' firstScene."
         Kind.UNREAD_PROPERTY -> "$subject: nothing reads it (no condition, Log Block, text, or Kotlin names it)."
         Kind.TIMER_NEVER_STARTED -> "$subject: the timerFinished Event of $detail never fires, since no startTimer Block of its family starts it."
         Kind.COLLISION_WITH_ABSENT_TYPE -> "$subject: the collision Event with $detail never fires, since no Scene places $detail and no Block adds it."

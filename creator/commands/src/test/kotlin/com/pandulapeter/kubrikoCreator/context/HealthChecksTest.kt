@@ -163,6 +163,10 @@ class HealthChecksTest {
             ),
             context.healthFindings().filter { it.kind in sceneKinds },
         )
+        assertEquals(
+            "Scene intro: the game starts with it, but it doesn't exist; create it, or choose another with set_project_settings' firstScene.",
+            HealthFinding(HealthFinding.Kind.FIRST_SCENE_MISSING, RelationSubject.Scene("intro")).toString(),
+        )
     }
 
     @Test
