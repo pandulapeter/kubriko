@@ -26,7 +26,6 @@ import com.agentclientprotocol.model.SessionConfigOptionValue
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantPanelModel
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.Popover
-import com.pandulapeter.kubrikoCreator.ui.components.openInSystemEditor
 import com.pandulapeter.kubrikoCreator.ui.components.rememberMenuAnchor
 import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
 import kubriko.creator.generated.resources.Res
@@ -111,7 +110,7 @@ private fun AssistantSetup(
                 close()
                 forms.isEnteringCustomAgent = true
             },
-            onOpenLog = model.errorLogFile?.let { file -> { if (file.isFile) openInSystemEditor(file) } },
+            onOpenLog = model.agentLogOpening(),
         )
     }
     AssistantAccountMenu(

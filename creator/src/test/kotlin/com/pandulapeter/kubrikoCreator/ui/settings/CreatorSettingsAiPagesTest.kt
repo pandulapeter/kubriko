@@ -47,7 +47,7 @@ class CreatorSettingsAiPagesTest {
                 onConfigurationSelected = { chosen += it },
             )
         }
-        onNodeWithText("Which of your configurations Claude Agent runs as, such as a shell alias with an account of its own.").assertExists()
+        onNodeWithText("Which of your Claude Code configurations the agent runs as, such as a shell alias with an account of its own.").assertExists()
         saveSnapshot("creator-settings-assistant")
         onNodeWithText("Claude Agent").performClick()
         onNodeWithText("Custom agent…").assertDoesNotExist()

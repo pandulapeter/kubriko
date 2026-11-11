@@ -1006,7 +1006,7 @@
     <string name="settings_section_assistant">Assistant</string>
     <string name="settings_section_assistant_description">What the assistant in the AI panel runs, whichever project is open.</string>
     <string name="settings_assistant_agent_description">The agent every conversation runs. Choosing another ends the open conversations. A custom agent is entered in the AI panel.</string>
-    <string name="settings_assistant_configuration_description">Which of your configurations %1$s runs as, such as a shell alias with an account of its own.</string>
+    <string name="settings_assistant_configuration_description">Which of your %1$s configurations the agent runs as, such as a shell alias with an account of its own.</string>
     <string name="settings_section_ai_connection">AI connection</string>
     <string name="settings_section_ai_connection_description">How AI apps on this computer, such as Claude Code in a terminal, reach Creator's tools.</string>
     <string name="settings_ai_enabled">AI features</string>

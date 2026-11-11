@@ -635,6 +635,21 @@ class AssistantControllerTest {
     }
 
     @Test
+    fun aConfigurationChosenWithoutThePanelWaitsForItEvenForAnAgentThatWorkedBefore() = blockingTest {
+        SavedConversationStore(File(settingsDirectory, "conversations.json")).save(SavedConversation("/projects/other", RegistryAgent.claude.id, "earlier", "Earlier", 500))
+        runner.aliases["claude-personal"] = "CLAUDE_CONFIG_DIR=~/.claude-personal claude"
+        val controller = controller()
+        controller.startChat().state.first { it == ChatState.Ready }
+        onMain { controller.findConfigurations() }
+        val personal = controller.configurations.first { it.size == 2 }.last()
+        onMain { controller.selectConfiguration(personal, isPanelShown = false) }
+        withTimeout(5.seconds) { while (!launcher.channels.first().isStopped) delay(10) }
+        awaitIdle(mainThread, io)
+        assertEquals(emptyList(), controller.chats.value)
+        assertEquals(1, commands.size)
+    }
+
+    @Test
     fun twoSwitchesInARowEndOnTheLastAgent() = blockingTest {
         val registry = registry(CODEX, GEMINI)
         registry.refresh()

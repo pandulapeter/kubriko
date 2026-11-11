@@ -261,7 +261,8 @@ public class AssistantController(
         if (!host.isOn) return
         if (!configurationList.select(configuration)) return
         settings.update { it.copy(configurationAliases = configurationList.chosenAliases) }
-        restartAgent(isPanelShown)
+        // Saved conversations don't say which account they ran as, so another configuration may still need a sign-in.
+        restartAgent(isPanelShown, mayStartIfWorked = false)
     }
 
     override fun signIn(method: SignInMethod) {
@@ -326,16 +327,17 @@ public class AssistantController(
     }
 
     /**
-     * Ends every conversation and opens a new one with the agent as it is now; a writers' room whose idea the agent hasn't
-     * answered is started again with it, so the idea isn't lost.
+     * Ends every conversation and opens a new one with the agent as it is now: right away when [isPanelShown], otherwise only
+     * for an agent that has worked before when [mayStartIfWorked], leaving the rest to the panel. A writers' room whose idea
+     * the agent hasn't answered is started again with it, so the idea isn't lost.
      */
-    private fun restartAgent(isPanelShown: Boolean = true) {
+    private fun restartAgent(isPanelShown: Boolean = true, mayStartIfWorked: Boolean = true) {
         val unansweredWritersRooms = chatList.open.value.mapNotNull { it.unansweredFirstPrompt }
         endChats(isAgentReplaced = true)
         when {
             unansweredWritersRooms.isNotEmpty() -> unansweredWritersRooms.forEach(::startWritersRoom)
             isPanelShown -> newChat()
-            else -> project?.let(::startIfSetUp)
+            mayStartIfWorked -> project?.let(::startIfSetUp)
         }
     }
 

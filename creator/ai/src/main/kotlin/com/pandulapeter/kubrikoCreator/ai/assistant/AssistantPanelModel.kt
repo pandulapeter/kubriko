@@ -177,7 +177,8 @@ public interface AssistantPanelModel {
     /**
      * Uses [configuration] from now on: its own agent, so every conversation ends, and a new one starts.
      *
-     * @param isPanelShown As for [selectAgent].
+     * @param isPanelShown As for [selectAgent], except that made elsewhere, no conversation starts until the panel is shown,
+     *   since the agent having worked says nothing of whether this configuration is signed in.
      */
     public fun selectConfiguration(configuration: AgentConfiguration, isPanelShown: Boolean = true)
 

@@ -25,8 +25,9 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * The agent the assistant runs, as a menu of the registry's agents, the custom one if the user entered it, entering a
- * custom agent (where [onEnterCustomAgent] can show the form), and opening the agents' log, when there is one. Untested agents, and those seen changing files without
- * asking ([changingFilesUnasked], by [AgentChoice.identity]), are marked as such.
+ * custom agent (where [onEnterCustomAgent] can show its form), and opening the agents' log, when there is one. Untested
+ * agents, and those seen changing files without asking ([changingFilesUnasked], by [AgentChoice.identity]), are marked as
+ * such.
  */
 @Composable
 internal fun AgentMenu(
@@ -73,7 +74,12 @@ internal sealed interface AgentMenuItem {
  * What the agent menu offers: the registry's agents in their order, the custom agent once there is one, entering one where
  * that can be done, and the agents' log where there is one.
  */
-internal fun agentMenuItems(agents: List<RegistryAgent>, customAgentCommand: String?, canEnterCustom: Boolean = true, hasLog: Boolean = false): List<AgentMenuItem> =
+internal fun agentMenuItems(
+    agents: List<RegistryAgent>,
+    customAgentCommand: String?,
+    canEnterCustom: Boolean = true,
+    hasLog: Boolean = false,
+): List<AgentMenuItem> =
     agents.map { AgentMenuItem.Agent(AgentChoice.Registry(it)) } +
         listOfNotNull(
             customAgentCommand?.let { AgentMenuItem.Agent(AgentChoice.Custom(it)) },

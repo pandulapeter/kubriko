@@ -30,10 +30,10 @@ import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
 import com.pandulapeter.kubrikoCreator.recent.RecentProject
 import com.pandulapeter.kubrikoCreator.settings.CreatorSettingsController
 import com.pandulapeter.kubrikoCreator.template.NewProjectForm
+import com.pandulapeter.kubrikoCreator.ui.assistant.agentLogOpening
 import com.pandulapeter.kubrikoCreator.ui.components.DialogPage
 import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
 import com.pandulapeter.kubrikoCreator.ui.components.ProgressScreen
-import com.pandulapeter.kubrikoCreator.ui.components.openInSystemEditor
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiConnectionSettings
 import com.pandulapeter.kubrikoCreator.ui.settings.AssistantSettingsPage
 import com.pandulapeter.kubrikoCreator.ui.settings.CreatorSettingsDialog
@@ -220,7 +220,7 @@ private fun aiSettingsPages(
             configurations = assistant.configurations.collectAsState().value,
             onAgentSelected = { assistant.selectAgent(it, isPanelShown = false) },
             onConfigurationSelected = { assistant.selectConfiguration(it, isPanelShown = false) },
-            onOpenLog = assistant.errorLogFile?.let { file -> { if (file.isFile) openInSystemEditor(file) } },
+            onOpenLog = assistant.agentLogOpening(),
         )
     },
     DialogPage(

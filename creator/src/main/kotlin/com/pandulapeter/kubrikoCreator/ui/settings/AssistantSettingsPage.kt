@@ -66,7 +66,7 @@ internal fun AssistantSettingsPage(
     if (configuration != null && isConfigurationChoice(configuration, configurations)) {
         SettingsRow(
             label = stringResource(Res.string.assistant_setup_configuration),
-            description = stringResource(Res.string.settings_assistant_configuration_description, agent.name),
+            description = stringResource(Res.string.settings_assistant_configuration_description, configuration.client.displayName),
         ) {
             Column(Modifier.widthIn(max = CONTROL_WIDTH)) {
                 ConfigurationMenu(

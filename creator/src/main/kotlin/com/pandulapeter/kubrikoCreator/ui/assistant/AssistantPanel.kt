@@ -43,7 +43,6 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.SignInMethod
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.UserQuestions
 import com.pandulapeter.kubrikoCreator.ui.LocalAiActivitySettings
-import com.pandulapeter.kubrikoCreator.ui.components.openInSystemEditor
 import kotlinx.coroutines.launch
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.assistant_empty
@@ -153,7 +152,7 @@ private fun AssistantPanelContent(
             nodeInstallFailure = model.nodeInstallFailure.collectAsState().value,
             isBilledToApiKey = hasApiKey,
             isAgentChangingFilesUnasked = LocalAgent.current.identity in model.agentsChangingFilesUnasked.collectAsState().value,
-            onOpenLog = model.errorLogFile?.let { file -> { if (file.isFile) openInSystemEditor(file) } },
+            onOpenLog = model.agentLogOpening(),
             aiSteps = aiSteps,
             onShowStep = onShowStep,
             questions = questions,
