@@ -54,6 +54,16 @@ internal val ResourceGroup.folderGroup: FolderGroup?
     get() = resourceKind?.let(FolderGroup::of)
 
 /**
+ * What tells apart an image of `drawable` the game doesn't take for a sprite, by its [relativePath] from the project's
+ * root: its source set and its folder (`androidMain/drawable-hdpi`), since copies of it may be in several of either.
+ */
+internal fun otherImageDetailOf(relativePath: String): String {
+    val segments = relativePath.split('/')
+    val sourceSet = segments.indexOf("src").takeIf { it >= 0 && it + 1 < segments.lastIndex }?.let { segments[it + 1] }
+    return listOfNotNull(sourceSet, segments.getOrNull(segments.lastIndex - 1)).joinToString("/")
+}
+
+/**
  * Whether a folder is shown in this tree: one besides its [FolderTreeGroupState.root] and those holding it.
  */
 internal val FolderTreeGroupState.hasShownFolders: Boolean

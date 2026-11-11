@@ -146,7 +146,7 @@ private fun ResourceTreeItem(
             icon = group.icon,
             accent = Accent.CODE,
             text = FolderPaths.nameOf(row.name),
-            detail = if (!isOwnFile) FolderPaths.nameOf(FolderPaths.parentOf(row.name)) else null,
+            detail = if (!isOwnFile) otherImageDetailOf(row.name) else null,
             depth = row.depth + indent,
             onClick = null,
             actions = if (canChange) {

@@ -67,4 +67,10 @@ class ResourceTreesTest {
         assertEquals(setOf("music", "music/boss"), trees.getValue(ResourceGroup.MUSIC).folders)
         assertEquals("music", trees.getValue(ResourceGroup.MUSIC).root)
     }
+
+    @Test
+    fun anImageTheGameDoesNotTakeForASpriteIsToldApartByItsSourceSetAndFolder() {
+        assertEquals("androidMain/drawable-hdpi", otherImageDetailOf("game/src/androidMain/composeResources/drawable-hdpi/logo.png"))
+        assertEquals("commonMain/drawable", otherImageDetailOf("src/commonMain/composeResources/drawable/icon.svg"))
+    }
 }
