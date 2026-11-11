@@ -578,6 +578,7 @@
     <string name="error_command_document_unreadable">Kubriko Creator couldn't read %1$s as text, so it left the file alone.</string>
     <string name="error_command_page_missing">There's no page called %1$s.</string>
     <string name="error_command_page_not_moved">Kubriko Creator couldn't move the page %1$s, so nothing changed. Another program may have its file open.</string>
+    <string name="error_command_summary_invalid">Sum the conversation up in one to three sentences, at most %1$s characters long.</string>
     <string name="error_command_question_invalid">Ask a question with two to four different answers, each at most %1$s characters long.</string>
     <string name="error_command_screenplay_settings_unreadable">Kubriko Creator can't read %1$s right now, so it left it alone. Try again once no other program holds it.</string>
     <string name="error_command_screenplay_style">This page doesn't keep the screenplay's writing rules, so change it and try again: %1$s</string>
@@ -813,6 +814,7 @@
     <string name="command_delete_document">Delete a document</string>
     <string name="command_add_document_to_screenplay">Add a document to the screenplay</string>
     <string name="command_ask_user">Ask you a question</string>
+    <string name="command_remember_for_next_time">Note what to remember next time</string>
     <string name="command_set_screenplay_reminders">Turn the screenplay's reminders on or off</string>
     <string name="command_read_console">Read the console</string>
     <string name="command_get_version_control_status">Check version control</string>

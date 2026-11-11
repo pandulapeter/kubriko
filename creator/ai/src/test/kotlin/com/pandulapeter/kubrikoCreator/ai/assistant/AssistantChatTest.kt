@@ -59,6 +59,7 @@ class AssistantChatTest {
     private suspend fun readyChat() = newChat().also { chat -> chat.state.first { it == ChatState.Ready } }
 
     private val undoneTurns = CopyOnWriteArrayList<Pair<String, Int>>()
+    private val endedTurns = CopyOnWriteArrayList<Triple<String, String?, String?>>()
 
     private suspend fun newChat(changeLog: ChangeLog? = null) = withContext(mainThread) {
         AssistantChat(
@@ -69,6 +70,7 @@ class AssistantChatTest {
                 conversation.close()
             },
             toolsIdOf = { "tools" },
+            onTurnEnded = { _, title, lastAnswer, toolsId -> endedTurns += Triple(title, lastAnswer, toolsId) },
             forgetReads = { forgotten += it },
             changeLog = { changeLog },
             undoTurn = { toolsId, sinceRevision ->
@@ -81,6 +83,14 @@ class AssistantChatTest {
     private suspend fun AssistantChat.sendAndWait(text: String) {
         withContext(mainThread) { send(text) }
         isBusy.first { !it }
+    }
+
+    @Test
+    fun eachTurnEndsWithTheLastAnswerAndTheToolAddressTheSummaryIsKeptBy() = blockingTest {
+        val chat = readyChat()
+        chat.sendAndWait("hello")
+        val lastAnswer = chat.transcript.value.items.filterIsInstance<TranscriptItem.AgentMessage>().last().text
+        assertEquals(listOf<Triple<String, String?, String?>>(Triple("hello", lastAnswer, "tools")), endedTurns)
     }
 
     @Test

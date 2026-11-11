@@ -55,6 +55,11 @@ public class CommandContext(
     public val questions: UserQuestions = UserQuestions()
 
     /**
+     * What the assistant's conversations noted for the next one ([com.pandulapeter.kubrikoCreator.commands.project.RememberForNextTime]).
+     */
+    public val summaries: ConversationSummaries = ConversationSummaries()
+
+    /**
      * Where Kubriko Creator moved pages and documents to, so that the page editor follows them.
      */
     public val movedFiles: MovedFiles = MovedFiles()

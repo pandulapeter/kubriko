@@ -88,6 +88,7 @@ import kubriko.creator.generated.resources.error_command_screenplay_style
 import kubriko.creator.generated.resources.error_command_size_invalid
 import kubriko.creator.generated.resources.error_command_sound_missing
 import kubriko.creator.generated.resources.error_command_sprite_missing
+import kubriko.creator.generated.resources.error_command_summary_invalid
 import kubriko.creator.generated.resources.error_command_text_missing
 import kubriko.creator.generated.resources.error_command_text_size_invalid
 import kubriko.creator.generated.resources.error_command_timer_taken
@@ -170,6 +171,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.SCREENPLAY_STYLE -> Res.string.error_command_screenplay_style
     CommandProblem.SCREENPLAY_SETTINGS_UNREADABLE -> Res.string.error_command_screenplay_settings_unreadable
     CommandProblem.QUESTION_INVALID -> Res.string.error_command_question_invalid
+    CommandProblem.SUMMARY_INVALID -> Res.string.error_command_summary_invalid
     CommandProblem.PAGE_SECTION_MISSING -> Res.string.error_command_page_section_missing
     CommandProblem.PAGE_TAKEN -> Res.string.error_command_page_taken
     CommandProblem.PAGE_TOO_LONG -> Res.string.error_command_page_too_long

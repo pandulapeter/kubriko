@@ -20,8 +20,10 @@ import kotlinx.serialization.Serializable
  * @param id The agent's ID of the conversation.
  * @param title The first thing the user asked.
  * @param updatedAt When it was last used, in milliseconds since the epoch.
- * @param lastAnswer The start of the agent's last answer, which the next conversation about the project starts with.
+ * @param lastAnswer The start of the agent's last answer, which the next conversation about the project starts with when it
+ *   has no [summary].
  * @param isWritersRoom Whether it is a conversation in the writers' room, which is continued with its rules.
+ * @param summary What the agent noted last for the next conversation about the project (`remember_for_next_time`).
  */
 @Serializable
 public data class SavedConversation(
@@ -32,4 +34,5 @@ public data class SavedConversation(
     @SerialName("updatedAt") val updatedAt: Long,
     @SerialName("lastAnswer") val lastAnswer: String? = null,
     @SerialName("isWritersRoom") val isWritersRoom: Boolean = false,
+    @SerialName("summary") val summary: String? = null,
 )

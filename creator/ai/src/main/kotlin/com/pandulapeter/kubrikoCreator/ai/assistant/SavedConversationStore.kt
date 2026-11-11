@@ -40,13 +40,16 @@ public class SavedConversationStore(
     internal fun hasAny(agentId: String) = read().any { it.agentId == agentId }
 
     /**
-     * Keeps [conversation], replacing the one with its ID, and forgets the oldest of its project beyond the limit.
+     * Keeps [conversation], replacing the one with its ID (and keeping that one's summary when it has none), and forgets the
+     * oldest of its project beyond the limit.
      */
     @Synchronized
     internal fun save(conversation: SavedConversation) {
         store.update { current ->
-            val others = current.orEmpty().filterNot { it.id == conversation.id && it.agentId == conversation.agentId }
-            val project = (others.filter { it.project == conversation.project } + conversation).sortedByDescending { it.updatedAt }.take(conversationsPerProject)
+            val isSame = { saved: SavedConversation -> saved.id == conversation.id && saved.agentId == conversation.agentId }
+            val saved = conversation.summary?.let { conversation } ?: conversation.copy(summary = current.orEmpty().firstOrNull(isSame)?.summary)
+            val others = current.orEmpty().filterNot(isSame)
+            val project = (others.filter { it.project == conversation.project } + saved).sortedByDescending { it.updatedAt }.take(conversationsPerProject)
             others.filterNot { it.project == conversation.project } + project
         }
     }

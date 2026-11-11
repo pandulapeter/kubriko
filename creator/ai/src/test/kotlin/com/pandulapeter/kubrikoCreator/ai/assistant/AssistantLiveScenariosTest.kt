@@ -94,6 +94,18 @@ class AssistantLiveScenariosTest {
     }
 
     @Test
+    fun aFinishedRequestIsNotedForTheNextConversation() = live { session ->
+        session.chat().ask("Make the Ball faster: double the velocity it starts with.")
+        val summary = assertNotNull(session.lastSummary, "Nothing was noted for the next conversation.")
+        println("Noted for next time: $summary")
+        val last = SavedConversation(session.projectPath, RegistryAgent.claude.id, "earlier", "Make the Ball faster", 0, summary = summary)
+        val next = session.chat(projectContext = LastConversation.withProject(null, last))
+        next.ask("What did we change last time? Answer in one sentence, and change nothing.")
+        println("Heard: ${next.lastAnswer()}")
+        assertTrue(Regex("fast|speed|velocity").containsMatchIn(next.lastAnswer().lowercase()), "The next conversation didn't hear what was done.")
+    }
+
+    @Test
     fun aQuestionAnsweredAfterMoreThanAMinuteReachesTheAgent() = live { session ->
         val questions = session.context.questions
         val answering = launch(Dispatchers.Default) {
@@ -207,6 +219,9 @@ class AssistantLiveScenariosTest {
         private val configDirectory = System.getenv("KUBRIKO_CREATOR_CLAUDE_CONFIG_DIR")
         lateinit var context: CommandContext
         lateinit var executor: CommandExecutor
+
+        @Volatile
+        var lastSummary: String? = null
         val toolServer = McpToolServer(executor = { executor }, callDispatcher = mainThread, version = "1.0.0")
         private var assistant = newAssistant()
 
@@ -231,13 +246,13 @@ class AssistantLiveScenariosTest {
             systemPrompt = AssistantSystemPrompt::withProject,
         )
 
-        suspend fun chat(resuming: String? = null, rules: String? = null) = withContext(mainThread) {
+        suspend fun chat(resuming: String? = null, rules: String? = null, projectContext: String? = null) = withContext(mainThread) {
             val owner = assistant
             AssistantChat(
                 parentScope = scope,
                 start = { permissions, onHistory ->
                     if (resuming == null) {
-                        owner.newConversation(projectDirectory, permissions, rules = rules)
+                        owner.newConversation(projectDirectory, permissions, projectContext, rules)
                     } else {
                         owner.resumeConversation(projectDirectory, resuming, permissions, onHistory, rules)
                     }
@@ -246,6 +261,7 @@ class AssistantLiveScenariosTest {
                 toolsIdOf = owner::toolsIdOf,
                 changeLog = { executor.changeLog },
                 undoTurn = executor::undoTurn,
+                onTurnEnded = { _, _, _, toolsId -> toolsId?.let(context.summaries::take)?.let { lastSummary = it } },
             )
         }
 

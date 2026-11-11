@@ -70,6 +70,7 @@ import com.pandulapeter.kubrikoCreator.commands.project.GetVersionControlStatus
 import com.pandulapeter.kubrikoCreator.commands.project.Play
 import com.pandulapeter.kubrikoCreator.commands.project.ReadConsole
 import com.pandulapeter.kubrikoCreator.commands.project.ReadGameNotes
+import com.pandulapeter.kubrikoCreator.commands.project.RememberForNextTime
 import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
 import com.pandulapeter.kubrikoCreator.commands.project.SetGameNotes
 import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
@@ -195,6 +196,7 @@ public class CommandRegistry(
                 AddDocumentToScreenplay,
                 SetScreenplayReminders,
                 AskUser,
+                RememberForNextTime,
                 SetProjectSettings,
                 SetTarget,
                 CreateManagerType,
@@ -262,6 +264,7 @@ public class CommandRegistry(
                 TakeScreenshot,
                 StopGame,
                 AskUser,
+                RememberForNextTime,
             ),
         )
     }

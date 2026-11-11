@@ -71,6 +71,7 @@ import com.pandulapeter.kubrikoCreator.commands.project.GetVersionControlStatus
 import com.pandulapeter.kubrikoCreator.commands.project.Play
 import com.pandulapeter.kubrikoCreator.commands.project.ReadConsole
 import com.pandulapeter.kubrikoCreator.commands.project.ReadGameNotes
+import com.pandulapeter.kubrikoCreator.commands.project.RememberForNextTime
 import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
 import com.pandulapeter.kubrikoCreator.commands.project.SetGameNotes
 import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
@@ -172,6 +173,7 @@ import kubriko.creator.generated.resources.command_read_game_notes
 import kubriko.creator.generated.resources.command_read_manager_type
 import kubriko.creator.generated.resources.command_read_pages
 import kubriko.creator.generated.resources.command_read_scene
+import kubriko.creator.generated.resources.command_remember_for_next_time
 import kubriko.creator.generated.resources.command_remove_actor
 import kubriko.creator.generated.resources.command_remove_actors
 import kubriko.creator.generated.resources.command_remove_block
@@ -307,6 +309,7 @@ private val commandTitles = mapOf(
     AddDocumentToScreenplay.name to Res.string.command_add_document_to_screenplay,
     SetScreenplayReminders.name to Res.string.command_set_screenplay_reminders,
     AskUser.name to Res.string.command_ask_user,
+    RememberForNextTime.name to Res.string.command_remember_for_next_time,
     SetProjectSettings.name to Res.string.command_set_project_settings,
     SetTarget.name to Res.string.command_set_target,
     UpgradeProject.name to Res.string.command_upgrade_project,

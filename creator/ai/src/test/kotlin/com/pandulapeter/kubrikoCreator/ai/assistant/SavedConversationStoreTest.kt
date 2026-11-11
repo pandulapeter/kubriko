@@ -51,6 +51,18 @@ class SavedConversationStoreTest {
     }
 
     @Test
+    fun aSummaryStaysUntilATurnNotesAnother() {
+        val store = SavedConversationStore(file)
+        store.save(saved("a", 1).copy(summary = "Made the Ball faster."))
+        store.save(saved("a", 2, agentId = "antigravity-acp"))
+        store.save(saved("a", 3))
+        assertEquals("Made the Ball faster.", store.of(breakout, "claude-acp").single().summary)
+        assertEquals(null, store.of(breakout, "antigravity-acp").single().summary)
+        store.save(saved("a", 4).copy(summary = "Added lives."))
+        assertEquals("Added lives.", store.of(breakout, "claude-acp").single().summary)
+    }
+
+    @Test
     fun removingForgetsOnlyThatConversation() {
         val store = SavedConversationStore(file)
         store.save(saved("a", 1))

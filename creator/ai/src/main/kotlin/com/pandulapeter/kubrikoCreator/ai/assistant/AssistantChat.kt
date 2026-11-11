@@ -51,7 +51,8 @@ import kotlinx.coroutines.launch
  *   never have seen, so that its next reads are answered in full.
  * @param undoTurn Reverts what the conversation at a tool address changed after a revision, returning how many of its
  *   changes stay ([com.pandulapeter.kubrikoCreator.commands.CommandExecutor.undoTurn]).
- * @param onTurnEnded Called after each turn with the conversation's ID, title, and the agent's last answer, so that it can
+ * @param onTurnEnded Called after each turn with the conversation's ID, title, the agent's last answer, and the ID of its
+ *   tool address (which the summary it noted is kept by, [com.pandulapeter.kubrikoCreator.commands.ConversationSummaries]), so that it can
  *   be continued later.
  * @param onChangedFilesUnasked Called once the agent changed files with its own tools without asking.
  * @param changeLog The open project's changes, which a prompt sums up for the agent when someone else made them since
@@ -69,7 +70,7 @@ public class AssistantChat(
     private val toolsIdOf: (AgentConversation) -> String? = { null },
     private val forgetReads: (AgentConversation) -> Unit = {},
     private val changeLog: () -> ChangeLog? = { null },
-    private val onTurnEnded: suspend (id: String, title: String, lastAnswer: String?) -> Unit = { _, _, _ -> },
+    private val onTurnEnded: suspend (id: String, title: String, lastAnswer: String?, toolsId: String?) -> Unit = { _, _, _, _ -> },
     private val undoTurn: suspend (toolsId: String, sinceRevision: Int) -> Int = { _, _ -> 0 },
     private val onChangedFilesUnasked: () -> Unit = {},
     lastMessageAt: Long? = null,
@@ -223,7 +224,7 @@ public class AssistantChat(
                     _transcript.update { transcript -> transcript.withTurnChanges(turnStart, log.since(turnStart).filter { it.step == null && it.origin?.conversationId == toolsId }) }
                 }
                 val title = _transcript.value.title
-                if (title != null) onTurnEnded(conversation.id.value, title, _transcript.value.items.filterIsInstance<TranscriptItem.AgentMessage>().lastOrNull()?.text)
+                if (title != null) onTurnEnded(conversation.id.value, title, _transcript.value.items.filterIsInstance<TranscriptItem.AgentMessage>().lastOrNull()?.text, _toolsId.value)
             } catch (exception: CancellationException) {
                 if (!currentCoroutineContext().isActive) throw exception
                 forgetReads(conversation)

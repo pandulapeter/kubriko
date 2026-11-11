@@ -11,13 +11,17 @@ package com.pandulapeter.kubrikoCreator.ai.assistant
 
 /**
  * How a new conversation hears about the project's previous one, so that the user needn't explain again: its title and
- * the start of the agent's last answer, after what it is told about the project.
+ * what it noted for the next one, or else the start of the agent's last answer, after what it is told about the project.
  */
 internal object LastConversation {
     const val ANSWER_LENGTH = 1_000
 
     fun withProject(projectContext: String?, last: SavedConversation?): String? {
-        val lastTime = last?.lastAnswer?.let { answer -> "The previous conversation about this project, \"${last.title}\", ended with this answer:\n$answer" }
+        val lastTime = when {
+            last?.summary != null -> "What the previous conversation about this project, \"${last.title}\", noted for this one:\n${last.summary}"
+            last?.lastAnswer != null -> "The previous conversation about this project, \"${last.title}\", ended with this answer:\n${last.lastAnswer}"
+            else -> null
+        }
         return listOfNotNull(projectContext, lastTime).joinToString("\n\n").ifEmpty { null }
     }
 }

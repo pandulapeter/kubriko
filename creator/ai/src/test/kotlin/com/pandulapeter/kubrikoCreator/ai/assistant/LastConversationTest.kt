@@ -23,6 +23,12 @@ class LastConversationTest {
     )
 
     @Test
+    fun whatThePreviousOneNotedIsToldInPlaceOfItsAnswer() = assertEquals(
+        "Digest\n\nWhat the previous conversation about this project, \"Make the Ball faster\", noted for this one:\nThe Ball is faster; the Paddle is still slow.",
+        LastConversation.withProject("Digest", last.copy(summary = "The Ball is faster; the Paddle is still slow.")),
+    )
+
+    @Test
     fun withoutAnAnswerOnlyTheProjectIsTold() {
         assertEquals("Digest", LastConversation.withProject("Digest", last.copy(lastAnswer = null)))
         assertNull(LastConversation.withProject(null, null))

@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.pandulapeter.kubrikoCreator.commands.ChangeLog
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
+import com.pandulapeter.kubrikoCreator.commands.ConversationSummaries
 import com.pandulapeter.kubrikoCreator.context.ConversationStart
 
 /**
@@ -27,6 +28,9 @@ public interface OpenProjectAccess {
     /** Reverts what a conversation changed after a revision ([AssistantChat]'s Undo); how many steps it reverted. */
     public suspend fun undoTurn(toolsId: String, sinceRevision: Int): Int
 
+    /** What the conversation at a tool address noted for the next one since it last took it ([ConversationSummaries]). */
+    public fun takeSummary(toolsId: String): String?
+
     public companion object {
         /** No project, ever. */
         public val None: OpenProjectAccess = object : OpenProjectAccess {
@@ -35,6 +39,8 @@ public interface OpenProjectAccess {
             override fun changeLog(): ChangeLog? = null
 
             override suspend fun undoTurn(toolsId: String, sinceRevision: Int): Int = 0
+
+            override fun takeSummary(toolsId: String): String? = null
         }
 
         /** The project whose commands [executor] gives, if one is open. */
@@ -44,6 +50,8 @@ public interface OpenProjectAccess {
             override fun changeLog(): ChangeLog? = executor()?.changeLog
 
             override suspend fun undoTurn(toolsId: String, sinceRevision: Int): Int = executor()?.undoTurn(toolsId, sinceRevision) ?: 0
+
+            override fun takeSummary(toolsId: String): String? = executor()?.context?.summaries?.take(toolsId)
         }
     }
 }

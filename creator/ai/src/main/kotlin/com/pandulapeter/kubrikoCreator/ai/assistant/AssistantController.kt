@@ -232,8 +232,11 @@ public class AssistantController(
             forgetReads = { conversation -> owner?.forgetReads(conversation) },
             changeLog = { openProject.changeLog() },
             undoTurn = { toolsId, sinceRevision -> openProject.undoTurn(toolsId, sinceRevision) },
-            onTurnEnded = { id, title, lastAnswer ->
-                withContext(ioDispatcher) { storage.conversations?.save(SavedConversation(directory.absolutePath, agentId, id, title, clock(), lastAnswer?.take(LastConversation.ANSWER_LENGTH), isWritersRoom)) }
+            onTurnEnded = { id, title, lastAnswer, toolsId ->
+                val summary = toolsId?.let(openProject::takeSummary)
+                withContext(ioDispatcher) {
+                    storage.conversations?.save(SavedConversation(directory.absolutePath, agentId, id, title, clock(), lastAnswer?.take(LastConversation.ANSWER_LENGTH), isWritersRoom, summary))
+                }
             },
             onChangedFilesUnasked = {
                 settings.update { it.takeIf { agentIdentity in it.agentsChangingFilesUnasked } ?: it.withChangingFilesUnasked(agentIdentity) }
