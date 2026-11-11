@@ -155,9 +155,9 @@ class SpriteEditorStateTest {
         state.startStroke(frame, IntOffset(0, 3), isSecondary = false)
         (1..3).forEach { state.continueStroke(IntOffset(it, 3)) }
         state.continueStroke(IntOffset(0, 3))
-        assertEquals((0..3).map { Pixel(it, 3, blue) }, state.strokePreview)
+        assertEquals((0..3).map { Pixel(it, 3, blue) }, state.strokeTrail.toList())
         assertEquals((0..3).map { Pixel(it, 3, blue) }, state.finishStroke())
-        assertEquals(emptyList(), state.strokePreview)
+        assertEquals(emptyList(), state.strokeTrail.toList())
     }
 
     @Test
@@ -179,5 +179,19 @@ class SpriteEditorStateTest {
         file.writeBytes(changed)
         file.setLastModified(stamp)
         assertEquals(frame.with(listOf(Pixel(3, 3, blue))), reader.read(file), "a rewrite within the same moment is read")
+    }
+
+    @Test
+    fun aFillIsWorkedOutOnceWhereItStartsAndAShapeAsThePointerMoves() {
+        state.tool = SpriteTool.FILL
+        state.startStroke(frame, IntOffset(3, 3), isSecondary = false)
+        val filled = state.strokeShape
+        state.continueStroke(IntOffset(0, 0))
+        kotlin.test.assertSame(filled, state.strokeShape)
+        assertEquals(14, state.finishStroke().size)
+        state.tool = SpriteTool.LINE
+        state.startStroke(frame, IntOffset(0, 3), isSecondary = false)
+        state.continueStroke(IntOffset(3, 3))
+        assertEquals(4, state.strokeShape.size)
     }
 }

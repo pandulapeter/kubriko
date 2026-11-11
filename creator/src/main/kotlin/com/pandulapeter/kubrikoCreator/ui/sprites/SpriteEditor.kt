@@ -118,6 +118,8 @@ internal fun SpriteEditor(
             onImageAction = { action -> action.operation?.let(editImage) ?: run { askedAction = action } },
             onFrameStep = { step ->
                 draw(state.settle(frame))
+                // What is drawn but not read back yet belongs to the frame left; it is saved all the same.
+                state.pendingPixels = emptyList()
                 state.frameIndex = (frameIndex + step).mod(frames.frames.size)
             },
             onFit = { state.zoomToFit(frame.width, frame.height, canvasSize.width.toFloat(), canvasSize.height.toFloat()) },
@@ -160,11 +162,12 @@ internal fun SpriteEditor(
 
 /**
  * Draws [pixels] on frame [frameIndex] of the sprite at [path] through [onCommand], as one step. They show over the frame
- * ([SpriteEditorState.pendingPixels], which the canvas sets as it draws) until the image is read again, or until the
- * write is refused or fails, which leaves the image as it was.
+ * ([SpriteEditorState.pendingPixels]) until the image is read again, or until the write is refused or fails, which
+ * leaves the image as it was.
  */
 internal fun SpriteEditorState.draw(pixels: List<Pixel>, path: String, frameIndex: Int, onCommand: (Invocation<*>, onFailure: () -> Unit) -> Rejection?) {
     if (pixels.isEmpty()) return
+    pendingPixels = pixels
     val dropPending = { if (pendingPixels === pixels) pendingPixels = emptyList() }
     if (onCommand(Invocation(DrawPixels, DrawPixels.inputOf(path, frameIndex, pixels)), dropPending) != null) dropPending()
 }

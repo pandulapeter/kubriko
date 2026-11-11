@@ -58,8 +58,8 @@ internal fun SpriteCanvas(
     modifier: Modifier = Modifier,
 ) {
     val bitmap = remember(frame) { frame.toImageBitmap() }
-    val overlay = remember(frame.width, frame.height, state.pendingPixels, state.strokePreview) {
-        overlayOf(frame.width, frame.height, state.pendingPixels + state.strokePreview)?.toImageBitmap()
+    val overlay = remember(frame.width, frame.height, state.pendingPixels, state.strokeShape) {
+        overlayOf(frame.width, frame.height, state.pendingPixels + state.strokeShape)?.toImageBitmap()
     }
     val floatingImage = state.floating?.image
     val floatingBitmap = remember(floatingImage) { floatingImage?.toImageBitmap() }
@@ -68,11 +68,7 @@ internal fun SpriteCanvas(
     val selectionColor = MaterialTheme.colorScheme.primary
     val canvasSize = remember { arrayOf(Size.Zero) }
     fun geometry() = SpriteCanvasGeometry(canvasSize[0], currentFrame.width, currentFrame.height, state.zoom, state.pan)
-    fun draw(pixels: List<Pixel>) {
-        if (pixels.isEmpty()) return
-        state.pendingPixels = pixels
-        currentOnDraw(pixels)
-    }
+    fun draw(pixels: List<Pixel>) = currentOnDraw(pixels)
     Box(
         modifier = modifier
             .background(MaterialTheme.colorScheme.surfaceContainerLowest)
@@ -118,6 +114,7 @@ internal fun SpriteCanvas(
                 filterQuality = FilterQuality.None,
             )
             clipRect(imageBounds.left, imageBounds.top, imageBounds.right, imageBounds.bottom) {
+                drawTrail(geometry, state.strokeTrail, state.zoom)
                 overlay?.let {
                     drawImage(
                         image = it,
@@ -146,6 +143,17 @@ internal fun SpriteCanvas(
             }
             state.cursor?.let { cursor -> drawRect(selectionColor.copy(alpha = 0.6f), geometry.positionOf(cursor.x, cursor.y), Size(state.zoom.toFloat(), state.zoom.toFloat()), style = Stroke(1f)) }
         }
+    }
+}
+
+/**
+ * The pixels a pencil or an eraser stroke covered so far, each a square, the erased ones in the checkerboard's light gray.
+ */
+private fun DrawScope.drawTrail(geometry: SpriteCanvasGeometry, trail: List<Pixel>, zoom: Int) {
+    val pixelSize = Size(zoom.toFloat(), zoom.toFloat())
+    for (index in trail.indices) {
+        val pixel = trail[index]
+        drawRect(if (pixel.color == PixelImage.TRANSPARENT) CHECKERBOARD_LIGHT else Color(pixel.color), geometry.positionOf(pixel.x, pixel.y), pixelSize)
     }
 }
 

@@ -11,8 +11,10 @@ package com.pandulapeter.kubrikoCreator.ui.sprites
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
@@ -55,13 +57,19 @@ internal class SpriteEditorState {
     private val strokePoints = ArrayList<IntOffset>()
     private var strokeFrame: PixelImage? = null
     private var strokeColor = PixelImage.TRANSPARENT
-    private val strokeCovered = LinkedHashMap<IntOffset, Pixel>()
+    private val strokeCovered = HashSet<IntOffset>()
 
     /**
-     * The pixels the stroke being drawn covers so far, worked out as the pointer moves (a pencil's only along its newest
-     * part), so drawing a frame reads them as they are.
+     * The pixels a pencil or eraser stroke being drawn covered so far, each once, growing in place as the pointer moves
+     * (only along its newest part), so a long stroke never copies or redraws more than it adds.
      */
-    var strokePreview by mutableStateOf<List<Pixel>>(emptyList())
+    val strokeTrail: SnapshotStateList<Pixel> = mutableStateListOf()
+
+    /**
+     * The pixels a shape or a fill being drawn covers: a shape's worked out again as the pointer moves, since it takes
+     * another shape, a fill's once, since it depends only on where it started.
+     */
+    var strokeShape by mutableStateOf<List<Pixel>>(emptyList())
         private set
 
     var selection by mutableStateOf<IntRect?>(null)
@@ -141,25 +149,27 @@ internal class SpriteEditorState {
     /**
      * Ends the stroke, returning the pixels it draws, none when there was no stroke.
      */
-    fun finishStroke(): List<Pixel> = strokePreview.also { clearStroke() }
+    fun finishStroke(): List<Pixel> = (if (tool == SpriteTool.PENCIL || tool == SpriteTool.ERASER) strokeTrail.toList() else strokeShape).also { clearStroke() }
 
     private fun updateStroke(newPart: List<IntOffset>) {
         val frame = strokeFrame ?: return
-        if (tool == SpriteTool.PENCIL || tool == SpriteTool.ERASER) {
-            strokePixels(tool, newPart, frame, strokeColor).forEach { strokeCovered.putIfAbsent(IntOffset(it.x, it.y), it) }
-        } else {
-            strokeCovered.clear()
-            strokePixels(tool, listOf(strokePoints.first(), strokePoints.last()), frame, strokeColor, isShapeFilled, isFillContiguous)
-                .forEach { strokeCovered[IntOffset(it.x, it.y)] = it }
+        when (tool) {
+            SpriteTool.PENCIL, SpriteTool.ERASER -> strokePixels(tool, newPart, frame, strokeColor).forEach { pixel ->
+                if (strokeCovered.add(IntOffset(pixel.x, pixel.y))) strokeTrail += pixel
+            }
+            SpriteTool.FILL -> if (strokePoints.size == 1) strokeShape = strokePixels(tool, strokePoints, frame, strokeColor, isContiguous = isFillContiguous)
+            SpriteTool.LINE, SpriteTool.RECTANGLE, SpriteTool.ELLIPSE ->
+                strokeShape = strokePixels(tool, listOf(strokePoints.first(), strokePoints.last()), frame, strokeColor, isShapeFilled)
+            SpriteTool.PICKER, SpriteTool.SELECT -> Unit
         }
-        strokePreview = strokeCovered.values.toList()
     }
 
     private fun clearStroke() {
         strokePoints.clear()
         strokeCovered.clear()
         strokeFrame = null
-        strokePreview = emptyList()
+        strokeTrail.clear()
+        strokeShape = emptyList()
     }
 
     fun pickColor(frame: PixelImage, at: IntOffset, isSecondary: Boolean) {

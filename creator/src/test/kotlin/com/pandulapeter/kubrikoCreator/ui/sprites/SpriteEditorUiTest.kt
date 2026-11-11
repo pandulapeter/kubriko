@@ -62,7 +62,6 @@ class SpriteEditorUiTest {
             release(MouseButton.Secondary)
         }
         assertEquals(listOf(Pixel(0, 3, red)), drawn.last())
-        assertEquals(listOf(Pixel(0, 3, red)), state.pendingPixels, "drawn pixels show until the frame is read again")
     }
 
     @Test
