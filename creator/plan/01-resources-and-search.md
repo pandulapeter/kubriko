@@ -13,14 +13,6 @@ Every kind of resource added, renamed, and deleted from Creator, folders for the
 few dozen Actor types, Scenes, or sprites. Folders are plain files where the format allows it, so the project stays readable in
 IntelliJ and git (`../CLAUDE.md` → Principles 1). Each addition lands with its command and AI tool.
 
-## Deleting a full folder
-
-`delete_folder` takes only an empty folder today; a full one deletes its contents as their own deletes would, in one undo step,
-listing them in the confirmation. `ProjectReferences` gains the kind, so the confirmation, `check_change`, and the AI's result show
-them. Tested as
-`DeletingWithUsagesTest` and `DeletingEveryThingTest` test types, Scenes, and Properties: every usage, its cleanup, and a byte-for-byte
-undo.
-
 ## Folders
 
 - **Sprites:** virtual folders, since Compose resources take no subfolders in `drawable` (only a folder's direct files become
@@ -54,5 +46,4 @@ undo.
 
 ## Order
 
-Deleting a full folder, then folders, then the filter field and quick
-open, find usages, search in Blocks and pages with the AI tools, and searching conversations last.
+Folders, then the filter field and quick open, find usages, search in Blocks and pages with the AI tools, and searching conversations last.

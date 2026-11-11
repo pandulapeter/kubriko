@@ -74,7 +74,7 @@ internal class ReferenceCleanup(
                             removal.blocks.getOrPut(eventIndex, ::HashSet) += ProjectReferences.sectionOf(blocks, checkNotNull(blockIndex))
                         }
                         UsageEffect.PLACEHOLDER_TO_TEXT, UsageEffect.ACTORS_REMOVED, UsageEffect.KOTLIN_TO_CHANGE, UsageEffect.PREVENTS_DELETING, UsageEffect.MENTION_TO_TEXT,
-                        UsageEffect.SPRITE_CLEARED, UsageEffect.MUSIC_CLEARED, UsageEffect.IMAGE_COPIED,
+                        UsageEffect.SPRITE_CLEARED, UsageEffect.MUSIC_CLEARED, UsageEffect.IMAGE_COPIED, UsageEffect.DELETED_WITH_FOLDER,
                         -> Unit
                     }
                 }

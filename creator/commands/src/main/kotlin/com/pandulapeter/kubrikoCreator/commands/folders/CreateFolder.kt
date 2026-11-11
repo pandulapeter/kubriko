@@ -33,7 +33,7 @@ public object CreateFolder : WriteCommand<CreateFolder.Input> {
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         context.createFolder(input.group, input.path)
-        return Applied(inverse = Invocation(DeleteFolder, DeleteFolder.Input(input.group, input.path)))
+        return Applied(inverse = Invocation(DeleteFolder, DeleteFolder.Input(input.group, input.path, keepsContents = true)))
     }
 
     @Serializable

@@ -59,9 +59,15 @@ class RenamingFollowsReferencesTest {
     private val audioKinds = setOf(RelationKind.PLAYS, RelationKind.NAMES_IN_KOTLIN, RelationKind.MENTIONS)
     private val timerKinds = setOf(RelationKind.USES_TIMER, RelationKind.NAMES_IN_KOTLIN)
 
+    /**
+     * What a folder holds isn't named in it, so renaming the folder has nothing to follow: it moves its contents
+     * (`FolderCommandsTest`).
+     */
+    private val folderKinds = setOf(RelationKind.IS_IN)
+
     @Test
     fun everyKindOfReferenceIsCoveredByARename() {
-        assertEquals(RelationKind.entries.toSet(), actorTypeKinds + managerTypeKinds + sceneKinds + propertyKinds + pageKinds + spriteKinds + audioKinds + timerKinds)
+        assertEquals(RelationKind.entries.toSet(), actorTypeKinds + managerTypeKinds + sceneKinds + propertyKinds + pageKinds + spriteKinds + audioKinds + timerKinds + folderKinds)
     }
 
     private fun CommandContext.writeFile(path: String, text: String) = File(project.rootDirectory, path).apply { parentFile.mkdirs() }.writeText(text)

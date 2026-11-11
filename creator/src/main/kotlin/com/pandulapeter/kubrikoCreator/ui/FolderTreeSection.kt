@@ -72,7 +72,7 @@ internal class FolderTreeActions(
     val onCreateItem: (FolderGroup, name: String) -> Rejection?,
     val onCreateFolder: (FolderGroup, path: String) -> Rejection?,
     val onRenameFolder: (FolderGroup, path: String, newName: String) -> Rejection?,
-    val onDeleteFolder: (FolderGroup, path: String) -> Unit,
+    val onDeleteFolder: (FolderGroup, path: String, isEmpty: Boolean) -> Unit,
     val onRenameItem: (FolderGroup, name: String, newName: String) -> Rejection?,
     val onDeleteItem: (FolderGroup, name: String) -> Unit,
 )
@@ -251,13 +251,12 @@ private fun FolderTreeFolder(
             onToggle = { tree.toggle(key) },
             actions = if (isCreating) {
                 folderActions(
-                    isEmpty = row.isEmpty,
                     onNewFolder = {
                         tree.expand(key)
                         onNamingChange(SidebarNaming.NewFolder(group, row.path))
                     },
                     onRename = { onNamingChange(SidebarNaming.RenamedFolder(group, row.path)) },
-                    onDelete = { actions.onDeleteFolder(group, row.path) },
+                    onDelete = { actions.onDeleteFolder(group, row.path, row.isEmpty) },
                 )
             } else {
                 emptyList()

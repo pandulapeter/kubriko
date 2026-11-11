@@ -76,9 +76,3 @@ private fun folderNameRejection(group: FolderGroup, path: String): Rejection? = 
     FolderGroup.PAGES -> validatePageName(path)
     FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> FolderPaths.validatePath(path)?.let(::Rejection)
 }
-
-/**
- * Whether anything (a type, a Scene, or a folder) is in the folder at [path] of [group].
- */
-internal fun CommandContext.isFolderEmpty(group: FolderGroup, path: String) = itemsOf(group).none { (_, folder) -> FolderPaths.isWithin(folder, path) } &&
-    foldersOf(group).none { it != path && FolderPaths.isWithin(it, path) }

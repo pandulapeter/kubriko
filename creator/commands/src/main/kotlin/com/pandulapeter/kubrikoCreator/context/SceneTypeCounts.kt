@@ -41,22 +41,34 @@ internal suspend fun CommandContext.projectRelations() = ProjectRelations(types 
  * Everything that refers to the parts of the open project, with the hand-written Kotlin files only when those can name
  * [subject] ([ProjectReferences.readsKotlinFiles]).
  */
-internal suspend fun CommandContext.projectReferences(subject: RelationSubject): ProjectReferences {
+internal suspend fun CommandContext.projectReferences(subject: RelationSubject): ProjectReferences = projectReferences(listOf(subject)).single()
+
+/**
+ * [projectReferences] of each of [subjects], in their order, reading the project once for all of them: they differ only
+ * in the file a page links to to mention each.
+ */
+internal suspend fun CommandContext.projectReferences(subjects: List<RelationSubject>): List<ProjectReferences> {
     val types = blockTypes?.types?.value.orEmpty()
     // A Scene's Actors refer to nothing but their type, so no other subject's references need them.
-    val sceneCounts = if (subject is RelationSubject.Type) sceneTypeCounts() else emptyMap()
+    val sceneCounts = if (subjects.any { it is RelationSubject.Type }) sceneTypeCounts() else emptyMap()
     return withContext(ioDispatcher) {
-        val mentionedPath = mentionedPathOf(subject)
-        ProjectReferences(
-            types = types,
-            sceneTypeCounts = sceneCounts,
-            firstScene = firstSceneSettings(project.rootDirectory)?.firstScene,
-            kotlinFiles = if (ProjectReferences.readsKotlinFiles(subject)) HandWrittenKotlin.read(project.rootDirectory) else emptyMap(),
-            // Documents are the user's, which Creator changes only when asked to, so only pages are cleaned up; and
-            // pages are read only for what they can link to.
-            markdown = if (mentionedPath == null) emptyMap() else screenplayTexts().markdown.filterKeys { PageNaming.nameOf(it) != null },
-            mentionedPath = mentionedPath,
-            sceneMusic = if (subject is RelationSubject.Resource && ResourceKind.of(subject.path) == ResourceKind.MUSIC) sceneMusic() else emptyMap(),
-        )
+        val mentionedPaths = subjects.map { mentionedPathOf(it) }
+        val firstScene = firstSceneSettings(project.rootDirectory)?.firstScene
+        val kotlinFiles = if (subjects.any(ProjectReferences::readsKotlinFiles)) HandWrittenKotlin.read(project.rootDirectory) else emptyMap()
+        // Documents are the user's, which Creator changes only when asked to, so only pages are cleaned up; and
+        // pages are read only for what they can link to.
+        val markdown = if (mentionedPaths.all { it == null }) emptyMap() else screenplayTexts().markdown.filterKeys { PageNaming.nameOf(it) != null }
+        val music = if (subjects.any { it is RelationSubject.Resource && ResourceKind.of(it.path) == ResourceKind.MUSIC }) sceneMusic() else emptyMap()
+        mentionedPaths.map { mentionedPath ->
+            ProjectReferences(
+                types = types,
+                sceneTypeCounts = sceneCounts,
+                firstScene = firstScene,
+                kotlinFiles = kotlinFiles,
+                markdown = if (mentionedPath == null) emptyMap() else markdown,
+                mentionedPath = mentionedPath,
+                sceneMusic = music,
+            )
+        }
     }
 }

@@ -19,6 +19,7 @@ import kubriko.creator.generated.resources.game_map_collides_with
 import kubriko.creator.generated.resources.game_map_drawn_as
 import kubriko.creator.generated.resources.game_map_goes_to
 import kubriko.creator.generated.resources.game_map_inherits_from
+import kubriko.creator.generated.resources.game_map_is_in
 import kubriko.creator.generated.resources.game_map_mentions
 import kubriko.creator.generated.resources.game_map_moves_towards
 import kubriko.creator.generated.resources.game_map_names_in_kotlin
@@ -54,6 +55,7 @@ internal val RelationKind.label
         RelationKind.DRAWN_AS -> Res.string.game_map_drawn_as
         RelationKind.PLAYS -> Res.string.game_map_plays
         RelationKind.SHOWS -> Res.string.game_map_shows
+        RelationKind.IS_IN -> Res.string.game_map_is_in
     }
 
 /**

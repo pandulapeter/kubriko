@@ -39,6 +39,11 @@ public enum class UsageEffect(
     IMAGE_COPIED("the page shows a copy of the image kept next to it"),
 
     /**
+     * A type, Scene, or page in a deleted folder, deleted as its own delete would, cleaning up what refers to it.
+     */
+    DELETED_WITH_FOLDER("it is deleted with the folder"),
+
+    /**
      * What makes the delete refused: a child Actor type, or the game starting with the Scene.
      */
     PREVENTS_DELETING("prevents deleting it"),

@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
+import com.pandulapeter.kubrikoCreator.commands.folders.contentDeletesOf
+import com.pandulapeter.kubrikoCreator.commands.folders.folderUsagesOf
 import com.pandulapeter.kubrikoCreator.commands.resources.scenesWithMusicReplaced
 import com.pandulapeter.kubrikoCreator.commands.screenplay.KeepPageImages
 import com.pandulapeter.kubrikoCreator.commands.screenplay.UnlinkMentions
@@ -68,7 +70,11 @@ internal suspend fun CommandContext.deleteWithUsages(subject: RelationSubject, d
  * What deleting [subject] would do to each of its usages, as [deleteWithUsages] would make it: for the confirmation and
  * `check_change`.
  */
-internal suspend fun CommandContext.usagesOf(subject: RelationSubject): List<Usage> = projectReferences(subject).usagesOf(subject)
+internal suspend fun CommandContext.usagesOf(subject: RelationSubject): List<Usage> = if (subject is RelationSubject.Folder) {
+    folderUsagesOf(subject, contentDeletesOf(subject))
+} else {
+    projectReferences(subject).usagesOf(subject)
+}
 
 private suspend fun CommandContext.scenesWithout(subject: RelationSubject, usages: List<Usage>): Map<String, String> {
     fun scenesWith(effect: UsageEffect) = usages.filter { it.effect == effect }.mapNotNull { ((it.place as? UsagePlace.InModel)?.place as? RelationPlace.Scene)?.name }
@@ -77,7 +83,7 @@ private suspend fun CommandContext.scenesWithout(subject: RelationSubject, usage
             scenesWith(UsageEffect.ACTORS_REMOVED).associateWith { scene -> SceneDocument.format(checkNotNull(scenes.actors(scene)).filter { it.typeId != subject.name }) }
         }
         is RelationSubject.Resource -> withContext(ioDispatcher) { scenesWithMusicReplaced(scenesWith(UsageEffect.MUSIC_CLEARED), subject.path, "") }
-        is RelationSubject.Scene, is RelationSubject.Property, is RelationSubject.Page, is RelationSubject.Image, is RelationSubject.Timer -> emptyMap()
+        is RelationSubject.Scene, is RelationSubject.Property, is RelationSubject.Page, is RelationSubject.Image, is RelationSubject.Timer, is RelationSubject.Folder -> emptyMap()
     }
 }
 

@@ -73,13 +73,13 @@ class SceneRenamingCommandsTest {
     }
 
     @Test
-    fun sceneFoldersAreCreatedRenamedWithTheirScenesAndDeletedWhenEmpty() = runTest {
+    fun sceneFoldersAreCreatedAndRenamedWithTheirScenes() = runTest {
         val context = context()
         context.assertRoundTrip(Invocation(CreateFolder, CreateFolder.Input(FolderGroup.SCENES, "levels"))) { context.foldersOf(FolderGroup.SCENES) }
         assertEquals(Rejection(NameProblem.SCENE_CHARACTERS), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.SCENES, "two words")))
         assertEquals(Rejection(CommandProblem.SCENE_FOLDER_RESERVED, "build"), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.SCENES, "levels/build")))
         RenameScene.apply(context, RenameScene.Input("level-2", "levels/2"))
-        assertEquals(Rejection(CommandProblem.FOLDER_NOT_EMPTY, "levels"), DeleteFolder.validate(context, DeleteFolder.Input(FolderGroup.SCENES, "levels")))
+        assertEquals(Rejection(CommandProblem.FOLDER_NOT_EMPTY, "levels"), DeleteFolder.validate(context, DeleteFolder.Input(FolderGroup.SCENES, "levels", keepsContents = true)))
         val renamed = context.assertRoundTrip(Invocation(RenameFolder, RenameFolder.Input(FolderGroup.SCENES, "levels", "world"))) { context.scenes.names() }
         assertEquals(listOf("main", "world/2"), renamed)
     }

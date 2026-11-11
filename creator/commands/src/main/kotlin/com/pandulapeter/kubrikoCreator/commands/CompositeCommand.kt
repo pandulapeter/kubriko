@@ -10,12 +10,13 @@
 package com.pandulapeter.kubrikoCreator.commands
 
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 
 /**
- * Changes made as one step: its parts in order, undone in reverse. Kubriko Creator's own building block for changes no
+ * Changes made as one step: its parts in order, undone in reverse, the lists in their details joined. Kubriko Creator's own building block for changes no
  * single command makes; not a tool.
  */
 internal object CompositeCommand : WriteCommand<CompositeCommand.Input> {
@@ -60,7 +61,10 @@ internal object CompositeCommand : WriteCommand<CompositeCommand.Input> {
             inverses += applied.inverse?.copy(isRestoring = true)
             isRewritingFiles = isRewritingFiles || applied.isRewritingFiles
             result = applied.result
-            applied.details?.let(details::putAll)
+            applied.details?.forEach { (key, value) ->
+                val earlier = details[key]
+                details[key] = if (earlier is JsonArray && value is JsonArray) JsonArray(earlier + value) else value
+            }
             applied.broughtBack?.let(broughtBack::add)
         }
         val inverse = if (null in inverses) null else inverses.filterNotNull().asReversed().let { reverted -> reverted.singleOrNull() ?: Invocation(CompositeCommand, Input(reverted)) }

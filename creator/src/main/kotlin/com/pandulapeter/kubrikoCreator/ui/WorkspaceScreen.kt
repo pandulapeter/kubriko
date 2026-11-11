@@ -324,7 +324,7 @@ private fun WorkspaceDialogsOf(
             is RelationSubject.Type -> controller.selection.selectType(owner.name)
             is RelationSubject.Scene -> controller.selection.openScene(owner.name)
             is RelationSubject.Page -> controller.selection.openPage(owner.name)
-            is RelationSubject.Property, is RelationSubject.Image, is RelationSubject.Resource, is RelationSubject.Timer, null -> Unit
+            is RelationSubject.Property, is RelationSubject.Image, is RelationSubject.Resource, is RelationSubject.Timer, is RelationSubject.Folder, null -> Unit
         }
     },
 )

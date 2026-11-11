@@ -65,7 +65,7 @@ internal fun healthHintsOf(findings: List<HealthFinding>, types: List<BlockTypeD
                 is RelationSubject.Type -> (if (subject.name in managerTypes) FolderGroup.MANAGER_TYPES else FolderGroup.ACTOR_TYPES) to subject.name
                 is RelationSubject.Scene -> FolderGroup.SCENES to subject.name
                 is RelationSubject.Page -> FolderGroup.PAGES to subject.name
-                is RelationSubject.Property, is RelationSubject.Image, is RelationSubject.Resource, is RelationSubject.Timer -> null
+                is RelationSubject.Property, is RelationSubject.Image, is RelationSubject.Resource, is RelationSubject.Timer, is RelationSubject.Folder -> null
             }
         }.filterKeys { it != null }.mapKeys { checkNotNull(it.key) },
         places = findings

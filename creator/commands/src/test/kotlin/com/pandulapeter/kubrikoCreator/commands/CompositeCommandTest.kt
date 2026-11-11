@@ -15,6 +15,10 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import java.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -39,6 +43,30 @@ class CompositeCommandTest {
         override fun validate(context: CommandContext, input: NoInput): Rejection? = null
 
         override suspend fun apply(context: CommandContext, input: NoInput): Applied = throw IOException("Locked.")
+    }
+
+    private fun reporting(key: String, value: JsonElement) = Invocation(
+        object : WriteCommand<NoInput> {
+            override val name = "reporting"
+            override val description = "Reports."
+            override val inputSerializer = NoInput.serializer()
+
+            override fun validate(context: CommandContext, input: NoInput): Rejection? = null
+
+            override suspend fun apply(context: CommandContext, input: NoInput) = Applied(inverse = Invocation(this, NoInput), details = JsonObject(mapOf(key to value)))
+        },
+        NoInput,
+    )
+
+    @Test
+    fun theListsInThePartsDetailsAreJoinedAndTheRestTakenFromTheLastPart() = runTest {
+        val details = composite(
+            reporting("deleted", JsonArray(listOf(JsonPrimitive("a")))),
+            reporting("deleted", JsonArray(listOf(JsonPrimitive("b")))),
+            reporting("note", JsonPrimitive("first")),
+            reporting("note", JsonPrimitive("last")),
+        ).apply(commandContext(ball)).details
+        assertEquals(JsonObject(mapOf("deleted" to JsonArray(listOf(JsonPrimitive("a"), JsonPrimitive("b"))), "note" to JsonPrimitive("last"))), details)
     }
 
     @Test

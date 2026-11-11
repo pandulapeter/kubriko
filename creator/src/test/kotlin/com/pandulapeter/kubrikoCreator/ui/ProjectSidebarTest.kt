@@ -65,7 +65,7 @@ class ProjectSidebarTest {
         onCreateItem = { _, _ -> null },
         onCreateFolder = { _, _ -> null },
         onRenameFolder = { _, _, _ -> null },
-        onDeleteFolder = { _, _ -> },
+        onDeleteFolder = { _, _, _ -> },
         onRenameItem = { group, name, newName -> null.also { renamedItems += Triple(group, name, newName) } },
         onDeleteItem = { group, name -> deletedItems += group to name },
     )

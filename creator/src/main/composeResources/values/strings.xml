@@ -698,7 +698,7 @@
     <string name="error_command_actor_property_missing_similar">%1$s has no Property called %2$s. Close matches: %3$s.</string>
     <string name="error_command_property_value_invalid">Give %1$s one value, of the kind the Property is.</string>
     <string name="error_folder_exists">There's already a folder called %1$s.</string>
-    <string name="error_folder_top">The top of a group isn't a folder, so it can't be renamed. Name one of its folders.</string>
+    <string name="error_folder_top">The top of a group isn't a folder. Name one of its folders.</string>
     <string name="error_folder_missing">There's no folder called %1$s.</string>
     <string name="error_command_folder_missing_similar">There's no folder called %1$s. Close matches: %2$s.</string>
     <string name="error_folder_not_empty">%1$s isn't empty. Move what's in it out first.</string>
@@ -955,10 +955,12 @@
     <string name="game_map_drawn_as">Is drawn as %1$s</string>
     <string name="game_map_plays">Plays %1$s</string>
     <string name="game_map_shows">Shows %1$s</string>
+    <string name="game_map_is_in">Is in %1$s</string>
     <string name="delete_confirmation_title_type">Delete %1$s?</string>
     <string name="delete_confirmation_title_scene">Delete the Scene %1$s?</string>
     <string name="delete_confirmation_title_resource">Delete %1$s?</string>
     <string name="delete_confirmation_title_timer">Delete the Timer %1$s?</string>
+    <string name="delete_confirmation_title_folder">Delete the folder %1$s and everything in it?</string>
     <string name="delete_confirmation_title_property">Remove the Property %1$s?</string>
     <string name="delete_confirmation_loading">Looking for what uses it…</string>
     <string name="delete_confirmation_none">Nothing else uses it. You can undo this.</string>
@@ -985,6 +987,7 @@
     <string name="usage_effect_sprite_cleared">Its Actors are drawn as its shape</string>
     <string name="usage_effect_music_cleared">The Scene plays no music</string>
     <string name="usage_effect_image_copied">The page shows a copy of the image, kept next to it</string>
+    <string name="usage_effect_deleted_with_folder">Deleted with the folder</string>
     <string name="game_map_empty">Nothing yet: create an Actor type or a Scene, and it shows up here.</string>
     <string name="action_new_conversation">New conversation</string>
     <string name="assistant_new_conversation_offer">Done? Start a new conversation</string>

@@ -39,6 +39,6 @@ internal val HealthFinding.place: HealthFindingPlace?
             is RelationSubject.Timer -> HealthFindingPlace.Type(subject.owner)
             is RelationSubject.Scene -> HealthFindingPlace.Scene(subject.name)
             is RelationSubject.Page -> HealthFindingPlace.Page(subject.name)
-            is RelationSubject.Image, is RelationSubject.Resource -> null
+            is RelationSubject.Image, is RelationSubject.Resource, is RelationSubject.Folder -> null
         }
     }

@@ -40,7 +40,7 @@ internal object MissingReferenceChecks {
                 is RelationSubject.Type -> relation.kind != RelationKind.PLACES && relation.kind != RelationKind.NAMES_IN_KOTLIN && subject.name !in typeNames
                 is RelationSubject.Scene -> subject.name !in scenes
                 is RelationSubject.Property -> declared[subject.owner]?.contains(subject.name) != true
-                is RelationSubject.Page, is RelationSubject.Image, is RelationSubject.Resource, is RelationSubject.Timer -> false
+                is RelationSubject.Page, is RelationSubject.Image, is RelationSubject.Resource, is RelationSubject.Timer, is RelationSubject.Folder -> false
             }
         }.map { finding(it.place, it.subject.toString()) }
         val missingSceneMusic = audioFiles?.let { files ->

@@ -63,7 +63,7 @@ internal fun rememberSidebarDragState(commands: CommandExecutor, creation: Works
 
 /**
  * What the sidebar's groups with folders do, each through the command for it; a delete waits for its confirmation
- * ([WorkspaceUiState.dispatch]).
+ * ([WorkspaceUiState.dispatch]), but for an empty folder's.
  */
 @Composable
 internal fun rememberFolderTreeActions(
@@ -91,7 +91,11 @@ internal fun rememberFolderTreeActions(
         },
         onCreateFolder = { group, path -> commands.dispatchIfValid(Invocation(CreateFolder, CreateFolder.Input(group, path))) },
         onRenameFolder = { group, path, newName -> commands.dispatchIfValid(Invocation(RenameFolder, RenameFolder.Input(group, path, newName))) },
-        onDeleteFolder = { group, path -> commands.dispatch(Invocation(DeleteFolder, DeleteFolder.Input(group, path))) },
+        onDeleteFolder = { group, path, isEmpty ->
+            val invocation = Invocation(DeleteFolder, DeleteFolder.Input(group, path))
+            // An empty folder takes nothing with it, so it goes without asking, as it always has.
+            if (isEmpty) commands.dispatch(invocation) else uiState.dispatch(invocation = invocation, onSuccess = {}, dispatch = commands::dispatch)
+        },
         onRenameItem = { group, name, newName ->
             commands.dispatchIfValid(
                 when (group) {

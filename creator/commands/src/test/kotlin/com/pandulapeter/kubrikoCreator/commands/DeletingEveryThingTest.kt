@@ -23,6 +23,8 @@ import com.pandulapeter.kubrikoCreator.actors.timerNames
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteTimer
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveProperty
+import com.pandulapeter.kubrikoCreator.commands.folders.DeleteFolder
+import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
 import com.pandulapeter.kubrikoCreator.commands.resources.DeleteResource
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
@@ -62,6 +64,23 @@ class DeletingEveryThingTest {
                     }
                 }
                 (other as? ManagerTypeDefinition)?.texts?.forEach { text -> assertTrue(PropertyPlaceholders.find(text.text).none { it.manager == type.name }, "${other.name} still shows $text.") }
+            }
+        }
+    }
+
+    @Test
+    fun noActorTypeIsNamedOnceItsFolderIsDeleted() = runTest {
+        val types = EveryBlockTypes.all.map { if (it is ActorTypeDefinition) it.copy(folder = "cast") else it }
+        val context = commandContext(*types.toTypedArray())
+        val invocation = Invocation(DeleteFolder, DeleteFolder.Input(FolderGroup.ACTOR_TYPES, "cast"))
+        assertNull(invocation.validate(context))
+        assertNull(invocation.apply(context).failure)
+        val deleted = types.filterIsInstance<ActorTypeDefinition>().mapTo(HashSet()) { it.name }
+        assertEquals(types.size - deleted.size, context.blockTypes!!.types.value.size)
+        context.blockTypes!!.types.value.forEach { other ->
+            other.events.forEach { event ->
+                assertTrue(event.otherActorType !in deleted, "${other.name} still collides with ${event.otherActorType}.")
+                event.blocks.forEach { block -> assertTrue(block.actorTypeReference !in deleted, "${other.name} still has $block.") }
             }
         }
     }

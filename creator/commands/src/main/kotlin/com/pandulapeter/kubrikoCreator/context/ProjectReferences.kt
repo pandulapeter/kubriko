@@ -108,7 +108,7 @@ internal class ProjectReferences(
             RelationKind.ADDS, RelationKind.MOVES_TOWARDS, RelationKind.GOES_TO, RelationKind.CHANGES -> usage(UsageEffect.BLOCK_REMOVED)
             RelationKind.STARTS_WITH -> usage(UsageEffect.PREVENTS_DELETING)
             RelationKind.MENTIONS -> usage(UsageEffect.MENTION_TO_TEXT)
-            RelationKind.DRAWN_AS, RelationKind.PLAYS, RelationKind.SHOWS, RelationKind.USES_TIMER -> error("${relation.kind} is found apart from the relations, never among them.")
+            RelationKind.DRAWN_AS, RelationKind.PLAYS, RelationKind.SHOWS, RelationKind.USES_TIMER, RelationKind.IS_IN -> error("${relation.kind} is found apart from the relations, never among them.")
             RelationKind.READS -> when (val block = blockAt(relation.place)) {
                 is BlockDefinition.If -> usage(UsageEffect.SECTION_REMOVED, sectionOf(relation.place as RelationPlace.Type).count() - 1)
                 null, is BlockDefinition.Log -> usage(UsageEffect.PLACEHOLDER_TO_TEXT)
@@ -168,7 +168,7 @@ internal class ProjectReferences(
                 addAll(kotlinNamingScene(subject))
                 return@buildList
             }
-            is RelationSubject.Page, is RelationSubject.Image, is RelationSubject.Resource, is RelationSubject.Timer -> return@buildList
+            is RelationSubject.Page, is RelationSubject.Image, is RelationSubject.Resource, is RelationSubject.Timer, is RelationSubject.Folder -> return@buildList
         }
         types.forEach { type ->
             if (subject is RelationSubject.Type && type.name == subject.name) return@forEach
@@ -212,7 +212,7 @@ internal class ProjectReferences(
         is RelationSubject.Type -> Regex("\\b" + Regex.escape(subject.name) + "\\b")::containsMatchIn
         is RelationSubject.Scene -> sceneString(subject.name).let { quoted -> { text -> quoted in text } }
         is RelationSubject.Resource -> resourceNaming(subject)
-        is RelationSubject.Property, is RelationSubject.Page, is RelationSubject.Image, is RelationSubject.Timer -> { _ -> false }
+        is RelationSubject.Property, is RelationSubject.Page, is RelationSubject.Image, is RelationSubject.Timer, is RelationSubject.Folder -> { _ -> false }
     }
 
     private fun blockAt(place: RelationPlace) = (place as? RelationPlace.Type)?.let { type ->

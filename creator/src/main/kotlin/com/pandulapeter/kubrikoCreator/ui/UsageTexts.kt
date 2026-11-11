@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.context.UsagePlace
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import com.pandulapeter.kubrikoCreator.ui.gameMap.label
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.delete_confirmation_title_folder
 import kubriko.creator.generated.resources.delete_confirmation_title_property
 import kubriko.creator.generated.resources.delete_confirmation_title_resource
 import kubriko.creator.generated.resources.delete_confirmation_title_scene
@@ -27,6 +28,7 @@ import kubriko.creator.generated.resources.document_delete_title
 import kubriko.creator.generated.resources.page_delete_title
 import kubriko.creator.generated.resources.usage_effect_actors_removed
 import kubriko.creator.generated.resources.usage_effect_block_removed
+import kubriko.creator.generated.resources.usage_effect_deleted_with_folder
 import kubriko.creator.generated.resources.usage_effect_event_removed
 import kubriko.creator.generated.resources.usage_effect_image_copied
 import kubriko.creator.generated.resources.usage_effect_kotlin_to_change
@@ -57,6 +59,7 @@ internal fun RelationSubject.deleteConfirmationTitle() = when (this) {
     is RelationSubject.Image -> stringResource(Res.string.document_delete_title, path)
     is RelationSubject.Resource -> stringResource(Res.string.delete_confirmation_title_resource, path)
     is RelationSubject.Timer -> stringResource(Res.string.delete_confirmation_title_timer, name)
+    is RelationSubject.Folder -> stringResource(Res.string.delete_confirmation_title_folder, path)
 }
 
 /**
@@ -103,6 +106,7 @@ internal fun UsageEffect.text() = stringResource(
         UsageEffect.SPRITE_CLEARED -> Res.string.usage_effect_sprite_cleared
         UsageEffect.MUSIC_CLEARED -> Res.string.usage_effect_music_cleared
         UsageEffect.IMAGE_COPIED -> Res.string.usage_effect_image_copied
+        UsageEffect.DELETED_WITH_FOLDER -> Res.string.usage_effect_deleted_with_folder
     },
 )
 

@@ -120,18 +120,17 @@ internal fun SidebarFolderRow(
 }
 
 /**
- * What a folder of a group with folders offers: a new folder inside it, renaming it, and, while it [isEmpty], deleting it.
+ * What a folder of a group with folders offers: a new folder inside it, renaming it, and deleting it with what it holds.
  */
 @Composable
 internal fun folderActions(
-    isEmpty: Boolean,
     onNewFolder: () -> Unit,
     onRename: () -> Unit,
     onDelete: () -> Unit,
-) = listOfNotNull(
+) = listOf(
     ContextAction(stringResource(Res.string.action_new_folder), Res.drawable.ic_create_new_folder, onClick = onNewFolder),
     ContextAction(stringResource(Res.string.action_rename), Res.drawable.ic_edit, onClick = onRename),
-    ContextAction(stringResource(Res.string.action_delete_folder), Res.drawable.ic_delete, isDestructive = true, onClick = onDelete).takeIf { isEmpty },
+    ContextAction(stringResource(Res.string.action_delete_folder), Res.drawable.ic_delete, isDestructive = true, onClick = onDelete),
 )
 
 /**

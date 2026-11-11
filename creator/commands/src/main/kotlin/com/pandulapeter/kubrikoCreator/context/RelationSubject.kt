@@ -9,9 +9,11 @@
  */
 package com.pandulapeter.kubrikoCreator.context
 
+import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
+
 /**
  * What a relation refers to: an Actor type or Manager type, one of their Properties, a Scene, a page of the screenplay,
- * a Timer, a sprite, sound, or music file, or an image next to the pages.
+ * a Timer, a sprite, sound, or music file, an image next to the pages, or a folder of the sidebar.
  */
 public sealed interface RelationSubject {
 
@@ -72,5 +74,15 @@ public sealed interface RelationSubject {
         val path: String,
     ) : RelationSubject {
         override fun toString(): String = path
+    }
+
+    /**
+     * A folder of the sidebar, by its path (`enemies/flying`), with everything in it.
+     */
+    public data class Folder(
+        val group: FolderGroup,
+        val path: String,
+    ) : RelationSubject {
+        override fun toString(): String = "folder $path"
     }
 }

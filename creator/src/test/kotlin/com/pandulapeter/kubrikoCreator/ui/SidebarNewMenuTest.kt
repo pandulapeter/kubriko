@@ -57,7 +57,7 @@ class SidebarNewMenuTest {
         onCreateItem = { group, name -> null.also { createdItems += group to name } },
         onCreateFolder = { _, _ -> null },
         onRenameFolder = { _, _, _ -> null },
-        onDeleteFolder = { _, _ -> },
+        onDeleteFolder = { _, _, _ -> },
         onRenameItem = { _, _, _ -> null },
         onDeleteItem = { _, _ -> },
     )

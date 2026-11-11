@@ -54,4 +54,9 @@ public enum class RelationKind(
      * A page's image of a sprite, which only [ProjectReferences] reports.
      */
     SHOWS("shows"),
+
+    /**
+     * A type, Scene, or page in a folder, which only deleting the folder reports.
+     */
+    IS_IN("is in"),
 }

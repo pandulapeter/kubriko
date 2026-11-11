@@ -46,15 +46,15 @@ class FolderCommandsTest {
     }
 
     @Test
-    fun foldersAreCreatedAndDeletedOnlyWhenEmpty() = runTest {
+    fun foldersAreCreatedAndDeleted() = runTest {
         val context = commandContext(bat, wall, game)
         val created = context.assertRoundTrip(Invocation(CreateFolder, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "enemies/walking"))) { context.actorFolders() }
         assertEquals(setOf("enemies", "enemies/flying", "enemies/walking"), created)
         assertEquals(Rejection(CommandProblem.FOLDER_EXISTS, "Enemies"), context.rejection(CreateFolder, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "Enemies")))
         assertEquals(Rejection(LookupProblem.FOLDER_MISSING, "props"), context.rejection(CreateFolder, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "props/walls")))
         assertEquals(Rejection(NameProblem.PATH_PART_EMPTY), context.rejection(CreateFolder, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "a//b")))
-        assertEquals(Rejection(CommandProblem.FOLDER_NOT_EMPTY, "enemies/flying"), context.rejection(DeleteFolder, DeleteFolder.Input(FolderGroup.ACTOR_TYPES, "enemies/flying")))
-        assertEquals(Rejection(CommandProblem.FOLDER_NOT_EMPTY, "enemies"), context.rejection(DeleteFolder, DeleteFolder.Input(FolderGroup.ACTOR_TYPES, "enemies")))
+        assertEquals(Rejection(CommandProblem.FOLDER_NOT_EMPTY, "enemies"), context.rejection(DeleteFolder, DeleteFolder.Input(FolderGroup.ACTOR_TYPES, "enemies", keepsContents = true)))
+        assertEquals(Rejection(CommandProblem.FOLDER_TOP), context.rejection(DeleteFolder, DeleteFolder.Input(FolderGroup.ACTOR_TYPES, "")))
         assertEquals(setOf("enemies", "enemies/flying"), context.assertRoundTrip(Invocation(DeleteFolder, DeleteFolder.Input(FolderGroup.ACTOR_TYPES, "enemies/walking"))) { context.actorFolders() })
         assertEquals(Rejection(CommandProblem.NO_ACTOR_TYPES), commandContext(blockTypes = null).rejection(CreateFolder, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "x")))
     }
