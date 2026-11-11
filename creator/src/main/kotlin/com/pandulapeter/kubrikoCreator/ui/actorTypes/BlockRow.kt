@@ -258,6 +258,7 @@ private fun InlineParameters(
     is BlockDefinition.SetVelocity -> OffsetParameters(block.x, block.y, isVelocity = true) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
     is BlockDefinition.AddToVelocity -> OffsetParameters(block.x, block.y, isVelocity = true) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
     is BlockDefinition.JumpTo -> OffsetParameters(block.x, block.y, isVelocity = false) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
+    is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation -> AnimationBlockParameters(block, onBlockChange)
     is BlockDefinition.Log -> BufferedTextField(
         modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
         value = block.message,
@@ -317,6 +318,6 @@ private val BlockKind.hasInlineParameters
         BlockKind.SET_VELOCITY, BlockKind.ADD_TO_VELOCITY, BlockKind.JUMP_TO, BlockKind.SET_NUMBER, BlockKind.CHANGE_NUMBER,
         BlockKind.SET_TEXT, BlockKind.SET_TOGGLE, BlockKind.ADD_ACTOR, BlockKind.MOVE_TOWARDS_NEAREST, BlockKind.START_TIMER,
         BlockKind.STOP_TIMER, BlockKind.GO_TO_SCENE, BlockKind.PAUSE_GAME, BlockKind.PLAY_SOUND, BlockKind.PLAY_MUSIC,
-        BlockKind.IF, BlockKind.REPEAT, BlockKind.LOG,
+        BlockKind.IF, BlockKind.REPEAT, BlockKind.LOG, BlockKind.SET_FRAME, BlockKind.SET_ANIMATION,
         -> true
     }

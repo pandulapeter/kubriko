@@ -32,13 +32,19 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendVeloc
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.collisionTargetOrder
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.maskClassOf
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.maskTypeOf
+import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.STEP_ANIMATION_LINE
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.appendLook
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.appendSavedState
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.ABSOLUTE_VALUE_IMPORT
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.ANIMATION_LOOPING_FIELD
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.ANIMATION_SPEED_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.REMOVED_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.SCENE_OFFSET_IMPORT
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.SET_FRAME_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STATE_MANAGER_FIELD
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STEP_ANIMATION_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.EventFunctions.appendFunction
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 
 /**
  * Writes the class of an Actor type that does the work, the same way for a type of its own and for the topmost type of a
@@ -90,6 +96,7 @@ internal class ActorClassEmitter(
         definition: ActorTypeDefinition,
         properties: List<PropertyDefinition>,
         packageName: String,
+        sheet: SpriteSheet?,
     ) {
         if (role == Role.STANDALONE) imports += features.codeImports
         appendHeader(definition, properties)
@@ -104,6 +111,7 @@ internal class ActorClassEmitter(
         features.lookups.forEach { appendLine("    $visibility lateinit var $it") }
         imports += features.lookupImports
         appendTimerFields(features.timers, visibility)
+        if (features.isAnimated) appendAnimationMembers()
         appendOnAdded()
         appendUpdate()
         appendKeyDispatch()
@@ -115,9 +123,9 @@ internal class ActorClassEmitter(
             imports += BOUNCE_OFF_IMPORTS
             appendBounceOffFunction(visibility)
         }
-        if (role == Role.STANDALONE) appendLook(definition, imports)
+        if (role == Role.STANDALONE) appendLook(definition, imports, sheet, isFamilyMember = false, usesSetFrame = features.usesSetFrame)
         if (features.usesNumberText) appendNumberTextFunction(visibility)
-        if (role == Role.STANDALONE) appendSavedState(definition, properties, packageName, imports)
+        if (role == Role.STANDALONE) appendSavedState(definition, properties, packageName, imports, sheet)
         appendLine("}")
     }
 
@@ -199,6 +207,7 @@ internal class ActorClassEmitter(
         appendLine()
         appendLine("    override fun update(deltaTimeInMilliseconds: Int) {")
         appendLine(REMOVED_GUARD)
+        if (features.isAnimated) appendLine(if (role == Role.STANDALONE) "        $STEP_ANIMATION_LINE" else "        $STEP_ANIMATION_FUNCTION(deltaTimeInMilliseconds)")
         features.timers.forEach { timer ->
             appendTimerCountdown(timer) {
                 features.timerEvents.filter { it.trigger.timer == timer }.firstNotNullOfOrNull(::callOf)?.let { appendLine("                $it") }
@@ -217,6 +226,35 @@ internal class ActorClassEmitter(
             appendCollisionMaskUpdate(features.shapes)
         }
         appendLine("    }")
+    }
+
+    /**
+     * What plays the frames of the sprite: how fast and whether looping, which the Blocks set, and, in a family's base
+     * class, the hooks a member drawn as a sprite cut into frames overrides ([ActorTypeCodeGenerator.appendLook]), since
+     * the base class runs every member's Blocks and frames while only each member's final class knows its sprite.
+     */
+    private fun StringBuilder.appendAnimationMembers() {
+        appendLine()
+        appendLine("    /**")
+        appendLine("     * How fast its sprite's frames play: 1 for their own pace, 0 to stop, and below 0 backwards.")
+        appendLine("     */")
+        appendLine("    var $ANIMATION_SPEED_FIELD = 1f")
+        appendLine()
+        appendLine("    /**")
+        appendLine("     * Whether its sprite's frames start over after the last one.")
+        appendLine("     */")
+        appendLine("    var $ANIMATION_LOOPING_FIELD = true")
+        if (role != Role.FAMILY_ROOT) return
+        appendLine()
+        appendLine("    /**")
+        appendLine("     * Shows [frame] of its sprite, when it is cut into frames.")
+        appendLine("     */")
+        appendLine("    protected open fun $SET_FRAME_FUNCTION(frame: Int) = Unit")
+        appendLine()
+        appendLine("    /**")
+        appendLine("     * Plays its sprite's frames for [deltaTimeInMilliseconds], when it is cut into frames.")
+        appendLine("     */")
+        appendLine("    protected open fun $STEP_ANIMATION_FUNCTION(deltaTimeInMilliseconds: Int) = Unit")
     }
 
     /**

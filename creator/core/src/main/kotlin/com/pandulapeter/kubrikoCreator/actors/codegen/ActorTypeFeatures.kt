@@ -30,6 +30,7 @@ import com.pandulapeter.kubrikoCreator.actors.timerName
  * @param scope The scope of the type, or of a family's topmost type.
  * @param shapes The shapes the Actors are drawn and collide as.
  * @param hasSprite Whether any of them is drawn as a sprite.
+ * @param isAnimated Whether any of them is drawn as a sprite cut into frames, which update plays.
  * @param isCollidableAnyway Whether a collision Event of another Actor type involves them.
  * @param isFamily Whether they are a family, whose base class runs the added-to-the-Scene hook even when its Event has
  * no Blocks, since a child may override it.
@@ -41,6 +42,7 @@ internal class ActorTypeFeatures(
     scope: BlockScope,
     val shapes: Set<ActorShape>,
     hasSprite: Boolean,
+    val isAnimated: Boolean,
     isCollidableAnyway: Boolean,
     isFamily: Boolean,
     eventScopes: List<Pair<List<EventDefinition>, BlockScope>> = listOf(events to scope),
@@ -72,10 +74,17 @@ internal class ActorTypeFeatures(
         if (edgeEvents.isNotEmpty()) addAll(listOf(BlockNeed.MOVEMENT, BlockNeed.VIEWPORT_MANAGER, BlockNeed.SCENES))
         if (timers.isNotEmpty() || everyFrameEvents.any { it.blocks.isNotEmpty() }) add(BlockNeed.MOVEMENT)
         if (keyEvents.isNotEmpty()) add(BlockNeed.STATE_MANAGER)
+        if (isAnimated) add(BlockNeed.MOVEMENT)
     }
     val isDynamic = BlockNeed.MOVEMENT in needs
     val usesBounceOff = BlockNeed.BOUNCE_OFF in needs
     val usesNumberText = BlockNeed.NUMBER_TEXT in needs
+
+    /**
+     * Whether a Block shows a frame of the sprite, through a function only a type of its own declares when it is used;
+     * a family's base class always declares it for its members to override.
+     */
+    val usesSetFrame = BlockNeed.FRAME in needs
     private val lookupNeeds = BlockNeed.entries.filter { it in needs && lookupOf(it) != null }
 
     /**
@@ -116,7 +125,7 @@ internal class ActorTypeFeatures(
             BlockNeed.STATE_MANAGER -> "$STATE_MANAGER_FIELD: StateManager"
             BlockNeed.SCENES -> "$SCENES_FIELD: ${ScenesCodeGenerator.SCENES_NAME}"
             BlockNeed.AUDIO -> "$AUDIO_FIELD: ${AudioCodeGenerator.AUDIO_NAME}"
-            BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF -> null
+            BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF, BlockNeed.ANIMATION, BlockNeed.FRAME -> null
         }
 
         fun importOf(need: BlockNeed) = when (need) {
@@ -124,7 +133,7 @@ internal class ActorTypeFeatures(
             BlockNeed.VIEWPORT_MANAGER -> "com.pandulapeter.kubriko.manager.ViewportManager"
             BlockNeed.KEYBOARD_INPUT_MANAGER -> "com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager"
             BlockNeed.STATE_MANAGER -> STATE_MANAGER_IMPORT
-            BlockNeed.SCENES, BlockNeed.AUDIO, BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF -> null
+            BlockNeed.SCENES, BlockNeed.AUDIO, BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF, BlockNeed.ANIMATION, BlockNeed.FRAME -> null
         }
     }
 }

@@ -77,6 +77,8 @@ class BlockCodeTest {
             BlockKind.PLAY_SOUND to Expected(),
             BlockKind.PLAY_MUSIC to Expected(),
             BlockKind.STOP_MUSIC to Expected(setOf(AUDIO)),
+            BlockKind.SET_FRAME to Expected(),
+            BlockKind.SET_ANIMATION to Expected(),
             BlockKind.IF to Expected(imports = setOf("kotlin.random.Random")),
             BlockKind.ELSE to Expected(),
             BlockKind.REPEAT to Expected(),
@@ -115,6 +117,25 @@ class BlockCodeTest {
             BlockDefinition.Kotlin("velocity = SceneOffset.Zero") to Expected(setOf(MOVEMENT, ACTOR_MANAGER, VIEWPORT_MANAGER), setOf(sceneOffset)),
         )
         variants.forEach { (block, expected) -> assertEquals(expected, codeOf(block, EventType.EVERY_FRAME), block.toString()) }
+    }
+
+    @Test
+    fun theAnimationBlocksPlayOnlyASpriteCutIntoFrames() {
+        val animatedScope = actorScope.copy(isAnimated = true)
+        assertEquals(
+            BlockCode(listOf("setFrame(0)"), needs = setOf(BlockNeed.FRAME)),
+            BlockCodeGenerator.blockCode(BlockDefinition.SetFrame(frame = -3), EventType.EVERY_FRAME, animatedScope),
+        )
+        assertEquals(
+            BlockCode(listOf("animationSpeed = 0f", "isAnimationLooping = false"), needs = setOf(BlockNeed.ANIMATION)),
+            BlockCodeGenerator.blockCode(BlockDefinition.SetAnimation(speed = 0f, isLooping = false), EventType.EVERY_FRAME, animatedScope),
+        )
+        listOf(BlockDefinition.SetFrame(), BlockDefinition.SetAnimation()).forEach { block ->
+            assertEquals(
+                BlockCode(listOf("// This Block only works in an Actor type whose sprite is cut into frames.")),
+                BlockCodeGenerator.blockCode(block, EventType.EVERY_FRAME, actorScope),
+            )
+        }
     }
 
     @Test

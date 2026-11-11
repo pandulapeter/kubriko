@@ -87,7 +87,7 @@ internal class ProjectRelations(
             is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
             BlockDefinition.RemoveOther, is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, BlockDefinition.RestartScene,
             is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic,
-            BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
+            is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
             -> Unit
         }
     }

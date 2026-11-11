@@ -25,8 +25,10 @@ import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
 import com.pandulapeter.kubrikoCreator.project.AspectRatio
 import com.pandulapeter.kubrikoCreator.project.GameSettings
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
+import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.session.ProjectClasspath
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
+import com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore
 import kotlinx.coroutines.runBlocking
 import org.junit.Assume.assumeTrue
 import java.awt.image.BufferedImage
@@ -68,8 +70,10 @@ class ProjectTemplateIntegrationTest {
                     assertCompiles(connection, directory, "${template.id} as created")
                     BlockTypeStore.open(directory)?.let { store ->
                         directory.resolve("src/commonMain/composeResources/drawable/every-block.png").apply { parentFile.mkdirs() }.let { image ->
-                            ImageIO.write(BufferedImage(8, 8, BufferedImage.TYPE_INT_ARGB), "png", image)
+                            ImageIO.write(BufferedImage(32, 16, BufferedImage.TYPE_INT_ARGB), "png", image)
                         }
+                        val sprites = SpriteFolderStore(directory, OwnWrites())
+                        EveryBlockTypes.spriteSheets.forEach { (name, sheet) -> sprites.setSheet(name, sheet) }
                         EveryBlockTypes.all.forEach(store::save)
                         store.regenerateAll()
                         KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal).sync()

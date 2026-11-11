@@ -34,6 +34,8 @@ import kubriko.creator.generated.resources.block_remove_self
 import kubriko.creator.generated.resources.block_repeat
 import kubriko.creator.generated.resources.block_restart_scene
 import kubriko.creator.generated.resources.block_run_parent_event
+import kubriko.creator.generated.resources.block_set_animation
+import kubriko.creator.generated.resources.block_set_frame
 import kubriko.creator.generated.resources.block_set_number
 import kubriko.creator.generated.resources.block_set_text
 import kubriko.creator.generated.resources.block_set_toggle
@@ -79,6 +81,8 @@ internal val BlockKind.title: StringResource
         BlockKind.PLAY_SOUND -> Res.string.block_play_sound
         BlockKind.PLAY_MUSIC -> Res.string.block_play_music
         BlockKind.STOP_MUSIC -> Res.string.block_stop_music
+        BlockKind.SET_FRAME -> Res.string.block_set_frame
+        BlockKind.SET_ANIMATION -> Res.string.block_set_animation
         BlockKind.IF -> Res.string.block_if
         BlockKind.ELSE -> Res.string.block_else
         BlockKind.REPEAT -> Res.string.block_repeat

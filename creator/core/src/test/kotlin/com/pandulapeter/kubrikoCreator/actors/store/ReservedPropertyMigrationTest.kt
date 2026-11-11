@@ -28,7 +28,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class LookPropertyMigrationTest {
+class ReservedPropertyMigrationTest {
     private val root = testDirectory()
     private val settingsFile = File(root, ".kubriko/project.json").apply {
         parentFile.mkdirs()
@@ -49,6 +49,23 @@ class LookPropertyMigrationTest {
     @Test
     fun lookCanNoLongerBeAPropertysName() {
         assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate("look", emptyList()))
+    }
+
+    @Test
+    fun formatVersionFourReservesWhatPlaysASpritesFrames() {
+        listOf("animation", "animationSpeed", "isAnimationLooping").forEach { name ->
+            assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate(name, emptyList()), name)
+        }
+        assertNotNull(BlockTypeStore.open(root)).save(
+            ActorTypeDefinition(
+                name = "Hero",
+                properties = listOf(PropertyDefinition.Number("animationSpeed", 2f), PropertyDefinition.Toggle("isAnimationLooping")),
+                events = everyFrame(BlockDefinition.Kotlin("animationSpeed += 1f")),
+            ),
+        )
+        val hero = migratedTypes().getValue("Hero") as ActorTypeDefinition
+        assertEquals(listOf(PropertyDefinition.Number("animationSpeed2", 2f), PropertyDefinition.Toggle("isAnimationLooping2")), hero.properties)
+        assertEquals(everyFrame(BlockDefinition.Kotlin("animationSpeed2 += 1f")), hero.events)
     }
 
     @Test

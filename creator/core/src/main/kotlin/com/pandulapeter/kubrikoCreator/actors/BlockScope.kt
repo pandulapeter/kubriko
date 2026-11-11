@@ -22,6 +22,8 @@ package com.pandulapeter.kubrikoCreator.actors
  * @param ancestorNames The Actor type's ancestors, its parent first.
  * @param parentEventCall How the code of the Event being generated runs its parent's Event, or null where there is none.
  * @param timerNames The Timers the type uses, with those of its whole family for an Actor type, since they share them.
+ * @param isAnimated Whether the Actor type's sprite is cut into frames (any member's, in a family, whose base class runs
+ *   every member's Blocks), so that the animation Blocks have frames to play.
  */
 public data class BlockScope(
     val typeName: String,
@@ -35,6 +37,7 @@ public data class BlockScope(
     val ancestorNames: List<String> = emptyList(),
     val parentEventCall: String? = null,
     val timerNames: List<String> = emptyList(),
+    val isAnimated: Boolean = false,
 ) {
     /**
      * The class Actors of [actorType] are instances of, its children's too: its base class if it has children.

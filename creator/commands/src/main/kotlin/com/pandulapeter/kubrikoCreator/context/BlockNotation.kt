@@ -81,6 +81,8 @@ internal object BlockNotation {
         is BlockDefinition.PlaySound -> "Play sound ${name(block.sound)}"
         is BlockDefinition.PlayMusic -> "Play music ${name(block.music)}" + if (block.isLooping) "" else ", once"
         BlockDefinition.StopMusic -> "Stop the music"
+        is BlockDefinition.SetFrame -> "Show frame ${block.frame} of the sprite"
+        is BlockDefinition.SetAnimation -> "Play the sprite's frames at speed ${number(block.speed)}" + if (block.isLooping) ", looping" else ", once"
         is BlockDefinition.If -> "If ${of(block.condition)}"
         BlockDefinition.Else -> "Else"
         is BlockDefinition.Repeat -> "Repeat ${block.times} times"

@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ui.texts
 
 import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.error_placement_block_animation_in_manager_type
 import kubriko.creator.generated.resources.error_placement_block_bounce_off_edge_outside_edge_touched
 import kubriko.creator.generated.resources.error_placement_block_bounce_off_other_outside_collision
 import kubriko.creator.generated.resources.error_placement_block_movement_in_manager_type
@@ -51,6 +52,7 @@ internal fun PlacementProblem.toResource(): StringResource = when (this) {
     PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE -> Res.string.error_placement_block_movement_in_manager_type
     PlacementProblem.BLOCK_REMOVE_SELF_IN_MANAGER_TYPE -> Res.string.error_placement_block_remove_self_in_manager_type
     PlacementProblem.BLOCK_REMOVE_OTHER_IN_MANAGER_TYPE -> Res.string.error_placement_block_remove_other_in_manager_type
+    PlacementProblem.BLOCK_ANIMATION_IN_MANAGER_TYPE -> Res.string.error_placement_block_animation_in_manager_type
     PlacementProblem.BLOCK_RUN_PARENT_EVENT_IN_MANAGER_TYPE -> Res.string.error_placement_block_run_parent_event_in_manager_type
     PlacementProblem.CONDITION_NOT_ALLOWED -> Res.string.error_placement_condition_not_allowed
     PlacementProblem.KEY_NOT_ALLOWED -> Res.string.error_placement_key_not_allowed

@@ -9,6 +9,9 @@
  */
 package com.pandulapeter.kubrikoCreator.project
 
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.CreatorProjectSettings
 import com.pandulapeter.kubrikoCreator.actors.DefinitionPaths
 import com.pandulapeter.kubrikoCreator.actors.EveryBlockTypes
@@ -123,7 +126,7 @@ class FormatFixturesTest {
             assertEquals(ProjectFormatStatus.Writable, ProjectFormat(project, "test").prepare())
             val loaded = BlockTypeStore.open(project)!!.load()
             assertEquals(emptyList(), loaded.unreadableFiles, "v$version has unreadable files.")
-            assertEquals(knownTypes, loaded.types, "v$version isn't brought up to the current format.")
+            assertEquals(knownTypes.map { it.asOf(version) }, loaded.types, "v$version isn't brought up to the current format.")
             val settings = settingsJson.decodeFromString(
                 CreatorProjectSettings.serializer(),
                 File(project, BlockTypeStore.SETTINGS_FILE).readText(),
@@ -140,6 +143,16 @@ class FormatFixturesTest {
             "Raising the format version copies the folder of the previous version to a new one, edited to show what it adds; " +
                 "a released version's folder is never edited.",
         )
+    }
+
+    /**
+     * [this] type as a project of format [version] could hold it, without what later versions added, which bringing it
+     * up to the current format doesn't make up.
+     */
+    private fun BlockTypeDefinition.asOf(version: Int): BlockTypeDefinition {
+        if (version >= 4) return this
+        val withoutAnimation = withEvents(events.map { event -> event.copy(blocks = event.blocks.filterNot { it is BlockDefinition.SetFrame || it is BlockDefinition.SetAnimation }) })
+        return if (withoutAnimation is ActorTypeDefinition) withoutAnimation.copy(tintsSprite = false) else withoutAnimation
     }
 
     private fun copyOfFixture(version: Int): File {

@@ -10,6 +10,9 @@
 package com.pandulapeter.kubrikoCreator.actors.store
 
 import com.pandulapeter.kubrikoCreator.actors.EveryBlockTypes
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
+import com.pandulapeter.kubrikoCreator.project.OwnWrites
+import com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
@@ -23,6 +26,7 @@ import kotlin.test.fail
  * Pins the code generated from [EveryBlockTypes] to the files in `src/test/resources/generated`. A deliberate change to
  * the generated code rewrites them with `KUBRIKO_CREATOR_UPDATE_GOLDEN=true`, for review as a diff.
  */
+@OptIn(EditorMutation::class)
 class GeneratedCodeGoldenTest {
     private val root = createTempDirectory().toFile()
     private val goldenDirectory = File("src/test/resources/generated")
@@ -37,6 +41,8 @@ class GeneratedCodeGoldenTest {
         assertTrue(goldenDirectory.isDirectory, "${goldenDirectory.absolutePath} is missing.")
         File(root, ".kubriko/project.json").apply { parentFile.mkdirs() }.writeText("""{ "packageName": "com.example.integration" }""")
         File(root, "src/commonMain/composeResources/drawable/every-block.png").apply { parentFile.mkdirs() }.createNewFile()
+        val sprites = SpriteFolderStore(root, OwnWrites())
+        EveryBlockTypes.spriteSheets.forEach { (name, sheet) -> sprites.setSheet(name, sheet) }
         val store = assertNotNull(BlockTypeStore.open(root))
         EveryBlockTypes.all.forEach(store::save)
         store.regenerateAll()

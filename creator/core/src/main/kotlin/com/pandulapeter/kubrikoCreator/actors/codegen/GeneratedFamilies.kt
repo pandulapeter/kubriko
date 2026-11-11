@@ -14,6 +14,8 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
+import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.sheetOf
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 
 /**
  * What [ActorFamilyCodeGenerator] generates the members of each family of a project from, built once per family the first
@@ -24,12 +26,14 @@ import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
  * @param managerTypes Every Manager type of the project, whose Properties the Blocks may use.
  * @param collidableActorTypeNames The Actor types that get a collision mask ([PluginManagers.collidableActorTypeNames]).
  * @param family The families of [actorTypes].
+ * @param spriteSheets How the project's sprites are cut into frames, by their names.
  */
 internal class GeneratedFamilies(
     actorTypes: List<ActorTypeDefinition>,
     managerTypes: List<ManagerTypeDefinition>,
     private val collidableActorTypeNames: Set<String>,
     val family: ActorTypeFamily,
+    val spriteSheets: Map<String, SpriteSheet> = emptyMap(),
 ) {
     private val byName by lazy(LazyThreadSafetyMode.NONE) { actorTypes.associateBy { it.name } }
     private val types by lazy(LazyThreadSafetyMode.NONE) { actorTypes + managerTypes }
@@ -45,13 +49,15 @@ internal class GeneratedFamilies(
 
     private fun build(root: String): GeneratedFamily {
         val members = family.familyOf(root).mapNotNull(byName::get)
-        val scopes = BlockScope.ofFamily(members, types, family)
+        val isAnimated = members.any { spriteSheets.sheetOf(it) != null }
+        val scopes = BlockScope.ofFamily(members, types, family).mapValues { (_, scope) -> scope.copy(isAnimated = isAnimated) }
         val rootScope = scopes.getValue(root)
         val features = ActorTypeFeatures(
             events = members.flatMap { family.eventsOf(it.name) },
             scope = rootScope,
             shapes = members.mapTo(mutableSetOf()) { it.shape },
             hasSprite = members.any { it.sprite?.let(SpriteFiles::accessorOf) != null },
+            isAnimated = isAnimated,
             isCollidableAnyway = members.any { it.name in collidableActorTypeNames },
             isFamily = ActorClassEmitter.Role.FAMILY_ROOT.isFamily,
             eventScopes = members.map { it.events to scopes.getValue(it.name) },

@@ -25,6 +25,10 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ManagerTypeCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.codegen.ScenesCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.codegen.SpritesCodeGenerator
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
+import com.pandulapeter.kubrikoCreator.project.OwnWrites
+import com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import org.junit.Assume.assumeFalse
 import java.io.File
 import kotlin.io.path.createTempDirectory
@@ -38,6 +42,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+@OptIn(EditorMutation::class)
 class BlockTypeStoreTest {
     private val root = createTempDirectory().toFile()
     private val generated = File(root, "src/commonMain/kotlin/com/example/game/generated")
@@ -132,6 +137,17 @@ class BlockTypeStoreTest {
         store.regenerateAll()
         assertTrue(File(generated, "Ball.kt").isFile)
         assertTrue(File(generated, "GeneratedActorTypes.kt").isFile)
+    }
+
+    @Test
+    fun regeneratingAfterASpritesSheetChangedRewritesItsTypesCode() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        store.saveAndRegenerate(ball.copy(sprite = "drawable/ball.png"))
+        assertFalse("AnimatedSprite" in File(generated, "Ball.kt").readText())
+        SpriteFolderStore(root, OwnWrites()).setSheet("ball", SpriteSheet(frameWidth = 8, frameHeight = 8, frameCount = 2, framesPerRow = 2))
+        store.regenerateAll()
+        assertContains(File(generated, "Ball.kt").readText(), "AnimatedSprite.fromAtlas(")
     }
 
     @Test

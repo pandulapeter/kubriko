@@ -223,6 +223,24 @@ public sealed interface BlockDefinition {
     public data object StopMusic : BlockDefinition
 
     @Serializable
+    @SerialName("setFrame")
+    @Description("Shows a frame of the Actor's sprite, when its sprite is cut into frames; the animation goes on from there.")
+    public data class SetFrame(
+        @Description("The frame, from 0 for the first; one past the last shows the last.")
+        @SerialName("frame") val frame: Int = 0,
+    ) : BlockDefinition
+
+    @Serializable
+    @SerialName("setAnimation")
+    @Description("Sets how the Actor's sprite plays its frames, when it is cut into them. Actors start at speed 1, looping.")
+    public data class SetAnimation(
+        @Description("How fast the frames play: 1 for the sprite's own frames per second, 2 for twice as fast, 0 to stop on the frame shown, and below 0 to play backwards.")
+        @SerialName("speed") val speed: Float = 1f,
+        @Description("Whether the animation starts over after its last frame, rather than stopping on it.")
+        @SerialName("isLooping") val isLooping: Boolean = true,
+    ) : BlockDefinition
+
+    @Serializable
     @SerialName("if")
     @Description("Runs the Blocks after it, up to the matching else or end Block, only when its condition is true. An if Block without an end runs to the end of the Event.")
     public data class If(

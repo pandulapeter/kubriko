@@ -53,17 +53,25 @@
 - Generated Actor types are `Batched`, so the engine draws runs of them in one call: each final class's `look` (its shape in
   its color, or its sprite) is a property whose getter brings it up to date with the Actor (the color, the sprite's region)
   whenever Kubriko reads it, so a color set by a Kotlin Block or the Scene editor shows without a hook in every setter, and a
-  family's base class needn't know its children's looks. Every appearance feature to come (sprite sheets and frames, tinting,
+  family's base class needn't know its children's looks. Every appearance feature (tinting a sprite, and those to come:
   drawing order, layer, the visible toggle) is a property of the look; a type that draws with code of its own (a Kotlin Block
   in a drawing Event) becomes a plain `Visible`, which ends the run it sits in. A circle fills a body that isn't square as an
   ellipse (`EllipseLook`), as an unevenly scaled one always looked, while its collision mask stays a circle as wide as the
   body, since Kubriko has no elliptic mask. `look` is a reserved Property name (format
-  version 3 renamed existing ones). `PreviewActor` builds the same look classes, so the Scene editor's preview and the game
+  version 3 renamed existing ones), and so are the animation's members (format version 4, through the same
+  `ReservedPropertyMigration`). `PreviewActor` builds the same look classes, so the Scene editor's preview and the game
   match.
 - Every Actor type's sprite is a region of one atlas that `GeneratedSprites` declares (`SpriteManager.loadAtlas`, which splits
   it into pages when it doesn't fit), loaded in the Scene editor too (through Creator's `SpriteManager`), so sprites draw
   nothing until all of them are loaded. A sprite sheet joins it whole (`AnimatedSprite.fromAtlas`). The generated code relies
   on the library's batched API, which is why opted-in projects are raised to Creator's own Kubriko version.
+- How a sprite is cut into frames is the sprite's, not a type's (`SpriteSheet`, in its `.kubriko/sprites` file), so
+  `BlockTypeStore` reads the sheets at every regeneration and counts them in what it compares, and a change to one
+  regenerates every type drawn as that sprite. A type drawn as a sheet is `Dynamic`, its update stepping the frames before
+  any Event, so a Set the frame Block shows exactly that frame. In a family the base class runs every member's Blocks but
+  only a member's final class knows its sprite, so the base class (of any family with a member drawn as a sheet) declares
+  the speed and looping fields and `open` no-op hooks (`setFrame`, `stepAnimation`) that such a member overrides; the
+  animation Blocks become a comment in a type (or family) with no sheet.
 - Sprites are found through `Res.allDrawableResources[accessor]` rather than their accessor, so a deleted image doesn't break the
   build; images in qualified folders aren't offered, since the sprite plugin doesn't scale them back.
 - `BlockTypeStore` writes only files whose code changed, never writes over a generated file changed by hand, and deletes the

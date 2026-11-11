@@ -55,6 +55,7 @@ public object SetAppearance : WriteCommand<SetAppearance.Input> {
                 shape = input.shape ?: definition.shape,
                 sprite = if (input.sprite == null) definition.sprite else sprite,
                 color = input.color ?: definition.color,
+                tintsSprite = input.tintsSprite ?: definition.tintsSprite,
                 width = width ?: definition.width,
                 height = height ?: definition.height,
             ),
@@ -67,6 +68,7 @@ public object SetAppearance : WriteCommand<SetAppearance.Input> {
                     shape = input.shape?.let { definition.shape },
                     sprite = input.sprite?.let { definition.sprite.orEmpty() },
                     color = input.color?.let { definition.color },
+                    tintsSprite = input.tintsSprite?.let { definition.tintsSprite },
                     // Explicit, so undoing a sprite change never sizes the Actor type to the image.
                     width = if (width != null || input.sprite != null) definition.width else null,
                     height = if (height != null || input.sprite != null) definition.height else null,
@@ -75,7 +77,7 @@ public object SetAppearance : WriteCommand<SetAppearance.Input> {
         )
     }
 
-    override fun mergeKey(input: Input): Any? = listOf(input.actorType, input.shape != null, input.sprite != null, input.color != null, input.width != null, input.height != null)
+    override fun mergeKey(input: Input): Any? = listOf(input.actorType, input.shape != null, input.sprite != null, input.color != null, input.tintsSprite != null, input.width != null, input.height != null)
 
     @Serializable
     public data class Input(
@@ -87,6 +89,8 @@ public object SetAppearance : WriteCommand<SetAppearance.Input> {
         @SerialName("sprite") val sprite: String? = null,
         @Description("The color its Actors are drawn with, as #RRGGBB, or #AARRGGBB when it isn't opaque.")
         @SerialName("color") @Serializable(with = HexColorSerializer::class) val color: Long? = null,
+        @Description("Whether its sprite is drawn tinted with its color (multiplied by it, so white leaves it as it is).")
+        @SerialName("tintsSprite") val tintsSprite: Boolean? = null,
         @Description("The width of a newly placed Actor, in scene units.")
         @SerialName("width") val width: Float? = null,
         @Description("The height of a newly placed Actor, in scene units.")

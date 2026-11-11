@@ -59,4 +59,10 @@ internal enum class BlockNeed {
 
     /** The function that bounces the Actor off another one. */
     BOUNCE_OFF,
+
+    /** What plays the frames of the Actor's sprite, which [ActorTypeFeatures.isAnimated] declares. */
+    ANIMATION,
+
+    /** The function that shows a frame of the Actor's sprite. */
+    FRAME,
 }

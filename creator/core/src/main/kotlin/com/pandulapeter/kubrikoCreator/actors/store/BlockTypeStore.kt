@@ -32,6 +32,8 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.SpritesCodeGenerator
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
+import com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.IOException
@@ -199,22 +201,28 @@ public class BlockTypeStore private constructor(
     private val changedByHand = HashSet<String>()
 
     /**
-     * What the last [regenerate] generated from, and what it found, so that regenerating from the same types and Scene
-     * music (after a Scene change, for example) does nothing.
+     * What the last [regenerate] generated from, and what it found, so that regenerating from the same types, Scene
+     * music, and sprite sheets (after a Scene change, for example) does nothing.
      */
-    private var lastGeneration: Pair<List<BlockTypeDefinition>, Set<String>>? = null
+    private var lastGeneration: Generation? = null
+
+    private data class Generation(
+        val definitions: List<BlockTypeDefinition>,
+        val sceneMusic: Set<String>,
+        val spriteSheets: Map<String, SpriteSheet>,
+    )
 
     override fun regenerate(definitions: List<BlockTypeDefinition>, overwriting: Set<String>): RegeneratedCode {
-        val sceneMusic = sceneMusic()
+        val generation = Generation(definitions, sceneMusic(), SpriteFolderStore.readSheets(rootDirectory))
         val typeNames = definitions.mapTo(HashSet()) { it.name }
-        if (overwriting.isEmpty() && lastGeneration == definitions to sceneMusic && generatedFilesAreAsLeft()) return found(typeNames, removeLeftovers(typeNames))
+        if (overwriting.isEmpty() && lastGeneration == generation && generatedFilesAreAsLeft()) return found(typeNames, removeLeftovers(typeNames))
         lastGeneration = null
         val actorTypes = definitions.filterIsInstance<ActorTypeDefinition>()
         val family = ActorTypeFamily(actorTypes)
         val actorTypeNames = actorTypes.map { it.name }
         val managerTypes = definitions.filterIsInstance<ManagerTypeDefinition>()
-        val pluginManagers = PluginManagers.of(definitions, sceneMusic, family)
-        val families = GeneratedFamilies(actorTypes, managerTypes, pluginManagers.collidableActorTypeNames, family)
+        val pluginManagers = PluginManagers.of(definitions, generation.sceneMusic, family)
+        val families = GeneratedFamilies(actorTypes, managerTypes, pluginManagers.collidableActorTypeNames, family, generation.spriteSheets)
         generatedDirectory.mkdirs()
         definitions.forEach { definition ->
             writeUnlessChangedByHand(
@@ -228,6 +236,7 @@ public class BlockTypeStore private constructor(
                         managerTypes = managerTypes,
                         collidableActorTypeNames = pluginManagers.collidableActorTypeNames,
                         actorTypes = actorTypes,
+                        spriteSheets = generation.spriteSheets,
                         families = families,
                     )
                     is ManagerTypeDefinition -> ManagerTypeCodeGenerator.generateManagerType(definition, settings.packageName, actorTypeNames, managerTypes)
@@ -247,7 +256,7 @@ public class BlockTypeStore private constructor(
             if (pluginManagers.usesSprites) SpritesCodeGenerator.generate(settings.packageName, pluginManagers.sprites) else null,
         )
         val removedLeftovers = removeLeftovers(typeNames)
-        lastGeneration = definitions to sceneMusic
+        lastGeneration = generation
         return found(typeNames, removedLeftovers)
     }
 

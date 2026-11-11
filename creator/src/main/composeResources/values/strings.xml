@@ -268,6 +268,8 @@
     <string name="block_play_sound">Play a sound</string>
     <string name="block_play_music">Play music</string>
     <string name="block_stop_music">Stop the music</string>
+    <string name="block_set_frame">Set the frame</string>
+    <string name="block_set_animation">Set the animation</string>
     <string name="block_sound_choose">Choose a sound</string>
     <string name="block_music_choose">Choose music</string>
     <string name="audio_sounds_none_yet">No sounds yet. Put .wav files in the files folder of composeResources, like files/sounds/hit.wav, to play them.</string>
@@ -308,6 +310,7 @@
     <string name="block_else">Else</string>
     <string name="block_repeat">Repeat</string>
     <string name="block_end">End</string>
+    <string name="block_parameter_frame">Frame</string>
     <string name="block_parameter_times">Times</string>
     <string name="block_else_stray">This Else does nothing: it belongs right after an If's Blocks, once.</string>
     <string name="block_end_stray">This End does nothing: there's no If or Repeat before it to end.</string>
@@ -626,6 +629,7 @@
     <string name="error_placement_block_remove_other_in_manager_type">A Manager type isn't in a Scene, so it can't have a Remove the other Actor Block.</string>
     <string name="error_placement_block_movement_in_manager_type">A Manager type isn't in a Scene, so it has nothing for the Movement Blocks to move. They belong in an Actor type.</string>
     <string name="error_placement_block_remove_self_in_manager_type">A Manager type isn't in a Scene, so it can't have a Remove this Actor Block.</string>
+    <string name="error_placement_block_animation_in_manager_type">A Manager type isn't in a Scene and has no sprite, so it can't have the Set the frame or Set the animation Blocks. They belong in an Actor type drawn as a sprite cut into frames.</string>
     <string name="error_placement_block_run_parent_event_in_manager_type">Only Actor types have parents, so a Manager type can't have a Run the parent's Event Block.</string>
     <string name="error_command_not_changed_by_hand">The generated code of %1$s wasn't changed by hand.</string>
     <string name="command_create_actor_type">Create Actor type</string>

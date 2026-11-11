@@ -26,6 +26,7 @@ public enum class PlacementProblem(override val english: String) : DomainText {
     BLOCK_MOVEMENT_IN_MANAGER_TYPE("A Manager type isn't in a Scene, so it has nothing for the Movement Blocks (setVelocity, addToVelocity, stop, jumpTo, moveTowardsNearest, bounceOffEdge, and bounceOffOther) to move. They belong in an Actor type."),
     BLOCK_REMOVE_SELF_IN_MANAGER_TYPE("A Manager type isn't in a Scene, so it can't have a Remove this Actor (removeSelf) Block."),
     BLOCK_REMOVE_OTHER_IN_MANAGER_TYPE("A Manager type isn't in a Scene, so it can't have a Remove the other Actor (removeOther) Block."),
+    BLOCK_ANIMATION_IN_MANAGER_TYPE("A Manager type isn't in a Scene and has no sprite, so it can't have the Set the frame (setFrame) or Set the animation (setAnimation) Blocks. They belong in an Actor type drawn as a sprite cut into frames."),
     BLOCK_RUN_PARENT_EVENT_IN_MANAGER_TYPE("Only Actor types have parents, so a Manager type can't have a Run the parent's Event (runParentEvent) Block."),
     CONDITION_NOT_ALLOWED("Only an Actor type has a velocity, so only its If Blocks can check it (the velocity condition)."),
     KEY_NOT_ALLOWED("Only a When a key is pressed (keyPressed) Event has a key."),

@@ -42,6 +42,11 @@ public object BlockCodeGenerator {
     internal const val STATE_MANAGER_FIELD = "stateManager"
     internal const val REMOVED_FIELD = "isRemoved"
     internal const val BOUNCE_OFF_FUNCTION = "bounceOff"
+    internal const val ANIMATION_FIELD = "animation"
+    internal const val ANIMATION_SPEED_FIELD = "animationSpeed"
+    internal const val ANIMATION_LOOPING_FIELD = "isAnimationLooping"
+    internal const val SET_FRAME_FUNCTION = "setFrame"
+    internal const val STEP_ANIMATION_FUNCTION = "stepAnimation"
     internal const val STATE_MANAGER_IMPORT = "com.pandulapeter.kubriko.manager.StateManager"
     internal const val ABSOLUTE_VALUE_IMPORT = "kotlin.math.absoluteValue"
     internal const val SCENE_OFFSET_IMPORT = "com.pandulapeter.kubriko.types.SceneOffset"
@@ -155,11 +160,19 @@ public object BlockCodeGenerator {
             BlockCode(listOf("// Choose music for this Block."))
         }
         BlockDefinition.StopMusic -> BlockCode(listOf("$AUDIO_FIELD.stopMusic()"), needs = setOf(BlockNeed.AUDIO))
+        is BlockDefinition.SetFrame -> animationCode(scope, BlockNeed.FRAME, "$SET_FRAME_FUNCTION(${block.frame.coerceAtLeast(0)})")
+        is BlockDefinition.SetAnimation -> animationCode(scope, BlockNeed.ANIMATION, "$ANIMATION_SPEED_FIELD = ${floatLiteral(block.speed)}", "$ANIMATION_LOOPING_FIELD = ${block.isLooping}")
         is BlockDefinition.If -> conditionCode(block, scope).let { condition -> condition.copy(lines = listOf("if (${condition.lines.single()}) {")) }
         is BlockDefinition.Repeat -> BlockCode(listOf("repeat(${block.times.coerceAtLeast(0)}) {"))
         BlockDefinition.Else, BlockDefinition.End -> BlockCode.NONE
         is BlockDefinition.Log -> logCode(block, scope)
         is BlockDefinition.Kotlin -> kotlinCode(block, scope)
+    }
+
+    private fun animationCode(scope: BlockScope, need: BlockNeed, vararg lines: String) = if (scope.isAnimated) {
+        BlockCode(lines.toList(), needs = setOf(need))
+    } else {
+        BlockCode(listOf("// This Block only works in an Actor type whose sprite is cut into frames."))
     }
 
     private fun movementCode(line: String) = BlockCode(listOf(line), needs = setOf(BlockNeed.MOVEMENT), imports = setOf(SCENE_OFFSET_IMPORT))

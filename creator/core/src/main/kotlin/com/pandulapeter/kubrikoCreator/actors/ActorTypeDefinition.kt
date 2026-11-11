@@ -35,6 +35,8 @@ public data class ActorTypeDefinition(
     @SerialName("sprite") val sprite: String? = null,
     @Description("The color its Actors are drawn with, as #RRGGBB, or #AARRGGBB when it isn't opaque.")
     @SerialName("color") @Serializable(with = HexColorSerializer::class) val color: Long = 0xFF6060AA,
+    @Description("Whether its sprite is drawn tinted with its color (multiplied by it, so white leaves it as it is). Its shape is always drawn in its color.")
+    @SerialName("tintsSprite") val tintsSprite: Boolean = false,
     @Description("The width of a newly placed Actor, in scene units.")
     @SerialName("width") val width: Float = 80f,
     @Description("The height of a newly placed Actor, in scene units.")

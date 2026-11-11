@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
+
 /**
  * Block-built types that together use every Event, Block, and condition, with odd values (quotes, dollar signs, missing
  * names) wherever a field takes text: the project the integration test compiles and the generated code golden files pin.
@@ -89,6 +91,8 @@ public object EveryBlockTypes {
         BlockDefinition.PlayMusic("files/music/win.mp3", isLooping = false),
         BlockDefinition.PlayMusic(),
         BlockDefinition.StopMusic,
+        BlockDefinition.SetFrame(frame = 2),
+        BlockDefinition.SetAnimation(speed = -0.5f, isLooping = false),
     )
 
     /**
@@ -116,6 +120,7 @@ public object EveryBlockTypes {
         name = "EveryBlock",
         shape = ActorShape.RECTANGLE,
         sprite = "drawable/every-block.png",
+        tintsSprite = true,
         properties = properties + PropertyDefinition.Number("every"),
         events = everyEvent(everyBlock),
     )
@@ -175,6 +180,13 @@ public object EveryBlockTypes {
                 BasicText("${'$'}{everyManagerManager.score + score} ${'$'}{actorManager.allActors.collectAsState().value.size} ${'$'}{viewportManager.size.collectAsState().value}")
             }
         """.trimIndent(),
+    )
+
+    /**
+     * How the sprite every Actor type above is drawn as is cut into frames, by its name, with an origin across only.
+     */
+    val spriteSheets: Map<String, SpriteSheet> = mapOf(
+        "every-block" to SpriteSheet(frameWidth = 16, frameHeight = 8, frameCount = 3, framesPerRow = 2, framesPerSecond = 12.5f, originX = 4),
     )
 
     /**

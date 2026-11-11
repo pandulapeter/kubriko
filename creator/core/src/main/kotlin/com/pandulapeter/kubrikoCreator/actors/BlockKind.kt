@@ -50,6 +50,8 @@ public enum class BlockKind(
     PLAY_SOUND({ BlockDefinition.PlaySound() }),
     PLAY_MUSIC({ BlockDefinition.PlayMusic() }),
     STOP_MUSIC({ BlockDefinition.StopMusic }),
+    SET_FRAME({ BlockDefinition.SetFrame() }, managerTypeProblem = PlacementProblem.BLOCK_ANIMATION_IN_MANAGER_TYPE),
+    SET_ANIMATION({ BlockDefinition.SetAnimation() }, managerTypeProblem = PlacementProblem.BLOCK_ANIMATION_IN_MANAGER_TYPE),
     IF({ BlockDefinition.If() }),
     ELSE({ BlockDefinition.Else }),
     REPEAT({ BlockDefinition.Repeat() }),
@@ -101,6 +103,8 @@ public enum class BlockKind(
             is BlockDefinition.PlaySound -> PLAY_SOUND
             is BlockDefinition.PlayMusic -> PLAY_MUSIC
             BlockDefinition.StopMusic -> STOP_MUSIC
+            is BlockDefinition.SetFrame -> SET_FRAME
+            is BlockDefinition.SetAnimation -> SET_ANIMATION
             is BlockDefinition.If -> IF
             BlockDefinition.Else -> ELSE
             is BlockDefinition.Repeat -> REPEAT

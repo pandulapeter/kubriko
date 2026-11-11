@@ -24,8 +24,10 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.maskTypeOf
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.GENERATED_PACKAGE
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.appendLook
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.appendSavedState
+import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.sheetOf
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.eventCode
 import com.pandulapeter.kubrikoCreator.actors.codegen.EventFunctions.appendFunction
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 
 /**
  * Turns an Actor type that has a parent or children into Kotlin that inherits as the Actor types do. The topmost Actor
@@ -58,13 +60,13 @@ internal object ActorFamilyCodeGenerator {
             .imports.toMutableSet()
         val code = buildString {
             if (name == root) {
-                with(ActorClassEmitter(features, role, rootScope, family, imports)) { appendClass(definition, family.propertiesOf(name), packageName) }
+                with(ActorClassEmitter(features, role, rootScope, family, imports)) { appendClass(definition, family.propertiesOf(name), packageName, sheet = null) }
                 appendLine()
             } else if (family.hasChildren(name)) {
                 appendBase(definition, family, features, hookOf, imports) { generatedFamily.scopeOf(name, it) }
                 appendLine()
             }
-            appendConcrete(definition, family, features, hookOf, packageName, imports) { generatedFamily.scopeOf(name, it) }
+            appendConcrete(definition, family, features, families.spriteSheets.sheetOf(definition), hookOf, packageName, imports) { generatedFamily.scopeOf(name, it) }
         }
         return GeneratedFile.withHeader(" from ${DefinitionPaths.definitionPath(definition)}", buildString {
             appendLine("package $packageName.$GENERATED_PACKAGE")
@@ -118,6 +120,7 @@ internal object ActorFamilyCodeGenerator {
         definition: ActorTypeDefinition,
         family: ActorTypeFamily,
         features: ActorTypeFeatures,
+        sheet: SpriteSheet?,
         hookOf: (EventDefinition) -> EventFunctions.Function?,
         packageName: String,
         imports: MutableSet<String>,
@@ -141,8 +144,8 @@ internal object ActorFamilyCodeGenerator {
             appendPropertyFields(newProperties, source = "state.")
             appendOverrides(definition, hookOf, imports, scopeOf)
         }
-        appendLook(definition, imports)
-        appendSavedState(definition, family.propertiesOf(name), packageName, imports)
+        appendLook(definition, imports, sheet, isFamilyMember = true, usesSetFrame = features.usesSetFrame)
+        appendSavedState(definition, family.propertiesOf(name), packageName, imports, sheet)
         appendLine("}")
     }
 
