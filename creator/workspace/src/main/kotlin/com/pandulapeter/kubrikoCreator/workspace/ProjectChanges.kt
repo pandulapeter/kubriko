@@ -20,8 +20,8 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
@@ -117,12 +117,13 @@ internal class ProjectChanges(
 
     /**
      * Follows Kubriko Creator's own writes of sprites' images, which the watcher never reports, as each raises [revision]:
-     * as for an image changed outside it, the Scene view is built again and the playing game follows, once a burst of
-     * writes (strokes drawn one after the other) settles for [SPRITE_IMAGES_SETTLING_IN_MILLISECONDS].
+     * as for an image changed outside it, the Scene view is built again and the playing game follows, at most once every
+     * [SPRITE_IMAGES_SETTLING_IN_MILLISECONDS] while writes keep coming (strokes drawn one after the other), so a long run
+     * of them still reaches both within that time.
      */
     fun followSpriteImageWrites(revision: Flow<Int>) {
         scope.launch {
-            revision.drop(1).debounce(SPRITE_IMAGES_SETTLING_IN_MILLISECONDS).collect {
+            revision.drop(1).sample(SPRITE_IMAGES_SETTLING_IN_MILLISECONDS).collect {
                 following(markSceneOutdated)
                 following(onCodeChanged)
             }
@@ -214,7 +215,7 @@ internal class ProjectChanges(
 }
 
 /**
- * How long Kubriko Creator's own writes of sprites' images have to stop for before they are followed
- * ([ProjectChanges.followSpriteImageWrites]), so a burst of strokes rebuilds the Scene view and reaches the game once.
+ * How often at most Kubriko Creator's own writes of sprites' images are followed ([ProjectChanges.followSpriteImageWrites]),
+ * so a burst of strokes rebuilds the Scene view and reaches the game once a second rather than once a stroke.
  */
 internal const val SPRITE_IMAGES_SETTLING_IN_MILLISECONDS = 1_000L

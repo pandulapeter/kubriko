@@ -100,17 +100,18 @@ class ProjectChangesTest {
     }
 
     @Test
-    fun aBurstOfSpriteImageWritesIsFollowedOnceItSettles() = runTest {
+    fun spriteImageWritesAreFollowedOnceASecondWhileTheyKeepComing() = runTest {
         val revision = MutableStateFlow(0)
         router(isUnconfined = false).followSpriteImageWrites(revision)
         runCurrent()
-        repeat(3) {
+        repeat(10) {
             revision.value++
             advanceTimeBy(400)
         }
-        assertEquals(emptyList(), calls)
-        advanceTimeBy(1_100)
-        assertEquals(listOf("scene outdated", "code changed"), calls)
+        assertEquals(3, calls.count { it == "scene outdated" }, "once a second while the writes keep coming")
+        advanceTimeBy(2_000)
+        assertEquals(4, calls.count { it == "scene outdated" }, "the last write is followed too")
+        assertEquals(4, calls.count { it == "code changed" })
     }
 
     @Test
