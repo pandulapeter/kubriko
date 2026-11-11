@@ -60,6 +60,7 @@ import kubriko.creator.generated.resources.assistant_failure_agent_not_started
 import kubriko.creator.generated.resources.assistant_failure_agent_stopped
 import kubriko.creator.generated.resources.assistant_failure_auth_required
 import kubriko.creator.generated.resources.assistant_failure_conversation_lost
+import kubriko.creator.generated.resources.assistant_failure_model_not_switched
 import kubriko.creator.generated.resources.assistant_failure_node_missing
 import kubriko.creator.generated.resources.assistant_failure_prompt_failed
 import kubriko.creator.generated.resources.assistant_failure_uv_missing
@@ -364,6 +365,7 @@ internal fun FailureReason.description(): String = stringResource(
         FailureReason.CONVERSATION_LOST -> Res.string.assistant_failure_conversation_lost
         FailureReason.AUTH_REQUIRED -> Res.string.assistant_failure_auth_required
         FailureReason.PROMPT_FAILED -> Res.string.assistant_failure_prompt_failed
+        FailureReason.MODEL_NOT_SWITCHED -> Res.string.assistant_failure_model_not_switched
     },
     LocalAgent.current.name,
 )

@@ -1045,6 +1045,7 @@
     <string name="action_continue_in_terminal">Continue in a terminal</string>
     <string name="action_open_sign_in_page">Open the sign-in page</string>
     <string name="assistant_failure_prompt_failed">%1$s answered with an error.</string>
+    <string name="assistant_failure_model_not_switched">%1$s didn't switch to the smaller model, so the plan wasn't approved yet. Approve it again, with this model or another.</string>
     <string name="assistant_turn_cancelled">Stopped.</string>
     <string name="assistant_turn_refused">The assistant declined this request.</string>
     <string name="assistant_turn_max_tokens">The answer was cut short because it got too long.</string>

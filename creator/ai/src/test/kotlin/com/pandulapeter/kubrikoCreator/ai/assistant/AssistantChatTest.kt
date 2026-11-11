@@ -29,6 +29,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
@@ -118,6 +119,46 @@ class AssistantChatTest {
         assertEquals(TranscriptItem.AgentMessage("opus"), chat.transcript.value.items.last())
         chat.sendAndWait("model")
         assertEquals(TranscriptItem.AgentMessage("opus"), chat.transcript.value.items.last())
+    }
+
+    private fun model(value: String) = SmallerModel(SessionConfigId(FakeAgent.MODEL), SessionConfigValueId(value), value)
+
+    private fun AssistantChat.currentModel() = configOptions.value.filterIsInstance<SessionConfigOption.Select>().single { it.id.value == FakeAgent.MODEL }.currentValue.value
+
+    @Test
+    fun aRefusedModelTakesTheMessageBackAndOffersThePlanAgain() = blockingTest {
+        val chat = readyChat()
+        chat.sendAndWait("propose")
+        withContext(mainThread) { chat.send("Go ahead", model = model(FakeAgent.REFUSED_MODEL)) }
+        chat.isBusy.first { !it }
+        assertEquals(FailureReason.MODEL_NOT_SWITCHED, (chat.transcript.value.items.last() as TranscriptItem.Failure).reason)
+        assertFalse(chat.transcript.value.items.any { it == TranscriptItem.UserMessage("Go ahead") })
+        assertTrue(chat.transcript.value.isPlanAwaitingApproval)
+        assertEquals(listOf("propose"), launcher.agents.single().prompts)
+    }
+
+    @Test
+    fun aModelRefusedForWantOfASignInIsSwitchedToWhenTheMessageIsSentAgain() = blockingTest {
+        val chat = readyChat()
+        isSignedIn.set(false)
+        withContext(mainThread) { chat.send("model", model = model("opus")) }
+        chat.isBusy.first { !it }
+        assertTrue(chat.transcript.value.needsSignIn)
+        isSignedIn.set(true)
+        withContext(mainThread) { chat.resendAfterSignIn() }
+        chat.isBusy.first { !it }
+        assertEquals(TranscriptItem.AgentMessage("opus"), chat.transcript.value.items.last())
+    }
+
+    @Test
+    fun stoppingWhileTheModelSwitchesStillLearnsWhichModelTheAgentUses() = blockingTest {
+        val chat = readyChat()
+        withContext(mainThread) { chat.send("model", model = model(FakeAgent.SLOW_MODEL)) }
+        while (launcher.agents.single().modelChangesBegun.get() == 0) yield()
+        withContext(mainThread) { chat.stop() }
+        chat.isBusy.first { !it }
+        assertEquals(FakeAgent.SLOW_MODEL, chat.currentModel())
+        assertTrue(launcher.agents.single().prompts.isEmpty())
     }
 
     @Test

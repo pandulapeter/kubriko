@@ -87,6 +87,8 @@ import kotlin.time.Duration
  * method and a terminal one, whose `_meta["terminal-auth"]` runs [TERMINAL_LOGIN].
  *
  * Every conversation offers a `model` option, `sonnet` or `opus`, and announces a `compact` slash command as soon as it starts.
+ * A change of model is refused while [isSignedIn] is false too, and for the value [REFUSED_MODEL]; one to [SLOW_MODEL]
+ * takes [SLOW_MODEL_DELAY] milliseconds.
  *
  * @param readOnlyMode How the agent offers a read-only mode, if it does, which conversations start without.
  * @param reportsModeChanges Whether the agent reports a change of mode the client asked for, which it needn't.
@@ -127,6 +129,11 @@ public class FakeAgent(
     val loadedSessions = CopyOnWriteArrayList<SessionId>()
     val loadedSessionParameters = CopyOnWriteArrayList<SessionCreationParameters>()
     val prompts = CopyOnWriteArrayList<String>()
+
+    /**
+     * How many changes of model have begun, finished or not.
+     */
+    val modelChangesBegun = AtomicInteger()
 
     /**
      * What came before the user's text in the prompts: what Kubriko Creator told the agent on top.
@@ -240,6 +247,12 @@ public class FakeAgent(
 
         override suspend fun setConfigOption(configId: SessionConfigId, value: SessionConfigOptionValue, _meta: JsonElement?): SetSessionConfigOptionResponse {
             val text = (value as SessionConfigOptionValue.StringValue).value
+            if (configId.value == MODEL) {
+                modelChangesBegun.incrementAndGet()
+                if (!isSignedIn.get()) throw JsonRpcException(JsonRpcErrorCode.AUTH_REQUIRED.code, "Authentication required")
+                if (text == REFUSED_MODEL) throw JsonRpcException(JsonRpcErrorCode.INVALID_PARAMS.code, "No such model")
+                if (text == SLOW_MODEL) delay(SLOW_MODEL_DELAY)
+            }
             if (configId.value == SANDBOX) sandbox = text else model = text
             return SetSessionConfigOptionResponse(configOptions)
         }
@@ -323,6 +336,9 @@ public class FakeAgent(
         const val HISTORY = "history"
         const val LATER = "later"
         const val MODEL = "model"
+        const val REFUSED_MODEL = "refused"
+        const val SLOW_MODEL = "slow"
+        const val SLOW_MODEL_DELAY = 500L
         const val COMPACT = "compact"
         const val SANDBOX = "sandbox"
         const val READ_ONLY = "read-only"

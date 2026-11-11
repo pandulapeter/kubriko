@@ -27,6 +27,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.currentCoroutineContext
@@ -38,6 +39,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 
 /**
  * One conversation of the assistant panel: the [AgentConversation] it runs on, started right away by [start], and
@@ -152,6 +155,7 @@ public class AssistantChat(
     private var pendingAnswer: CompletableDeferred<RequestPermissionOutcome>? = null
     private var isClosed = false
     private var lastContext = emptyList<ContentBlock>()
+    private var lastModel: SmallerModel? = null
     private var turnGatheringContext: Job? = null
 
     private val permissions = PermissionHandler { toolCall, options ->
@@ -185,7 +189,7 @@ public class AssistantChat(
      * starts) ahead of it, unless a prompt runs or the conversation isn't ready.
      *
      * @param model A model to switch the conversation to first, so the turn runs on it, as approving a plan with a smaller
-     *   one does; the turn fails, sending nothing, if the agent refuses it.
+     *   one does. If the agent refuses it, [text] is taken back unsent and the plan offered for approval again.
      */
     public fun send(text: String, model: SmallerModel? = null, context: suspend () -> List<ContentBlock> = { emptyList() }) {
         if (_isBusy.value || text.isBlank() || _state.value != ChatState.Ready || conversation == null) return
@@ -202,18 +206,19 @@ public class AssistantChat(
         if (_isBusy.value || _state.value != ChatState.Ready || !_transcript.value.needsSignIn) return
         val text = _transcript.value.items.filterIsInstance<TranscriptItem.UserMessage>().lastOrNull()?.text ?: return
         _transcript.update { it.withoutLastItem() }
-        prompt(text) { lastContext }
+        prompt(text, lastModel) { lastContext }
     }
 
     private fun prompt(text: String, model: SmallerModel? = null, context: suspend () -> List<ContentBlock>) {
         val conversation = conversation ?: return
         _isBusy.value = true
+        lastModel = model
         val log = changeLog()
         val since = seenRevision
         val turnStart = log?.revision
         val turn = scope.launch(start = CoroutineStart.LAZY) {
             try {
-                model?.let { conversation.setConfigOption(it.option, SessionConfigOptionValue.of(it.value.value)) }
+                if (model != null && !switchTo(conversation, model)) return@launch
                 lastContext = context()
                 turnGatheringContext = null
                 turnStart?.let { seenRevision = it }
@@ -248,6 +253,27 @@ public class AssistantChat(
         turn.invokeOnCompletion { _isBusy.value = false }
         turnGatheringContext = turn
         turn.start()
+    }
+
+    /**
+     * Switches [conversation] to [model] ahead of a turn, returning whether it did. A Stop takes effect only once the agent
+     * answered (within [MODEL_SWITCH_TIMEOUT_IN_MILLISECONDS]), since the panel would otherwise not know which model the
+     * agent went on with. A refusal takes the turn's message back, as if it was never sent, and offers the plan for approval
+     * again; one for want of a sign-in, or a lost conversation, is the turn's failure, so signing in sends it again.
+     */
+    private suspend fun switchTo(conversation: AgentConversation, model: SmallerModel): Boolean {
+        try {
+            withContext(NonCancellable) {
+                withTimeout(MODEL_SWITCH_TIMEOUT_IN_MILLISECONDS) { conversation.setConfigOption(model.option, SessionConfigOptionValue.of(model.value.value)) }
+            }
+            return true
+        } catch (exception: ConversationLostException) {
+            throw exception
+        } catch (exception: Exception) {
+            if (exception.isAuthRequired()) throw exception
+            _transcript.update { it.withoutLastItem().withFailure(FailureReason.MODEL_NOT_SWITCHED, exception.message).copy(isPlanNew = true) }
+            return false
+        }
     }
 
     /**
@@ -377,3 +403,5 @@ public class AssistantChat(
  * Whether this is the agent's `authRequired` error, which an agent answers a prompt with until the user signs in.
  */
 private fun Throwable.isAuthRequired() = generateSequence(this) { it.cause }.any { it is JsonRpcException && it.code == JsonRpcErrorCode.AUTH_REQUIRED.code }
+
+private const val MODEL_SWITCH_TIMEOUT_IN_MILLISECONDS = 30_000L

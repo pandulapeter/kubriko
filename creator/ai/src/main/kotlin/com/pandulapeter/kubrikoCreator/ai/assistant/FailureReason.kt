@@ -47,4 +47,9 @@ public enum class FailureReason {
      * The agent answered the prompt with an error.
      */
     PROMPT_FAILED,
+
+    /**
+     * The agent didn't switch to the model a plan was approved with, so the approval wasn't sent.
+     */
+    MODEL_NOT_SWITCHED,
 }
