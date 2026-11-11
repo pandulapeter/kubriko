@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.sprites
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
+import org.junit.Assume.assumeFalse
 import java.io.File
 import java.io.IOException
 import kotlin.test.Test
@@ -84,6 +85,7 @@ class SpriteFolderStoreTest {
         store.refresh()
         locked.setWritable(false)
         try {
+            assumeFalse("the folder still takes new files", runCatching { File(locked, "probe").createNewFile() }.getOrDefault(false))
             assertFailsWith<IOException> { store.move("bat", "locked") }
         } finally {
             locked.setWritable(true)

@@ -31,6 +31,7 @@ import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import org.junit.Assume.assumeFalse
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -204,6 +205,7 @@ class AudioFolderCommandsTest {
         val moved = File(context.directory("$common/files/open").apply { mkdirs() }, "hit.wav").apply { writeBytes(wav) }
         locked.setWritable(false)
         try {
+            assumeFalse("the folder still takes new files", runCatching { File(locked, "probe").createNewFile() }.getOrDefault(false))
             context.moveBack(listOf(File(locked, "hit.wav") to moved))
         } finally {
             locked.setWritable(true)
