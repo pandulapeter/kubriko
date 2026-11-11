@@ -174,6 +174,17 @@ class AudioFolderCommandsTest {
     }
 
     @Test
+    fun movingAFolderMovesItsFilesAndWhatPlaysThemFollowsUntilUndone() = runTest {
+        val context = context(player, sounds = listOf("files/sounds/enemies/hit.wav"), music = listOf("files/sounds/enemies/boss.mp3"))
+        context.directory("$common/files/sounds/cave").mkdirs()
+        val after = context.assertRoundTrip(Invocation(MoveFolder, MoveFolder.Input(FolderGroup.SOUNDS, "sounds/enemies", "sounds/cave"))) { context.files() to context.blockTypes!!.types.value }
+        assertTrue("$common/files/sounds/cave/enemies/hit.wav" in after.first.keys)
+        assertTrue(after.first.keys.none { it.endsWith("sounds/enemies/hit.wav") })
+        val blocks = (after.second.single() as ActorTypeDefinition).events.single().blocks
+        assertEquals(listOf(BlockDefinition.PlaySound("files/sounds/cave/enemies/hit.wav"), BlockDefinition.PlayMusic("files/sounds/cave/enemies/boss.mp3")), blocks)
+    }
+
+    @Test
     fun undoingARenamePutsBackExactlyWhatItChanged() = runTest {
         val dangling = ActorTypeDefinition(name = "Ghost", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.PlaySound("files/sounds/foes/hit.wav")))))
         val reported = ArrayList<ConsoleEntry>()

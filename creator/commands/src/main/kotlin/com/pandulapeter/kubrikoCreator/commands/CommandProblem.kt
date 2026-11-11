@@ -99,6 +99,8 @@ public enum class CommandProblem(override val english: String) : DomainText {
     UPGRADE_NOT_NEEDED("The project's template files are up to date."),
     FOLDER_EXISTS("There's already a folder called %1\$s."),
     FOLDER_TOP("The top of a group isn't a folder. Name one of its folders."),
+    FOLDER_INTO_ITSELF("%1\$s can't move into itself or a folder inside it."),
+    FOLDER_ALREADY_THERE("%1\$s is in that folder already."),
     FOLDER_NOT_EMPTY("%1\$s isn't empty. Move what's in it out first."),
     GAME_COMMAND_FAILED("The game couldn't do that: %1\$s"),
     GAME_DURATION_INVALID("Use between 1 and %1\$s milliseconds."),

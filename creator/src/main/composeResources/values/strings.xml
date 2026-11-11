@@ -699,11 +699,14 @@
     <string name="error_command_property_value_invalid">Give %1$s one value, of the kind the Property is.</string>
     <string name="error_folder_exists">There's already a folder called %1$s.</string>
     <string name="error_folder_top">The top of a group isn't a folder. Name one of its folders.</string>
+    <string name="error_folder_into_itself">%1$s can't move into itself or a folder inside it.</string>
+    <string name="error_folder_already_there">%1$s is in that folder already.</string>
     <string name="error_folder_missing">There's no folder called %1$s.</string>
     <string name="error_command_folder_missing_similar">There's no folder called %1$s. Close matches: %2$s.</string>
     <string name="error_folder_not_empty">%1$s isn't empty. Move what's in it out first.</string>
     <string name="command_create_folder">New folder</string>
     <string name="command_rename_folder">Rename folder</string>
+    <string name="command_move_folder">Move folder</string>
     <string name="command_delete_folder">Delete folder</string>
     <string name="command_move_to_folder">Move to folder</string>
     <string name="command_list_resources">List resources</string>

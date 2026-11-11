@@ -91,7 +91,9 @@ import kubriko.creator.generated.resources.error_command_text_size_invalid
 import kubriko.creator.generated.resources.error_command_timer_taken
 import kubriko.creator.generated.resources.error_command_upgrade_by_hand
 import kubriko.creator.generated.resources.error_command_upgrade_not_needed
+import kubriko.creator.generated.resources.error_folder_already_there
 import kubriko.creator.generated.resources.error_folder_exists
+import kubriko.creator.generated.resources.error_folder_into_itself
 import kubriko.creator.generated.resources.error_folder_not_empty
 import kubriko.creator.generated.resources.error_folder_top
 import kubriko.creator.generated.resources.error_game_command_failed
@@ -203,6 +205,8 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.UPGRADE_NOT_NEEDED -> Res.string.error_command_upgrade_not_needed
     CommandProblem.FOLDER_EXISTS -> Res.string.error_folder_exists
     CommandProblem.FOLDER_TOP -> Res.string.error_folder_top
+    CommandProblem.FOLDER_INTO_ITSELF -> Res.string.error_folder_into_itself
+    CommandProblem.FOLDER_ALREADY_THERE -> Res.string.error_folder_already_there
     CommandProblem.FOLDER_NOT_EMPTY -> Res.string.error_folder_not_empty
     CommandProblem.GAME_COMMAND_FAILED -> Res.string.error_game_command_failed
     CommandProblem.GAME_DURATION_INVALID -> Res.string.error_game_duration_invalid

@@ -23,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.folders.CreateFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.DeleteFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
+import com.pandulapeter.kubrikoCreator.commands.folders.MoveFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.RenameFolder
 import com.pandulapeter.kubrikoCreator.commands.testScope
 import kotlinx.coroutines.test.runTest
@@ -117,6 +118,8 @@ class ScreenplayCommandsTest {
         assertEquals(Rejection(NameProblem.PAGE_NAME_TOO_LONG, "120"), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.PAGES, "a".repeat(121))))
         val left = context.assertRoundTrip(Invocation(DeleteFolder, DeleteFolder.Input(FolderGroup.PAGES, "people"))) { context.screenplay.scanFolders() }
         assertEquals(setOf("worlds", "worlds/deep"), left)
+        val moved = context.assertRoundTrip(Invocation(MoveFolder, MoveFolder.Input(FolderGroup.PAGES, "worlds/deep", ""))) { context.screenplay.scanNames() to context.screenplay.scanFolders() }
+        assertEquals(listOf("deep/pit", "worlds/cave") to setOf("deep", "worlds"), moved)
     }
 
     @Test
@@ -127,6 +130,9 @@ class ScreenplayCommandsTest {
         assertNull(RenameFolder.validate(context, RenameFolder.Input(FolderGroup.PAGES, "a", "b".repeat(9))))
         CreateFolder.apply(context, CreateFolder.Input(FolderGroup.PAGES, "c/" + "f".repeat(110)))
         assertEquals(Rejection(NameProblem.PAGE_NAME_TOO_LONG, "120"), RenameFolder.validate(context, RenameFolder.Input(FolderGroup.PAGES, "c", "d".repeat(15))))
+        CreateFolder.apply(context, CreateFolder.Input(FolderGroup.PAGES, "e".repeat(15)))
+        assertEquals(Rejection(NameProblem.PAGE_NAME_TOO_LONG, "120"), MoveFolder.validate(context, MoveFolder.Input(FolderGroup.PAGES, "a", "e".repeat(15))))
+        assertNull(MoveFolder.validate(context, MoveFolder.Input(FolderGroup.PAGES, "a", "c")))
     }
 
     @Test

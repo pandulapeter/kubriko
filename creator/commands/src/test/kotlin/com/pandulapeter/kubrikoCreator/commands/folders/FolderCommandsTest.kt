@@ -73,4 +73,29 @@ class FolderCommandsTest {
         assertEquals(Rejection(CommandProblem.FOLDER_TOP), context.rejection(RenameFolder, RenameFolder.Input(FolderGroup.ACTOR_TYPES, "", "monsters")))
         assertNull(context.rejection(MoveToFolder, MoveToFolder.Input("Bat", "")))
     }
+
+    @Test
+    fun foldersMoveIntoOtherFoldersWithEverythingInThem() = runTest {
+        val context = commandContext(bat, wall, game)
+        CreateFolder.apply(context, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "cave"))
+        val moved = context.assertRoundTrip(Invocation(MoveFolder, MoveFolder.Input(FolderGroup.ACTOR_TYPES, "enemies", "cave"))) {
+            context.actorFolders() to context.blockTypes!!["Bat"]!!.folder
+        }
+        assertEquals(setOf("cave", "cave/enemies", "cave/enemies/flying") to "cave/enemies/flying", moved)
+        val outOfAll = context.assertRoundTrip(Invocation(MoveFolder, MoveFolder.Input(FolderGroup.ACTOR_TYPES, "cave/enemies/flying", ""))) { context.actorFolders() }
+        assertEquals(setOf("cave", "cave/enemies", "flying"), outOfAll)
+    }
+
+    @Test
+    fun aFolderDoesNotMoveIntoItselfWhereItIsOrOntoAnother() = runTest {
+        val context = commandContext(bat, wall, game)
+        CreateFolder.apply(context, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "Flying"))
+        assertEquals(Rejection(CommandProblem.FOLDER_INTO_ITSELF, "enemies"), context.rejection(MoveFolder, MoveFolder.Input(FolderGroup.ACTOR_TYPES, "enemies", "enemies")))
+        assertEquals(Rejection(CommandProblem.FOLDER_INTO_ITSELF, "enemies"), context.rejection(MoveFolder, MoveFolder.Input(FolderGroup.ACTOR_TYPES, "enemies", "enemies/flying")))
+        assertEquals(Rejection(CommandProblem.FOLDER_ALREADY_THERE, "enemies/flying"), context.rejection(MoveFolder, MoveFolder.Input(FolderGroup.ACTOR_TYPES, "enemies/flying", "enemies")))
+        assertEquals(Rejection(CommandProblem.FOLDER_EXISTS, "flying"), context.rejection(MoveFolder, MoveFolder.Input(FolderGroup.ACTOR_TYPES, "enemies/flying", "")))
+        assertEquals(Rejection(CommandProblem.FOLDER_TOP), context.rejection(MoveFolder, MoveFolder.Input(FolderGroup.ACTOR_TYPES, "", "enemies")))
+        assertEquals(Rejection(LookupProblem.FOLDER_MISSING, "props"), context.rejection(MoveFolder, MoveFolder.Input(FolderGroup.ACTOR_TYPES, "enemies", "props")))
+        assertEquals(Rejection(CommandProblem.NO_ACTOR_TYPES), commandContext(blockTypes = null).rejection(MoveFolder, MoveFolder.Input(FolderGroup.ACTOR_TYPES, "a", "")))
+    }
 }

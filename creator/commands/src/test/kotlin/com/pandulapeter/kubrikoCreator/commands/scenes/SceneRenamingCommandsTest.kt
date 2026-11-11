@@ -24,6 +24,7 @@ import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.folders.CreateFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.DeleteFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
+import com.pandulapeter.kubrikoCreator.commands.folders.MoveFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.RenameFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.foldersOf
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
@@ -82,6 +83,9 @@ class SceneRenamingCommandsTest {
         assertEquals(Rejection(CommandProblem.FOLDER_NOT_EMPTY, "levels"), DeleteFolder.validate(context, DeleteFolder.Input(FolderGroup.SCENES, "levels", keepsContents = true)))
         val renamed = context.assertRoundTrip(Invocation(RenameFolder, RenameFolder.Input(FolderGroup.SCENES, "levels", "world"))) { context.scenes.names() }
         assertEquals(listOf("main", "world/2"), renamed)
+        CreateFolder.apply(context, CreateFolder.Input(FolderGroup.SCENES, "game"))
+        val moved = context.assertRoundTrip(Invocation(MoveFolder, MoveFolder.Input(FolderGroup.SCENES, "world", "game"))) { context.scenes.names() }
+        assertEquals(listOf("game/world/2", "main"), moved)
     }
 
     @Test

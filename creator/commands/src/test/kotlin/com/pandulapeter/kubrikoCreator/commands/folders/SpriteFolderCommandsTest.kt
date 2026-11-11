@@ -80,6 +80,16 @@ class SpriteFolderCommandsTest {
     }
 
     @Test
+    fun movingAFolderKeepsItsSpritesInIt() = runTest {
+        val context = context("drawable/bat.png")
+        CreateFolder.apply(context, CreateFolder.Input(FolderGroup.SPRITES, "enemies"))
+        CreateFolder.apply(context, CreateFolder.Input(FolderGroup.SPRITES, "cave"))
+        MoveSpriteToFolder.apply(context, MoveSpriteToFolder.Input("drawable/bat.png", "enemies"))
+        context.assertRoundTrip(Invocation(MoveFolder, MoveFolder.Input(FolderGroup.SPRITES, "enemies", "cave"))) { context.snapshot() }
+        assertEquals(listOf("drawable/bat.png" to "cave/enemies"), context.itemsOf(FolderGroup.SPRITES))
+    }
+
+    @Test
     fun aRenamedSpriteStaysInItsFolder() = runTest {
         val context = context("drawable/bat.png")
         CreateFolder.apply(context, CreateFolder.Input(FolderGroup.SPRITES, "enemies"))
