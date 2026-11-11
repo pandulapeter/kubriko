@@ -1,0 +1,44 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubrikoCreator.sprites.pixels
+
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
+
+class SpriteFramesTest {
+    private val sheet = SpriteSheet(frameWidth = 2, frameHeight = 1, frameCount = 3, framesPerRow = 2)
+    private val image = image("abcdz", "ef..z")
+
+    @Test
+    fun anImageIsCutAsItsSheetSaysOrIsOneFrame() {
+        val frames = SpriteFrames.of(image, sheet).frames.map { it.rows() }
+        assertEquals(listOf(listOf("ab"), listOf("cd"), listOf("ef")), frames)
+        assertEquals(listOf(image), SpriteFrames.of(image, null).frames)
+    }
+
+    @Test
+    fun framesOfTheSameSizeGoBackOverTheImageKeepingWhatIsOutsideThem() {
+        val flipped = SpriteFrames.of(image, sheet).mapped(1, PixelOperations::flippedHorizontally)!!
+        assertEquals(listOf("abdcz", "ef..z"), flipped.toImage().rows())
+        assertEquals(sheet, flipped.sheet)
+        val drawn = SpriteFrames.of(image, sheet).withFrame(2, image("yy"))
+        assertEquals(listOf("abcdz", "yy..z"), drawn.toImage().rows())
+    }
+
+    @Test
+    fun framesOfANewSizeMakeANewImageAndSheetKeepingTheOrigin() {
+        val scaled = SpriteFrames.of(image, sheet.copy(originX = 1, originY = 1)).mapped(null) { PixelOperations.scaled(it, 2) }!!
+        assertEquals(sheet.copy(frameWidth = 4, frameHeight = 2, originX = 2, originY = 2), scaled.sheet)
+        assertEquals(listOf("aabbccdd", "aabbccdd", "eeff....", "eeff...."), scaled.toImage().rows())
+        assertNull(SpriteFrames.of(image, sheet).mapped(0) { PixelOperations.scaled(it, 2) }, "one frame of several can't change its size")
+    }
+}
