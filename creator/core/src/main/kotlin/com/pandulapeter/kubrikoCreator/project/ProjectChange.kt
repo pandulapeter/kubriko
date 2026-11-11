@@ -50,4 +50,9 @@ public enum class ProjectChange {
      * build file names the Kubriko libraries that make it one of the game's.
      */
     MODULES,
+
+    /**
+     * The root `gradle.properties`, holding the game's identity and settings (its first Scene among them).
+     */
+    GAME_SETTINGS,
 }

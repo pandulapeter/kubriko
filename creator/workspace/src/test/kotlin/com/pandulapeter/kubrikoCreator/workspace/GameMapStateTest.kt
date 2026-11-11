@@ -9,7 +9,9 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
+import com.pandulapeter.kubrikoCreator.context.HealthFinding
 import com.pandulapeter.kubrikoCreator.context.ProjectDigest
+import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -37,6 +39,7 @@ class GameMapStateTest {
     private var computeCount = 0
     private var computeGate: CompletableDeferred<Unit>? = null
     private var failingComputation = 0
+    private val findings = MutableStateFlow<List<HealthFinding>?>(emptyList())
 
     private fun mapNamed(name: String) = GameMap(ProjectDigest.of(name, emptyList(), emptyMap(), emptyMap()), emptyList())
 
@@ -53,6 +56,7 @@ class GameMapStateTest {
                 check(count != failingComputation) { "boom" }
                 mapNamed("map $count")
             },
+            findings = findings,
             scope = CoroutineScope(backgroundScope.coroutineContext + scopeDispatcher),
             report = { reports += it },
             computeDispatcher = dispatcher,
@@ -131,6 +135,21 @@ class GameMapStateTest {
         runCurrent()
         changes.emit(Unit)
         advanceTimeBy(1_000)
+        assertEquals(1, computeCount)
+    }
+
+    @Test
+    fun theMapShowsTheHealthChecksFindingsWithoutComputingAgain() = runTest {
+        val state = gameMapState()
+        collect(state)
+        runCurrent()
+        val unused = HealthFinding(HealthFinding.Kind.UNUSED_ACTOR_TYPE, RelationSubject.Type("Ghost"))
+        findings.value = listOf(unused)
+        runCurrent()
+        assertEquals(mapNamed("map 1").copy(findings = listOf(unused)), state.gameMap.value)
+        findings.value = null
+        runCurrent()
+        assertEquals(mapNamed("map 1"), state.gameMap.value, "Before the findings are worked out, the map shows none.")
         assertEquals(1, computeCount)
     }
 

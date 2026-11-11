@@ -23,6 +23,8 @@ import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.project.UpgradeProject
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.context.HealthFinding
+import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.gradle.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
@@ -55,6 +57,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -192,6 +195,26 @@ class WorkspaceControllerTest {
         ownWrites.record(File(rootDirectory, "scenes/main.json"))
         controller.onProjectChanged(setOf(ProjectChange.SCENES), snapshot)
         assertEquals(listOf<ProjectSnapshot?>(null, null), snapshots)
+    }
+
+    @Test
+    fun theHealthChecksFollowTheFirstSceneChangedOutsideCreator() = runTest {
+        val root = testDirectory()
+        File(root, "build.gradle.kts").writeText("val gameFirstScene = providers.gradleProperty(\"game.firstScene\")\n")
+        File(root, "gradle.properties").writeText("game.firstScene=main\n")
+        File(root, "src/commonMain/composeResources/files/scenes/main.json").apply { parentFile.mkdirs() }.writeText("[]")
+        val controller = createController(rootDirectory = root)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { controller.health.findings.collect {} }
+        runCurrent()
+        assertEquals(emptyList(), controller.health.findings.value?.filter { it.kind == HealthFinding.Kind.FIRST_SCENE_MISSING })
+        File(root, "gradle.properties").writeText("game.firstScene=intro\n")
+        controller.onProjectChanged(setOf(ProjectChange.GAME_SETTINGS))
+        advanceTimeBy(ProjectHealth.DEBOUNCE_IN_MILLISECONDS + 1)
+        runCurrent()
+        assertEquals(
+            listOf(HealthFinding(HealthFinding.Kind.FIRST_SCENE_MISSING, RelationSubject.Scene("intro"))),
+            controller.health.findings.value?.filter { it.kind == HealthFinding.Kind.FIRST_SCENE_MISSING },
+        )
     }
 
     @Test

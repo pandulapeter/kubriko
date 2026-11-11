@@ -450,7 +450,8 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
 - **One AI panel** holds both ways of working with AI (an outside client over MCP, and the in-app assistant), since nobody uses
   them at once. The assistant is the recommended way and the panel's own view, which it always opens on; the user's own tool
   and the map ("What the AI knows about your game") are in the panel's menu, both leading back to it. The map is computed
-  once per burst of changes, off the main thread, and only while it is shown (`GameMapState`).
+  once per burst of changes, off the main thread, and only while it is shown (`GameMapState`), its findings
+  being the editors' (`ProjectHealth`), worked out once for both.
 - **AI features off** (`CreatorSettingsController.isAiEnabled`) is the one check: the MCP server stays stopped, the assistant starts,
   fetches, and installs nothing (`AssistantHost` holds its check), and the UI (through `LocalIsAiEnabled`) shows no AI surface. Every new AI surface reads it and
   joins `AiFeaturesOffTest`. Commands, undo, and the game notes stay.

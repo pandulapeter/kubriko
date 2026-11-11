@@ -53,6 +53,8 @@ class ProjectWatcherTest {
         assertEquals(ProjectChange.MODULES, ProjectWatcher.areaOf("build.gradle"))
         assertEquals(ProjectChange.MODULES, ProjectWatcher.areaOf("settings.gradle.kts"))
         assertEquals(ProjectChange.MODULES, ProjectWatcher.areaOf("gradle/libs.versions.toml"), "The catalog decides which modules use Kubriko")
+        assertEquals(ProjectChange.GAME_SETTINGS, ProjectWatcher.areaOf("gradle.properties"))
+        assertNull(ProjectWatcher.areaOf("shared/gradle.properties"))
         assertNull(ProjectWatcher.areaOf("shared/settings.gradle.kts"))
         assertNull(ProjectWatcher.areaOf(".kubriko/local/window.json"))
         assertNull(ProjectWatcher.areaOf(".kubriko/actors/.Ball.json.1a2b3c4d$ATOMIC_WRITE_SUFFIX"))

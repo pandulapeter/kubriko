@@ -14,18 +14,13 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.firstSceneSettings
 import kotlinx.coroutines.withContext
 
 /**
- * What about the open project is worth a look ([HealthChecks]).
+ * What about the open project is worth a look ([HealthChecks]), among every Scene, those that can't be read too.
  */
-public suspend fun CommandContext.healthFindings(): List<HealthFinding> = healthFindings(sceneTypeCounts()) + withContext(ioDispatcher) { screenplayFindings() }
-
-/**
- * What about the open project is worth a look, with the Scenes' Actor counts [sceneCounts] already read ([sceneTypeCounts]),
- * among every Scene, those that can't be read too.
- */
-internal suspend fun CommandContext.healthFindings(sceneCounts: Map<String, Map<String, Int>>): List<HealthFinding> {
+public suspend fun CommandContext.healthFindings(): List<HealthFinding> {
     val types = blockTypes?.types?.value.orEmpty()
-    val firstScene = withContext(ioDispatcher) { firstSceneSettings(project.rootDirectory)?.firstScene }
-    return HealthChecks.of(types, ProjectRelations(types, sceneCounts), scenes.names(), audioFiles(), sceneMusic(), firstScene)
+    val sceneCounts = sceneTypeCounts()
+    val (firstScene, screenplay) = withContext(ioDispatcher) { firstSceneSettings(project.rootDirectory)?.firstScene to screenplayFindings() }
+    return HealthChecks.of(types, ProjectRelations(types, sceneCounts), scenes.names(), audioFiles(), sceneMusic(), firstScene) + screenplay
 }
 
 /**

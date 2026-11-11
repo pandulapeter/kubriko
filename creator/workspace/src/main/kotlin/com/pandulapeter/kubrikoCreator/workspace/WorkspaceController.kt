@@ -47,6 +47,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -326,13 +327,16 @@ public class WorkspaceController(
     /** Creates what the sidebar names in place. */
     public val creation: WorkspaceCreation = WorkspaceCreation(commands, selection)
 
-    /** The AI panel's Game map, computed only while it is shown. */
-    public val gameMap: GameMapState = GameMapState.of(blockTypes, resources, scenes, commands, sceneEditing, scope, ::reportUnexpectedProblem)
+    /** Emits whenever the watcher finds files changed outside Kubriko Creator, which the health checks and the map read. */
+    private val changedOutside = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     /**
-     * What about the project is worth a look, for the sidebar and the editors.
+     * What about the project is worth a look, for the sidebar, the editors, and the Game map.
      */
-    public val health: ProjectHealth = ProjectHealth.of(blockTypes, resources, commands, sceneEditing, scope, ::reportUnexpectedProblem)
+    public val health: ProjectHealth = ProjectHealth.of(blockTypes, resources, commands, changedOutside, scope, ioDispatcher, ::reportUnexpectedProblem)
+
+    /** The AI panel's Game map, computed only while it is shown. */
+    public val gameMap: GameMapState = GameMapState.of(blockTypes, resources, scenes, commands, changedOutside, health.findings, scope, ::reportUnexpectedProblem)
 
     /**
      * The assistant's one offer to write the screenplay of a game that has none.
@@ -367,6 +371,7 @@ public class WorkspaceController(
         if (ProjectChange.DOCUMENTS in changes) commands.context.documents.onChangedOutside()
         this.changes.onProjectChanged(changes, snapshot)
         missingReferences.onChangedOutside()
+        changedOutside.tryEmit(Unit)
     }
 
     private fun refreshScreenplay() {

@@ -13,7 +13,6 @@ import com.pandulapeter.kubrikoCreator.actors.store.BlockTypesController
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.context.HealthFinding
 import com.pandulapeter.kubrikoCreator.context.healthFindings
-import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingController
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -46,28 +45,31 @@ public class ProjectHealth internal constructor(
         const val DEBOUNCE_IN_MILLISECONDS = 500L
 
         /**
-         * The findings of a workspace, which may change with its types, resources, Scenes, pages, documents, and undo
-         * history.
+         * The findings of a workspace, which may change with its types, resources, pages, documents, undo history, AI
+         * steps, and files changed outside Kubriko Creator ([changedOutside]: Scenes, and the settings naming the first).
          */
         fun of(
             blockTypes: BlockTypesController?,
             resources: StateFlow<*>,
             commands: CommandExecutor,
-            sceneEditing: SceneEditingController,
+            changedOutside: Flow<Unit>,
             scope: CoroutineScope,
+            computeDispatcher: CoroutineDispatcher,
             report: (Throwable) -> Unit,
         ) = ProjectHealth(
             changes = merge(
                 blockTypes?.types?.drop(1) ?: emptyFlow(),
                 resources.drop(1),
-                sceneEditing.state.drop(1),
+                changedOutside,
                 commands.context.screenplay.revision.drop(1),
                 commands.context.documents.revision.drop(1),
                 commands.history.drop(1),
+                commands.aiSteps.drop(1),
             ),
             compute = { commands.context.healthFindings() },
             scope = scope,
             report = report,
+            computeDispatcher = computeDispatcher,
         )
     }
 }

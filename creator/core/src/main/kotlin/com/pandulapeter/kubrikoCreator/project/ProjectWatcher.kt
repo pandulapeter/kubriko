@@ -108,6 +108,7 @@ public class ProjectWatcher(
         internal fun areaOf(path: String) = when {
             path.endsWith(ATOMIC_WRITE_SUFFIX) -> null
             path == BlockTypeStore.SETTINGS_FILE -> ProjectChange.SETTINGS
+            path == GradlePropertiesFile.NAME -> ProjectChange.GAME_SETTINGS
             path.startsWith(".kubriko/actors/") || path.startsWith(".kubriko/managers/") -> ProjectChange.BLOCK_TYPE_DEFINITIONS
             ResourceScanner.classify(path) == ResourceGroup.SCENES -> ProjectChange.SCENES
             path.startsWith(PageNaming.FOLDER + "/") || path == ScreenplaySettings.FILE -> ProjectChange.SCREENPLAY
