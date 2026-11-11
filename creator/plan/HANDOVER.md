@@ -26,8 +26,9 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `01-resources-and-search.md` at Folders' last bullet: the expanded folders kept per project in `.kubriko/local`,
-and dragging a whole folder into another.
+Continue `01-folders.md`, its one bullet: the expanded folders kept per project in `.kubriko/local`, and dragging a whole
+folder into another. Then `02-sprite-editor.md`, which the user moved ahead of search and the Blocks (2026-11-11) to see
+something visual sooner, starting with its sprite sheets.
 
 The last items finished, each reviewed with `/code-review` and every finding fixed in a commit of its own:
 

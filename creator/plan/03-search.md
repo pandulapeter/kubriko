@@ -7,17 +7,10 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
 -->
-# Resources and search
+# Search
 
-Every kind of resource added, renamed, and deleted from Creator, folders for the groups that lack them, and finding things past a
-few dozen Actor types, Scenes, or sprites. Folders are plain files where the format allows it, so the project stays readable in
-IntelliJ and git (`../CLAUDE.md` → Principles 1). Each addition lands with its command and AI tool.
-
-## Folders
-
-- Expanded folders remembered per project in `.kubriko/local`, and moving a whole folder into another by dragging.
-
-## Search
+Finding things past a few dozen Actor types, Scenes, or sprites, for the user and the AI alike. Each addition lands with its command and
+AI tool.
 
 - **The sidebar's filter field** (`SidebarFilter.kt`): Cmd/Ctrl+F to focus it, the matches highlighted, and matching words anywhere
   (`brk` finds `Brick` too, as IDEs do).
@@ -41,4 +34,4 @@ IntelliJ and git (`../CLAUDE.md` → Principles 1). Each addition lands with its
 
 ## Order
 
-Folders, then the filter field and quick open, find usages, search in Blocks and pages with the AI tools, and searching conversations last.
+The filter field and quick open, find usages, search in Blocks and pages with the AI tools, and searching conversations last.

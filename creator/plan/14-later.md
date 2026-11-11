@@ -15,7 +15,7 @@ Work with no place in the roadmap yet: each waits for demand, a measurement, or 
   and "Open in IntelliJ". A language server (`kotlin-lsp`) only if there's demand.
 - **Resources changed while playing:** decide what a Scene, sprite, or sound changed during a play session does (Hot Reload's copy
   holds the resources too, so a reload may not bring them), then make it do that.
-- **A shared collection of custom Blocks** beyond the user's own My Blocks (`03-reuse-and-traits.md`): bundled with Creator, or
+- **A shared collection of custom Blocks** beyond the user's own My Blocks (`05-reuse-and-traits.md`): bundled with Creator, or
   published by others, once enough users ask; decide first how a shared one's Kotlin body is trusted.
 - **"Don't ask again"** on confirmations, listed in Creator settings so they can be turned back on, once a confirmation is asked often
   enough to need it.
