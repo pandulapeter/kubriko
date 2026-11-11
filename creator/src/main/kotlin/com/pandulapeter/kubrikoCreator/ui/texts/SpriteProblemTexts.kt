@@ -19,6 +19,7 @@ import kubriko.creator.generated.resources.error_pixels_letter_unknown
 import kubriko.creator.generated.resources.error_pixels_none
 import kubriko.creator.generated.resources.error_pixels_outside_frame
 import kubriko.creator.generated.resources.error_pixels_palette_key
+import kubriko.creator.generated.resources.error_sprite_frame_last
 import kubriko.creator.generated.resources.error_sprite_frame_missing
 import kubriko.creator.generated.resources.error_sprite_frame_size_alone
 import kubriko.creator.generated.resources.error_sprite_not_written
@@ -46,6 +47,7 @@ internal fun SpriteProblem.toResource(): StringResource = when (this) {
     SpriteProblem.SPRITE_SIZE_INVALID -> Res.string.error_sprite_size_invalid
     SpriteProblem.SPRITE_SCALE_INVALID -> Res.string.error_sprite_scale_invalid
     SpriteProblem.SPRITE_FRAME_SIZE_ALONE -> Res.string.error_sprite_frame_size_alone
+    SpriteProblem.SPRITE_FRAME_LAST -> Res.string.error_sprite_frame_last
     SpriteProblem.SPRITE_PATH_INVALID -> Res.string.error_sprite_path_invalid
     SpriteProblem.SPRITE_TOO_LARGE_FOR_ROWS -> Res.string.error_sprite_too_large_for_rows
     SpriteProblem.SPRITE_UNREADABLE -> Res.string.error_sprite_unreadable

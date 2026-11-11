@@ -54,4 +54,20 @@ class SpriteFramesTest {
         val flipped = SpriteFrames.of(image("abcd", "efgh"), single).mapped(0, origin = { 3 to it.originY }, operation = PixelOperations::flippedHorizontally)!!
         assertEquals(3, flipped.sheet?.originX)
     }
+
+    @Test
+    fun framesAddedRemovedOrReorderedAreLaidOutAnewOnAnImageJustLargeEnough() {
+        val frames = SpriteFrames.of(image, sheet)
+        val reordered = frames.withFrames(frames.frames.reversed(), framesPerRow = 2)
+        assertEquals(listOf("efcdz", "ab..z"), reordered.toImage().rows(), "laid out the same, over the image")
+        val added = frames.withFrames(frames.frames + image(".."), framesPerRow = 4)
+        assertEquals(sheet.copy(frameCount = 4, framesPerRow = 4), added.sheet)
+        assertEquals(listOf("abcdef.."), added.toImage().rows())
+        val removed = frames.withFrames(frames.frames.take(1), framesPerRow = 2)
+        assertEquals(sheet.copy(frameCount = 1, framesPerRow = 1), removed.sheet)
+        assertEquals(listOf("ab"), removed.toImage().rows())
+        val cut = SpriteFrames.of(image("ab"), null).withFrames(listOf(image("ab"), image("cd")), framesPerRow = 2)
+        assertEquals(SpriteSheet(frameWidth = 2, frameHeight = 1, frameCount = 2, framesPerRow = 2), cut.sheet)
+        assertEquals(listOf("abcd"), cut.toImage().rows())
+    }
 }

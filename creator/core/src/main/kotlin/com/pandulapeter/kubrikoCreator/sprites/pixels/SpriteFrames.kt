@@ -33,6 +33,17 @@ public class SpriteFrames private constructor(
     }
 
     /**
+     * [frames] in place of these, of the same size, laid out [framesPerRow] to a row: frames added, removed, or put in
+     * another order. A sprite not cut into frames becomes one that is, played at the default speed.
+     */
+    public fun withFrames(frames: List<PixelImage>, framesPerRow: Int): SpriteFrames {
+        require(frames.isNotEmpty() && frames.all { it.width == frameWidth && it.height == frameHeight }) { "A sprite has frames of $frameWidth by $frameHeight pixels." }
+        val changedSheet = (sheet ?: SpriteSheet(frameWidth = frameWidth, frameHeight = frameHeight, frameCount = 1, framesPerRow = 1))
+            .copy(frameCount = frames.size, framesPerRow = framesPerRow.coerceIn(1, frames.size))
+        return SpriteFrames(image, cutBy, changedSheet, frames)
+    }
+
+    /**
      * These frames with [operation] applied to frame [index], or to each of them for null; null when the frames it leaves
      * aren't all of one size (one frame of several turned to another size), which a sheet can't hold. A changed frame
      * size changes the sheet's. When every frame changes (or the only one), the sheet's origin follows the pixels as [origin] moves it (given
@@ -59,12 +70,13 @@ public class SpriteFrames private constructor(
     }
 
     /**
-     * The frames put back together as the sheet lays them out: over the image they came from while their size is the same
-     * (so what lies outside every frame stays), or on a new image just large enough for them.
+     * The frames put back together as the sheet lays them out: over the image they came from while they are laid out the
+     * same (so what lies outside every frame stays), or on a new image just large enough for them.
      */
     public fun toImage(): PixelImage {
         val sheet = sheet ?: return frames.single()
-        val isCutTheSame = cutBy?.frameWidth == sheet.frameWidth && cutBy.frameHeight == sheet.frameHeight
+        val isCutTheSame = cutBy?.frameWidth == sheet.frameWidth && cutBy.frameHeight == sheet.frameHeight &&
+            cutBy.frameCount == sheet.frameCount && cutBy.framesPerRow == sheet.framesPerRow
         val base = if (isCutTheSame && sheet.problemWithImage(image.width, image.height) == null) {
             image
         } else {

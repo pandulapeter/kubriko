@@ -85,6 +85,7 @@ import com.pandulapeter.kubrikoCreator.commands.resources.CreateSprite
 import com.pandulapeter.kubrikoCreator.commands.resources.DeleteResource
 import com.pandulapeter.kubrikoCreator.commands.resources.DrawPixels
 import com.pandulapeter.kubrikoCreator.commands.resources.EditSprite
+import com.pandulapeter.kubrikoCreator.commands.resources.EditSpriteFrames
 import com.pandulapeter.kubrikoCreator.commands.resources.ImportSpriteFrames
 import com.pandulapeter.kubrikoCreator.commands.resources.ListResources
 import com.pandulapeter.kubrikoCreator.commands.resources.ReadSprite
@@ -263,6 +264,7 @@ public class CommandRegistry(
                 CreateSprite,
                 DrawPixels,
                 EditSprite,
+                EditSpriteFrames,
                 SetPalette,
                 ImportSpriteFrames,
                 PlaceActor,

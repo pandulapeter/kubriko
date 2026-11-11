@@ -30,6 +30,7 @@ public enum class SpriteProblem(override val english: String) : DomainText {
     SPRITE_TOO_LARGE_FOR_ROWS("Only an image of at most %1\$s by %1\$s pixels and %2\$s colors can be read as rows: read a frame, or leave asRows out."),
     SPRITE_UNREADABLE("The image of %1\$s can't be read, so it can't be changed: it isn't a PNG, JPEG, or WebP image, or it is gone."),
     SPRITE_NOT_WRITTEN("Kubriko Creator couldn't save %1\$s, so it stays as it was: %2\$s"),
+    SPRITE_FRAME_LAST("A sprite keeps at least one frame: draw over it instead, or delete the sprite."),
     SPRITE_FRAME_MISSING("%1\$s has no frame %2\$s: its frames go from 0 to %3\$s."),
     SPRITE_SHEET_NOT_WRITTEN("Kubriko Creator couldn't save how %1\$s is cut into frames, so it stays as it was: %2\$s"),
     SPRITE_SHEET_DOES_NOT_FIT("%1\$s is %2\$s by %3\$s pixels, which the frames don't fit: their rows take more room than it has."),

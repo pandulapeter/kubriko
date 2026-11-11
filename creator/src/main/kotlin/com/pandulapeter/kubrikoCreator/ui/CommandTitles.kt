@@ -86,6 +86,7 @@ import com.pandulapeter.kubrikoCreator.commands.resources.CreateSprite
 import com.pandulapeter.kubrikoCreator.commands.resources.DeleteResource
 import com.pandulapeter.kubrikoCreator.commands.resources.DrawPixels
 import com.pandulapeter.kubrikoCreator.commands.resources.EditSprite
+import com.pandulapeter.kubrikoCreator.commands.resources.EditSpriteFrames
 import com.pandulapeter.kubrikoCreator.commands.resources.ImportSpriteFrames
 import com.pandulapeter.kubrikoCreator.commands.resources.ListResources
 import com.pandulapeter.kubrikoCreator.commands.resources.ReadSprite
@@ -160,6 +161,7 @@ import kubriko.creator.generated.resources.command_edit_document
 import kubriko.creator.generated.resources.command_edit_page
 import kubriko.creator.generated.resources.command_edit_property
 import kubriko.creator.generated.resources.command_edit_sprite
+import kubriko.creator.generated.resources.command_edit_sprite_frames
 import kubriko.creator.generated.resources.command_edit_text
 import kubriko.creator.generated.resources.command_get_block_catalog
 import kubriko.creator.generated.resources.command_get_health_checks
@@ -294,6 +296,7 @@ private val commandTitles = mapOf(
     CreateSprite.name to Res.string.command_create_sprite,
     DrawPixels.name to Res.string.command_draw_pixels,
     EditSprite.name to Res.string.command_edit_sprite,
+    EditSpriteFrames.name to Res.string.command_edit_sprite_frames,
     ReadSprite.name to Res.string.command_read_sprite,
     SetPalette.name to Res.string.command_set_palette,
     ImportSpriteFrames.name to Res.string.command_import_sprite_frames,
