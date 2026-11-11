@@ -33,7 +33,9 @@ import kubriko.creator.generated.resources.command_list_scenes
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class AssistantPanelDecisionsTest {
     private val scope = CoroutineScope(SupervisorJob())
@@ -128,6 +130,14 @@ class AssistantPanelDecisionsTest {
             listOf(AgentMenuItem.Agent(AgentChoice.Registry(claude)), AgentMenuItem.Agent(AgentChoice.Custom("goose acp")), AgentMenuItem.OpenLog),
             agentMenuItems(listOf(claude), customAgentCommand = "goose acp", canEnterCustom = false, hasLog = true),
         )
+    }
+
+    @Test
+    fun aNewConversationIsOfferedOnceThereIsSomethingAndTheAgentIsntWorking() {
+        assertTrue(isNewConversationOffered(isEmpty = false, isBusy = false, isWaitingForAnswer = false))
+        assertTrue(isNewConversationOffered(isEmpty = false, isBusy = true, isWaitingForAnswer = true))
+        assertFalse(isNewConversationOffered(isEmpty = false, isBusy = true, isWaitingForAnswer = false))
+        assertFalse(isNewConversationOffered(isEmpty = true, isBusy = false, isWaitingForAnswer = false))
     }
 
     @Test

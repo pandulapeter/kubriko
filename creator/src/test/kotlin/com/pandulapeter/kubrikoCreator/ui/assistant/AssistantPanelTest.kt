@@ -340,6 +340,35 @@ class AssistantPanelTest {
         assertEquals(listOf("wait"), launcher.agents.single().prompts)
     }
 
+    @Test
+    fun aConversationTheUserIsDoneWithIsLeftForANewOneWithoutStoppingAnything() = uiTest {
+        val chat = readyChat()
+        val model = FakeAssistantPanelModel().apply { currentChat.value = chat }
+        showing { AssistantPanel(model = model, aiSteps = emptyList(), onShowStep = {}) }
+        onNodeWithText("Done? Start a new conversation").assertDoesNotExist()
+        runBlocking { withContext(mainThread) { chat.send("hello") } }
+        waitUntil(timeoutMillis = 10_000) { !chat.isEmpty.value && !chat.isBusy.value }
+        saveSnapshot("assistant-new-conversation-offer")
+        onNodeWithText("Done? Start a new conversation").performClick()
+        assertEquals(1, model.calls.count { it == "newChat" })
+    }
+
+    @Test
+    fun leavingAConversationWhoseAgentWaitsForAnAnswerStopsItsTurn() = uiTest {
+        val chat = readyChat()
+        val model = FakeAssistantPanelModel().apply { currentChat.value = chat }
+        val question = UserQuestions.Question(1, "Anything else?", listOf("Yes", "No"), AiStepOrigin(TOOLS_ID))
+        var questions by mutableStateOf(emptyList<UserQuestions.Question>())
+        showing { AssistantPanel(model = model, aiSteps = emptyList(), onShowStep = {}, questions = questions) }
+        runBlocking { withContext(mainThread) { chat.send("wait") } }
+        waitUntil(timeoutMillis = 10_000) { chat.isBusy.value }
+        onNodeWithText("Done? Start a new conversation").assertDoesNotExist()
+        questions = listOf(question)
+        onNodeWithText("Done? Start a new conversation").performClick()
+        waitUntil(timeoutMillis = 10_000) { !chat.isBusy.value }
+        assertEquals(1, model.calls.count { it == "newChat" })
+    }
+
     private companion object {
         const val TOOLS_ID = "tools"
     }

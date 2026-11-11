@@ -157,6 +157,7 @@ private fun AssistantPanelContent(
             onShowStep = onShowStep,
             questions = questions,
             onAnswer = onAnswer,
+            onStartNew = model::newChat,
         ) { isPromptRefused ->
             AssistantSignInArea(
                 session = session,
@@ -195,6 +196,7 @@ private fun ChatContent(
     onShowStep: (AiStep) -> Unit,
     questions: List<UserQuestions.Question>,
     onAnswer: (id: Long, answer: String) -> Unit,
+    onStartNew: () -> Unit,
     modifier: Modifier = Modifier,
     signInArea: @Composable (isPromptRefused: Boolean) -> Unit,
 ) = Column(
@@ -266,6 +268,14 @@ private fun ChatContent(
     ConversationUsageLine(
         usage = transcript.usage,
         isBilledToApiKey = isBilledToApiKey,
+    )
+    NewConversationOffer(
+        isShown = isNewConversationOffered(chat.isEmpty.collectAsState().value, isBusy, isWaitingForAnswer = waitingQuestion != null),
+        onStartNew = {
+            // A question nobody answers would keep the agent waiting in a conversation the user has left.
+            if (waitingQuestion != null) chat.stop()
+            onStartNew()
+        },
     )
     HorizontalDivider()
     AssistantComposer(

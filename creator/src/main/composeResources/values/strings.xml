@@ -904,6 +904,7 @@
     <string name="usage_effect_prevents_deleting">Keeps it from being deleted</string>
     <string name="game_map_empty">Nothing yet: create an Actor type or a Scene, and it shows up here.</string>
     <string name="action_new_conversation">New conversation</string>
+    <string name="assistant_new_conversation_offer">Done? Start a new conversation</string>
     <string name="action_delete_conversation">Delete this conversation</string>
     <string name="assistant_delete_conversation_title">Delete this conversation?</string>
     <string name="assistant_delete_conversation_message">It can't be continued afterwards. What it changed in the project stays.</string>
