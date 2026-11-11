@@ -104,7 +104,7 @@ internal fun rememberFolderTreeActions(
                 FolderGroup.MANAGER_TYPES -> Invocation(RenameManagerType, RenameManagerType.Input(name, newName))
                 FolderGroup.SCENES -> Invocation(RenameScene, RenameScene.Input(name, FolderPaths.child(FolderPaths.parentOf(name), newName)))
                 FolderGroup.PAGES -> Invocation(MovePage, MovePage.Input(name, FolderPaths.child(FolderPaths.parentOf(name), newName)))
-                FolderGroup.SOUNDS, FolderGroup.MUSIC -> ResourceKind.renamed(name, newName).takeIf { it != name }?.let { Invocation(RenameResource, RenameResource.Input(name, it)) }
+                FolderGroup.SOUNDS, FolderGroup.MUSIC -> resourceRenameOf(name, newName)
             }?.let(commands::dispatchIfValid)
         },
         onDeleteItem = { group, name ->
@@ -168,14 +168,18 @@ internal fun rememberResourceActions(commands: CommandExecutor, uiState: Workspa
             onChoose = { kind -> add(pickResourceFiles(kind, chooseTitles.getValue(kind))) },
             onAdd = add,
             onPaste = { scope.launch { withContext(Dispatchers.IO) { pastedResources() }.takeIf { it.isNotEmpty() }?.let(add) } },
-            onRename = { path, newName ->
-                val newPath = ResourceKind.renamed(path, newName)
-                if (newPath == path) null else commands.dispatchIfValid(Invocation(RenameResource, RenameResource.Input(path, newPath)))
-            },
+            onRename = { path, newName -> resourceRenameOf(path, newName)?.let(commands::dispatchIfValid) },
             onDelete = { path -> uiState.dispatch(Invocation(DeleteResource, DeleteResource.Input(path)), onSuccess = {}, dispatch = commands::dispatch) },
         )
     }
 }
+
+/**
+ * The rename of the sprite, sound, or music file at [path] to [newName] in its own folder, or null when that is its name
+ * already.
+ */
+internal fun resourceRenameOf(path: String, newName: String): Invocation<RenameResource.Input>? =
+    ResourceKind.renamed(path, newName).takeIf { it != path }?.let { Invocation(RenameResource, RenameResource.Input(path, it)) }
 
 /**
  * [name], or the first of `name 2`, `name 3`, and so on that [isTaken] doesn't take, as a page a document becomes is

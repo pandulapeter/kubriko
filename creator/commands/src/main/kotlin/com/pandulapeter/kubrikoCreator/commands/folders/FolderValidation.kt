@@ -49,10 +49,7 @@ internal fun CommandContext.itemsOf(group: FolderGroup): List<Pair<String, Strin
 /**
  * The game's own sounds and music the last resource scan found ([knownResourcePaths]).
  */
-private fun CommandContext.knownAudioFiles(): AudioFiles {
-    val paths = knownResourcePaths().orEmpty()
-    return AudioFiles(sounds = paths.filter { ResourceKind.of(it) == ResourceKind.SOUND }, music = paths.filter { ResourceKind.of(it) == ResourceKind.MUSIC })
-}
+private fun CommandContext.knownAudioFiles(): AudioFiles = AudioFiles.ofPaths(knownResourcePaths().orEmpty())
 
 /**
  * Why there is no folder at [path] in [group] (the top of the group, an empty path, always exists), given its [folders].

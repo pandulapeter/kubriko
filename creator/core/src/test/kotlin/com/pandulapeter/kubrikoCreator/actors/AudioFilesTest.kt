@@ -41,4 +41,12 @@ class AudioFilesTest {
         val scanned = mapOf(ResourceGroup.MUSIC to listOf(resource(ResourceGroup.MUSIC, "src/commonMain/composeResources/files/theme.mp3")))
         assertEquals(AudioFiles.of(scanned), AudioFiles.ofScanned(scanned))
     }
+
+    @Test
+    fun pathsAreToldApartByWhatTheyAre() {
+        assertEquals(
+            AudioFiles(sounds = listOf("files/sounds/hit.wav"), music = listOf("files/music/theme.ogg")),
+            AudioFiles.ofPaths(listOf("drawable/ball.png", "files/sounds/hit.wav", "files/music/theme.ogg", "files/scenes/level.wav")),
+        )
+    }
 }

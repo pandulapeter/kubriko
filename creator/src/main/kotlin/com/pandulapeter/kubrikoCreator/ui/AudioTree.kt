@@ -26,9 +26,9 @@ import com.pandulapeter.kubrikoCreator.project.ResourceGroup
  * while one with a folder beside it shows both.
  */
 internal fun audioTreesOf(resources: Map<ResourceGroup, List<ProjectResource>>, folders: Set<String>): Map<ResourceGroup, FolderTreeGroupState> {
-    val paths = AudioFiles(sounds = pathsOf(resources[ResourceGroup.SOUNDS]), music = pathsOf(resources[ResourceGroup.MUSIC]))
+    val paths = AudioFiles.of(resources)
     return listOf(ResourceGroup.SOUNDS, ResourceGroup.MUSIC).associateWith { group ->
-        val kind = checkNotNull(group.audioFolderGroup?.resourceKind)
+        val kind = checkNotNull(group.resourceKind)
         val items = (if (kind == ResourceKind.SOUND) paths.sounds else paths.music).map { it to ResourceKind.audioFolderOf(it) }
         val groupFolders = AudioFolders.ofKind(kind, folders, paths)
         val root = rootOf(items.map { it.second }, groupFolders, checkNotNull(ResourceKind.defaultAudioFolderOf(kind)))
@@ -40,19 +40,13 @@ internal fun audioTreesOf(resources: Map<ResourceGroup, List<ProjectResource>>, 
  * The group of the sidebar whose folders are those of this group of files, for sounds and music.
  */
 internal val ResourceGroup.audioFolderGroup: FolderGroup?
-    get() = when (this) {
-        ResourceGroup.SOUNDS -> FolderGroup.SOUNDS
-        ResourceGroup.MUSIC -> FolderGroup.MUSIC
-        ResourceGroup.SCENES, ResourceGroup.DOCUMENTS, ResourceGroup.SPRITES, ResourceGroup.KOTLIN -> null
-    }
+    get() = resourceKind?.let(FolderGroup::of)
 
 /**
  * Whether a folder is shown in this tree: one besides its [FolderTreeGroupState.root] and those holding it.
  */
 internal val FolderTreeGroupState.hasShownFolders: Boolean
     get() = folders.any { root.isEmpty() || (it != root && FolderPaths.isWithin(it, root)) }
-
-private fun pathsOf(resources: List<ProjectResource>?) = resources.orEmpty().mapNotNull(::resourcePathOf).distinct()
 
 /**
  * [defaultFolder] when it exists and every one of [itemFolders] and [folders] is in it, so it holds everything the group

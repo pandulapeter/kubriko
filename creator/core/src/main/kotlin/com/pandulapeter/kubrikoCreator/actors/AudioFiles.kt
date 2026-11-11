@@ -28,6 +28,14 @@ public data class AudioFiles(
         )
 
         /**
+         * The sounds and music among [paths] (from `composeResources`), told apart by [ResourceKind.of].
+         */
+        public fun ofPaths(paths: Collection<String>): AudioFiles = AudioFiles(
+            sounds = paths.filter { ResourceKind.of(it) == ResourceKind.SOUND },
+            music = paths.filter { ResourceKind.of(it) == ResourceKind.MUSIC },
+        )
+
+        /**
          * The audio files of [resources] once the project was scanned, or null before: a project always has a build
          * file, so no resources at all means none were scanned yet, rather than that every audio file is gone.
          */
