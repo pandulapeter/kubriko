@@ -30,6 +30,13 @@ public enum class UsageEffect(
      */
     KOTLIN_TO_CHANGE("left as it is, so the build fails until it is changed"),
     MENTION_TO_TEXT("the mention becomes plain text"),
+    SPRITE_CLEARED("its Actors are drawn as its shape"),
+    MUSIC_CLEARED("the Scene plays no music"),
+
+    /**
+     * A page's image of a deleted sprite, which a copy next to the page then shows.
+     */
+    IMAGE_COPIED("the page shows a copy of the image kept next to it"),
 
     /**
      * What makes the delete refused: a child Actor type, or the game starting with the Scene.

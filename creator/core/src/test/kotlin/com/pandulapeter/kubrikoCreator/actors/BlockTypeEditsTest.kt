@@ -189,4 +189,19 @@ class BlockTypeEditsTest {
         val hud = ManagerTypeDefinition(name = "Hud", properties = listOf(PropertyDefinition.Number("kotlin")), kotlinUi = code)
         assertEquals("import kotlin.math.sin\nangle = sin(angle)", (hud.withPropertyReplaced("kotlin", PropertyDefinition.Number("angle")) as ManagerTypeDefinition).kotlinUi)
     }
+
+    @Test
+    fun renamingAResourceFollowsTheSpriteAndTheBlocksPlayingIt() {
+        val ball = ActorTypeDefinition(
+            name = "Ball",
+            sprite = "drawable/ball.png",
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.PlaySound("files/hit.wav"), BlockDefinition.PlayMusic("files/hit.wav"), BlockDefinition.PlaySound("files/other.wav")))),
+        )
+        assertEquals("drawable/orb.png", (ball.withResourceRenamed("drawable/ball.png", "drawable/orb.png") as ActorTypeDefinition).sprite)
+        assertEquals(
+            listOf(BlockDefinition.PlaySound("files/bounce.wav"), BlockDefinition.PlayMusic("files/bounce.wav"), BlockDefinition.PlaySound("files/other.wav")),
+            ball.withResourceRenamed("files/hit.wav", "files/bounce.wav").events.single().blocks,
+        )
+        assertEquals(ball, ball.withResourceRenamed("drawable/bat.png", "drawable/club.png"))
+    }
 }

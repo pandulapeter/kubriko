@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.KotlinIdentifiers
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.screenplay.PageLinks
 
@@ -30,6 +31,8 @@ import com.pandulapeter.kubrikoCreator.screenplay.PageLinks
  * @param kotlinFiles The text of every hand-written Kotlin file, by its path from the project's root (only those
  *   [readsKotlinFiles] says the usages of a subject need).
  * @param markdown The text of every page, by its path from the project's root.
+ * @param sceneMusic The music each Scene plays, by the Scene's name (only for the usages of a sprite, sound, or music
+ *   file, the one subject they matter to).
  * @param mentionedPath The file a page links to to mention the subject asked about, a path from the project's root, if it
  *   can be mentioned.
  */
@@ -40,6 +43,7 @@ internal class ProjectReferences(
     private val kotlinFiles: Map<String, String>,
     private val markdown: Map<String, String> = emptyMap(),
     val mentionedPath: String? = null,
+    private val sceneMusic: Map<String, String> = emptyMap(),
 ) {
     val relations = ProjectRelations(types, sceneTypeCounts)
     private val family = ActorTypeFamily(types.filterIsInstance<ActorTypeDefinition>())
@@ -53,6 +57,7 @@ internal class ProjectReferences(
             .filterNot { subject is RelationSubject.Type && it.place.owner == subject }
             .distinct()
             .forEach { relation -> add(usageOf(relation)) }
+        if (subject is RelationSubject.Resource) addAll(resourceUsagesOf(subject, types, sceneMusic))
         addAll(managerChoiceUsagesOf(subject))
         addAll(kotlinBlockUsagesOf(subject))
         if (subject is RelationSubject.Scene && subject.name == firstScene) {
@@ -63,6 +68,9 @@ internal class ProjectReferences(
             add(Usage(UsagePlace.KotlinFile(path), RelationKind.NAMES_IN_KOTLIN, subject, UsageEffect.KOTLIN_TO_CHANGE))
         }
         addAll(mentionUsagesOf(subject))
+        if (subject is RelationSubject.Resource && mentionedPath != null && ResourceKind.of(subject.path) == ResourceKind.SPRITE) {
+            addAll(imageUsagesOf(subject, mentionedPath, markdown))
+        }
     }
 
     /**
@@ -99,6 +107,7 @@ internal class ProjectReferences(
             RelationKind.ADDS, RelationKind.MOVES_TOWARDS, RelationKind.GOES_TO, RelationKind.CHANGES -> usage(UsageEffect.BLOCK_REMOVED)
             RelationKind.STARTS_WITH -> usage(UsageEffect.PREVENTS_DELETING)
             RelationKind.MENTIONS -> usage(UsageEffect.MENTION_TO_TEXT)
+            RelationKind.DRAWN_AS, RelationKind.PLAYS, RelationKind.SHOWS -> error("${relation.kind} is found by resourceUsagesOf, never among the relations.")
             RelationKind.READS -> when (val block = blockAt(relation.place)) {
                 is BlockDefinition.If -> usage(UsageEffect.SECTION_REMOVED, sectionOf(relation.place as RelationPlace.Type).count() - 1)
                 null, is BlockDefinition.Log -> usage(UsageEffect.PLACEHOLDER_TO_TEXT)
@@ -158,7 +167,7 @@ internal class ProjectReferences(
                 addAll(kotlinNamingScene(subject))
                 return@buildList
             }
-            is RelationSubject.Page, is RelationSubject.Image -> return@buildList
+            is RelationSubject.Page, is RelationSubject.Image, is RelationSubject.Resource -> return@buildList
         }
         types.forEach { type ->
             if (subject is RelationSubject.Type && type.name == subject.name) return@forEach
@@ -201,6 +210,7 @@ internal class ProjectReferences(
     private fun fileNaming(subject: RelationSubject): (String) -> Boolean = when (subject) {
         is RelationSubject.Type -> Regex("\\b" + Regex.escape(subject.name) + "\\b")::containsMatchIn
         is RelationSubject.Scene -> sceneString(subject.name).let { quoted -> { text -> quoted in text } }
+        is RelationSubject.Resource -> resourceNaming(subject)
         is RelationSubject.Property, is RelationSubject.Page, is RelationSubject.Image -> { _ -> false }
     }
 
@@ -216,11 +226,11 @@ internal class ProjectReferences(
     companion object {
 
         /**
-         * Whether hand-written Kotlin can name [subject], so that its usages need [kotlinFiles]: a type's class, or a
-         * Scene's name in a string, but not a Property, whose name is an ordinary word, nor a page or an image, which the
-         * game's code doesn't name.
+         * Whether hand-written Kotlin can name [subject], so that its usages need [kotlinFiles]: a type's class, a
+         * Scene's name in a string, or a sprite, sound, or music file ([resourceNaming]), but not a Property, whose name
+         * is an ordinary word, nor a page or an image, which the game's code doesn't name.
          */
-        fun readsKotlinFiles(subject: RelationSubject) = subject is RelationSubject.Type || subject is RelationSubject.Scene
+        fun readsKotlinFiles(subject: RelationSubject) = subject is RelationSubject.Type || subject is RelationSubject.Scene || subject is RelationSubject.Resource
 
         /**
          * The indexes of the if or repeat Block at [index] of [blocks] and of every Block of its section: up to its end

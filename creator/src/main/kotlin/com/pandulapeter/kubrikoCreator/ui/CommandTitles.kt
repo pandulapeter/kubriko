@@ -78,6 +78,9 @@ import com.pandulapeter.kubrikoCreator.commands.project.SetPlan
 import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
 import com.pandulapeter.kubrikoCreator.commands.project.SetTarget
 import com.pandulapeter.kubrikoCreator.commands.project.UpgradeProject
+import com.pandulapeter.kubrikoCreator.commands.resources.AddResource
+import com.pandulapeter.kubrikoCreator.commands.resources.DeleteResource
+import com.pandulapeter.kubrikoCreator.commands.resources.RenameResource
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.ListScenes
@@ -117,6 +120,7 @@ import kubriko.creator.generated.resources.command_add_document_to_screenplay
 import kubriko.creator.generated.resources.command_add_event
 import kubriko.creator.generated.resources.command_add_page_image
 import kubriko.creator.generated.resources.command_add_property
+import kubriko.creator.generated.resources.command_add_resource
 import kubriko.creator.generated.resources.command_add_text
 import kubriko.creator.generated.resources.command_ask_user
 import kubriko.creator.generated.resources.command_build
@@ -133,6 +137,7 @@ import kubriko.creator.generated.resources.command_delete_document
 import kubriko.creator.generated.resources.command_delete_folder
 import kubriko.creator.generated.resources.command_delete_manager_type
 import kubriko.creator.generated.resources.command_delete_page
+import kubriko.creator.generated.resources.command_delete_resource
 import kubriko.creator.generated.resources.command_delete_scene
 import kubriko.creator.generated.resources.command_discard_changes
 import kubriko.creator.generated.resources.command_discard_changes_made_by_hand
@@ -184,6 +189,7 @@ import kubriko.creator.generated.resources.command_remove_text
 import kubriko.creator.generated.resources.command_rename_actor_type
 import kubriko.creator.generated.resources.command_rename_folder
 import kubriko.creator.generated.resources.command_rename_manager_type
+import kubriko.creator.generated.resources.command_rename_resource
 import kubriko.creator.generated.resources.command_rename_scene
 import kubriko.creator.generated.resources.command_rename_timer
 import kubriko.creator.generated.resources.command_replace_blocks
@@ -327,6 +333,9 @@ private val commandTitles = mapOf(
     RemoveActor.name to Res.string.command_remove_actor,
     RemoveActors.name to Res.string.command_remove_actors,
     RenameScene.name to Res.string.command_rename_scene,
+    AddResource.name to Res.string.command_add_resource,
+    RenameResource.name to Res.string.command_rename_resource,
+    DeleteResource.name to Res.string.command_delete_resource,
     RestoreActor.name to Res.string.command_restore_actor,
     RestoreActors.name to Res.string.command_restore_actors,
     SetActorState.name to Res.string.command_set_actor_state,

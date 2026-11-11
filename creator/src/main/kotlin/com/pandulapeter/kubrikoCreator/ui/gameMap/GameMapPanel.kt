@@ -220,4 +220,5 @@ private fun subjectText(subject: RelationSubject) = when (subject) {
     is RelationSubject.Scene -> subject.name
     is RelationSubject.Page -> subject.name
     is RelationSubject.Image -> subject.path
+    is RelationSubject.Resource -> subject.path
 }

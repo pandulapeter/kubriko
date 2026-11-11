@@ -56,4 +56,12 @@ class SceneSettingsStateTest {
         assertNull(SceneSettingsState.musicOf(SceneDocument.format(listOf(SceneActorEntry("Ball", "{}")))))
         assertNull(SceneSettingsState.musicOf("not a Scene"))
     }
+
+    @Test
+    fun settingTheMusicChangesNothingElse() {
+        val state = """{"backgroundColor":5,"music":"files/a.mp3","unknown":[1]}"""
+        assertEquals(Json.parseToJsonElement("""{"backgroundColor":5,"music":"files/b.mp3","unknown":[1]}"""), Json.parseToJsonElement(SceneSettingsState.withMusic(state, "files/b.mp3")))
+        assertEquals("", SceneSettingsState.read(SceneSettingsState.withMusic(state, "")).music)
+        assertEquals("files/c.mp3", SceneSettingsState.read(SceneSettingsState.withMusic("not json", "files/c.mp3")).music)
+    }
 }

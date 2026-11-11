@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import com.pandulapeter.kubrikoCreator.ui.gameMap.label
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.delete_confirmation_title_property
+import kubriko.creator.generated.resources.delete_confirmation_title_resource
 import kubriko.creator.generated.resources.delete_confirmation_title_scene
 import kubriko.creator.generated.resources.delete_confirmation_title_type
 import kubriko.creator.generated.resources.document_delete_title
@@ -26,11 +27,14 @@ import kubriko.creator.generated.resources.page_delete_title
 import kubriko.creator.generated.resources.usage_effect_actors_removed
 import kubriko.creator.generated.resources.usage_effect_block_removed
 import kubriko.creator.generated.resources.usage_effect_event_removed
+import kubriko.creator.generated.resources.usage_effect_image_copied
 import kubriko.creator.generated.resources.usage_effect_kotlin_to_change
 import kubriko.creator.generated.resources.usage_effect_mention_to_text
+import kubriko.creator.generated.resources.usage_effect_music_cleared
 import kubriko.creator.generated.resources.usage_effect_placeholder_to_text
 import kubriko.creator.generated.resources.usage_effect_prevents_deleting
 import kubriko.creator.generated.resources.usage_effect_section_removed
+import kubriko.creator.generated.resources.usage_effect_sprite_cleared
 import kubriko.creator.generated.resources.usage_place_block
 import kubriko.creator.generated.resources.usage_place_event
 import kubriko.creator.generated.resources.usage_place_game_settings
@@ -50,6 +54,7 @@ internal fun RelationSubject.deleteConfirmationTitle() = when (this) {
     is RelationSubject.Property -> stringResource(Res.string.delete_confirmation_title_property, name)
     is RelationSubject.Page -> stringResource(Res.string.page_delete_title, name)
     is RelationSubject.Image -> stringResource(Res.string.document_delete_title, path)
+    is RelationSubject.Resource -> stringResource(Res.string.delete_confirmation_title_resource, path)
 }
 
 /**
@@ -93,6 +98,9 @@ internal fun UsageEffect.text() = stringResource(
         UsageEffect.KOTLIN_TO_CHANGE -> Res.string.usage_effect_kotlin_to_change
         UsageEffect.MENTION_TO_TEXT -> Res.string.usage_effect_mention_to_text
         UsageEffect.PREVENTS_DELETING -> Res.string.usage_effect_prevents_deleting
+        UsageEffect.SPRITE_CLEARED -> Res.string.usage_effect_sprite_cleared
+        UsageEffect.MUSIC_CLEARED -> Res.string.usage_effect_music_cleared
+        UsageEffect.IMAGE_COPIED -> Res.string.usage_effect_image_copied
     },
 )
 

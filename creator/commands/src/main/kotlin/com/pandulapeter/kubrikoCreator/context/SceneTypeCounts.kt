@@ -53,6 +53,7 @@ internal suspend fun CommandContext.projectReferences(subject: RelationSubject):
             // Documents are the user's, which Creator changes only when asked to, so only pages are cleaned up.
             markdown = screenplayTexts().markdown.filterKeys { PageNaming.nameOf(it) != null },
             mentionedPath = mentionedPathOf(subject),
+            sceneMusic = if (subject is RelationSubject.Resource) sceneMusic() else emptyMap(),
         )
     }
 }

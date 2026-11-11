@@ -34,4 +34,19 @@ public enum class RelationKind(
      * A page's or document's link to what it names, which only [ProjectReferences] reports.
      */
     MENTIONS("mentions"),
+
+    /**
+     * An Actor type's sprite, which only [ProjectReferences] reports.
+     */
+    DRAWN_AS("is drawn as"),
+
+    /**
+     * A Block playing a sound or music, or a Scene's music, which only [ProjectReferences] reports.
+     */
+    PLAYS("plays"),
+
+    /**
+     * A page's image of a sprite, which only [ProjectReferences] reports.
+     */
+    SHOWS("shows"),
 }

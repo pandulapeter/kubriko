@@ -66,6 +66,14 @@ import kubriko.creator.generated.resources.error_command_property_kind_in_descen
 import kubriko.creator.generated.resources.error_command_property_value_invalid
 import kubriko.creator.generated.resources.error_command_question_invalid
 import kubriko.creator.generated.resources.error_command_relations_subject
+import kubriko.creator.generated.resources.error_command_resource_content_mismatch
+import kubriko.creator.generated.resources.error_command_resource_kind_changed
+import kubriko.creator.generated.resources.error_command_resource_not_deleted
+import kubriko.creator.generated.resources.error_command_resource_not_moved
+import kubriko.creator.generated.resources.error_command_resource_path_invalid
+import kubriko.creator.generated.resources.error_command_resource_source_extension
+import kubriko.creator.generated.resources.error_command_resource_source_unreadable
+import kubriko.creator.generated.resources.error_command_resource_taken
 import kubriko.creator.generated.resources.error_command_scene_actor_not_block_built
 import kubriko.creator.generated.resources.error_command_scene_actor_without_position
 import kubriko.creator.generated.resources.error_command_scene_content_invalid
@@ -96,6 +104,8 @@ import kubriko.creator.generated.resources.error_mcp_internal
 import kubriko.creator.generated.resources.error_scene_folder_reserved
 import kubriko.creator.generated.resources.error_scene_name_taken
 import kubriko.creator.generated.resources.error_scene_not_moved
+import kubriko.creator.generated.resources.warning_resource_music_not_followed
+import kubriko.creator.generated.resources.warning_resource_named_in_code
 import kubriko.creator.generated.resources.warning_scene_named_in_code
 import org.jetbrains.compose.resources.StringResource
 
@@ -161,6 +171,16 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.PROPERTY_KIND_IN_DESCENDANT -> Res.string.error_command_property_kind_in_descendant
     CommandProblem.PROPERTY_VALUE_INVALID -> Res.string.error_command_property_value_invalid
     CommandProblem.RELATIONS_SUBJECT -> Res.string.error_command_relations_subject
+    CommandProblem.RESOURCE_CONTENT_MISMATCH -> Res.string.error_command_resource_content_mismatch
+    CommandProblem.RESOURCE_KIND_CHANGED -> Res.string.error_command_resource_kind_changed
+    CommandProblem.RESOURCE_MUSIC_NOT_FOLLOWED -> Res.string.warning_resource_music_not_followed
+    CommandProblem.RESOURCE_NAMED_IN_CODE -> Res.string.warning_resource_named_in_code
+    CommandProblem.RESOURCE_NOT_DELETED -> Res.string.error_command_resource_not_deleted
+    CommandProblem.RESOURCE_NOT_MOVED -> Res.string.error_command_resource_not_moved
+    CommandProblem.RESOURCE_PATH_INVALID -> Res.string.error_command_resource_path_invalid
+    CommandProblem.RESOURCE_SOURCE_EXTENSION -> Res.string.error_command_resource_source_extension
+    CommandProblem.RESOURCE_SOURCE_UNREADABLE -> Res.string.error_command_resource_source_unreadable
+    CommandProblem.RESOURCE_TAKEN -> Res.string.error_command_resource_taken
     CommandProblem.SCENE_ACTOR_NOT_BLOCK_BUILT -> Res.string.error_command_scene_actor_not_block_built
     CommandProblem.SCENE_ACTOR_WITHOUT_POSITION -> Res.string.error_command_scene_actor_without_position
     CommandProblem.SCENE_CONTENT_INVALID -> Res.string.error_command_scene_content_invalid

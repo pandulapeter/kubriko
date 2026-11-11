@@ -50,6 +50,8 @@ public enum class LookupProblem(override val english: String) : DomainText {
     PROPERTY_UNKNOWN_SIMILAR("%1\$s has no Property called %2\$s. Close matches: %3\$s."),
     RELATIONS_PROPERTY_MISSING("There's no Property called %1\$s in %2\$s."),
     RELATIONS_PROPERTY_MISSING_SIMILAR("There's no Property called %1\$s in %2\$s. Close matches: %3\$s."),
+    RESOURCE_MISSING("There's no sprite, sound, or music file at %1\$s."),
+    RESOURCE_MISSING_SIMILAR("There's no sprite, sound, or music file at %1\$s. Close matches: %2\$s."),
     SCENE_ACTOR_MISSING("%1\$s has no Actor with the ID %2\$s."),
     SCENE_ACTOR_MISSING_SIMILAR("%1\$s has no Actor with the ID %2\$s. Close matches: %3\$s."),
     SCENE_MISSING("There's no Scene called %1\$s."),

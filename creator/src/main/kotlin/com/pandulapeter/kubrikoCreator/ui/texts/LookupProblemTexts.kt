@@ -42,6 +42,8 @@ import kubriko.creator.generated.resources.error_command_property_unknown
 import kubriko.creator.generated.resources.error_command_property_unknown_similar
 import kubriko.creator.generated.resources.error_command_relations_property_missing
 import kubriko.creator.generated.resources.error_command_relations_property_missing_similar
+import kubriko.creator.generated.resources.error_command_resource_missing
+import kubriko.creator.generated.resources.error_command_resource_missing_similar
 import kubriko.creator.generated.resources.error_command_scene_actor_missing
 import kubriko.creator.generated.resources.error_command_scene_actor_missing_similar
 import kubriko.creator.generated.resources.error_command_scene_missing
@@ -99,6 +101,8 @@ internal fun LookupProblem.toResource(): StringResource = when (this) {
     LookupProblem.PROPERTY_UNKNOWN_SIMILAR -> Res.string.error_command_property_unknown_similar
     LookupProblem.RELATIONS_PROPERTY_MISSING -> Res.string.error_command_relations_property_missing
     LookupProblem.RELATIONS_PROPERTY_MISSING_SIMILAR -> Res.string.error_command_relations_property_missing_similar
+    LookupProblem.RESOURCE_MISSING -> Res.string.error_command_resource_missing
+    LookupProblem.RESOURCE_MISSING_SIMILAR -> Res.string.error_command_resource_missing_similar
     LookupProblem.SCENE_ACTOR_MISSING -> Res.string.error_command_scene_actor_missing
     LookupProblem.SCENE_ACTOR_MISSING_SIMILAR -> Res.string.error_command_scene_actor_missing_similar
     LookupProblem.SCENE_MISSING -> Res.string.error_command_scene_missing

@@ -20,6 +20,7 @@ import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
+import com.pandulapeter.kubrikoCreator.commands.resources.RenameResource
 import com.pandulapeter.kubrikoCreator.commands.scenes.RenameScene
 import com.pandulapeter.kubrikoCreator.commands.screenplay.CreatePage
 import com.pandulapeter.kubrikoCreator.commands.screenplay.MovePage
@@ -53,10 +54,12 @@ class RenamingFollowsReferencesTest {
     private val sceneKinds = setOf(RelationKind.GOES_TO, RelationKind.STARTS_WITH, RelationKind.NAMES_IN_KOTLIN, RelationKind.MENTIONS)
     private val propertyKinds = setOf(RelationKind.READS, RelationKind.CHANGES)
     private val pageKinds = setOf(RelationKind.MENTIONS)
+    private val spriteKinds = setOf(RelationKind.DRAWN_AS, RelationKind.SHOWS, RelationKind.NAMES_IN_KOTLIN, RelationKind.MENTIONS)
+    private val audioKinds = setOf(RelationKind.PLAYS, RelationKind.NAMES_IN_KOTLIN, RelationKind.MENTIONS)
 
     @Test
     fun everyKindOfReferenceIsCoveredByARename() {
-        assertEquals(RelationKind.entries.toSet(), actorTypeKinds + managerTypeKinds + sceneKinds + propertyKinds + pageKinds)
+        assertEquals(RelationKind.entries.toSet(), actorTypeKinds + managerTypeKinds + sceneKinds + propertyKinds + pageKinds + spriteKinds + audioKinds)
     }
 
     private fun CommandContext.writeFile(path: String, text: String) = File(project.rootDirectory, path).apply { parentFile.mkdirs() }.writeText(text)
@@ -147,6 +150,32 @@ class RenamingFollowsReferencesTest {
         CreatePage.apply(context, CreatePage.Input("people/villain", "# The villain\n\nFights [the hero](../hero.md).\n"))
         context.assertFollowed(RelationSubject.Page("hero"), RelationSubject.Page("people/hero"), pageKinds) {
             MovePage.apply(context, MovePage.Input("hero", "people/hero"))
+        }
+    }
+
+    @Test
+    fun renamingASpriteFollowsEveryReferenceToIt() = runTest {
+        val ball = ActorTypeDefinition(name = "Ball", sprite = "drawable/ball.png")
+        val context = commandContext(ball)
+        File(context.project.rootDirectory, "src/commonMain/composeResources/drawable/ball.png").apply { parentFile.mkdirs() }.writeBytes(byteArrayOf(1))
+        context.writeFile("src/commonMain/kotlin/Game.kt", "val ball = Res.drawable.ball")
+        CreatePage.apply(context, CreatePage.Input("README", "# Game\n\n![The ball](../src/commonMain/composeResources/drawable/ball.png)\n\nA [ball](../src/commonMain/composeResources/drawable/ball.png).\n"))
+        context.assertFollowed(RelationSubject.Resource("drawable/ball.png"), RelationSubject.Resource("drawable/orb.png"), spriteKinds) {
+            RenameResource.apply(context, RenameResource.Input("drawable/ball.png", "drawable/orb.png"))
+        }
+    }
+
+    @Test
+    fun renamingAudioFollowsEveryReferenceToIt() = runTest {
+        val ball = ActorTypeDefinition(name = "Ball", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.PlayMusic("files/music/theme.mp3")))))
+        val context = commandContext(ball)
+        File(context.project.rootDirectory, "src/commonMain/composeResources/files/music/theme.mp3").apply { parentFile.mkdirs() }.writeBytes(byteArrayOf(1))
+        context.writeFile("src/commonMain/composeResources/files/scenes/level.json", """[{"typeId":"SceneSettings","state":"{\"music\":\"files/music/theme.mp3\"}"}]""")
+        context.scenes.refresh()
+        context.writeFile("src/commonMain/kotlin/Game.kt", "val theme = \"files/music/theme.mp3\"")
+        CreatePage.apply(context, CreatePage.Input("README", "# Game\n\nThe [theme](../src/commonMain/composeResources/files/music/theme.mp3) plays.\n"))
+        context.assertFollowed(RelationSubject.Resource("files/music/theme.mp3"), RelationSubject.Resource("files/music/song.mp3"), audioKinds) {
+            RenameResource.apply(context, RenameResource.Input("files/music/theme.mp3", "files/music/song.mp3"))
         }
     }
 }

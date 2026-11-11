@@ -57,6 +57,12 @@ public class SceneStore(
 
     private val sceneDirectory get() = newSceneDirectoryOf(rootDirectory, sceneResources(), homeDirectory)
 
+    /**
+     * The `composeResources` folder holding the Scenes folder new Scenes go to, which new sprites, sounds, and music go to
+     * too, so the game finds them where it finds its Scenes.
+     */
+    public val resourcesDirectory: File get() = sceneDirectory.parentFile.parentFile
+
     private val indexLock = Any()
     private val refreshLock = Any()
 

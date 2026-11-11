@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.context
 
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
@@ -16,8 +17,8 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
 
 /**
  * What deleting something does to the types that use it ([ProjectReferences.typesAfterDeleting]): Blocks and Events
- * that only mean something with it are removed (an Event left empty stays), and placeholders showing its Properties
- * become plain text. Kotlin and Scenes are left to others.
+ * that only mean something with it are removed (an Event left empty stays), placeholders showing its Properties
+ * become plain text, and an Actor type drawn as its sprite is drawn as its shape. Kotlin and Scenes are left to others.
  */
 internal class ReferenceCleanup(
     private val types: List<BlockTypeDefinition>,
@@ -62,6 +63,7 @@ internal class ReferenceCleanup(
             val removal = removals.getOrPut((place.owner as? RelationSubject.Type)?.name ?: return@forEach, ::Removal)
             when (place) {
                 is RelationPlace.Type -> {
+                    if (usage.effect == UsageEffect.SPRITE_CLEARED) removal.clearsSprite = true
                     val eventIndex = place.eventIndex ?: return@forEach
                     val blockIndex = place.blockIndex
                     when (usage.effect) {
@@ -71,7 +73,9 @@ internal class ReferenceCleanup(
                             val blocks = types.first { it.name == place.name }.events[eventIndex].blocks
                             removal.blocks.getOrPut(eventIndex, ::HashSet) += ProjectReferences.sectionOf(blocks, checkNotNull(blockIndex))
                         }
-                        UsageEffect.PLACEHOLDER_TO_TEXT, UsageEffect.ACTORS_REMOVED, UsageEffect.KOTLIN_TO_CHANGE, UsageEffect.PREVENTS_DELETING, UsageEffect.MENTION_TO_TEXT -> Unit
+                        UsageEffect.PLACEHOLDER_TO_TEXT, UsageEffect.ACTORS_REMOVED, UsageEffect.KOTLIN_TO_CHANGE, UsageEffect.PREVENTS_DELETING, UsageEffect.MENTION_TO_TEXT,
+                        UsageEffect.SPRITE_CLEARED, UsageEffect.MUSIC_CLEARED, UsageEffect.IMAGE_COPIED,
+                        -> Unit
                     }
                 }
                 is RelationPlace.Text -> if (usage.effect == UsageEffect.PLACEHOLDER_TO_TEXT) removal.texts += place.textIndex
@@ -96,7 +100,7 @@ internal class ReferenceCleanup(
                 },
             )
         }
-        val withEvents = type.withEvents(events)
+        val withEvents = type.withEvents(events).let { if (removal.clearsSprite && it is ActorTypeDefinition) it.copy(sprite = null) else it }
         return if (withEvents is ManagerTypeDefinition && removal.texts.isNotEmpty()) {
             withEvents.copy(
                 texts = withEvents.texts.mapIndexed { index, text ->
@@ -112,5 +116,6 @@ internal class ReferenceCleanup(
         val events = HashSet<Int>()
         val blocks = HashMap<Int, MutableSet<Int>>()
         val texts = HashSet<Int>()
+        var clearsSprite = false
     }
 }

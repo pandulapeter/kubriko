@@ -16,11 +16,13 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.EveryBlockTypes
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
+import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.actors.actorTypeReference
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveProperty
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
+import com.pandulapeter.kubrikoCreator.commands.resources.DeleteResource
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
 import kotlinx.coroutines.test.runTest
 import java.io.File
@@ -100,6 +102,32 @@ class DeletingEveryThingTest {
         assertNull(invocation.apply(context).failure)
         context.blockTypes!!.types.value.forEach { type ->
             type.events.forEach { event -> event.blocks.forEach { block -> assertTrue(block != BlockDefinition.GoToScene("main"), "${type.name} still goes to main.") } }
+        }
+    }
+
+    @Test
+    fun noSpriteSoundOrMusicIsUsedOnceDeleted() = runTest {
+        val types = EveryBlockTypes.all
+        val paths = types.flatMap { type ->
+            listOfNotNull((type as? ActorTypeDefinition)?.sprite) + type.events.flatMap { event ->
+                event.blocks.mapNotNull { (it as? BlockDefinition.PlaySound)?.sound ?: (it as? BlockDefinition.PlayMusic)?.music }
+            }
+        }.filter { ResourceKind.of(it) != null }.distinct()
+        assertTrue(paths.size >= 3, "EveryBlockTypes uses a sprite, a sound, and music.")
+        paths.forEach { path ->
+            val context = commandContext(*types.toTypedArray())
+            File(context.project.rootDirectory, "src/commonMain/composeResources/$path").apply { parentFile.mkdirs() }.writeBytes(byteArrayOf(1))
+            val invocation = Invocation(DeleteResource, DeleteResource.Input(path))
+            assertNull(invocation.validate(context))
+            assertNull(invocation.apply(context).failure)
+            context.blockTypes!!.types.value.forEach { type ->
+                assertTrue((type as? ActorTypeDefinition)?.sprite != path, "${type.name} is still drawn as $path.")
+                type.events.forEach { event ->
+                    event.blocks.forEach { block ->
+                        assertTrue(block != BlockDefinition.PlaySound(path) && (block as? BlockDefinition.PlayMusic)?.music != path, "${type.name} still has $block.")
+                    }
+                }
+            }
         }
     }
 }

@@ -53,6 +53,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -352,7 +353,7 @@ public class WorkspaceController(
             for (haveTypesChanged in savedTypeBatches) changes.onTypesSaved(haveTypesChanged)
         }
         changes.refreshResources()
-        scope.launch { commands.context.documents.structureRevision.drop(1).collect { changes.refreshResources() } }
+        scope.launch { merge(commands.context.documents.structureRevision.drop(1), commands.context.filesRevision.drop(1)).collect { changes.refreshResources() } }
         refreshScreenplay()
         refreshProjectUpgrade()
         blockTypes?.let { types ->

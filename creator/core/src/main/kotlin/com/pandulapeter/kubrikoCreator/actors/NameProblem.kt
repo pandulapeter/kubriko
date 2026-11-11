@@ -43,5 +43,7 @@ public enum class NameProblem(override val english: String) : DomainText {
     DOCUMENT_IN_LEFT_OUT_FOLDER("Kubriko Creator leaves build and tool folders out, so a document can't go in one. Choose another folder."),
     DOCUMENT_FIRST_CHARACTER("Start the document's name, and every folder it's in, with a letter or a number."),
     DOCUMENT_CHARACTERS("Use only letters, numbers, spaces, dots, dashes, and underscores in the document's name and its folders."),
+    RESOURCE_FIRST_CHARACTER("Start the file's name, and every folder it's in, with a letter or a number."),
+    RESOURCE_CHARACTERS("Use only letters, numbers, dashes, and underscores in the file's name and its folders, like ball-red."),
     DOCUMENT_END("Don't end a folder's name with a space or a dot, which Windows drops."),
 }

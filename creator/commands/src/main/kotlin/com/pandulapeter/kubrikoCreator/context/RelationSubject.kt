@@ -11,7 +11,7 @@ package com.pandulapeter.kubrikoCreator.context
 
 /**
  * What a relation refers to: an Actor type or Manager type, one of their Properties, a Scene, a page of the screenplay,
- * or an image next to the pages.
+ * a sprite, sound, or music file, or an image next to the pages.
  */
 public sealed interface RelationSubject {
 
@@ -44,6 +44,15 @@ public sealed interface RelationSubject {
         val name: String,
     ) : RelationSubject {
         override fun toString(): String = "Page $name"
+    }
+
+    /**
+     * A sprite, sound, or music file, by its path from `composeResources` (`drawable/ball.png`).
+     */
+    public data class Resource(
+        val path: String,
+    ) : RelationSubject {
+        override fun toString(): String = path
     }
 
     /**

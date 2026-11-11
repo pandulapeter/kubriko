@@ -22,7 +22,10 @@ import com.pandulapeter.kubrikoCreator.screenplay.DocumentStore
 import com.pandulapeter.kubrikoCreator.screenplay.MovedFiles
 import com.pandulapeter.kubrikoCreator.screenplay.ScreenplayStore
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 
 /**
@@ -83,6 +86,17 @@ public class CommandContext(
      * The images Actor types can be drawn as, or null if they aren't known, so they aren't checked.
      */
     public val spriteFiles: () -> SpriteFiles? = scannedFiles.spriteFiles
+
+    private val _filesRevision = MutableStateFlow(0)
+
+    /**
+     * Raised whenever a command created, deleted, or moved a file no store reports on its own (a sprite, a sound, music,
+     * or a page's image), which the watcher never reports either, being Kubriko Creator's own write, so that the
+     * resource tree is scanned again.
+     */
+    public val filesRevision: StateFlow<Int> = _filesRevision.asStateFlow()
+
+    internal fun onFilesChanged() = _filesRevision.update { it + 1 }
 
     /**
      * The project's Markdown files that aren't pages, whose writes are recorded as Kubriko Creator's own with the Scenes'.

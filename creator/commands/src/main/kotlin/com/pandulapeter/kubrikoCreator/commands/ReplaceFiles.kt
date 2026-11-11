@@ -70,6 +70,7 @@ internal object ReplaceFiles : WriteCommand<ReplaceFiles.Input> {
             file.writeBytesAtomically(bytes)
         }
         scenes.ownWrites.record(file)
+        onFilesChanged()
     }
 
     /**

@@ -115,6 +115,13 @@ public object SceneSettingsState {
     }
 
     /**
+     * [state] with its music set to [music] (by its path from `composeResources`, or empty for none), and nothing else
+     * changed, not even the defaults [withChanges] writes.
+     */
+    public fun withMusic(state: String, music: String): String =
+        JsonObject((SceneDocument.stateObject(state) ?: JsonObject(emptyMap())) + (SceneSettingsCodeGenerator.MUSIC_KEY to JsonPrimitive(music))).toString()
+
+    /**
      * How Kubriko's serialization saves an sRGB Compose `Color`: its packed value, which keeps the `0xAARRGGBB` in the
      * upper half.
      */

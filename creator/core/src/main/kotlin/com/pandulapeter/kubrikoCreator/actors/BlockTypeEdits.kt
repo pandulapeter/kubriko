@@ -130,6 +130,21 @@ public fun BlockTypeDefinition.withScenesRenamed(renamed: Map<String, String>): 
 }
 
 /**
+ * The type drawn as, and its Blocks playing, the sprite, sound, or music at [newPath] (from `composeResources`) wherever
+ * they did the one at [oldPath].
+ */
+public fun BlockTypeDefinition.withResourceRenamed(oldPath: String, newPath: String): BlockTypeDefinition {
+    val withBlocks = withBlocks { block ->
+        when {
+            block is BlockDefinition.PlaySound && block.sound == oldPath -> block.copy(sound = newPath)
+            block is BlockDefinition.PlayMusic && block.music == oldPath -> block.copy(music = newPath)
+            else -> block
+        }
+    }
+    return if (withBlocks is ActorTypeDefinition && withBlocks.sprite == oldPath) withBlocks.copy(sprite = newPath) else withBlocks
+}
+
+/**
  * Every Block, text, and Kotlin code that uses the Manager type [oldName] (by its class, or, in another type, by the
  * field the generated code looks it up in) uses [newName] instead.
  */

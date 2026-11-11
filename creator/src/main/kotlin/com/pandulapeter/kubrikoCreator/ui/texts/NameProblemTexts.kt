@@ -30,6 +30,8 @@ import kubriko.creator.generated.resources.error_property_name_characters
 import kubriko.creator.generated.resources.error_property_name_first_character
 import kubriko.creator.generated.resources.error_property_name_reserved
 import kubriko.creator.generated.resources.error_property_name_taken
+import kubriko.creator.generated.resources.error_resource_name_characters
+import kubriko.creator.generated.resources.error_resource_name_first_character
 import kubriko.creator.generated.resources.error_scene_name_characters
 import kubriko.creator.generated.resources.error_scene_name_first_character
 import kubriko.creator.generated.resources.error_timer_name_characters
@@ -72,5 +74,7 @@ internal fun NameProblem.toResource(): StringResource = when (this) {
     NameProblem.DOCUMENT_IN_LEFT_OUT_FOLDER -> Res.string.error_document_in_left_out_folder
     NameProblem.DOCUMENT_FIRST_CHARACTER -> Res.string.error_document_name_first_character
     NameProblem.DOCUMENT_CHARACTERS -> Res.string.error_document_name_characters
+    NameProblem.RESOURCE_FIRST_CHARACTER -> Res.string.error_resource_name_first_character
+    NameProblem.RESOURCE_CHARACTERS -> Res.string.error_resource_name_characters
     NameProblem.DOCUMENT_END -> Res.string.error_document_name_end
 }
