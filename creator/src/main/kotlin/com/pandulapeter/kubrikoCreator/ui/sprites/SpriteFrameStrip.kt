@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.pandulapeter.kubrikoCreator.commands.resources.EditSpriteFrames
 import com.pandulapeter.kubrikoCreator.sprites.pixels.PixelImage
+import com.pandulapeter.kubrikoCreator.ui.actorTypes.fittedInto
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
@@ -186,16 +187,12 @@ private fun FrameThumbnail(
                 .padding(4.dp),
         ) {
             Canvas(Modifier.matchParentSize()) {
-                val scale = minOf(size.width / frame.width, size.height / frame.height)
-                val width = frame.width * scale
-                val height = frame.height * scale
-                val left = (size.width - width) / 2
-                val top = (size.height - height) / 2
-                drawCheckerboard(Rect(left, top, left + width, top + height), square = THUMBNAIL_CHECKERBOARD_SQUARE)
+                val (topLeft, fitted) = fittedInto(IntSize(frame.width, frame.height), size)
+                drawCheckerboard(Rect(topLeft, fitted), square = THUMBNAIL_CHECKERBOARD_SQUARE)
                 drawImage(
                     image = bitmap,
-                    dstOffset = IntOffset(left.roundToInt(), top.roundToInt()),
-                    dstSize = IntSize(width.roundToInt().coerceAtLeast(1), height.roundToInt().coerceAtLeast(1)),
+                    dstOffset = IntOffset(topLeft.x.roundToInt(), topLeft.y.roundToInt()),
+                    dstSize = IntSize(fitted.width.roundToInt().coerceAtLeast(1), fitted.height.roundToInt().coerceAtLeast(1)),
                     filterQuality = FilterQuality.None,
                 )
             }
