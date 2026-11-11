@@ -57,7 +57,7 @@ class RenamingFollowsReferencesTest {
     private val pageKinds = setOf(RelationKind.MENTIONS)
     private val spriteKinds = setOf(RelationKind.DRAWN_AS, RelationKind.SHOWS, RelationKind.NAMES_IN_KOTLIN, RelationKind.MENTIONS)
     private val audioKinds = setOf(RelationKind.PLAYS, RelationKind.NAMES_IN_KOTLIN, RelationKind.MENTIONS)
-    private val timerKinds = setOf(RelationKind.USES_TIMER)
+    private val timerKinds = setOf(RelationKind.USES_TIMER, RelationKind.NAMES_IN_KOTLIN)
 
     @Test
     fun everyKindOfReferenceIsCoveredByARename() {
@@ -190,7 +190,11 @@ class RenamingFollowsReferencesTest {
                 EventDefinition(EventType.TIMER_FINISHED, timer = "spawn"),
             ),
         )
-        val boss = ActorTypeDefinition(name = "Boss", parent = "Enemy", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.StopTimer("spawn")))))
+        val boss = ActorTypeDefinition(
+            name = "Boss",
+            parent = "Enemy",
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.StopTimer("spawn"), BlockDefinition.Kotlin("spawnRemainingInMilliseconds = 0L")))),
+        )
         val context = commandContext(enemy, boss)
         context.assertFollowed(RelationSubject.Timer("Enemy", "spawn"), RelationSubject.Timer("Enemy", "wave"), timerKinds) {
             RenameTimer.apply(context, RenameTimer.Input("Boss", "spawn", "wave"))

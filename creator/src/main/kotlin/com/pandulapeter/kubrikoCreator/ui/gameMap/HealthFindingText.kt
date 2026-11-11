@@ -32,6 +32,7 @@ import kubriko.creator.generated.resources.health_unreached_scene_not_first
 import kubriko.creator.generated.resources.health_unread_property
 import kubriko.creator.generated.resources.health_unused_actor_type
 import kubriko.creator.generated.resources.health_unused_page_image
+import kubriko.creator.generated.resources.timer_of_type
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -46,7 +47,7 @@ internal fun HealthFinding.text(): String {
         is RelationSubject.Page -> subject.name
         is RelationSubject.Image -> subject.path
         is RelationSubject.Resource -> subject.path
-        is RelationSubject.Timer -> stringResource(Res.string.block_property_of_manager, subject.name, subject.owner)
+        is RelationSubject.Timer -> stringResource(Res.string.timer_of_type, subject.name, subject.owner)
     }
     return when (kind) {
         HealthFinding.Kind.UNUSED_ACTOR_TYPE -> stringResource(Res.string.health_unused_actor_type, subjectText)

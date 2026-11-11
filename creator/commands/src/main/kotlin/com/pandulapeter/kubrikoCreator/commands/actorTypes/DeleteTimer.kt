@@ -9,8 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
-import com.pandulapeter.kubrikoCreator.actors.timerNames
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
@@ -21,7 +19,6 @@ import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 import com.pandulapeter.kubrikoCreator.commands.deleteWithUsages
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
-import com.pandulapeter.kubrikoCreator.context.timerSharersOf
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.KSerializer
@@ -31,7 +28,7 @@ import kotlinx.serialization.Serializable
 @OptIn(EditorMutation::class)
 public object DeleteTimer : DeletingCommand<DeleteTimer.Input> {
     override val name: String = "delete_timer"
-    override val description: String = "Deletes a Timer with its timerFinished Events and Timer Blocks, in an Actor type's whole family."
+    override val description: String = "Deletes a Timer of a type with its timerFinished Events and Timer Blocks (an Actor type shares its Timers with its family)."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override fun subject(input: Input): RelationSubject = RelationSubject.Timer(input.actorType, input.timer)
@@ -56,12 +53,4 @@ public object DeleteTimer : DeletingCommand<DeleteTimer.Input> {
         @Description("The Timer's name.")
         @SerialName("timer") val timer: String,
     )
-}
-
-/**
- * The Timers [typeName] uses, with those of every type sharing them ([timerSharersOf]).
- */
-internal fun CommandContext.timerNamesOf(typeName: String): List<String> {
-    val types = requireBlockTypes.types.value
-    return timerSharersOf(typeName, types, ActorTypeFamily(requireBlockTypes.actorTypes.value)).flatMap { requireType(it).timerNames }.distinct()
 }

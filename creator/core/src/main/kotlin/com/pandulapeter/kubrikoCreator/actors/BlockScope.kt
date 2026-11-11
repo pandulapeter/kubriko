@@ -104,8 +104,8 @@ public data class BlockScope(
         ): BlockScope {
             val actorTypes = types.filterIsInstance<ActorTypeDefinition>()
             val timerNames = if (definition is ActorTypeDefinition) {
-                val members = family.familyOf(family.rootOf(definition.name)).toSet()
-                actorTypes.filter { it.name in members }.flatMap { it.timerNames }
+                val sharers = timerSharersOf(definition.name, types, family).toSet()
+                actorTypes.filter { it.name in sharers }.flatMap { it.timerNames }
             } else {
                 definition.timerNames
             }

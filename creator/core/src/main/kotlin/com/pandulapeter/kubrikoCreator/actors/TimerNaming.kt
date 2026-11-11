@@ -48,4 +48,10 @@ public object TimerNaming {
     internal fun periodField(timer: String) = timer + fieldSuffixes[1]
 
     internal fun hookName(timer: String) = "on" + timer.replaceFirstChar { it.uppercase() } + "Finished"
+
+    /**
+     * The names the generated code gives the members of the Timer [timer] (its two fields and its hook), which Kotlin
+     * Blocks may use.
+     */
+    public fun generatedNamesOf(timer: String): List<String> = listOf(remainingField(timer), periodField(timer), hookName(timer))
 }

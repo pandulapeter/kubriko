@@ -277,6 +277,7 @@
     <string name="timer_new">New Timer…</string>
     <string name="timer_rename">Rename this Timer…</string>
     <string name="timer_delete">Delete this Timer…</string>
+    <string name="timer_of_type">The Timer %1$s of %2$s</string>
     <string name="timer_name_placeholder">Timer name, like spawnEnemy</string>
     <string name="event_timer_finished">When a Timer finishes</string>
     <string name="command_set_event_timer">Change Timer</string>

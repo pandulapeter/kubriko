@@ -51,6 +51,7 @@ import kubriko.creator.generated.resources.ic_actor_type
 import kubriko.creator.generated.resources.ic_manager_type
 import kubriko.creator.generated.resources.ic_page
 import kubriko.creator.generated.resources.ic_scene
+import kubriko.creator.generated.resources.timer_of_type
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -221,5 +222,5 @@ private fun subjectText(subject: RelationSubject) = when (subject) {
     is RelationSubject.Page -> subject.name
     is RelationSubject.Image -> subject.path
     is RelationSubject.Resource -> subject.path
-    is RelationSubject.Timer -> stringResource(Res.string.block_property_of_manager, subject.name, subject.owner)
+    is RelationSubject.Timer -> stringResource(Res.string.timer_of_type, subject.name, subject.owner)
 }

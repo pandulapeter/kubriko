@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.timerNames
 import com.pandulapeter.kubrikoCreator.actors.withTimerRenamed
@@ -23,7 +22,6 @@ import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
-import com.pandulapeter.kubrikoCreator.context.timerSharersOf
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.KSerializer
@@ -49,7 +47,7 @@ public object RenameTimer : WriteCommand<RenameTimer.Input> {
     }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        timerSharersOf(input.actorType, context.requireBlockTypes.types.value, ActorTypeFamily(context.requireBlockTypes.actorTypes.value)).forEach { name ->
+        context.timerSharersOf(input.actorType).forEach { name ->
             context.requireType(name).let { definition ->
                 if (input.oldName in definition.timerNames) context.requireBlockTypes.put(definition.withTimerRenamed(input.oldName, input.newName))
             }

@@ -204,4 +204,22 @@ class BlockTypeEditsTest {
         )
         assertEquals(ball, ball.withResourceRenamed("drawable/bat.png", "drawable/club.png"))
     }
+
+    @Test
+    fun renamingATimerFollowsTheKotlinUsingItsMembersAndOnlyItsTimerEvents() {
+        val clock = ManagerTypeDefinition(
+            name = "Clock",
+            events = listOf(
+                EventDefinition(EventType.TIMER_FINISHED, timer = "tick", blocks = listOf(BlockDefinition.Kotlin("tickRemainingInMilliseconds = 0L\nonTickFinished()"))),
+                EventDefinition(EventType.EVERY_FRAME, timer = "tick"),
+            ),
+            kotlinUi = "Text(tickPeriodInMilliseconds.toString())",
+        )
+        val renamed = clock.withTimerRenamed("tick", "beat") as ManagerTypeDefinition
+        assertEquals("beat", renamed.events[0].timer)
+        assertEquals(BlockDefinition.Kotlin("beatRemainingInMilliseconds = 0L\nonBeatFinished()"), renamed.events[0].blocks.single())
+        assertEquals("tick", renamed.events[1].timer, "A stray field on another kind of Event is no Timer.")
+        assertEquals("Text(beatPeriodInMilliseconds.toString())", renamed.kotlinUi)
+        assertEquals(listOf("tick"), clock.timerNames)
+    }
 }

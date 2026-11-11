@@ -45,22 +45,25 @@ public fun BlockTypeDefinition.withEventKey(eventIndex: Int, key: KeyChoice): Bl
 public fun BlockTypeDefinition.withEventTimer(eventIndex: Int, timer: String): BlockTypeDefinition = withEvent(eventIndex) { it.copy(timer = timer) }
 
 /**
- * The Timers its Events react to and its Blocks start or stop.
+ * The Timers its timerFinished Events react to and its Blocks start or stop.
  */
 public val BlockTypeDefinition.timerNames: List<String>
-    get() = events.flatMap { event -> listOfNotNull(event.timer) + event.blocks.mapNotNull { it.timerName } }.distinct()
+    get() = events.flatMap { event -> listOfNotNull(event.trigger.timer) + event.blocks.mapNotNull { it.timerName } }.distinct()
 
 /**
- * Every timerFinished Event and Timer Block that names the Timer [oldName] names [newName] instead.
+ * Every timerFinished Event and Timer Block that names the Timer [oldName] names [newName] instead, and so does the
+ * Kotlin using its generated members ([TimerNaming.generatedNamesOf]).
  */
 public fun BlockTypeDefinition.withTimerRenamed(oldName: String, newName: String): BlockTypeDefinition = withEvents(
     events.map { event ->
         event.copy(
-            timer = if (event.timer == oldName) newName else event.timer,
+            timer = if (event.trigger.timer == oldName) newName else event.timer,
             blocks = event.blocks.map { it.withTimerRenamed(oldName, newName) },
         )
     },
-)
+).withKotlinCode { code ->
+    TimerNaming.generatedNamesOf(oldName).zip(TimerNaming.generatedNamesOf(newName)).fold(code) { renamed, (old, new) -> KotlinIdentifiers.withRenamed(renamed, old, new) }
+}
 
 /**
  * The Event at [eventIndex] reacting to colliding with [actorTypeName].

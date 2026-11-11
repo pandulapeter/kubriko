@@ -43,17 +43,19 @@ internal suspend fun CommandContext.projectRelations() = ProjectRelations(types 
  */
 internal suspend fun CommandContext.projectReferences(subject: RelationSubject): ProjectReferences {
     val types = blockTypes?.types?.value.orEmpty()
-    // Only Actors refer to Scenes' contents, so a page's references need none of them.
-    val sceneCounts = if (subject is RelationSubject.Page) emptyMap() else sceneTypeCounts()
+    // A Scene's Actors refer to nothing but their type, so no other subject's references need them.
+    val sceneCounts = if (subject is RelationSubject.Type) sceneTypeCounts() else emptyMap()
     return withContext(ioDispatcher) {
+        val mentionedPath = mentionedPathOf(subject)
         ProjectReferences(
             types = types,
             sceneTypeCounts = sceneCounts,
             firstScene = firstSceneSettings(project.rootDirectory)?.firstScene,
             kotlinFiles = if (ProjectReferences.readsKotlinFiles(subject)) HandWrittenKotlin.read(project.rootDirectory) else emptyMap(),
-            // Documents are the user's, which Creator changes only when asked to, so only pages are cleaned up.
-            markdown = screenplayTexts().markdown.filterKeys { PageNaming.nameOf(it) != null },
-            mentionedPath = mentionedPathOf(subject),
+            // Documents are the user's, which Creator changes only when asked to, so only pages are cleaned up; and
+            // pages are read only for what they can link to.
+            markdown = if (mentionedPath == null) emptyMap() else screenplayTexts().markdown.filterKeys { PageNaming.nameOf(it) != null },
+            mentionedPath = mentionedPath,
             sceneMusic = if (subject is RelationSubject.Resource && ResourceKind.of(subject.path) == ResourceKind.MUSIC) sceneMusic() else emptyMap(),
         )
     }

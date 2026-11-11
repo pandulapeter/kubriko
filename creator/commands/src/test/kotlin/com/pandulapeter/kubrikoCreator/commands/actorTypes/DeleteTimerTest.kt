@@ -51,7 +51,8 @@ class DeleteTimerTest {
     @Test
     fun theUsagesAreTheFamilysEventsAndTheBlocksOutsideThem() = runTest {
         val context = commandContext(enemy, boss, bystander, hud)
-        val subject = RelationSubject.Timer("Boss", "spawn")
+        val subject = RelationSubject.Timer("Enemy", "spawn")
+        assertEquals(context.usagesOf(subject), context.usagesOf(RelationSubject.Timer("Boss", "spawn")), "One Timer, whichever type of the family it is asked through.")
         assertEquals(
             listOf(
                 Usage(UsagePlace.InModel(RelationPlace.Type("Boss", 0, 0)), RelationKind.USES_TIMER, subject, UsageEffect.BLOCK_REMOVED),
@@ -89,5 +90,39 @@ class DeleteTimerTest {
             Rejection(LookupProblem.TIMER_UNKNOWN_SIMILAR, "Boss", "spawns", "spawn"),
             Invocation(DeleteTimer, DeleteTimer.Input("Boss", "spawns")).validate(context),
         )
+    }
+
+    @Test
+    fun aTimerFieldOnAnotherKindOfEventIsNoTimer() = runTest {
+        val stray = ActorTypeDefinition(
+            name = "Stray",
+            events = listOf(
+                EventDefinition(EventType.EVERY_FRAME, timer = "spawn", blocks = listOf(BlockDefinition.Log("still here"))),
+                EventDefinition(EventType.EVERY_FRAME, timer = "ghost"),
+                EventDefinition(EventType.TIMER_FINISHED, timer = "spawn"),
+            ),
+        )
+        val context = commandContext(stray)
+        assertEquals(listOf("spawn"), stray.timerNames)
+        assertEquals(Rejection(LookupProblem.TIMER_UNKNOWN, "Stray", "ghost"), Invocation(DeleteTimer, DeleteTimer.Input("Stray", "ghost")).validate(context))
+        DeleteTimer.apply(context, DeleteTimer.Input("Stray", "spawn"))
+        assertEquals(stray.events.take(2), context.blockTypes!!["Stray"]!!.events)
+    }
+
+    @Test
+    fun kotlinUsingTheTimersMembersIsListedAndLeftAsItIs() = runTest {
+        val kotlin = BlockDefinition.Kotlin("spawnRemainingInMilliseconds = 0L")
+        val clock = ManagerTypeDefinition(
+            name = "Clock",
+            events = listOf(EventDefinition(EventType.TIMER_FINISHED, timer = "tick"), EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Kotlin("println(tickPeriodInMilliseconds)")))),
+            kotlinUi = "Text(tickRemainingInMilliseconds.toString())",
+        )
+        val context = commandContext(enemy.copy(events = enemy.events + EventDefinition(EventType.EVERY_FRAME, blocks = listOf(kotlin))), clock)
+        assertEquals(
+            listOf(RelationPlace.Type("Clock", 1, 0), RelationPlace.KotlinUi("Clock")),
+            context.usagesOf(RelationSubject.Timer("Clock", "tick")).filter { it.effect == UsageEffect.KOTLIN_TO_CHANGE }.map { (it.place as UsagePlace.InModel).place },
+        )
+        DeleteTimer.apply(context, DeleteTimer.Input("Enemy", "spawn"))
+        assertEquals(listOf(kotlin), context.blockTypes!!["Enemy"]!!.events.last().blocks)
     }
 }
