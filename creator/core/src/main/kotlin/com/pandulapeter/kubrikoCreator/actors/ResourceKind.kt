@@ -118,9 +118,10 @@ public enum class ResourceKind(
         public fun inAudioFolder(path: String, folder: String): String = listOf(FILES, folder, path.substringAfterLast('/')).filter { it.isNotEmpty() }.joinToString("/")
 
         /**
-         * Whether the audio folder at [folder] ([audioFolderOf]) is the Scenes folder or one in it, which hold no audio.
+         * Whether the audio folder at [folder] ([audioFolderOf]) is the Scenes folder or one in it, which hold no audio,
+         * in any capitals, since a Mac or Windows takes `Scenes` for the same folder.
          */
-        public fun isScenesFolder(folder: String): Boolean = FolderPaths.isWithin(folder, SCENES)
+        public fun isScenesFolder(folder: String): Boolean = folder.substringBefore('/').equals(SCENES, ignoreCase = true)
 
         /**
          * The kind a file with [extension] would be added as, or null if it can't be one.

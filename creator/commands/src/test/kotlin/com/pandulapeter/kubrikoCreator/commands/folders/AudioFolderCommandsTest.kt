@@ -159,4 +159,11 @@ class AudioFolderCommandsTest {
         assertEquals(Rejection(CommandProblem.FOLDER_EXISTS, "music"), RenameFolder.validate(context, RenameFolder.Input(FolderGroup.SOUNDS, "sfx", "music")))
         assertEquals(Rejection(CommandProblem.FOLDER_EXISTS, "Music"), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.SOUNDS, "Music")))
     }
+
+    @Test
+    fun theScenesFolderIsReservedInAnyCapitals() = runTest {
+        val context = context(sounds = listOf("files/sfx/hit.wav"))
+        assertEquals(Rejection(CommandProblem.AUDIO_FOLDER_RESERVED, "Scenes"), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.SOUNDS, "Scenes")))
+        assertEquals(Rejection(CommandProblem.AUDIO_FOLDER_RESERVED, "SCENES"), RenameFolder.validate(context, RenameFolder.Input(FolderGroup.SOUNDS, "sfx", "SCENES")))
+    }
 }
