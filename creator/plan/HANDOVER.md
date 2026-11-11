@@ -26,21 +26,17 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Start `01-ai-assistant.md` at its first item (Fewer retries, under Context for large games).
+Start `01-ai-assistant.md` at its first item (Planning first, under Context for large games).
 
-This session finished More health checks, reviewed with `/code-review`, with the findings fixed in commits of their own:
+This session finished Fewer retries, reviewed with `/code-review`, with the findings fixed in commits of their own:
 
-- The unreached-Scene check leaves out the Scene `game.firstScene` names (read from `gradle.properties` when the build
-  reads it) and says which one the game starts with, and a first Scene that doesn't exist is a finding of its own
-  (`FIRST_SCENE_MISSING`), shown as a notice under the toolbar that opens Project settings → Game.
-- The findings show quietly where their subject is edited (`HealthHintsList` in the type, Scene, and page editors), from
-  one `ProjectHealth` (formerly `ScreenplayHealth`) that the sidebar's dots and the Game map read too, so the map no
-  longer works them out a second time. Where a finding is shown and fixed is `HealthFindingPlace`.
-- The review's fixes: a missing first Scene is never named as the one the game starts with; the settings are read on the
-  IO dispatcher; the AI hears how to fix a missing first Scene and `get_health_checks`' description names it; the
-  findings are worked out again after AI steps and files changed outside Creator (`gradle.properties` is now watched,
-  `ProjectChange.GAME_SETTINGS`) rather than on every Scene editor state; and without a known first Scene, the editors
-  leave the hedged unreached-Scene findings to the map. The review found nothing it left open.
+- A rejection of something a command names but can't find (`LookupProblem`, split from `CommandProblem`) says what to
+  use instead: the close names (`SimilarNames`: case, a typo or two, or one file name holding the other, through a
+  `_SIMILAR` reason), that a type is of the other kind, that a Block's Property exists but of another kind, or the
+  indexes there are. A missing section lists the quoted headings, or only the close ones past twelve.
+- The review's fixes: `set_event_key`, `add_page_image`, and restored Scenes offer close names too; only file names are
+  looked for in each other, so a shared folder makes no match; the strings are mapped exhaustively again (the new enum);
+  the Block range messages read right for any count; `read_pages` scans once. The review found nothing it left open.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
