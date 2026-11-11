@@ -111,6 +111,7 @@ internal fun WorkspaceCenter(
             onClose = onCloseScene,
             onViewFailed = { exception, isShowingOlderClasses -> onSceneViewFailed(sceneEditing.revision, exception, isShowingOlderClasses) },
             pictureHost = editorAttention,
+            highlight = shownAiStep?.let { it.step.highlightInScene(sceneEditing.sceneName, it.flashKey) },
         )
         is SceneEditingState.Unsupported -> SceneNotice(
             modifier = contentModifier,

@@ -26,8 +26,14 @@ public sealed interface CommandTarget {
         val blockIndex: Int? = null,
     ) : CommandTarget
 
+    /**
+     * A Scene.
+     *
+     * @param actorIds The Actors of it the command is about, if it is about some that are still there afterwards.
+     */
     public data class Scene(
         val name: String,
+        val actorIds: List<String> = emptyList(),
     ) : CommandTarget
 
     /**

@@ -28,7 +28,7 @@ public object MoveActor : WriteCommand<MoveActor.Input> {
     override val description: String = "Moves an Actor of a Scene to another position, in scene units, with 0, 0 in the center of the Scene and y growing downwards."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
-    override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Scene(input.scene)
+    override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Scene(input.scene, listOf(input.actorId))
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSceneActor(input.scene, input.actorId) ?: when {
         !input.x.isFinite() || !input.y.isFinite() -> Rejection(CommandProblem.NUMBER_INVALID)

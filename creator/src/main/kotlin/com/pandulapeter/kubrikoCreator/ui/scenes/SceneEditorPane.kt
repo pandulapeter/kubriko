@@ -102,6 +102,7 @@ import org.jetbrains.compose.resources.stringResource
  *   shows it, unless it is the Scene settings.
  * @param onViewFailed Called when the project's code threw while the view of the Scene was being created.
  * @param pictureHost Offered a picture of the Scene while it is shown.
+ * @param highlight Actors to light up on the canvas and in the Actor list, as the AI changed them.
  */
 @Composable
 internal fun SceneEditorPane(
@@ -119,6 +120,7 @@ internal fun SceneEditorPane(
     onViewFailed: (exception: Throwable, isShowingOlderClasses: Boolean) -> Unit,
     modifier: Modifier = Modifier,
     pictureHost: ScenePictureHost? = null,
+    highlight: SceneHighlight? = null,
 ) = Column(
     modifier = modifier,
 ) {
@@ -168,6 +170,7 @@ internal fun SceneEditorPane(
                     entries = view.entries,
                     uncreatedIds = view.uncreatedIds,
                     selectedId = selection.selectedId,
+                    highlight = highlight,
                     onSelect = { actorId ->
                         if (view.isBackground(actorId)) {
                             isSettingsShown = true
@@ -191,6 +194,7 @@ internal fun SceneEditorPane(
                 onRemove = onRemove,
                 dragState = actorTypeDragState,
                 pictureHost = pictureHost,
+                highlight = highlight,
                 onPlace = { actorTypeName, x, y ->
                     val actorId = SceneDocument.newId(view.entries.map { it.id })
                     selection.select(actorId)

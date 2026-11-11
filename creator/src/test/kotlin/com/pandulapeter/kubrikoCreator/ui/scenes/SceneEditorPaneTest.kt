@@ -14,18 +14,22 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import com.pandulapeter.kubriko.creator.CreatorEntryPoint
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
+import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.commands.ActorsBroughtBack
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -34,6 +38,7 @@ import com.pandulapeter.kubrikoCreator.context.HealthFinding
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
+import com.pandulapeter.kubrikoCreator.sceneRuntime.ActorTypeLook
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
@@ -53,6 +58,7 @@ import kotlinx.coroutines.runBlocking
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 
 @OptIn(ExperimentalTestApi::class)
@@ -79,6 +85,27 @@ class SceneEditorPaneTest {
         onNodeWithText(INSPECTOR_HINT).assertDoesNotExist()
         saveSnapshot("scene-editor-removal-undone")
     }
+
+    @Test
+    fun theActorsTheAiChangedLightUp() = uiTest(width = 900, height = 600) {
+        var highlight by mutableStateOf<SceneHighlight?>(null)
+        showPane(MutableSharedFlow(), actors = { listOf(ball.copy(state = SceneDocument.blockBuiltState(0f, 0f, 160f, 100f))) }, previews = mapOf("Ball" to ActorTypeLook(ActorShape.RECTANGLE, color = 0xFF3366CC, width = 120f, height = 80f)), highlight = { highlight })
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText(INSPECTOR_HINT)).fetchSemanticsNodes().isNotEmpty() }
+        mainClock.autoAdvance = false
+        val before = ballColor()
+        highlight = SceneHighlight(key = 1, actorIds = setOf("ball"))
+        mainClock.advanceTimeByFrame()
+        mainClock.advanceTimeByFrame()
+        saveSnapshot("scene-editor-ai-highlight")
+        assertNotEquals(before, ballColor())
+        mainClock.advanceTimeBy(3_000)
+        assertEquals(before, ballColor())
+    }
+
+    /**
+     * The color at the middle of the Ball, which the Scene's camera centers.
+     */
+    private fun ComposeUiTest.ballColor() = onRoot().captureToImage().toPixelMap().let { pixels -> pixels[BALL_X, BALL_Y] }
 
     @Test
     fun whatAboutTheSceneIsWorthALookShowsUnderItsHeader() = uiTest(width = 900, height = 600) {
@@ -166,8 +193,10 @@ class SceneEditorPaneTest {
         actors: () -> List<SceneActorEntry> = { listOf(ball) },
         onCommand: (Invocation<*>) -> Unit = {},
         hints: HealthHints = HealthHints(),
+        previews: Map<String, ActorTypeLook> = emptyMap(),
+        highlight: () -> SceneHighlight? = { null },
     ) = showing {
-        CompositionLocalProvider(LocalHealthHints provides hints) { ShownPane(broughtBack, entryPoint, actors, onCommand) }
+        CompositionLocalProvider(LocalHealthHints provides hints) { ShownPane(broughtBack, entryPoint, actors, onCommand, previews, highlight()) }
     }
 
     @Composable
@@ -176,6 +205,8 @@ class SceneEditorPaneTest {
         entryPoint: CreatorEntryPoint,
         actors: () -> List<SceneActorEntry>,
         onCommand: (Invocation<*>) -> Unit,
+        previews: Map<String, ActorTypeLook>,
+        highlight: SceneHighlight?,
     ) {
         SceneEditorPane(
             state = SceneEditingState.Open(
@@ -183,6 +214,7 @@ class SceneEditorPaneTest {
                 entryPoint = entryPoint,
                 actors = actors(),
                 revision = 1,
+                previews = previews,
             ),
             onCommand = onCommand,
             actorTypeDragState = SidebarDragState(),
@@ -195,6 +227,7 @@ class SceneEditorPaneTest {
             onReload = {},
             onClose = {},
             onViewFailed = { _, _ -> },
+            highlight = highlight,
         )
     }
 
@@ -212,6 +245,8 @@ class SceneEditorPaneTest {
     }
 
     private companion object {
+        const val BALL_X = 339
+        const val BALL_Y = 335
         const val INSPECTOR_HINT = "Drag an Actor type from the sidebar into the Scene to place it there, and click an Actor to change it. Drag it to move it, or press Delete to remove it."
         const val REMOVE = "Remove from the Scene"
     }

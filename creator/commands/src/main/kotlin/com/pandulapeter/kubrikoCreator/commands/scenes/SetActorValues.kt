@@ -28,7 +28,7 @@ public object SetActorValues : WriteCommand<SetActorValues.Input> {
         "its color and the values of its Properties (each Actor keeps its own). Values left out stay as they are."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
-    override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Scene(input.scene)
+    override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Scene(input.scene, listOf(input.actorId))
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateActorChanges(input.scene, listOf(input.changes))
 

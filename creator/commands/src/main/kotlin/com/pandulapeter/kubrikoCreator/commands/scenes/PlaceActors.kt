@@ -40,6 +40,7 @@ public object PlaceActors : WriteCommand<PlaceActors.Input> {
         return Applied(
             inverse = Invocation(RemoveActors, RemoveActors.Input(input.scene, placed.map { it.id })),
             result = buildJsonObject { putJsonArray("actorIds") { placed.forEach { add(it.id) } } },
+            target = CommandTarget.Scene(input.scene, placed.map { it.id }),
         )
     }
 

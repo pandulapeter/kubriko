@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
+import com.pandulapeter.kubrikoCreator.ui.components.flashBackground
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.scene_actor_count
 import kubriko.creator.generated.resources.scene_actor_count_filtered
@@ -42,7 +43,7 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * The Actors of the open Scene in the order they are added, by type and ID, filtered by what is typed, for Scenes too
  * dense to click into. The selected one is scrolled to whenever it is selected elsewhere, and those that couldn't be
- * created ([uncreatedIds]) say so.
+ * created ([uncreatedIds]) say so. The rows of the Actors [highlight] names light up.
  */
 @Composable
 internal fun SceneActorList(
@@ -51,6 +52,7 @@ internal fun SceneActorList(
     selectedId: String?,
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier,
+    highlight: SceneHighlight? = null,
 ) = Column(
     modifier = modifier,
 ) {
@@ -88,6 +90,7 @@ internal fun SceneActorList(
                 id = entry.id,
                 isCreated = entry.id !in uncreatedIds,
                 isSelected = entry.id == selectedId,
+                flashKey = highlight?.takeIf { entry.id in it.actorIds }?.key,
                 onClick = { onSelect(entry.id) },
             )
         }
@@ -100,11 +103,13 @@ private fun SceneActorRow(
     id: String,
     isCreated: Boolean,
     isSelected: Boolean,
+    flashKey: Any?,
     onClick: () -> Unit,
 ) = Column(
     modifier = Modifier
         .fillMaxWidth()
         .background(if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow)
+        .flashBackground(flashKey)
         .clickable(onClick = onClick)
         .padding(horizontal = 12.dp, vertical = 4.dp),
 ) {

@@ -38,6 +38,7 @@ public object PlaceActor : WriteCommand<PlaceActor.Input> {
         return Applied(
             inverse = Invocation(RemoveActor, RemoveActor.Input(input.scene, id)),
             result = buildJsonObject { put("actorId", id) },
+            target = CommandTarget.Scene(input.scene, listOf(id)),
         )
     }
 

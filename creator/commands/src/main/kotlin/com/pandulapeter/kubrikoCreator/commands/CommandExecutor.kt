@@ -106,38 +106,46 @@ public class CommandExecutor(
         scope.launch(start = CoroutineStart.UNDISPATCHED) { execute(invocation).report(onSuccess) }
     }
 
-    internal suspend fun execute(invocation: Invocation<*>): CommandOutcome = execute(invocation, origin = null, isByAi = false)
+    internal suspend fun execute(invocation: Invocation<*>): CommandOutcome = execute(invocation, origin = null, isByAi = false).outcome
 
     /**
      * Applies [invocation] for an AI client ([isByAi]) or the user. A change that leaves no result of its own returns,
      * for an AI client, the revision it made and what it changed ([writeSummary]).
      */
-    private suspend fun execute(invocation: Invocation<*>, origin: AiStepOrigin?, isByAi: Boolean): CommandOutcome = changes.withLock {
+    private suspend fun execute(invocation: Invocation<*>, origin: AiStepOrigin?, isByAi: Boolean): AppliedChange = changes.withLock {
         deliveringSceneChanges { applyChange(invocation, origin, isByAi) }
     }
 
-    private suspend fun applyChange(invocation: Invocation<*>, origin: AiStepOrigin?, isByAi: Boolean): CommandOutcome {
-        validate(invocation)?.let { return CommandOutcome.Rejected(it) }
-        if (isByAi) invocation.validateByAi(context)?.let { return CommandOutcome.Rejected(it) }
+    private suspend fun applyChange(invocation: Invocation<*>, origin: AiStepOrigin?, isByAi: Boolean): AppliedChange {
+        validate(invocation)?.let { return AppliedChange(CommandOutcome.Rejected(it)) }
+        if (isByAi) invocation.validateByAi(context)?.let { return AppliedChange(CommandOutcome.Rejected(it)) }
         // A delete leaves nothing to find the pages that mentioned it by (its mentions become plain text), so they are found before it.
         val deleted = invocation.deletedSubject.takeIf { isByAi }
         val mentionedBefore = if (deleted == null) emptyList() else mentionPathsOrNone { context.pagesMentioning(listOfNotNull(context.mentionedPathOf(deleted))) }
         val applied = try {
             invocation.apply(context)
         } catch (exception: Exception) {
-            return CommandOutcome.Rejected(failureOf(exception))
+            return AppliedChange(CommandOutcome.Rejected(failureOf(exception)))
         }
-        applied.failure?.let { return CommandOutcome.Rejected(it) }
+        applied.failure?.let { return AppliedChange(CommandOutcome.Rejected(it)) }
         if (applied.isRewritingFiles) _history.value = CommandHistory()
-        val target = invocation.target(context)
+        val target = applied.target ?: applied.broughtBack?.let { CommandTarget.Scene(it.scene, it.actors.map { actor -> actor.id }) } ?: invocation.target(context)
         val revision = changeLog.record(invocation.commandName, target, origin, isByAi)
         applied.inverse?.let { inverse ->
             record(HistoryEntry(revert = inverse.copy(isRestoring = true), reapply = invocation.copy(isRestoring = true), conversationId = origin?.conversationId, revision = revision, isByAi = isByAi).withContentHashes())
         }
-        if (!isByAi || applied.result != JsonNull) return CommandOutcome.Success(applied.result)
+        if (!isByAi || applied.result != JsonNull) return AppliedChange(CommandOutcome.Success(applied.result), target)
         val mentionedIn = mentionedBefore + mentionPathsOrNone { context.pagesMentioning(context.mentionPathsOf(invocation.targets(context))) }
-        return CommandOutcome.Success(JsonObject(context.writeSummary(revision, invocation.commandName, target, mentionedIn.distinct()) + applied.details.orEmpty()))
+        return AppliedChange(CommandOutcome.Success(JsonObject(context.writeSummary(revision, invocation.commandName, target, mentionedIn.distinct()) + applied.details.orEmpty())), target)
     }
+
+    /**
+     * What applying a change came to, and what it turned out to be about, if it was made.
+     */
+    private class AppliedChange(
+        val outcome: CommandOutcome,
+        val target: CommandTarget? = null,
+    )
 
     /**
      * Runs the command called [name] with [arguments] decoded into its input: what an AI tool call does. Changes enter
@@ -248,10 +256,11 @@ public class CommandExecutor(
         val step = AiStep(id = nextAiStepId++, toolName = name, target = command.target(context, input), isRunning = true, changesProject = command is WriteCommand, origin = origin, clientName = clientName)
         publish(step)
         var rejection: Rejection? = null
+        var appliedTarget: CommandTarget? = null
         try {
             val outcome = when (command) {
                 is ReadCommand -> if (command.readsProject) changes.withLock { command.read(context, input) } else command.read(context, input)
-                is WriteCommand -> execute(Invocation(command, input), origin, isByAi = true)
+                is WriteCommand -> execute(Invocation(command, input), origin, isByAi = true).also { appliedTarget = it.target }.outcome
                 is ActionCommand -> command.run(context, input, origin)
             }
             rejection = (outcome as? CommandOutcome.Rejected)?.rejection
@@ -263,7 +272,7 @@ public class CommandExecutor(
             rejection = Rejection(CommandProblem.INTERNAL, throwable.toString())
             throw throwable
         } finally {
-            publish(step.copy(target = runCatching { command.target(context, input) }.getOrNull() ?: step.target, isRunning = false, rejection = rejection))
+            publish(step.copy(target = appliedTarget ?: runCatching { command.target(context, input) }.getOrNull() ?: step.target, isRunning = false, rejection = rejection))
         }
     }
 

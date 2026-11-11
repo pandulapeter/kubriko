@@ -26,6 +26,8 @@ import kotlinx.serialization.json.JsonObject
  *   git, for example), which leaves the steps recorded against the files before it pointless or wrong, so the history is
  *   cleared.
  * @param broughtBack The Actors the change put back into a Scene, for following them in the editor.
+ * @param target What the change turned out to be about, when its input can't say (the ID a placed Actor got), in place of
+ *   the command's own [EditorCommand.target]; the Actors [broughtBack] are what it is about otherwise.
  */
 public data class Applied(
     val inverse: Invocation<*>?,
@@ -34,6 +36,7 @@ public data class Applied(
     val isRewritingFiles: Boolean = false,
     val details: JsonObject? = null,
     val broughtBack: ActorsBroughtBack? = null,
+    val target: CommandTarget? = null,
 ) {
     public companion object {
 

@@ -134,6 +134,22 @@ class CommandExecutorTest {
     }
 
     @Test
+    fun aSceneStepNamesTheActorsItChangedOncePlacedOnesHaveTheirIds() = runTest {
+        val context = commandContext(ball)
+        @OptIn(EditorMutation::class)
+        context.scenes.write("main", "[]")
+        val executor = CommandExecutor(context = context, scope = testScope(), onRejected = { rejections += it })
+        executor.call("place_actor", buildJsonObject { put("scene", "main"); put("actorType", "Ball"); put("x", 1f); put("y", 2f) })
+        val placedId = context.scenes.actors("main")!!.single().id
+        executor.call("move_actor", buildJsonObject { put("scene", "main"); put("actorId", placedId); put("x", 3f); put("y", 4f) })
+        executor.call("remove_actor", buildJsonObject { put("scene", "main"); put("actorId", placedId) })
+        assertEquals(
+            listOf(CommandTarget.Scene("main", listOf(placedId)), CommandTarget.Scene("main", listOf(placedId)), CommandTarget.Scene("main")),
+            executor.aiSteps.value.map { it.target },
+        )
+    }
+
+    @Test
     fun redoingAPlacementTellsWhichActorItBroughtBack() = runTest {
         val context = commandContext(ball)
         @OptIn(EditorMutation::class)

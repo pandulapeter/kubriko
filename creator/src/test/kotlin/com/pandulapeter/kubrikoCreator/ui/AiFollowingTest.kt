@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.ui
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.ActorTypeHighlight
+import com.pandulapeter.kubrikoCreator.ui.scenes.SceneHighlight
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 import kubriko.creator.generated.resources.Res
 import kotlin.test.Test
@@ -49,6 +50,15 @@ class AiFollowingTest {
         assertNull(finished.highlightIn("Ball"))
         assertNull(step(CommandTarget.BlockType("Paddle", 1, 2), isRunning = true).highlightIn("Paddle"))
         assertNull(step(CommandTarget.BlockType("Paddle"), isRunning = true).flashKey)
+    }
+
+    @Test
+    fun theOpenSceneLightsUpTheActorsTheStepChanged() {
+        val finished = step(CommandTarget.Scene("main", listOf("ball", "paddle")))
+        assertEquals(SceneHighlight(key = 4, actorIds = setOf("ball", "paddle")), finished.highlightInScene("main"))
+        assertNull(finished.highlightInScene("other"))
+        assertNull(step(CommandTarget.Scene("main")).highlightInScene("main"))
+        assertNull(step(CommandTarget.Scene("main", listOf("ball")), isRunning = true).highlightInScene("main"))
     }
 
     @Test

@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.ui
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.ActorTypeHighlight
+import com.pandulapeter.kubrikoCreator.ui.scenes.SceneHighlight
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 
 /**
@@ -44,6 +45,16 @@ internal fun AiStep.selectionToFollow(): WorkspaceSelection? = when (val target 
 internal fun AiStep.highlightIn(actorTypeName: String?, flashKey: Any? = this.flashKey) = (target as? CommandTarget.BlockType)
     ?.takeIf { it.name == actorTypeName }
     ?.let { target -> flashKey?.let { ActorTypeHighlight(key = it, eventIndex = target.eventIndex, blockIndex = target.blockIndex) } }
+
+/**
+ * The Actors this finished step lights up in the Scene called [sceneName], or null if it runs, is about something else,
+ * or names no Actors that are still there.
+ *
+ * @param flashKey What makes them light up, a new one each time.
+ */
+internal fun AiStep.highlightInScene(sceneName: String?, flashKey: Any? = this.flashKey) = (target as? CommandTarget.Scene)
+    ?.takeIf { it.name == sceneName && it.actorIds.isNotEmpty() }
+    ?.let { target -> flashKey?.let { SceneHighlight(key = it, actorIds = target.actorIds.toSet()) } }
 
 /**
  * The name of the Actor type, Manager type, or Scene this step lights up in the sidebar.

@@ -27,7 +27,7 @@ public object SetActorsValues : WriteCommand<SetActorsValues.Input> {
         "its size, rotation, and scale, and for block-built Actor types, its color and the values of its Properties. Values left out stay as they are."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
-    override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Scene(input.scene)
+    override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Scene(input.scene, input.actors.map { it.actorId })
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateActorChanges(input.scene, input.actors)
 

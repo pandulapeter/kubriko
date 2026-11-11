@@ -27,7 +27,7 @@ public object SetActorsState : WriteCommand<SetActorsState.Input> {
         "for values set_actors_values doesn't cover, such as those of hand-written Actor types."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
-    override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Scene(input.scene)
+    override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Scene(input.scene, input.actors.map { it.actorId })
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateStates(input.scene, input.actors)
 

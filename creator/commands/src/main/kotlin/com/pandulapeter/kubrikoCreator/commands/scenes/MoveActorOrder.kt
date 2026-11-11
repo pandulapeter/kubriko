@@ -29,7 +29,7 @@ public object MoveActorOrder : WriteCommand<MoveActorOrder.Input> {
         "Of two Actors with the same drawing order, the later one is drawn on top."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
-    override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Scene(input.scene)
+    override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Scene(input.scene, listOf(input.actorId))
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSceneActor(input.scene, input.actorId)
         ?: validateIndex(input.index, context.readScene(input.scene).lastIndex)

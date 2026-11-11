@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.key.Key
@@ -55,6 +56,8 @@ import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneView
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
+import com.pandulapeter.kubrikoCreator.ui.components.FLASH_MAXIMUM_ALPHA
+import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashStrength
 
 /**
  * The Scene as the game draws it, with the selected Actor outlined. A click selects the Actor on top, dragging it moves
@@ -67,6 +70,7 @@ import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
  * @param previews The looks of the Actor types whose Actors [view] draws itself until they are compiled.
  * @param isSceneReadable Whether the Scene file can be changed at all, which one that can't be read can't.
  * @param pictureHost Offered a picture of the Scene as drawn, without the selection's outline, while the canvas shows it.
+ * @param highlight Actors to light up, each drawn over in the flash's color as it fades.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -83,23 +87,19 @@ internal fun SceneCanvas(
     onPlace: (actorTypeName: String, x: Float, y: Float) -> Unit,
     modifier: Modifier = Modifier,
     pictureHost: ScenePictureHost? = null,
+    highlight: SceneHighlight? = null,
 ) {
     val currentOnPlace by rememberUpdatedState(onPlace)
     DisposableEffect(dragState) {
         onDispose { dragState.sceneTarget = null }
     }
     LaunchedEffect(view, actors, previews) { view.load(actors, previews) }
-    val loadRevision by view.loadRevision.collectAsState()
-    val cameraPosition by view.viewportManager.cameraPosition.collectAsState()
-    val scaleFactor by view.viewportManager.scaleFactor.collectAsState()
-    val viewportSize by view.viewportManager.size.collectAsState()
     var dragRevision by remember { mutableIntStateOf(0) }
     val focusRequester = remember { FocusRequester() }
     val currentSelectedId by rememberUpdatedState(selectedId)
     val currentOnSelect by rememberUpdatedState(onSelect)
     val currentOnMove by rememberUpdatedState(onMove)
     val currentIsSceneReadable by rememberUpdatedState(isSceneReadable)
-    val selectionColor = MaterialTheme.colorScheme.primary
     Box(
         modifier = modifier
             .background(MaterialTheme.colorScheme.surfaceContainerLowest)
@@ -165,26 +165,63 @@ internal fun SceneCanvas(
             },
     ) {
         SceneViewport(view.kubriko, pictureHost, background = MaterialTheme.colorScheme.surfaceContainerLowest)
-        Canvas(
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            // Read so that the outline follows the camera, the drag, and the Actors created from the Scene's content.
-            cameraPosition
-            scaleFactor
-            viewportSize
-            dragRevision
-            loadRevision
-            val bounds = selectedId?.let(view::boundsOf) ?: return@Canvas
-            val topLeft = view.toScreen(SceneOffset(bounds.left.sceneUnit, bounds.top.sceneUnit))
-            val bottomRight = view.toScreen(SceneOffset(bounds.right.sceneUnit, bounds.bottom.sceneUnit))
-            drawRect(
-                color = selectionColor,
-                topLeft = topLeft,
-                size = Size(bottomRight.x - topLeft.x, bottomRight.y - topLeft.y),
-                style = Stroke(width = SELECTION_STROKE_WIDTH.toPx()),
-            )
-        }
+        SceneOverlay(view = view, selectedId = selectedId, highlight = highlight, dragRevision = dragRevision)
     }
+}
+
+/**
+ * What the canvas draws over the Scene: the Actors [highlight] lights up, and the selected Actor's outline, following the
+ * camera, a drag ([dragRevision]), and the Actors created from the Scene's content.
+ */
+@Composable
+private fun SceneOverlay(
+    view: SceneView,
+    selectedId: String?,
+    highlight: SceneHighlight?,
+    dragRevision: Int,
+) {
+    val loadRevision by view.loadRevision.collectAsState()
+    val cameraPosition by view.viewportManager.cameraPosition.collectAsState()
+    val scaleFactor by view.viewportManager.scaleFactor.collectAsState()
+    val viewportSize by view.viewportManager.size.collectAsState()
+    val flashStrength = rememberFlashStrength(highlight?.key)
+    val flashColor = MaterialTheme.colorScheme.tertiary
+    val selectionColor = MaterialTheme.colorScheme.primary
+    Canvas(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        // Read so that what is drawn follows the camera, the drag, and the Actors created from the Scene's content.
+        cameraPosition
+        scaleFactor
+        viewportSize
+        dragRevision
+        loadRevision
+        val strength = flashStrength.value
+        if (strength > 0f) {
+            highlight?.actorIds?.forEach { id ->
+                val (topLeft, size) = screenBoundsOf(view, id) ?: return@forEach
+                drawRect(color = flashColor.copy(alpha = FLASH_MAXIMUM_ALPHA * strength), topLeft = topLeft, size = size)
+            }
+        }
+        val (topLeft, size) = selectedId?.let { screenBoundsOf(view, it) } ?: return@Canvas
+        drawRect(
+            color = selectionColor,
+            topLeft = topLeft,
+            size = size,
+            style = Stroke(width = SELECTION_STROKE_WIDTH.toPx()),
+        )
+    }
+}
+
+/**
+ * Where the Actor called [actorId] is drawn on the canvas, as its top left corner and its size, or null if [view] doesn't
+ * show it.
+ */
+private fun screenBoundsOf(view: SceneView, actorId: String): Pair<Offset, Size>? {
+    val bounds = view.boundsOf(actorId) ?: return null
+    val topLeft = view.toScreen(SceneOffset(bounds.left.sceneUnit, bounds.top.sceneUnit))
+    val bottomRight = view.toScreen(SceneOffset(bounds.right.sceneUnit, bounds.bottom.sceneUnit))
+    return topLeft to Size(bottomRight.x - topLeft.x, bottomRight.y - topLeft.y)
 }
 
 /**
