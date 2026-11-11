@@ -36,7 +36,7 @@ public class ConversationPlans {
     /**
      * The conversation [conversationId]'s plan, if it has one.
      */
-    public operator fun get(conversationId: String): List<PlanStep>? = plans.value[conversationId]
+    internal operator fun get(conversationId: String): List<PlanStep>? = plans.value[conversationId]
 
     /**
      * The conversation [conversationId]'s plan each time it sets one, starting with the one it has, if any.

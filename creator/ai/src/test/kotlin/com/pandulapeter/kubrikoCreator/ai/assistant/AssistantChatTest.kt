@@ -94,12 +94,16 @@ class AssistantChatTest {
 
                 override fun planOf(toolsId: String) = plans.of(toolsId)
 
-                override fun forgetPlan(toolsId: String) = plans.forget(toolsId)
+                override fun forgetPlan(toolsId: String) {
+                    forgottenPlans += toolsId
+                    plans.forget(toolsId)
+                }
             },
         )
     }
 
     private val plans = ConversationPlans()
+    private val forgottenPlans = CopyOnWriteArrayList<String>()
 
     private suspend fun AssistantChat.sendAndWait(text: String) {
         withContext(mainThread) { send(text) }
@@ -191,7 +195,7 @@ class AssistantChatTest {
         plans.set("tools", listOf(PlanStep("Add lives", PlanStepStatus.COMPLETED), PlanStep("Lose a life", PlanStepStatus.IN_PROGRESS)))
         withTimeout(10.seconds) { chat.transcript.first { it.plan.firstOrNull()?.status == PlanEntryStatus.COMPLETED } }
         withContext(mainThread) { chat.close() }
-        assertEquals(null, plans["tools"])
+        assertEquals(listOf("tools"), forgottenPlans)
     }
 
     @Test

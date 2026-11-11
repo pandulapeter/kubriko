@@ -19,7 +19,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
 /**
- * What a conversation needs from the project open at the time.
+ * What a conversation needs from the project open at the time. A conversation lives within one open project, since the
+ * assistant ends its conversations whenever the project changes and starts them only once one is open, so what a
+ * conversation reads of it once (the plan it follows) stays the project's for as long as the conversation lasts.
  */
 public interface OpenProjectAccess {
 
