@@ -26,25 +26,25 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Start `01-ai-assistant.md` at its first item (Lighting Scenes up beyond the sidebar, under The activity view).
+Start `01-ai-assistant.md` at its first item (More live scenarios, under Guards).
 
-This session finished Fewer retries and Planning first, each reviewed with `/code-review`, with the findings fixed in
-commits of their own; neither review left anything open.
+This session finished Fewer retries, Planning first, and the activity view, each reviewed with `/code-review`, with the
+findings fixed in commits of their own; no review left anything open.
 
 - Fewer retries: a rejection of something a command names but can't find (`LookupProblem`) says what to use instead: the
   close names (`SimilarNames`), that a type is of the other kind, that a Block's Property exists but of another kind, or
-  the indexes there are; a missing section lists the quoted headings, or only the close ones past twelve.
-- Planning first: a plan the agent laid out in its last turn and started none of is approved from its checklist
-  (`isPlanAwaitingApproval`, `PlanApproval`), whose Approve sends the approval as the next message; the system prompt
-  has the agent end its turn on a plan rather than ask. Where the agent offers a model a tier below the conversation's
-  (`SmallerModel`: Haiku, Sonnet, Opus; Flash, Pro), Approve with it switches the conversation first; a refused switch
-  takes the approval back and offers the plan again (`FailureReason.MODEL_NOT_SWITCHED`).
+  the indexes there are.
+- Planning first: the agent lays its plan out with Creator's own `set_plan` (`ConversationPlans`), since a live run showed
+  Claude Code through the SDK has no todo or task tool; a plan awaiting approval gets Approve, and Approve with the model
+  a tier below (`SmallerModel`, preferring the current model's version), and is kept with a saved conversation.
+  `AssistantLiveScenariosTest.aRequestOfManyChangesIsPlannedFirstAndCarriedOutOnceApprovedWithASmallerModel` passed
+  against the real Claude Agent (Opus 5.5 planned, Sonnet 5.5 built).
+- The activity view: a Scene step names the Actors it changed (`CommandTarget.Scene.actorIds`, `Applied.target` for a
+  placed one), which the Scene editor lights up on the canvas and in the Actor list (`SceneFlash`); steps are numbered
+  per project (`AiStepNumbering`).
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
-- Claude Agent laying out a plan (its TodoWrite plan updates) and ending its turn on it, rather than asking with
-  `ask_user`, and Approve with Sonnet on its real model option (whose values and descriptions `SmallerModelTest` only
-  imitates): a live scenario in `AssistantLiveScenariosTest` could check both.
 - The live writers' room scenario: `KUBRIKO_CREATOR_CLAUDE_AGENT=true ./gradlew :creator:ai:test --tests "*AssistantLiveScenariosTest.aPitchInTheWritersRoom*"`
   (it spends a real Claude subscription's requests, up to an hour), then tune `AssistantSystemPrompt.WRITERS_ROOM` by what it does.
 - A project created from an idea, through to the room's first questions, in the real app (an end-to-end scenario could cover

@@ -14,11 +14,6 @@ plan. Searching conversations comes with the rest of search (`02-resources-and-s
 with the debugger (`07-debugger.md`). Every new tool keeps `TokenBudgetTest` within its budget and joins `EvalSetTest` where models
 call it.
 
-## The activity view
-
-- Lighting Scenes up beyond the sidebar (opening one compiles the project).
-- Numbering steps per project rather than per run of Creator.
-
 ## Guards
 
 - More live scenarios (`AssistantLiveScenariosTest`): the chips' links followed, game notes proposed after a settled decision, and
