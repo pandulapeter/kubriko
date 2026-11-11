@@ -35,6 +35,7 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.rightClick
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.project.ProjectModule
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
@@ -64,7 +65,7 @@ class ProjectSidebarTest {
         onSelectionCleared = {},
         onCreateItem = { _, _ -> null },
         onCreateFolder = { _, _ -> null },
-        onRenameFolder = { _, _, _ -> null },
+        onRenameFolder = { _, _, _, _ -> null },
         onDeleteFolder = { _, _, _ -> },
         onRenameItem = { group, name, newName -> null.also { renamedItems += Triple(group, name, newName) } },
         onDeleteItem = { group, name -> deletedItems += group to name },
@@ -117,6 +118,34 @@ class ProjectSidebarTest {
         dragOnto("Bat", "Actor types")
         dragOnto("Bat", "Ball")
         assertEquals(listOf("Ball" to "enemies", "Bat" to "", "Bat" to ""), moves)
+    }
+
+    @Test
+    fun draggingAFolderMovesItIntoAnotherButNeverIntoItself() = uiTest(width = 300, height = 600) {
+        val moves = mutableListOf<Pair<String, String>>()
+        val dragState = SidebarDragState().apply { onMoveFolder = { _, path, folder, _ -> moves += path to folder } }
+        showing {
+            ProjectSidebar(
+                modifier = Modifier.fillMaxSize(),
+                resources = resources,
+                folderGroups = folderTreeGroups(
+                    types = listOf(ActorTypeDefinition(name = "Bat", folder = "enemies")).map(SidebarType::of),
+                    typeFolders = mapOf(BlockTypeKind.ACTOR to setOf("cave")),
+                    selectedTypeName = null,
+                    sceneNames = emptyList(),
+                    sceneFolders = emptySet(),
+                    openSceneName = null,
+                ),
+                folderActions = folderActions,
+                documentActions = noDocumentActions,
+                dragState = dragState,
+            )
+        }
+        dragOnto("enemies", "Bat")
+        onNodeWithText("Bat").assertExists()
+        dragOnto("enemies", "cave")
+        assertEquals(listOf("enemies" to "cave"), moves)
+        onNodeWithText("Bat").assertExists()
     }
 
     @Test

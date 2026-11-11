@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class SidebarExpansionTest {
@@ -48,5 +49,46 @@ class SidebarExpansionTest {
         assertFalse(expansion.isExpanded(bosses, "scenes|bosses"))
         expansion.forgetAllBut(SidebarOutline(listOf(SidebarOutline.Node("scenes", parent = null, isFolder = false, isCollapsible = false))))
         assertTrue(expansion.isExpanded(bosses, "scenes|bosses"))
+    }
+
+    private val levels = SidebarKeys.folder("scenes", "levels")
+    private val deep = SidebarKeys.folder("scenes", "levels/deep")
+
+    private fun outlineOf(vararg folders: String) = SidebarOutline(
+        listOf(SidebarOutline.Node("scenes", parent = null, isFolder = false, isCollapsible = false)) +
+            folders.map { SidebarOutline.Node(SidebarKeys.folder("scenes", it), parent = "scenes", isFolder = true) },
+    )
+
+    @Test
+    fun restoredChoicesWaitForWhatTheyAreAboutAndAreKeptUnderThoseMadeSince() {
+        val expansion = SidebarExpansion()
+        assertNull(expansion.keptChoices)
+        val empty = outlineOf()
+        expansion.forgetAllBut(empty)
+        expansion.toggle(outlineOf("levels"), levels)
+        expansion.restore(mapOf(levels to true, deep to false, "module:gone" to false))
+        expansion.forgetAllBut(empty)
+        assertEquals(mapOf(deep to false, "module:gone" to false), expansion.keptChoices, "The choice made since wins, and goes once its folder does")
+        val loaded = outlineOf("levels", "levels/deep")
+        expansion.forgetAllBut(loaded)
+        assertFalse(expansion.isExpanded(loaded, deep))
+        expansion.forgetAllBut(empty)
+        assertEquals(mapOf("module:gone" to false), expansion.keptChoices)
+    }
+
+    @Test
+    fun aMovedFolderTakesWhatIsOpenAndClosedInItAlong() {
+        val expansion = SidebarExpansion().apply { restore(emptyMap()) }
+        val before = outlineOf("levels", "levels/deep", "levels/deep/pit", "cave")
+        expansion.forgetAllBut(before)
+        expansion.toggle(before, deep)
+        expansion.toggle(before, SidebarKeys.folder("scenes", "cave"))
+        expansion.followFolder("scenes", "levels", "cave/levels")
+        expansion.forgetAllBut(before)
+        val after = outlineOf("cave", "cave/levels", "cave/levels/deep", "cave/levels/deep/pit")
+        expansion.forgetAllBut(after)
+        assertFalse(expansion.isExpanded(after, SidebarKeys.folder("scenes", "cave/levels/deep")))
+        assertTrue(expansion.isExpanded(after, SidebarKeys.folder("scenes", "cave/levels/deep/pit")))
+        assertEquals(setOf("cave", "cave/levels/deep"), expansion.collapsedFolders("scenes"))
     }
 }

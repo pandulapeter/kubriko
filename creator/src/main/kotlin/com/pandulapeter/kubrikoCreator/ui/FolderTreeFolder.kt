@@ -17,7 +17,8 @@ import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 
 /**
  * A folder of [group]'s tree in [module], [indent] levels further in, or the field renaming it, followed by the field
- * naming a new folder in it while one is.
+ * naming a new folder in it while one is. While [isCreating], it is dragged into another folder of the group with
+ * everything in it.
  *
  * @param groupKey The key of the group's tree ([SidebarKeys]), which the folder's own key is built from.
  */
@@ -43,16 +44,24 @@ internal fun FolderTreeFolder(
             isFolder = true,
             depth = row.depth + indent,
             initialName = row.name,
-            onName = { name -> actions.onRenameFolder(group, row.path, name) },
+            onName = { name ->
+                actions.onRenameFolder(group, row.path, name) { tree.followFolder(groupKey, row.path, FolderPaths.child(FolderPaths.parentOf(row.path), name)) }
+            },
             onNamingChange = onNamingChange,
         )
     } else {
         SidebarFolderRow(
-            modifier = Modifier.folderDropTarget(dragState, SidebarDragState.FolderKey(group, row.path, module)),
+            modifier = Modifier.folderDropTarget(dragState, SidebarDragState.FolderKey(group, row.path, module)).then(
+                if (isCreating) {
+                    Modifier.sidebarDragSource(dragState, SidebarDragState.Dragged(row.path, group, FolderPaths.parentOf(row.path), module, movedFolderOf = groupKey))
+                } else {
+                    Modifier
+                },
+            ),
             name = row.name,
             depth = row.depth + indent,
             isExpanded = row.isExpanded,
-            onToggle = { tree.toggle(key) },
+            onToggle = { if (!dragState.isClickAfterDrag) tree.toggle(key) },
             actions = if (isCreating) {
                 folderActions(
                     onNewFolder = {

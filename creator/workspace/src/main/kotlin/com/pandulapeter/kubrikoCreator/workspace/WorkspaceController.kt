@@ -339,6 +339,9 @@ public class WorkspaceController(
      * The assistant's one offer to write the screenplay of a game that has none.
      */
     public val screenplayOffer: ScreenplayOffer = ScreenplayOffer(project.rootDirectory, commands.context.screenplay.current, commands.context.screenplay.revision, scope, ioDispatcher)
+
+    /** Which of the sidebar's folders are open, as the user left them on this computer. */
+    public val sidebarExpansion: SidebarExpansionMemory = SidebarExpansionMemory(project.rootDirectory, scope, ioDispatcher)
     private val missingReferences = MissingReferencesReport.of(blockTypes, resources, commands, scope, ::appendToConsole, ::reportUnexpectedProblem)
 
     private val watching = files.startWatching(::onProjectChanged)

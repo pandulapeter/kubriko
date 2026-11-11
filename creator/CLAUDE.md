@@ -616,8 +616,9 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   than wrapping a header.
 - The workspace keeps the focus when nothing in it is focused, so Cmd/Ctrl+Z always reaches the undo history.
 - The sidebar's groups, folders, and items all work alike: the same ⋮ and right-click menu (new item, new folder, rename,
-  delete, as each allows), names typed in place as a field looking like the row it becomes, and an item dropped on any row
-  moves into that row's folder (onto the header or an item outside every folder, out of them all). Headers have no + of
+  delete, as each allows), names typed in place as a field looking like the row it becomes, and an item or a folder dropped
+  on any row moves into that row's folder (onto the header or an item outside every folder, out of them all; a folder
+  never into itself, and with everything in it, through `move_folder`). Headers have no + of
   their own: the one + is the New menu beside the filter field, offering every kind the project can make (a document
   always, at the project's top, so a project without bands or documents can still start one), which opens the band
   the new thing goes in and scrolls its name field into view (`revealItem`, since a lazy list knows only what it laid out).
@@ -626,7 +627,9 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
 - Opening a closed folder, Kotlin container, group, or module opens it with every folder in it closed, so a deep tree opens
   a level at a time, and a row holding folders offers Expand all and Collapse all while it is pointed at. What is open is
   kept by key (`SidebarKeys`) over an outline of everything as if it were all open (`SidebarOutline`), so a folder keeps its
-  state while the rows around it come and go. Those buttons are laid over the end of the row's name rather than given room
+  state while the rows around it come and go, and a moved or renamed folder takes it along once the move is done. It is
+  this computer's, kept per project (`SidebarExpansionMemory`, `.kubriko/local/sidebar.json`); since the types are read
+  after the files, a kept choice is forgotten only once what it is about was shown and is gone again. Those buttons are laid over the end of the row's name rather than given room
   of their own (`SidebarRowTitle`), so a long module or folder name isn't cut while nothing is pointed at. Every row of the
   sidebar's list moves with `sidebarItemMotion`, since a row that jumped among sliding ones looks broken, and the list
   starts with a row that never changes, so bands inserted above the first group keep the top in view.

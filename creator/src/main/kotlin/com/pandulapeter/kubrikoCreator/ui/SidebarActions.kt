@@ -21,6 +21,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.commands.folders.CreateFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.DeleteFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
+import com.pandulapeter.kubrikoCreator.commands.folders.MoveFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.MoveSpriteToFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.MoveToFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.RenameFolder
@@ -46,7 +47,7 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Where the sidebar's items are dragged: a dropped one moves to its folder through a command.
+ * Where the sidebar's items and folders are dragged: a dropped one moves to its folder through a command.
  */
 @Composable
 internal fun rememberSidebarDragState(commands: CommandExecutor, creation: WorkspaceCreation) = remember(commands, creation) {
@@ -61,6 +62,7 @@ internal fun rememberSidebarDragState(commands: CommandExecutor, creation: Works
                 null -> creation.moveDocument(name, DocumentNaming.pathOf(folder, name.substringAfterLast('/')))
             }
         }
+        onMoveFolder = { group, path, folder, onMoved -> commands.dispatch(Invocation(MoveFolder, MoveFolder.Input(group, path, folder)), onMoved) }
     }
 }
 
@@ -95,7 +97,7 @@ internal fun rememberFolderTreeActions(
             }
         },
         onCreateFolder = { group, path -> commands.dispatchIfValid(Invocation(CreateFolder, CreateFolder.Input(group, path))) },
-        onRenameFolder = { group, path, newName -> commands.dispatchIfValid(Invocation(RenameFolder, RenameFolder.Input(group, path, newName))) },
+        onRenameFolder = { group, path, newName, onRenamed -> commands.dispatchIfValid(Invocation(RenameFolder, RenameFolder.Input(group, path, newName)), onRenamed) },
         onDeleteFolder = { group, path, isEmpty ->
             val invocation = folderDeleteOf(group, path, isEmpty)
             if (invocation.input.keepsContents) commands.dispatch(invocation) else uiState.dispatch(invocation = invocation, onSuccess = {}, dispatch = commands::dispatch)

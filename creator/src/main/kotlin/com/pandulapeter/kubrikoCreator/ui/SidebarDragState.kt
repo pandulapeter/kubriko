@@ -15,12 +15,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import com.pandulapeter.kubrikoCreator.actors.FolderPaths
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 
 /**
- * An Actor type, Manager type, Scene, page, or document being dragged in the sidebar, in the window's root coordinates:
- * into a folder of its group (or onto the group's header, out of every folder), a document into a document folder or a
- * band of any module, or for an Actor type, into the open Scene, which registers itself as [sceneTarget].
+ * An Actor type, Manager type, Scene, page, sprite, sound, music, document, or folder being dragged in the sidebar, in the
+ * window's root coordinates: into a folder of its group (or onto the group's header, out of every folder; a folder never
+ * into itself or one inside it), a document into a document folder or a band of any module, or for an Actor type, into
+ * the open Scene, which registers itself as [sceneTarget].
  */
 @Stable
 internal class SidebarDragState(
@@ -33,13 +35,18 @@ internal class SidebarDragState(
      * @param group Its group, or null for a document.
      * @param folder The folder it is in now, for a document from the project's root.
      * @param module The module its group is shown in, which it can't be moved out of (unlike a document).
+     * @param movedFolderOf For a folder, by its path in [name], the key of its group's tree ([SidebarKeys]), whose open
+     *   and closed folders follow it ([onFolderMoved]); null for anything else.
      */
     data class Dragged(
         val name: String,
         val group: FolderGroup?,
         val folder: String,
         val module: String = "",
-    )
+        val movedFolderOf: String? = null,
+    ) {
+        val isFolder get() = movedFolderOf != null
+    }
 
     /**
      * A folder row of the sidebar, or a group's header for an empty [path], in the group of [module]; for a null [group],
@@ -82,7 +89,17 @@ internal class SidebarDragState(
      */
     var onMoveToFolder: (group: FolderGroup?, name: String, folder: String) -> Unit = { _, _, _ -> }
 
-    val isOverScene get() = dragged?.group == FolderGroup.ACTOR_TYPES && sceneTarget?.bounds?.contains(pointer) == true
+    /**
+     * Moves the folder at [path] of [group], with everything in it, into [folder], calling [onMoved] once it moved.
+     */
+    var onMoveFolder: (group: FolderGroup, path: String, folder: String, onMoved: () -> Unit) -> Unit = { _, _, _, _ -> }
+
+    /**
+     * Called once a folder of the group tree [groupKey] moved from [path] to [newPath], so that what was open in it stays so.
+     */
+    var onFolderMoved: (groupKey: String, path: String, newPath: String) -> Unit = { _, _, _ -> }
+
+    val isOverScene get() = dragged?.let { it.group == FolderGroup.ACTOR_TYPES && !it.isFolder } == true && sceneTarget?.bounds?.contains(pointer) == true
 
     /**
      * The folder what is dragged would move to if it were dropped now.
@@ -91,7 +108,10 @@ internal class SidebarDragState(
         get() {
             val dragged = dragged ?: return null
             return dropTargets.values.firstOrNull { target ->
-                target.folder.group == dragged.group && (dragged.group == null || target.folder.module == dragged.module) && target.bounds.contains(pointer)
+                target.folder.group == dragged.group &&
+                    (dragged.group == null || target.folder.module == dragged.module) &&
+                    !(dragged.isFolder && FolderPaths.isWithin(target.folder.path, dragged.name)) &&
+                    target.bounds.contains(pointer)
             }?.folder
         }
 
@@ -111,7 +131,11 @@ internal class SidebarDragState(
         cancel()
         when {
             scene != null -> scene.onDrop(dragged.name, pointer)
-            folder != null && folder != dragged.folder -> onMoveToFolder(dragged.group, dragged.name, folder)
+            folder == null || folder == dragged.folder -> Unit
+            dragged.group != null && dragged.movedFolderOf != null -> onMoveFolder(dragged.group, dragged.name, folder) {
+                onFolderMoved(dragged.movedFolderOf, dragged.name, FolderPaths.child(folder, FolderPaths.nameOf(dragged.name)))
+            }
+            else -> onMoveToFolder(dragged.group, dragged.name, folder)
         }
     }
 

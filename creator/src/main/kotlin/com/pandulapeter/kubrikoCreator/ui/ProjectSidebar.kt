@@ -45,6 +45,7 @@ import com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.MenuIconButton
 import com.pandulapeter.kubrikoCreator.workspace.ProjectLayout
+import com.pandulapeter.kubrikoCreator.workspace.SidebarExpansionMemory
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_new
 import kubriko.creator.generated.resources.action_new_document
@@ -66,13 +67,14 @@ import org.jetbrains.compose.resources.stringResource
  * @param layout Where the types and new Scenes are kept, which decides the modules they are shown in.
  * @param gameModule The folder of the module chosen as the game's in the toolbar, whose branch opens first in a project
  *   that isn't opted in.
- * @param dragState Where types, Scenes, pages, and documents are dragged to: folders (bands too, for documents), and
+ * @param dragState Where types, Scenes, pages, documents, and folders are dragged to: folders (bands too, for documents), and
  *   the open Scene.
  * @param documentActions What the documents listed in each band do ([documentRows]); a band offers New document too.
  * @param resourceActions What the sprites, sounds, and music do ([resourceGroupSection]); files of theirs dropped onto
  *   the sidebar are added.
  * @param selectedDocument The path of the document shown in the center, if any.
  * @param spriteFolders The sprites' folders, which are Kubriko Creator's own ([SpriteFolderStore]).
+ * @param expansionMemory Where what is open is kept for the next session, if anywhere.
  */
 @Composable
 internal fun ProjectSidebar(
@@ -87,6 +89,7 @@ internal fun ProjectSidebar(
     layout: ProjectLayout = ProjectLayout(),
     gameModule: String? = null,
     spriteFolders: SpriteFolderStore.State = SpriteFolderStore.State(),
+    expansionMemory: SidebarExpansionMemory? = null,
     flashedName: String? = null,
     flashKey: Any? = null,
 ) = Column(
@@ -94,7 +97,7 @@ internal fun ProjectSidebar(
 ) {
     var query by remember { mutableStateOf("") }
     var naming by remember { mutableStateOf<SidebarNaming?>(null) }
-    val expansion = remember { SidebarExpansion() }
+    val expansion = rememberSidebarExpansion(expansionMemory, dragState)
     val isFiltering = query.isNotBlank()
     val modules = remember(resources, folderGroups, layout, gameModule, spriteFolders) { sidebarModules(resources, folderGroups, layout, gameModule, spriteFolders) }
     val isGrouped = modules.size > 1

@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.actors.FolderPaths
 import com.pandulapeter.kubrikoCreator.ui.components.DragPreviewChip
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ic_file
+import kubriko.creator.generated.resources.ic_folder_open
 
 /**
  * What is being dragged from the sidebar, following the pointer.
@@ -24,8 +25,11 @@ internal fun SidebarDragPreview(state: SidebarDragState) {
     val dragged = state.dragged ?: return
     DragPreviewChip(
         pointer = { state.pointer },
-        icon = dragged.group?.icon ?: Res.drawable.ic_file,
+        icon = when {
+            dragged.isFolder -> Res.drawable.ic_folder_open
+            else -> dragged.group?.icon ?: Res.drawable.ic_file
+        },
         tint = MaterialTheme.colorScheme.tertiary,
-        text = if (dragged.group?.resourceKind != null) FolderPaths.nameOf(dragged.name) else dragged.name,
+        text = if (dragged.isFolder || dragged.group?.resourceKind != null) FolderPaths.nameOf(dragged.name) else dragged.name,
     )
 }
