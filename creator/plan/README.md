@@ -27,36 +27,44 @@ numbers the rest again and rewrites every reference to them, in the same commit;
 The files are numbered in the order they are worked on, and each depends only on the files before it, so every item of a file can be
 done once the session reaches it. An item that turns out to wait for later work moves to the file it waits for, never staying behind
 in an earlier one, and an item that waits for something outside this repository (a protocol, a vendor, a release) is listed under
-its file's Waiting on others. Inside a file, its Order section says what comes first.
+its file's Waiting on others. Inside a file, its Order section says what comes first. A file left with only what waits on others
+loses its number and moves to Waiting below, and the rest are numbered again, since nothing in it can be worked on until what it
+waits for happens.
 
-1. [AI assistant](01-ai-assistant.md) - more guards, and what waits on ACP, the Kotlin SDK, and vendors.
-2. [Resources and search](02-resources-and-search.md) - adding, renaming, and deleting sprites, sounds, and music, the remaining
+1. [Resources and search](01-resources-and-search.md) - adding, renaming, and deleting sprites, sounds, and music, the remaining
    deletes, folders, the sidebar filter, quick open, find usages, and searching conversations.
-3. [Blocks, Actor types, and Manager types](03-blocks.md) - Blocks for the simple behavior a first game still needs Kotlin for, the
+2. [Blocks, Actor types, and Manager types](02-blocks.md) - Blocks for the simple behavior a first game still needs Kotlin for, the
    rest of the Block set, sprite sheets, UI elements, the Scene editor's handles and snapping, Convert to code, and the Paddle game
    template.
-4. [Reuse, Traits, and bigger games](04-reuse-and-traits.md) - parent types, custom Blocks (the user's and the AI's own,
+3. [Reuse, Traits, and bigger games](03-reuse-and-traits.md) - parent types, custom Blocks (the user's and the AI's own,
    with parameters, results, and Kotlin bodies, shared between projects), Traits, what bigger games need, and the
    platformer and top-down templates.
-5. [Sprite editor](05-sprite-editor.md) - a pixel-art editor for sprites and their animations, frame by frame with onion skinning,
+4. [Sprite editor](04-sprite-editor.md) - a pixel-art editor for sprites and their animations, frame by frame with onion skinning,
    like GameMaker 6.1's.
-6. [Version control](06-git.md) - change markers, restoring, checkpoints, nested repositories, branches, remotes, cloning, and
+5. [Version control](05-git.md) - change markers, restoring, checkpoints, nested repositories, branches, remotes, cloning, and
    conflicts.
-7. [Debugger](07-debugger.md) - pausing, stepping, and slowing the game for the user and the AI, the debug agent and its panels, other
+6. [Debugger](06-debugger.md) - pausing, stepping, and slowing the game for the user and the AI, the debug agent and its panels, other
    targets, and retiring the debug menu.
-8. [Installing Creator](08-installing-creator.md) - first-run setup that downloads the JDK, Gradle, and the Android SDK with progress,
+7. [Installing Creator](07-installing-creator.md) - first-run setup that downloads the JDK, Gradle, and the Android SDK with progress,
    a new Android emulator from Play's menu, installers, and updates.
-9. [Export](09-export.md) - release builds stripped of Creator, Release, Icons, and Signing settings, exports for every target, and
-    Play on an iOS device.
-10. [Demo games](10-demo-games.md) - five bundled games of increasing complexity, each built entirely in Creator, improving Creator
-    wherever it falls short.
-11. [Project upkeep](11-project-upkeep.md) - multi-module projects, every entry point (IntelliJ's run configurations included),
+8. [Export](08-export.md) - release builds stripped of Creator, Release, Icons, and Signing settings, exports for every target, and
+   Play on an iOS device.
+9. [Demo games](09-demo-games.md) - five bundled games of increasing complexity, each built entirely in Creator, improving Creator
+   wherever it falls short.
+10. [Project upkeep](10-project-upkeep.md) - multi-module projects, every entry point (IntelliJ's run configurations included),
     editions such as a demo and a full version, opting existing projects in, Kubriko versions, and template drift.
-12. [Tesselar in Creator](12-tesselar.md) - playing Tesselar and running its tools from Creator, its rendering on the engine's batched
+11. [Tesselar in Creator](11-tesselar.md) - playing Tesselar and running its tools from Creator, its rendering on the engine's batched
     looks, and the asset editor extension point that hosts its editors.
-13. [Rehearsals](13-rehearsals.md) - automated tests: the ones a project already has found, listed, and run with one click, a test kit
+12. [Rehearsals](12-rehearsals.md) - automated tests: the ones a project already has found, listed, and run with one click, a test kit
     for games in Kotlin, and the AI writing and keeping them.
-14. [Later](14-later.md) - the code editor and what waits for demand, a decision, or the benchmarks.
+13. [Later](13-later.md) - the code editor and what waits for demand, a decision, or the benchmarks.
+
+## Waiting
+
+Files holding only what waits for something outside this repository. One gets a number again, in the place its dependencies
+allow, once something in it can be worked on.
+
+- [AI assistant](ai-assistant.md) - what waits on ACP, the Kotlin SDK, and vendors.
 
 ## Structure
 
@@ -75,7 +83,7 @@ Gradle project that builds in IntelliJ exactly as if written by hand.
 compatibility or a copy of its look, icons, or action set; running Creator itself on mobile or the web.
 
 **Two reference projects keep the design honest:** a beginner game built only from Blocks (the Getting started paddle game, and the
-Breakout in `~/Projects/breakout`), and Tesselar (`12-tesselar.md`). The principles every plan keeps, and who owns which
+Breakout in `~/Projects/breakout`), and Tesselar (`11-tesselar.md`). The principles every plan keeps, and who owns which
 project file, are in `../CLAUDE.md`.
 
 ## Terminology

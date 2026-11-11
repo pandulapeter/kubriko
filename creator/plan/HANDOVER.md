@@ -22,13 +22,13 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 - `README.md` → Roadmap is in dependency order as of 2026-11-09: every file depends only on the ones before it, so work goes
   file by file from `01`. Leftovers that waited on later work were moved into the file they wait for, and what waits on something
   outside this repository is under its file's Waiting on others (ACP protocol 2, the Kotlin SDK's `systemPrompt`, Codex's quota
-  until Nov 21, 2026, and the registry's icons, all in `01-ai-assistant.md`).
+  until Nov 21, 2026, and the registry's icons, all in `ai-assistant.md`).
 
 ## Next
 
-`01-ai-assistant.md` holds only what waits on others now, so start `02-resources-and-search.md` at its first item.
+`ai-assistant.md` holds only what waits on others now, so it left the roadmap; start `01-resources-and-search.md` at its first item.
 
-This session finished `01-ai-assistant.md`'s Guards, each reviewed with `/code-review` and its findings fixed in commits of
+This session finished `ai-assistant.md`'s Guards, each reviewed with `/code-review` and its findings fixed in commits of
 their own:
 
 - More live scenarios: `AssistantLiveScenariosTest` gained the chips (an Event chip's link, a Scene chip's link, and a
@@ -55,7 +55,7 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
 - Google Antigravity's tools turned off through Creator itself rather than a hand-written ACP client (the same `_meta`;
   the binary Creator downloaded is in the settings folder's `tools/agents`).
 - Codex started as a `codex-work` alias's account signing in to that `CODEX_HOME` (running `codex-acp` fetched from npm wasn't
-  allowed in this session; it is listed under Codex's profile in `01-ai-assistant.md`).
+  allowed in this session; it is listed under Codex's profile in `ai-assistant.md`).
 
 ## Before a release
 

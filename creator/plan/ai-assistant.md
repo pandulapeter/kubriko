@@ -10,8 +10,8 @@
 # AI assistant
 
 What is left of the assistant panel (`:creator:ai`'s `ai/assistant`, `ui/assistant`) and the MCP server (`mcp`) that needs no other
-plan. Searching conversations comes with the rest of search (`02-resources-and-search.md`), and the AI's view of the running game
-with the debugger (`07-debugger.md`). Every new tool keeps `TokenBudgetTest` within its budget and joins `EvalSet` where models
+plan. Searching conversations comes with the rest of search (`01-resources-and-search.md`), and the AI's view of the running game
+with the debugger (`06-debugger.md`). Every new tool keeps `TokenBudgetTest` within its budget and joins `EvalSet` where models
 call it.
 
 ## Waiting on others

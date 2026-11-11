@@ -11,7 +11,7 @@
 
 A pixel-art editor for sprites and their animations, inspired by GameMaker 6.1's sprite and image editors: a beginner draws the ball, the
 paddle, or a walking character without leaving Creator, frame by frame, with onion skinning. It follows sprite sheets as an appearance
-(`03-blocks.md` → Appearance), which gives it something to edit.
+(`02-blocks.md` → Appearance), which gives it something to edit.
 
 ## Files
 
@@ -20,7 +20,7 @@ paddle, or a walking character without leaving Creator, frame by frame, with oni
   a format of Creator's own or GIF: the game and IntelliJ need nothing else (`../CLAUDE.md` → Principles 1).
 - `.kubriko/sprites/<name>.json` keeps what the sheet can't (frame size, frame count, frames per row, frames per second, and the
   origin), as sprite sheets already use it. Deleting it leaves a plain image, which can be opened again by entering the frame size.
-- New sprites are added, renamed, and deleted as `02-resources-and-search.md` makes them; the editor adds New sprite and opens a
+- New sprites are added, renamed, and deleted as `01-resources-and-search.md` makes them; the editor adds New sprite and opens a
   sprite from the sidebar.
 - A new sprite starts as one fully transparent frame of the size the user picks (32 by 32 by default).
 - Importing: a PNG, a sheet sliced by frame size, or a strip of separate images (one per frame). Exporting is the sheet itself.
@@ -62,7 +62,7 @@ paddle, or a walking character without leaving Creator, frame by frame, with oni
 
 ## Sprites in the game
 
-A sheet the editor changes reaches the game through the appearance sprite sheets already have (`03-blocks.md` → Appearance), and a
+A sheet the editor changes reaches the game through the appearance sprite sheets already have (`02-blocks.md` → Appearance), and a
 new Actor type's size defaults to the frame size of the sprite it is given.
 
 ## Later

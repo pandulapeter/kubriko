@@ -16,7 +16,7 @@ builds and plays every one, and each comes with a short tour of what to look at 
 | # | Game | What it introduces |
 |---|---|---|
 | 1 | Click the moving targets | One Actor type, one Scene, pointer input, a Timer, and Properties |
-| 2 | Paddle and bricks (the Paddle game template, `03-blocks.md`) | Collision, a score Manager type, text, sounds, and winning and losing |
+| 2 | Paddle and bricks (the Paddle game template, `02-blocks.md`) | Collision, a score Manager type, text, sounds, and winning and losing |
 | 3 | Top-down space shooter | Spawning and removing Actors, keyboard and gamepad input, particles, and increasing difficulty |
 | 4 | Side-scrolling platformer | Physics, sprites and animation, a following camera, and several levels as Scenes |
 | 5 | Small adventure with menus | Title and pause menus, saved progress (persistence), Traits and custom Blocks, and some hand-written Kotlin next to the Blocks |
@@ -38,5 +38,5 @@ the table is the order of the work.
 
 ## Bundling
 
-The finished games ship inside Creator's installers (`08-installing-creator.md`) and are copied out on first open; the project list
+The finished games ship inside Creator's installers (`07-installing-creator.md`) and are copied out on first open; the project list
 shows them in a section of their own, each with its tour.
