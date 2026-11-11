@@ -751,6 +751,7 @@
     <string name="command_draw_pixels">Draw</string>
     <string name="command_edit_sprite">Change sprite</string>
     <string name="command_edit_sprite_frames">Change sprite frames</string>
+    <string name="command_save_sprite">Save sprite</string>
     <string name="command_read_sprite">Look at sprite</string>
     <string name="sprite_editor_tool_pencil">Pencil (B)</string>
     <string name="sprite_editor_tool_eraser">Eraser (E)</string>

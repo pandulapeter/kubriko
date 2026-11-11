@@ -15,7 +15,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class CommandTitlesTest {
-    private val names = CommandRegistry.editor.commands.map { it.name }
+    private val names = CommandRegistry.editor.commands.map { it.name } + userOnlyCommandNames
 
     @Test
     fun everyRegisteredCommandHasATitle() {

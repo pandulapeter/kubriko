@@ -91,6 +91,7 @@ import com.pandulapeter.kubrikoCreator.commands.resources.ImportSpriteFrames
 import com.pandulapeter.kubrikoCreator.commands.resources.ListResources
 import com.pandulapeter.kubrikoCreator.commands.resources.ReadSprite
 import com.pandulapeter.kubrikoCreator.commands.resources.RenameResource
+import com.pandulapeter.kubrikoCreator.commands.resources.SaveSprite
 import com.pandulapeter.kubrikoCreator.commands.resources.SetPalette
 import com.pandulapeter.kubrikoCreator.commands.resources.SetSpriteSheet
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
@@ -217,6 +218,7 @@ import kubriko.creator.generated.resources.command_rename_timer
 import kubriko.creator.generated.resources.command_replace_blocks
 import kubriko.creator.generated.resources.command_restore_actor
 import kubriko.creator.generated.resources.command_restore_actors
+import kubriko.creator.generated.resources.command_save_sprite
 import kubriko.creator.generated.resources.command_set_actor_state
 import kubriko.creator.generated.resources.command_set_actor_values
 import kubriko.creator.generated.resources.command_set_actors_state
@@ -258,9 +260,14 @@ internal fun commandTitle(name: String): StringResource? = commandTitles[name]
 internal fun commandTitleText(name: String) = commandTitle(name)?.let { stringResource(it) } ?: name
 
 /**
- * The tool names [commandTitle] knows.
+ * The command names [commandTitle] knows.
  */
 internal val commandTitleNames: Set<String> get() = commandTitles.keys
+
+/**
+ * The commands that aren't tools but that the user's own actions dispatch, so their steps show in the history too.
+ */
+internal val userOnlyCommandNames: Set<String> = setOf(SaveSprite.name)
 
 private val commandTitles = mapOf(
     AddBlock.name to Res.string.command_add_block,
@@ -297,6 +304,7 @@ private val commandTitles = mapOf(
     DrawPixels.name to Res.string.command_draw_pixels,
     EditSprite.name to Res.string.command_edit_sprite,
     EditSpriteFrames.name to Res.string.command_edit_sprite_frames,
+    SaveSprite.name to Res.string.command_save_sprite,
     ReadSprite.name to Res.string.command_read_sprite,
     SetPalette.name to Res.string.command_set_palette,
     ImportSpriteFrames.name to Res.string.command_import_sprite_frames,
