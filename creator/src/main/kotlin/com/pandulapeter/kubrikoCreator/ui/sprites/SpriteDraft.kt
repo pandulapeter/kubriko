@@ -60,6 +60,12 @@ internal class SpriteDraft private constructor(
     }
 
     /**
+     * This draft with [frames] as what is saved, its changes kept: the sprite as another hand left it, which the user
+     * chose to keep their changes over, so reading it again brings nothing new.
+     */
+    fun rebasedOn(frames: SpriteFrames): SpriteDraft = SpriteDraft(frames, current, undoSteps, redoSteps)
+
+    /**
      * Whether [frames] (as read from the disk) are what was saved, so they bring nothing new: the editor's own save read
      * back, or the files scanned again.
      */

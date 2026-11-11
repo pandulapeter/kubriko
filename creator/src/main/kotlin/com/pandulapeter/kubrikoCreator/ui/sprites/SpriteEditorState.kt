@@ -233,9 +233,12 @@ internal class SpriteEditorState {
     }
 
     /**
-     * Keeps the draft's changes over the [outsideChange], which saving then writes over.
+     * Keeps the draft's changes over the [outsideChange], which saving then writes over, and which reading the sprite
+     * again no longer offers.
      */
     fun keepOwnChanges() {
+        val change = outsideChange ?: return
+        draft = draft?.rebasedOn(change)
         outsideChange = null
     }
 

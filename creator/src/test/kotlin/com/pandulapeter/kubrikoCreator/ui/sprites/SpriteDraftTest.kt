@@ -141,6 +141,21 @@ class SpriteDraftTest {
     }
 
     @Test
+    fun keepingOwnChangesOverAnOutsideOneDoesntOfferItAgain() {
+        state.draw(0, listOf(Pixel(0, 0, red)))
+        val elsewhere = SpriteFrames.of(PixelImage(4, 4).with(listOf(Pixel(3, 3, red))), sheet = null)
+        state.onRead(elsewhere)
+        state.keepOwnChanges()
+        assertNull(state.outsideChange)
+        state.onRead(SpriteFrames.of(PixelImage(4, 4).with(listOf(Pixel(3, 3, red))), sheet = null))
+        assertNull(state.outsideChange, "the files scanned again bring the same change, already decided about")
+        assertTrue(state.hasChanges)
+        assertEquals(red, shown()[0, 0])
+        state.discard()
+        assertSame(elsewhere, state.draft!!.current, "dropping the changes now shows the sprite as it is on the disk")
+    }
+
+    @Test
     fun discardingGoesBackToWhatWasSavedAndDropsWhatFloats() {
         state.draw(0, listOf(Pixel(0, 0, red)))
         state.floating = FloatingPixels(PixelImage(1, 1), androidx.compose.ui.unit.IntOffset.Zero)
