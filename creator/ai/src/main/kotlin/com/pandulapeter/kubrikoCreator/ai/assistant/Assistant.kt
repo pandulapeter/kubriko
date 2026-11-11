@@ -19,7 +19,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.JsonElement
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
@@ -88,10 +87,7 @@ public class Assistant(
             agent.newConversation(
                 workingDirectory = workingDirectory,
                 mcpServers = mcpServers,
-                opening = { capabilities ->
-                    val meta = prompt?.let { sessionMetaOf(capabilities, it) }
-                    ConversationOpening(meta = meta, firstPromptLead = prompt.takeIf { meta == null })
-                },
+                opening = { capabilities -> openingOf(capabilities, prompt) },
                 permissions = guarded,
                 prefersReadOnly = !profile.keepsOffFiles,
             )
@@ -118,7 +114,7 @@ public class Assistant(
             id = SessionId(id),
             workingDirectory = workingDirectory,
             mcpServers = mcpServers,
-            meta = { capabilities -> prompt?.let { sessionMetaOf(capabilities, it) } },
+            meta = { capabilities -> openingOf(capabilities, prompt).meta },
             permissions = guarded,
             onHistory = onHistory,
             prefersReadOnly = !profile.keepsOffFiles,
@@ -126,11 +122,18 @@ public class Assistant(
     }
 
     /**
-     * The `_meta` that hands the agent [systemPrompt]: its profile's, or the one it advertises in [capabilities]
-     * ([AntigravityMeta], which also turns off its tools that change files), or null for an agent that takes neither.
+     * How a conversation hands the agent [systemPrompt]: through its profile's `_meta`, through the `_meta` it advertises
+     * taking it in ([AntigravityMeta], which turns off its tools that change files whether or not it does), or else as
+     * its first prompt's leading text.
      */
-    private fun sessionMetaOf(capabilities: AgentCapabilities, systemPrompt: String): JsonElement? = profile.sessionMeta?.invoke(systemPrompt)
-        ?: AntigravityMeta.meta(systemPrompt, isKeepingOffFiles = !profile.keepsOffFiles).takeIf { AntigravityMeta.isAdvertised(capabilities) }
+    private fun openingOf(capabilities: AgentCapabilities, systemPrompt: String?): ConversationOpening {
+        systemPrompt?.let { profile.sessionMeta?.invoke(it) }?.let { return ConversationOpening(meta = it, firstPromptLead = null) }
+        val isAppended = systemPrompt != null && AntigravityMeta.isAppendingAdvertised(capabilities)
+        return ConversationOpening(
+            meta = AntigravityMeta.meta(capabilities, systemPrompt.takeIf { isAppended }),
+            firstPromptLead = systemPrompt.takeUnless { isAppended },
+        )
+    }
 
     /**
      * Opens an address of the tools for the conversation [start] starts in the agent's working folder, allowing Creator's

@@ -19,7 +19,8 @@ import kotlinx.serialization.json.JsonElement
  *   system prompt as it advertises taking it ([AntigravityMeta]), or else as its first prompt's leading text.
  * @param alwaysUsesHttpTools Whether the agent reaches Kubriko Creator's tools over HTTP even without advertising it.
  * @param keepsOffFiles Whether [sessionMeta] already turns off the agent's own edits and commands; otherwise its
- *   conversations are switched to its read-only mode where it offers one ([ReadOnlyMode]). Either way, what it asks to
+ *   conversations are switched to its read-only mode where it offers one ([ReadOnlyMode]), and Google Antigravity, which
+ *   has none, gets those tools turned off through its own `_meta` ([AntigravityMeta]). Either way, what it asks to
  *   edit, delete, move, or run goes to the user ([PermissionRequest.isOutsideCreator]).
  * @param usesProjectFolder Whether the agent works in the project's folder; otherwise it gets a folder of its own, since
  *   some agents write files of their own where they start (Google Antigravity its skills) without asking.

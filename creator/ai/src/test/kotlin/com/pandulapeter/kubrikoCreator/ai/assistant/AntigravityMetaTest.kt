@@ -11,14 +11,16 @@ package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.agentclientprotocol.model.AgentCapabilities
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class AntigravityMetaTest {
 
-    private fun advertises(meta: String?) = AntigravityMeta.isAdvertised(AgentCapabilities(_meta = meta?.let(Json::parseToJsonElement)))
+    private fun advertises(meta: String?) = AntigravityMeta.isAppendingAdvertised(AgentCapabilities(_meta = meta?.let(Json::parseToJsonElement)))
 
     @Test
     fun onlyAnAgentAdvertisingAppendingTakesTheSystemPromptSo() {
@@ -33,14 +35,23 @@ class AntigravityMetaTest {
     }
 
     @Test
-    fun theSystemPromptIsAppendedUnderTheAgentsOwnNamespaceWithItsToolsThatChangeFilesOff() {
+    fun theFileToolsAreTurnedOffUnderTheAgentsOwnNamespaceWithTheSystemPromptAppendedWhenGiven() {
         assertEquals(
             Json.parseToJsonElement("""{"antigravity": {"systemPrompt": {"append": "Be helpful."}, "disabledTools": ["edit_file", "create_file", "run_command"]}}"""),
-            AntigravityMeta.meta("Be helpful.", isKeepingOffFiles = true),
+            AntigravityMeta.meta(capabilities("""{"antigravity": {"systemPrompt": {"append": true}}}"""), "Be helpful.") as JsonElement?,
         )
         assertEquals(
-            Json.parseToJsonElement("""{"antigravity": {"systemPrompt": {"append": "Be helpful."}}}"""),
-            AntigravityMeta.meta("Be helpful.", isKeepingOffFiles = false),
+            Json.parseToJsonElement("""{"antigravity": {"disabledTools": ["edit_file", "create_file", "run_command"]}}"""),
+            AntigravityMeta.meta(capabilities("""{"antigravity": {"tier": true}}"""), null) as JsonElement?,
         )
     }
+
+    @Test
+    fun anAgentWithoutTheExtensionGetsNoMeta() {
+        assertNull(AntigravityMeta.meta(capabilities(null), "Be helpful."))
+        assertNull(AntigravityMeta.meta(capabilities("""{"antigravity": true}"""), "Be helpful."))
+        assertNull(AntigravityMeta.meta(capabilities("""{"other": {}}"""), "Be helpful."))
+    }
+
+    private fun capabilities(meta: String?) = AgentCapabilities(_meta = meta?.let(Json::parseToJsonElement))
 }

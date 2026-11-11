@@ -36,8 +36,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
 import java.io.File
 import kotlin.io.path.createTempDirectory
@@ -173,10 +175,29 @@ class AssistantTest {
         conversation.prompt(listOf(ContentBlock.Text("hello")))
         assistant.resumeConversation(projectDirectory, "earlier")
         val agent = launcher.agents.single()
-        assertEquals(AntigravityMeta.meta("$SYSTEM_PROMPT\n\nAsk first.", isKeepingOffFiles = true), agent.newSessions.single()._meta)
-        assertEquals(AntigravityMeta.meta(SYSTEM_PROMPT, isKeepingOffFiles = true), agent.loadedSessionParameters.single()._meta)
+        assertEquals(antigravityMeta("$SYSTEM_PROMPT\n\nAsk first."), agent.newSessions.single()._meta)
+        assertEquals(antigravityMeta(SYSTEM_PROMPT), agent.loadedSessionParameters.single()._meta)
         assertEquals(emptyList(), agent.leadingTexts)
         launcher.close()
+    }
+
+    @Test
+    fun anAntigravityAgentNotAdvertisingAppendingHearsTheSystemPromptFirstWithItsFileToolsStillOff() = blockingTest {
+        val extension = buildJsonObject { putJsonObject("antigravity") { put("tier", true) } }
+        val launcher = FakeAgentLauncher(fakeAgent = { FakeAgent(capabilitiesMeta = extension) })
+        val conversation = assistant(AgentProfile.fallback, launcher).newConversation(projectDirectory)
+        conversation.prompt(listOf(ContentBlock.Text("hello")))
+        val agent = launcher.agents.single()
+        assertEquals(antigravityMeta(null), agent.newSessions.single()._meta)
+        assertEquals(listOf(SYSTEM_PROMPT), agent.leadingTexts)
+        launcher.close()
+    }
+
+    private fun antigravityMeta(appendedSystemPrompt: String?) = buildJsonObject {
+        putJsonObject("antigravity") {
+            appendedSystemPrompt?.let { putJsonObject("systemPrompt") { put("append", it) } }
+            putJsonArray("disabledTools") { listOf("edit_file", "create_file", "run_command").forEach { add(it) } }
+        }
     }
 
     @Test
