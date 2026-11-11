@@ -11,8 +11,12 @@ package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
+import com.pandulapeter.kubrikoCreator.commands.FakeProjectRunner
+import com.pandulapeter.kubrikoCreator.commands.GameStep
+import com.pandulapeter.kubrikoCreator.commands.ProjectRunner
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.testScope
+import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.context.BreakoutFixture
 import com.pandulapeter.kubrikoCreator.context.RecordedCall
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
@@ -101,6 +105,15 @@ internal class LiveSession {
     }
     private var assistant = newAssistant()
 
+    /**
+     * The fixture is no Gradle project, so its game is never built or played; saying so keeps the agent from chasing a
+     * game that never answers.
+     */
+    private val unplayable = FakeProjectRunner(
+        result = ProjectRunner.RunResult(isSuccessful = false, console = listOf(ConsoleEntry.Problem(UNPLAYABLE, location = null))),
+        step = GameStep.Failed(UNPLAYABLE),
+    )
+
     data class Call(
         val call: RecordedCall,
         val isError: Boolean,
@@ -108,7 +121,7 @@ internal class LiveSession {
 
     @OptIn(EditorMutation::class)
     fun TestScope.prepare(isBlank: Boolean) {
-        context = commandContext(*if (isBlank) emptyArray() else BreakoutFixture.types.toTypedArray(), rootDirectory = projectDirectory)
+        context = commandContext(*if (isBlank) emptyArray() else BreakoutFixture.types.toTypedArray(), rootDirectory = projectDirectory, runner = unplayable)
         if (!isBlank) context.scenes.write("level-1", BreakoutFixture.level)
         executor = CommandExecutor(context, testScope())
     }
@@ -154,5 +167,9 @@ internal class LiveSession {
         assistant.close()
         scope.cancel()
         projectDirectory.deleteRecursively()
+    }
+
+    private companion object {
+        const val UNPLAYABLE = "This project can't be built or played here: check a change by reading the project instead."
     }
 }

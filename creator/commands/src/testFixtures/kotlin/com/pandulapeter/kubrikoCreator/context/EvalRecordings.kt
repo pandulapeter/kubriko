@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.context
 
+import com.pandulapeter.kubrikoCreator.commands.CommandRegistry
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.testing.creatorDirectory
 import kotlinx.serialization.json.Json
@@ -36,10 +37,10 @@ public object EvalRecordings {
     private const val FOLDER = "eval-set"
 
     /**
-     * Tools whose calls aren't kept: they only mean something inside the assistant's own conversation, which a replay
-     * has none of.
+     * Tools whose calls aren't kept: they read and change nothing of the project, only the assistant's own conversation,
+     * which a replay has none of.
      */
-    private val conversationTools = setOf("set_plan", "ask_user")
+    private val conversationTools by lazy { CommandRegistry.editor.tools.filter { it.isReadOnly && !it.readsProject }.map { it.name }.toSet() }
 
     /**
      * The calls recorded for [request], or none if it was never recorded.

@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.pandulapeter.kubrikoCreator.context.EvalRecordings
 import com.pandulapeter.kubrikoCreator.context.EvalSet
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -29,12 +30,16 @@ class EvalSetLiveTest {
     private val isRecording = System.getenv("KUBRIKO_CREATOR_EVAL_RECORD") == "true"
 
     @Test
-    fun theRealAgentDoesWhatEveryRequestAsks() = liveTest(timeout = REQUEST_TIMEOUT * EvalSet.requests.size) {
+    fun theRealAgentDoesWhatEveryRequestAsks() = liveTest(timeout = (REQUEST_TIMEOUT * 2 + SESSION_TIMEOUT) * EvalSet.requests.size) {
         val failures = EvalSet.requests.mapNotNull { request ->
             withLiveSession { session ->
-                val outcome = runCatching {
+                val outcome = try {
                     answer(request.text, session)
-                    request.check(session.context)
+                    Result.success(request.check(session.context))
+                } catch (exception: CancellationException) {
+                    throw exception
+                } catch (throwable: Throwable) {
+                    Result.failure(throwable)
                 }
                 val calls = session.calls.toList()
                 println("\"${request.text}\": ${if (outcome.isSuccess) "passed" else "failed"} with ${calls.size} calls")
@@ -64,6 +69,14 @@ class EvalSetLiveTest {
     }
 
     private companion object {
+        /**
+         * How long a turn may take: each request takes one, and a second when it ends on a plan to approve.
+         */
         val REQUEST_TIMEOUT = 10.minutes
+
+        /**
+         * How long starting and closing a session may take besides its turns.
+         */
+        val SESSION_TIMEOUT = 1.minutes
     }
 }

@@ -1,7 +1,6 @@
 [
   {"tool":"get_project_digest","arguments":{}},
-  {"tool":"read_actor_type","arguments":{"actorType":"Ball"}},
-  {"tool":"edit_block","arguments":{"actorType":"Ball","eventIndex":2,"blockIndex":2,"block":{"type":"changeNumber","property":"score","by":20,"manager":"Game"}}},
-  {"tool":"read_pages","arguments":{}},
-  {"tool":"remember_for_next_time","arguments":{"summary":"Changed brick scoring to 20 points (Ball#2.2, \"Change score of Game by 20\"). GoldBrick is described as worth more, but it still scores the same 20 because nothing gives it extra points yet."}}
+  {"tool":"read_actor_type","arguments":{"actorType":"Ball","eventIndex":2}},
+  {"tool":"read_actor_type","arguments":{"actorType":"GoldBrick"}},
+  {"tool":"edit_block","arguments":{"actorType":"Ball","eventIndex":2,"blockIndex":2,"block":{"type":"changeNumber","property":"score","by":20,"manager":"Game"}}}
 ]

@@ -1,11 +1,5 @@
 [
   {"tool":"get_project_digest","arguments":{}},
-  {"tool":"add_event","arguments":{"actorType":"Game","type":"gameStarted","blocks":[{"type":"log","message":"Game started: {score} points, {lives} lives"}]}},
-  {"tool":"start_game","arguments":{}},
-  {"tool":"read_console","arguments":{}},
-  {"tool":"read_console","arguments":{"limit":30}},
-  {"tool":"wait","arguments":{"milliseconds":2000}},
-  {"tool":"take_screenshot","arguments":{"width":320}},
-  {"tool":"stop_game","arguments":{}},
-  {"tool":"remember_for_next_time","arguments":{"summary":"Added a \"When the game starts\" Event to the Game Manager type that writes \"Game started: {score} points, {lives} lives\" to the console. In a test run the console showed nothing, not even this line, and a screenshot came back without an image, so it is still unconfirmed whether the message appears."}}
+  {"tool":"add_event","arguments":{"actorType":"Game","type":"gameStarted","blocks":[{"type":"log","message":"Game started"}],"index":0}},
+  {"tool":"start_game","arguments":{}}
 ]

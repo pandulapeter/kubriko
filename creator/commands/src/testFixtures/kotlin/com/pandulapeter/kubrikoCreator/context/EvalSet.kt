@@ -68,13 +68,41 @@ public object EvalSet {
             "paddle-stops-on-release",
             "The Paddle should stop once neither arrow key is held, but now it stops whenever Left isn't held, even while Right is.",
         ) { context ->
-            val keys = context.actorType("Paddle").events.flatMap { it.blocks }.filterIsInstance<BlockDefinition.If>().mapNotNull { (it.condition as? ConditionDefinition.KeyHeld)?.key }
-            assertTrue(KeyChoice.RIGHT in keys, "The Paddle never checks the Right key; it checks $keys.")
+            val everyFrame = context.actorType("Paddle").events.filter { it.type == EventType.EVERY_FRAME }.map { it.blocks }
+            listOf(emptySet(), setOf(KeyChoice.LEFT), setOf(KeyChoice.RIGHT), setOf(KeyChoice.LEFT, KeyChoice.RIGHT)).forEach { held ->
+                val stops = everyFrame.map { stopsWhile(it, held) }
+                assertTrue(null !in stops, "The Paddle's Every frame Events check more than which keys are held: $everyFrame")
+                assertEquals(held.isEmpty(), true in stops, "With $held held, the Paddle ${if (true in stops) "stops" else "doesn't stop"}.")
+            }
         },
     )
 
+    /**
+     * Whether [blocks] reach a Stop Block while the [held] keys are held, following their if, else, repeat, and end
+     * Blocks, or null when one of their conditions is anything but which keys are held.
+     */
+    private fun stopsWhile(blocks: List<BlockDefinition>, held: Set<KeyChoice>): Boolean? {
+        val sections = ArrayDeque<Pair<Boolean, Boolean>>()
+        fun isRunning() = sections.all { (isTrue, _) -> isTrue }
+        blocks.forEach { block ->
+            when (block) {
+                is BlockDefinition.If -> {
+                    val condition = block.condition as? ConditionDefinition.KeyHeld ?: return null
+                    val isTrue = (condition.key in held) == condition.isHeld
+                    sections.addLast(isTrue to isTrue)
+                }
+                is BlockDefinition.Repeat -> sections.addLast(true to true)
+                BlockDefinition.Else -> sections.removeLastOrNull()?.let { (_, condition) -> sections.addLast(!condition to condition) }
+                BlockDefinition.End -> sections.removeLastOrNull()
+                BlockDefinition.Stop -> if (isRunning()) return true
+                else -> Unit
+            }
+        }
+        return false
+    }
+
     private fun assertBallStartsFaster(context: CommandContext) {
-        val start = context.actorType("Ball").events.first { it.type == EventType.ADDED_TO_SCENE }.blocks.filterIsInstance<BlockDefinition.SetVelocity>().single()
+        val start = context.actorType("Ball").events.first { it.type == EventType.ADDED_TO_SCENE }.blocks.filterIsInstance<BlockDefinition.SetVelocity>().last()
         assertTrue(hypot(start.x, start.y) > hypot(200f, -300f), "The Ball starts at $start.")
     }
 

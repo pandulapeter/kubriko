@@ -1,9 +1,5 @@
 [
   {"tool":"read_actor_type","arguments":{"actorType":"Paddle"}},
   {"tool":"replace_blocks","arguments":{"actorType":"Paddle","eventIndex":2,"index":0,"count":3,"blocks":[{"type":"if","condition":{"type":"keyHeld","key":"DirectionLeft","isHeld":false}},{"type":"if","condition":{"type":"keyHeld","key":"DirectionRight","isHeld":false}},{"type":"stop"},{"type":"end"},{"type":"end"}]}},
-  {"tool":"start_game","arguments":{}},
-  {"tool":"press_keys","arguments":{"keys":["RIGHT"],"milliseconds":600,"screenshotWidth":480}},
-  {"tool":"take_screenshot","arguments":{"actorType":"Paddle","width":480}},
-  {"tool":"stop_game","arguments":{}},
-  {"tool":"remember_for_next_time","arguments":{"summary":"Fixed the Paddle's Every frame Event so it only stops when neither Left nor Right is held. I couldn't confirm it in play because screenshots came back without the Paddle in view."}}
+  {"tool":"start_game","arguments":{}}
 ]

@@ -207,6 +207,14 @@ class McpToolServerTest {
     }
 
     @Test
+    fun aCallIsAnsweredEvenWhenWhatItIsHandedToThrows() = runTest {
+        val executor = CommandExecutor(commandContext(ActorTypeDefinition("Ball")), testScope())
+        val started = start(onToolCalled = { _, _, _ -> error("The disk is full.") }) { executor }
+        val result = connected(started) { callTool("list_scenes", emptyMap()) }
+        assertEquals(false, result.isError)
+    }
+
+    @Test
     fun rejectionsReadAsTheirEnglishWithTheirArguments() = runTest {
         val started = start(CommandExecutor(commandContext(ActorTypeDefinition("Ball")), testScope()))
         val result = connected(started) { callTool("read_actor_type", mapOf("actorType" to "Rock")) }
