@@ -22,6 +22,11 @@ internal data class TranscriptQuestions(
     val byToolCall: Map<ToolCallId, UserQuestions.Question>,
     val trailing: List<UserQuestions.Question>,
 ) {
+    /**
+     * Whether the conversation has a question nobody answered yet, whether or not its call still waits.
+     */
+    val isAnyOpen: Boolean get() = byToolCall.isNotEmpty() || trailing.isNotEmpty()
+
     companion object {
         val None = TranscriptQuestions(emptyMap(), emptyList())
     }

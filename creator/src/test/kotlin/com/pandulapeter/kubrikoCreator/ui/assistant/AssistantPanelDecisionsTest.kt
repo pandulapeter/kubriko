@@ -191,11 +191,11 @@ class AssistantPanelDecisionsTest {
     }
 
     @Test
-    fun aPlanIsOfferedForApprovalOnlyOnceTheAgentTakesPromptsAgain() {
-        val proposed = AssistantTranscript(plan = listOf(PlanEntry("Add Lives", PlanEntryPriority.MEDIUM, PlanEntryStatus.PENDING)), isPlanNew = true)
-        assertTrue(isPlanApprovalOffered(proposed, ChatState.Ready, isBusy = false))
-        assertFalse(isPlanApprovalOffered(proposed, ChatState.Ready, isBusy = true))
-        assertFalse(isPlanApprovalOffered(proposed, ChatState.Starting, isBusy = false))
-        assertFalse(isPlanApprovalOffered(proposed.copy(isPlanNew = false), ChatState.Ready, isBusy = false))
+    fun aPlanIsOfferedForApprovalOnlyOnceTheAgentTakesPromptsAgainAndNoQuestionIsOpen() {
+        assertTrue(isPlanApprovalOffered(isPlanAwaitingApproval = true, ChatState.Ready, isBusy = false, isAnyQuestionOpen = false))
+        assertFalse(isPlanApprovalOffered(isPlanAwaitingApproval = true, ChatState.Ready, isBusy = true, isAnyQuestionOpen = false))
+        assertFalse(isPlanApprovalOffered(isPlanAwaitingApproval = true, ChatState.Starting, isBusy = false, isAnyQuestionOpen = false))
+        assertFalse(isPlanApprovalOffered(isPlanAwaitingApproval = true, ChatState.Ready, isBusy = false, isAnyQuestionOpen = true))
+        assertFalse(isPlanApprovalOffered(isPlanAwaitingApproval = false, ChatState.Ready, isBusy = false, isAnyQuestionOpen = false))
     }
 }

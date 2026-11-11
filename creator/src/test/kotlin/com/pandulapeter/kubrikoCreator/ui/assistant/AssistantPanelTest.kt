@@ -361,6 +361,22 @@ class AssistantPanelTest {
     }
 
     @Test
+    fun aPlanIsApprovedOnlyOnceAQuestionTheAgentStoppedWaitingForIsAnswered() = uiTest {
+        val chat = readyChat()
+        val model = FakeAssistantPanelModel().apply { currentChat.value = chat }
+        val question = UserQuestions.Question(1, "How many lives?", listOf("Three", "Five"), AiStepOrigin(TOOLS_ID))
+        var questions by mutableStateOf(listOf(question))
+        showing { AssistantPanel(model = model, aiSteps = emptyList(), onShowStep = {}, questions = questions, onAnswer = { _, _ -> questions = emptyList() }) }
+        runBlocking { withContext(mainThread) { chat.send("propose") } }
+        waitUntil(timeoutMillis = 10_000) { chat.transcript.value.isPlanAwaitingApproval && !chat.isBusy.value }
+        onNodeWithText("Lose a life when the ball falls").assertExists()
+        onNodeWithText("Approve").assertDoesNotExist()
+        onNodeWithText("Three").performClick()
+        waitUntil(timeoutMillis = 10_000) { launcher.agents.single().prompts.size == 2 && !chat.isBusy.value }
+        onNodeWithText("Approve").assertDoesNotExist()
+    }
+
+    @Test
     fun aPlanIsApprovedWithASmallerModelTheAgentOffers() = uiTest {
         val chat = readyChat()
         val model = FakeAssistantPanelModel().apply { currentChat.value = chat }

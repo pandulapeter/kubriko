@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.agentclientprotocol.annotations.UnstableApi
+import com.agentclientprotocol.model.PlanEntry
 import com.agentclientprotocol.model.SessionConfigOptionValue
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentChoice
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentDownload
@@ -41,7 +42,6 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.AuthStatus
 import com.pandulapeter.kubrikoCreator.ai.assistant.ChatState
 import com.pandulapeter.kubrikoCreator.ai.assistant.FailureReason
 import com.pandulapeter.kubrikoCreator.ai.assistant.SignInMethod
-import com.pandulapeter.kubrikoCreator.ai.assistant.SmallerModel
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.UserQuestions
 import com.pandulapeter.kubrikoCreator.ui.LocalAiActivitySettings
@@ -252,7 +252,7 @@ private fun ChatContent(
             )
         }
     }
-    ChatPlan(chat, transcript, isApprovalOffered = isPlanApprovalOffered(transcript, state, isBusy))
+    ChatPlan(transcript.plan, rememberPlanApproval(chat, state, isBusy, isAnyQuestionOpen = transcriptQuestions.isAnyOpen))
     signInArea(transcript.needsSignIn)
     permissionRequest?.let { request ->
         PermissionCard(
@@ -306,23 +306,16 @@ private fun ChatContent(
 }
 
 /**
- * The conversation's plan, if the agent laid one out, with Approve, and Approve with a smaller model where the agent offers
- * one, while [isApprovalOffered].
+ * The conversation's plan, if the agent laid one out, with what [approval] offers.
  */
 @Composable
 private fun ChatPlan(
-    chat: AssistantChat,
-    transcript: AssistantTranscript,
-    isApprovalOffered: Boolean,
+    plan: List<PlanEntry>,
+    approval: PlanApproval,
 ) {
-    if (transcript.plan.isEmpty()) return
-    val configOptions by chat.configOptions.collectAsState()
+    if (plan.isEmpty()) return
     HorizontalDivider()
-    PlanChecklist(
-        entries = transcript.plan,
-        smallerModel = remember(configOptions) { SmallerModel.of(configOptions) },
-        onApprove = { text: String, model: SmallerModel? -> chat.send(text, model = model) }.takeIf { isApprovalOffered },
-    )
+    PlanChecklist(entries = plan, smallerModel = approval.smallerModel, onApprove = approval.onApprove)
 }
 
 @Composable
@@ -373,10 +366,3 @@ private fun rememberSystemTerminalOffer(model: AssistantPanelModel): SystemTermi
     val onContinue = remember(model) { model::signInInSystemTerminal }
     return SystemTerminalOffer(isOpening, hasFailed, onContinue)
 }
-
-/**
- * Whether the plan's Approve button shows: the agent laid out a plan in its last turn and started none of it, and it
- * takes prompts again. An agent waiting for an answer is still working, so it is answered rather than sent an approval.
- */
-internal fun isPlanApprovalOffered(transcript: AssistantTranscript, state: ChatState, isBusy: Boolean) =
-    transcript.isPlanAwaitingApproval && state == ChatState.Ready && !isBusy
