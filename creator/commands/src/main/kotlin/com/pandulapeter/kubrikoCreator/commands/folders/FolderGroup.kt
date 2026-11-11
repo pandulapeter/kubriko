@@ -18,8 +18,9 @@ import kotlinx.serialization.Serializable
  * A group of the sidebar that has folders, in the order the sidebar lists them.
  *
  * @param kind The kind of type its folders hold, or null for the other groups.
- * @param resourceKind The kind of file its folders hold, for sounds and music, whose folders are the real ones of
- *   `composeResources/files` ([com.pandulapeter.kubrikoCreator.actors.AudioFolders]), named by their path from it.
+ * @param resourceKind The kind of file its folders hold, for sprites, sounds, and music: a sound's or music's folders are
+ *   the real ones of `composeResources/files` ([com.pandulapeter.kubrikoCreator.actors.AudioFolders]), named by their
+ *   path from it ([isAudio]), and a sprite's are virtual ([com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore]).
  */
 @Serializable
 public enum class FolderGroup(
@@ -38,6 +39,9 @@ public enum class FolderGroup(
     @SerialName("scenes")
     SCENES(null),
 
+    @SerialName("sprites")
+    SPRITES(null, ResourceKind.SPRITE),
+
     @SerialName("sounds")
     SOUNDS(null, ResourceKind.SOUND),
 
@@ -46,12 +50,17 @@ public enum class FolderGroup(
 
     ;
 
+    /**
+     * Whether its folders are the real folders of `composeResources/files`, which hold sounds and music.
+     */
+    public val isAudio: Boolean get() = resourceKind == ResourceKind.SOUND || resourceKind == ResourceKind.MUSIC
+
     public companion object {
         internal fun of(kind: BlockTypeKind) = entries.first { it.kind == kind }
 
         /**
-         * The group whose folders hold files of [kind], or null for sprites, whose folders aren't real.
+         * The group whose folders hold files of [kind].
          */
-        public fun of(kind: ResourceKind): FolderGroup? = entries.firstOrNull { it.resourceKind == kind }
+        public fun of(kind: ResourceKind): FolderGroup = entries.first { it.resourceKind == kind }
     }
 }

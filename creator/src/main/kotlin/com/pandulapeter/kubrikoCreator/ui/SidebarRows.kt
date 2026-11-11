@@ -40,8 +40,8 @@ internal class SidebarRows private constructor(
     /**
      * The rows of the sounds or music [group] of [module], made then and there if they weren't worked out beforehand.
      */
-    fun audioOf(module: SidebarModule, group: ResourceGroup, tree: SidebarTree): Tree<FolderTreeRow>? = treeAt(SidebarKeys.resourceGroup(module.path, group))
-        ?: module.audioTrees[group]?.let { groupTree(it, tree.collapsedFolders(SidebarKeys.resourceGroup(module.path, group)), previous = null) }
+    fun resourceTreeOf(module: SidebarModule, group: ResourceGroup, tree: SidebarTree): Tree<FolderTreeRow>? = treeAt(SidebarKeys.resourceGroup(module.path, group))
+        ?: module.resourceTrees[group]?.let { groupTree(it, tree.collapsedFolders(SidebarKeys.resourceGroup(module.path, group)), previous = null) }
 
     fun documentsOf(module: SidebarModule, tree: SidebarTree): List<FolderTreeRow> = treeAt<FolderTreeRow>(SidebarKeys.documents(module.path))?.rows
         ?: documentsTree(module, tree, previous = null).rows
@@ -66,7 +66,7 @@ internal class SidebarRows private constructor(
                     val key = SidebarKeys.folderGroup(module.path, group)
                     trees[key] = groupTree(state, tree.collapsedFolders(key), previous?.trees?.get(key))
                 }
-                module.audioTrees.forEach { (group, state) ->
+                module.resourceTrees.forEach { (group, state) ->
                     val key = SidebarKeys.resourceGroup(module.path, group)
                     if (group in module.resourceGroups) trees[key] = groupTree(state, tree.collapsedFolders(key), previous?.trees?.get(key))
                 }

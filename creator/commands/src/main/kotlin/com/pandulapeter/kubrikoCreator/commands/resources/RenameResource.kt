@@ -65,6 +65,9 @@ public object RenameResource : WriteCommand<RenameResource.Input> {
         val moves = withContext(context.ioDispatcher) { context.moveResource(files.at(input.path), input.path, input.newPath) }
             ?: return Applied.failed(Rejection(CommandProblem.RESOURCE_NOT_MOVED, input.path))
         if (moves.isEmpty()) return Applied.failed(Rejection(LookupProblem.RESOURCE_MISSING, input.path))
+        if (ResourceKind.of(input.path) == ResourceKind.SPRITE) {
+            withContext(context.ioDispatcher) { context.spriteFolders.rename(ResourceKind.nameOf(input.path), ResourceKind.nameOf(input.newPath)) }
+        }
         context.onFilesChanged()
         // Restoring, since the resource scan that knows the new name may come after the undo.
         val movingBack = Invocation(RenameResource, Input(input.newPath, input.path, movesOnly = true), isRestoring = true)

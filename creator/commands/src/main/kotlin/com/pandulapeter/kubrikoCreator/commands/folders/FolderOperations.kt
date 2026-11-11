@@ -29,6 +29,7 @@ internal suspend fun CommandContext.createFolder(group: FolderGroup, path: Strin
         FolderGroup.SCENES -> withContext(ioDispatcher) { scenes.createFolder(path) }
         FolderGroup.PAGES -> withContext(ioDispatcher) { screenplay.createFolder(path) }
         FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> requireBlockTypes.createFolder(checkNotNull(group.kind), path)
+        FolderGroup.SPRITES -> withContext(ioDispatcher) { spriteFolders.createFolder(path) }
         FolderGroup.SOUNDS, FolderGroup.MUSIC -> withContext(ioDispatcher) { createAudioFolder(path) }
     }
 }
@@ -39,6 +40,7 @@ internal suspend fun CommandContext.deleteFolder(group: FolderGroup, path: Strin
         FolderGroup.SCENES -> withContext(ioDispatcher) { scenes.deleteFolder(path) }
         FolderGroup.PAGES -> withContext(ioDispatcher) { screenplay.deleteFolder(path) }
         FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> requireBlockTypes.deleteFolder(checkNotNull(group.kind), path)
+        FolderGroup.SPRITES -> withContext(ioDispatcher) { spriteFolders.deleteFolder(path) }
         FolderGroup.SOUNDS, FolderGroup.MUSIC -> withContext(ioDispatcher) { deleteAudioFolder(path) }
     }
 }
@@ -51,7 +53,10 @@ internal suspend fun CommandContext.deleteFolder(group: FolderGroup, path: Strin
  */
 @EditorMutation
 internal suspend fun CommandContext.moveFolder(group: FolderGroup, path: String, newPath: String): Rejection? {
-    if (group.resourceKind != null) {
+    if (group == FolderGroup.SPRITES) {
+        return if (withContext(ioDispatcher) { spriteFolders.moveFolder(path, newPath) }) null else Rejection(CommandProblem.RESOURCE_FOLDER_NOT_MOVED, path)
+    }
+    if (group.isAudio) {
         withContext(ioDispatcher) { moveAudioFolder(path, newPath) }?.let { return it }
         deleteFolder(group, path)
         return null
@@ -82,7 +87,7 @@ internal suspend fun CommandContext.moveFolder(group: FolderGroup, path: String,
         FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> requireBlockTypes.types.value
             .filter { it.kind == group.kind && FolderPaths.isWithin(it.folder, path) }
             .forEach { requireBlockTypes.put(it.withFolder(moved(it.folder))) }
-        FolderGroup.SOUNDS, FolderGroup.MUSIC -> Unit
+        FolderGroup.SPRITES, FolderGroup.SOUNDS, FolderGroup.MUSIC -> Unit
     }
     deleteFolder(group, path)
     return null

@@ -96,7 +96,6 @@ class SidebarResourcesTest {
         val actions = ResourceActions(
             onChoose = { chosen += it },
             onPaste = { pastes++ },
-            onDelete = { deleted += it },
         )
         val folderActions = FolderTreeActions(
             onSelected = { _, _ -> },

@@ -23,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_add_music
 import kubriko.creator.generated.resources.action_add_sound
+import kubriko.creator.generated.resources.action_add_sprite
 import kubriko.creator.generated.resources.action_delete_actor_type
 import kubriko.creator.generated.resources.action_delete_manager_type
 import kubriko.creator.generated.resources.action_delete_page
@@ -39,6 +40,7 @@ import kubriko.creator.generated.resources.ic_music
 import kubriko.creator.generated.resources.ic_page
 import kubriko.creator.generated.resources.ic_scene
 import kubriko.creator.generated.resources.ic_sound
+import kubriko.creator.generated.resources.ic_sprite
 import kubriko.creator.generated.resources.new_actor_type_hint
 import kubriko.creator.generated.resources.new_manager_type_hint
 import kubriko.creator.generated.resources.new_page_hint
@@ -50,6 +52,7 @@ import kubriko.creator.generated.resources.resource_group_music
 import kubriko.creator.generated.resources.resource_group_scenes
 import kubriko.creator.generated.resources.resource_group_screenplay
 import kubriko.creator.generated.resources.resource_group_sounds
+import kubriko.creator.generated.resources.resource_group_sprites
 import org.jetbrains.compose.resources.stringResource
 /**
  * What a sidebar group with folders shows.
@@ -102,11 +105,6 @@ internal sealed interface SidebarNaming {
     data class RenamedDocument(val path: String) : SidebarNaming
 
     data object NewProjectDocument : SidebarNaming
-
-    /**
-     * A sprite, sound, or music file being renamed, by its path from the project's root.
-     */
-    data class RenamedResource(val relativePath: String) : SidebarNaming
 }
 
 /**
@@ -278,6 +276,7 @@ internal val FolderGroup.icon
         FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> checkNotNull(kind).icon
         FolderGroup.SCENES -> Res.drawable.ic_scene
         FolderGroup.PAGES -> Res.drawable.ic_page
+        FolderGroup.SPRITES -> Res.drawable.ic_sprite
         FolderGroup.SOUNDS -> Res.drawable.ic_sound
         FolderGroup.MUSIC -> Res.drawable.ic_music
     }
@@ -287,7 +286,7 @@ internal val FolderGroup.accent
         FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> checkNotNull(kind).accent
         FolderGroup.SCENES -> Accent.SCENE
         FolderGroup.PAGES -> Accent.SCREENPLAY
-        FolderGroup.SOUNDS, FolderGroup.MUSIC -> Accent.CODE
+        FolderGroup.SPRITES, FolderGroup.SOUNDS, FolderGroup.MUSIC -> Accent.CODE
     }
 
 internal val FolderGroup.title
@@ -296,6 +295,7 @@ internal val FolderGroup.title
         FolderGroup.MANAGER_TYPES -> Res.string.resource_group_manager_types
         FolderGroup.SCENES -> Res.string.resource_group_scenes
         FolderGroup.PAGES -> Res.string.resource_group_screenplay
+        FolderGroup.SPRITES -> Res.string.resource_group_sprites
         FolderGroup.SOUNDS -> Res.string.resource_group_sounds
         FolderGroup.MUSIC -> Res.string.resource_group_music
     }
@@ -306,6 +306,7 @@ internal val FolderGroup.newItemLabel
         FolderGroup.MANAGER_TYPES -> Res.string.action_new_manager_type
         FolderGroup.SCENES -> Res.string.action_new_scene
         FolderGroup.PAGES -> Res.string.action_new_page
+        FolderGroup.SPRITES -> Res.string.action_add_sprite
         FolderGroup.SOUNDS -> Res.string.action_add_sound
         FolderGroup.MUSIC -> Res.string.action_add_music
     }
@@ -316,7 +317,7 @@ internal val FolderGroup.deleteItemLabel
         FolderGroup.MANAGER_TYPES -> Res.string.action_delete_manager_type
         FolderGroup.SCENES -> Res.string.action_delete_scene
         FolderGroup.PAGES -> Res.string.action_delete_page
-        FolderGroup.SOUNDS, FolderGroup.MUSIC -> Res.string.action_delete_resource
+        FolderGroup.SPRITES, FolderGroup.SOUNDS, FolderGroup.MUSIC -> Res.string.action_delete_resource
     }
 
 internal val FolderGroup.newItemHint
@@ -325,5 +326,5 @@ internal val FolderGroup.newItemHint
         FolderGroup.MANAGER_TYPES -> Res.string.new_manager_type_hint
         FolderGroup.SCENES -> Res.string.new_scene_hint
         FolderGroup.PAGES -> Res.string.new_page_hint
-        FolderGroup.SOUNDS, FolderGroup.MUSIC -> Res.string.new_resource_hint
+        FolderGroup.SPRITES, FolderGroup.SOUNDS, FolderGroup.MUSIC -> Res.string.new_resource_hint
     }

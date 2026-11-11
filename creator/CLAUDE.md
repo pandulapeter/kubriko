@@ -91,9 +91,9 @@ Creator is split into Gradle modules, lowest first:
 - `:creator:foundation` (`foundation`, `console`): files, the settings folder, typed texts, and console entries.
 - `:creator:ui-components` (`ui.components`, `ui.theme`): the shared components and theme, with their own resources and the
   offscreen UI test helpers.
-- `:creator:core` (`actors`, `actors.codegen`, `actors.store`, `project`, `schema`, the Scene files in `scenes`, and the
-  screenplay's pages in `screenplay`): the Block model, code generation, the type store, project files, Scene files, and
-  pages, with no Tooling API, JGit, Ktor, MCP, ACP, or
+- `:creator:core` (`actors`, `actors.codegen`, `actors.store`, `project`, `schema`, the Scene files in `scenes`, the
+  screenplay's pages in `screenplay`, and the sprites' folders in `sprites`): the Block model, code generation, the type
+  store, project files, Scene files, pages, and sprite folders, with no Tooling API, JGit, Ktor, MCP, ACP, or
   engine dependency.
 - `:creator:gradle-session` (`gradle`, `session`): Gradle and game sessions, with the session init script as its resource and
   the session protocol in its API.
@@ -157,6 +157,7 @@ Besides its tests passing, a change:
 | Path | Owner | When changed elsewhere |
 |---|---|---|
 | `.kubriko/actors/**/*.json`, `.kubriko/managers/**/*.json` | Creator | Reloaded within a second; code regenerated. |
+| `.kubriko/sprites/**/*.json` (the sprites' folders) | Creator | Read again with the resource tree within a second. A directory is a folder and `<sprite>.json` puts a sprite in it; a sprite without one is in no folder. |
 | `.kubriko/project.json` | Creator | Its format is checked again within a second. One that can't be read is named with what is wrong in it, in plain words rather than the parser's (`ProjectSettingsReader`, which `ProjectFormat` reads it through too, so both refuse the same files): it stops the opening, or is reported in the console while the project is open; a newer format's project opens without its types instead, since only browsing it needs none. |
 | `.kubriko/scenes.json` (Scene descriptions) | Creator | Read again whenever it is used; a file that can't be read holds none. |
 | `<package>/generated/*.kt` | Creator | Checksum mismatch → Creator stops updating it and offers to discard the edits. Committed, so projects build without Creator. |
@@ -354,6 +355,10 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   Renaming one moves its files, finding them on disk (its undo comes before the next scan), and follows each as
   `rename_resource` would; deleting one deletes each file through `delete_resource`, both kinds, and its last step
   looks for audio on disk rather than in the scan the deletes before it left behind.
+- **Sprites' folders** are virtual (`SpriteFolderStore`), since Compose resources make accessors only of the images right
+  in `drawable`: moving a sprite between them (`move_sprite_to_folder`) or renaming one changes only `.kubriko/sprites`,
+  never the image's path, so nothing that uses it follows. A sprite's file goes with its renames and deletes (`delete_resource`
+  takes it into the same `ReplaceFiles` step, so undo puts it back), and holds what sprite sheets will keep about it.
 
 ## Builds and playing
 

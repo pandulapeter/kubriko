@@ -24,6 +24,7 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.screenplay.DocumentStore
 import com.pandulapeter.kubrikoCreator.screenplay.MovedFiles
 import com.pandulapeter.kubrikoCreator.screenplay.ScreenplayStore
+import com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -80,6 +81,11 @@ public class CommandContext(
      * and the commands' changes since.
      */
     public val audioFolders: AudioFolderIndex = AudioFolderIndex { scenes.resourcesDirectory }
+
+    /**
+     * The sidebar's folders of sprites, whose writes are recorded as Kubriko Creator's own with the Scenes'.
+     */
+    public val spriteFolders: SpriteFolderStore = SpriteFolderStore(project.rootDirectory, scenes.ownWrites)
 
     /**
      * The screenplay's pages, whose writes are recorded as Kubriko Creator's own with the Scenes'.

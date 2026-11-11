@@ -22,7 +22,7 @@ import javax.swing.JFileChooser
 import javax.swing.filechooser.FileNameExtensionFilter
 
 /**
- * What the sidebar's sprites, sounds, and music do. [onRename] says why a name can't be used, or null.
+ * What the sidebar's sprites, sounds, and music groups do besides their folders' and files' own ([FolderTreeActions]).
  *
  * @param onChoose Asks for files of a kind to add.
  * @param onAdd Adds files chosen, dropped, or pasted, each named after its own name.
@@ -32,8 +32,6 @@ internal class ResourceActions(
     val onChoose: (ResourceKind) -> Unit = {},
     val onAdd: (List<ResourceSource>) -> Unit = {},
     val onPaste: () -> Unit = {},
-    val onRename: (path: String, newName: String) -> Rejection? = { _, _ -> null },
-    val onDelete: (path: String) -> Unit = {},
 )
 
 /**

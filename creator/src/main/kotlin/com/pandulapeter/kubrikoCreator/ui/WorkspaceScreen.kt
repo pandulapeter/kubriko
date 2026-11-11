@@ -188,10 +188,11 @@ private fun WorkspaceContent(
                         folderActions = rememberFolderTreeActions(controller.creation, controller.commands, controller.selection, uiState),
                         dragState = sidebarDragState,
                         documentActions = rememberDocumentActions(controller.creation, controller.commands, controller.selection, uiState),
-                        resourceActions = rememberResourceActions(controller.commands, uiState),
+                        resourceActions = rememberResourceActions(controller.commands),
                         selectedDocument = (selection as? WorkspaceSelection.Document)?.path,
                         layout = controller.layout.collectAsState().value,
                         gameModule = controller.gameModule.modules.collectAsState().value?.chosen?.let(::moduleFolderOf),
+                        spriteFolders = controller.commands.context.spriteFolders.state.collectAsState().value,
                         flashedName = shownAiStep?.step?.sidebarName(),
                         flashKey = shownAiStep?.flashKey,
                     )

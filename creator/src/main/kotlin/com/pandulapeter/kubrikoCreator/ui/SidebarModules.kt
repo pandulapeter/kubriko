@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
+import com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore
 import com.pandulapeter.kubrikoCreator.workspace.ProjectLayout
 
 /**
@@ -26,7 +27,7 @@ import com.pandulapeter.kubrikoCreator.workspace.ProjectLayout
  * Every module [layout] knows is one, and so is every module with files. Types go to the module of their code, Scenes to
  * every module that has a file of their name (one not scanned yet to [layout]'s Scene module, where it was made), and the
  * Scene folders [folderGroups] holds to that module, since they are those of its Scenes folder, as are the audio folders
- * [layout] knows, which are those of its `files` folders. The screenplay's pages,
+ * [layout] knows, which are those of its `files` folders, and the [spriteFolders]. The screenplay's pages,
  * which are the whole project's, go to the module holding the game, in a project that isn't opted in only once it has some. New Scenes are made only
  * there, and only when it is the game's: Kubriko Creator's code loads them from it, or it uses Kubriko. In a project
  * that isn't opted in, the place the templates keep Scenes in may be a module nothing loads them from. A module that uses
@@ -40,6 +41,7 @@ internal fun sidebarModules(
     folderGroups: Map<FolderGroup, FolderTreeGroupState>,
     layout: ProjectLayout,
     gameModule: String? = null,
+    spriteFolders: SpriteFolderStore.State = SpriteFolderStore.State(),
 ): List<SidebarModule> {
     val typeModule = layout.typeModule ?: layout.sceneModule
     val home = if (folderGroups.keys.any { it.kind != null }) typeModule else gameModule ?: layout.sceneModule
@@ -77,7 +79,7 @@ internal fun sidebarModules(
             depth = generateSequence(parents[path]) { parents[it] }.count(),
             folderGroups = groups,
             resources = moduleResources,
-            audioTrees = audioTreesOf(moduleResources, if (path == layout.sceneModule) layout.audioFolders else emptySet()),
+            resourceTrees = if (path == layout.sceneModule) resourceTreesOf(moduleResources, layout.audioFolders, spriteFolders) else resourceTreesOf(moduleResources, emptySet()),
             resourceGroups = if (usesKubriko) ResourceGroup.entries - ResourceGroup.SCENES - ResourceGroup.DOCUMENTS else shownResourceGroups(moduleResources).filter { it in moduleResources },
             documents = documents[path].orEmpty(),
             holdsGame = path == home || home.startsWith("$path/"),

@@ -37,6 +37,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventTimer
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetParent
 import com.pandulapeter.kubrikoCreator.commands.folders.CreateFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.DeleteFolder
+import com.pandulapeter.kubrikoCreator.commands.folders.MoveSpriteToFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.MoveToFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.RenameFolder
 import com.pandulapeter.kubrikoCreator.commands.game.ListPlayTargets
@@ -169,6 +170,7 @@ import kubriko.creator.generated.resources.command_move_block
 import kubriko.creator.generated.resources.command_move_document
 import kubriko.creator.generated.resources.command_move_event
 import kubriko.creator.generated.resources.command_move_page
+import kubriko.creator.generated.resources.command_move_sprite_to_folder
 import kubriko.creator.generated.resources.command_move_to_folder
 import kubriko.creator.generated.resources.command_place_actor
 import kubriko.creator.generated.resources.command_place_actors
@@ -269,6 +271,7 @@ private val commandTitles = mapOf(
     CreateFolder.name to Res.string.command_create_folder,
     DeleteFolder.name to Res.string.command_delete_folder,
     MoveToFolder.name to Res.string.command_move_to_folder,
+    MoveSpriteToFolder.name to Res.string.command_move_sprite_to_folder,
     RenameFolder.name to Res.string.command_rename_folder,
     PressKeys.name to Res.string.command_press_keys,
     ListPlayTargets.name to Res.string.command_list_play_targets,

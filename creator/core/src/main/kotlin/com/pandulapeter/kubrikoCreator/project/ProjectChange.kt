@@ -20,6 +20,11 @@ public enum class ProjectChange {
     BLOCK_TYPE_DEFINITIONS,
 
     /**
+     * Files in `.kubriko/sprites`, the sprites' folders.
+     */
+    SPRITE_FOLDERS,
+
+    /**
      * `.kubriko/project.json`.
      */
     SETTINGS,

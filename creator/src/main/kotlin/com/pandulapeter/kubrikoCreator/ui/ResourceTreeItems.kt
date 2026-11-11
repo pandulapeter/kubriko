@@ -26,15 +26,15 @@ import kubriko.creator.generated.resources.ic_edit
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The sounds or music of [module] ([group]) as a tree of their folders ([SidebarModule.audioTrees]), [indent] levels in,
- * after the field naming a new folder at the group's top while one is. While [isChangeable] (the module new files go
- * to), its folders offer a new folder, Rename, and Delete, and its files Rename and Delete, and a file dragged onto a
- * folder, or onto any row, moves into that row's folder, as the groups with folders do; another module's are only
- * shown.
+ * The sprites, sounds, or music of [module] ([group]) as a tree of their folders ([SidebarModule.resourceTrees]),
+ * [indent] levels in, after the field naming a new folder at the group's top while one is. While [isChangeable] (the
+ * module new files go to), its folders offer a new folder, Rename, and Delete, and its files Rename and Delete, and a
+ * file dragged onto a folder, or onto any row, moves into that row's folder, as the groups with folders do; another
+ * module's are only shown, and so are the images the game doesn't take for sprites, with the folder they are in.
  *
  * @param rows The rows of every tree ([SidebarRows]), worked out outside the list's builder.
  */
-internal fun LazyListScope.audioTreeItems(
+internal fun LazyListScope.resourceTreeItems(
     module: SidebarModule,
     group: ResourceGroup,
     indent: Int,
@@ -46,8 +46,8 @@ internal fun LazyListScope.audioTreeItems(
     naming: SidebarNaming?,
     onNamingChange: (SidebarNaming?) -> Unit,
 ) {
-    val folderGroup = group.audioFolderGroup ?: return
-    val state = module.audioTrees[group] ?: return
+    val folderGroup = group.folderGroup ?: return
+    val state = module.resourceTrees[group] ?: return
     val groupKey = SidebarKeys.resourceGroup(module.path, group)
     if (isChangeable && naming == SidebarNaming.NewFolder(folderGroup, state.root)) {
         item(key = "$groupKey-new-folder") {
@@ -61,7 +61,7 @@ internal fun LazyListScope.audioTreeItems(
             )
         }
     }
-    val groupRows = rows.audioOf(module, group, tree) ?: return
+    val groupRows = rows.resourceTreeOf(module, group, tree) ?: return
     items(
         groupRows.rows,
         key = { row ->
@@ -86,7 +86,7 @@ internal fun LazyListScope.audioTreeItems(
                 naming = naming,
                 onNamingChange = onNamingChange,
             )
-            is FolderTreeRow.Item -> AudioTreeItem(
+            is FolderTreeRow.Item -> ResourceTreeItem(
                 modifier = sidebarItemMotion(),
                 module = module.path,
                 group = folderGroup,
@@ -104,11 +104,12 @@ internal fun LazyListScope.audioTreeItems(
 }
 
 /**
- * A sound or music file of [group]'s tree in [module], by its path from `composeResources`, in [folder], [indent] levels
- * further in, or the field renaming it while [isRenaming].
+ * A file of [group]'s tree in [module], by its path from `composeResources` (or for an image the game doesn't take for a
+ * sprite, from the project's root, which is only shown), in [folder], [indent] levels further in, or the field renaming
+ * it while [isRenaming].
  */
 @Composable
-private fun AudioTreeItem(
+private fun ResourceTreeItem(
     module: String,
     group: FolderGroup,
     row: FolderTreeRow.Item,
@@ -120,7 +121,7 @@ private fun AudioTreeItem(
     dragState: SidebarDragState,
     onNamingChange: (SidebarNaming?) -> Unit,
     modifier: Modifier = Modifier,
-) = if (isChangeable && isRenaming) {
+) = if (isChangeable && ResourceKind.of(row.name) != null && isRenaming) {
     SidebarNameField(
         modifier = modifier,
         group = group,
@@ -132,7 +133,7 @@ private fun AudioTreeItem(
     )
 } else {
     SidebarItem(
-        modifier = if (isChangeable) {
+        modifier = if (isChangeable && ResourceKind.of(row.name) != null) {
             modifier
                 .itemDropTarget(dragState, SidebarDragState.FolderKey(group, folder, module), id = Triple(module, group, row.name))
                 .sidebarDragSource(dragState, SidebarDragState.Dragged(row.name, group, folder, module))
@@ -142,9 +143,10 @@ private fun AudioTreeItem(
         icon = group.icon,
         accent = Accent.CODE,
         text = FolderPaths.nameOf(row.name),
+        detail = if (ResourceKind.of(row.name) == null) FolderPaths.nameOf(FolderPaths.parentOf(row.name)) else null,
         depth = row.depth + indent,
         onClick = null,
-        actions = if (isChangeable) {
+        actions = if (isChangeable && ResourceKind.of(row.name) != null) {
             listOf(
                 ContextAction(stringResource(Res.string.action_rename), Res.drawable.ic_edit) { onNamingChange(SidebarNaming.RenamedItem(group, row.name)) },
                 ContextAction(stringResource(group.deleteItemLabel), Res.drawable.ic_delete, isDestructive = true) { actions.onDeleteItem(group, row.name) },

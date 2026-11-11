@@ -59,7 +59,7 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * The header of a group of [module]'s files that aren't types or Scenes, then, while it is open in [tree], its files: the
- * Kotlin files, sounds, and music as trees ([audioTreeItems]), sprites by name. A group with none is only its header,
+ * Kotlin files, sounds, and music as trees ([resourceTreeItems]), sprites by name. A group with none is only its header,
  * faded, which says where such files go without a line of its own for each. In the module new resources go to (the one
  * making Scenes), the sprites', sounds', and music's header offers adding and pasting more (and the sounds' and music's
  * a new folder, and taking a file dropped on it out of its folder), and each of their files Rename (typed in place) and
@@ -75,7 +75,7 @@ internal fun LazyListScope.resourceGroupSection(
     tree: SidebarTree,
     rows: SidebarRows,
     actions: ResourceActions = ResourceActions(),
-    folderActions: FolderTreeActions? = null,
+    folderActions: FolderTreeActions,
     dragState: SidebarDragState = SidebarDragState(),
     naming: SidebarNaming? = null,
     onNamingChange: (SidebarNaming?) -> Unit = {},
@@ -84,13 +84,13 @@ internal fun LazyListScope.resourceGroupSection(
     val isExpanded = tree.isExpanded(groupKey)
     val groupResources = module.resources[group].orEmpty()
     val kind = group.resourceKind?.takeIf { FolderGroup.SCENES in module.creatingGroups }
-    val audioTree = module.audioTrees[group]?.takeIf { folderActions != null }
-    val folderGroup = group.audioFolderGroup?.takeIf { audioTree != null }
-    val isEmpty = groupResources.isEmpty() && audioTree?.hasShownFolders != true
+    val resourceTree = module.resourceTrees[group]
+    val folderGroup = group.folderGroup?.takeIf { resourceTree != null }
+    val isEmpty = groupResources.isEmpty() && resourceTree?.hasShownFolders != true
     item(key = groupKey) {
         ResourceGroupHeader(
             modifier = sidebarItemMotion().then(
-                if (kind != null && folderGroup != null) Modifier.folderDropTarget(dragState, SidebarDragState.FolderKey(folderGroup, audioTree?.root.orEmpty(), module.path)) else Modifier,
+                if (kind != null && folderGroup != null) Modifier.folderDropTarget(dragState, SidebarDragState.FolderKey(folderGroup, resourceTree?.root.orEmpty(), module.path)) else Modifier,
             ),
             group = group,
             indent = module.depth,
@@ -103,7 +103,7 @@ internal fun LazyListScope.resourceGroupSection(
                     folderGroup?.let { folders ->
                         ContextAction(stringResource(Res.string.action_new_folder), Res.drawable.ic_create_new_folder) {
                             tree.expand(groupKey)
-                            onNamingChange(SidebarNaming.NewFolder(folders, audioTree?.root.orEmpty()))
+                            onNamingChange(SidebarNaming.NewFolder(folders, resourceTree?.root.orEmpty()))
                         }
                     },
                 )
@@ -112,7 +112,7 @@ internal fun LazyListScope.resourceGroupSection(
     }
     when {
         !isExpanded || (isEmpty && naming !is SidebarNaming.NewFolder) -> Unit
-        audioTree != null && folderActions != null -> audioTreeItems(
+        resourceTree != null -> resourceTreeItems(
             module = module,
             group = group,
             indent = module.depth,
@@ -130,7 +130,7 @@ internal fun LazyListScope.resourceGroupSection(
             indent = module.depth,
             tree = tree,
         )
-        else -> resourceItems(group, groupResources, indent = module.depth, actions = actions.takeIf { kind != null }, naming = naming, onNamingChange = onNamingChange)
+        else -> Unit
     }
 }
 
@@ -210,56 +210,6 @@ internal val ResourceKind.addLabel
         ResourceKind.SOUND -> Res.string.action_add_sound
         ResourceKind.MUSIC -> Res.string.action_add_music
     }
-
-/**
- * The files of an asset [group], by name, [indent] levels in, each a sprite, sound, or music file offering Rename and
- * Delete through [actions] (none for a module whose files the commands don't change), or the field renaming it.
- */
-private fun LazyListScope.resourceItems(
-    group: ResourceGroup,
-    groupResources: List<ProjectResource>,
-    indent: Int,
-    actions: ResourceActions?,
-    naming: SidebarNaming?,
-    onNamingChange: (SidebarNaming?) -> Unit,
-) {
-    val duplicateNames = groupResources.groupingBy { it.name }.eachCount().filterValues { it > 1 }.keys
-    items(groupResources, key = { it.relativePath }) { resource ->
-        val path = resourcePathOf(resource)
-        if (actions != null && path != null && naming == SidebarNaming.RenamedResource(resource.relativePath)) {
-            Box(sidebarItemMotion()) {
-                NewNameField(
-                    placeholder = Res.string.new_resource_hint,
-                    initialName = ResourceKind.nameOf(path),
-                    indent = SIDEBAR_ROW_START + SIDEBAR_INDENT * indent,
-                    confirmLabel = Res.string.action_rename,
-                    icon = group.icon,
-                    iconTint = Accent.CODE.color,
-                    onCreate = { name -> actions.onRename(path, name).also { if (it == null) onNamingChange(null) }?.toFieldError() },
-                    onCancel = { onNamingChange(null) },
-                )
-            }
-        } else {
-            SidebarItem(
-                modifier = sidebarItemMotion(),
-                icon = group.icon,
-                accent = Accent.CODE,
-                text = resource.name,
-                detail = if (resource.name in duplicateNames) ResourceScanner.sourceSetOf(resource) else null,
-                depth = indent,
-                onClick = null,
-                actions = if (actions == null || path == null) {
-                    emptyList()
-                } else {
-                    listOf(
-                        ContextAction(stringResource(Res.string.action_rename), Res.drawable.ic_edit) { onNamingChange(SidebarNaming.RenamedResource(resource.relativePath)) },
-                        ContextAction(stringResource(Res.string.action_delete_resource), Res.drawable.ic_delete, isDestructive = true) { actions.onDelete(path) },
-                    )
-                },
-            )
-        }
-    }
-}
 
 private val ResourceGroup.icon
     get() = when (this) {

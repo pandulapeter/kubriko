@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
+import com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.MenuIconButton
 import com.pandulapeter.kubrikoCreator.workspace.ProjectLayout
@@ -71,6 +72,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param resourceActions What the sprites, sounds, and music do ([resourceGroupSection]); files of theirs dropped onto
  *   the sidebar are added.
  * @param selectedDocument The path of the document shown in the center, if any.
+ * @param spriteFolders The sprites' folders, which are Kubriko Creator's own ([SpriteFolderStore]).
  */
 @Composable
 internal fun ProjectSidebar(
@@ -84,6 +86,7 @@ internal fun ProjectSidebar(
     selectedDocument: String? = null,
     layout: ProjectLayout = ProjectLayout(),
     gameModule: String? = null,
+    spriteFolders: SpriteFolderStore.State = SpriteFolderStore.State(),
     flashedName: String? = null,
     flashKey: Any? = null,
 ) = Column(
@@ -93,7 +96,7 @@ internal fun ProjectSidebar(
     var naming by remember { mutableStateOf<SidebarNaming?>(null) }
     val expansion = remember { SidebarExpansion() }
     val isFiltering = query.isNotBlank()
-    val modules = remember(resources, folderGroups, layout, gameModule) { sidebarModules(resources, folderGroups, layout, gameModule) }
+    val modules = remember(resources, folderGroups, layout, gameModule, spriteFolders) { sidebarModules(resources, folderGroups, layout, gameModule, spriteFolders) }
     val isGrouped = modules.size > 1
     val structure = remember(modules) { modules.map { it.withoutSelection() } }
     val outline = remember(structure) { SidebarOutline(structure.flatMap { it.outlineNodes(isGrouped) }) }

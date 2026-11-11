@@ -25,6 +25,7 @@ import androidx.compose.ui.test.rightClick
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
+import com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
@@ -34,7 +35,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 @OptIn(ExperimentalTestApi::class)
-class SidebarAudioFoldersTest {
+class SidebarResourceFoldersTest {
     private fun sound(path: String) = "src/commonMain/composeResources/$path".let { ProjectResource(ResourceGroup.SOUNDS, File(it), it) }
 
     @Test
@@ -77,5 +78,30 @@ class SidebarAudioFoldersTest {
         onNodeWithText("empty").performMouseInput { rightClick() }
         onNodeWithText("Delete folder").performClick()
         assertEquals(listOf(Triple(FolderGroup.SOUNDS, "sounds/empty", true)), deleted)
+    }
+
+    @Test
+    fun spritesAreShownInTheirOwnFolders() = uiTest(width = 300, height = 600) {
+        val created = mutableListOf<Pair<FolderGroup, String>>()
+        val sprite = { path: String -> "src/commonMain/composeResources/$path".let { ProjectResource(ResourceGroup.SPRITES, File(it), it) } }
+        showing {
+            ProjectSidebar(
+                modifier = Modifier.fillMaxSize(),
+                resources = mapOf(ResourceGroup.SPRITES to listOf(sprite("drawable/bat.png"), sprite("drawable/ball.png"))),
+                folderGroups = folderTreeGroups(types = null, typeFolders = emptyMap(), selectedTypeName = null, sceneNames = emptyList(), sceneFolders = emptySet(), openSceneName = null),
+                folderActions = FolderTreeActions({ _, _ -> }, {}, { _, _ -> null }, { group, path -> null.also { created += group to path } }, { _, _, _ -> null }, { _, _, _ -> }, { _, _, _ -> null }, { _, _ -> }),
+                dragState = SidebarDragState(),
+                documentActions = DocumentActions(onOpen = {}, onCreate = { _, _ -> null }, onRename = { _, _ -> null }, onDelete = {}, onAddToScreenplay = {}),
+                spriteFolders = SpriteFolderStore.State(setOf("enemies", "empty"), mapOf("bat" to "enemies")),
+            )
+        }
+        saveSnapshot("sidebar-sprite-folders")
+        onNodeWithText("enemies").assertExists()
+        onNodeWithText("empty").assertExists()
+        onNodeWithText("Sprites").performMouseInput { rightClick() }
+        onNodeWithText("New folder").performClick()
+        onNode(hasSetTextAction() and isFocused()).performTextInput("items")
+        onNode(hasSetTextAction() and isFocused()).performKeyInput { pressKey(Key.Enter) }
+        assertEquals(listOf(FolderGroup.SPRITES to "items"), created)
     }
 }

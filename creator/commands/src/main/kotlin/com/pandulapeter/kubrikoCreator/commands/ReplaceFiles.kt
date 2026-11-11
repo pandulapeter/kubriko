@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.foundation.writeBytesAtomically
+import com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import java.io.File
@@ -43,6 +44,7 @@ internal object ReplaceFiles : WriteCommand<ReplaceFiles.Input> {
             previous.forEach { (path, bytes) -> runCatching { context.write(File(context.project.rootDirectory, path), bytes) }.exceptionOrNull()?.let(exception::addSuppressed) }
             throw exception
         }
+        if (input.contents.keys.any { it.startsWith(SpriteFolderStore.DIRECTORY + "/") }) context.spriteFolders.refresh()
         Applied(inverse = Invocation(ReplaceFiles, Input(previous)))
     }
 

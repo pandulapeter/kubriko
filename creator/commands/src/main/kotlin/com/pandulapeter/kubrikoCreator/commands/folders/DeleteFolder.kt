@@ -38,7 +38,7 @@ import kotlinx.serialization.json.jsonPrimitive
 @OptIn(EditorMutation::class)
 public object DeleteFolder : DeletingCommand<DeleteFolder.Input> {
     override val name: String = "delete_folder"
-    override val description: String = "Deletes a folder of Actor types, Manager types, Scenes, pages, sounds, or music with everything in it, its folders too, each thing as its own " +
+    override val description: String = "Deletes a folder of Actor types, Manager types, Scenes, pages, sprites, sounds, or music with everything in it, its folders too, each thing as its own " +
         "delete tool would, cleaning up what refers to it, all as one step. check_change lists what it deletes and changes."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
@@ -49,7 +49,7 @@ public object DeleteFolder : DeletingCommand<DeleteFolder.Input> {
     override fun validate(context: CommandContext, input: Input): Rejection? = when {
         input.keepsContents -> when {
             input.group.kind != null && context.blockTypes == null -> Rejection(CommandProblem.NO_ACTOR_TYPES)
-            input.group.resourceKind == null && context.itemsOf(input.group).any { (_, folder) -> FolderPaths.isWithin(folder, input.path) } ->
+            !input.group.isAudio && context.itemsOf(input.group).any { (_, folder) -> FolderPaths.isWithin(folder, input.path) } ->
                 Rejection(CommandProblem.FOLDER_NOT_EMPTY, input.path)
             else -> null
         }
@@ -71,7 +71,7 @@ public object DeleteFolder : DeletingCommand<DeleteFolder.Input> {
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         if (input.keepsContents) {
-            if (input.group.resourceKind != null && withContext(context.ioDispatcher) { context.holdsAudioOnDisk(input.path) }) {
+            if (input.group.isAudio && withContext(context.ioDispatcher) { context.holdsAudioOnDisk(input.path) }) {
                 return Applied.failed(Rejection(CommandProblem.FOLDER_NOT_EMPTY, input.path))
             }
             context.deleteFolder(input.group, input.path)

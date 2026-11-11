@@ -32,17 +32,21 @@ internal fun CommandContext.foldersOf(group: FolderGroup): Set<String> = when (g
     FolderGroup.SCENES -> (scenes.folders() + scenes.names().map(FolderPaths::parentOf).filter { it.isNotEmpty() }).withParents()
     FolderGroup.PAGES -> (screenplay.folders() + screenplay.names().map(PageNaming::folderOf).filter { it.isNotEmpty() }).withParents()
     FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> blockTypes?.folders?.value?.get(checkNotNull(group.kind)).orEmpty()
+    FolderGroup.SPRITES -> spriteFolders.state.value.folders
     FolderGroup.SOUNDS, FolderGroup.MUSIC -> AudioFolders.ofKind(checkNotNull(group.resourceKind), audioFolders.folders(), knownAudioFiles())
 }
 
 /**
- * The names of the types, Scenes, or pages of [group] and the folders they are in; for sounds and music, their paths
- * from `composeResources` and their folders from `composeResources/files`.
+ * The names of the types, Scenes, or pages of [group] and the folders they are in; for sprites, sounds, and music, their
+ * paths from `composeResources` and their folders (a sound's or music's from `composeResources/files`).
  */
 internal fun CommandContext.itemsOf(group: FolderGroup): List<Pair<String, String>> = when (group) {
     FolderGroup.SCENES -> scenes.names().map { it to FolderPaths.parentOf(it) }
     FolderGroup.PAGES -> screenplay.names().map { it to PageNaming.folderOf(it) }
     FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> blockTypes?.types?.value.orEmpty().filter { it.kind == group.kind }.map { it.name to it.folder }
+    FolderGroup.SPRITES -> spriteFolders.state.value.folderOf.let { folderOf ->
+        knownResourcePaths().orEmpty().filter { ResourceKind.of(it) == ResourceKind.SPRITE }.map { it to folderOf[ResourceKind.nameOf(it)].orEmpty() }
+    }
     FolderGroup.SOUNDS, FolderGroup.MUSIC -> knownResourcePaths().orEmpty().filter { ResourceKind.of(it) == group.resourceKind }.map { it to ResourceKind.audioFolderOf(it) }
 }
 
@@ -76,7 +80,7 @@ internal fun CommandContext.validateNewFolder(group: FolderGroup, path: String):
 private fun CommandContext.validateFreeFolder(group: FolderGroup, path: String): Rejection? = when {
     group == FolderGroup.SCENES && SceneNaming.reservedFolderOf(path, isFolder = true) != null ->
         Rejection(CommandProblem.SCENE_FOLDER_RESERVED, SceneNaming.reservedFolderOf(path, isFolder = true).orEmpty())
-    group.resourceKind != null && ResourceKind.isScenesFolder(path) -> Rejection(CommandProblem.AUDIO_FOLDER_RESERVED, path)
+    group.isAudio && ResourceKind.isScenesFolder(path) -> Rejection(CommandProblem.AUDIO_FOLDER_RESERVED, path)
     existingFoldersOf(group).any { it.equals(path, ignoreCase = true) } -> Rejection(CommandProblem.FOLDER_EXISTS, path)
     else -> validateFolder(group, FolderPaths.parentOf(path))
 }
@@ -85,7 +89,7 @@ private fun CommandContext.validateFreeFolder(group: FolderGroup, path: String):
  * The folders a new folder of [group] can't be called like: its own, and for sounds and music, every real folder of
  * `files`, since one the group doesn't show (`music` among the sounds) is still there on disk.
  */
-private fun CommandContext.existingFoldersOf(group: FolderGroup): Set<String> = if (group.resourceKind != null) audioFolders.folders() else foldersOf(group)
+private fun CommandContext.existingFoldersOf(group: FolderGroup): Set<String> = if (group.isAudio) audioFolders.folders() else foldersOf(group)
 
 /**
  * Why [path] can't name a folder of [group]: a Scene's folders are part of its name, and so are a page's, and an audio
@@ -94,6 +98,6 @@ private fun CommandContext.existingFoldersOf(group: FolderGroup): Set<String> = 
 private fun folderNameRejection(group: FolderGroup, path: String): Rejection? = when (group) {
     FolderGroup.SCENES -> (SceneNaming.validate(path) ?: FolderPaths.validatePath(path))?.let(::Rejection)
     FolderGroup.PAGES -> validatePageName(path)
-    FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> FolderPaths.validatePath(path)?.let(::Rejection)
+    FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES, FolderGroup.SPRITES -> FolderPaths.validatePath(path)?.let(::Rejection)
     FolderGroup.SOUNDS, FolderGroup.MUSIC -> ResourceKind.validateAudioFolder(path)?.let(::Rejection)
 }

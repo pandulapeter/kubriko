@@ -56,6 +56,9 @@ internal fun CommandContext.contentDeletesOf(folder: RelationSubject.Folder): Li
         FolderGroup.MANAGER_TYPES -> blockTypes?.managerTypes?.value.orEmpty()
             .filter { isIn(it.folder) }
             .map { Invocation(DeleteManagerType, DeleteManagerType.Input(it.name)) }
+        FolderGroup.SPRITES -> itemsOf(FolderGroup.SPRITES)
+            .filter { (_, itemFolder) -> isIn(itemFolder) }
+            .map { (path, _) -> Invocation(DeleteResource, DeleteResource.Input(path)) }
         FolderGroup.SOUNDS, FolderGroup.MUSIC -> knownAudioFilesWithin(folder.path)
             .map { Invocation(DeleteResource, DeleteResource.Input(it)) }
     }

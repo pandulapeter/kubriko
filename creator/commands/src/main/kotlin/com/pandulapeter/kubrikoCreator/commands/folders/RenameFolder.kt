@@ -36,7 +36,7 @@ import kotlinx.serialization.Transient
 @OptIn(EditorMutation::class)
 public object RenameFolder : WriteCommand<RenameFolder.Input> {
     override val name: String = "rename_folder"
-    override val description: String = "Renames a folder of Actor types, Manager types, Scenes, pages, sounds, or music, keeping everything in it where it is in it. A Scene's " +
+    override val description: String = "Renames a folder of Actor types, Manager types, Scenes, pages, sprites, sounds, or music, keeping everything in it where it is in it. A Scene's " +
         "or audio file's name is its path, so it changes too, and what uses it follows (but hand-written Kotlin), as do the screenplay's mentions of everything in it."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
@@ -62,7 +62,7 @@ public object RenameFolder : WriteCommand<RenameFolder.Input> {
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val newPath = renamed(input)
         val scenesBefore = if (input.group == FolderGroup.SCENES) sceneFilesWithin(context, input.path) else emptyMap()
-        val (audioMoves, audioRenames) = if (input.group.resourceKind != null) {
+        val (audioMoves, audioRenames) = if (input.group.isAudio) {
             withContext(context.ioDispatcher) {
                 context.audioFolderMoves(input.path, newPath) to audioFilesMovedWith(context.resourceFilesOnDisk().map { it.path }.distinct(), input.path, newPath)
             }
@@ -71,7 +71,7 @@ public object RenameFolder : WriteCommand<RenameFolder.Input> {
         }
         context.moveFolder(input.group, input.path, newPath)?.let { rejection -> return Applied(inverse = null, failure = rejection) }
         val renamingBack = Invocation(RenameFolder, Input(input.group, newPath, FolderPaths.nameOf(input.path)))
-        val inverse = if (input.group.resourceKind == null) {
+        val inverse = if (!input.group.isAudio) {
             renamingBack
         } else {
             // Restoring, since the resource scan that knows the moved files may come after the undo.
@@ -79,17 +79,16 @@ public object RenameFolder : WriteCommand<RenameFolder.Input> {
             val restoring = listOf(movingBack) + if (input.movesOnly) emptyList() else context.followAudioFiles(audioRenames)
             restoring.singleOrNull() ?: Invocation(CompositeCommand, CompositeCommand.Input(restoring))
         }
-        val moves = when (val kind = input.group.kind) {
-            null -> if (input.group.resourceKind != null) {
-                audioMoves
-            } else if (input.group == FolderGroup.PAGES) {
-                listOf(PathMove("${PageNaming.FOLDER}/${input.path}", "${PageNaming.FOLDER}/$newPath"))
-            } else {
-                withContext(context.ioDispatcher) {
-                    scenesBefore.map { (scene, file) -> PathMove(file, context.projectPathOf(context.scenes.fileOf(newPath + scene.removePrefix(input.path)))) }
-                }
+        val moves = when (input.group) {
+            FolderGroup.PAGES -> listOf(PathMove("${PageNaming.FOLDER}/${input.path}", "${PageNaming.FOLDER}/$newPath"))
+            FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> checkNotNull(input.group.kind).let { kind ->
+                listOf(PathMove(DefinitionPaths.folderPath(kind, input.path), DefinitionPaths.folderPath(kind, newPath)))
             }
-            else -> listOf(PathMove(DefinitionPaths.folderPath(kind, input.path), DefinitionPaths.folderPath(kind, newPath)))
+            FolderGroup.SCENES -> withContext(context.ioDispatcher) {
+                scenesBefore.map { (scene, file) -> PathMove(file, context.projectPathOf(context.scenes.fileOf(newPath + scene.removePrefix(input.path)))) }
+            }
+            FolderGroup.SPRITES -> emptyList()
+            FolderGroup.SOUNDS, FolderGroup.MUSIC -> audioMoves
         }
         return context.withMentionsFollowed(moves, Applied(inverse = inverse))
     }
