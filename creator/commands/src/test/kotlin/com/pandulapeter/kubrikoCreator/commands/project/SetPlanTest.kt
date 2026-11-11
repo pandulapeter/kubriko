@@ -44,9 +44,9 @@ class SetPlanTest {
     }
 
     @Test
-    fun `an outside client's plan is accepted and kept for nobody`() = runTest {
+    fun `an outside client's plan is refused, since nobody would see it`() = runTest {
         val context = commandContext()
-        assertIs<CommandOutcome.Success>(SetPlan.run(context, SetPlan.Input(listOf(SetPlan.Step("Add lives")))))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.PLAN_OUTSIDE_PANEL)), SetPlan.run(context, SetPlan.Input(listOf(SetPlan.Step("Add lives")))))
         assertNull(context.plans[""])
     }
 

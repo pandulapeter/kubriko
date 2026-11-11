@@ -601,6 +601,7 @@
     <string name="error_command_page_missing_similar">There's no page called %1$s. Close matches: %2$s.</string>
     <string name="error_command_page_not_moved">Kubriko Creator couldn't move the page %1$s, so nothing changed. Another program may have its file open.</string>
     <string name="error_command_plan_invalid">Give a plan of one to %1$s steps, each one line of at most %2$s characters.</string>
+    <string name="error_command_plan_outside_panel">Only Kubriko Creator's own assistant panel shows a plan, so nobody would see this one. Write the plan in your answer instead.</string>
     <string name="error_command_summary_invalid">The summary can't be empty or longer than %1$s characters.</string>
     <string name="error_command_question_invalid">Ask a question with two to four different answers, each at most %1$s characters long.</string>
     <string name="error_command_screenplay_settings_unreadable">Kubriko Creator can't read %1$s right now, so it left it alone. Try again once no other program holds it.</string>

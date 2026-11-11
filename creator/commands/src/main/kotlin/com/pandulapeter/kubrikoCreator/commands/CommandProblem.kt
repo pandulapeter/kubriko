@@ -60,6 +60,7 @@ public enum class CommandProblem(override val english: String) : DomainText {
     PAGE_IMAGE_NOT_VIEWABLE("Kubriko Creator can't show %1\$s: it shows PNG, JPEG, GIF, and BMP images, not WebP ones."),
     SCREENPLAY_STYLE("This page doesn't keep the screenplay's writing rules, so change it and try again: %1\$s"),
     SCREENPLAY_SETTINGS_UNREADABLE("Kubriko Creator can't read %1\$s right now, so it left it alone. Try again once no other program holds it."),
+    PLAN_OUTSIDE_PANEL("Only Kubriko Creator's own assistant panel shows a plan, so nobody would see this one. Write the plan in your answer instead."),
     PLAN_INVALID("Give a plan of one to %1\$s steps, each one line of at most %2\$s characters."),
     SUMMARY_INVALID("The summary can't be empty or longer than %1\$s characters."),
     QUESTION_INVALID("Ask a question with two to four different answers, each at most %1\$s characters long."),

@@ -31,7 +31,7 @@ import kotlinx.serialization.json.JsonObject
 public object SetPlan : ActionCommand<SetPlan.Input> {
     override val name: String = "set_plan"
     override val description: String = "Shows your plan as a checklist the user approves; call it again with each step's status as you work. " +
-        "Each call replaces the plan; outside Kubriko Creator's own panel it does nothing."
+        "Each call replaces the plan; only Kubriko Creator's own panel takes one."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
     override val leavesEverythingAsItWas: Boolean = true
 
@@ -42,7 +42,8 @@ public object SetPlan : ActionCommand<SetPlan.Input> {
         if (steps.size !in 1..MAXIMUM_STEPS || steps.any { it.text.isEmpty() || it.text.length > MAXIMUM_STEP_LENGTH || '\n' in it.text }) {
             return CommandOutcome.Rejected(Rejection(CommandProblem.PLAN_INVALID, MAXIMUM_STEPS.toString(), MAXIMUM_STEP_LENGTH.toString()))
         }
-        origin?.let { context.plans.set(it.conversationId, steps) }
+        if (origin == null) return CommandOutcome.Rejected(Rejection(CommandProblem.PLAN_OUTSIDE_PANEL))
+        context.plans.set(origin.conversationId, steps)
         return CommandOutcome.Success(JsonObject(emptyMap()))
     }
 
