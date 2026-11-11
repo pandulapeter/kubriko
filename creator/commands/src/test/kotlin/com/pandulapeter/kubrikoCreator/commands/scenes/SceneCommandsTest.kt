@@ -28,6 +28,7 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneChange
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.jsonObject
@@ -93,6 +94,16 @@ class SceneCommandsTest {
         assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.SCENE_NAME_TAKEN)), executor.execute(Invocation(RenameScene, RenameScene.Input("main", "LEVEL"))))
         assertEquals("[{}]", handMade.readText())
         assertEquals(main, context.scenes.read("main"))
+    }
+
+    @Test
+    @OptIn(EditorMutation::class)
+    fun anActorDrawnAsASpriteWithAnOriginIsPlacedByIt() = runTest {
+        val context = commandContext(ball.copy(sprite = "drawable/ball.png"))
+        context.scenes.write("main", "[]")
+        context.spriteFolders.setSheet("ball", SpriteSheet(frameWidth = 10, frameHeight = 10, frameCount = 1, framesPerRow = 1, originX = 5, originY = 10))
+        PlaceActor.apply(context, PlaceActor.Input("main", "Ball", 5f, 6f, actorId = "ball"))
+        assertEquals(listOf(SceneActorEntry("Ball", SceneDocument.blockBuiltState(5f, 6f, 30f, 40f, pivot = 15f to 40f), "ball")), context.main())
     }
 
     @Test

@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateActorType
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
+import com.pandulapeter.kubrikoCreator.sprites.sheetOf
 
 /**
  * Why [placements] can't be placed in the Scene [scene].
@@ -45,7 +46,8 @@ internal suspend fun CommandContext.placeActors(scene: String, placements: List<
     val placed = placements.map { placement ->
         val definition = requireActorType(placement.actorType)
         val id = placement.actorId ?: SceneDocument.newId(ids).also(ids::add)
-        SceneActorEntry(placement.actorType, SceneDocument.blockBuiltState(placement.x, placement.y, definition.width, definition.height), id)
+        val pivot = spriteFolders.state.value.sheets.sheetOf(definition)?.pivotIn(definition.width, definition.height)
+        SceneActorEntry(placement.actorType, SceneDocument.blockBuiltState(placement.x, placement.y, definition.width, definition.height, pivot), id)
     }
     writeScene(scene, actors + placed)
     return placed

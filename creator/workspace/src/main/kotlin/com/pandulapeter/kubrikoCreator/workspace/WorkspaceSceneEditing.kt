@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.sceneRuntime.ActorTypeLook
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneClassesBuild
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneSources
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import kotlinx.coroutines.flow.StateFlow
 import java.io.File
 
@@ -41,12 +42,14 @@ internal class WorkspaceSceneClasses(
 }
 
 /**
- * What the open Scene is made of, read from the workspace's Scene store, resource scan, and block types.
+ * What the open Scene is made of, read from the workspace's Scene store, resource scan, block types, and [spriteSheets]
+ * (how the sprites are cut into frames, by their names).
  */
 internal class WorkspaceSceneSources(
     private val scenes: SceneStore,
     private val resources: StateFlow<Map<ResourceGroup, List<ProjectResource>>>,
     private val blockTypes: BlockTypesController?,
+    private val spriteSheets: () -> Map<String, SpriteSheet>,
 ) : SceneSources {
     override fun readScene(scene: ProjectResource) = scenes.actors(SceneStore.nameOf(scene.file)).orEmpty()
 
@@ -54,5 +57,5 @@ internal class WorkspaceSceneSources(
 
     override fun spriteFiles() = SpriteFiles.of(resources.value).filesByAccessor
 
-    override fun actorTypeLooks() = ActorTypeLook.of(blockTypes?.actorTypes?.value.orEmpty(), SpriteFiles.of(resources.value).files)
+    override fun actorTypeLooks() = ActorTypeLook.of(blockTypes?.actorTypes?.value.orEmpty(), SpriteFiles.of(resources.value).files, spriteSheets())
 }

@@ -37,6 +37,13 @@ class SpriteSheetTest {
     }
 
     @Test
+    fun theOriginIsScaledFromAFrameToTheActor() {
+        assertNull(sheet.pivotIn(32f, 16f))
+        assertEquals(8f to 16f, sheet.copy(originX = 4, originY = 8).pivotIn(32f, 16f))
+        assertEquals(16f to 0f, sheet.copy(originY = 0).pivotIn(32f, 16f))
+    }
+
+    @Test
     fun aStripIsGuessedAsSquareFramesInOneRow() {
         assertEquals(SpriteSheet(frameWidth = 16, frameHeight = 16, frameCount = 4, framesPerRow = 4), SpriteSheet.guessFor(64, 16))
         assertEquals(SpriteSheet(frameWidth = 16, frameHeight = 16, frameCount = 1, framesPerRow = 1), SpriteSheet.guessFor(16, 40))

@@ -24,10 +24,10 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.maskTypeOf
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.GENERATED_PACKAGE
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.appendLook
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.appendSavedState
-import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.sheetOf
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.eventCode
 import com.pandulapeter.kubrikoCreator.actors.codegen.EventFunctions.appendFunction
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
+import com.pandulapeter.kubrikoCreator.sprites.sheetOf
 
 /**
  * Turns an Actor type that has a parent or children into Kotlin that inherits as the Actor types do. The topmost Actor

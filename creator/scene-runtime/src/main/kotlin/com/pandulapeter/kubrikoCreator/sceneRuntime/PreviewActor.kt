@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.sceneRuntime
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.looks.EllipseLook
 import com.pandulapeter.kubriko.actor.looks.Look
@@ -56,10 +57,17 @@ internal class PreviewActor(
     val color = Color(ActorStateEdits.colorOf(state) ?: typeLook.color)
 
     /**
-     * The look the type's generated class has: its sprite, its pixels kept sharp, or its shape in the Actor's color.
+     * The look the type's generated class has: its sprite, its pixels kept sharp (the first frame of a sprite cut into
+     * frames, which only the game plays, and multiplied by the Actor's color if it is tinted), or its shape in the Actor's
+     * color.
      */
     override val look: Look = when {
-        typeLook.isSprite -> SpriteLook(texture = sprite, filterQuality = FilterQuality.None)
+        typeLook.isSprite -> SpriteLook(
+            texture = sprite,
+            srcSize = typeLook.sheet?.let { IntSize(it.frameWidth, it.frameHeight) } ?: IntSize.Zero,
+            tint = if (typeLook.tintsSprite) color else Color.White,
+            filterQuality = FilterQuality.None,
+        )
         typeLook.shape == ActorShape.CIRCLE -> EllipseLook(color)
         else -> RectangleLook(color)
     }

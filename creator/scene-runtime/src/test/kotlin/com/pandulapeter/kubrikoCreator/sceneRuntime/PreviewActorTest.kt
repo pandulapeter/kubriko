@@ -11,6 +11,8 @@ package com.pandulapeter.kubrikoCreator.sceneRuntime
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubriko.actor.looks.EllipseLook
 import com.pandulapeter.kubriko.actor.looks.RectangleLook
 import com.pandulapeter.kubriko.actor.looks.SpriteLook
@@ -21,6 +23,7 @@ import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.scenes.ActorStateEdits
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -66,6 +69,18 @@ class PreviewActorTest {
         assertEquals(FilterQuality.None, spriteLook.filterQuality)
         assertEquals(Color.White, spriteLook.tint)
         assertNull(assertIs<SpriteLook>(PreviewActor("{}", look.copy(isSprite = true)).look).texture, "nothing is drawn while the image is missing, as in the game")
+    }
+
+    @Test
+    fun aSpriteCutIntoFramesShowsItsFirstFrameTintedAsTheGameTintsIt() {
+        val sprite = ImageBitmap(32, 8)
+        val sheet = SpriteSheet(frameWidth = 8, frameHeight = 8, frameCount = 4, framesPerRow = 4)
+        val state = ActorStateEdits.withChanges(SceneDocument.blockBuiltState(0f, 0f, 40f, 30f), ActorStateEdits.Changes(color = 0xFF00FF00))!!
+        val spriteLook = assertIs<SpriteLook>(PreviewActor(state, look.copy(isSprite = true, sheet = sheet, tintsSprite = true), sprite).look)
+        assertEquals(IntOffset.Zero, spriteLook.srcOffset)
+        assertEquals(IntSize(8, 8), spriteLook.srcSize)
+        assertEquals(Color(0xFF00FF00), spriteLook.tint)
+        assertEquals(IntSize.Zero, assertIs<SpriteLook>(PreviewActor("{}", look.copy(isSprite = true), sprite).look).srcSize)
     }
 
     @Test

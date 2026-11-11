@@ -249,7 +249,7 @@ public class WorkspaceController(
     public val sceneEditing: SceneEditingController = SceneEditingController(
         runtime = sceneRuntime,
         classes = WorkspaceSceneClasses(tasks, incrementalCompilation, SessionInitScript.classpathFileOf(project.rootDirectory), blockTypes),
-        sources = WorkspaceSceneSources(scenes, resources, blockTypes),
+        sources = WorkspaceSceneSources(scenes, resources, blockTypes) { commands.context.spriteFolders.state.value.sheets },
         scope = scope,
         releaseScope = parentScope,
         ioDispatcher = ioDispatcher,
@@ -376,7 +376,7 @@ public class WorkspaceController(
         refreshProjectUpgrade()
         blockTypes?.let { types ->
             scope.launch {
-                combine(types.actorTypes, _resources) { _, _ -> }.collect { sceneEditing.onActorTypesChanged() }
+                combine(types.actorTypes, _resources, commands.context.spriteFolders.state) { _, _, _ -> }.collect { sceneEditing.onActorTypesChanged() }
             }
         }
     }

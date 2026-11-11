@@ -19,7 +19,6 @@ import com.pandulapeter.kubrikoCreator.actors.GeneratedNames
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
-import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.ANIMATION_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.ANIMATION_LOOPING_FIELD
@@ -32,6 +31,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.initial
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.stringLiteral
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.unitLiteral
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
+import com.pandulapeter.kubrikoCreator.sprites.sheetOf
 
 /**
  * Turns block-built Actor types into ordinary Kotlin: one class per type, plus a registry of all of them.
@@ -217,7 +217,7 @@ public object ActorTypeCodeGenerator {
         }
         appendLine("        val metadata = EditableMetadata.create<${definition.name}, State>(typeId = \"${definition.name}\") { position ->")
         val size = "SceneSize(${unitLiteral(definition.width)}, ${unitLiteral(definition.height)})"
-        val pivot = sheet?.let { pivotOf(definition, it) }?.let { (x, y) ->
+        val pivot = sheet?.pivotIn(definition.width, definition.height)?.let { (x, y) ->
             imports += "com.pandulapeter.kubriko.types.SceneOffset"
             ", initialPivot = SceneOffset(${unitLiteral(x)}, ${unitLiteral(y)})"
         }.orEmpty()
@@ -225,24 +225,6 @@ public object ActorTypeCodeGenerator {
         appendLine("        }")
         appendLine("    }")
     }
-
-    /**
-     * Where a newly placed Actor of [definition] rotates and scales around, in scene units from its top left: the
-     * [sheet]'s origin, scaled from a frame to the Actor's size, or null when the sheet has none, which is the middle.
-     */
-    private fun pivotOf(definition: ActorTypeDefinition, sheet: SpriteSheet): Pair<Float, Float>? {
-        if (sheet.originX == null && sheet.originY == null) return null
-        val x = sheet.originX?.let { definition.width * it / sheet.frameWidth } ?: (definition.width / 2)
-        val y = sheet.originY?.let { definition.height * it / sheet.frameHeight } ?: (definition.height / 2)
-        return x to y
-    }
-
-    /**
-     * How [definition]'s sprite is cut into frames, if it is drawn as one that is, from sheets by their sprites' names.
-     */
-    internal fun Map<String, SpriteSheet>.sheetOf(definition: ActorTypeDefinition) = definition.sprite
-        ?.takeIf { SpriteFiles.accessorOf(it) != null }
-        ?.let { get(ResourceKind.nameOf(it)) }
 
     /**
      * The registry of every block-built Actor type, plus the Scene settings ([SceneSettingsCodeGenerator]).

@@ -12,6 +12,8 @@ package com.pandulapeter.kubrikoCreator.sceneRuntime
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
+import com.pandulapeter.kubrikoCreator.sprites.sheetOf
 import java.io.File
 
 /**
@@ -23,6 +25,8 @@ import java.io.File
  * @param isSprite Whether the type is drawn as a sprite rather than its shape, as its generated class decides it (a
  *   sprite with a resource accessor), whether or not its image is there.
  * @param spriteFile The sprite's image, or null while it isn't there (the Actors draw nothing then, as in the game).
+ * @param sheet How the sprite is cut into frames, if it is: the Actors show its first frame.
+ * @param tintsSprite Whether the sprite is multiplied by the Actor's color.
  */
 public data class ActorTypeLook(
     val shape: ActorShape,
@@ -31,13 +35,20 @@ public data class ActorTypeLook(
     val height: Float,
     val spriteFile: File? = null,
     val isSprite: Boolean = spriteFile != null,
+    val sheet: SpriteSheet? = null,
+    val tintsSprite: Boolean = false,
 ) {
     public companion object {
 
         /**
-         * The looks of [actorTypes] by their names, with sprites found among [spriteFiles] (by their path).
+         * The looks of [actorTypes] by their names, with sprites found among [spriteFiles] (by their path), cut into frames
+         * as [spriteSheets] say (by their names).
          */
-        public fun of(actorTypes: List<ActorTypeDefinition>, spriteFiles: Map<String, File>): Map<String, ActorTypeLook> = actorTypes.associate { type ->
+        public fun of(
+            actorTypes: List<ActorTypeDefinition>,
+            spriteFiles: Map<String, File>,
+            spriteSheets: Map<String, SpriteSheet> = emptyMap(),
+        ): Map<String, ActorTypeLook> = actorTypes.associate { type ->
             type.name to ActorTypeLook(
                 shape = type.shape,
                 color = type.color,
@@ -45,6 +56,8 @@ public data class ActorTypeLook(
                 height = type.height,
                 spriteFile = type.sprite?.let(spriteFiles::get),
                 isSprite = type.sprite?.let(SpriteFiles::accessorOf) != null,
+                sheet = spriteSheets.sheetOf(type),
+                tintsSprite = type.tintsSprite,
             )
         }
 

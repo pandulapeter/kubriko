@@ -14,8 +14,8 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
-import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.sheetOf
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
+import com.pandulapeter.kubrikoCreator.sprites.sheetOf
 
 /**
  * What [ActorFamilyCodeGenerator] generates the members of each family of a project from, built once per family the first
