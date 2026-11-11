@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ResourceKind
+import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
@@ -57,8 +58,9 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * The header of a group of [module]'s files that aren't types or Scenes, then, while it is open in [tree], its files: the
  * Kotlin files as a tree, the rest by name. A group with none is only its header, faded, which says where such files go
- * without a line of its own for each. The sprites', sounds', and music's header offers adding and pasting more, and each
- * of their files Rename (typed in place) and Delete, in its ⋮ and right-click menu.
+ * without a line of its own for each. In the module new resources go to (the one making Scenes), the sprites', sounds',
+ * and music's header offers adding and pasting more, and each of their files Rename (typed in place) and Delete, in its
+ * ⋮ and right-click menu; another module's are another `Res`, which the game's commands never change.
  *
  * @param rows The Kotlin tree's rows ([SidebarRows]), worked out outside the list's builder.
  * @param naming What is being named in the sidebar, if anything.
@@ -75,6 +77,7 @@ internal fun LazyListScope.resourceGroupSection(
     val groupKey = SidebarKeys.resourceGroup(module.path, group)
     val isExpanded = tree.isExpanded(groupKey)
     val groupResources = module.resources[group].orEmpty()
+    val kind = group.resourceKind?.takeIf { FolderGroup.SCENES in module.creatingGroups }
     item(key = groupKey) {
         ResourceGroupHeader(
             modifier = sidebarItemMotion(),
@@ -84,7 +87,7 @@ internal fun LazyListScope.resourceGroupSection(
             isEmpty = groupResources.isEmpty(),
             onToggle = { tree.toggle(groupKey) },
             subfolderActions = tree.subfolderActions(groupKey),
-            actions = group.resourceKind?.let { kind -> resourceGroupActions(kind, actions) }.orEmpty(),
+            actions = kind?.let { resourceGroupActions(it, actions) }.orEmpty(),
         )
     }
     when {
@@ -95,7 +98,7 @@ internal fun LazyListScope.resourceGroupSection(
             indent = module.depth,
             tree = tree,
         )
-        else -> resourceItems(group, groupResources, indent = module.depth, actions = actions, naming = naming, onNamingChange = onNamingChange)
+        else -> resourceItems(group, groupResources, indent = module.depth, actions = actions.takeIf { kind != null }, naming = naming, onNamingChange = onNamingChange)
     }
 }
 
@@ -178,20 +181,20 @@ internal val ResourceKind.addLabel
 
 /**
  * The files of an asset [group], by name, [indent] levels in, each a sprite, sound, or music file offering Rename and
- * Delete, or the field renaming it.
+ * Delete through [actions] (none for a module whose files the commands don't change), or the field renaming it.
  */
 private fun LazyListScope.resourceItems(
     group: ResourceGroup,
     groupResources: List<ProjectResource>,
     indent: Int,
-    actions: ResourceActions,
+    actions: ResourceActions?,
     naming: SidebarNaming?,
     onNamingChange: (SidebarNaming?) -> Unit,
 ) {
     val duplicateNames = groupResources.groupingBy { it.name }.eachCount().filterValues { it > 1 }.keys
     items(groupResources, key = { it.relativePath }) { resource ->
-        val path = if (group.resourceKind == null) null else resourcePathOf(resource)
-        if (path != null && naming == SidebarNaming.RenamedResource(resource.relativePath)) {
+        val path = resourcePathOf(resource)
+        if (actions != null && path != null && naming == SidebarNaming.RenamedResource(resource.relativePath)) {
             Box(sidebarItemMotion()) {
                 NewNameField(
                     placeholder = Res.string.new_resource_hint,
@@ -213,7 +216,7 @@ private fun LazyListScope.resourceItems(
                 detail = if (resource.name in duplicateNames) ResourceScanner.sourceSetOf(resource) else null,
                 depth = indent,
                 onClick = null,
-                actions = if (path == null) {
+                actions = if (actions == null || path == null) {
                     emptyList()
                 } else {
                     listOf(

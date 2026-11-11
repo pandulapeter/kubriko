@@ -29,12 +29,14 @@ import androidx.compose.ui.test.rightClick
 import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.project.ProjectModule
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import com.pandulapeter.kubrikoCreator.testing.uiTest
+import com.pandulapeter.kubrikoCreator.workspace.ProjectLayout
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
@@ -53,6 +55,8 @@ class SidebarResourcesTest {
         ResourceGroup.SPRITES to listOf(resource(ResourceGroup.SPRITES, "src/commonMain/composeResources/drawable/ball.png"), resource(ResourceGroup.SPRITES, "src/commonMain/composeResources/drawable-hdpi/ball.png")),
         ResourceGroup.SOUNDS to listOf(resource(ResourceGroup.SOUNDS, "src/commonMain/composeResources/files/sounds/hit.wav")),
     )
+
+    private val noFolders = folderTreeGroups(types = null, typeFolders = emptyMap(), selectedTypeName = null, sceneNames = emptyList(), sceneFolders = emptySet(), openSceneName = null)
 
     @Test
     fun aFilesPathFromComposeResourcesIsKnownOnlyForTheOnesCreatorKeeps() {
@@ -99,7 +103,7 @@ class SidebarResourcesTest {
             ProjectSidebar(
                 modifier = Modifier.fillMaxSize(),
                 resources = resources,
-                folderGroups = emptyMap(),
+                folderGroups = noFolders,
                 folderActions = FolderTreeActions({ _, _ -> }, {}, { _, _ -> null }, { _, _ -> null }, { _, _, _ -> null }, { _, _ -> }, { _, _, _ -> null }, { _, _ -> }),
                 dragState = SidebarDragState(),
                 documentActions = DocumentActions(onOpen = {}, onCreate = { _, _ -> null }, onRename = { _, _ -> null }, onDelete = {}, onAddToScreenplay = {}),
@@ -129,6 +133,45 @@ class SidebarResourcesTest {
         onNodeWithText("Add music…").performClick()
         assertEquals(listOf(ResourceKind.SOUND, ResourceKind.MUSIC), chosen)
         assertEquals(1, pastes)
+    }
+
+    @Test
+    fun copiedTextIsNeverPastedAsAnImage() {
+        val clipboard = Clipboard("text")
+        clipboard.setContents(TextWithImage(BufferedImage(4, 3, BufferedImage.TYPE_INT_ARGB)), null)
+        assertEquals(emptyList(), pastedResources(clipboard))
+    }
+
+    @Test
+    fun anotherModulesFilesOfferNothing() = uiTest(width = 300, height = 600) {
+        val layout = ProjectLayout(typeModule = "game", sceneModule = "game", modules = mapOf("game" to ProjectModule(true), "tools" to ProjectModule(false)))
+        val tools = ProjectResource(ResourceGroup.SPRITES, File("tools/src/main/composeResources/drawable/logo.png"), "tools/src/main/composeResources/drawable/logo.png", module = "tools")
+        showing {
+            ProjectSidebar(
+                modifier = Modifier.fillMaxSize(),
+                resources = mapOf(ResourceGroup.SPRITES to listOf(tools)),
+                folderGroups = noFolders,
+                folderActions = FolderTreeActions({ _, _ -> }, {}, { _, _ -> null }, { _, _ -> null }, { _, _, _ -> null }, { _, _ -> }, { _, _, _ -> null }, { _, _ -> }),
+                dragState = SidebarDragState(),
+                documentActions = DocumentActions(onOpen = {}, onCreate = { _, _ -> null }, onRename = { _, _ -> null }, onDelete = {}, onAddToScreenplay = {}),
+                resourceActions = ResourceActions(),
+                layout = layout,
+            )
+        }
+        onNodeWithText("tools").performClick()
+        onNodeWithText("logo.png").performMouseInput { rightClick() }
+        onNodeWithText("Delete file").assertDoesNotExist()
+        onAllNodesWithText("Sprites").fetchSemanticsNodes().let { assertEquals(2, it.size, "The game's empty group, and the tools' one.") }
+        onAllNodesWithText("Sprites")[1].performMouseInput { rightClick() }
+        onNodeWithText("Paste").assertDoesNotExist()
+    }
+
+    private class TextWithImage(private val image: BufferedImage) : Transferable {
+        override fun getTransferDataFlavors() = arrayOf(DataFlavor.stringFlavor, DataFlavor.imageFlavor)
+
+        override fun isDataFlavorSupported(flavor: DataFlavor) = flavor in transferDataFlavors
+
+        override fun getTransferData(flavor: DataFlavor): Any = if (flavor == DataFlavor.stringFlavor) "words" else image
     }
 
     private class FileList(private val files: List<File>) : Transferable {

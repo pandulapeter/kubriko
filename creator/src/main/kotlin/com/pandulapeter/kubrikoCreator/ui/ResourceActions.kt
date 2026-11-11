@@ -70,11 +70,13 @@ internal fun resourceFilesAmong(files: List<File>): List<ResourceSource> = files
 
 /**
  * What the clipboard (the system's by default) holds that can be added: copied files, or a copied image, saved as a
- * PNG named [PASTED_IMAGE_NAME]. Blocks, so it runs off the main thread.
+ * PNG named [PASTED_IMAGE_NAME]; nothing when it holds text, since many apps offer the text they copy as an image too
+ * (as [com.pandulapeter.kubrikoCreator.ui.screenplay.pastedImagesOf] reads it). Blocks, so it runs off the main thread.
  */
 internal fun pastedResources(clipboard: Clipboard = Toolkit.getDefaultToolkit().systemClipboard): List<ResourceSource> = runCatching {
     when {
         clipboard.isDataFlavorAvailable(DataFlavor.javaFileListFlavor) -> resourceFilesAmong((clipboard.getData(DataFlavor.javaFileListFlavor) as List<*>).filterIsInstance<File>())
+        clipboard.isDataFlavorAvailable(DataFlavor.stringFlavor) -> emptyList()
         clipboard.isDataFlavorAvailable(DataFlavor.imageFlavor) -> listOfNotNull(PastedImages.Image(clipboard).read()?.let { ResourceSource(it.file, PASTED_IMAGE_NAME) })
         else -> emptyList()
     }

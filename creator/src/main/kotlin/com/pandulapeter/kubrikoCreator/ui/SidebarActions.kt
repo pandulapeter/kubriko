@@ -162,7 +162,10 @@ internal fun rememberResourceActions(commands: CommandExecutor, uiState: Workspa
             onChoose = { kind -> add(pickResourceFiles(kind, chooseTitles.getValue(kind))) },
             onAdd = add,
             onPaste = { scope.launch { withContext(Dispatchers.IO) { pastedResources() }.takeIf { it.isNotEmpty() }?.let(add) } },
-            onRename = { path, newName -> commands.dispatchIfValid(Invocation(RenameResource, RenameResource.Input(path, ResourceKind.renamed(path, newName)))) },
+            onRename = { path, newName ->
+                val newPath = ResourceKind.renamed(path, newName)
+                if (newPath == path) null else commands.dispatchIfValid(Invocation(RenameResource, RenameResource.Input(path, newPath)))
+            },
             onDelete = { path -> uiState.dispatch(Invocation(DeleteResource, DeleteResource.Input(path)), onSuccess = {}, dispatch = commands::dispatch) },
         )
     }
