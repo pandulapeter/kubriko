@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.ui.texts
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.assistant_turn_cancelled
+import kubriko.creator.generated.resources.error_audio_folder_reserved
 import kubriko.creator.generated.resources.error_blocks_nothing_to_replace
 import kubriko.creator.generated.resources.error_command_actor_id_empty
 import kubriko.creator.generated.resources.error_command_actor_id_invalid
@@ -67,6 +68,7 @@ import kubriko.creator.generated.resources.error_command_property_value_invalid
 import kubriko.creator.generated.resources.error_command_question_invalid
 import kubriko.creator.generated.resources.error_command_relations_subject
 import kubriko.creator.generated.resources.error_command_resource_content_mismatch
+import kubriko.creator.generated.resources.error_command_resource_folder_not_moved
 import kubriko.creator.generated.resources.error_command_resource_kind_changed
 import kubriko.creator.generated.resources.error_command_resource_not_deleted
 import kubriko.creator.generated.resources.error_command_resource_not_moved
@@ -123,6 +125,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.ACTOR_TYPE_HAS_CHILDREN -> Res.string.error_command_actor_type_has_children
     CommandProblem.ACTORS_EMPTY -> Res.string.error_command_actors_empty
     CommandProblem.ALREADY_UNDER_VERSION_CONTROL -> Res.string.error_command_already_under_version_control
+    CommandProblem.AUDIO_FOLDER_RESERVED -> Res.string.error_audio_folder_reserved
     CommandProblem.BLOCKS_NOTHING_TO_REPLACE -> Res.string.error_blocks_nothing_to_replace
     CommandProblem.CHANGE_MISSING -> Res.string.error_command_change_missing
     CommandProblem.CHANGED_OUTSIDE -> Res.string.error_command_changed_outside
@@ -176,6 +179,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.RESOURCE_KIND_CHANGED -> Res.string.error_command_resource_kind_changed
     CommandProblem.RESOURCE_MUSIC_NOT_FOLLOWED -> Res.string.warning_resource_music_not_followed
     CommandProblem.RESOURCE_NAMED_IN_CODE -> Res.string.warning_resource_named_in_code
+    CommandProblem.RESOURCE_FOLDER_NOT_MOVED -> Res.string.error_command_resource_folder_not_moved
     CommandProblem.RESOURCE_NOT_DELETED -> Res.string.error_command_resource_not_deleted
     CommandProblem.RESOURCE_NOT_MOVED -> Res.string.error_command_resource_not_moved
     CommandProblem.RESOURCE_PATH_INVALID -> Res.string.error_command_resource_path_invalid

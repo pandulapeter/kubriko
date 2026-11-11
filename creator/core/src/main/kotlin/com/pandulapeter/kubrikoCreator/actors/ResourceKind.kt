@@ -57,17 +57,21 @@ public enum class ResourceKind(
          * doesn't start with a letter or a number, or that has anything but letters, numbers, dashes, and underscores
          * before its extension. A sprite's name always makes a resource accessor this way.
          */
-        public fun validate(path: String): NameProblem? {
-            val name = path.substringAfter('/').substringBeforeLast('.')
-            val folders = name.split('/')
-            return folders.firstNotNullOfOrNull { part ->
-                when (NameFlaw.of(part, NameFlaw::isLetterOrDigitAToZ) { NameFlaw.isLetterOrDigitAToZ(it) || it in "_-" }) {
-                    NameFlaw.EMPTY -> if (folders.size > 1) NameProblem.PATH_PART_EMPTY else NameProblem.NAME_EMPTY
-                    NameFlaw.LETTER_BEYOND_A_TO_Z -> NameProblem.NAME_LETTER_BEYOND_A_TO_Z
-                    NameFlaw.FIRST_CHARACTER -> NameProblem.RESOURCE_FIRST_CHARACTER
-                    NameFlaw.CHARACTER -> NameProblem.RESOURCE_CHARACTERS
-                    null -> null
-                }
+        public fun validate(path: String): NameProblem? = validateParts(path.substringAfter('/').substringBeforeLast('.').split('/'))
+
+        /**
+         * Why [folder] (an audio folder's path from `composeResources/files`, [audioFolderOf]) can't be a folder's, by the
+         * rules [validate] holds a file's folders to.
+         */
+        public fun validateAudioFolder(folder: String): NameProblem? = validateParts(folder.split('/'))
+
+        private fun validateParts(parts: List<String>): NameProblem? = parts.firstNotNullOfOrNull { part ->
+            when (NameFlaw.of(part, NameFlaw::isLetterOrDigitAToZ) { NameFlaw.isLetterOrDigitAToZ(it) || it in "_-" }) {
+                NameFlaw.EMPTY -> if (parts.size > 1) NameProblem.PATH_PART_EMPTY else NameProblem.NAME_EMPTY
+                NameFlaw.LETTER_BEYOND_A_TO_Z -> NameProblem.NAME_LETTER_BEYOND_A_TO_Z
+                NameFlaw.FIRST_CHARACTER -> NameProblem.RESOURCE_FIRST_CHARACTER
+                NameFlaw.CHARACTER -> NameProblem.RESOURCE_CHARACTERS
+                null -> null
             }
         }
 
@@ -88,9 +92,35 @@ public enum class ResourceKind(
          */
         public fun pathOf(kind: ResourceKind, name: String, extension: String): String = when (kind) {
             SPRITE -> "$DRAWABLE/$name.$extension"
-            SOUND -> "$FILES/sounds/$name.$extension"
-            MUSIC -> "$FILES/music/$name.$extension"
+            SOUND, MUSIC -> "$FILES/${checkNotNull(defaultAudioFolderOf(kind))}/$name.$extension"
         }
+
+        /**
+         * The folder new files of [kind] go to, from `composeResources/files` (`sounds`), or null for sprites, which
+         * have no folders there.
+         */
+        public fun defaultAudioFolderOf(kind: ResourceKind): String? = when (kind) {
+            SPRITE -> null
+            SOUND -> "sounds"
+            MUSIC -> "music"
+        }
+
+        /**
+         * The folder the audio file at [path] (from `composeResources`) is in, from `composeResources/files`, as audio
+         * folders are named: `sounds/enemies` for `files/sounds/enemies/hit.wav`, empty for one right in `files`.
+         */
+        public fun audioFolderOf(path: String): String = path.removePrefix("$FILES/").substringBeforeLast('/', "")
+
+        /**
+         * The path from `composeResources` the audio file at [path] gets in the audio [folder] ([audioFolderOf]),
+         * keeping its name.
+         */
+        public fun inAudioFolder(path: String, folder: String): String = listOf(FILES, folder, path.substringAfterLast('/')).filter { it.isNotEmpty() }.joinToString("/")
+
+        /**
+         * Whether the audio folder at [folder] ([audioFolderOf]) is the Scenes folder or one in it, which hold no audio.
+         */
+        public fun isScenesFolder(folder: String): Boolean = FolderPaths.isWithin(folder, SCENES)
 
         /**
          * The kind a file with [extension] would be added as, or null if it can't be one.

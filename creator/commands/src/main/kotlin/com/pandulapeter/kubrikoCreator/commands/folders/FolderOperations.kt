@@ -29,6 +29,7 @@ internal suspend fun CommandContext.createFolder(group: FolderGroup, path: Strin
         FolderGroup.SCENES -> withContext(ioDispatcher) { scenes.createFolder(path) }
         FolderGroup.PAGES -> withContext(ioDispatcher) { screenplay.createFolder(path) }
         FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> requireBlockTypes.createFolder(checkNotNull(group.kind), path)
+        FolderGroup.SOUNDS, FolderGroup.MUSIC -> withContext(ioDispatcher) { createAudioFolder(path) }
     }
 }
 
@@ -38,17 +39,23 @@ internal suspend fun CommandContext.deleteFolder(group: FolderGroup, path: Strin
         FolderGroup.SCENES -> withContext(ioDispatcher) { scenes.deleteFolder(path) }
         FolderGroup.PAGES -> withContext(ioDispatcher) { screenplay.deleteFolder(path) }
         FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> requireBlockTypes.deleteFolder(checkNotNull(group.kind), path)
+        FolderGroup.SOUNDS, FolderGroup.MUSIC -> withContext(ioDispatcher) { deleteAudioFolder(path) }
     }
 }
 
 /**
- * Moves the folder at [path] of [group], and everything in it, to [newPath]. It stops at the first Scene or page that
- * can't be moved, moving back the ones moved before it, so that nothing changes.
+ * Moves the folder at [path] of [group], and everything in it, to [newPath]. It stops at the first Scene, page, or file
+ * that can't be moved, moving back the ones moved before it, so that nothing changes.
  *
  * @return Why it couldn't be moved (the Scene or page that couldn't), or null if everything was.
  */
 @EditorMutation
 internal suspend fun CommandContext.moveFolder(group: FolderGroup, path: String, newPath: String): Rejection? {
+    if (group.resourceKind != null) {
+        withContext(ioDispatcher) { moveAudioFolder(path, newPath) }?.let { return it }
+        deleteFolder(group, path)
+        return null
+    }
     fun moved(oldPath: String) = newPath + oldPath.removePrefix(path)
     foldersOf(group).filter { FolderPaths.isWithin(it, path) }.forEach { createFolder(group, moved(it)) }
     when (group) {
@@ -75,6 +82,7 @@ internal suspend fun CommandContext.moveFolder(group: FolderGroup, path: String,
         FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> requireBlockTypes.types.value
             .filter { it.kind == group.kind && FolderPaths.isWithin(it.folder, path) }
             .forEach { requireBlockTypes.put(it.withFolder(moved(it.folder))) }
+        FolderGroup.SOUNDS, FolderGroup.MUSIC -> Unit
     }
     deleteFolder(group, path)
     return null

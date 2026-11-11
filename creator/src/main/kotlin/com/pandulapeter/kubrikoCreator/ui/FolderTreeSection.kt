@@ -21,9 +21,12 @@ import com.pandulapeter.kubrikoCreator.ui.actorTypes.icon
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.action_add_music
+import kubriko.creator.generated.resources.action_add_sound
 import kubriko.creator.generated.resources.action_delete_actor_type
 import kubriko.creator.generated.resources.action_delete_manager_type
 import kubriko.creator.generated.resources.action_delete_page
+import kubriko.creator.generated.resources.action_delete_resource
 import kubriko.creator.generated.resources.action_delete_scene
 import kubriko.creator.generated.resources.action_new_actor_type
 import kubriko.creator.generated.resources.action_new_manager_type
@@ -32,16 +35,21 @@ import kubriko.creator.generated.resources.action_new_scene
 import kubriko.creator.generated.resources.action_rename
 import kubriko.creator.generated.resources.ic_delete
 import kubriko.creator.generated.resources.ic_edit
+import kubriko.creator.generated.resources.ic_music
 import kubriko.creator.generated.resources.ic_page
 import kubriko.creator.generated.resources.ic_scene
+import kubriko.creator.generated.resources.ic_sound
 import kubriko.creator.generated.resources.new_actor_type_hint
 import kubriko.creator.generated.resources.new_manager_type_hint
 import kubriko.creator.generated.resources.new_page_hint
+import kubriko.creator.generated.resources.new_resource_hint
 import kubriko.creator.generated.resources.new_scene_hint
 import kubriko.creator.generated.resources.resource_group_actor_types
 import kubriko.creator.generated.resources.resource_group_manager_types
+import kubriko.creator.generated.resources.resource_group_music
 import kubriko.creator.generated.resources.resource_group_scenes
 import kubriko.creator.generated.resources.resource_group_screenplay
+import kubriko.creator.generated.resources.resource_group_sounds
 import org.jetbrains.compose.resources.stringResource
 /**
  * What a sidebar group with folders shows.
@@ -49,11 +57,14 @@ import org.jetbrains.compose.resources.stringResource
  * @param items The names of its types or Scenes, each with the folder it is in (empty for none).
  * @param folders Every folder of the group, empty ones too.
  * @param selectedName The item shown in the center, if it is one of these.
+ * @param root The folder holding everything shown, which isn't shown itself ([trimmedTo]): `sounds` while every sound
+ *   is in it, so the Sounds group doesn't open on a folder of that name; empty for none.
  */
 internal data class FolderTreeGroupState(
     val items: List<Pair<String, String>>,
     val folders: Set<String>,
     val selectedName: String? = null,
+    val root: String = "",
 )
 
 /**
@@ -180,6 +191,7 @@ internal fun LazyListScope.folderTreeSection(
                 modifier = sidebarItemMotion(),
                 module = module.path,
                 group = group,
+                groupKey = groupKey,
                 row = row,
                 indent = indent,
                 isCreating = isCreating,
@@ -266,6 +278,8 @@ internal val FolderGroup.icon
         FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> checkNotNull(kind).icon
         FolderGroup.SCENES -> Res.drawable.ic_scene
         FolderGroup.PAGES -> Res.drawable.ic_page
+        FolderGroup.SOUNDS -> Res.drawable.ic_sound
+        FolderGroup.MUSIC -> Res.drawable.ic_music
     }
 
 internal val FolderGroup.accent
@@ -273,6 +287,7 @@ internal val FolderGroup.accent
         FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> checkNotNull(kind).accent
         FolderGroup.SCENES -> Accent.SCENE
         FolderGroup.PAGES -> Accent.SCREENPLAY
+        FolderGroup.SOUNDS, FolderGroup.MUSIC -> Accent.CODE
     }
 
 internal val FolderGroup.title
@@ -281,6 +296,8 @@ internal val FolderGroup.title
         FolderGroup.MANAGER_TYPES -> Res.string.resource_group_manager_types
         FolderGroup.SCENES -> Res.string.resource_group_scenes
         FolderGroup.PAGES -> Res.string.resource_group_screenplay
+        FolderGroup.SOUNDS -> Res.string.resource_group_sounds
+        FolderGroup.MUSIC -> Res.string.resource_group_music
     }
 
 internal val FolderGroup.newItemLabel
@@ -289,6 +306,8 @@ internal val FolderGroup.newItemLabel
         FolderGroup.MANAGER_TYPES -> Res.string.action_new_manager_type
         FolderGroup.SCENES -> Res.string.action_new_scene
         FolderGroup.PAGES -> Res.string.action_new_page
+        FolderGroup.SOUNDS -> Res.string.action_add_sound
+        FolderGroup.MUSIC -> Res.string.action_add_music
     }
 
 internal val FolderGroup.deleteItemLabel
@@ -297,6 +316,7 @@ internal val FolderGroup.deleteItemLabel
         FolderGroup.MANAGER_TYPES -> Res.string.action_delete_manager_type
         FolderGroup.SCENES -> Res.string.action_delete_scene
         FolderGroup.PAGES -> Res.string.action_delete_page
+        FolderGroup.SOUNDS, FolderGroup.MUSIC -> Res.string.action_delete_resource
     }
 
 internal val FolderGroup.newItemHint
@@ -305,4 +325,5 @@ internal val FolderGroup.newItemHint
         FolderGroup.MANAGER_TYPES -> Res.string.new_manager_type_hint
         FolderGroup.SCENES -> Res.string.new_scene_hint
         FolderGroup.PAGES -> Res.string.new_page_hint
+        FolderGroup.SOUNDS, FolderGroup.MUSIC -> Res.string.new_resource_hint
     }

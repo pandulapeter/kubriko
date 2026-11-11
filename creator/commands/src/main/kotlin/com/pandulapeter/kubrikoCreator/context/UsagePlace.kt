@@ -39,6 +39,15 @@ public sealed interface UsagePlace {
         override fun toString(): String = path
     }
 
+    /**
+     * A sprite, sound, or music file, by its path from `composeResources`.
+     */
+    public data class ResourceFile(
+        val path: String,
+    ) : UsagePlace {
+        override fun toString(): String = path
+    }
+
     public data object GameSettings : UsagePlace {
         override fun toString(): String = "The game's settings"
     }

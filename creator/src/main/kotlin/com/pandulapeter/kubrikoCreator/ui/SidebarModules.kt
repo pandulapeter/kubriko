@@ -25,7 +25,8 @@ import com.pandulapeter.kubrikoCreator.workspace.ProjectLayout
  *
  * Every module [layout] knows is one, and so is every module with files. Types go to the module of their code, Scenes to
  * every module that has a file of their name (one not scanned yet to [layout]'s Scene module, where it was made), and the
- * Scene folders [folderGroups] holds to that module, since they are those of its Scenes folder. The screenplay's pages,
+ * Scene folders [folderGroups] holds to that module, since they are those of its Scenes folder, as are the audio folders
+ * [layout] knows, which are those of its `files` folders. The screenplay's pages,
  * which are the whole project's, go to the module holding the game, in a project that isn't opted in only once it has some. New Scenes are made only
  * there, and only when it is the game's: Kubriko Creator's code loads them from it, or it uses Kubriko. In a project
  * that isn't opted in, the place the templates keep Scenes in may be a module nothing loads them from. A module that uses
@@ -76,6 +77,7 @@ internal fun sidebarModules(
             depth = generateSequence(parents[path]) { parents[it] }.count(),
             folderGroups = groups,
             resources = moduleResources,
+            audioTrees = audioTreesOf(moduleResources, if (path == layout.sceneModule) layout.audioFolders else emptySet()),
             resourceGroups = if (usesKubriko) ResourceGroup.entries - ResourceGroup.SCENES - ResourceGroup.DOCUMENTS else shownResourceGroups(moduleResources).filter { it in moduleResources },
             documents = documents[path].orEmpty(),
             holdsGame = path == home || home.startsWith("$path/"),

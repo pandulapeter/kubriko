@@ -18,10 +18,11 @@ import com.pandulapeter.kubrikoCreator.actors.withParents
 internal fun matchesSidebarFilter(name: String, query: String) = name.contains(query.trim(), ignoreCase = true)
 
 /**
- * This state narrowed to the items matching [query], with only the folders that hold one (and their parents).
+ * This state narrowed to the items matching [query] by what [shownNameOf] makes of their names, with only the folders
+ * that hold one (and their parents).
  */
-internal fun FolderTreeGroupState.filtered(query: String): FolderTreeGroupState {
-    val matchingItems = items.filter { (name, _) -> matchesSidebarFilter(name, query) }
+internal fun FolderTreeGroupState.filtered(query: String, shownNameOf: (String) -> String = { it }): FolderTreeGroupState {
+    val matchingItems = items.filter { (name, _) -> matchesSidebarFilter(shownNameOf(name), query) }
     return copy(
         items = matchingItems,
         folders = matchingItems.map { it.second }.filter(String::isNotEmpty).toSet().withParents(),

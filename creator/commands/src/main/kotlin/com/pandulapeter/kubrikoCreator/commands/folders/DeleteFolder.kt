@@ -26,6 +26,7 @@ import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.context.withKotlinFilesHeld
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -37,7 +38,7 @@ import kotlinx.serialization.json.jsonPrimitive
 @OptIn(EditorMutation::class)
 public object DeleteFolder : DeletingCommand<DeleteFolder.Input> {
     override val name: String = "delete_folder"
-    override val description: String = "Deletes a folder of Actor types, Manager types, Scenes, or pages with everything in it, its folders too, each thing as its own " +
+    override val description: String = "Deletes a folder of Actor types, Manager types, Scenes, pages, sounds, or music with everything in it, its folders too, each thing as its own " +
         "delete tool would, cleaning up what refers to it, all as one step. check_change lists what it deletes and changes."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
@@ -48,7 +49,8 @@ public object DeleteFolder : DeletingCommand<DeleteFolder.Input> {
     override fun validate(context: CommandContext, input: Input): Rejection? = when {
         input.keepsContents -> when {
             input.group.kind != null && context.blockTypes == null -> Rejection(CommandProblem.NO_ACTOR_TYPES)
-            context.itemsOf(input.group).any { (_, folder) -> FolderPaths.isWithin(folder, input.path) } -> Rejection(CommandProblem.FOLDER_NOT_EMPTY, input.path)
+            input.group.resourceKind == null && context.itemsOf(input.group).any { (_, folder) -> FolderPaths.isWithin(folder, input.path) } ->
+                Rejection(CommandProblem.FOLDER_NOT_EMPTY, input.path)
             else -> null
         }
         else -> context.validateFolder(input.group, input.path) ?: if (input.path.isEmpty()) Rejection(CommandProblem.FOLDER_TOP) else childOutside(context, input)
@@ -69,6 +71,9 @@ public object DeleteFolder : DeletingCommand<DeleteFolder.Input> {
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         if (input.keepsContents) {
+            if (input.group.resourceKind != null && withContext(context.ioDispatcher) { context.holdsAudioOnDisk(input.path) }) {
+                return Applied.failed(Rejection(CommandProblem.FOLDER_NOT_EMPTY, input.path))
+            }
             context.deleteFolder(input.group, input.path)
             return Applied(inverse = Invocation(CreateFolder, CreateFolder.Input(input.group, input.path)))
         }
@@ -90,7 +95,9 @@ public object DeleteFolder : DeletingCommand<DeleteFolder.Input> {
 
     /**
      * @param keepsContents Whether it deletes only the folder and the folders in it, and only once nothing else is in
-     *   them: the last parts of the delete, once their contents are gone, and what undoes a folder's creation. A
+     *   them: the last parts of the delete, once their contents are gone, and what undoes a folder's creation. An
+     *   audio folder's sounds and music are looked for on disk while it is applied, since the deletes before it in
+     *   the same step leave the last resource scan behind. A
      *   folder already gone (one that held only types, which leaves none in memory) is deleted all the same, since
      *   its directory may still be on disk.
      */
@@ -98,7 +105,7 @@ public object DeleteFolder : DeletingCommand<DeleteFolder.Input> {
     public data class Input(
         @Description("What the folder holds.")
         @SerialName("group") val group: FolderGroup,
-        @Description("The folder's path: folder names separated by slashes, like enemies/flying.")
+        @Description("The folder's path: folder names separated by slashes, like enemies/flying (for audio, from composeResources/files).")
         @SerialName("path") val path: String,
         @Transient val keepsContents: Boolean = false,
     )

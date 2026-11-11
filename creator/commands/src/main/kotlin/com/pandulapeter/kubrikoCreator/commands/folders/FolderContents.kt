@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
+import com.pandulapeter.kubrikoCreator.commands.resources.DeleteResource
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeletePage
 import com.pandulapeter.kubrikoCreator.commands.screenplay.markdownTexts
@@ -33,7 +34,8 @@ import kotlinx.coroutines.withContext
  * The deletes of everything in [folder] and the folders in it, each the command deleting it on its own, so each
  * cleans up what refers to it as it would alone: an Actor type's descendants before it, since a parent with children
  * can't be deleted, and a page's own images with it, since its folder goes too. Scenes and pages are the ones their
- * stores know, which is what each delete and the folder's own last check go by.
+ * stores know, which is what each delete and the folder's own last check go by; an audio folder's sounds and music are
+ * both deleted, since they are in the same real folder.
  */
 internal fun CommandContext.contentDeletesOf(folder: RelationSubject.Folder): List<Invocation<*>> {
     fun isIn(itemFolder: String) = FolderPaths.isWithin(itemFolder, folder.path)
@@ -54,6 +56,8 @@ internal fun CommandContext.contentDeletesOf(folder: RelationSubject.Folder): Li
         FolderGroup.MANAGER_TYPES -> blockTypes?.managerTypes?.value.orEmpty()
             .filter { isIn(it.folder) }
             .map { Invocation(DeleteManagerType, DeleteManagerType.Input(it.name)) }
+        FolderGroup.SOUNDS, FolderGroup.MUSIC -> knownAudioFilesWithin(folder.path)
+            .map { Invocation(DeleteResource, DeleteResource.Input(it)) }
     }
 }
 
@@ -108,13 +112,14 @@ internal fun usagesReported(usages: List<Usage>, reportedByParts: Set<String>) =
 private fun Usage.ownerOrNull(): RelationSubject? = when (val place = place) {
     is UsagePlace.InModel -> place.place.owner
     is UsagePlace.Markdown -> PageNaming.nameOf(place.path)?.let(RelationSubject::Page)
-    is UsagePlace.KotlinFile, UsagePlace.GameSettings -> null
+    is UsagePlace.KotlinFile, is UsagePlace.ResourceFile, UsagePlace.GameSettings -> null
 }
 
 private fun placeOf(subject: RelationSubject): UsagePlace = when (subject) {
     is RelationSubject.Type -> UsagePlace.InModel(RelationPlace.Type(subject.name))
     is RelationSubject.Scene -> UsagePlace.InModel(RelationPlace.Scene(subject.name))
     is RelationSubject.Page -> UsagePlace.Markdown(PageNaming.pathOf(subject.name))
-    is RelationSubject.Property, is RelationSubject.Timer, is RelationSubject.Resource, is RelationSubject.Image, is RelationSubject.Folder ->
+    is RelationSubject.Resource -> UsagePlace.ResourceFile(subject.path)
+    is RelationSubject.Property, is RelationSubject.Timer, is RelationSubject.Image, is RelationSubject.Folder ->
         error("A folder holds no ${subject::class.simpleName}.")
 }

@@ -706,6 +706,7 @@
     <string name="command_rename_folder">Rename folder</string>
     <string name="command_delete_folder">Delete folder</string>
     <string name="command_move_to_folder">Move to folder</string>
+    <string name="error_audio_folder_reserved">%1$s can't hold sounds or music: files/scenes holds the Scenes.</string>
     <string name="error_scene_folder_reserved">A Scene folder can't be called %1$s, since Kubriko Creator skips such folders, as build tools do.</string>
     <string name="error_scene_name_taken">There's already a Scene with that name.</string>
     <string name="command_create_scene">Create Scene</string>
@@ -735,6 +736,7 @@
     <string name="error_command_resource_kind_changed">A file stays what it is when it's renamed: keep the .%1$s at the end, and a sprite right in drawable, or a sound or music in files.</string>
     <string name="warning_resource_music_not_followed">%1$s still play %2$s as their music, since they couldn't be written: %3$s</string>
     <string name="warning_resource_named_in_code">%1$s still names %2$s, which is now %3$s. Change it there by hand.</string>
+    <string name="error_command_resource_folder_not_moved">Kubriko Creator couldn't move %1$s, so nothing changed. Another program, such as the running game, may have a file in it open.</string>
     <string name="error_command_resource_not_deleted">Kubriko Creator couldn't delete %1$s, so nothing changed. Another program, such as the running game, may have it open.</string>
     <string name="error_command_resource_not_moved">Kubriko Creator couldn't rename %1$s, so nothing changed. Another program, such as the running game, may have it open.</string>
     <string name="error_command_resource_path_invalid">%1$s can't be a sprite, sound, or music file. A sprite is a .png, .jpg, or .webp image right in drawable (drawable/ball.png); a sound is a .wav and music an .mp3 or .ogg file in files, outside files/scenes (files/sounds/hit.wav).</string>

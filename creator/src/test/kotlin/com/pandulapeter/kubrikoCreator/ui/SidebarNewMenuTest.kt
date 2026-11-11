@@ -67,7 +67,8 @@ class SidebarNewMenuTest {
     fun theMenuOffersWhatSomeModuleCreatesAndADocumentAlways() {
         val modules = sidebarModules(resources, folderGroups, layout)
         assertEquals(
-            FolderGroup.entries.map(SidebarNewItem::GroupItem) + ResourceKind.entries.map(SidebarNewItem::Resource) + SidebarNewItem.Document,
+            listOf(FolderGroup.PAGES, FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES, FolderGroup.SCENES).map(SidebarNewItem::GroupItem) +
+                ResourceKind.entries.map(SidebarNewItem::Resource) + SidebarNewItem.Document,
             sidebarNewItems(modules),
         )
         val toolsOnly = sidebarModules(resources, emptyMap(), ProjectLayout(modules = mapOf("tools" to ProjectModule(false))))

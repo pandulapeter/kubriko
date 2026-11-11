@@ -82,6 +82,7 @@ internal fun Usage.placeText() = when (val place = place) {
         is RelationPlace.Scene -> stringResource(Res.string.usage_place_scene, inModel.name)
     }
     is UsagePlace.KotlinFile -> place.path
+    is UsagePlace.ResourceFile -> place.path
     is UsagePlace.Markdown -> PageNaming.nameOf(place.path)?.let { stringResource(Res.string.usage_place_page, it) } ?: place.path
     UsagePlace.GameSettings -> stringResource(Res.string.usage_place_game_settings)
 }
@@ -117,7 +118,7 @@ internal val Usage.placeOwner
     get() = when (val place = place) {
         is UsagePlace.InModel -> place.place.owner
         is UsagePlace.Markdown -> PageNaming.nameOf(place.path)?.let(RelationSubject::Page)
-        is UsagePlace.KotlinFile, UsagePlace.GameSettings -> null
+        is UsagePlace.KotlinFile, is UsagePlace.ResourceFile, UsagePlace.GameSettings -> null
     }
 
 /**

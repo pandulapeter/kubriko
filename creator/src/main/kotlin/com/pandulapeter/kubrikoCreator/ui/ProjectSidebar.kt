@@ -226,7 +226,19 @@ private fun LazyListScope.moduleSections(
             flash = flash,
         )
     }
-    module.resourceGroups.forEach { group -> resourceGroupSection(module, group, tree, rows, resourceActions, naming, onNamingChange) }
+    module.resourceGroups.forEach { group ->
+        resourceGroupSection(
+            module = module,
+            group = group,
+            tree = tree,
+            rows = rows,
+            actions = resourceActions,
+            folderActions = folderActions,
+            dragState = dragState,
+            naming = naming,
+            onNamingChange = onNamingChange,
+        )
+    }
 }
 
 /**

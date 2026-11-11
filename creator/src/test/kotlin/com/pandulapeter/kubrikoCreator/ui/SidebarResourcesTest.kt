@@ -96,15 +96,24 @@ class SidebarResourcesTest {
         val actions = ResourceActions(
             onChoose = { chosen += it },
             onPaste = { pastes++ },
-            onRename = { path, name -> if (name == "taken") Rejection(CommandProblem.RESOURCE_TAKEN, path) else null.also { renamed += path to name } },
             onDelete = { deleted += it },
+        )
+        val folderActions = FolderTreeActions(
+            onSelected = { _, _ -> },
+            onSelectionCleared = {},
+            onCreateItem = { _, _ -> null },
+            onCreateFolder = { _, _ -> null },
+            onRenameFolder = { _, _, _ -> null },
+            onDeleteFolder = { _, _, _ -> },
+            onRenameItem = { _, path, name -> if (name == "taken") Rejection(CommandProblem.RESOURCE_TAKEN, path) else null.also { renamed += path to name } },
+            onDeleteItem = { _, path -> deleted += path },
         )
         showing {
             ProjectSidebar(
                 modifier = Modifier.fillMaxSize(),
                 resources = resources,
                 folderGroups = noFolders,
-                folderActions = FolderTreeActions({ _, _ -> }, {}, { _, _ -> null }, { _, _ -> null }, { _, _, _ -> null }, { _, _, _ -> }, { _, _, _ -> null }, { _, _ -> }),
+                folderActions = folderActions,
                 dragState = SidebarDragState(),
                 documentActions = DocumentActions(onOpen = {}, onCreate = { _, _ -> null }, onRename = { _, _ -> null }, onDelete = {}, onAddToScreenplay = {}),
                 resourceActions = actions,

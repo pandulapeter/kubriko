@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
+import com.pandulapeter.kubrikoCreator.actors.FolderPaths
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
@@ -23,6 +24,7 @@ import com.pandulapeter.kubrikoCreator.project.ResourceGroup
  *   which is open at first while the others start closed, so a project of many modules opens on the game.
  * @param folderGroups Its groups with folders: the types in the module their code is generated into, and its Scenes.
  * @param resources Its files, by group.
+ * @param audioTrees Its sounds and music as trees of their folders ([audioTreesOf]).
  * @param resourceGroups The groups of its files that aren't types or Scenes it lists ([shownResourceGroups]; in a project
  *   of several modules, Kotlin files only in a module that has some).
  * @param creatingGroups The groups new items and folders can be made in here: those whose files Kubriko Creator puts in
@@ -38,6 +40,7 @@ internal data class SidebarModule(
     val holdsGame: Boolean = false,
     val folderGroups: Map<FolderGroup, FolderTreeGroupState>,
     val resources: Map<ResourceGroup, List<ProjectResource>>,
+    val audioTrees: Map<ResourceGroup, FolderTreeGroupState> = emptyMap(),
     val resourceGroups: List<ResourceGroup>,
     val creatingGroups: Set<FolderGroup>,
     val kotlinRootPackage: String = rootPackageOf(resources[ResourceGroup.KOTLIN].orEmpty()),
@@ -54,7 +57,13 @@ internal data class SidebarModule(
         return if (shownGroups.isEmpty() && shownResourceGroups.isEmpty() && shownDocuments.isEmpty()) {
             null
         } else {
-            copy(folderGroups = shownGroups, resources = shownResources, resourceGroups = shownResourceGroups, documents = shownDocuments)
+            copy(
+                folderGroups = shownGroups,
+                resources = shownResources,
+                audioTrees = audioTrees.mapValues { (_, state) -> state.filtered(query, FolderPaths::nameOf) },
+                resourceGroups = shownResourceGroups,
+                documents = shownDocuments,
+            )
         }
     }
 
@@ -75,6 +84,10 @@ internal data class SidebarModule(
         resourceGroups.forEach { group ->
             val groupKey = SidebarKeys.resourceGroup(path, group)
             add(SidebarOutline.Node(groupKey, moduleKey, isFolder = false, isExpandedByDefault = group != ResourceGroup.KOTLIN))
+            audioTrees[group]?.let { state ->
+                val folders = folderTreeRows(state.items, state.folders, collapsed = emptySet()).trimmedTo(state.root).filterIsInstance<FolderTreeRow.Folder>()
+                addFolders(groupKey, folders.map { OutlineFolder(it.path, it.depth, isExpandedByDefault = true) })
+            }
             if (group == ResourceGroup.KOTLIN) {
                 val rows = kotlinTreeRows(resources[group].orEmpty(), kotlinRootPackage, toggled = emptySet(), isEverythingOpen = true).filter { it !is KotlinTreeRow.File }
                 addFolders(groupKey, rows.map { OutlineFolder(it.key, it.depth, isExpandedByDefault = it !is KotlinTreeRow.Container) })

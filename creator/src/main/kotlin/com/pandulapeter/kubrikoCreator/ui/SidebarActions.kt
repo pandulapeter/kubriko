@@ -55,6 +55,7 @@ internal fun rememberSidebarDragState(commands: CommandExecutor, creation: Works
                 FolderGroup.SCENES -> commands.dispatch(Invocation(RenameScene, RenameScene.Input(name, FolderPaths.child(folder, FolderPaths.nameOf(name)))))
                 FolderGroup.PAGES -> commands.dispatch(Invocation(MovePage, MovePage.Input(name, FolderPaths.child(folder, FolderPaths.nameOf(name)))))
                 FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> commands.dispatch(Invocation(MoveToFolder, MoveToFolder.Input(name, folder)))
+                FolderGroup.SOUNDS, FolderGroup.MUSIC -> commands.dispatch(Invocation(RenameResource, RenameResource.Input(name, ResourceKind.inAudioFolder(name, folder))))
                 null -> creation.moveDocument(name, DocumentNaming.pathOf(folder, name.substringAfterLast('/')))
             }
         }
@@ -78,6 +79,7 @@ internal fun rememberFolderTreeActions(
                 FolderGroup.SCENES -> selection.openScene(name)
                 FolderGroup.PAGES -> selection.openPage(name)
                 FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> selection.selectType(name)
+                FolderGroup.SOUNDS, FolderGroup.MUSIC -> Unit
             }
         },
         onSelectionCleared = selection::clear,
@@ -87,6 +89,7 @@ internal fun rememberFolderTreeActions(
                 FolderGroup.MANAGER_TYPES -> creation.createManagerType(name)
                 FolderGroup.SCENES -> creation.createScene(name)
                 FolderGroup.PAGES -> creation.createPage(name)
+                FolderGroup.SOUNDS, FolderGroup.MUSIC -> null
             }
         },
         onCreateFolder = { group, path -> commands.dispatchIfValid(Invocation(CreateFolder, CreateFolder.Input(group, path))) },
@@ -96,14 +99,13 @@ internal fun rememberFolderTreeActions(
             if (invocation.input.keepsContents) commands.dispatch(invocation) else uiState.dispatch(invocation = invocation, onSuccess = {}, dispatch = commands::dispatch)
         },
         onRenameItem = { group, name, newName ->
-            commands.dispatchIfValid(
-                when (group) {
-                    FolderGroup.ACTOR_TYPES -> Invocation(RenameActorType, RenameActorType.Input(name, newName))
-                    FolderGroup.MANAGER_TYPES -> Invocation(RenameManagerType, RenameManagerType.Input(name, newName))
-                    FolderGroup.SCENES -> Invocation(RenameScene, RenameScene.Input(name, FolderPaths.child(FolderPaths.parentOf(name), newName)))
-                    FolderGroup.PAGES -> Invocation(MovePage, MovePage.Input(name, FolderPaths.child(FolderPaths.parentOf(name), newName)))
-                },
-            )
+            when (group) {
+                FolderGroup.ACTOR_TYPES -> Invocation(RenameActorType, RenameActorType.Input(name, newName))
+                FolderGroup.MANAGER_TYPES -> Invocation(RenameManagerType, RenameManagerType.Input(name, newName))
+                FolderGroup.SCENES -> Invocation(RenameScene, RenameScene.Input(name, FolderPaths.child(FolderPaths.parentOf(name), newName)))
+                FolderGroup.PAGES -> Invocation(MovePage, MovePage.Input(name, FolderPaths.child(FolderPaths.parentOf(name), newName)))
+                FolderGroup.SOUNDS, FolderGroup.MUSIC -> ResourceKind.renamed(name, newName).takeIf { it != name }?.let { Invocation(RenameResource, RenameResource.Input(name, it)) }
+            }?.let(commands::dispatchIfValid)
         },
         onDeleteItem = { group, name ->
             uiState.dispatch(
@@ -112,6 +114,7 @@ internal fun rememberFolderTreeActions(
                     FolderGroup.MANAGER_TYPES -> Invocation(DeleteManagerType, DeleteManagerType.Input(name))
                     FolderGroup.SCENES -> Invocation(DeleteScene, DeleteScene.Input(name))
                     FolderGroup.PAGES -> Invocation(DeletePage, DeletePage.Input(name))
+                    FolderGroup.SOUNDS, FolderGroup.MUSIC -> Invocation(DeleteResource, DeleteResource.Input(name))
                 },
                 onSuccess = {},
                 dispatch = commands::dispatch,

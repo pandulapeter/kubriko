@@ -61,3 +61,18 @@ internal fun folderTreeRows(items: List<Pair<String, String>>, folders: Set<Stri
     addLevel(parent = "", depth = 0)
     return rows
 }
+
+/**
+ * These rows without the folder [root] and those holding it, the rest moved up as many levels, as a group whose
+ * everything is in [root] shows them; all of them for an empty [root].
+ */
+internal fun List<FolderTreeRow>.trimmedTo(root: String): List<FolderTreeRow> {
+    if (root.isEmpty()) return this
+    val levels = root.count { it == '/' } + 1
+    return mapNotNull { row ->
+        when (row) {
+            is FolderTreeRow.Folder -> if (FolderPaths.isWithin(root, row.path)) null else row.copy(depth = row.depth - levels)
+            is FolderTreeRow.Item -> row.copy(depth = row.depth - levels)
+        }
+    }
+}

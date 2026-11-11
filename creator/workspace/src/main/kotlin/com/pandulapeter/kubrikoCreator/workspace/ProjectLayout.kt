@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
+import com.pandulapeter.kubrikoCreator.actors.AudioFolders
 import com.pandulapeter.kubrikoCreator.project.ProjectModule
 import com.pandulapeter.kubrikoCreator.project.ProjectModules
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
@@ -23,12 +24,15 @@ import java.io.File
  * Modules are named as [com.pandulapeter.kubrikoCreator.project.ProjectResource.module] names them.
  *
  * @param sceneFolders The folders of the Scenes folder new Scenes go to, empty ones too.
+ * @param audioFolders The folders of the game's own `files` folders ([AudioFolders.foldersBeside]), empty ones too,
+ *   which sounds and music are shown in.
  * @param typeModule The module the block-built types' code is generated into, or null for a project without them.
  * @param sceneModule The module new Scenes and Scene folders go to.
  * @param modules Every module of the project ([ProjectModules]), by its folder.
  */
 public data class ProjectLayout(
     val sceneFolders: Set<String> = emptySet(),
+    val audioFolders: Set<String> = emptySet(),
     val typeModule: String? = null,
     val sceneModule: String = "",
     val modules: Map<String, ProjectModule> = emptyMap(),
@@ -51,6 +55,7 @@ public data class ProjectLayout(
             val sceneDirectory = SceneStore.newSceneDirectoryOf(rootDirectory, resources[ResourceGroup.SCENES].orEmpty(), sceneHome)
             return ProjectLayout(
                 sceneFolders = SceneStore.foldersIn(sceneDirectory),
+                audioFolders = AudioFolders.foldersBeside(sceneDirectory.parentFile.parentFile),
                 typeModule = generatedPath?.let { ResourceScanner.moduleOf(rootDirectory, it) },
                 sceneModule = ResourceScanner.moduleOf(rootDirectory, sceneDirectory.relativeTo(rootDirectory).invariantSeparatorsPath),
                 modules = ProjectModules.find(rootDirectory, snapshot),

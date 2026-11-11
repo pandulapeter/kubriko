@@ -24,7 +24,7 @@ import kotlinx.serialization.Serializable
 @OptIn(EditorMutation::class)
 public object CreateFolder : WriteCommand<CreateFolder.Input> {
     override val name: String = "create_folder"
-    override val description: String = "Creates a folder in the sidebar for Actor types, Manager types, Scenes, or pages, inside another one if the path has several names."
+    override val description: String = "Creates a folder in the sidebar for Actor types, Manager types, Scenes, pages, sounds, or music, inside another one if the path has several names."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Project
@@ -47,7 +47,7 @@ public object CreateFolder : WriteCommand<CreateFolder.Input> {
     public data class Input(
         @Description("What the folder holds.")
         @SerialName("group") val group: FolderGroup,
-        @Description("The new folder's path: folder names separated by slashes, like enemies/flying, the last one being the new folder.")
+        @Description("The new folder's path: folder names separated by slashes, like enemies/flying, the last one being the new folder (for audio, from composeResources/files).")
         @SerialName("path") val path: String,
     )
 }

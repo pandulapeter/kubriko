@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import com.pandulapeter.kubrikoCreator.actors.FolderPaths
 import com.pandulapeter.kubrikoCreator.ui.components.DragPreviewChip
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ic_file
@@ -25,6 +26,6 @@ internal fun SidebarDragPreview(state: SidebarDragState) {
         pointer = { state.pointer },
         icon = dragged.group?.icon ?: Res.drawable.ic_file,
         tint = MaterialTheme.colorScheme.tertiary,
-        text = dragged.name,
+        text = if (dragged.group?.resourceKind != null) FolderPaths.nameOf(dragged.name) else dragged.name,
     )
 }

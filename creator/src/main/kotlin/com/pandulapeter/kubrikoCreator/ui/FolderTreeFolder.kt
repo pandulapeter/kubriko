@@ -18,11 +18,14 @@ import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 /**
  * A folder of [group]'s tree in [module], [indent] levels further in, or the field renaming it, followed by the field
  * naming a new folder in it while one is.
+ *
+ * @param groupKey The key of the group's tree ([SidebarKeys]), which the folder's own key is built from.
  */
 @Composable
 internal fun FolderTreeFolder(
     module: String,
     group: FolderGroup,
+    groupKey: String,
     row: FolderTreeRow.Folder,
     indent: Int,
     isCreating: Boolean,
@@ -33,7 +36,7 @@ internal fun FolderTreeFolder(
     onNamingChange: (SidebarNaming?) -> Unit,
     modifier: Modifier = Modifier,
 ) = Column(modifier) {
-    val key = SidebarKeys.folder(SidebarKeys.folderGroup(module, group), row.path)
+    val key = SidebarKeys.folder(groupKey, row.path)
     if (isCreating && naming == SidebarNaming.RenamedFolder(group, row.path)) {
         SidebarNameField(
             group = group,

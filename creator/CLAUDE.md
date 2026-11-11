@@ -346,6 +346,13 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   restoring a folder accepts one still on disk, since a file nothing lists keeps its directory. A Scene file that can't be moved
   (Windows refuses while the game has it open) fails the rename before anything else changes, and a folder rename moves the Scenes
   it moved back.
+- **Sounds' and music's folders** are the real ones of the game's own `files` folders, every source set's together
+  (`AudioFolders`), named from `files` (`sounds/enemies`), since the game reads audio by its path; a folder holding only
+  the other kind's files, or inside one that does, isn't the group's, and the Scenes folder is no one's. The sidebar
+  hides the folder new files go to (`sounds`) while it holds everything the group shows (`FolderTreeGroupState.root`).
+  Renaming one moves its files, finding them on disk (its undo comes before the next scan), and follows each as
+  `rename_resource` would; deleting one deletes each file through `delete_resource`, both kinds, and its last step
+  looks for audio on disk rather than in the scan the deletes before it left behind.
 
 ## Builds and playing
 

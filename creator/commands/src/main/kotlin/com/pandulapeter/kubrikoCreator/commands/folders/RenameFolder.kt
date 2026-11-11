@@ -18,6 +18,10 @@ import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
+import com.pandulapeter.kubrikoCreator.commands.resources.followInScenes
+import com.pandulapeter.kubrikoCreator.commands.resources.followInTypes
+import com.pandulapeter.kubrikoCreator.commands.resources.reportNamedInCode
+import com.pandulapeter.kubrikoCreator.commands.resources.resourceFilesOnDisk
 import com.pandulapeter.kubrikoCreator.commands.screenplay.projectPathOf
 import com.pandulapeter.kubrikoCreator.commands.screenplay.validatePageName
 import com.pandulapeter.kubrikoCreator.commands.screenplay.withMentionsFollowed
@@ -33,8 +37,8 @@ import kotlinx.serialization.Serializable
 @OptIn(EditorMutation::class)
 public object RenameFolder : WriteCommand<RenameFolder.Input> {
     override val name: String = "rename_folder"
-    override val description: String = "Renames a folder of Actor types, Manager types, Scenes, or pages, keeping everything in it where it is in it. A Scene's name " +
-        "is its path, so renaming its folder renames the Scene, and every goToScene Block follows, as do the screenplay's mentions of everything in it."
+    override val description: String = "Renames a folder of Actor types, Manager types, Scenes, pages, sounds, or music, keeping everything in it where it is in it. A Scene's " +
+        "or audio file's name is its path, so it changes too, and what uses it follows (but hand-written Kotlin), as do the screenplay's mentions of everything in it."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Project
@@ -59,9 +63,19 @@ public object RenameFolder : WriteCommand<RenameFolder.Input> {
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val newPath = renamed(input)
         val scenesBefore = if (input.group == FolderGroup.SCENES) sceneFilesWithin(context, input.path) else emptyMap()
+        val (audioMoves, audioRenames) = if (input.group.resourceKind != null) {
+            withContext(context.ioDispatcher) {
+                context.audioFolderMoves(input.path, newPath) to audioFilesMovedWith(context.resourceFilesOnDisk().map { it.path }.distinct(), input.path, newPath)
+            }
+        } else {
+            emptyList<PathMove>() to emptyMap()
+        }
         context.moveFolder(input.group, input.path, newPath)?.let { rejection -> return Applied(inverse = null, failure = rejection) }
+        audioRenames.forEach { (path, renamed) -> context.followAudioFile(path, renamed) }
         val moves = when (val kind = input.group.kind) {
-            null -> if (input.group == FolderGroup.PAGES) {
+            null -> if (input.group.resourceKind != null) {
+                audioMoves
+            } else if (input.group == FolderGroup.PAGES) {
                 listOf(PathMove("${PageNaming.FOLDER}/${input.path}", "${PageNaming.FOLDER}/$newPath"))
             } else {
                 withContext(context.ioDispatcher) {
@@ -71,6 +85,16 @@ public object RenameFolder : WriteCommand<RenameFolder.Input> {
             else -> listOf(PathMove(DefinitionPaths.folderPath(kind, input.path), DefinitionPaths.folderPath(kind, newPath)))
         }
         return context.withMentionsFollowed(moves, Applied(inverse = Invocation(RenameFolder, Input(input.group, newPath, FolderPaths.nameOf(input.path)))))
+    }
+
+    /**
+     * Makes what uses the sound or music file at [path] use it at [newPath], as renaming it would; undoing the folder's
+     * rename moves it back the same way.
+     */
+    private suspend fun CommandContext.followAudioFile(path: String, newPath: String) {
+        reportNamedInCode(path, newPath)
+        followInTypes(path, newPath)
+        followInScenes(path, newPath)
     }
 
     /**
@@ -86,7 +110,7 @@ public object RenameFolder : WriteCommand<RenameFolder.Input> {
     public data class Input(
         @Description("What the folder holds.")
         @SerialName("group") val group: FolderGroup,
-        @Description("The folder's path: folder names separated by slashes, like enemies/flying.")
+        @Description("The folder's path: folder names separated by slashes, like enemies/flying (for audio, from composeResources/files).")
         @SerialName("path") val path: String,
         @Description("Its new name (only the last part of the path changes).")
         @SerialName("newName") val newName: String,

@@ -14,8 +14,8 @@ import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 
 /**
- * The rows of the sidebar's trees: each group's of each module shown with its contents, each one's documents, and its
- * Kotlin files', worked out outside the sidebar's list, so that building the list again (which a selection or an AI
+ * The rows of the sidebar's trees: each group's of each module shown with its contents (its sounds' and music's too),
+ * each one's documents, and its Kotlin files', worked out outside the sidebar's list, so that building the list again (which a selection or an AI
  * step's flash does) works none of them out. Each tree keeps the rows of the one before when what it is made of is
  * equal, so opening one folder or selecting an item works out no other tree again.
  */
@@ -36,6 +36,12 @@ internal class SidebarRows private constructor(
      */
     fun groupOf(module: SidebarModule, group: FolderGroup, tree: SidebarTree): Tree<FolderTreeRow>? = treeAt(SidebarKeys.folderGroup(module.path, group))
         ?: module.folderGroups[group]?.let { groupTree(it, tree.collapsedFolders(SidebarKeys.folderGroup(module.path, group)), previous = null) }
+
+    /**
+     * The rows of the sounds or music [group] of [module], made then and there if they weren't worked out beforehand.
+     */
+    fun audioOf(module: SidebarModule, group: ResourceGroup, tree: SidebarTree): Tree<FolderTreeRow>? = treeAt(SidebarKeys.resourceGroup(module.path, group))
+        ?: module.audioTrees[group]?.let { groupTree(it, tree.collapsedFolders(SidebarKeys.resourceGroup(module.path, group)), previous = null) }
 
     fun documentsOf(module: SidebarModule, tree: SidebarTree): List<FolderTreeRow> = treeAt<FolderTreeRow>(SidebarKeys.documents(module.path))?.rows
         ?: documentsTree(module, tree, previous = null).rows
@@ -59,6 +65,10 @@ internal class SidebarRows private constructor(
                 module.folderGroups.forEach { (group, state) ->
                     val key = SidebarKeys.folderGroup(module.path, group)
                     trees[key] = groupTree(state, tree.collapsedFolders(key), previous?.trees?.get(key))
+                }
+                module.audioTrees.forEach { (group, state) ->
+                    val key = SidebarKeys.resourceGroup(module.path, group)
+                    if (group in module.resourceGroups) trees[key] = groupTree(state, tree.collapsedFolders(key), previous?.trees?.get(key))
                 }
                 if (module.documents.isNotEmpty()) {
                     trees[SidebarKeys.documents(module.path)] = documentsTree(module, tree, previous?.trees?.get(SidebarKeys.documents(module.path)))
@@ -88,8 +98,8 @@ internal class SidebarRows private constructor(
         }
 
         private fun groupTree(state: FolderTreeGroupState, collapsed: Set<String>, previous: Tree<*>?): Tree<FolderTreeRow> {
-            val inputs = listOf(state.items, state.folders, collapsed)
-            return reused(previous, inputs) { Tree(inputs, folderTreeRows(state.items, state.folders, collapsed), state.items.toMap()) }
+            val inputs = listOf(state.items, state.folders, state.root, collapsed)
+            return reused(previous, inputs) { Tree(inputs, folderTreeRows(state.items, state.folders, collapsed).trimmedTo(state.root), state.items.toMap()) }
         }
 
         private fun documentsTree(module: SidebarModule, tree: SidebarTree, previous: Tree<*>?): Tree<FolderTreeRow> {
