@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.context
 
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.scenes.firstSceneSettings
 import kotlinx.coroutines.withContext
 
 /**
@@ -23,7 +24,7 @@ internal suspend fun CommandContext.healthFindings(): List<HealthFinding> = heal
  */
 internal fun CommandContext.healthFindings(sceneCounts: Map<String, Map<String, Int>>): List<HealthFinding> {
     val types = blockTypes?.types?.value.orEmpty()
-    return HealthChecks.of(types, ProjectRelations(types, sceneCounts), scenes.names(), audioFiles(), sceneMusic())
+    return HealthChecks.of(types, ProjectRelations(types, sceneCounts), scenes.names(), audioFiles(), sceneMusic(), firstSceneSettings(project.rootDirectory)?.firstScene)
 }
 
 /**

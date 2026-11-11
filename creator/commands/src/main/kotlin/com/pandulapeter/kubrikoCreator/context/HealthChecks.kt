@@ -19,7 +19,8 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 
 /**
  * Works out what about a game is worth a look ([HealthFinding]) from its types, the relations between its parts, and
- * its Scenes, as the editor shows it and the AI reads it.
+ * its Scenes, as the editor shows it and the AI reads it, with the Scene the game starts with when the project's settings
+ * name it.
  */
 internal object HealthChecks {
 
@@ -29,6 +30,7 @@ internal object HealthChecks {
         sceneNames: Collection<String>,
         audioFiles: AudioFiles? = null,
         sceneMusic: Map<String, String> = emptyMap(),
+        firstScene: String? = null,
     ): List<HealthFinding> {
         val actorTypes = types.filterIsInstance<ActorTypeDefinition>()
         val family = ActorTypeFamily(actorTypes)
@@ -44,7 +46,7 @@ internal object HealthChecks {
         val startedTimers = types.associate { type -> type.name to type.events.flatMap { it.blocks }.filterIsInstance<BlockDefinition.StartTimer>().map { it.timer } }
         return buildList {
             actorTypes.filterNot { isPresent(it.name) }.forEach { add(HealthFinding(HealthFinding.Kind.UNUSED_ACTOR_TYPE, RelationSubject.Type(it.name))) }
-            if (sceneNames.size > 1) sceneNames.sorted().filterNot { it in reached }.forEach { add(HealthFinding(HealthFinding.Kind.UNREACHED_SCENE, RelationSubject.Scene(it))) }
+            addAll(sceneFindings(sceneNames, reached, firstScene))
             types.forEach { type ->
                 type.properties.forEach { property ->
                     val pattern = Regex("\\b" + Regex.escape(property.name) + "\\b")
@@ -67,6 +69,17 @@ internal object HealthChecks {
             }
             addAll(KotlinBlockScopeChecks.of(types, family))
             addAll(MissingReferenceChecks.of(types, relations, sceneNames, audioFiles, sceneMusic))
+        }
+    }
+
+    /**
+     * The Scenes nothing goes to, and the first Scene if it is missing. Without knowing [firstScene] (a project whose
+     * build doesn't read its settings), any Scene may be the one the game starts with, so only a game of several has any.
+     */
+    private fun sceneFindings(sceneNames: Collection<String>, reached: Set<String>, firstScene: String?) = buildList {
+        if (firstScene != null && firstScene !in sceneNames) add(HealthFinding(HealthFinding.Kind.FIRST_SCENE_MISSING, RelationSubject.Scene(firstScene)))
+        if (firstScene != null || sceneNames.size > 1) {
+            sceneNames.sorted().filterNot { it in reached || it == firstScene }.forEach { add(HealthFinding(HealthFinding.Kind.UNREACHED_SCENE, RelationSubject.Scene(it), firstScene)) }
         }
     }
 }

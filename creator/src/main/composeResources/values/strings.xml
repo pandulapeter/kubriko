@@ -847,6 +847,8 @@
     <string name="health_page_image_missing">%1$s shows %2$s, which is gone.</string>
     <string name="health_unused_actor_type">%1$s: no Scene places it and no Block adds it.</string>
     <string name="health_unreached_scene">%1$s: nothing goes to it, which is fine if the game starts with it.</string>
+    <string name="health_unreached_scene_not_first">%1$s: nothing goes to it, and the game starts with %2$s.</string>
+    <string name="health_first_scene_missing">The game starts with %1$s, which doesn't exist. Choose another in Project settings.</string>
     <string name="health_unread_property">%1$s: nothing reads it.</string>
     <string name="health_timer_never_started">%1$s: the Timer %2$s never starts, so its Event never runs.</string>
     <string name="health_collision_with_absent_type">%1$s: %2$s is never in a Scene, so their collision Event never runs.</string>

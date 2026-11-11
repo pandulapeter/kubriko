@@ -63,6 +63,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param findings What about the game is worth a look, shown first.
  * @param pages The screenplay's pages, listed first, since they are the game's design.
  * @param onPageSelected Opens a page.
+ * @param onGameSettingsSelected Opens the game's settings, which name the Scene it starts with.
  */
 @Composable
 internal fun GameMapPanel(
@@ -73,6 +74,7 @@ internal fun GameMapPanel(
     findings: List<HealthFinding> = emptyList(),
     pages: List<PageSummary> = emptyList(),
     onPageSelected: (String) -> Unit = {},
+    onGameSettingsSelected: () -> Unit = {},
 ) = Column(
     modifier = modifier,
 ) {
@@ -90,7 +92,7 @@ internal fun GameMapPanel(
             )
         }
         if (digest == null) return@LazyColumn
-        healthSection(findings, onTypeSelected, onSceneSelected, onPageSelected)
+        healthSection(findings, onTypeSelected, onSceneSelected, onPageSelected, onGameSettingsSelected)
         if (pages.isEmpty() && digest.actorTypes.isEmpty() && digest.managerTypes.isEmpty() && digest.scenes.isEmpty()) {
             item { Text(stringResource(Res.string.game_map_empty), style = MaterialTheme.typography.bodySmall) }
         }

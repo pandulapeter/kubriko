@@ -17,6 +17,10 @@ import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.commands.commandContext
+import com.pandulapeter.kubrikoCreator.commands.scenes.writeScene
+import kotlinx.coroutines.test.runTest
+import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -117,6 +121,47 @@ class HealthChecksTest {
     @Test
     fun aGameWithOneSceneDoesntReportItAsUnreached() =
         assertEquals(emptyList(), HealthChecks.of(listOf(brick), ProjectRelations(listOf(brick), mapOf("main" to mapOf("Brick" to 1))), listOf("main")))
+
+    @Test
+    fun knowingTheFirstSceneEveryOtherSceneNothingGoesToIsReported() {
+        val unreached = { firstScene: String?, sceneNames: List<String> ->
+            HealthChecks.of(types, ProjectRelations(types, scenes), sceneNames, firstScene = firstScene).filter { it.kind == HealthFinding.Kind.UNREACHED_SCENE || it.kind == HealthFinding.Kind.FIRST_SCENE_MISSING }
+        }
+        assertEquals(listOf(HealthFinding(HealthFinding.Kind.UNREACHED_SCENE, RelationSubject.Scene("secret"), "level-1")), unreached("level-1", scenes.keys.toList()))
+        assertEquals(emptyList(), unreached("main", listOf("main")), "A game of one Scene, which it starts with")
+        assertEquals(
+            listOf(
+                HealthFinding(HealthFinding.Kind.FIRST_SCENE_MISSING, RelationSubject.Scene("main")),
+                HealthFinding(HealthFinding.Kind.UNREACHED_SCENE, RelationSubject.Scene("level-1"), "main"),
+            ),
+            unreached("main", listOf("level-1")),
+            "A game of one Scene, which it doesn't start with",
+        )
+    }
+
+    @Test
+    fun theFirstSceneIsReadFromTheProjectsSettings() = runTest {
+        val context = commandContext(brick)
+        context.writeScene("main", emptyList())
+        context.writeScene("bonus", emptyList())
+        val sceneKinds = setOf(HealthFinding.Kind.UNREACHED_SCENE, HealthFinding.Kind.FIRST_SCENE_MISSING)
+        assertEquals(listOf(null, null), context.healthFindings().filter { it.kind in sceneKinds }.map { it.detail }, "A build that doesn't read the settings")
+        File(context.project.rootDirectory, "build.gradle.kts").writeText("val gameFirstScene = providers.gradleProperty(\"game.firstScene\")\n")
+        assertEquals(
+            listOf(HealthFinding(HealthFinding.Kind.UNREACHED_SCENE, RelationSubject.Scene("bonus"), "main")),
+            context.healthFindings().filter { it.kind in sceneKinds },
+            "game.firstScene is missing, so the game starts with the default",
+        )
+        File(context.project.rootDirectory, "gradle.properties").writeText("game.firstScene=intro\r\n")
+        assertEquals(
+            listOf(
+                HealthFinding(HealthFinding.Kind.FIRST_SCENE_MISSING, RelationSubject.Scene("intro")),
+                HealthFinding(HealthFinding.Kind.UNREACHED_SCENE, RelationSubject.Scene("bonus"), "intro"),
+                HealthFinding(HealthFinding.Kind.UNREACHED_SCENE, RelationSubject.Scene("main"), "intro"),
+            ),
+            context.healthFindings().filter { it.kind in sceneKinds },
+        )
+    }
 
     @Test
     fun aRedeclaredPropertyIsReadWhereverItsFamilyReadsIt() {

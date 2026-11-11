@@ -71,6 +71,7 @@ internal fun AiPanel(
     attention: List<AttentionChip>,
     captureScreenshot: suspend (AttentionChip.Screenshot) -> ByteArray?,
     modifier: Modifier = Modifier,
+    onGameSettingsSelected: () -> Unit = {},
     isScreenplayOffered: Boolean = false,
     onScreenplayOfferAnswered: () -> Unit = {},
     questions: List<UserQuestions.Question> = emptyList(),
@@ -112,6 +113,7 @@ internal fun AiPanel(
             onTypeSelected = onTypeSelected,
             onSceneSelected = onSceneSelected,
             onPageSelected = onPageSelected,
+            onGameSettingsSelected = onGameSettingsSelected,
             attention = attention,
             captureScreenshot = captureScreenshot,
             questions = questions,
@@ -135,6 +137,7 @@ private fun AiPanelContent(
     onTypeSelected: (String) -> Unit,
     onSceneSelected: (String) -> Unit,
     onPageSelected: (String) -> Unit,
+    onGameSettingsSelected: () -> Unit,
     attention: List<AttentionChip>,
     captureScreenshot: suspend (AttentionChip.Screenshot) -> ByteArray?,
     questions: List<UserQuestions.Question>,
@@ -176,6 +179,7 @@ private fun AiPanelContent(
             onTypeSelected = onTypeSelected,
             onSceneSelected = onSceneSelected,
             onPageSelected = onPageSelected,
+            onGameSettingsSelected = onGameSettingsSelected,
         )
     }
 }

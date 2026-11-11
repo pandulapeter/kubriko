@@ -14,8 +14,8 @@ package com.pandulapeter.kubrikoCreator.context
  * mistake, but often one.
  *
  * @param subject What it is about: an Actor type, a Property, a Scene, a page, or an image.
- * @param detail The Timer or the other Actor type it names, or the place of the Block (`Ball#1.2`), for the kinds that
- *   name one.
+ * @param detail The Timer or the other Actor type it names, the place of the Block (`Ball#1.2`), or the Scene the game
+ *   starts with, for the kinds that name one.
  * @param usage What a Kotlin Block uses that changed (`return`, or the name of a local it no longer has), or what a
  *   reference names that no longer exists.
  */
@@ -32,9 +32,15 @@ public data class HealthFinding(
         UNUSED_ACTOR_TYPE,
 
         /**
-         * A Scene no goToScene Block goes to: fine for the one the game starts with.
+         * A Scene no goToScene Block goes to, other than the one the game starts with: [detail], when the project's
+         * settings name it, and without it, any one of them may be.
          */
         UNREACHED_SCENE,
+
+        /**
+         * The Scene the game starts with ([subject], as the project's settings name it), which doesn't exist.
+         */
+        FIRST_SCENE_MISSING,
 
         /**
          * A Property nothing reads: no condition, Log Block, text, or Kotlin names it.
@@ -101,7 +107,12 @@ public data class HealthFinding(
 
     override fun toString(): String = when (kind) {
         Kind.UNUSED_ACTOR_TYPE -> "$subject: no Scene places it and no Block adds it, nor any type based on it."
-        Kind.UNREACHED_SCENE -> "$subject: no goToScene Block goes to it, which is fine if the game starts with it."
+        Kind.UNREACHED_SCENE -> if (detail == null) {
+            "$subject: no goToScene Block goes to it, which is fine if the game starts with it."
+        } else {
+            "$subject: no goToScene Block goes to it, and the game starts with $detail."
+        }
+        Kind.FIRST_SCENE_MISSING -> "$subject: the game starts with it (game.firstScene in gradle.properties), but it doesn't exist."
         Kind.UNREAD_PROPERTY -> "$subject: nothing reads it (no condition, Log Block, text, or Kotlin names it)."
         Kind.TIMER_NEVER_STARTED -> "$subject: the timerFinished Event of $detail never fires, since no startTimer Block of its family starts it."
         Kind.COLLISION_WITH_ABSENT_TYPE -> "$subject: the collision Event with $detail never fires, since no Scene places $detail and no Block adds it."

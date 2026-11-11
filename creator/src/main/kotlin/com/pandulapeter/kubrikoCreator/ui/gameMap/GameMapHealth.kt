@@ -23,13 +23,15 @@ import kubriko.creator.generated.resources.game_map_worth_a_look
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * What about the game is worth a look, at the top of the map, each opening what it is about on a click.
+ * What about the game is worth a look, at the top of the map, each opening what it is about on a click: a missing first
+ * Scene opens the settings that name it.
  */
 internal fun LazyListScope.healthSection(
     findings: List<HealthFinding>,
     onTypeSelected: (String) -> Unit,
     onSceneSelected: (String) -> Unit,
     onPageSelected: (String) -> Unit,
+    onGameSettingsSelected: () -> Unit,
 ) {
     if (findings.isEmpty()) return
     item(key = "health") {
@@ -42,6 +44,7 @@ internal fun LazyListScope.healthSection(
     items(findings, key = { "health:$it" }) { finding ->
         Text(
             modifier = Modifier.gameMapRow {
+                if (finding.kind == HealthFinding.Kind.FIRST_SCENE_MISSING) return@gameMapRow onGameSettingsSelected()
                 when (val subject = finding.subject) {
                     is RelationSubject.Type -> onTypeSelected(subject.name)
                     is RelationSubject.Property -> onTypeSelected(subject.owner)

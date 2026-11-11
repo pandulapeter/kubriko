@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_property_of_manager
 import kubriko.creator.generated.resources.health_collision_with_absent_type
+import kubriko.creator.generated.resources.health_first_scene_missing
 import kubriko.creator.generated.resources.health_kotlin_block_removed_local
 import kubriko.creator.generated.resources.health_kotlin_block_return
 import kubriko.creator.generated.resources.health_mention_missing
@@ -27,6 +28,7 @@ import kubriko.creator.generated.resources.health_reference_missing
 import kubriko.creator.generated.resources.health_timer_never_started
 import kubriko.creator.generated.resources.health_unmentioned
 import kubriko.creator.generated.resources.health_unreached_scene
+import kubriko.creator.generated.resources.health_unreached_scene_not_first
 import kubriko.creator.generated.resources.health_unread_property
 import kubriko.creator.generated.resources.health_unused_actor_type
 import kubriko.creator.generated.resources.health_unused_page_image
@@ -46,7 +48,9 @@ internal fun HealthFinding.text(): String {
     }
     return when (kind) {
         HealthFinding.Kind.UNUSED_ACTOR_TYPE -> stringResource(Res.string.health_unused_actor_type, subjectText)
-        HealthFinding.Kind.UNREACHED_SCENE -> stringResource(Res.string.health_unreached_scene, subjectText)
+        HealthFinding.Kind.UNREACHED_SCENE -> detail?.let { stringResource(Res.string.health_unreached_scene_not_first, subjectText, it) }
+            ?: stringResource(Res.string.health_unreached_scene, subjectText)
+        HealthFinding.Kind.FIRST_SCENE_MISSING -> stringResource(Res.string.health_first_scene_missing, subjectText)
         HealthFinding.Kind.UNREAD_PROPERTY -> stringResource(Res.string.health_unread_property, subjectText)
         HealthFinding.Kind.TIMER_NEVER_STARTED -> stringResource(Res.string.health_timer_never_started, subjectText, detail.orEmpty())
         HealthFinding.Kind.COLLISION_WITH_ABSENT_TYPE -> stringResource(Res.string.health_collision_with_absent_type, subjectText, detail.orEmpty())

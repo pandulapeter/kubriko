@@ -32,6 +32,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.PanelRow
 import com.pandulapeter.kubrikoCreator.ui.components.PanelSplitter
 import com.pandulapeter.kubrikoCreator.ui.components.PanelWidthState
 import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
+import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettingsPage
 import com.pandulapeter.kubrikoCreator.workspace.GameMap
 import com.pandulapeter.kubrikoCreator.workspace.ScreenplayOffer
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
@@ -121,6 +122,7 @@ internal fun WorkspaceAiSidePanel(
         onTypeSelected = onTypeSelected,
         onSceneSelected = onSceneSelected,
         onPageSelected = onPageSelected,
+        onGameSettingsSelected = { uiState.showProjectSettings(ProjectSettingsPage.GAME) },
         attention = attention,
         captureScreenshot = captureScreenshot,
         isScreenplayOffered = screenplayOffer?.isShown?.collectAsState()?.value == true,

@@ -177,4 +177,25 @@ class AiPanelPartsTest {
         assertEquals(listOf("README", "hero"), opened)
         saveSnapshot("map-pages")
     }
+
+    @Test
+    fun aMissingFirstSceneOpensTheGameSettingsAndAnUnreachedSceneItsScene() = uiTest {
+        val opened = mutableListOf<String>()
+        showing {
+            GameMapPanel(
+                digest = ProjectDigest(projectName = "breakout", actorTypes = emptyList(), managerTypes = emptyList(), scenes = listOf(ProjectDigest.Scene("bonus", null, emptyMap())), relations = emptyList()),
+                onTypeSelected = {},
+                onSceneSelected = { opened += it },
+                findings = listOf(
+                    HealthFinding(HealthFinding.Kind.FIRST_SCENE_MISSING, RelationSubject.Scene("intro")),
+                    HealthFinding(HealthFinding.Kind.UNREACHED_SCENE, RelationSubject.Scene("bonus"), "intro"),
+                ),
+                onGameSettingsSelected = { opened += "settings" },
+            )
+        }
+        onNodeWithText("The game starts with intro, which doesn't exist. Choose another in Project settings.").performClick()
+        onNodeWithText("bonus: nothing goes to it, and the game starts with intro.").performClick()
+        assertEquals(listOf("settings", "bonus"), opened)
+        saveSnapshot("map-first-scene")
+    }
 }
