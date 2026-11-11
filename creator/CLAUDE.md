@@ -339,8 +339,11 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
 - **Folders** are real directories. Names stay unique across folders, since generated code is flat in one package; a Scene is
   named by its path (`levels/1-1`). `delete_folder` deletes what a folder holds through each thing's own delete (`contentDeletesOf`:
   an Actor type's descendants first, a page with its own images), then its folders deepest first, as one step; its
-  confirmation, `check_change`, and the AI's result list the contents and only the usages outside the folder
-  (`RelationSubject.Folder`), and a type in it with a child outside refuses it. An empty folder is deleted without asking. A Scene file that can't be moved
+  confirmation, `check_change`, and the AI's result list the contents (a page's images too) and only the usages outside
+  the folder (`RelationSubject.Folder`), and a type in it with a child outside refuses it. Its deletes share one read of
+  the hand-written Kotlin (`withKotlinFilesHeld`), which no delete rewrites. A folder the sidebar shows empty is deleted
+  without asking, as the folder alone (`keepsContents`), so what was put in it since is refused rather than taken; and
+  restoring a folder accepts one still on disk, since a file nothing lists keeps its directory. A Scene file that can't be moved
   (Windows refuses while the game has it open) fails the rename before anything else changes, and a folder rename moves the Scenes
   it moved back.
 

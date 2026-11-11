@@ -26,21 +26,20 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `01-resources-and-search.md` at its first item, Deleting a full folder.
+Continue `01-resources-and-search.md` at its first item, Folders.
 
-The last two items finished, each reviewed with `/code-review` and its findings fixed in commits of their own:
+The last item finished: deleting a full folder (`delete_folder` on any folder, its contents deleted through their own
+deletes as one undo step, `RelationSubject.Folder` listing the contents and only the usages outside it in the
+confirmation, `check_change`, and the AI's result; the sidebar offers Delete on every folder and asks only for a full one).
+Its `/code-review` found ten things, each fixed in a commit of its own: undoing a folder whose directory a file nothing
+lists kept (a `.DS_Store`), a folder the sidebar showed empty but filled since being deleted unasked, the Scenes and pages
+found by a scan rather than the names each delete checks (and a Scene already gone outside Creator kept by name), page
+mentions reported as unlinked where they weren't, the AI's `mentionedIn` missing for a folder, page images deleted without
+being listed, and N full reads of the project for N deletes; with the usages details shared and one path for empty folders.
 
-- Adding, renaming, and deleting sprites, sounds, and music: the `add_resource`, `rename_resource`, and `delete_resource`
-  commands (`commands/resources`), and the sidebar's Add (New menu, a group's ⋮, a drop onto the sidebar, Paste), Rename in
-  place, and Delete. The review's nine findings: the commands keep to the game's own module, names are checked against every
-  drawable and every file the scan found, a rename's undo puts back exactly what it changed, Kotlin Blocks still naming a
-  renamed file are reported, a rename to the same name is refused, and pasted text is never added as an image.
-- Deleting a Timer (`delete_timer`, and Delete this Timer… in a timerFinished Event's Timer menu): its timerFinished Events and
-  Timer Blocks go across the family, and Kotlin using its generated members is listed. The review's ten findings: a stray
-  `timer` field on another kind of Event is no Timer (`timerNames` and renames read `trigger`), Kotlin using a Timer's members
-  is listed on delete and followed on rename, one Timer is one subject whichever type of its family it is asked through, which
-  types share a Timer is one rule in core (`timerSharersOf`, which `BlockScope` uses too), and references read Scenes and pages
-  only for subjects they can hold.
+The same session fixed two failing CI tests: a race in `AssistantSignIn` (a system terminal that can't be opened was
+reported before it stopped saying it was opening) and `DeletingEveryThingTest` on Windows, which can't name a file after
+`EveryBlockTypes`' quoted sound.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
