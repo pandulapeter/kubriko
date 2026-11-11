@@ -767,6 +767,12 @@
     <string name="sprite_editor_frame_add_after">Add a frame after</string>
     <string name="sprite_editor_frame_duplicate">Duplicate the frame</string>
     <string name="sprite_editor_frame_delete">Delete the frame</string>
+    <string name="sprite_editor_onion_skin">Onion skin</string>
+    <string name="sprite_editor_onion_skin_opacity">How strongly the frames around show</string>
+    <plurals name="sprite_editor_onion_skin_reach">
+        <item quantity="one">%1$d frame each way</item>
+        <item quantity="other">%1$d frames each way</item>
+    </plurals>
     <string name="sprite_editor_zoom">%1$dx</string>
     <string name="sprite_editor_zoom_in">Zoom in</string>
     <string name="sprite_editor_zoom_out">Zoom out</string>

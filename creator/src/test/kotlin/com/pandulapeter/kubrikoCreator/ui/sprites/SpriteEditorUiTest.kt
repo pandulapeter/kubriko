@@ -38,6 +38,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalTestApi::class)
 class SpriteEditorUiTest {
@@ -98,6 +99,10 @@ class SpriteEditorUiTest {
         saveSnapshot("sprite-editor")
         onNodeWithText("2").performClick()
         assertEquals(1, state.frameIndex)
+        onNodeWithText("Onion skin").performClick()
+        assertTrue(state.isOnionSkinOn)
+        onNodeWithText("1 frame each way").assertExists()
+        saveSnapshot("sprite-editor-onion-skin")
         onNodeWithText("Save").assertIsNotEnabled()
         onNodeWithText("Image").performClick()
         onNodeWithText("Flip vertically").performClick()

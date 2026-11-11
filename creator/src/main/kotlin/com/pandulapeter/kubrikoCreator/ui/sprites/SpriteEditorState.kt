@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ui.sprites
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +44,14 @@ internal class SpriteEditorState {
      * Whether the whole-image operations change every frame rather than the one shown.
      */
     var isEveryFrame by mutableStateOf(false)
+
+    /**
+     * Whether the frames around the one shown are drawn faintly under it ([com.pandulapeter.kubrikoCreator.sprites.pixels.OnionSkin]),
+     * how many each way, and how strongly the nearest ones.
+     */
+    var isOnionSkinOn by mutableStateOf(false)
+    var onionSkinReach by mutableIntStateOf(1)
+    var onionSkinOpacity by mutableFloatStateOf(DEFAULT_ONION_SKIN_OPACITY)
 
     var zoom by mutableIntStateOf(DEFAULT_ZOOM)
         private set
@@ -359,6 +368,9 @@ internal class SpriteEditorState {
 
     companion object {
         val ZOOM_STEPS = listOf(1, 2, 3, 4, 6, 8, 12, 16, 24, 32)
+        val ONION_SKIN_REACHES = listOf(1, 2, 3)
+        val ONION_SKIN_OPACITIES = 0.1f..0.8f
+        private const val DEFAULT_ONION_SKIN_OPACITY = 0.35f
         private const val DEFAULT_ZOOM = 8
         private const val FIT_MARGIN = 0.9f
 

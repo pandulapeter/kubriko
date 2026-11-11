@@ -53,6 +53,7 @@ import com.pandulapeter.kubrikoCreator.window.LocalTrackpadPinches
  * such a scroll), a step at a time once their small movements add up to one ([SpriteZoomGestures]).
  *
  * @param onDraw Draws the given pixels on the frame, as one step.
+ * @param onionSkin The frames around it, drawn under it ([com.pandulapeter.kubrikoCreator.sprites.pixels.OnionSkin]), if shown.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -61,8 +62,10 @@ internal fun SpriteCanvas(
     state: SpriteEditorState,
     onDraw: (List<Pixel>) -> Unit,
     modifier: Modifier = Modifier,
+    onionSkin: PixelImage? = null,
 ) {
     val bitmap = remember(frame) { frame.toImageBitmap() }
+    val onionSkinBitmap = remember(onionSkin) { onionSkin?.toImageBitmap() }
     val overlay = remember(frame.width, frame.height, state.strokeShape) { overlayOf(frame.width, frame.height, state.strokeShape)?.toImageBitmap() }
     val floatingImage = state.floating?.image
     val floatingBitmap = remember(floatingImage) { floatingImage?.toImageBitmap() }
@@ -120,6 +123,14 @@ internal fun SpriteCanvas(
             val geometry = SpriteCanvasGeometry(size, frame.width, frame.height, state.zoom, state.pan)
             val imageBounds = Rect(geometry.topLeft, geometry.imageSize)
             drawCheckerboard(imageBounds)
+            onionSkinBitmap?.let {
+                drawImage(
+                    image = it,
+                    dstOffset = IntOffset(geometry.topLeft.x.toInt(), geometry.topLeft.y.toInt()),
+                    dstSize = IntSize(geometry.imageSize.width.toInt(), geometry.imageSize.height.toInt()),
+                    filterQuality = FilterQuality.None,
+                )
+            }
             drawImage(
                 image = bitmap,
                 dstOffset = IntOffset(geometry.topLeft.x.toInt(), geometry.topLeft.y.toInt()),

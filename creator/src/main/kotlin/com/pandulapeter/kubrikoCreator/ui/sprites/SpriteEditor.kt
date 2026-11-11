@@ -29,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -53,6 +54,7 @@ import com.pandulapeter.kubrikoCreator.commands.resources.EditSprite
 import com.pandulapeter.kubrikoCreator.commands.resources.SaveSprite
 import com.pandulapeter.kubrikoCreator.commands.resources.SetPalette
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
+import com.pandulapeter.kubrikoCreator.sprites.pixels.OnionSkin
 import com.pandulapeter.kubrikoCreator.sprites.pixels.Pixel
 import com.pandulapeter.kubrikoCreator.sprites.pixels.PixelImage
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.spriteLabel
@@ -150,6 +152,7 @@ internal fun SpriteEditor(
                 frame = frame,
                 state = state,
                 onDraw = draw,
+                onionSkin = rememberOnionSkin(frames.frames, frameIndex, state),
             )
             VerticalDivider()
             SpriteColorsColumn(
@@ -161,12 +164,16 @@ internal fun SpriteEditor(
             )
         }
         HorizontalDivider()
-        SpriteFrameStrip(
-            frames = frames.frames,
-            shownIndex = frameIndex,
-            onShow = { index -> state.frameIndex = index.also { draw(state.settle(frame)) } },
-            onEdit = { operation -> problem = state.editFrames(path, operation.also { draw(state.settle(frame)) }) },
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            SpriteFrameStrip(
+                modifier = Modifier.weight(1f),
+                frames = frames.frames,
+                shownIndex = frameIndex,
+                onShow = { index -> state.frameIndex = index.also { draw(state.settle(frame)) } },
+                onEdit = { operation -> problem = state.editFrames(path, operation.also { draw(state.settle(frame)) }) },
+            )
+            if (frames.frames.size > 1) SpriteOnionSkinControls(state = state)
+        }
         HorizontalDivider()
         SpriteStatusLine(frame.width, frame.height, state)
     }
@@ -182,22 +189,27 @@ internal fun SpriteEditor(
             onDismiss = { askedAction = null },
         )
     }
-    pendingLeave?.let { proceed ->
-        SpriteUnsavedDialog(
-            path = path,
-            onSave = {
-                pendingLeave = null
-                save(proceed)
-            },
-            onDiscard = {
-                pendingLeave = null
-                state.discard()
-                proceed()
-            },
-            onDismiss = { pendingLeave = null },
-        )
-    }
+    pendingLeave?.let { proceed -> LeaveDialog(path, state, onSave = { save(proceed) }, onLeave = proceed, onClose = { pendingLeave = null }) }
 }
+
+/**
+ * Asks what becomes of the sprite's changes before leaving it: saved ([onSave], which leaves once they are) or dropped
+ * before [onLeave], or kept, staying.
+ */
+@Composable
+private fun LeaveDialog(path: String, state: SpriteEditorState, onSave: () -> Unit, onLeave: () -> Unit, onClose: () -> Unit) = SpriteUnsavedDialog(
+    path = path,
+    onSave = {
+        onClose()
+        onSave()
+    },
+    onDiscard = {
+        onClose()
+        state.discard()
+        onLeave()
+    },
+    onDismiss = onClose,
+)
 
 /**
  * Saves the draft through [onCommand] (putting down what floats on [frame], frame [frameIndex], first), calling [onSaved]
@@ -240,6 +252,17 @@ internal fun SpriteEditorState.onDraftKey(key: Key, isShortcut: Boolean, isShift
         }
         else -> false
     }
+}
+
+/**
+ * The onion skin of frame [frameIndex] of [frames] as [state] sets it, or null while it is off.
+ */
+@Composable
+private fun rememberOnionSkin(frames: List<PixelImage>, frameIndex: Int, state: SpriteEditorState): PixelImage? {
+    val isOn = state.isOnionSkinOn
+    val reach = state.onionSkinReach
+    val opacity = state.onionSkinOpacity
+    return remember(frames, frameIndex, isOn, reach, opacity) { if (isOn) OnionSkin.of(frames, frameIndex, reach, opacity) else null }
 }
 
 /**
