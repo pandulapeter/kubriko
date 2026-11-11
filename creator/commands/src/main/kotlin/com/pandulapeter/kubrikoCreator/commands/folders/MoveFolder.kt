@@ -34,7 +34,6 @@ public object MoveFolder : WriteCommand<MoveFolder.Input> {
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Project
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateFolder(input.group, input.path)
-        ?: context.validateFolder(input.group, input.folder)
         ?: when {
             input.path.isEmpty() -> Rejection(CommandProblem.FOLDER_TOP)
             FolderPaths.isWithin(input.folder, input.path) -> Rejection(CommandProblem.FOLDER_INTO_ITSELF, input.path)
