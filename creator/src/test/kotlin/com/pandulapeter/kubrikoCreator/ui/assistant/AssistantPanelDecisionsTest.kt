@@ -11,6 +11,9 @@ package com.pandulapeter.kubrikoCreator.ui.assistant
 
 import com.agentclientprotocol.model.AuthMethodId
 import com.agentclientprotocol.model.AvailableCommand
+import com.agentclientprotocol.model.PlanEntry
+import com.agentclientprotocol.model.PlanEntryPriority
+import com.agentclientprotocol.model.PlanEntryStatus
 import com.agentclientprotocol.model.SessionConfigGroupId
 import com.agentclientprotocol.model.SessionConfigOption
 import com.agentclientprotocol.model.SessionConfigSelectGroup
@@ -20,6 +23,8 @@ import com.agentclientprotocol.model.SessionConfigValueId
 import com.agentclientprotocol.model.ToolCallId
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentChoice
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantChat
+import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantTranscript
+import com.pandulapeter.kubrikoCreator.ai.assistant.ChatState
 import com.pandulapeter.kubrikoCreator.ai.assistant.RegistryAgent
 import com.pandulapeter.kubrikoCreator.ai.assistant.SavedConversation
 import com.pandulapeter.kubrikoCreator.ai.assistant.SignInMethod
@@ -182,5 +187,14 @@ class AssistantPanelDecisionsTest {
                 }
             },
         )
+    }
+
+    @Test
+    fun aPlanIsOfferedForApprovalOnlyOnceTheAgentTakesPromptsAgain() {
+        val proposed = AssistantTranscript(plan = listOf(PlanEntry("Add Lives", PlanEntryPriority.MEDIUM, PlanEntryStatus.PENDING)), isPlanNew = true)
+        assertTrue(isPlanApprovalOffered(proposed, ChatState.Ready, isBusy = false))
+        assertFalse(isPlanApprovalOffered(proposed, ChatState.Ready, isBusy = true))
+        assertFalse(isPlanApprovalOffered(proposed, ChatState.Starting, isBusy = false))
+        assertFalse(isPlanApprovalOffered(proposed.copy(isPlanNew = false), ChatState.Ready, isBusy = false))
     }
 }

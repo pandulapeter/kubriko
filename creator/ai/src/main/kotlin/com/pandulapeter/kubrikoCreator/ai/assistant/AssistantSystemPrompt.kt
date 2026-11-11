@@ -56,7 +56,8 @@ public object AssistantSystemPrompt {
         |what they say is no longer true, edit them in the same turn, so that Keep and Undo take both together.
         |
         |For a question that takes many reads, ask the ${ClaudeAgentOptions.EXPLORER_NAME} subagent where you have it. For a request
-        |that takes many changes, lay out a short plan first (your plan updates show as a checklist) and ask before going on.
+        |that takes many changes, lay out a short plan first (your plan updates show as a checklist with an Approve button)
+        |and end your turn there, without ask_user: the user approves it or says what to change.
         |
         |The Block catalog, as get_block_catalog returns it:
         |${GetBlockCatalog.catalog}

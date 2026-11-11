@@ -35,6 +35,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.AgentChoice
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentDownload
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantChat
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantPanelModel
+import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantTranscript
 import com.pandulapeter.kubrikoCreator.ai.assistant.AttentionChip
 import com.pandulapeter.kubrikoCreator.ai.assistant.AuthStatus
 import com.pandulapeter.kubrikoCreator.ai.assistant.ChatState
@@ -252,7 +253,7 @@ private fun ChatContent(
     }
     if (transcript.plan.isNotEmpty()) {
         HorizontalDivider()
-        PlanChecklist(transcript.plan)
+        PlanChecklist(transcript.plan, onApprove = { text: String -> chat.send(text) }.takeIf { isPlanApprovalOffered(transcript, state, isBusy) })
     }
     signInArea(transcript.needsSignIn)
     permissionRequest?.let { request ->
@@ -354,3 +355,10 @@ private fun rememberSystemTerminalOffer(model: AssistantPanelModel): SystemTermi
     val onContinue = remember(model) { model::signInInSystemTerminal }
     return SystemTerminalOffer(isOpening, hasFailed, onContinue)
 }
+
+/**
+ * Whether the plan's Approve button shows: the agent laid out a plan in its last turn and started none of it, and it
+ * takes prompts again. An agent waiting for an answer is still working, so it is answered rather than sent an approval.
+ */
+internal fun isPlanApprovalOffered(transcript: AssistantTranscript, state: ChatState, isBusy: Boolean) =
+    transcript.isPlanAwaitingApproval && state == ChatState.Ready && !isBusy

@@ -341,6 +341,22 @@ class AssistantPanelTest {
     }
 
     @Test
+    fun aPlanTheAgentLaidOutIsApprovedFromItsChecklist() = uiTest {
+        val chat = readyChat()
+        val model = FakeAssistantPanelModel().apply { currentChat.value = chat }
+        showing { AssistantPanel(model = model, aiSteps = emptyList(), onShowStep = {}) }
+        runBlocking { withContext(mainThread) { chat.send("propose") } }
+        waitUntil(timeoutMillis = 10_000) { chat.transcript.value.isPlanAwaitingApproval && !chat.isBusy.value }
+        onNodeWithText("Lose a life when the ball falls").assertExists()
+        saveSnapshot("assistant-plan-approval")
+        onNodeWithText("Approve").performClick()
+        waitUntil(timeoutMillis = 10_000) { launcher.agents.single().prompts.size == 2 }
+        assertEquals(listOf("propose", "The plan is approved: go ahead."), launcher.agents.single().prompts)
+        waitUntil(timeoutMillis = 10_000) { !chat.isBusy.value }
+        onNodeWithText("Approve").assertDoesNotExist()
+    }
+
+    @Test
     fun aConversationTheUserIsDoneWithIsLeftForANewOneWithoutStoppingAnything() = uiTest {
         val chat = readyChat()
         val model = FakeAssistantPanelModel().apply { currentChat.value = chat }

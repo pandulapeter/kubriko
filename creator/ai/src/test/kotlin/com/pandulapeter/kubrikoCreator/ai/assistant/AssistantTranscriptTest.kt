@@ -23,7 +23,9 @@ import com.pandulapeter.kubrikoCreator.commands.ChangeRecord
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class AssistantTranscriptTest {
 
@@ -84,6 +86,19 @@ class AssistantTranscriptTest {
         assertEquals(listOf(entry), transcript.plan)
         assertEquals(emptyList(), transcript.items)
         assertEquals(emptyList(), transcript.withUpdate(SessionUpdate.PlanRemoved("plan")).plan)
+    }
+
+    @Test
+    fun aPlanAwaitsApprovalUntilTheUserAnswersOrTheAgentStartsIt() {
+        val pending = listOf(PlanEntry("Add Lives", PlanEntryPriority.MEDIUM, PlanEntryStatus.PENDING), PlanEntry("Lose a life", PlanEntryPriority.MEDIUM, PlanEntryStatus.PENDING))
+        val proposed = AssistantTranscript().withUserMessage("Add lives").with(SessionUpdate.PlanUpdate(pending))
+        assertTrue(proposed.isPlanAwaitingApproval)
+        assertFalse(proposed.withUserMessage("Go ahead").isPlanAwaitingApproval)
+        assertFalse(proposed.with(SessionUpdate.UserMessageChunk(ContentBlock.Text("Go ahead"))).isPlanAwaitingApproval)
+        assertFalse(proposed.with(SessionUpdate.PlanUpdate(listOf(pending[0].copy(status = PlanEntryStatus.IN_PROGRESS), pending[1]))).isPlanAwaitingApproval)
+        assertFalse(proposed.withUpdate(SessionUpdate.PlanRemoved("plan")).isPlanAwaitingApproval)
+        assertFalse(AssistantTranscript().with(SessionUpdate.PlanUpdate(emptyList())).isPlanAwaitingApproval)
+        assertTrue(proposed.withUserMessage("Fewer lives").with(SessionUpdate.PlanUpdate(pending)).isPlanAwaitingApproval)
     }
 
     @Test

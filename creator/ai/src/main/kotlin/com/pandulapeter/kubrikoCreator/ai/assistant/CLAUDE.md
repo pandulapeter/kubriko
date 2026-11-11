@@ -77,6 +77,10 @@ Hosts Agent Client Protocol agents through the official Kotlin SDK. Tests run `F
 - **Turns:** a turn that changed the project lists what changed before its final answer (`TurnChanges`) and ends with Keep and
   Undo (`TurnReview`, shown only when the setting is on), which reverts the conversation's own changes through the undo history
   while they are the newest (`CommandExecutor.undoTurn`).
+- **Plans:** a plan the agent laid out in its last turn and started none of (`AssistantTranscript.isPlanAwaitingApproval`)
+  is approved from its checklist, whose Approve button sends the approval as the user's next message. The system prompt
+  asks the agent to end its turn on a plan rather than ask with `ask_user`, so this works for any agent that reports
+  plans, and the user can still answer with what to change instead.
 - **Last time:** a new conversation hears what the project's previous one noted with `remember_for_next_time` (which the
   system prompt asks for once a request is done), or else the start of its last answer. The note is written during the
   turn rather than asked for when a conversation is left, since the next conversation starts as soon as the project opens.

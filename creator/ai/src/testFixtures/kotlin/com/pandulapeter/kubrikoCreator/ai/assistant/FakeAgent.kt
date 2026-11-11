@@ -78,6 +78,7 @@ import kotlin.time.Duration
  * - `crash`: the process ends with exit code 1;
  * - `later`: ends the turn, then sends a message outside any prompt;
  * - `tool`: a plan, a tool call of Kubriko Creator's that completes, and a message;
+ * - `propose`: a plan of two steps it hasn't started, and a message asking for its approval;
  * - `mode`: says whether the conversation is in its read-only mode (`read-only`) or not (`writable`);
  * - `write`: edits a file with its own tool without asking, or, in its read-only mode, says it can't (`refused`).
  *
@@ -284,6 +285,11 @@ public class FakeAgent(
                     emit(Event.SessionUpdateEvent(SessionUpdate.ToolCall(ToolCallId("tool-1"), "mcp__kubriko-creator__list_scenes", status = ToolCallStatus.PENDING)))
                     emit(Event.SessionUpdateEvent(SessionUpdate.ToolCallUpdate(ToolCallId("tool-1"), status = ToolCallStatus.COMPLETED)))
                     emit(Event.SessionUpdateEvent(message("Done")))
+                }
+                "propose" -> {
+                    val steps = listOf("Add a Lives Property", "Lose a life when the ball falls")
+                    emit(Event.SessionUpdateEvent(SessionUpdate.PlanUpdate(steps.map { PlanEntry(it, PlanEntryPriority.MEDIUM, PlanEntryStatus.PENDING) })))
+                    emit(Event.SessionUpdateEvent(message("Shall I go ahead?")))
                 }
                 "write" -> if (isReadOnly) {
                     emit(Event.SessionUpdateEvent(message(REFUSED)))

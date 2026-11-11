@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.agentclientprotocol.model.ContentBlock
 import com.agentclientprotocol.model.PlanEntry
+import com.agentclientprotocol.model.PlanEntryStatus
 import com.agentclientprotocol.model.SessionUpdate
 import com.agentclientprotocol.model.StopReason
 import com.pandulapeter.kubrikoCreator.commands.ChangeRecord
@@ -19,11 +20,13 @@ import com.pandulapeter.kubrikoCreator.commands.ChangeRecord
  * A conversation as the assistant panel shows it, built up from what the user sends and the agent reports.
  *
  * @param plan The agent's latest plan, shown as a checklist.
+ * @param isPlanNew Whether the agent reported [plan] after the user's last message, so the user hasn't answered it yet.
  * @param usage What the conversation uses and cost, where the agent reports it.
  */
 public data class AssistantTranscript(
     val items: List<TranscriptItem> = emptyList(),
     val plan: List<PlanEntry> = emptyList(),
+    val isPlanNew: Boolean = false,
     val usage: ConversationUsage? = null,
 ) {
     /**
@@ -31,7 +34,13 @@ public data class AssistantTranscript(
      */
     public val title: String? get() = items.firstNotNullOfOrNull { (it as? TranscriptItem.UserMessage)?.text }
 
-    internal fun withUserMessage(text: String) = copy(items = items + TranscriptItem.UserMessage(text))
+    /**
+     * Whether the agent laid out a plan in its last turn and started none of it, which the user approves (or changes)
+     * before it goes on.
+     */
+    public val isPlanAwaitingApproval: Boolean get() = isPlanNew && plan.isNotEmpty() && plan.all { it.status == PlanEntryStatus.PENDING }
+
+    internal fun withUserMessage(text: String) = copy(items = items + TranscriptItem.UserMessage(text), isPlanNew = false)
 
     internal fun withUpdate(update: SessionUpdate): AssistantTranscript = when (update) {
         is SessionUpdate.AgentMessageChunk -> update.content.text()?.let { text ->
@@ -41,7 +50,7 @@ public data class AssistantTranscript(
             copy(items = items.appending(text, { (it as? TranscriptItem.Thought)?.text }, TranscriptItem::Thought))
         } ?: this
         is SessionUpdate.UserMessageChunk -> update.content.text()?.let { text ->
-            copy(items = items.appending(text, { (it as? TranscriptItem.UserMessage)?.text }, TranscriptItem::UserMessage))
+            copy(items = items.appending(text, { (it as? TranscriptItem.UserMessage)?.text }, TranscriptItem::UserMessage), isPlanNew = false)
         } ?: this
         is SessionUpdate.ToolCall -> withToolCall(TranscriptItem.ToolCall(update.toolCallId, update.title, update.kind, update.status))
         is SessionUpdate.ToolCallUpdate -> {
@@ -55,8 +64,8 @@ public data class AssistantTranscript(
                 ),
             )
         }
-        is SessionUpdate.PlanUpdate -> copy(plan = update.entries)
-        is SessionUpdate.PlanRemoved -> copy(plan = emptyList())
+        is SessionUpdate.PlanUpdate -> copy(plan = update.entries, isPlanNew = true)
+        is SessionUpdate.PlanRemoved -> copy(plan = emptyList(), isPlanNew = false)
         is SessionUpdate.UsageUpdate -> copy(usage = ConversationUsage(update.used, update.size, update.cost?.amount, update.cost?.currency))
         else -> this
     }
