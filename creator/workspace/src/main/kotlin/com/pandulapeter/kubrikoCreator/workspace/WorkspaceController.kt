@@ -24,11 +24,9 @@ import com.pandulapeter.kubrikoCreator.project.ExpectDeclarations
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
 import com.pandulapeter.kubrikoCreator.project.ProjectFormat
 import com.pandulapeter.kubrikoCreator.project.ProjectFormatStatus
-import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ProjectSnapshot
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
-import com.pandulapeter.kubrikoCreator.project.UnreadableProjectFileException
 import com.pandulapeter.kubrikoCreator.sceneRuntime.ClassLoaderEntryPointLoader
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingController
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneRuntimeSetup
@@ -56,7 +54,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
-import java.io.IOException
 
 /**
  * Holds the state of an open project: its resources, its console, and the session process that runs or edits it.
@@ -112,13 +109,16 @@ public class WorkspaceController(
 
     /** The lines of the workspace console, oldest first. */
     public val console: StateFlow<ConsoleLines> = consoleLog.lines
-    private val _formatStatus = MutableStateFlow(initialFormatStatus)
+    private val format = ProjectFormatState(initialFormatStatus, projectFormat, scope, ioDispatcher, ::appendToConsole) { status ->
+        refreshProjectUpgrade()
+        if (status == ProjectFormatStatus.Writable) blockTypes?.regenerate()
+    }
 
     /**
      * Whether this Kubriko Creator may change the project: one saved by a newer Kubriko Creator is only browsed, built,
      * and played, rejecting every change, and generating no code.
      */
-    public val formatStatus: StateFlow<ProjectFormatStatus> = _formatStatus.asStateFlow()
+    public val formatStatus: StateFlow<ProjectFormatStatus> = format.status
 
     /**
      * The platforms the game is built for, turned on and off through `set_target`, or null if they can't be changed here.
@@ -165,7 +165,7 @@ public class WorkspaceController(
             listener = BlockTypesReport(consoleLog) { haveTypesChanged -> savedTypeBatches.trySend(haveTypesChanged) },
             syncBuildFiles = setup.syncBuildFiles,
             writeDelayInMilliseconds = setup.writeDelayInMilliseconds,
-            isReadOnly = { _formatStatus.value is ProjectFormatStatus.ReadOnly },
+            isReadOnly = { format.isReadOnly },
         )
     }
     private val tasks = CreatorTaskRunner(
@@ -280,7 +280,7 @@ public class WorkspaceController(
             players.onCodeChanged()
         },
         refreshGit = git::refresh,
-        refreshFormatStatus = ::refreshFormatStatus,
+        refreshFormatStatus = format::refresh,
         reloadTypes = { blockTypes?.reloadFromDisk() },
         refreshProjectUpgrade = ::refreshProjectUpgrade,
     )
@@ -313,7 +313,7 @@ public class WorkspaceController(
 
                 override val targets = files.targets
             },
-            rejectChanges = { (_formatStatus.value as? ProjectFormatStatus.ReadOnly)?.toRejection() },
+            rejectChanges = { (format.status.value as? ProjectFormatStatus.ReadOnly)?.toRejection() },
         ),
         scope = scope,
         onRejected = { appendToConsole(ConsoleEntry.Status(it.reason, isError = true, arguments = it.arguments)) },
@@ -383,37 +383,12 @@ public class WorkspaceController(
         playTargets.startRefresh()
         scope.launch {
             _projectUpgrade.value = withContext(ioDispatcher) {
-                if (_formatStatus.value is ProjectFormatStatus.ReadOnly) {
+                if (format.isReadOnly) {
                     TemplateUpgrade.UpToDate
                 } else {
                     upgrader.recordVersionIfUpToDate()
                     upgrader.check()
                 }
-            }
-        }
-    }
-
-    /**
-     * Checks the project's format version again after `.kubriko/project.json` changed (a git checkout of a branch a newer
-     * Kubriko Creator saved, for example), migrating an older one; the files a migration rewrites are then reloaded as
-     * any other change on disk.
-     */
-    private fun refreshFormatStatus() {
-        scope.launch {
-            val status = try {
-                withContext(ioDispatcher) { projectFormat.prepare() }
-            } catch (exception: UnreadableProjectFileException) {
-                appendToConsole(ConsoleEntry.Status(exception.reason, isError = true, arguments = exception.arguments))
-                return@launch
-            } catch (exception: IOException) {
-                appendToConsole(ConsoleEntry.Status(ProjectProblem.FORMAT_NOT_UPGRADED, isError = true, arguments = listOf(exception.message ?: exception.toString())))
-                return@launch
-            }
-            val previous = _formatStatus.value
-            _formatStatus.value = status
-            if (status != previous) {
-                refreshProjectUpgrade()
-                if (status == ProjectFormatStatus.Writable) blockTypes?.regenerate()
             }
         }
     }
