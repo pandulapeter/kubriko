@@ -25,6 +25,7 @@ import com.pandulapeter.kubrikoCreator.commands.project.UpgradeProject
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.context.HealthFinding
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.gradle.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
@@ -44,6 +45,7 @@ import com.pandulapeter.kubrikoCreator.session.GameLaunch
 import com.pandulapeter.kubrikoCreator.session.GameProcess
 import com.pandulapeter.kubrikoCreator.session.JavaArgumentFile
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
@@ -77,7 +79,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, EditorMutation::class)
 class WorkspaceControllerTest {
     private val rootDirectory = File("/projects/game")
     private val scene = ProjectResource(
@@ -602,6 +604,25 @@ class WorkspaceControllerTest {
         assertTrue(build.currentRun.isCancelled)
         assertTrue(build.isClosed)
         assertTrue(channel.isClosed)
+    }
+
+    @Test
+    fun cuttingASpriteIntoFramesRegeneratesTheTypesOnceAndOnlyWhenItChanges() = runTest {
+        val root = createTempDirectory().toFile()
+        try {
+            val repository = FakeBlockTypeRepository()
+            val controller = createController(blockTypeRepository = repository, rootDirectory = root)
+            advanceTimeBy(1_000)
+            repository.writes.clear()
+            controller.commands.context.spriteFolders.setSheet("bat", SpriteSheet(frameWidth = 8, frameHeight = 8, frameCount = 2, framesPerRow = 2))
+            advanceTimeBy(1_000)
+            assertEquals(listOf("regenerate"), repository.writes)
+            controller.commands.context.spriteFolders.refresh()
+            advanceTimeBy(1_000)
+            assertEquals(listOf("regenerate"), repository.writes)
+        } finally {
+            root.deleteRecursively()
+        }
     }
 
     @Test

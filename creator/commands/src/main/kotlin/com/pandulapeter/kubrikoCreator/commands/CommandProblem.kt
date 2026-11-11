@@ -115,6 +115,8 @@ public enum class CommandProblem(override val english: String) : DomainText {
     INTERNAL("Kubriko Creator ran into an internal error, so nothing was done: %1\$s. This is a problem in Kubriko Creator, not in the request."),
     NOT_A_RESOURCE_GROUP("list_resources lists sprites, sounds, or music; list_actor_types, list_manager_types, list_scenes, and list_pages list the rest."),
     SPRITE_NOT_MOVED("Kubriko Creator couldn't move %1\$s to that folder, so it stays where it was: %2\$s"),
+    SPRITE_SHEET_NOT_WRITTEN("Kubriko Creator couldn't save how %1\$s is cut into frames, so it stays as it was: %2\$s"),
+    SPRITE_SHEET_DOES_NOT_FIT("%1\$s is %2\$s by %3\$s pixels, which the frames don't fit: their rows take more room than it has."),
     SCENE_FOLDER_RESERVED("A Scene folder can't be called %1\$s, since Kubriko Creator skips such folders, as build tools do."),
     SCENE_NAME_TAKEN("There's already a Scene with that name."),
     SCENE_NOT_MOVED("Kubriko Creator couldn't move the Scene %1\$s, so nothing changed. Another program, such as the running game, may have its file open."),

@@ -715,9 +715,12 @@
     <string name="command_move_to_folder">Move to folder</string>
     <string name="command_list_resources">List resources</string>
     <string name="command_move_sprite_to_folder">Move sprite to folder</string>
+    <string name="command_set_sprite_sheet">Cut sprite into frames</string>
     <string name="error_audio_folder_reserved">%1$s can't hold sounds or music: files/scenes holds the Scenes.</string>
     <string name="error_not_a_resource_group">list_resources lists sprites, sounds, or music; list_actor_types, list_manager_types, list_scenes, and list_pages list the rest.</string>
     <string name="error_sprite_not_moved">Kubriko Creator couldn't move %1$s to that folder, so it stays where it was: %2$s</string>
+    <string name="error_sprite_sheet_not_written">Kubriko Creator couldn't save how %1$s is cut into frames, so it stays as it was: %2$s</string>
+    <string name="error_sprite_sheet_does_not_fit">%1$s is %2$s by %3$s pixels, which the frames don't fit: their rows take more room than it has.</string>
     <string name="error_scene_folder_reserved">A Scene folder can't be called %1$s, since Kubriko Creator skips such folders, as build tools do.</string>
     <string name="error_scene_name_taken">There's already a Scene with that name.</string>
     <string name="command_create_scene">Create Scene</string>

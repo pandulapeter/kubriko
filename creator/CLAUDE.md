@@ -157,7 +157,7 @@ Besides its tests passing, a change:
 | Path | Owner | When changed elsewhere |
 |---|---|---|
 | `.kubriko/actors/**/*.json`, `.kubriko/managers/**/*.json` | Creator | Reloaded within a second; code regenerated. |
-| `.kubriko/sprites/**/*.json` (the sprites' folders) | Creator | Read again with the resource tree within a second. A directory is a folder and `<sprite>.json` puts a sprite in it; a sprite without one is in no folder. |
+| `.kubriko/sprites/**/*.json` (the sprites' folders and sheets) | Creator | Read again with the resource tree within a second. A directory is a folder and `<sprite>.json` puts a sprite in it; a sprite without one is in no folder. The file also holds how the sprite is cut into frames (`SpriteSheet`, through `set_sprite_sheet`), and a change to that, whoever made it, regenerates the types (`ProjectChanges.onSpriteSheetsChanged`). |
 | `.kubriko/project.json` | Creator | Its format is checked again within a second. One that can't be read is named with what is wrong in it, in plain words rather than the parser's (`ProjectSettingsReader`, which `ProjectFormat` reads it through too, so both refuse the same files): it stops the opening, or is reported in the console while the project is open; a newer format's project opens without its types instead, since only browsing it needs none. |
 | `.kubriko/scenes.json` (Scene descriptions) | Creator | Read again whenever it is used; a file that can't be read holds none. |
 | `<package>/generated/*.kt` | Creator | Checksum mismatch → Creator stops updating it and offers to discard the edits. Committed, so projects build without Creator. |
@@ -358,7 +358,8 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
 - **Sprites' folders** are virtual (`SpriteFolderStore`), since Compose resources make accessors only of the images right
   in `drawable`: moving a sprite between them (`move_sprite_to_folder`) or renaming one changes only `.kubriko/sprites`,
   never the image's path, so nothing that uses it follows. A sprite's file goes with its renames and deletes (`delete_resource`
-  takes it into the same `ReplaceFiles` step, so undo puts it back), and holds what sprite sheets will keep about it.
+  takes it into the same `ReplaceFiles` step, so undo puts it back), and holds how the sprite is cut into frames. A sheet
+  that doesn't fit the image is refused when it is set, which reads the image's size off the main thread.
 
 ## Builds and playing
 

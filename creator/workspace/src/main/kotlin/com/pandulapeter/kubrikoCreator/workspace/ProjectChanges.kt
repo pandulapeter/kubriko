@@ -112,6 +112,16 @@ internal class ProjectChanges(
     }
 
     /**
+     * Follows a change to how sprites are cut into frames, whoever made it: the types drawn as them are generated again,
+     * so the Scene view and the playing game follow their code.
+     */
+    fun onSpriteSheetsChanged() {
+        following(regenerate)
+        following(markSceneOutdated)
+        following(onCodeChanged)
+    }
+
+    /**
      * Follows a batch of block type writes, which changed the types themselves when [haveTypesChanged] (and only their
      * generated code otherwise, which the resource tree leaves out).
      */

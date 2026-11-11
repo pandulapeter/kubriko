@@ -112,6 +112,8 @@ import kubriko.creator.generated.resources.error_scene_folder_reserved
 import kubriko.creator.generated.resources.error_scene_name_taken
 import kubriko.creator.generated.resources.error_scene_not_moved
 import kubriko.creator.generated.resources.error_sprite_not_moved
+import kubriko.creator.generated.resources.error_sprite_sheet_does_not_fit
+import kubriko.creator.generated.resources.error_sprite_sheet_not_written
 import kubriko.creator.generated.resources.warning_resource_music_not_followed
 import kubriko.creator.generated.resources.warning_resource_named_in_code
 import kubriko.creator.generated.resources.warning_scene_named_in_code
@@ -221,6 +223,8 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.INTERNAL -> Res.string.error_mcp_internal
     CommandProblem.NOT_A_RESOURCE_GROUP -> Res.string.error_not_a_resource_group
     CommandProblem.SPRITE_NOT_MOVED -> Res.string.error_sprite_not_moved
+    CommandProblem.SPRITE_SHEET_NOT_WRITTEN -> Res.string.error_sprite_sheet_not_written
+    CommandProblem.SPRITE_SHEET_DOES_NOT_FIT -> Res.string.error_sprite_sheet_does_not_fit
     CommandProblem.SCENE_FOLDER_RESERVED -> Res.string.error_scene_folder_reserved
     CommandProblem.SCENE_NAME_TAKEN -> Res.string.error_scene_name_taken
     CommandProblem.SCENE_NOT_MOVED -> Res.string.error_scene_not_moved

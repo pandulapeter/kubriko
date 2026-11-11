@@ -84,6 +84,7 @@ import com.pandulapeter.kubrikoCreator.commands.resources.AddResource
 import com.pandulapeter.kubrikoCreator.commands.resources.DeleteResource
 import com.pandulapeter.kubrikoCreator.commands.resources.ListResources
 import com.pandulapeter.kubrikoCreator.commands.resources.RenameResource
+import com.pandulapeter.kubrikoCreator.commands.resources.SetSpriteSheet
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.ListScenes
@@ -251,6 +252,7 @@ public class CommandRegistry(
                 AddResource,
                 RenameResource,
                 DeleteResource,
+                SetSpriteSheet,
                 PlaceActor,
                 PlaceActors,
                 MoveActor,
