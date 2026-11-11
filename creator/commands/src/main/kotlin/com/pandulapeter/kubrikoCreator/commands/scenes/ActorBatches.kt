@@ -135,7 +135,7 @@ internal fun CommandContext.validateRestorations(scene: String, restorations: Li
         val ids = actors.mapTo(HashSet()) { it.id }
         restorations.withIndex().firstNotNullOfOrNull { (position, restored) ->
             when {
-                restored.actorIndex !in 0..actors.size + position -> Rejection(CommandProblem.INDEX_INVALID, restored.actorIndex.toString())
+                restored.actorIndex !in 0..actors.size + position -> Rejection(CommandProblem.INDEX_INVALID, restored.actorIndex.toString(), (actors.size + position).toString())
                 SceneDocument.stateObject(restored.state) == null -> Rejection(CommandProblem.SCENE_CONTENT_INVALID)
                 else -> restored.actorId?.let { id -> validateNewActorId(id) { it in ids } }
             }

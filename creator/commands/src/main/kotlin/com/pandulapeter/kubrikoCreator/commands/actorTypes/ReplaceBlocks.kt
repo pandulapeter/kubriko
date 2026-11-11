@@ -48,8 +48,9 @@ public object ReplaceBlocks : WriteCommand<ReplaceBlocks.Input> {
         val size = context.requireType(input.actorType).events[input.eventIndex].blocks.size
         when {
             input.count < 0 || (input.count == 0 && input.blocks.isEmpty()) -> Rejection(CommandProblem.BLOCKS_NOTHING_TO_REPLACE)
-            input.index !in 0..size -> Rejection(CommandProblem.BLOCK_MISSING, input.actorType, input.eventIndex.toString(), input.index.toString())
-            input.count > size - input.index -> Rejection(CommandProblem.BLOCK_MISSING, input.actorType, input.eventIndex.toString(), size.toString())
+            input.index !in 0..size -> Rejection(CommandProblem.BLOCK_INSERTION_INDEX_INVALID, input.actorType, input.eventIndex.toString(), size.toString())
+            input.count > size - input.index ->
+                Rejection(CommandProblem.BLOCKS_COUNT_TOO_LARGE, input.actorType, input.eventIndex.toString(), (size - input.index).toString(), input.index.toString())
             else -> null
         }
     }

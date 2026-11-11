@@ -13,10 +13,12 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 import com.pandulapeter.kubrikoCreator.commands.toRejection
 import com.pandulapeter.kubrikoCreator.screenplay.Mention
 import com.pandulapeter.kubrikoCreator.screenplay.PageLinks
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
+import com.pandulapeter.kubrikoCreator.screenplay.PageText
 import com.pandulapeter.kubrikoCreator.screenplay.ScreenplayStyle
 
 /**
@@ -27,7 +29,24 @@ internal const val PAGE_MAXIMUM_LENGTH = 30_000
 /**
  * Why there is no page called [name], or null if there is one.
  */
-internal fun CommandContext.validatePage(name: String): Rejection? = if (screenplay.existingName(name) == name) null else Rejection(CommandProblem.PAGE_MISSING, name)
+internal fun CommandContext.validatePage(name: String): Rejection? = if (screenplay.existingName(name) == name) null else missingPage(name, screenplay.names())
+
+/**
+ * Why there is no page called [name] among [names], naming the ones called similarly.
+ */
+internal fun missingPage(name: String, names: List<String>) = SimilarNames.rejection(CommandProblem.PAGE_MISSING, CommandProblem.PAGE_MISSING_SIMILAR, name, names, name)
+
+/**
+ * Why the page or document [file], which holds [text], has no section headed [heading], naming the sections it has.
+ */
+internal fun missingSection(file: String, heading: String, text: String): Rejection {
+    val headings = PageText.sectionsOf(text).map { it.heading }.distinct()
+    return if (headings.isEmpty()) {
+        Rejection(CommandProblem.PAGE_SECTION_MISSING, file, heading)
+    } else {
+        Rejection(CommandProblem.PAGE_SECTION_MISSING_LISTED, file, heading, headings.joinToString())
+    }
+}
 
 /**
  * Why [name] can't be the name of a new page (or of [renamed] moved), or null if it can.

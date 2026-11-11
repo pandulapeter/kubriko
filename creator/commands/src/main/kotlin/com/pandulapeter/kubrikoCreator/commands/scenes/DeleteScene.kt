@@ -37,7 +37,7 @@ public object DeleteScene : DeletingCommand<DeleteScene.Input> {
 
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Scene(input.scene)
 
-    override fun validate(context: CommandContext, input: Input): Rejection? = if (context.scenes.exists(input.scene)) null else Rejection(CommandProblem.SCENE_MISSING, input.scene)
+    override fun validate(context: CommandContext, input: Input): Rejection? = if (context.scenes.exists(input.scene)) null else context.missingScene(input.scene)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val isFirst = !input.isUndoingCreation && withContext(context.ioDispatcher) { firstSceneSettings(context.project.rootDirectory)?.firstScene == input.scene }

@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.screenplay
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 import com.pandulapeter.kubrikoCreator.commands.toRejection
 import com.pandulapeter.kubrikoCreator.screenplay.DocumentNaming
 
@@ -23,7 +24,11 @@ internal const val DOCUMENT_MAXIMUM_LENGTH = 200_000
 /**
  * Why there is no document at [path], or null if there is one.
  */
-internal fun CommandContext.validateDocument(path: String): Rejection? = if (documents.isKnown(path)) null else Rejection(CommandProblem.DOCUMENT_MISSING, path)
+internal fun CommandContext.validateDocument(path: String): Rejection? = if (documents.isKnown(path)) {
+    null
+} else {
+    SimilarNames.rejection(CommandProblem.DOCUMENT_MISSING, CommandProblem.DOCUMENT_MISSING_SIMILAR, path, documents.paths(), path)
+}
 
 /**
  * Why no new document can go to [path] (or [moved] be moved there), or null if one can.

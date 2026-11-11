@@ -36,8 +36,7 @@ public object SetEventOtherActorType : WriteCommand<SetEventOtherActorType.Input
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex) ?: when {
         context.requireType(input.actorType).events[input.eventIndex].type != EventType.COLLISION -> Rejection(PlacementProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED)
-        input.otherActorType != null && context.requireBlockTypes.actorType(input.otherActorType) == null -> Rejection(CommandProblem.ACTOR_TYPE_MISSING, input.otherActorType)
-        else -> null
+        else -> input.otherActorType?.let(context::validateActorType)
     }
 
     override fun validateRestoring(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex)

@@ -73,8 +73,8 @@ class ManagerTypeCommandsTest {
         assertEquals(Rejection(NameProblem.TYPE_TAKEN), Invocation(CreateManagerType, ManagerTypeDefinition("BRICK")).validate(context))
         assertEquals(Rejection(NameProblem.TYPE_TAKEN), Invocation(RenameActorType, RenameActorType.Input("Brick", "Game")).validate(context))
         assertEquals(Rejection(NameProblem.TYPE_TAKEN), Invocation(RenameManagerType, RenameManagerType.Input("Game", "Brick")).validate(context))
-        assertEquals(Rejection(CommandProblem.MANAGER_TYPE_MISSING, "Brick"), Invocation(DeleteManagerType, DeleteManagerType.Input("Brick")).validate(context))
-        assertEquals(Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Game"), Invocation(SetAppearance, SetAppearance.Input("Game", width = 5f)).validate(context))
+        assertEquals(Rejection(CommandProblem.MANAGER_TYPE_IS_ACTOR_TYPE, "Brick"), Invocation(DeleteManagerType, DeleteManagerType.Input("Brick")).validate(context))
+        assertEquals(Rejection(CommandProblem.ACTOR_TYPE_IS_MANAGER_TYPE, "Game"), Invocation(SetAppearance, SetAppearance.Input("Game", width = 5f)).validate(context))
     }
 
     @Test
@@ -99,7 +99,7 @@ class ManagerTypeCommandsTest {
         assertNull(Invocation(AddBlock, AddBlock.Input("Brick", 0, BlockDefinition.SetToggle("isOver", manager = "Game"))).validate(context))
         assertNull(Invocation(AddBlock, AddBlock.Input("Brick", 0, BlockDefinition.SetToggle(manager = "Game"))).validate(context))
         assertEquals(Rejection(CommandProblem.MANAGER_TYPE_MISSING, "Level"), Invocation(AddBlock, AddBlock.Input("Brick", 0, BlockDefinition.SetToggle("isOver", manager = "Level"))).validate(context))
-        assertEquals(Rejection(CommandProblem.MANAGER_TYPE_MISSING, "Brick"), Invocation(AddBlock, AddBlock.Input("Brick", 0, BlockDefinition.SetToggle("isOver", manager = "Brick"))).validate(context))
+        assertEquals(Rejection(CommandProblem.MANAGER_TYPE_IS_ACTOR_TYPE, "Brick"), Invocation(AddBlock, AddBlock.Input("Brick", 0, BlockDefinition.SetToggle("isOver", manager = "Brick"))).validate(context))
         assertEquals(Rejection(PlacementProblem.TOGGLE_PROPERTY_MISSING, "score", "Game"), Invocation(AddBlock, AddBlock.Input("Brick", 0, BlockDefinition.SetToggle("score", manager = "Game"))).validate(context))
     }
 
@@ -118,7 +118,7 @@ class ManagerTypeCommandsTest {
         assertEquals(listOf(lives, game.texts[0]), context.assertRoundTrip(Invocation(AddText, AddText.Input("Game", lives, index = 0))) { context.game()!!.texts })
         assertEquals(listOf(lives.copy(size = 40f), game.texts[0]), context.assertRoundTrip(Invocation(EditText, EditText.Input("Game", 0, lives.copy(size = 40f)))) { context.game()!!.texts })
         assertEquals(listOf(game.texts[0]), context.assertRoundTrip(Invocation(RemoveText, RemoveText.Input("Game", 0))) { context.game()!!.texts })
-        assertEquals(Rejection(CommandProblem.TEXT_MISSING, "Game", "3"), Invocation(RemoveText, RemoveText.Input("Game", 3)).validate(context))
+        assertEquals(Rejection(CommandProblem.TEXT_MISSING, "Game", "3", "0"), Invocation(RemoveText, RemoveText.Input("Game", 3)).validate(context))
         assertEquals(Rejection(CommandProblem.TEXT_SIZE_INVALID), Invocation(AddText, AddText.Input("Game", ScreenTextDefinition(size = 0f))).validate(context))
     }
 
@@ -128,7 +128,7 @@ class ManagerTypeCommandsTest {
         assertEquals("Column {}", context.assertRoundTrip(Invocation(SetKotlinUi, SetKotlinUi.Input("Game", "Column {}"))) { context.game()!!.kotlinUi })
         assertEquals(SetKotlinUi.mergeKey(SetKotlinUi.Input("Game", "a")), SetKotlinUi.mergeKey(SetKotlinUi.Input("Game", "ab")))
         assertNull(context.assertRoundTrip(Invocation(SetKotlinUi, SetKotlinUi.Input("Game", "  \n"))) { context.game()!!.kotlinUi })
-        assertEquals(Rejection(CommandProblem.MANAGER_TYPE_MISSING, "Brick"), Invocation(SetKotlinUi, SetKotlinUi.Input("Brick", "")).validate(context))
+        assertEquals(Rejection(CommandProblem.MANAGER_TYPE_IS_ACTOR_TYPE, "Brick"), Invocation(SetKotlinUi, SetKotlinUi.Input("Brick", "")).validate(context))
     }
 
     @Test

@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateType
 import com.pandulapeter.kubrikoCreator.commands.scenes.validateScene
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
@@ -52,7 +53,10 @@ public object GetRelations : ReadCommand<GetRelations.Input> {
             else -> RelationSubject.Scene(input.scene!!)
         }
         if (subject is RelationSubject.Property && context.blockTypes?.get(subject.owner)?.properties?.none { it.name == subject.name } != false) {
-            return CommandOutcome.Rejected(Rejection(CommandProblem.RELATIONS_PROPERTY_MISSING, input.property!!, input.type!!))
+            val names = context.blockTypes?.get(subject.owner)?.properties.orEmpty().map { it.name }
+            return CommandOutcome.Rejected(
+                SimilarNames.rejection(CommandProblem.RELATIONS_PROPERTY_MISSING, CommandProblem.RELATIONS_PROPERTY_MISSING_SIMILAR, input.property!!, names, input.property, input.type!!),
+            )
         }
         return CommandOutcome.Success(
             buildJsonObject {

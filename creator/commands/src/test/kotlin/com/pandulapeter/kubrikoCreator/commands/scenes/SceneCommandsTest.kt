@@ -124,8 +124,8 @@ class SceneCommandsTest {
         val context = context(wall, music)
         assertEquals(listOf(music, wall), context.assertRoundTrip(Invocation(MoveActorOrder, MoveActorOrder.Input("main", "wall", 1))) { context.main() })
         assertEquals(listOf(wall, music), context.assertRoundTrip(Invocation(MoveActorOrder, MoveActorOrder.Input("main", "music", 1))) { context.main() })
-        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "2"), MoveActorOrder.validate(context, MoveActorOrder.Input("main", "wall", 2)))
-        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "-1"), MoveActorOrder.validate(context, MoveActorOrder.Input("main", "wall", -1)))
+        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "2", "1"), MoveActorOrder.validate(context, MoveActorOrder.Input("main", "wall", 2)))
+        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "-1", "1"), MoveActorOrder.validate(context, MoveActorOrder.Input("main", "wall", -1)))
         assertEquals(Rejection(CommandProblem.SCENE_ACTOR_MISSING, "main", "ghost"), MoveActorOrder.validate(context, MoveActorOrder.Input("main", "ghost", 0)))
     }
 
@@ -135,7 +135,7 @@ class SceneCommandsTest {
         assertEquals(Rejection(CommandProblem.SCENE_ACTOR_MISSING, "main", "ghost"), RemoveActor.validate(context, RemoveActor.Input("main", "ghost")))
         assertEquals(Rejection(CommandProblem.SCENE_ACTOR_WITHOUT_POSITION, "music"), MoveActor.validate(context, MoveActor.Input("main", "music", 0f, 0f)))
         assertEquals(Rejection(CommandProblem.ACTOR_ID_TAKEN, "wall"), RestoreActor.validate(context, RestoreActor.Input("main", 0, "Wall", "{}", "wall")))
-        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "3"), RestoreActor.validate(context, RestoreActor.Input("main", 3, "Wall", "{}")))
+        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "3", "2"), RestoreActor.validate(context, RestoreActor.Input("main", 3, "Wall", "{}")))
         assertEquals(Rejection(CommandProblem.SCENE_CONTENT_INVALID), RestoreActor.validate(context, RestoreActor.Input("main", 0, "Wall", "[]")))
         @OptIn(EditorMutation::class)
         context.scenes.write("main", "broken")

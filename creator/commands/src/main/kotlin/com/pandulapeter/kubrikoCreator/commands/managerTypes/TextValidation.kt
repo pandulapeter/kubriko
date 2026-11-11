@@ -15,5 +15,11 @@ import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireManagerType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateManagerType
 
-internal fun CommandContext.validateTextIndex(managerType: String, index: Int): Rejection? = validateManagerType(managerType)
-    ?: if (index !in requireManagerType(managerType).texts.indices) Rejection(CommandProblem.TEXT_MISSING, managerType, index.toString()) else null
+internal fun CommandContext.validateTextIndex(managerType: String, index: Int): Rejection? = validateManagerType(managerType) ?: run {
+    val texts = requireManagerType(managerType).texts
+    when {
+        index in texts.indices -> null
+        texts.isEmpty() -> Rejection(CommandProblem.TEXT_MISSING_NONE, managerType, index.toString())
+        else -> Rejection(CommandProblem.TEXT_MISSING, managerType, index.toString(), texts.lastIndex.toString())
+    }
+}

@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.project.toJsonArray
+import com.pandulapeter.kubrikoCreator.commands.scenes.missingScene
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -42,7 +43,7 @@ public object StartGame : ActionCommand<StartGame.Input> {
 
     override suspend fun run(context: CommandContext, input: Input): CommandOutcome {
         if (input.scene != null && !context.scenes.exists(input.scene)) {
-            return CommandOutcome.Rejected(Rejection(CommandProblem.SCENE_MISSING, input.scene))
+            return CommandOutcome.Rejected(context.missingScene(input.scene))
         }
         val target = when (val lookup = PlayTargetLookup.of(context, input.target)) {
             is PlayTargetLookup.Found -> lookup.target

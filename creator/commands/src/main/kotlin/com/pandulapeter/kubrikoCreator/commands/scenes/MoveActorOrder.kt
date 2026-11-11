@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
+import com.pandulapeter.kubrikoCreator.commands.validateIndex
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
@@ -31,7 +32,7 @@ public object MoveActorOrder : WriteCommand<MoveActorOrder.Input> {
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Scene(input.scene)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSceneActor(input.scene, input.actorId)
-        ?: if (input.index !in context.readScene(input.scene).indices) Rejection(CommandProblem.INDEX_INVALID, input.index.toString()) else null
+        ?: validateIndex(input.index, context.readScene(input.scene).lastIndex)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val actors = context.readScene(input.scene).toMutableList()

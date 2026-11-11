@@ -41,7 +41,7 @@ internal object RemovePage : WriteCommand<DeletePage.Input> {
     override fun validate(context: CommandContext, input: DeletePage.Input): Rejection? = context.validatePage(input.page)
 
     override suspend fun apply(context: CommandContext, input: DeletePage.Input): Applied = withContext(context.ioDispatcher) {
-        val text = context.screenplay.read(input.page) ?: return@withContext Applied.failed(Rejection(CommandProblem.PAGE_MISSING, input.page))
+        val text = context.screenplay.read(input.page) ?: return@withContext Applied.failed(missingPage(input.page, context.screenplay.scanNames()))
         val images = if (input.deleteImages) context.unusedImagesOf(input.page) else emptyList()
         val removed = if (images.isEmpty()) null else ReplaceFiles.apply(context, ReplaceFiles.Input(images.associateWith { null }))
         try {

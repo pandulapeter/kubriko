@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireBlockTypes
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateType
+import com.pandulapeter.kubrikoCreator.commands.scenes.missingScene
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.coroutines.withContext
@@ -40,7 +41,7 @@ public object SetDescription : WriteCommand<SetDescription.Input> {
         (input.type == null) == (input.scene == null) -> Rejection(CommandProblem.RELATIONS_SUBJECT)
         input.description.length > MAXIMUM_LENGTH || '\n' in input.description -> Rejection(CommandProblem.DESCRIPTION_INVALID, MAXIMUM_LENGTH.toString())
         input.type != null -> context.validateType(input.type)
-        !context.scenes.exists(input.scene!!) -> Rejection(CommandProblem.SCENE_MISSING, input.scene)
+        !context.scenes.exists(input.scene!!) -> context.missingScene(input.scene)
         else -> null
     }
 

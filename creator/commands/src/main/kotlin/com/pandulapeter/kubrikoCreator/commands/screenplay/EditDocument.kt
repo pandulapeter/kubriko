@@ -42,7 +42,7 @@ public object EditDocument : WriteCommand<EditDocument.Input> {
         val previous = context.documents.read(input.document) ?: return@withContext Applied.failed(Rejection(CommandProblem.DOCUMENT_UNREADABLE, input.document))
         val text = input.section?.let { section ->
             PageText.withSectionReplaced(previous, section, input.text)
-                ?: return@withContext Applied.failed(Rejection(CommandProblem.PAGE_SECTION_MISSING, input.document, section))
+                ?: return@withContext Applied.failed(missingSection(input.document, section, previous))
         } ?: input.text
         if (text.length > previous.length) validateDocumentText(text)?.let { return@withContext Applied.failed(it) }
         context.documents.write(input.document, text)

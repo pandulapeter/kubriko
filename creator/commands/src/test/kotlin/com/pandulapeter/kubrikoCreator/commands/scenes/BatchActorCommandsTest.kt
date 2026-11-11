@@ -97,7 +97,7 @@ class BatchActorCommandsTest {
         val input = RestoreActors.Input("main", listOf(RestoreActors.Restored(0, music.typeId, music.state, "music"), RestoreActors.Restored(2, "Wall", "{}", "copy")))
         assertEquals(listOf("music", "wall", "copy"), context.assertRoundTrip(Invocation(RestoreActors, input)) { context.main() }.map { it.id })
         fun rejection(vararg restored: RestoreActors.Restored) = RestoreActors.validate(context, RestoreActors.Input("main", restored.toList()))
-        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "5"), rejection(RestoreActors.Restored(3, "Wall", "{}"), RestoreActors.Restored(5, "Wall", "{}")))
+        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "5", "4"), rejection(RestoreActors.Restored(3, "Wall", "{}"), RestoreActors.Restored(5, "Wall", "{}")))
         assertEquals(Rejection(CommandProblem.SCENE_CONTENT_INVALID), rejection(RestoreActors.Restored(0, "Wall", "[]")))
         assertEquals(Rejection(CommandProblem.ACTOR_ID_TAKEN, "wall"), rejection(RestoreActors.Restored(0, "Wall", "{}", "wall")))
     }

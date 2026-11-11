@@ -65,7 +65,7 @@ public object PressKeys : ActionCommand<PressKeys.Input> {
                 step.keys.size !in 1..MAXIMUM_KEYS -> return Rejection(CommandProblem.GAME_KEYS_COUNT, MAXIMUM_KEYS.toString())
                 step.milliseconds !in 1..MAXIMUM_MILLISECONDS -> return Rejection(CommandProblem.GAME_DURATION_INVALID, MAXIMUM_MILLISECONDS.toString())
             }
-            step.keys.firstOrNull { !isKeyName(it) }?.let { return Rejection(CommandProblem.GAME_KEY_UNKNOWN, it) }
+            step.keys.firstOrNull { !isKeyName(it) }?.let { return unknownKeyName(it) }
         }
         if (steps.sumOf { it.milliseconds.toLong() } > MAXIMUM_TOTAL_MILLISECONDS) {
             return Rejection(CommandProblem.GAME_STEPS_DURATION, MAXIMUM_TOTAL_MILLISECONDS.toString())

@@ -79,7 +79,7 @@ public object AddPageImage : WriteCommand<AddPageImage.Input> {
         }
         val label = input.description.replace("\\", "\\\\").replace("[", "\\[").replace("]", "\\]").replace("\n", " ")
         val withImage = PageImages.withLine(text, "![$label](${PageLinks.destinationOf(pagePath, imagePath)})", input.section)
-            ?: return Applied.failed(Rejection(CommandProblem.PAGE_SECTION_MISSING, input.page, input.section.orEmpty()))
+            ?: return Applied.failed(missingSection(input.page, input.section.orEmpty(), text))
         val restoring = Invocation(RestoreMarkdown, RestoreMarkdown.Input(mapOf(pagePath to text)))
         if (image == null) {
             context.screenplay.write(input.page, withImage)

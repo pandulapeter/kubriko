@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
+import com.pandulapeter.kubrikoCreator.commands.scenes.missingScene
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.AspectRatio
 import com.pandulapeter.kubrikoCreator.project.GameIdentity
@@ -45,7 +46,7 @@ public object SetProjectSettings : WriteCommand<SetProjectSettings.Input> {
 
     override fun validate(context: CommandContext, input: Input): Rejection? = when {
         input == Input() -> Rejection(CommandProblem.PROJECT_SETTINGS_EMPTY)
-        input.firstScene != null && !context.scenes.exists(input.firstScene) -> Rejection(CommandProblem.SCENE_MISSING, input.firstScene)
+        input.firstScene != null && !context.scenes.exists(input.firstScene) -> context.missingScene(input.firstScene)
         else -> null
     }
 

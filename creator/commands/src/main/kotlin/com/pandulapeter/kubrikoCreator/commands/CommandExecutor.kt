@@ -146,7 +146,7 @@ public class CommandExecutor(
      * @param origin Which of the assistant's conversations made the call, if one did.
      */
     public suspend fun call(name: String, arguments: JsonObject, origin: AiStepOrigin? = null, clientName: String? = null): CommandOutcome {
-        val command = registry[name] ?: return CommandOutcome.Rejected(Rejection(CommandProblem.UNKNOWN, name))
+        val command = registry[name] ?: return CommandOutcome.Rejected(registry.missing(name))
         return call(name, command, arguments, origin, clientName)
     }
 

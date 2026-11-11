@@ -32,7 +32,7 @@ public object ReadDocuments : ReadCommand<ReadDocuments.Input> {
 
     override suspend fun read(context: CommandContext, input: Input): CommandOutcome {
         if (input.documents.isEmpty()) return CommandOutcome.Success(buildJsonArray { context.documents.paths().forEach { add(JsonPrimitive(it)) } })
-        input.documents.firstOrNull { !context.documents.isKnown(it) }?.let { return CommandOutcome.Rejected(Rejection(CommandProblem.DOCUMENT_MISSING, it)) }
+        input.documents.firstNotNullOfOrNull { context.validateDocument(it) }?.let { return CommandOutcome.Rejected(it) }
         return withContext(context.ioDispatcher) {
             val texts = input.documents.associateWith { context.documents.read(it) }
             texts.entries.firstOrNull { it.value == null }?.let { return@withContext CommandOutcome.Rejected(Rejection(CommandProblem.DOCUMENT_UNREADABLE, it.key)) }

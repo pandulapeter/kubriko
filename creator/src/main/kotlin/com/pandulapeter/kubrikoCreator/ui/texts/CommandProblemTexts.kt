@@ -229,4 +229,5 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.SCENE_NAME_TAKEN -> Res.string.error_scene_name_taken
     CommandProblem.SCENE_NOT_MOVED -> Res.string.error_scene_not_moved
     CommandProblem.SCENE_NAMED_IN_CODE -> Res.string.warning_scene_named_in_code
+    else -> checkNotNull(lookupResource()) { "$this has no string." }
 }

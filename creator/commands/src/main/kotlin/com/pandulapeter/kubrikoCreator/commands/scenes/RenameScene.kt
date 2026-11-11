@@ -38,7 +38,7 @@ public object RenameScene : WriteCommand<RenameScene.Input> {
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Scene(input.newName)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = when {
-        !context.scenes.exists(input.scene) -> Rejection(CommandProblem.SCENE_MISSING, input.scene)
+        !context.scenes.exists(input.scene) -> context.missingScene(input.scene)
         else -> SceneNaming.validate(input.newName)?.let(::Rejection) ?: validateFreeName(context, input)
     }
 

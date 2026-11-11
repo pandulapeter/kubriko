@@ -36,7 +36,7 @@ public object ReadPages : ReadCommand<ReadPages.Input> {
     override suspend fun read(context: CommandContext, input: Input): CommandOutcome = withContext(context.ioDispatcher) {
         val names = input.pages.ifEmpty { context.screenplay.scanNames() }
         val texts = names.associateWith { context.screenplay.read(it) }
-        texts.entries.firstOrNull { it.value == null }?.let { return@withContext CommandOutcome.Rejected(Rejection(CommandProblem.PAGE_MISSING, it.key)) }
+        texts.entries.firstOrNull { it.value == null }?.let { return@withContext CommandOutcome.Rejected(missingPage(it.key, context.screenplay.scanNames())) }
         CommandOutcome.Success(
             buildJsonObject {
                 texts.forEach { (page, text) ->

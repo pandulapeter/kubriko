@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
+import com.pandulapeter.kubrikoCreator.commands.validateIndex
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.KSerializer
@@ -33,11 +34,7 @@ public object MoveBlock : WriteCommand<MoveBlock.Input> {
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.BlockType(input.actorType, input.eventIndex, input.targetIndex)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateBlock(input.actorType, input.eventIndex, input.blockIndex)
-        ?: if (input.targetIndex !in context.requireType(input.actorType).events[input.eventIndex].blocks.indices) {
-            Rejection(CommandProblem.INDEX_INVALID, input.targetIndex.toString())
-        } else {
-            null
-        }
+        ?: validateIndex(input.targetIndex, context.requireType(input.actorType).events[input.eventIndex].blocks.lastIndex)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         context.requireBlockTypes.put(context.requireType(input.actorType).withBlockMoved(input.eventIndex, input.blockIndex, input.targetIndex))

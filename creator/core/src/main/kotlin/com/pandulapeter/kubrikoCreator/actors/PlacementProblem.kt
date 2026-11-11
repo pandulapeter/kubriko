@@ -34,4 +34,7 @@ public enum class PlacementProblem(override val english: String) : DomainText {
     NUMBER_PROPERTY_MISSING("%2\$s has no number Property called %1\$s."),
     TEXT_PROPERTY_MISSING("%2\$s has no text Property called %1\$s."),
     TOGGLE_PROPERTY_MISSING("%2\$s has no toggle Property called %1\$s."),
+    NUMBER_PROPERTY_MISSING_SIMILAR("%2\$s has no number Property called %1\$s. Close matches: %3\$s."),
+    TEXT_PROPERTY_MISSING_SIMILAR("%2\$s has no text Property called %1\$s. Close matches: %3\$s."),
+    TOGGLE_PROPERTY_MISSING_SIMILAR("%2\$s has no toggle Property called %1\$s. Close matches: %3\$s."),
 }

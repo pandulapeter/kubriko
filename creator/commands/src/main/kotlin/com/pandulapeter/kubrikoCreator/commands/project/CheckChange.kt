@@ -36,7 +36,7 @@ public object CheckChange : ReadCommand<CheckChange.Input> {
     private val json = Json { ignoreUnknownKeys = false }
 
     override suspend fun read(context: CommandContext, input: Input): CommandOutcome {
-        val command = CommandRegistry.editor[input.tool] ?: return CommandOutcome.Rejected(Rejection(CommandProblem.UNKNOWN, input.tool))
+        val command = CommandRegistry.editor[input.tool] ?: return CommandOutcome.Rejected(CommandRegistry.editor.missing(input.tool))
         if (command !is WriteCommand<*>) return CommandOutcome.Rejected(Rejection(CommandProblem.NOT_A_CHANGE, input.tool))
         context.rejectChanges()?.let { return CommandOutcome.Rejected(it) }
         return check(context, command, input.arguments)

@@ -21,6 +21,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
@@ -40,7 +41,8 @@ public object RenameTimer : WriteCommand<RenameTimer.Input> {
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateType(input.actorType) ?: run {
         val timerNames = context.familyOf(input.actorType).flatMap { context.requireType(it).timerNames }
         when {
-            input.oldName !in timerNames -> Rejection(CommandProblem.TIMER_UNKNOWN, input.actorType, input.oldName)
+            input.oldName !in timerNames ->
+                SimilarNames.rejection(CommandProblem.TIMER_UNKNOWN, CommandProblem.TIMER_UNKNOWN_SIMILAR, input.oldName, timerNames, input.actorType, input.oldName)
             else -> TimerNaming.validate(input.newName)?.let(::Rejection) ?: if (input.newName in timerNames) Rejection(CommandProblem.TIMER_TAKEN) else null
         }
     }

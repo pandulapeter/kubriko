@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.actors.withParents
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 import com.pandulapeter.kubrikoCreator.commands.screenplay.validatePageName
 import com.pandulapeter.kubrikoCreator.scenes.SceneNaming
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
@@ -40,10 +41,11 @@ internal fun CommandContext.itemsOf(group: FolderGroup): List<Pair<String, Strin
 /**
  * Why there is no folder at [path] in [group] (the top of the group, an empty path, always exists), given its [folders].
  */
-internal fun CommandContext.validateFolder(group: FolderGroup, path: String, folders: Set<String>? = null): Rejection? = when {
-    group.kind != null && blockTypes == null -> Rejection(CommandProblem.NO_ACTOR_TYPES)
-    path.isNotEmpty() && path !in (folders ?: foldersOf(group)) -> Rejection(CommandProblem.FOLDER_MISSING, path)
-    else -> null
+internal fun CommandContext.validateFolder(group: FolderGroup, path: String, folders: Set<String>? = null): Rejection? {
+    if (group.kind != null && blockTypes == null) return Rejection(CommandProblem.NO_ACTOR_TYPES)
+    if (path.isEmpty()) return null
+    val existing = folders ?: foldersOf(group)
+    return if (path in existing) null else SimilarNames.rejection(CommandProblem.FOLDER_MISSING, CommandProblem.FOLDER_MISSING_SIMILAR, path, existing, path)
 }
 
 /**

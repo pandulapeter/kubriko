@@ -184,8 +184,8 @@ class ActorTypeCommandsTest {
     @Test
     fun eventChangesAreValidated() = runTest {
         val context = commandContext(ball, wall)
-        assertEquals(Rejection(CommandProblem.EVENT_MISSING, "Ball", "3"), context.rejection(RemoveEvent, RemoveEvent.Input("Ball", 3)))
-        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "3"), context.rejection(MoveEvent, MoveEvent.Input("Ball", 0, 3)))
+        assertEquals(Rejection(CommandProblem.EVENT_MISSING, "Ball", "3", "2"), context.rejection(RemoveEvent, RemoveEvent.Input("Ball", 3)))
+        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "3", "2"), context.rejection(MoveEvent, MoveEvent.Input("Ball", 0, 3)))
         assertEquals(Rejection(PlacementProblem.KEY_NOT_ALLOWED), context.rejection(SetEventKey, SetEventKey.Input("Ball", 0, KeyChoice.A)))
         assertEquals(Rejection(PlacementProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED), context.rejection(SetEventOtherActorType, SetEventOtherActorType.Input("Ball", 0, "Wall")))
         assertEquals(Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Ghost"), context.rejection(SetEventOtherActorType, SetEventOtherActorType.Input("Ball", 2, "Ghost")))
@@ -289,8 +289,8 @@ class ActorTypeCommandsTest {
         val context = commandContext(ball, wall)
         assertEquals(Rejection(PlacementProblem.BLOCK_REMOVE_OTHER_OUTSIDE_COLLISION), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.RemoveOther)))
         assertEquals(Rejection(PlacementProblem.BLOCK_BOUNCE_OFF_EDGE_OUTSIDE_EDGE_TOUCHED), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.BounceOffEdge)))
-        assertEquals(Rejection(CommandProblem.BLOCK_MISSING, "Ball", "1", "0"), context.rejection(RemoveBlock, RemoveBlock.Input("Ball", 1, 0)))
-        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "2"), context.rejection(MoveBlock, MoveBlock.Input("Ball", 0, 0, 2)))
+        assertEquals(Rejection(CommandProblem.BLOCK_MISSING_NONE, "Ball", "1", "0"), context.rejection(RemoveBlock, RemoveBlock.Input("Ball", 1, 0)))
+        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "2", "1"), context.rejection(MoveBlock, MoveBlock.Input("Ball", 0, 0, 2)))
         assertEquals(EditBlock.mergeKey(EditBlock.Input("Ball", 0, 1, jump)), EditBlock.mergeKey(EditBlock.Input("Ball", 0, 1, stop)))
     }
 

@@ -25,10 +25,13 @@ import kubriko.creator.generated.resources.error_placement_event_edge_touched_in
 import kubriko.creator.generated.resources.error_placement_event_game_started_in_actor_type
 import kubriko.creator.generated.resources.error_placement_key_not_allowed
 import kubriko.creator.generated.resources.error_placement_number_property_missing
+import kubriko.creator.generated.resources.error_placement_number_property_missing_similar
 import kubriko.creator.generated.resources.error_placement_other_actor_type_not_allowed
 import kubriko.creator.generated.resources.error_placement_text_property_missing
+import kubriko.creator.generated.resources.error_placement_text_property_missing_similar
 import kubriko.creator.generated.resources.error_placement_timer_not_allowed
 import kubriko.creator.generated.resources.error_placement_toggle_property_missing
+import kubriko.creator.generated.resources.error_placement_toggle_property_missing_similar
 import org.jetbrains.compose.resources.StringResource
 
 /**
@@ -51,6 +54,9 @@ internal fun PlacementProblem.toResource(): StringResource = when (this) {
     PlacementProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED -> Res.string.error_placement_other_actor_type_not_allowed
     PlacementProblem.TIMER_NOT_ALLOWED -> Res.string.error_placement_timer_not_allowed
     PlacementProblem.NUMBER_PROPERTY_MISSING -> Res.string.error_placement_number_property_missing
+    PlacementProblem.NUMBER_PROPERTY_MISSING_SIMILAR -> Res.string.error_placement_number_property_missing_similar
     PlacementProblem.TEXT_PROPERTY_MISSING -> Res.string.error_placement_text_property_missing
+    PlacementProblem.TEXT_PROPERTY_MISSING_SIMILAR -> Res.string.error_placement_text_property_missing_similar
     PlacementProblem.TOGGLE_PROPERTY_MISSING -> Res.string.error_placement_toggle_property_missing
+    PlacementProblem.TOGGLE_PROPERTY_MISSING_SIMILAR -> Res.string.error_placement_toggle_property_missing_similar
 }

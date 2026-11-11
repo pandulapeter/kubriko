@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.GameStep
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 import com.pandulapeter.kubrikoCreator.commands.project.toJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -54,3 +55,14 @@ internal fun isKeyName(name: String) = name.isNotEmpty() && try {
 } catch (_: NoSuchFieldException) {
     false
 }
+
+/**
+ * Why the running game can't be sent the key [name], naming the keys called similarly.
+ */
+internal fun unknownKeyName(name: String) = SimilarNames.rejection(
+    CommandProblem.GAME_KEY_UNKNOWN,
+    CommandProblem.GAME_KEY_UNKNOWN_SIMILAR,
+    name,
+    KeyEvent::class.java.fields.map { it.name }.filter { it.startsWith("VK_") }.map { it.removePrefix("VK_") },
+    name,
+)

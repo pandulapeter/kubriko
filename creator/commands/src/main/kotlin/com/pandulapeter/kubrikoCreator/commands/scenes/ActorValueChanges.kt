@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.fits
 import com.pandulapeter.kubrikoCreator.scenes.ActorStateEdits
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
@@ -84,7 +85,14 @@ internal fun CommandContext.validateActorValues(actor: SceneActorEntry, changes:
         (changes.color != null || changes.properties.isNotEmpty()) && definition == null -> Rejection(CommandProblem.SCENE_ACTOR_NOT_BLOCK_BUILT, actor.typeId)
         else -> changes.properties.firstNotNullOfOrNull { value ->
             val property = definition?.properties?.firstOrNull { it.name == value.name }
-                ?: return@firstNotNullOfOrNull Rejection(CommandProblem.ACTOR_PROPERTY_MISSING, actor.typeId, value.name)
+                ?: return@firstNotNullOfOrNull SimilarNames.rejection(
+                    CommandProblem.ACTOR_PROPERTY_MISSING,
+                    CommandProblem.ACTOR_PROPERTY_MISSING_SIMILAR,
+                    value.name,
+                    definition?.properties.orEmpty().map { it.name },
+                    actor.typeId,
+                    value.name,
+                )
             if (value.toJson()?.fits(PropertyKind.of(property)) == true) null else Rejection(CommandProblem.PROPERTY_VALUE_INVALID, value.name)
         }
     }

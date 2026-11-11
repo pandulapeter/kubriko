@@ -13,27 +13,37 @@ import com.pandulapeter.kubrikoCreator.actors.NameFlaw
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import kotlinx.coroutines.withContext
 
 internal fun CommandContext.validateScene(name: String): Rejection? = when {
-    !scenes.exists(name) -> Rejection(CommandProblem.SCENE_MISSING, name)
+    !scenes.exists(name) -> missingScene(name)
     scenes.isValid(name) -> null
     else -> Rejection(CommandProblem.SCENE_INVALID, name)
 }
 
 internal fun CommandContext.validateSceneActor(sceneName: String, actorId: String): Rejection? = validateScene(sceneName)
-    ?: if (readScene(sceneName).none { it.id == actorId }) Rejection(CommandProblem.SCENE_ACTOR_MISSING, sceneName, actorId) else null
+    ?: readScene(sceneName).let { actors -> if (actors.none { it.id == actorId }) missingActor(sceneName, actorId, actors) else null }
 
 /**
  * Why [actorIds] can't all be changed together in the Scene called [sceneName]: there are none, one is given twice, or one isn't there.
  */
 internal fun CommandContext.validateSceneActors(sceneName: String, actorIds: List<String>): Rejection? = validateScene(sceneName) ?: validateActorList(actorIds) ?: run {
-    val ids = readScene(sceneName).mapTo(HashSet()) { it.id }
-    actorIds.firstOrNull { it !in ids }?.let { Rejection(CommandProblem.SCENE_ACTOR_MISSING, sceneName, it) }
+    val actors = readScene(sceneName)
+    val ids = actors.mapTo(HashSet()) { it.id }
+    actorIds.firstOrNull { it !in ids }?.let { missingActor(sceneName, it, actors) }
 }
+
+/**
+ * Why there is no Scene called [name], naming the Scenes called similarly.
+ */
+internal fun CommandContext.missingScene(name: String) = SimilarNames.rejection(CommandProblem.SCENE_MISSING, CommandProblem.SCENE_MISSING_SIMILAR, name, scenes.names(), name)
+
+private fun missingActor(sceneName: String, actorId: String, actors: List<SceneActorEntry>) =
+    SimilarNames.rejection(CommandProblem.SCENE_ACTOR_MISSING, CommandProblem.SCENE_ACTOR_MISSING_SIMILAR, actorId, actors.map { it.id }, sceneName, actorId)
 
 /**
  * Why [actorIds], the Actors a batch command names, can't be used: there are none, or one is given twice.

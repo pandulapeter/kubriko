@@ -55,10 +55,10 @@ class ReplaceBlocksTest {
         val context = commandContext(ball)
         assertEquals(Rejection(CommandProblem.BLOCKS_NOTHING_TO_REPLACE), ReplaceBlocks.validate(context, ReplaceBlocks.Input("Ball", 0, 0)))
         assertEquals(Rejection(CommandProblem.BLOCKS_NOTHING_TO_REPLACE), ReplaceBlocks.validate(context, ReplaceBlocks.Input("Ball", 0, 0, count = -1, blocks = listOf(log))))
-        assertEquals(Rejection(CommandProblem.BLOCK_MISSING, "Ball", "0", "4"), ReplaceBlocks.validate(context, ReplaceBlocks.Input("Ball", 0, 4, blocks = listOf(log))))
-        assertEquals(Rejection(CommandProblem.BLOCK_MISSING, "Ball", "0", "3"), ReplaceBlocks.validate(context, ReplaceBlocks.Input("Ball", 0, 2, count = 2)))
-        assertEquals(Rejection(CommandProblem.BLOCK_MISSING, "Ball", "0", "3"), ReplaceBlocks.validate(context, ReplaceBlocks.Input("Ball", 0, 1, count = Int.MAX_VALUE)))
-        assertEquals(Rejection(CommandProblem.EVENT_MISSING, "Ball", "2"), ReplaceBlocks.validate(context, ReplaceBlocks.Input("Ball", 2, 0, blocks = listOf(log))))
+        assertEquals(Rejection(CommandProblem.BLOCK_INSERTION_INDEX_INVALID, "Ball", "0", "3"), ReplaceBlocks.validate(context, ReplaceBlocks.Input("Ball", 0, 4, blocks = listOf(log))))
+        assertEquals(Rejection(CommandProblem.BLOCKS_COUNT_TOO_LARGE, "Ball", "0", "1", "2"), ReplaceBlocks.validate(context, ReplaceBlocks.Input("Ball", 0, 2, count = 2)))
+        assertEquals(Rejection(CommandProblem.BLOCKS_COUNT_TOO_LARGE, "Ball", "0", "2", "1"), ReplaceBlocks.validate(context, ReplaceBlocks.Input("Ball", 0, 1, count = Int.MAX_VALUE)))
+        assertEquals(Rejection(CommandProblem.EVENT_MISSING, "Ball", "2", "1"), ReplaceBlocks.validate(context, ReplaceBlocks.Input("Ball", 2, 0, blocks = listOf(log))))
         assertNull(ReplaceBlocks.validate(context, ReplaceBlocks.Input("Ball", 0, 3, blocks = listOf(log))))
     }
 
