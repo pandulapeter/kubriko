@@ -10,7 +10,6 @@
 package com.pandulapeter.kubrikoCreator.ui
 
 import com.pandulapeter.kubrikoCreator.actors.ResourceKind
-import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.ui.screenplay.PastedImages

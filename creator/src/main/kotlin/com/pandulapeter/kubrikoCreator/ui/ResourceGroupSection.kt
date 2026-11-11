@@ -10,11 +10,9 @@
 package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -23,10 +21,8 @@ import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
-import com.pandulapeter.kubrikoCreator.project.ResourceScanner
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
-import com.pandulapeter.kubrikoCreator.ui.components.NewNameField
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import com.pandulapeter.kubrikoCreator.ui.components.RowActionsButton
 import com.pandulapeter.kubrikoCreator.ui.components.hoverReveal
@@ -38,23 +34,18 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_add_music
 import kubriko.creator.generated.resources.action_add_sound
 import kubriko.creator.generated.resources.action_add_sprite
-import kubriko.creator.generated.resources.action_delete_resource
 import kubriko.creator.generated.resources.action_more_options
 import kubriko.creator.generated.resources.action_new_folder
 import kubriko.creator.generated.resources.action_paste
-import kubriko.creator.generated.resources.action_rename
 import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_code
 import kubriko.creator.generated.resources.ic_create_new_folder
-import kubriko.creator.generated.resources.ic_delete
-import kubriko.creator.generated.resources.ic_edit
 import kubriko.creator.generated.resources.ic_file
 import kubriko.creator.generated.resources.ic_music
 import kubriko.creator.generated.resources.ic_paste
 import kubriko.creator.generated.resources.ic_scene
 import kubriko.creator.generated.resources.ic_sound
 import kubriko.creator.generated.resources.ic_sprite
-import kubriko.creator.generated.resources.new_resource_hint
 import org.jetbrains.compose.resources.stringResource
 
 /**
