@@ -26,15 +26,22 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Start `01-ai-assistant.md` at its first item ("Last time" summaries, under Context for large games).
+Start `01-ai-assistant.md` at its first item (More health checks, under Context for large games).
 
-This session paged `list_manager_types` and `list_scenes` by folder like `list_actor_types`, all three through one
-`folderPage` (`commands/folders`) built on `foldersOf` and `validateFolder`, and reviewed it with `/code-review`. Its findings
-were fixed in a commit of their own: `list_scenes` missed the folders of Scenes in other modules, and the folder rules were
-duplicated. Two minor findings were left on purpose. `list_scenes` still walks the Scenes folder once per page for empty
-folders, as the folder commands do, since there is no index of them. Each listed Scene is still looked up twice in the store's
-cache. The tool list budget rose to 19,800 for the six new parameters. The earlier session's "A smaller tool list" had already
-landed, in `09d110bdc`, with its review fixes in `e29bdc62d`.
+This session finished two items, each reviewed with `/code-review`, with the findings fixed in commits of their own:
+
+- Paging: `list_manager_types` and `list_scenes` page by folder like `list_actor_types`, all three through `folderPage`
+  (`commands/folders`), built on `foldersOf` and `validateFolder`. The review found that `list_scenes` missed the folders
+  of Scenes in other modules. It left two minor findings on purpose: each page walks the Scenes folder for empty folders,
+  as the folder commands do, and each listed Scene is looked up twice in the store's cache.
+- "Last time" summaries: the user chose a tool over asking when a conversation is left, since the next conversation
+  starts as soon as the project opens. `remember_for_next_time` notes what a conversation did and what is still open. The
+  system prompt asks for it once a request is done, and the next conversation hears it in place of the last answer. The
+  review's fixes: an earlier summary is told with the answer that came after it (`isSummaryEarlier`), a stopped turn saves
+  what it noted, and `ask_user` and the new tool are read-only (`ActionCommand.leavesEverythingAsItWas`). One finding was
+  left: the summary is taken from the open project, not the chat's own, but conversations end when the project changes.
+  A live scenario (`AssistantLiveScenariosTest.aFinishedRequestIsNotedForTheNextConversation`) passed with the real
+  Claude Agent. The tool list budget is now 19,900, and the tools loaded from the start 3,900.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
