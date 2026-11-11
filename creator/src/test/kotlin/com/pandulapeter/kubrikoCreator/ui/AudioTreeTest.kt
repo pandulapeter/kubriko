@@ -58,4 +58,13 @@ class AudioTreeTest {
     }
 
     private fun rowsOf(state: FolderTreeGroupState) = folderTreeRows(state.items, state.folders, collapsed = emptySet()).trimmedTo(state.root)
+
+    @Test
+    fun theFoldersNewFilesGoToStayWithTheirOwnGroupEvenEmpty() {
+        val trees = audioTreesOf(emptyMap(), setOf("sounds", "music", "music/boss"))
+        assertEquals(setOf("sounds"), trees.getValue(ResourceGroup.SOUNDS).folders)
+        assertEquals("sounds", trees.getValue(ResourceGroup.SOUNDS).root)
+        assertEquals(setOf("music", "music/boss"), trees.getValue(ResourceGroup.MUSIC).folders)
+        assertEquals("music", trees.getValue(ResourceGroup.MUSIC).root)
+    }
 }

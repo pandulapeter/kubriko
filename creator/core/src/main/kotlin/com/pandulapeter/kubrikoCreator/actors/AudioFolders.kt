@@ -48,14 +48,16 @@ public object AudioFolders {
 
     /**
      * The folders among [folders] that the group of [kind] shows: those holding its files, and of the others, those
-     * whose nearest folder holding any audio holds its files too, or that no such folder holds. So `music` isn't among
-     * the sounds' folders, nor an empty folder in it, while an empty folder at the top is in both.
+     * whose nearest folder holding any audio holds its files too, or that no such folder holds; the folder new files of
+     * each kind go to counts as holding them, even empty. So `music` isn't among the sounds' folders, nor an empty folder
+     * in it, while an empty folder at the top is in both.
      *
      * @param audio The sounds and music, by their paths from `composeResources`.
      */
     public fun ofKind(kind: ResourceKind, folders: Set<String>, audio: AudioFiles): Set<String> {
-        val own = foldersHolding(if (kind == ResourceKind.MUSIC) audio.music else audio.sounds)
-        val others = foldersHolding(if (kind == ResourceKind.MUSIC) audio.sounds else audio.music)
+        val other = if (kind == ResourceKind.MUSIC) ResourceKind.SOUND else ResourceKind.MUSIC
+        val own = foldersHolding(if (kind == ResourceKind.MUSIC) audio.music else audio.sounds) + listOfNotNull(ResourceKind.defaultAudioFolderOf(kind))
+        val others = foldersHolding(if (kind == ResourceKind.MUSIC) audio.sounds else audio.music) + listOfNotNull(ResourceKind.defaultAudioFolderOf(other))
         return folders.filterTo(sortedSetOf()) { folder ->
             val holding = generateSequence(folder) { FolderPaths.parentOf(it).ifEmpty { null } }.firstOrNull { it in own || it in others }
             holding == null || holding in own
