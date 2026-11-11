@@ -23,13 +23,13 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ScreenplayHealthTest {
+class ProjectHealthTest {
 
     @Test
     fun theFindingsAreWorkedOutWhileShownAndAgainAMomentAfterAChange() = runTest {
         val changes = MutableSharedFlow<Unit>()
         var count = 0
-        val health = ScreenplayHealth(
+        val health = ProjectHealth(
             changes = changes,
             compute = { List(++count) { HealthFinding(HealthFinding.Kind.UNMENTIONED, RelationSubject.Type("Ball")) } },
             scope = CoroutineScope(backgroundScope.coroutineContext + StandardTestDispatcher(testScheduler)),
@@ -43,7 +43,7 @@ class ScreenplayHealthTest {
         assertEquals(1, health.findings.value?.size)
         changes.emit(Unit)
         changes.emit(Unit)
-        advanceTimeBy(ScreenplayHealth.DEBOUNCE_IN_MILLISECONDS + 1)
+        advanceTimeBy(ProjectHealth.DEBOUNCE_IN_MILLISECONDS + 1)
         runCurrent()
         assertEquals(2, health.findings.value?.size)
     }

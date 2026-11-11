@@ -624,8 +624,11 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   read back from the undo history (`pageBeforeTurn`), following the turn's moves, so nothing is copied while a turn runs. It
   counts only what the turn's Undo would undo (the conversation's changes newer than anyone else's), and none while a later
   turn of the conversation runs, so the diff is always what Undo brings back.
-- The screenplay's findings (`ScreenplayHealth`, kept up to date only while the sidebar collects them) show as a quiet dot
-  on the row they are about (`SidebarHints`); the rest of the health checks stay in the Game map. The project's Markdown is
+- The health checks (`ProjectHealth`, kept up to date only while the workspace collects them) show quietly where their
+  subject is edited (`HealthHintsList` in the type, Scene, and page editors, a Property's in its type's), besides the
+  Game map's list; only the screenplay's also mark the sidebar row they are about with a dot (`HealthHints`), since a
+  dot on every row nothing goes to would be noise. The unreached-Scene check leaves out the Scene the game starts with
+  when its settings name it, and says so. The project's Markdown is
   read once per change to a page or document (`screenplayTexts`, keyed by their revisions, which every write Creator makes
   among the pages raises, images included), while what the pages link to is looked at afresh every time.
 - Documents (every Markdown file outside `screenplay/`) have no group: each is a row in the band of the folder it is

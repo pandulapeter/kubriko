@@ -12,7 +12,8 @@ package com.pandulapeter.kubrikoCreator.workspace
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypesController
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.context.HealthFinding
-import com.pandulapeter.kubrikoCreator.context.screenplayFindings
+import com.pandulapeter.kubrikoCreator.context.healthFindings
+import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingController
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,13 +24,13 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.merge
 
 /**
- * What about the open project's screenplay is worth a look ([screenplayFindings]), for the sidebar to show beside what it
- * is about: worked out off the main thread a moment after the last change, and only while something collects [findings].
+ * What about the open project is worth a look ([healthFindings]), for the sidebar and the editors to show beside what it is
+ * about: worked out off the main thread a moment after the last change, and only while something collects [findings].
  *
  * @param changes Emits whenever the findings may have changed, and never a current value.
  * @param report Says that working them out failed; the previous ones stay.
  */
-public class ScreenplayHealth internal constructor(
+public class ProjectHealth internal constructor(
     changes: Flow<Any?>,
     compute: suspend () -> List<HealthFinding>,
     scope: CoroutineScope,
@@ -45,18 +46,26 @@ public class ScreenplayHealth internal constructor(
         const val DEBOUNCE_IN_MILLISECONDS = 500L
 
         /**
-         * The screenplay's findings of a workspace, which may change with its types, resources, pages, documents, and undo
+         * The findings of a workspace, which may change with its types, resources, Scenes, pages, documents, and undo
          * history.
          */
-        fun of(blockTypes: BlockTypesController?, resources: StateFlow<*>, commands: CommandExecutor, scope: CoroutineScope, report: (Throwable) -> Unit) = ScreenplayHealth(
+        fun of(
+            blockTypes: BlockTypesController?,
+            resources: StateFlow<*>,
+            commands: CommandExecutor,
+            sceneEditing: SceneEditingController,
+            scope: CoroutineScope,
+            report: (Throwable) -> Unit,
+        ) = ProjectHealth(
             changes = merge(
                 blockTypes?.types?.drop(1) ?: emptyFlow(),
                 resources.drop(1),
+                sceneEditing.state.drop(1),
                 commands.context.screenplay.revision.drop(1),
                 commands.context.documents.revision.drop(1),
                 commands.history.drop(1),
             ),
-            compute = { commands.context.screenplayFindings() },
+            compute = { commands.context.healthFindings() },
             scope = scope,
             report = report,
         )

@@ -49,7 +49,7 @@ internal object PageImageChecks {
  * The pages are read again only once one changed ([screenplayTexts]); whether what they link to is there is looked at every
  * time, since a sprite or a sound they mention may be deleted without a page changing. Reads the disk.
  */
-public fun CommandContext.screenplayFindings(): List<HealthFinding> {
+internal fun CommandContext.screenplayFindings(): List<HealthFinding> {
     val root = project.rootDirectory
     val texts = screenplayTexts()
     val subjects = LinkedHashMap<RelationSubject, String>()

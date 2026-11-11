@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.scenes
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -28,6 +30,8 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.commands.ActorsBroughtBack
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
+import com.pandulapeter.kubrikoCreator.context.HealthFinding
+import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
@@ -36,11 +40,15 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
+import com.pandulapeter.kubrikoCreator.ui.HealthHints
+import com.pandulapeter.kubrikoCreator.ui.LocalHealthHints
 import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
 import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
+import com.pandulapeter.kubrikoCreator.ui.healthHintsOf
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import kotlin.test.Test
@@ -70,6 +78,16 @@ class SceneEditorPaneTest {
         waitUntil(timeoutMillis = 5_000) { onAllNodes(hasContentDescription(REMOVE)).fetchSemanticsNodes().isNotEmpty() }
         onNodeWithText(INSPECTOR_HINT).assertDoesNotExist()
         saveSnapshot("scene-editor-removal-undone")
+    }
+
+    @Test
+    fun whatAboutTheSceneIsWorthALookShowsUnderItsHeader() = uiTest(width = 900, height = 600) {
+        val unreached = HealthFinding(HealthFinding.Kind.UNREACHED_SCENE, RelationSubject.Scene("level"), "main")
+        showPane(emptyFlow(), hints = healthHintsOf(listOf(unreached, HealthFinding(HealthFinding.Kind.UNREACHED_SCENE, RelationSubject.Scene("bonus"), "main")), emptyList()))
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText(INSPECTOR_HINT)).fetchSemanticsNodes().isNotEmpty() }
+        onNodeWithText("level: nothing goes to it, and the game starts with main.").assertExists()
+        onNodeWithText("bonus", substring = true).assertDoesNotExist()
+        saveSnapshot("scene-editor-health-hints")
     }
 
     @Test
@@ -147,7 +165,18 @@ class SceneEditorPaneTest {
         entryPoint: CreatorEntryPoint = PlainEntryPoint,
         actors: () -> List<SceneActorEntry> = { listOf(ball) },
         onCommand: (Invocation<*>) -> Unit = {},
+        hints: HealthHints = HealthHints(),
     ) = showing {
+        CompositionLocalProvider(LocalHealthHints provides hints) { ShownPane(broughtBack, entryPoint, actors, onCommand) }
+    }
+
+    @Composable
+    private fun ShownPane(
+        broughtBack: Flow<ActorsBroughtBack>,
+        entryPoint: CreatorEntryPoint,
+        actors: () -> List<SceneActorEntry>,
+        onCommand: (Invocation<*>) -> Unit,
+    ) {
         SceneEditorPane(
             state = SceneEditingState.Open(
                 scene = ProjectResource(ResourceGroup.SCENES, File("/game/src/commonMain/composeResources/files/scenes/level.json"), "src/commonMain/composeResources/files/scenes/level.json"),

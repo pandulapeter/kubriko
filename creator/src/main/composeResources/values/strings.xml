@@ -838,6 +838,8 @@
     <string name="ai_target_game">The game</string>
     <string name="ai_target_project">The template files</string>
     <string name="game_map_worth_a_look">Worth a look</string>
+    <string name="health_hints_more">Show %1$d more</string>
+    <string name="health_hints_fewer">Show fewer</string>
     <string name="health_unmentioned">%1$s: no page of the screenplay mentions it.</string>
     <string name="health_mention_missing">%1$s mentions %2$s, which is gone.</string>
     <string name="health_page_no_title">%1$s has no title.</string>

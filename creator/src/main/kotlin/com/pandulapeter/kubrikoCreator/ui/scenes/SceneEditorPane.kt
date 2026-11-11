@@ -42,10 +42,12 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.PlaceActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
+import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneView
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
+import com.pandulapeter.kubrikoCreator.ui.HealthHintsList
 import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
 import com.pandulapeter.kubrikoCreator.ui.WriteDescriptionButton
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
@@ -139,18 +141,7 @@ internal fun SceneEditorPane(
         onDelete = { onCommand(Invocation(DeleteScene, DeleteScene.Input(state.sceneName))) },
         onClose = onClose,
     )
-    DescriptionPreview(
-        modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, bottom = 8.dp),
-        name = state.sceneName,
-        description = description,
-        maximumLength = SetDescription.MAXIMUM_LENGTH,
-        onDescriptionChange = { onCommand(Invocation(SetDescription, SetDescription.Input(scene = state.sceneName, description = it))) },
-        action = { WriteDescriptionButton(prompt = stringResource(Res.string.assistant_prompt_describe_scene, state.sceneName)) },
-    )
-    MentionedInRow(
-        modifier = Modifier.padding(start = 8.dp, end = 12.dp, bottom = 6.dp),
-        path = LocalMentionedIn.current?.pathOf(state.scene.file),
-    )
+    SceneDetails(state = state, description = description, onCommand = onCommand)
     HorizontalDivider()
     if (isSettingsShown) {
         SceneSettingsDialogOf(view = view, sceneName = state.sceneName, music = music, onCommand = onCommand, onDismiss = { isSettingsShown = false })
@@ -306,3 +297,30 @@ private fun SceneHeader(
 }
 
 private const val ZOOM_STEP = 1.25f
+
+/**
+ * What the Scene is for, the pages mentioning it, and what about it is worth a look, under its header.
+ */
+@Composable
+private fun SceneDetails(
+    state: SceneEditingState.Open,
+    description: String?,
+    onCommand: (Invocation<*>) -> Unit,
+) {
+    DescriptionPreview(
+        modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, bottom = 8.dp),
+        name = state.sceneName,
+        description = description,
+        maximumLength = SetDescription.MAXIMUM_LENGTH,
+        onDescriptionChange = { onCommand(Invocation(SetDescription, SetDescription.Input(scene = state.sceneName, description = it))) },
+        action = { WriteDescriptionButton(prompt = stringResource(Res.string.assistant_prompt_describe_scene, state.sceneName)) },
+    )
+    MentionedInRow(
+        modifier = Modifier.padding(start = 8.dp, end = 12.dp, bottom = 6.dp),
+        path = LocalMentionedIn.current?.pathOf(state.scene.file),
+    )
+    HealthHintsList(
+        modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 8.dp),
+        subject = RelationSubject.Scene(state.sceneName),
+    )
+}

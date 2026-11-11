@@ -330,9 +330,9 @@ public class WorkspaceController(
     public val gameMap: GameMapState = GameMapState.of(blockTypes, resources, scenes, commands, sceneEditing, scope, ::reportUnexpectedProblem)
 
     /**
-     * What about the screenplay is worth a look, for the sidebar.
+     * What about the project is worth a look, for the sidebar and the editors.
      */
-    public val screenplayHealth: ScreenplayHealth = ScreenplayHealth.of(blockTypes, resources, commands, scope, ::reportUnexpectedProblem)
+    public val health: ProjectHealth = ProjectHealth.of(blockTypes, resources, commands, sceneEditing, scope, ::reportUnexpectedProblem)
 
     /**
      * The assistant's one offer to write the screenplay of a game that has none.

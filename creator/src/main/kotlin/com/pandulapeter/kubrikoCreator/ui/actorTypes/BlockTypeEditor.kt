@@ -39,6 +39,8 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
+import com.pandulapeter.kubrikoCreator.context.RelationSubject
+import com.pandulapeter.kubrikoCreator.ui.HealthHintsList
 import com.pandulapeter.kubrikoCreator.ui.WriteDescriptionButton
 import com.pandulapeter.kubrikoCreator.ui.components.DescriptionPreview
 import com.pandulapeter.kubrikoCreator.ui.components.DragPreviewChip
@@ -236,6 +238,10 @@ private fun TypeDetails(
     MentionedInRow(
         modifier = Modifier.padding(start = 12.dp, end = 16.dp, bottom = 6.dp),
         path = DefinitionPaths.definitionPath(definition),
+    )
+    HealthHintsList(
+        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+        subject = RelationSubject.Type(definition.name),
     )
     if (isChangedByHand) {
         ChangedByHandNotice(

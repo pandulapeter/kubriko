@@ -21,42 +21,57 @@ import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * The screenplay's findings ([com.pandulapeter.kubrikoCreator.workspace.ScreenplayHealth]) by the sidebar row they are
- * about: a type, a Scene, or a page, which shows them as a quiet hint beside its name.
+ * The project's findings ([com.pandulapeter.kubrikoCreator.workspace.ProjectHealth]) by where they show: the screenplay's
+ * by the sidebar row they are about (a type, a Scene, or a page), as a quiet hint beside its name, and all of them by the
+ * editor of what they are about, a Property's in its type's.
  */
-internal class SidebarHints(
-    private val findings: Map<Pair<FolderGroup, String>, List<HealthFinding>> = emptyMap(),
+internal class HealthHints(
+    private val rows: Map<Pair<FolderGroup, String>, List<HealthFinding>> = emptyMap(),
+    private val editors: Map<RelationSubject, List<HealthFinding>> = emptyMap(),
 ) {
-    fun of(group: FolderGroup, name: String): List<HealthFinding> = findings[group to name].orEmpty()
+    fun ofRow(group: FolderGroup, name: String): List<HealthFinding> = rows[group to name].orEmpty()
+
+    /**
+     * The findings the editor of [subject] (a type, a Scene, or a page) shows.
+     */
+    fun ofEditor(subject: RelationSubject): List<HealthFinding> = editors[subject].orEmpty()
 }
 
 /**
- * The workspace's [SidebarHints], none outside one.
+ * The workspace's [HealthHints], none outside one.
  */
-internal val LocalSidebarHints = compositionLocalOf { SidebarHints() }
+internal val LocalHealthHints = compositionLocalOf { HealthHints() }
 
 /**
- * The [SidebarHints] of [findings], following them as they change; [types] tell Actor types from Manager types.
+ * The [HealthHints] of [findings], following them as they change; [types] tell Actor types from Manager types.
  */
 @Composable
-internal fun rememberSidebarHints(findings: StateFlow<List<HealthFinding>?>, types: StateFlow<List<BlockTypeDefinition>>?): SidebarHints {
+internal fun rememberHealthHints(findings: StateFlow<List<HealthFinding>?>, types: StateFlow<List<BlockTypeDefinition>>?): HealthHints {
     val current = findings.collectAsState().value.orEmpty()
     val definitions = types?.collectAsState()?.value.orEmpty()
-    return remember(current, definitions) { sidebarHintsOf(current, definitions) }
+    return remember(current, definitions) { healthHintsOf(current, definitions) }
 }
 
 /**
- * The hints [findings] give the sidebar's rows: only the screenplay's, since the rest belong to the Game map.
+ * The hints [findings] give: the sidebar's rows only the screenplay's, since the rest belong to the Game map and the
+ * editors.
  */
-internal fun sidebarHintsOf(findings: List<HealthFinding>, types: List<BlockTypeDefinition>): SidebarHints {
+internal fun healthHintsOf(findings: List<HealthFinding>, types: List<BlockTypeDefinition>): HealthHints {
     val managerTypes = types.filterIsInstance<ManagerTypeDefinition>().mapTo(HashSet()) { it.name }
-    return SidebarHints(
-        findings.filter { it.kind in screenplayKinds }.groupBy { finding ->
+    return HealthHints(
+        rows = findings.filter { it.kind in screenplayKinds }.groupBy { finding ->
             when (val subject = finding.subject) {
                 is RelationSubject.Type -> (if (subject.name in managerTypes) FolderGroup.MANAGER_TYPES else FolderGroup.ACTOR_TYPES) to subject.name
                 is RelationSubject.Scene -> FolderGroup.SCENES to subject.name
                 is RelationSubject.Page -> FolderGroup.PAGES to subject.name
                 is RelationSubject.Property, is RelationSubject.Image -> null
+            }
+        }.filterKeys { it != null }.mapKeys { checkNotNull(it.key) },
+        editors = findings.groupBy { finding ->
+            when (val subject = finding.subject) {
+                is RelationSubject.Property -> RelationSubject.Type(subject.owner)
+                is RelationSubject.Type, is RelationSubject.Scene, is RelationSubject.Page -> subject
+                is RelationSubject.Image -> null
             }
         }.filterKeys { it != null }.mapKeys { checkNotNull(it.key) },
     )
