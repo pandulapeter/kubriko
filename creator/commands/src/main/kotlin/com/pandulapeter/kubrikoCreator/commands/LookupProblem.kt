@@ -43,6 +43,7 @@ public enum class LookupProblem(override val english: String) : DomainText {
     PAGE_MISSING("There's no page called %1\$s."),
     PAGE_MISSING_SIMILAR("There's no page called %1\$s. Close matches: %2\$s."),
     PAGE_SECTION_MISSING("%1\$s has no section headed %2\$s."),
+    PAGE_SECTION_MISSING_SIMILAR("%1\$s has no section headed %2\$s. Close matches: %3\$s."),
     PAGE_SECTION_MISSING_LISTED("%1\$s has no section headed %2\$s. Its sections are: %3\$s."),
     PROPERTY_UNKNOWN("%1\$s has no Property called %2\$s."),
     PROPERTY_UNKNOWN_SIMILAR("%1\$s has no Property called %2\$s. Close matches: %3\$s."),

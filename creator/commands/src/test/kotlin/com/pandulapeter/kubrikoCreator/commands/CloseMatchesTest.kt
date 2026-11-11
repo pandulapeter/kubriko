@@ -33,6 +33,7 @@ import com.pandulapeter.kubrikoCreator.commands.game.unknownKeyName
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.validateTextIndex
 import com.pandulapeter.kubrikoCreator.commands.scenes.validateScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.validateSceneActor
+import com.pandulapeter.kubrikoCreator.commands.screenplay.missingSection
 import com.pandulapeter.kubrikoCreator.commands.screenplay.validateDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.validatePage
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
@@ -138,5 +139,17 @@ class CloseMatchesTest {
     fun toolsAndKeysOfferTheCloseNames() {
         assertEquals(Rejection(LookupProblem.UNKNOWN_SIMILAR, "place_actr", "place_actor, place_actors"), CommandRegistry.editor.missing("place_actr"))
         assertEquals(Rejection(LookupProblem.GAME_KEY_UNKNOWN_SIMILAR, "SPACEBAR", "SPACE"), unknownKeyName("SPACEBAR"))
+    }
+
+    @Test
+    fun aMissingSectionNamesTheSectionsOrOnlyTheCloseOnesOfALongDocument() {
+        assertEquals(
+            Rejection(LookupProblem.PAGE_SECTION_MISSING_LISTED, "hero", "Enemy", "\"Enemies, bosses\", \"Planned\""),
+            missingSection("hero", "Enemy", "# Hero\n\n## Enemies, bosses\n\n## Planned\n"),
+        )
+        val long = (1..30).joinToString("\n\n") { "## Chapter $it" } + "\n\n## Ending notes\n"
+        assertEquals(Rejection(LookupProblem.PAGE_SECTION_MISSING_SIMILAR, "book.md", "Ending note", "\"Ending notes\""), missingSection("book.md", "Ending note", long))
+        assertEquals(Rejection(LookupProblem.PAGE_SECTION_MISSING, "book.md", "Credits"), missingSection("book.md", "Credits", long))
+        assertEquals(Rejection(LookupProblem.PAGE_SECTION_MISSING, "hero", "Ending"), missingSection("hero", "Ending", "# Hero\n"))
     }
 }

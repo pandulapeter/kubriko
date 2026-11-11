@@ -58,7 +58,7 @@ class ScreenplayCommandsTest {
         assertEquals(Rejection(NameProblem.FOLDER_CHARACTERS), CreatePage.validate(context, CreatePage.Input("hero.md", "")))
         assertEquals(Rejection(CommandProblem.PAGE_TOO_LONG, PAGE_MAXIMUM_LENGTH.toString()), CreatePage.validate(context, CreatePage.Input("long", "x".repeat(PAGE_MAXIMUM_LENGTH + 1))))
         assertEquals(Rejection(LookupProblem.PAGE_MISSING, "villain"), EditPage.validate(context, EditPage.Input("villain", "")))
-        assertEquals(Rejection(LookupProblem.PAGE_SECTION_MISSING_LISTED, "hero", "Enemies", "Moves, Planned"), EditPage.apply(context, EditPage.Input("hero", "## Enemies", section = "Enemies")).failure)
+        assertEquals(Rejection(LookupProblem.PAGE_SECTION_MISSING_LISTED, "hero", "Enemies", "\"Moves\", \"Planned\""), EditPage.apply(context, EditPage.Input("hero", "## Enemies", section = "Enemies")).failure)
         assertNull(MovePage.validate(context, MovePage.Input("hero", "HERO")))
         assertEquals(Rejection(CommandProblem.PAGE_TAKEN, "hero"), MovePage.validate(context, MovePage.Input("hero", "hero")))
     }

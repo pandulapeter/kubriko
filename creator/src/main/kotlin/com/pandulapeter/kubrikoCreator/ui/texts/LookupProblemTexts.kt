@@ -36,6 +36,7 @@ import kubriko.creator.generated.resources.error_command_page_missing
 import kubriko.creator.generated.resources.error_command_page_missing_similar
 import kubriko.creator.generated.resources.error_command_page_section_missing
 import kubriko.creator.generated.resources.error_command_page_section_missing_listed
+import kubriko.creator.generated.resources.error_command_page_section_missing_similar
 import kubriko.creator.generated.resources.error_command_property_unknown
 import kubriko.creator.generated.resources.error_command_property_unknown_similar
 import kubriko.creator.generated.resources.error_command_relations_property_missing
@@ -91,6 +92,7 @@ internal fun LookupProblem.toResource(): StringResource = when (this) {
     LookupProblem.PAGE_MISSING_SIMILAR -> Res.string.error_command_page_missing_similar
     LookupProblem.PAGE_SECTION_MISSING -> Res.string.error_command_page_section_missing
     LookupProblem.PAGE_SECTION_MISSING_LISTED -> Res.string.error_command_page_section_missing_listed
+    LookupProblem.PAGE_SECTION_MISSING_SIMILAR -> Res.string.error_command_page_section_missing_similar
     LookupProblem.PROPERTY_UNKNOWN -> Res.string.error_command_property_unknown
     LookupProblem.PROPERTY_UNKNOWN_SIMILAR -> Res.string.error_command_property_unknown_similar
     LookupProblem.RELATIONS_PROPERTY_MISSING -> Res.string.error_command_relations_property_missing

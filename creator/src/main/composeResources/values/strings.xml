@@ -610,6 +610,7 @@
     <string name="error_command_mentions_not_followed">The links in %1$s still point at where things were, since the page couldn't be written: %2$s</string>
     <string name="error_command_page_section_missing">%1$s has no section headed %2$s.</string>
     <string name="error_command_page_section_missing_listed">%1$s has no section headed %2$s. Its sections are: %3$s.</string>
+    <string name="error_command_page_section_missing_similar">%1$s has no section headed %2$s. Close matches: %3$s.</string>
     <string name="error_command_page_taken">There's already a page called %1$s.</string>
     <string name="error_command_page_too_long">A page can be at most %1$s characters long. Split it into pages of one topic each.</string>
     <string name="error_placement_block_bounce_off_edge_outside_edge_touched">Bounce off the edge works only in a When an edge of the screen is touched Event, the only one that knows which edge was touched.</string>

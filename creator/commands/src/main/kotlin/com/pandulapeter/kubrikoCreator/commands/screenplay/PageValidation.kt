@@ -38,16 +38,26 @@ internal fun CommandContext.validatePage(name: String): Rejection? = if (screenp
 internal fun missingPage(name: String, names: List<String>) = SimilarNames.rejection(LookupProblem.PAGE_MISSING, LookupProblem.PAGE_MISSING_SIMILAR, name, names, name)
 
 /**
- * Why the page or document [file], which holds [text], has no section headed [heading], naming the sections it has.
+ * Why the page or document [file], which holds [text], has no section headed [heading], naming the sections it has
+ * (in quotation marks, since a heading may hold a comma), or the close ones when it has more than a few.
  */
 internal fun missingSection(file: String, heading: String, text: String): Rejection {
     val headings = PageText.sectionsOf(text).map { it.heading }.distinct()
-    return if (headings.isEmpty()) {
-        Rejection(LookupProblem.PAGE_SECTION_MISSING, file, heading)
-    } else {
-        Rejection(LookupProblem.PAGE_SECTION_MISSING_LISTED, file, heading, headings.joinToString())
+    val similar = SimilarNames.of(heading, headings)
+    return when {
+        headings.isEmpty() -> Rejection(LookupProblem.PAGE_SECTION_MISSING, file, heading)
+        headings.size <= MAXIMUM_LISTED_SECTIONS -> Rejection(LookupProblem.PAGE_SECTION_MISSING_LISTED, file, heading, headings.quoted())
+        similar.isNotEmpty() -> Rejection(LookupProblem.PAGE_SECTION_MISSING_SIMILAR, file, heading, similar.quoted())
+        else -> Rejection(LookupProblem.PAGE_SECTION_MISSING, file, heading)
     }
 }
+
+private fun List<String>.quoted() = joinToString { "\"$it\"" }
+
+/**
+ * How many sections a rejection lists before it names only the close ones, since a long document may have hundreds.
+ */
+private const val MAXIMUM_LISTED_SECTIONS = 12
 
 /**
  * Why [name] can't be the name of a new page (or of [renamed] moved), or null if it can.

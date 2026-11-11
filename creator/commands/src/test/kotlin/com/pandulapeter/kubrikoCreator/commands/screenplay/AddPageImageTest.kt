@@ -114,7 +114,7 @@ class AddPageImageTest {
         assertEquals(Rejection(CommandProblem.PAGE_IMAGE_UNREADABLE, "/nowhere/a.png"), AddPageImage.apply(context, AddPageImage.Input("levels/cave", "x", file = "/nowhere/a.png")).failure)
         val source = File(testDirectory(), "a.png").apply { writeBytes(png()) }
         assertEquals(
-            Rejection(LookupProblem.PAGE_SECTION_MISSING_LISTED, "levels/cave", "Enemies", "Planned"),
+            Rejection(LookupProblem.PAGE_SECTION_MISSING_LISTED, "levels/cave", "Enemies", "\"Planned\""),
             AddPageImage.apply(context, AddPageImage.Input("levels/cave", "x", file = source.path, section = "Enemies")).failure,
         )
         assertEquals(before, context.files())
