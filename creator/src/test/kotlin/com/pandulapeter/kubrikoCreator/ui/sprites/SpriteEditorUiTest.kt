@@ -14,12 +14,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.MouseButton
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performMouseInput
+import androidx.compose.ui.test.performTextReplacement
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.resources.EditSprite
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
@@ -89,5 +91,16 @@ class SpriteEditorUiTest {
         onNodeWithText("Image").performClick()
         onNodeWithText("Flip horizontally").performClick()
         assertEquals(EditSprite.Input("drawable/hero.png", EditSprite.Operation.Flip(isVertical = false), frame = 1), commands.single().input)
+    }
+
+    @Test
+    fun anOperationTheCommandWouldRefuseCantBeApplied() = uiTest(width = 600, height = 400) {
+        val applied = mutableListOf<EditSprite.Operation>()
+        showing { SpriteOperationDialog(SpriteImageAction.SCALE, frameWidth = 8, frameHeight = 8, onApply = { applied += it }, onDismiss = {}) }
+        onNode(androidx.compose.ui.test.hasSetTextAction() and hasText("2")).performTextReplacement("17")
+        onNodeWithText("Apply").assertIsNotEnabled()
+        onNode(androidx.compose.ui.test.hasSetTextAction() and hasText("17")).performTextReplacement("3")
+        onNodeWithText("Apply").performClick()
+        assertEquals(listOf<EditSprite.Operation>(EditSprite.Operation.Scale(3)), applied)
     }
 }

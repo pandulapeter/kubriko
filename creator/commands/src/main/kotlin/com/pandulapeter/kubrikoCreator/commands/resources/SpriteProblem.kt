@@ -24,7 +24,7 @@ public enum class SpriteProblem(override val english: String) : DomainText {
     FRAMES_NONE("Give at least one image to make the frames of."),
     FRAMES_DIFFER_IN_SIZE("%1\$s isn't %2\$s by %3\$s pixels as the first image is: the frames of a sprite are all of one size."),
     SPRITE_SIZE_INVALID("A sprite's width and height are whole numbers of pixels from 1 to %1\$s."),
-    SPRITE_SCALE_INVALID("A sprite is scaled up by a whole number from 1 to 16."),
+    SPRITE_SCALE_INVALID("A sprite is scaled up by a whole number from 1 to %1\$s."),
     SPRITE_FRAME_SIZE_ALONE("One frame of a sprite cut into frames can't change size on its own, since its frames are all of one size: change them all."),
     SPRITE_PATH_INVALID("%1\$s can't be a new sprite: drawable/, then a name of lowercase letters, digits, and dashes, then .png, like drawable/ship.png."),
     SPRITE_TOO_LARGE_FOR_ROWS("Only an image of at most %1\$s by %1\$s pixels and %2\$s colors can be read as rows: read a frame, or leave asRows out."),

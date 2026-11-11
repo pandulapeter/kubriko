@@ -35,11 +35,16 @@ public object EditSprite : WriteCommand<EditSprite.Input> {
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSprite(input.sprite)
         ?: context.validateFrame(input.sprite, input.frame)
-        ?: when (val operation = input.operation) {
-            is Operation.ResizeCanvas -> Rejection(SpriteProblem.SPRITE_SIZE_INVALID, MAXIMUM_SIZE.toString()).takeIf { operation.width !in 1..MAXIMUM_SIZE || operation.height !in 1..MAXIMUM_SIZE }
-            is Operation.Scale -> Rejection(SpriteProblem.SPRITE_SCALE_INVALID).takeIf { operation.factor !in 1..MAXIMUM_SCALE }
-            else -> null
-        }
+        ?: validateOperation(input.operation)
+
+    /**
+     * Why [operation] can't be applied to any sprite, whatever its size: a canvas or a scale out of bounds.
+     */
+    public fun validateOperation(operation: Operation): Rejection? = when (operation) {
+        is Operation.ResizeCanvas -> Rejection(SpriteProblem.SPRITE_SIZE_INVALID, MAXIMUM_SIZE.toString()).takeIf { operation.width !in 1..MAXIMUM_SIZE || operation.height !in 1..MAXIMUM_SIZE }
+        is Operation.Scale -> Rejection(SpriteProblem.SPRITE_SCALE_INVALID, MAXIMUM_SCALE.toString()).takeIf { operation.factor !in 1..MAXIMUM_SCALE }
+        is Operation.Flip, is Operation.Rotate, is Operation.Shift -> null
+    }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied = context.editSpriteImage(input.sprite) { frames ->
         frameMissingFrom(frames, input.sprite, input.frame)?.let { return@editSpriteImage SpriteEdit.Rejected(it) }
@@ -58,7 +63,10 @@ public object EditSprite : WriteCommand<EditSprite.Input> {
      * How large a sprite's image may grow, so a slip of a scale or a canvas size can't make one too large to load.
      */
     public const val MAXIMUM_SIZE: Int = 4096
-    private const val MAXIMUM_SCALE = 16
+    /**
+     * How many pixels across one may become at most in one scale.
+     */
+    public const val MAXIMUM_SCALE: Int = 16
 
     @Serializable
     public data class Input(
@@ -157,7 +165,7 @@ public object EditSprite : WriteCommand<EditSprite.Input> {
         @SerialName("scale")
         @Description("Makes each pixel a square of factor by factor pixels.")
         public data class Scale(
-            @Description("A whole number from 1 to 16.")
+            @Description("A whole number from 1 to $MAXIMUM_SCALE.")
             @SerialName("factor") val factor: Int,
         ) : Operation {
             override fun applyTo(image: PixelImage): PixelImage = PixelOperations.scaled(image, factor)

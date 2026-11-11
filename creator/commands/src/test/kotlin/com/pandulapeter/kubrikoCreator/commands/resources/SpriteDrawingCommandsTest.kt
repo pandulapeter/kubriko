@@ -96,7 +96,7 @@ class SpriteDrawingCommandsTest {
             Rejection(SpriteProblem.SPRITE_FRAME_SIZE_ALONE),
             EditSprite.apply(context, EditSprite.Input("drawable/ship.png", EditSprite.Operation.ResizeCanvas(3, 2), frame = 0)).failure,
         )
-        assertEquals(Rejection(SpriteProblem.SPRITE_SCALE_INVALID), EditSprite.validate(context, EditSprite.Input("drawable/ship.png", EditSprite.Operation.Scale(0))))
+        assertEquals(Rejection(SpriteProblem.SPRITE_SCALE_INVALID, "16"), EditSprite.validate(context, EditSprite.Input("drawable/ship.png", EditSprite.Operation.Scale(0))))
     }
 
     @Test

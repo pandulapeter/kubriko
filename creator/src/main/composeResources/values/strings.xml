@@ -739,7 +739,7 @@
     <string name="error_pixels_letter_unknown">The palette has no color for these letters of rows: %1$s.</string>
     <string name="error_pixels_outside_frame">The pixel at %1$s is outside the frame, which is %2$s by %3$s pixels, from 0, 0 at its top left.</string>
     <string name="error_sprite_size_invalid">A sprite's width and height are whole numbers of pixels from 1 to %1$s.</string>
-    <string name="error_sprite_scale_invalid">A sprite is scaled up by a whole number from 1 to 16.</string>
+    <string name="error_sprite_scale_invalid">A sprite is scaled up by a whole number from 1 to %1$s.</string>
     <string name="error_sprite_frame_size_alone">One frame of a sprite cut into frames can't change size on its own, since its frames are all of one size: change them all.</string>
     <string name="error_sprite_path_invalid">%1$s can't be a new sprite: drawable/, then a name of lowercase letters, digits, and dashes, then .png, like drawable/ship.png.</string>
     <string name="error_sprite_too_large_for_rows">Only an image of at most %1$s by %1$s pixels and %2$s colors can be read as rows: read a frame, or leave asRows out.</string>

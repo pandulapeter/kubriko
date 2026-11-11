@@ -58,10 +58,10 @@ internal fun SpriteOperationDialog(
     var anchor by remember { mutableStateOf(CanvasAnchor.CENTER) }
     val operation = when (action) {
         SpriteImageAction.SHIFT -> EditSprite.Operation.Shift(first, second)
-        SpriteImageAction.RESIZE_CANVAS -> EditSprite.Operation.ResizeCanvas(first, second, anchor).takeIf { first in 1..EditSprite.MAXIMUM_SIZE && second in 1..EditSprite.MAXIMUM_SIZE }
-        SpriteImageAction.SCALE -> EditSprite.Operation.Scale(first).takeIf { first in 1..MAXIMUM_SCALE }
+        SpriteImageAction.RESIZE_CANVAS -> EditSprite.Operation.ResizeCanvas(first, second, anchor)
+        SpriteImageAction.SCALE -> EditSprite.Operation.Scale(first)
         else -> action.operation
-    }
+    }?.takeIf { EditSprite.validateOperation(it) == null }
     CreatorDialog(
         title = stringResource(action.title).removeSuffix("…"),
         maxWidth = 420.dp,
@@ -104,5 +104,3 @@ private fun WholeNumber(label: String, value: Int, onValueChange: (Int) -> Unit)
     value = value.toFloat(),
     onValueChange = { if (it == it.toInt().toFloat()) onValueChange(it.toInt()) },
 )
-
-private const val MAXIMUM_SCALE = 16
