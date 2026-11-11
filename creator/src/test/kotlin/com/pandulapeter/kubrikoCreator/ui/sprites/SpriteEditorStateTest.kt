@@ -174,8 +174,10 @@ class SpriteEditorStateTest {
         val reader = SpriteImageReader()
         val first = reader.read(file)
         kotlin.test.assertSame(first, reader.read(file))
-        file.writeBytes(PixelImage(2, 2).toPng())
-        file.setLastModified(file.lastModified() + 2_000)
-        assertEquals(PixelImage(2, 2), reader.read(file))
+        val stamp = file.lastModified()
+        val changed = frame.with(listOf(Pixel(3, 3, blue))).toPng()
+        file.writeBytes(changed)
+        file.setLastModified(stamp)
+        assertEquals(frame.with(listOf(Pixel(3, 3, blue))), reader.read(file), "a rewrite within the same moment is read")
     }
 }

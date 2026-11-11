@@ -46,8 +46,8 @@ internal fun PixelImage.toImageBitmap(): ImageBitmap {
 
 /**
  * The frames of the sprite in [file], cut as [sheet] says, read off the main thread whenever [revision] changes (an edit
- * written, or the files scanned again after a change outside), and decoded again only when the file's length or time
- * changed, since one write raises both; the frames read before stay shown meanwhile. Its caller shows one sprite (keyed by
+ * written, or the files scanned again after a change outside), and decoded again only when the file's bytes changed,
+ * since one write raises both; the frames read before stay shown meanwhile. Its caller shows one sprite (keyed by
  * it), so frames never outlive theirs.
  */
 @Composable
@@ -60,20 +60,20 @@ internal fun rememberSpriteFrames(file: File?, sheet: SpriteSheet?, revision: An
 }
 
 /**
- * Reads sprites' images, decoding one again only when its file's length or time changed since it was last read. Blocks.
+ * Reads sprites' images, decoding one again only when its file's bytes changed since it was last read: the bytes are
+ * compared rather than the file's length and time, which a rewrite of one pixel within the same moment leaves as they
+ * were. Blocks.
  */
 internal class SpriteImageReader {
-    private var lastFile: File? = null
-    private var lastStamp: Pair<Long, Long>? = null
+    private var lastBytes: ByteArray? = null
     private var lastImage: PixelImage? = null
 
     @Synchronized
     fun read(file: File): PixelImage? {
-        val stamp = file.length() to file.lastModified()
-        if (file != lastFile || stamp != lastStamp || lastImage == null) {
-            lastImage = runCatching { PixelImage.of(file.readBytes()) }.getOrNull()
-            lastFile = file
-            lastStamp = stamp
+        val bytes = runCatching { file.readBytes() }.getOrNull() ?: return null
+        if (!bytes.contentEquals(lastBytes) || lastImage == null) {
+            lastImage = PixelImage.of(bytes)
+            lastBytes = bytes
         }
         return lastImage
     }
