@@ -34,9 +34,10 @@ public object ReadPages : ReadCommand<ReadPages.Input> {
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override suspend fun read(context: CommandContext, input: Input): CommandOutcome = withContext(context.ioDispatcher) {
-        val names = input.pages.ifEmpty { context.screenplay.scanNames() }
+        val scanned by lazy { context.screenplay.scanNames() }
+        val names = input.pages.ifEmpty { scanned }
         val texts = names.associateWith { context.screenplay.read(it) }
-        texts.entries.firstOrNull { it.value == null }?.let { return@withContext CommandOutcome.Rejected(missingPage(it.key, context.screenplay.scanNames())) }
+        texts.entries.firstOrNull { it.value == null }?.let { return@withContext CommandOutcome.Rejected(missingPage(it.key, scanned)) }
         CommandOutcome.Success(
             buildJsonObject {
                 texts.forEach { (page, text) ->

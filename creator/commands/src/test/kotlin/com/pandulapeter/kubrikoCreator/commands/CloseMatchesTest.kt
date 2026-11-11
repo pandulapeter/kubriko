@@ -33,6 +33,7 @@ import com.pandulapeter.kubrikoCreator.commands.game.unknownKeyName
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.validateTextIndex
 import com.pandulapeter.kubrikoCreator.commands.scenes.validateScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.validateSceneActor
+import com.pandulapeter.kubrikoCreator.commands.screenplay.ReadPages
 import com.pandulapeter.kubrikoCreator.commands.screenplay.missingSection
 import com.pandulapeter.kubrikoCreator.commands.screenplay.validateDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.validatePage
@@ -131,6 +132,10 @@ class CloseMatchesTest {
         )
         assertEquals(Rejection(LookupProblem.SPRITE_MISSING_SIMILAR, "drawable/paddle", "drawable/paddle.png"), context.validateSprite("drawable/paddle"))
         assertEquals(Rejection(LookupProblem.PAGE_MISSING_SIMILAR, "Heroes", "heroes"), context.validatePage("Heroes"))
+        assertEquals(
+            CommandOutcome.Rejected(Rejection(LookupProblem.PAGE_MISSING_SIMILAR, "heros", "heroes")),
+            ReadPages.read(context, ReadPages.Input(listOf("heros"))),
+        )
         assertEquals(Rejection(LookupProblem.DOCUMENT_MISSING_SIMILAR, "combat.md", "docs/combat.md"), context.validateDocument("combat.md"))
         assertEquals(Rejection(LookupProblem.FOLDER_MISSING_SIMILAR, "level", "levels"), context.validateFolder(FolderGroup.SCENES, "level", setOf("levels")))
     }

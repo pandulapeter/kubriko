@@ -123,8 +123,12 @@ internal fun CommandContext.validateBlock(typeName: String, eventIndex: Int, blo
 }
 
 internal fun CommandContext.validateProperty(typeName: String, propertyName: String): Rejection? = validateType(typeName) ?: run {
-    val names = requireType(typeName).properties.map { it.name }
-    if (propertyName in names) null else SimilarNames.rejection(LookupProblem.PROPERTY_UNKNOWN, LookupProblem.PROPERTY_UNKNOWN_SIMILAR, propertyName, names, typeName, propertyName)
+    val properties = requireType(typeName).properties
+    if (properties.any { it.name == propertyName }) {
+        null
+    } else {
+        SimilarNames.rejection(LookupProblem.PROPERTY_UNKNOWN, LookupProblem.PROPERTY_UNKNOWN_SIMILAR, propertyName, properties.map { it.name }, typeName, propertyName)
+    }
 }
 
 internal fun validateSize(width: Float, height: Float) = if (width.isFinite() && height.isFinite() && width > 0f && height > 0f) null else Rejection(CommandProblem.SIZE_INVALID)
