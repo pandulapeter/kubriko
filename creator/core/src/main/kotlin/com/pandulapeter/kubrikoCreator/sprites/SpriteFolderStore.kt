@@ -49,6 +49,8 @@ public class SpriteFolderStore(
     private val _state = MutableStateFlow(State())
     public val state: StateFlow<State> = _state.asStateFlow()
 
+    private val sheetFiles = SpriteSheetFiles()
+
     @Volatile
     private var filesByName: Map<String, List<File>> = emptyMap()
 
@@ -63,7 +65,7 @@ public class SpriteFolderStore(
         _state.value = State(
             folders = files.filter { it.isDirectory }.mapTo(sortedSetOf()) { it.relativeTo(root).invariantSeparatorsPath },
             folderOf = filesByName.mapValues { (_, named) -> named.first().parentFile.relativeTo(root).invariantSeparatorsPath },
-            sheets = sheetsOf(filesByName),
+            sheets = sheetFiles.sheetsOf(filesByName),
         )
     }
 
@@ -192,20 +194,19 @@ public class SpriteFolderStore(
         }
 
         /**
-         * How each sprite of the project at [rootDirectory] is cut into frames, by its name, as [State.sheets] says, read
-         * from the disk. Blocks.
+         * The files of the sprites of the project at [rootDirectory], by each sprite's name, in order of their paths.
+         * Blocks.
          */
-        public fun readSheets(rootDirectory: File): Map<String, SpriteSheet> {
-            val root = File(rootDirectory, DIRECTORY)
-            val files = root.walkTopDown().filter { it.isFile && it.extension == EXTENSION }.sortedBy { it.invariantSeparatorsPath }
-            return sheetsOf(files.groupBy { it.nameWithoutExtension })
-        }
+        internal fun filesByNameIn(rootDirectory: File): Map<String, List<File>> = File(rootDirectory, DIRECTORY)
+            .walkTopDown()
+            .filter { it.isFile && it.extension == EXTENSION }
+            .sortedBy { it.invariantSeparatorsPath }
+            .groupBy { it.nameWithoutExtension }
 
-        private fun sheetsOf(filesByName: Map<String, List<File>>) = filesByName.mapNotNull { (name, files) ->
-            sheetOf(files.first())?.let { name to it }
-        }.toMap()
-
-        private fun sheetOf(file: File) = contentOf(file)?.get(SHEET)?.let { element ->
+        /**
+         * The sheet [file] keeps, or null if it keeps none, or one that can't be read or played.
+         */
+        internal fun sheetOf(file: File) = contentOf(file)?.get(SHEET)?.let { element ->
             try {
                 json.decodeFromJsonElement(SpriteSheet.serializer(), element).takeIf { it.problem == null }
             } catch (_: IllegalArgumentException) {

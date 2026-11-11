@@ -99,7 +99,7 @@ class SpriteFolderStoreTest {
         val sheet = SpriteSheet(frameWidth = 16, frameHeight = 16, frameCount = 4, framesPerRow = 2, framesPerSecond = 8f)
         store.setSheet("bat", sheet)
         assertEquals(mapOf("bat" to sheet), store.state.value.sheets)
-        assertEquals(mapOf("bat" to sheet), SpriteFolderStore.readSheets(root))
+        assertEquals(mapOf("bat" to sheet), SpriteSheetFiles().read(root))
         store.createFolder("enemies")
         store.move("bat", "enemies")
         assertEquals(sheet, store.state.value.sheets["bat"])
@@ -107,6 +107,23 @@ class SpriteFolderStoreTest {
         store.setSheet("bat", null)
         assertEquals(emptyList(), store.filesOf("bat"))
         assertEquals(SpriteFolderStore.State(setOf("enemies")), store.state.value)
+    }
+
+    @Test
+    fun aSheetsFileIsReadAgainOnlyOnceItChanged() {
+        val sheetFiles = SpriteSheetFiles()
+        val sheet = SpriteSheet(frameWidth = 16, frameHeight = 16, frameCount = 4, framesPerRow = 2)
+        store.setSheet("bat", sheet)
+        val file = store.filesOf("bat").single()
+        assertEquals(mapOf("bat" to sheet), sheetFiles.read(root))
+        val stamp = file.lastModified()
+        file.writeText(file.readText().replace("\"frameCount\": 4", "\"frameCount\": 2"))
+        file.setLastModified(stamp)
+        assertEquals(mapOf("bat" to sheet), sheetFiles.read(root), "an unchanged length and time read nothing again")
+        file.setLastModified(stamp + 2_000)
+        assertEquals(mapOf("bat" to sheet.copy(frameCount = 2)), sheetFiles.read(root))
+        file.delete()
+        assertEquals(emptyMap(), sheetFiles.read(root))
     }
 
     @Test

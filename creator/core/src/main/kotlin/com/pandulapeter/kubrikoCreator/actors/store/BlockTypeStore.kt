@@ -32,8 +32,8 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.SpritesCodeGenerator
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
-import com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheetFiles
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.IOException
@@ -206,6 +206,8 @@ public class BlockTypeStore private constructor(
      */
     private var lastGeneration: Generation? = null
 
+    private val spriteSheetFiles = SpriteSheetFiles()
+
     private data class Generation(
         val definitions: List<BlockTypeDefinition>,
         val sceneMusic: Set<String>,
@@ -213,7 +215,7 @@ public class BlockTypeStore private constructor(
     )
 
     override fun regenerate(definitions: List<BlockTypeDefinition>, overwriting: Set<String>): RegeneratedCode {
-        val generation = Generation(definitions, sceneMusic(), SpriteFolderStore.readSheets(rootDirectory))
+        val generation = Generation(definitions, sceneMusic(), spriteSheetFiles.read(rootDirectory))
         val typeNames = definitions.mapTo(HashSet()) { it.name }
         if (overwriting.isEmpty() && lastGeneration == generation && generatedFilesAreAsLeft()) return found(typeNames, removeLeftovers(typeNames))
         lastGeneration = null
