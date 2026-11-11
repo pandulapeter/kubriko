@@ -525,6 +525,10 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   (`ui/CommandTitles.kt`, `ui/actorTypes/KindTitles.kt`). The AI reads `DomainText.english`, never a UI string; a new error
   or status is an entry of its owner's enum with its English, and a string in `strings.xml` mapped in `ui/texts` (which
   `ui/DomainTexts.kt` dispatches to).
+- **Keeping the project organized** is every agent's standing job, never a request of its own (the user's priority: no
+  technical debt for the user to inherit): `McpToolServer.INSTRUCTIONS`, which outside clients hear too, tells them to put
+  everything in folders named for its purpose once a group holds more than a handful, file new things there, split folders
+  that grow, and tidy a cluttered group in the same plan. A new kind of thing with folders gets its move tool named there.
 - **The writers' room** is a conversation with rules of its own (`AssistantSystemPrompt.WRITERS_ROOM`, after the project's
   context, so the other conversations' cached prefix stays the same), started with a prompt (`startWritersRoom`), not a wizard:
   the agent leads, and everything goes through the usual tools, Keep, and Undo. Its questions go through `ask_user`, an

@@ -318,7 +318,14 @@ public class McpToolServer(
             every change through these tools, never by editing the project's files in other ways: Kubriko Creator owns the
             generated code, and the user can't see or undo such edits in it. When a request needs something no Event or
             Block offers, a Kotlin Block can run a short snippet inside an Event; when even that isn't enough, do what the
-            tools allow and tell the user what is missing, rather than writing Kotlin files.
+            tools allow and tell the user what is missing, rather than writing Kotlin files. Keep the project organized as it
+            grows, as part of every change rather than something to be asked for, so the user never inherits a mess: Actor
+            types, Manager types, Scenes, pages, sprites, sounds, and music go in folders named for what they are for in the
+            game (enemies, levels/world-1, ui) once a group holds more than a handful. Put each new thing in its folder,
+            making the folder first (create_folder); split a folder that grows past a dozen or so; move what is misplaced
+            (move_to_folder, move_sprite_to_folder, rename_scene, move_page, rename_resource or rename_folder for audio),
+            which changes no type's name, while what refers to a moved Scene or file follows it; and name things like their
+            neighbors. When a group you work in is cluttered, tidy it in the same plan, saying what moves where.
         """.trimIndent().replace("\n", " ")
     }
 }
