@@ -239,7 +239,7 @@ class ActorTypeCommandsTest {
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.ChangeNumber())))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.ChangeNumber("score"))))
         assertEquals(Rejection(PlacementProblem.NUMBER_PROPERTY_MISSING, "lives", "Ball"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.SetNumber("lives"))))
-        assertEquals(Rejection(PlacementProblem.TEXT_PROPERTY_MISSING, "isFast", "Ball"), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.SetText("isFast"))))
+        assertEquals(Rejection(PlacementProblem.TEXT_PROPERTY_OF_OTHER_KIND, "isFast", "Ball"), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.SetText("isFast"))))
         assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.SetNumber("score", Float.NaN))))
         assertEquals(
             Rejection(NameProblem.PROPERTY_TAKEN),

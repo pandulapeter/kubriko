@@ -94,7 +94,7 @@ class CloseMatchesTest {
             validateBlock(BlockDefinition.SetNumber("sped", 1f), EventType.EVERY_FRAME, scope),
         )
         assertEquals(
-            Rejection(PlacementProblem.TEXT_PROPERTY_MISSING, "speed", "Paddle"),
+            Rejection(PlacementProblem.TEXT_PROPERTY_OF_OTHER_KIND, "speed", "Paddle"),
             validateBlock(BlockDefinition.SetText("speed", ""), EventType.EVERY_FRAME, scope),
         )
         assertEquals(

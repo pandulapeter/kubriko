@@ -101,7 +101,7 @@ class ManagerTypeCommandsTest {
         assertNull(Invocation(AddBlock, AddBlock.Input("Brick", 0, BlockDefinition.SetToggle(manager = "Game"))).validate(context))
         assertEquals(Rejection(LookupProblem.MANAGER_TYPE_MISSING, "Level"), Invocation(AddBlock, AddBlock.Input("Brick", 0, BlockDefinition.SetToggle("isOver", manager = "Level"))).validate(context))
         assertEquals(Rejection(LookupProblem.MANAGER_TYPE_IS_ACTOR_TYPE, "Brick"), Invocation(AddBlock, AddBlock.Input("Brick", 0, BlockDefinition.SetToggle("isOver", manager = "Brick"))).validate(context))
-        assertEquals(Rejection(PlacementProblem.TOGGLE_PROPERTY_MISSING, "score", "Game"), Invocation(AddBlock, AddBlock.Input("Brick", 0, BlockDefinition.SetToggle("score", manager = "Game"))).validate(context))
+        assertEquals(Rejection(PlacementProblem.TOGGLE_PROPERTY_OF_OTHER_KIND, "score", "Game"), Invocation(AddBlock, AddBlock.Input("Brick", 0, BlockDefinition.SetToggle("score", manager = "Game"))).validate(context))
     }
 
     @Test

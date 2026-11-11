@@ -179,6 +179,8 @@ private fun validatePropertyReference(reference: PropertyReference, scope: Block
     val manager = reference.manager
     return when {
         manager != null && scope.propertiesOf(manager) == null -> missingManagerType(manager, scope.managerTypes.map { it.name }, scope.actorTypeNames)
+        reference.name.isNotEmpty() && scope.propertiesOf(manager).orEmpty().any { it.name == reference.name && PropertyKind.of(it) != reference.kind } ->
+            Rejection(reference.kind.otherKindProblem, reference.name, manager ?: scope.typeName)
         reference.name.isNotEmpty() && !scope.hasProperty(reference) -> SimilarNames.rejection(
             reference.kind.missingProblem,
             reference.kind.missingSimilarProblem,

@@ -374,6 +374,9 @@
     <string name="error_placement_text_property_missing_similar">%2$s has no text Property called %1$s. Close matches: %3$s.</string>
     <string name="error_placement_toggle_property_missing">%2$s has no toggle Property called %1$s.</string>
     <string name="error_placement_toggle_property_missing_similar">%2$s has no toggle Property called %1$s. Close matches: %3$s.</string>
+    <string name="error_placement_number_property_of_other_kind">%2$s has a Property called %1$s, but it isn't a number Property, so this Block can't use it. Use a Block for its kind, or another Property.</string>
+    <string name="error_placement_text_property_of_other_kind">%2$s has a Property called %1$s, but it isn't a text Property, so this Block can't use it. Use a Block for its kind, or another Property.</string>
+    <string name="error_placement_toggle_property_of_other_kind">%2$s has a Property called %1$s, but it isn't a toggle Property, so this Block can't use it. Use a Block for its kind, or another Property.</string>
     <string name="resource_group_actor_types">Actor types</string>
     <string name="new_actor_type_hint">New Actor type name</string>
     <string name="resource_group_manager_types">Managers</string>

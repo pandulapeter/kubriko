@@ -56,3 +56,13 @@ internal val PropertyKind.missingSimilarProblem: PlacementProblem
         PropertyKind.TEXT -> PlacementProblem.TEXT_PROPERTY_MISSING_SIMILAR
         PropertyKind.TOGGLE -> PlacementProblem.TOGGLE_PROPERTY_MISSING_SIMILAR
     }
+
+/**
+ * Why a Block can't name a Property of this kind that its type (or the Manager type it names) has only of another kind.
+ */
+internal val PropertyKind.otherKindProblem: PlacementProblem
+    get() = when (this) {
+        PropertyKind.NUMBER -> PlacementProblem.NUMBER_PROPERTY_OF_OTHER_KIND
+        PropertyKind.TEXT -> PlacementProblem.TEXT_PROPERTY_OF_OTHER_KIND
+        PropertyKind.TOGGLE -> PlacementProblem.TOGGLE_PROPERTY_OF_OTHER_KIND
+    }
