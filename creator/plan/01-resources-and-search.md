@@ -15,9 +15,6 @@ IntelliJ and git (`../CLAUDE.md` → Principles 1). Each addition lands with its
 
 ## Folders
 
-- **Sprites:** virtual folders, since Compose resources take no subfolders in `drawable` (only a folder's direct files become
-  accessors). A sprite's folder is kept in `.kubriko/sprites/<name>.json`, a file this introduces (Creator-owned, a row of
-  `../CLAUDE.md` → Files and ownership) and sprite sheets later extend (`02-blocks.md` → Appearance); sprite names stay unique.
 - Expanded folders remembered per project in `.kubriko/local`, and moving a whole folder into another by dragging.
 
 ## Search
