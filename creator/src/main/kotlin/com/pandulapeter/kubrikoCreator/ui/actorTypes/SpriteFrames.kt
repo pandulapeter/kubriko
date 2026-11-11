@@ -39,6 +39,17 @@ internal fun frameRegionOf(sheet: SpriteSheet?, index: Int, imageSize: IntSize):
 }
 
 /**
+ * The size an Actor type of [width] by [height] gets when its sprite of [imageSize] goes from [oldSheet] to [newSheet]
+ * (null for the whole image), or null to keep its own: only one still as large as a frame (or the image) was, which is
+ * what choosing the sprite sized it to, follows, so a size chosen by hand stays.
+ */
+internal fun sizeForSheet(width: Float, height: Float, imageSize: IntSize, oldSheet: SpriteSheet?, newSheet: SpriteSheet?): Pair<Float, Float>? {
+    fun unitOf(sheet: SpriteSheet?) = sheet?.let { it.frameWidth.toFloat() to it.frameHeight.toFloat() } ?: (imageSize.width.toFloat() to imageSize.height.toFloat())
+    val newSize = unitOf(newSheet)
+    return newSize.takeIf { (width to height) == unitOf(oldSheet) && it != (width to height) }
+}
+
+/**
  * Where a picture of [size] goes inside [bounds], as large as fits without changing its shape, in the middle.
  */
 internal fun fittedInto(size: IntSize, bounds: Size): Pair<Offset, Size> {

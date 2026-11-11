@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import com.pandulapeter.kubrikoCreator.ui.components.rememberImageFile
@@ -38,14 +39,14 @@ import org.jetbrains.compose.resources.stringResource
  * button that opens [SpriteSheetDialog] to change it.
  *
  * @param tint The color the sprite is multiplied by, if it is tinted.
- * @param onSheetChange Called with how to cut the sprite, or null to show it whole.
+ * @param onSheetChange Called with how to cut the sprite, or null to show it whole, and the image's size once it is read.
  */
 @Composable
 internal fun SpriteFramesRow(
     path: String,
     sprites: SpriteChoices,
     tint: Color?,
-    onSheetChange: (SpriteSheet?) -> Unit,
+    onSheetChange: (SpriteSheet?, imageSize: IntSize?) -> Unit,
 ) = Row(
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -77,7 +78,7 @@ internal fun SpriteFramesRow(
             initialSheet = sheet,
             onSave = {
                 isEditing = false
-                if (it != sheet) onSheetChange(it)
+                if (it != sheet) onSheetChange(it, bitmap?.let { image -> IntSize(image.width, image.height) })
             },
             onDismiss = { isEditing = false },
         )

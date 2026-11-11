@@ -38,6 +38,16 @@ class SpriteFramesTest {
     }
 
     @Test
+    fun aTypeAsLargeAsItsSpriteFollowsItIntoFramesAndBackButOneSizedByHandStays() {
+        val image = IntSize(50, 8)
+        assertEquals(10f to 8f, sizeForSheet(50f, 8f, image, oldSheet = null, newSheet = sheet))
+        assertEquals(50f to 8f, sizeForSheet(10f, 8f, image, oldSheet = sheet, newSheet = null))
+        assertEquals(20f to 4f, sizeForSheet(10f, 8f, image, oldSheet = sheet, newSheet = sheet.copy(frameWidth = 20, frameHeight = 4)))
+        assertEquals(null, sizeForSheet(64f, 64f, image, oldSheet = null, newSheet = sheet))
+        assertEquals(null, sizeForSheet(10f, 8f, image, oldSheet = sheet, newSheet = sheet.copy(framesPerSecond = 2f)))
+    }
+
+    @Test
     fun aPictureFitsInTheMiddleKeepingItsShape() {
         assertEquals(Offset(0f, 25f) to Size(100f, 50f), fittedInto(IntSize(20, 10), Size(100f, 100f)))
         assertEquals(Offset(25f, 0f) to Size(50f, 100f), fittedInto(IntSize(5, 10), Size(100f, 100f)))

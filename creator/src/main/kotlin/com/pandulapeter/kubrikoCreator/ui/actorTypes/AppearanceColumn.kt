@@ -77,7 +77,12 @@ internal fun AppearanceColumn(
                 path = sprite,
                 sprites = sprites,
                 tint = if (definition.tintsSprite) Color(definition.color) else null,
-                onSheetChange = { onSheetChange(sprite, it) },
+                onSheetChange = { sheet, imageSize ->
+                    onSheetChange(sprite, sheet)
+                    imageSize?.let { sizeForSheet(definition.width, definition.height, it, sprites.sheetOf(sprite), sheet) }?.let { (width, height) ->
+                        onChange(SetAppearance.Input(definition.name, width = width, height = height))
+                    }
+                },
             )
             LabeledSwitch(
                 label = stringResource(Res.string.actor_type_tints_sprite),

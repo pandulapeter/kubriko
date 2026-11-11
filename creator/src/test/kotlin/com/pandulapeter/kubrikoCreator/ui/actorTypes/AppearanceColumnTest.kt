@@ -69,13 +69,14 @@ class AppearanceColumnTest {
     }
 
     @Test
-    fun aSpriteIsCutIntoFramesGuessedFromItsImage() = uiTest(width = 800, height = 700) {
+    fun aSpriteIsCutIntoFramesGuessedFromItsImageAndATypeAsLargeAsItBecomesAFrame() = uiTest(width = 800, height = 700) {
         val saved = mutableListOf<SpriteSheet?>()
+        val changes = mutableListOf<SetAppearance.Input>()
         showing {
             AppearanceColumn(
-                definition = hero,
+                definition = hero.copy(width = 32f, height = 8f),
                 sprites = sprites(),
-                onChange = {},
+                onChange = { changes += it },
                 onSheetChange = { path, sheet ->
                     assertEquals("drawable/hero.png", path)
                     saved += sheet
@@ -89,6 +90,7 @@ class AppearanceColumnTest {
         saveSnapshot("sprite-sheet-dialog")
         onNodeWithText("Save").performClick()
         assertEquals(listOf<SpriteSheet?>(SpriteSheet(frameWidth = 8, frameHeight = 8, frameCount = 4, framesPerRow = 4)), saved)
+        assertEquals(listOf(SetAppearance.Input("Hero", width = 8f, height = 8f)), changes)
     }
 
     @Test
