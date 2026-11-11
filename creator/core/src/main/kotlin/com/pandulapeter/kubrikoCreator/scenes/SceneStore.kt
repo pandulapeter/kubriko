@@ -258,8 +258,18 @@ public class SceneStore(
         descriptions.set(name, null)
     }
 
+    /**
+     * Deletes the Scene [name]'s file, and forgets the name even when the file is gone already (deleted outside Creator
+     * since the last scan).
+     *
+     * @return Whether there was a file to delete.
+     */
     private fun deleteFile(name: String): Boolean {
-        val file = file(name) ?: return false
+        val file = file(name)
+        if (file == null) {
+            onRemoved(name)
+            return false
+        }
         file.delete()
         cache.remove(file)
         ownWrites.record(file)

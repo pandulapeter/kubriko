@@ -25,21 +25,20 @@ import com.pandulapeter.kubrikoCreator.context.UsageEffect
 import com.pandulapeter.kubrikoCreator.context.UsagePlace
 import com.pandulapeter.kubrikoCreator.context.projectReferences
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
-import kotlinx.coroutines.withContext
 
 /**
  * The deletes of everything in [folder] and the folders in it, each the command deleting it on its own, so each
  * cleans up what refers to it as it would alone: an Actor type's descendants before it, since a parent with children
- * can't be deleted, and a page's own images with it, since its folder goes too. Scenes and pages are found on disk,
- * since the last scan may be a second old.
+ * can't be deleted, and a page's own images with it, since its folder goes too. Scenes and pages are the ones their
+ * stores know, which is what each delete and the folder's own last check go by.
  */
-internal suspend fun CommandContext.contentDeletesOf(folder: RelationSubject.Folder): List<Invocation<*>> {
+internal fun CommandContext.contentDeletesOf(folder: RelationSubject.Folder): List<Invocation<*>> {
     fun isIn(itemFolder: String) = FolderPaths.isWithin(itemFolder, folder.path)
     return when (folder.group) {
-        FolderGroup.SCENES -> withContext(ioDispatcher) { scenes.scanNames() }
+        FolderGroup.SCENES -> scenes.names()
             .filter { isIn(FolderPaths.parentOf(it)) }
             .map { Invocation(DeleteScene, DeleteScene.Input(it)) }
-        FolderGroup.PAGES -> withContext(ioDispatcher) { screenplay.scanNames() }
+        FolderGroup.PAGES -> screenplay.names()
             .filter { isIn(PageNaming.folderOf(it)) }
             .map { Invocation(DeletePage, DeletePage.Input(it, deleteImages = true)) }
         FolderGroup.ACTOR_TYPES -> {

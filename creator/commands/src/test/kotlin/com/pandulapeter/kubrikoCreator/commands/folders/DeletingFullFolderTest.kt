@@ -160,6 +160,15 @@ class DeletingFullFolderTest {
     }
 
     @Test
+    fun aSceneDeletedOutsideCreatorJustBeforeIsntInTheWay() = runTest {
+        val context = commandContext(ball)
+        listOf("levels/1", "levels/deep/2", "main").forEach { context.writeScene(it, "[]") }
+        File(context.project.rootDirectory, "src/commonMain/composeResources/files/scenes/levels/1.json").delete()
+        assertEquals(null, DeleteFolder.apply(context, DeleteFolder.Input(FolderGroup.SCENES, "levels")).failure)
+        assertEquals(listOf("main"), context.scenes.names())
+    }
+
+    @Test
     fun anEmptyFolderIsDeletedWithTheFoldersInIt() = runTest {
         val context = commandContext(ball)
         CreateFolder.apply(context, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "props"))
