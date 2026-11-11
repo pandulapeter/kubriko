@@ -20,6 +20,7 @@ import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.resources.DeleteResource
 import com.pandulapeter.kubrikoCreator.commands.resources.RenameResource
+import com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -95,5 +96,25 @@ class SpriteFolderCommandsTest {
         MoveSpriteToFolder.apply(context, MoveSpriteToFolder.Input("drawable/bat.png", "enemies"))
         val after = context.assertRoundTrip(Invocation(DeleteFolder, DeleteFolder.Input(FolderGroup.SPRITES, "enemies"))) { context.snapshot() }
         assertEquals(setOf("$drawable/ball.png"), after.first.keys.filter { it.startsWith(drawable) || it.startsWith(".kubriko/sprites/") }.toSet())
+    }
+
+    private fun CommandContext.withLeftoverFile() = apply {
+        File(project.rootDirectory, ".kubriko/sprites/enemies").mkdirs()
+        File(project.rootDirectory, ".kubriko/sprites/enemies/bat.json").writeText("{}\n")
+        spriteFolders.refresh()
+    }
+
+    @Test
+    fun aFolderShownEmptyButHoldingTheFileOfAnImageDeletedOutsideIsDeletedUntilUndone() = runTest {
+        val context = context("drawable/ball.png").withLeftoverFile()
+        val after = context.assertRoundTrip(Invocation(DeleteFolder, DeleteFolder.Input(FolderGroup.SPRITES, "enemies", keepsContents = true))) { context.snapshot() }
+        assertEquals(SpriteFolderStore.State(), after.second)
+    }
+
+    @Test
+    fun aFullFolderTakesTheFileOfAnImageDeletedOutsideWithIt() = runTest {
+        val context = context("drawable/ball.png").withLeftoverFile()
+        val after = context.assertRoundTrip(Invocation(DeleteFolder, DeleteFolder.Input(FolderGroup.SPRITES, "enemies"))) { context.snapshot() }
+        assertEquals(SpriteFolderStore.State(), after.second)
     }
 }

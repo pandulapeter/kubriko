@@ -11,14 +11,17 @@ package com.pandulapeter.kubrikoCreator.commands.folders
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.FolderPaths
+import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.ReplaceFiles
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
 import com.pandulapeter.kubrikoCreator.commands.resources.DeleteResource
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeletePage
 import com.pandulapeter.kubrikoCreator.commands.screenplay.markdownTexts
+import com.pandulapeter.kubrikoCreator.commands.screenplay.projectPathOf
 import com.pandulapeter.kubrikoCreator.context.RelationKind
 import com.pandulapeter.kubrikoCreator.context.RelationPlace
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
@@ -58,10 +61,25 @@ internal fun CommandContext.contentDeletesOf(folder: RelationSubject.Folder): Li
             .map { Invocation(DeleteManagerType, DeleteManagerType.Input(it.name)) }
         FolderGroup.SPRITES -> itemsOf(FolderGroup.SPRITES)
             .filter { (_, itemFolder) -> isIn(itemFolder) }
-            .map { (path, _) -> Invocation(DeleteResource, DeleteResource.Input(path)) }
+            .map { (path, _) -> Invocation(DeleteResource, DeleteResource.Input(path)) } +
+            listOfNotNull(orphanSpriteFilesDelete(folder.path))
         FolderGroup.SOUNDS, FolderGroup.MUSIC -> knownAudioFilesWithin(folder.path)
             .map { Invocation(DeleteResource, DeleteResource.Input(it)) }
     }
+}
+
+/**
+ * The delete of the files in the sprite folder at [path] and the folders in it that are left for images no longer in
+ * the project (deleted or renamed outside Kubriko Creator), which would otherwise keep the folder, or null if there are
+ * none. Reads nothing.
+ */
+internal fun CommandContext.orphanSpriteFilesDelete(path: String): Invocation<*>? {
+    val sprites = itemsOf(FolderGroup.SPRITES).mapTo(HashSet()) { (sprite, _) -> ResourceKind.nameOf(sprite) }
+    val files = spriteFolders.state.value.folderOf
+        .filter { (name, folder) -> name !in sprites && FolderPaths.isWithin(folder, path) }
+        .keys.flatMap { spriteFolders.filesOf(it) }
+        .map(::projectPathOf)
+    return if (files.isEmpty()) null else Invocation(ReplaceFiles, ReplaceFiles.Input(files.associateWith { null }))
 }
 
 /**
