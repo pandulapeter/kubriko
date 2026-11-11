@@ -806,6 +806,15 @@
     <string name="error_palette_too_large">A palette holds at most %1$s colors.</string>
     <string name="error_palette_not_written">Kubriko Creator couldn't save the palette, so it stays as it was: %1$s</string>
     <string name="command_set_palette">Change the palette</string>
+    <string name="command_import_sprite_frames">Sprite from frames</string>
+    <string name="error_frames_none">Give at least one image to make the frames of.</string>
+    <string name="error_frames_differ_in_size">%1$s isn't %2$s by %3$s pixels as the first image is: the frames of a sprite are all of one size.</string>
+    <string name="action_new_sprite">New sprite…</string>
+    <string name="action_sprite_from_frames">Sprite from frames…</string>
+    <string name="new_sprite_title">New sprite</string>
+    <string name="new_sprite_name">Name</string>
+    <string name="new_sprite_create">Create</string>
+    <string name="sprite_from_frames_choose">Choose the frames, in order</string>
     <string name="error_sprite_sheet_not_written">Kubriko Creator couldn't save how %1$s is cut into frames, so it stays as it was: %2$s</string>
     <string name="error_sprite_sheet_does_not_fit">%1$s is %2$s by %3$s pixels, which the frames don't fit: their rows take more room than it has.</string>
     <string name="error_scene_folder_reserved">A Scene folder can't be called %1$s, since Kubriko Creator skips such folders, as build tools do.</string>

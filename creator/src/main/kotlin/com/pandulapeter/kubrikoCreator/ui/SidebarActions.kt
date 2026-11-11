@@ -28,7 +28,9 @@ import com.pandulapeter.kubrikoCreator.commands.folders.RenameFolder
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.commands.resources.AddResource
+import com.pandulapeter.kubrikoCreator.commands.resources.CreateSprite
 import com.pandulapeter.kubrikoCreator.commands.resources.DeleteResource
+import com.pandulapeter.kubrikoCreator.commands.resources.ImportSpriteFrames
 import com.pandulapeter.kubrikoCreator.commands.resources.RenameResource
 import com.pandulapeter.kubrikoCreator.commands.resources.newResourcePathsOf
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
@@ -44,6 +46,8 @@ import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.sprite_from_frames_choose
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -161,10 +165,11 @@ internal fun rememberDocumentActions(
  * that outlives the sidebar.
  */
 @Composable
-internal fun rememberResourceActions(commands: CommandExecutor): ResourceActions {
+internal fun rememberResourceActions(commands: CommandExecutor, selection: SelectionController? = null): ResourceActions {
     val scope = rememberCoroutineScope()
     val chooseTitles = ResourceKind.entries.associateWith { stringResource(it.addLabel) }
-    return remember(commands, scope, chooseTitles) {
+    val framesTitle = stringResource(Res.string.sprite_from_frames_choose)
+    return remember(commands, selection, scope, chooseTitles, framesTitle) {
         val add = { sources: List<ResourceSource> ->
             val paths = commands.context.newResourcePathsOf(sources.map { it.name })
             sources.zip(paths).forEach { (source, path) -> if (path != null) commands.dispatch(Invocation(AddResource, AddResource.Input(source.file.path, path))) }
@@ -173,6 +178,16 @@ internal fun rememberResourceActions(commands: CommandExecutor): ResourceActions
             onChoose = { kind -> add(pickResourceFiles(kind, chooseTitles.getValue(kind))) },
             onAdd = add,
             onPaste = { scope.launch { withContext(Dispatchers.IO) { pastedResources() }.takeIf { it.isNotEmpty() }?.let(add) } },
+            onCreateSprite = { name, width, height ->
+                val path = ResourceKind.pathOf(ResourceKind.SPRITE, name, "png")
+                commands.dispatchIfValid(Invocation(CreateSprite, CreateSprite.Input(path, width, height))).also { if (it == null) selection?.openSprite(path) }
+            },
+            onImportFrames = {
+                val files = pickFrameFiles(framesTitle)
+                commands.context.newResourcePathsOf(listOfNotNull(files.firstOrNull()?.let { frameSpriteNameOf(files) + ".png" })).firstOrNull()?.let { path ->
+                    if (commands.dispatchIfValid(Invocation(ImportSpriteFrames, ImportSpriteFrames.Input(files.map { it.path }, path))) == null) selection?.openSprite(path)
+                }
+            },
         )
     }
 }

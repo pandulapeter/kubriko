@@ -188,7 +188,7 @@ private fun WorkspaceContent(
                         folderActions = rememberFolderTreeActions(controller.creation, controller.commands, controller.selection, uiState),
                         dragState = sidebarDragState,
                         documentActions = rememberDocumentActions(controller.creation, controller.commands, controller.selection, uiState),
-                        resourceActions = rememberResourceActions(controller.commands),
+                        resourceActions = rememberResourceActions(controller.commands, controller.selection),
                         selection = selection,
                         layout = controller.layout.collectAsState().value,
                         gameModule = controller.gameModule.modules.collectAsState().value?.chosen?.let(::moduleFolderOf),

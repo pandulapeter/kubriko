@@ -14,13 +14,17 @@ import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 
 /**
  * What the sidebar's New menu makes: an item of a group with folders, a sprite, sound, or music chosen from this
- * computer, or a document at the project's top.
+ * computer, a new sprite to draw, a sprite made of images chosen as its frames, or a document at the project's top.
  */
 internal sealed interface SidebarNewItem {
 
     data class GroupItem(val group: FolderGroup) : SidebarNewItem
 
     data class Resource(val kind: ResourceKind) : SidebarNewItem
+
+    data object Sprite : SidebarNewItem
+
+    data object SpriteFromFrames : SidebarNewItem
 
     data object Document : SidebarNewItem
 }
@@ -31,6 +35,8 @@ internal sealed interface SidebarNewItem {
  */
 internal fun sidebarNewItems(modules: List<SidebarModule>): List<SidebarNewItem> =
     FolderGroup.entries.filter { group -> modules.any { group in it.creatingGroups } }.map(SidebarNewItem::GroupItem) +
+        SidebarNewItem.Sprite +
+        SidebarNewItem.SpriteFromFrames +
         ResourceKind.entries.map(SidebarNewItem::Resource) +
         SidebarNewItem.Document
 
@@ -46,7 +52,8 @@ internal class SidebarNewTarget(
 
 /**
  * Where this is named among [modules]: an item in the group of the module creating in it, a document at the top of the
- * sidebar; null for a group no module creates in, and for a resource, which is named after the file chosen.
+ * sidebar; null for a group no module creates in, for a resource, which is named after the file chosen, and for a
+ * sprite, which a dialog names.
  */
 internal fun SidebarNewItem.target(modules: List<SidebarModule>): SidebarNewTarget? = when (this) {
     is SidebarNewItem.GroupItem -> modules.firstOrNull { group in it.creatingGroups }?.let { module ->
@@ -57,7 +64,7 @@ internal fun SidebarNewItem.target(modules: List<SidebarModule>): SidebarNewTarg
             openedKeys = generateSequence(module.path) { parents[it] }.map(SidebarKeys::module).toList(),
         )
     }
-    is SidebarNewItem.Resource -> null
+    is SidebarNewItem.Resource, SidebarNewItem.Sprite, SidebarNewItem.SpriteFromFrames -> null
     SidebarNewItem.Document -> SidebarNewTarget(SidebarNaming.NewProjectDocument, NEW_PROJECT_DOCUMENT_KEY, emptyList())
 }
 

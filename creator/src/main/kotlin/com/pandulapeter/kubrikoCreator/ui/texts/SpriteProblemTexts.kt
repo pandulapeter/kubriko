@@ -11,6 +11,8 @@ package com.pandulapeter.kubrikoCreator.ui.texts
 
 import com.pandulapeter.kubrikoCreator.commands.resources.SpriteProblem
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.error_frames_differ_in_size
+import kubriko.creator.generated.resources.error_frames_none
 import kubriko.creator.generated.resources.error_palette_not_written
 import kubriko.creator.generated.resources.error_palette_too_large
 import kubriko.creator.generated.resources.error_pixels_letter_unknown
@@ -33,6 +35,8 @@ import org.jetbrains.compose.resources.StringResource
  * The string the user is shown for this [SpriteProblem].
  */
 internal fun SpriteProblem.toResource(): StringResource = when (this) {
+    SpriteProblem.FRAMES_NONE -> Res.string.error_frames_none
+    SpriteProblem.FRAMES_DIFFER_IN_SIZE -> Res.string.error_frames_differ_in_size
     SpriteProblem.PIXELS_NONE -> Res.string.error_pixels_none
     SpriteProblem.PIXELS_PALETTE_KEY -> Res.string.error_pixels_palette_key
     SpriteProblem.PIXELS_LETTER_UNKNOWN -> Res.string.error_pixels_letter_unknown

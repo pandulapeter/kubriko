@@ -21,6 +21,8 @@ public enum class SpriteProblem(override val english: String) : DomainText {
     PIXELS_OUTSIDE_FRAME("The pixel at %1\$s is outside the frame, which is %2\$s by %3\$s pixels, from 0, 0 at its top left."),
     PALETTE_TOO_LARGE("A palette holds at most %1\$s colors."),
     PALETTE_NOT_WRITTEN("Kubriko Creator couldn't save the palette, so it stays as it was: %1\$s"),
+    FRAMES_NONE("Give at least one image to make the frames of."),
+    FRAMES_DIFFER_IN_SIZE("%1\$s isn't %2\$s by %3\$s pixels as the first image is: the frames of a sprite are all of one size."),
     SPRITE_SIZE_INVALID("A sprite's width and height are whole numbers of pixels from 1 to %1\$s."),
     SPRITE_SCALE_INVALID("A sprite is scaled up by a whole number from 1 to 16."),
     SPRITE_FRAME_SIZE_ALONE("One frame of a sprite cut into frames can't change size on its own, since its frames are all of one size: change them all."),

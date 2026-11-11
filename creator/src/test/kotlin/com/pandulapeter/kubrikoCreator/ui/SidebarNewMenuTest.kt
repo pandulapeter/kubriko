@@ -68,11 +68,15 @@ class SidebarNewMenuTest {
         val modules = sidebarModules(resources, folderGroups, layout)
         assertEquals(
             listOf(FolderGroup.PAGES, FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES, FolderGroup.SCENES).map(SidebarNewItem::GroupItem) +
-                ResourceKind.entries.map(SidebarNewItem::Resource) + SidebarNewItem.Document,
+                SidebarNewItem.Sprite + SidebarNewItem.SpriteFromFrames + ResourceKind.entries.map(SidebarNewItem::Resource) + SidebarNewItem.Document,
             sidebarNewItems(modules),
         )
         val toolsOnly = sidebarModules(resources, emptyMap(), ProjectLayout(modules = mapOf("tools" to ProjectModule(false))))
-        assertEquals(ResourceKind.entries.map(SidebarNewItem::Resource) + SidebarNewItem.Document, sidebarNewItems(toolsOnly))
+        assertEquals(
+            listOf(SidebarNewItem.Sprite, SidebarNewItem.SpriteFromFrames) + ResourceKind.entries.map(SidebarNewItem::Resource) + SidebarNewItem.Document,
+            sidebarNewItems(toolsOnly),
+        )
+        assertNull(SidebarNewItem.Sprite.target(modules))
         assertNull(SidebarNewItem.Resource(ResourceKind.SPRITE).target(modules))
         assertNull(SidebarNewItem.GroupItem(FolderGroup.SCENES).target(toolsOnly))
         val scene = SidebarNewItem.GroupItem(FolderGroup.SCENES).target(modules)!!

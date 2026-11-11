@@ -50,9 +50,13 @@ import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_new
 import kubriko.creator.generated.resources.action_new_document
+import kubriko.creator.generated.resources.action_new_sprite
+import kubriko.creator.generated.resources.action_sprite_from_frames
 import kubriko.creator.generated.resources.choice_none_found
 import kubriko.creator.generated.resources.ic_add
+import kubriko.creator.generated.resources.ic_edit
 import kubriko.creator.generated.resources.ic_file
+import kubriko.creator.generated.resources.ic_sprite
 import kubriko.creator.generated.resources.sidebar_filter
 import org.jetbrains.compose.resources.stringResource
 
@@ -125,8 +129,8 @@ internal fun ProjectSidebar(
         query = query,
         onQueryChange = { query = it },
         newItems = remember(modules) { sidebarNewItems(modules) },
+        resourceActions = resourceActions,
         onNew = { item ->
-            if (item is SidebarNewItem.Resource) resourceActions.onChoose(item.kind)
             item.target(modules)?.let { target ->
                 query = ""
                 target.openedKeys.forEach(tree::expand)
@@ -251,18 +255,22 @@ private fun LazyListScope.moduleSections(
 }
 
 /**
- * The filter field, and the New menu after it, offering [newItems].
+ * The filter field, and the New menu after it, offering [newItems]: sprites, sounds, and music are asked for here (files
+ * through [resourceActions], a new sprite's name in [NewSpriteDialog]), and the rest named in the sidebar ([onNew]).
  */
 @Composable
 private fun SidebarTopRow(
     query: String,
     onQueryChange: (String) -> Unit,
     newItems: List<SidebarNewItem>,
+    resourceActions: ResourceActions,
     onNew: (SidebarNewItem) -> Unit,
 ) = Row(
     modifier = Modifier.fillMaxWidth().padding(start = 8.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
     verticalAlignment = Alignment.CenterVertically,
 ) {
+    var isCreatingSprite by remember { mutableStateOf(false) }
+    if (isCreatingSprite) NewSpriteDialog(onCreate = resourceActions.onCreateSprite, onDismiss = { isCreatingSprite = false })
     SidebarFilterField(
         modifier = Modifier.weight(1f),
         query = query,
@@ -276,6 +284,8 @@ private fun SidebarTopRow(
             when (item) {
                 is SidebarNewItem.GroupItem -> stringResource(item.group.newItemLabel)
                 is SidebarNewItem.Resource -> stringResource(item.kind.addLabel)
+                SidebarNewItem.Sprite -> stringResource(Res.string.action_new_sprite)
+                SidebarNewItem.SpriteFromFrames -> stringResource(Res.string.action_sprite_from_frames)
                 SidebarNewItem.Document -> stringResource(Res.string.action_new_document)
             }
         },
@@ -283,10 +293,19 @@ private fun SidebarTopRow(
             when (item) {
                 is SidebarNewItem.GroupItem -> item.group.icon
                 is SidebarNewItem.Resource -> item.kind.icon
+                SidebarNewItem.Sprite -> Res.drawable.ic_edit
+                SidebarNewItem.SpriteFromFrames -> Res.drawable.ic_sprite
                 SidebarNewItem.Document -> Res.drawable.ic_file
             }
         },
-        onSelected = onNew,
+        onSelected = { item ->
+            when (item) {
+                is SidebarNewItem.Resource -> resourceActions.onChoose(item.kind)
+                SidebarNewItem.Sprite -> isCreatingSprite = true
+                SidebarNewItem.SpriteFromFrames -> resourceActions.onImportFrames()
+                is SidebarNewItem.GroupItem, SidebarNewItem.Document -> onNew(item)
+            }
+        },
     )
 }
 

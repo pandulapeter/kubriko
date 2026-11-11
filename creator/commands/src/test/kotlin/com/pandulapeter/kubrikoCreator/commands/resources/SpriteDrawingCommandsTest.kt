@@ -128,4 +128,24 @@ class SpriteDrawingCommandsTest {
         assertEquals(listOf(red, blue), colors)
         assertEquals(Rejection(SpriteProblem.PALETTE_TOO_LARGE, "64"), SetPalette.validate(context, SetPalette.Input(List(65) { it.toLong() })))
     }
+
+    @Test
+    fun imagesBecomeTheFramesOfANewSpriteAndUndoingDeletesItAndItsSheet() = runTest {
+        val context = context()
+        val frames = (0 until 3).map { index ->
+            File(testDirectory(), "walk-$index.png").apply { writeBytes(PixelImage(2, 2).with(listOf(com.pandulapeter.kubrikoCreator.sprites.pixels.Pixel(index % 2, 0, red.toInt()))).toPng()) }
+        }
+        val file = File(context.scenes.resourcesDirectory, "drawable/walk.png")
+        val input = ImportSpriteFrames.Input(frames.map { it.path }, "drawable/walk.png")
+        val imported = context.assertRoundTrip(Invocation(ImportSpriteFrames, input)) { file.takeIf { it.isFile }?.readBytes()?.let(PixelImage::of) to context.spriteFolders.state.value.sheets["walk"] }
+        assertEquals(6 to 2, imported.first!!.width to imported.first!!.height)
+        assertEquals(red.toInt(), imported.first!![2 + 1, 0])
+        assertEquals(SpriteSheet(frameWidth = 2, frameHeight = 2, frameCount = 3, framesPerRow = 3), imported.second)
+        val wide = File(testDirectory(), "wide.png").apply { writeBytes(PixelImage(3, 2).toPng()) }
+        assertEquals(
+            Rejection(SpriteProblem.FRAMES_DIFFER_IN_SIZE, wide.path, "2", "2"),
+            ImportSpriteFrames.apply(context, input.copy(files = listOf(frames.first().path, wide.path), path = "drawable/run.png")).failure,
+        )
+        assertEquals(Rejection(SpriteProblem.FRAMES_NONE), ImportSpriteFrames.validate(context, input.copy(files = emptyList())))
+    }
 }

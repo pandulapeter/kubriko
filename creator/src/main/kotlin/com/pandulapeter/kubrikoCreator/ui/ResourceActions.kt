@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ui
 
 import com.pandulapeter.kubrikoCreator.actors.ResourceKind
+import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.ui.screenplay.PastedImages
@@ -26,11 +27,16 @@ import javax.swing.filechooser.FileNameExtensionFilter
  * @param onChoose Asks for files of a kind to add.
  * @param onAdd Adds files chosen, dropped, or pasted, each named after its own name.
  * @param onPaste Adds what the clipboard holds: copied files, or a copied image as a sprite.
+ * @param onCreateSprite Makes a new, see-through sprite of a name and size and opens it, unless it is refused, returning
+ *   why it was.
+ * @param onImportFrames Asks for images to make a new sprite of, one frame each, and opens it.
  */
 internal class ResourceActions(
     val onChoose: (ResourceKind) -> Unit = {},
     val onAdd: (List<ResourceSource>) -> Unit = {},
     val onPaste: () -> Unit = {},
+    val onCreateSprite: (name: String, width: Int, height: Int) -> Rejection? = { _, _, _ -> null },
+    val onImportFrames: () -> Unit = {},
 )
 
 /**
@@ -88,6 +94,30 @@ internal fun pickResourceFiles(kind: ResourceKind, title: String): List<Resource
     fileFilter = FileNameExtensionFilter(title, *kind.extensions.toTypedArray())
     if (showOpenDialog(null) == JFileChooser.APPROVE_OPTION) resourceFilesAmong(selectedFiles.toList()) else emptyList()
 }
+
+/**
+ * Asks the user for images to make the frames of a new sprite of, in the order of their names (`walk-2` before
+ * `walk-10`), returning none if they cancel.
+ */
+internal fun pickFrameFiles(title: String): List<File> = JFileChooser().run {
+    dialogTitle = title
+    isMultiSelectionEnabled = true
+    fileFilter = FileNameExtensionFilter(title, *ResourceKind.SPRITE.extensions.toTypedArray())
+    if (showOpenDialog(null) == JFileChooser.APPROVE_OPTION) selectedFiles.filter { it.isFile }.sortedWith(compareBy(::framesOrderOf)) else emptyList()
+}
+
+/**
+ * How frame files sort: by their names, with each run of digits as the number it is, so `walk-2` comes before `walk-10`.
+ */
+internal fun framesOrderOf(file: File): String = file.nameWithoutExtension.lowercase().replace(Regex("[0-9]+")) { it.value.padStart(FRAME_NUMBER_WIDTH, '0') }
+
+/**
+ * The name a sprite made of [files] as its frames is offered under: the first one's, without the number that tells the
+ * frames apart (`walk-1` becomes `walk`).
+ */
+internal fun frameSpriteNameOf(files: List<File>): String = files.first().nameWithoutExtension.replace(Regex("[ _-]*[0-9]+$"), "").ifEmpty { files.first().nameWithoutExtension }
+
+private const val FRAME_NUMBER_WIDTH = 10
 
 /**
  * What a pasted image is named after, since its file's name is a temporary one.
