@@ -59,8 +59,19 @@ class SpriteDraftTest {
     }
 
     @Test
+    fun editsThatChangeNothingAreNoStepsAndEditsBackToTheSavedPixelsAreNoChange() {
+        state.draw(0, listOf(Pixel(0, 0, PixelImage.TRANSPARENT)))
+        assertFalse(state.hasChanges, "drawing see-through over see-through")
+        assertFalse(state.draft!!.canUndo)
+        state.draw(0, listOf(Pixel(0, 0, red)))
+        state.draw(0, listOf(Pixel(0, 0, PixelImage.TRANSPARENT)))
+        assertFalse(state.hasChanges, "back to what was saved")
+        assertTrue(state.draft!!.canUndo, "with its steps still there to undo")
+    }
+
+    @Test
     fun theDraftKeepsALimitedNumberOfSteps() {
-        repeat(100) { state.draw(0, listOf(Pixel(it % 4, it / 4 % 4, if (it % 2 == 0) red else PixelImage.TRANSPARENT))) }
+        repeat(100) { state.draw(0, listOf(Pixel(0, 0, 0xFF000000.toInt() or (it + 1)))) }
         var undone = 0
         while (state.undo()) undone++
         assertEquals(64, undone)
