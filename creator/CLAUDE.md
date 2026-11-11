@@ -264,7 +264,7 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   Creator, so neither the types loading at opening nor a placeholder typed halfway is reported as deleted). Undoing a
   creation deletes only the thing (`keepsUsages`), leaving what referred to it before as it was.
 - **Batches** (`place_actors`, `remove_actors`, `restore_actors`, `set_actors_values`, `set_actors_state`) are one undo step each,
-  and name no Actor twice and at least one. Paged reads (`read_scene`, `list_actor_types`) keep large games readable.
+  and name no Actor twice and at least one. Paged reads (`read_scene`, and the listings through `folderPage`) keep large games readable.
 
 ## Project files
 

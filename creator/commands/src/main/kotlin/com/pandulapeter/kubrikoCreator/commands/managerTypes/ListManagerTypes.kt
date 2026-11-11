@@ -9,46 +9,65 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.managerTypes
 
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
-import com.pandulapeter.kubrikoCreator.commands.NoInput
+import com.pandulapeter.kubrikoCreator.commands.DEFAULT_LIST_PAGE_SIZE
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.serialName
+import com.pandulapeter.kubrikoCreator.commands.folderPage
+import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.add
-import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 
-public object ListManagerTypes : ReadCommand<NoInput> {
+public object ListManagerTypes : ReadCommand<ListManagerTypes.Input> {
     override val name: String = "list_manager_types"
-    override val description: String = "Lists the block-built Manager types of the project with their Properties (name and kind), which Blocks of every type can use, and the Events each one reacts to."
-    override val inputSerializer: KSerializer<NoInput> = NoInput.serializer()
+    override val description: String = "Lists the block-built Manager types a page at a time, as list_actor_types does, " +
+        "each with its Properties (name and kind), which Blocks of every type can use."
+    override val inputSerializer: KSerializer<Input> = Input.serializer()
 
-    override suspend fun read(context: CommandContext, input: NoInput): CommandOutcome {
+    override suspend fun read(context: CommandContext, input: Input): CommandOutcome {
         val types = context.blockTypes ?: return CommandOutcome.Rejected(Rejection(CommandProblem.NO_ACTOR_TYPES))
-        return CommandOutcome.Success(
-            JsonArray(
-                types.managerTypes.value.map { definition ->
-                    buildJsonObject {
-                        put("name", definition.name)
-                        putJsonArray("properties") {
-                            definition.properties.forEach { property ->
-                                add(buildJsonObject {
-                                    put("name", property.name)
-                                    put("kind", PropertyKind.of(property).serialName)
-                                })
-                            }
-                        }
-                        putJsonArray("events") { definition.events.forEach { add(it.type.serialName) } }
-                        put("isChangedByHand", definition.name in types.changedByHand.value)
+        val changedByHand = types.changedByHand.value
+        return folderPage(
+            items = types.managerTypes.value,
+            folders = types.folders.value[BlockTypeKind.MANAGER].orEmpty(),
+            folder = input.folder,
+            offset = input.offset,
+            count = input.count,
+            itemsKey = "managerTypes",
+            folderOf = { it.folder },
+        ) { definition ->
+            put("name", definition.name)
+            if (definition.folder.isNotEmpty()) put("folder", definition.folder)
+            putJsonArray("properties") {
+                definition.properties.forEach { property ->
+                    addJsonObject {
+                        put("name", property.name)
+                        put("kind", PropertyKind.of(property).serialName)
                     }
-                },
-            ),
-        )
+                }
+            }
+            putJsonArray("events") { definition.events.forEach { add(it.type.serialName) } }
+            put("isChangedByHand", definition.name in changedByHand)
+        }
     }
+
+    @Serializable
+    public data class Input(
+        @Description("Only this folder and its folders, as a path like ui/menus. Left out, all.")
+        @SerialName("folder") val folder: String? = null,
+        @Description("How many to skip: the previous page's nextOffset.")
+        @SerialName("offset") val offset: Int = 0,
+        @Description("At most how many to return.")
+        @SerialName("count") val count: Int = DEFAULT_LIST_PAGE_SIZE,
+    )
 }

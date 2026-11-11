@@ -24,7 +24,6 @@ import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
-import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddEvent
@@ -135,9 +134,10 @@ class ManagerTypeCommandsTest {
     @Test
     fun managerTypesAreListedAndRead() = runTest {
         val context = commandContext(brick, game)
-        val list = assertIs<CommandOutcome.Success>(ListManagerTypes.read(context, NoInput)).result as JsonArray
-        assertEquals("Game", list.single().jsonObject.getValue("name").jsonPrimitive.content)
-        assertEquals("""[{"name":"score","kind":"number"},{"name":"isOver","kind":"toggle"}]""", list.single().jsonObject.getValue("properties").toString())
+        val list = assertIs<CommandOutcome.Success>(ListManagerTypes.read(context, ListManagerTypes.Input())).result as JsonObject
+        val game = (list.getValue("managerTypes") as JsonArray).single().jsonObject
+        assertEquals("Game", game.getValue("name").jsonPrimitive.content)
+        assertEquals("""[{"name":"score","kind":"number"},{"name":"isOver","kind":"toggle"}]""", game.getValue("properties").toString())
         val read = assertIs<CommandOutcome.Success>(ReadManagerType.read(context, ReadManagerType.Input("Game"))).result as JsonObject
         assertEquals("""["score: number = 0","isOver: toggle = off"]""", read.getValue("properties").toString())
         assertEquals("0 \"Score: {score}\" (topLeft, 24, #202020)", (read.getValue("texts") as JsonArray).single().jsonPrimitive.content)

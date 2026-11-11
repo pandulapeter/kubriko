@@ -11,29 +11,44 @@ package com.pandulapeter.kubrikoCreator.commands.scenes
 
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
-import com.pandulapeter.kubrikoCreator.commands.NoInput
+import com.pandulapeter.kubrikoCreator.commands.DEFAULT_LIST_PAGE_SIZE
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
+import com.pandulapeter.kubrikoCreator.commands.folderPage
+import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.put
 
-public object ListScenes : ReadCommand<NoInput> {
+public object ListScenes : ReadCommand<ListScenes.Input> {
     override val name: String = "list_scenes"
-    override val description: String = "Lists the Scenes of the project with how many Actors each one has (or that its file isn't a valid Scene)."
-    override val inputSerializer: KSerializer<NoInput> = NoInput.serializer()
+    override val description: String = "Lists the Scenes (named by path, like levels/1-1) a page at a time, as list_actor_types does, " +
+        "each with how many Actors it has, or that its file isn't a valid Scene."
+    override val inputSerializer: KSerializer<Input> = Input.serializer()
 
-    override suspend fun read(context: CommandContext, input: NoInput): CommandOutcome = CommandOutcome.Success(
-        withContext(context.ioDispatcher) {
-            JsonArray(
-                context.scenes.names().map { name ->
-                    buildJsonObject {
-                        put("name", name)
-                        if (context.validateScene(name) == null) put("actorCount", context.readScene(name).size) else put("isValid", false)
-                    }
-                },
-            )
-        },
+    override suspend fun read(context: CommandContext, input: Input): CommandOutcome = withContext(context.ioDispatcher) {
+        folderPage(
+            items = context.scenes.names(),
+            folders = context.scenes.folders(),
+            folder = input.folder,
+            offset = input.offset,
+            count = input.count,
+            itemsKey = "scenes",
+            folderOf = { it.substringBeforeLast('/', "") },
+        ) { name ->
+            put("name", name)
+            if (context.validateScene(name) == null) put("actorCount", context.readScene(name).size) else put("isValid", false)
+        }
+    }
+
+    @Serializable
+    public data class Input(
+        @Description("Only this folder and its folders, as a path like levels/forest. Left out, all.")
+        @SerialName("folder") val folder: String? = null,
+        @Description("How many to skip: the previous page's nextOffset.")
+        @SerialName("offset") val offset: Int = 0,
+        @Description("At most how many to return.")
+        @SerialName("count") val count: Int = DEFAULT_LIST_PAGE_SIZE,
     )
 }

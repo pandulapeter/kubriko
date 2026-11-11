@@ -16,7 +16,6 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.ListActorTypes
 import com.pandulapeter.kubrikoCreator.commands.scenes.ReadScene
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
@@ -153,7 +152,10 @@ class ReadCommandsTest {
         @OptIn(EditorMutation::class)
         context.scenes.write("broken", "nope")
         val executor = executor(context)
-        assertEquals(Json.parseToJsonElement("""[{"name":"broken","isValid":false},{"name":"main","actorCount":2}]"""), executor.read("list_scenes"))
+        assertEquals(
+            Json.parseToJsonElement("""{"total":2,"scenes":[{"name":"broken","isValid":false},{"name":"main","actorCount":2}],"folders":[]}"""),
+            executor.read("list_scenes"),
+        )
         val read = executor.read("read_scene", buildJsonObject { put("scene", "main") }).jsonObject
         assertEquals(
             Json.parseToJsonElement("""[{"actorId":"i0","index":0,"typeId":"Ball","x":1.0,"y":2.0,"state":"{\"body\":{\"position\":{\"x\":1.0,\"y\":2.0}}}"},{"actorId":"i1","index":1,"typeId":"Music","state":"{}"}]"""),
@@ -211,7 +213,7 @@ class ReadCommandsTest {
 
         val all = list {}
         assertEquals(152, all.getValue("total").jsonPrimitive.int)
-        assertEquals(ListActorTypes.DEFAULT_PAGE_SIZE, all.names().size)
+        assertEquals(DEFAULT_LIST_PAGE_SIZE, all.names().size)
         assertEquals(listOf("empty", "enemies", "enemies/flying"), all.getValue("folders").jsonArray.map { it.jsonPrimitive.content })
         val flying = list { put("folder", "enemies/flying") }
         assertEquals(121, flying.getValue("total").jsonPrimitive.int)
@@ -223,6 +225,62 @@ class ReadCommandsTest {
         assertEquals(listOf("enemies/flying"), enemies.getValue("folders").jsonArray.map { it.jsonPrimitive.content })
         assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.FOLDER_MISSING, "ghosts")), executor.call("list_actor_types", buildJsonObject { put("folder", "ghosts") }))
         assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.PAGE_INVALID)), executor.call("list_actor_types", buildJsonObject { put("count", 0) }))
+    }
+
+    @Test
+    fun managerTypesAreListedByFolderAPageAtATime() = runTest {
+        val types = List(130) { ManagerTypeDefinition(name = "Menu$it", folder = "ui/menus") } + ManagerTypeDefinition(name = "Game")
+        val repository = FakeBlockTypeRepository(types).apply { folders[BlockTypeKind.MANAGER] = mutableSetOf("ui", "ui/menus", "empty") }
+        val executor = executor(commandContext(blockTypes = blockTypesController(repository = repository)))
+        suspend fun list(arguments: JsonObjectBuilder.() -> Unit) = executor.read("list_manager_types", buildJsonObject(arguments)).jsonObject
+        fun JsonObject.names() = getValue("managerTypes").jsonArray.map { it.jsonObject.getValue("name").jsonPrimitive.content }
+
+        val all = list {}
+        assertEquals(131, all.getValue("total").jsonPrimitive.int)
+        assertEquals(DEFAULT_LIST_PAGE_SIZE, all.names().size)
+        assertEquals(DEFAULT_LIST_PAGE_SIZE, all.getValue("nextOffset").jsonPrimitive.int)
+        assertEquals(listOf("empty", "ui", "ui/menus"), all.getValue("folders").jsonArray.map { it.jsonPrimitive.content })
+        val rest = list { put("offset", DEFAULT_LIST_PAGE_SIZE) }
+        assertEquals(31, rest.names().size)
+        assertFalse("nextOffset" in rest)
+        assertEquals(
+            Json.parseToJsonElement("""{"name":"Menu0","folder":"ui/menus","properties":[],"events":[],"isChangedByHand":false}"""),
+            list { put("folder", "/ui/"); put("count", 1) }.getValue("managerTypes").jsonArray.single(),
+        )
+        assertEquals(listOf("ui/menus"), list { put("folder", "ui") }.getValue("folders").jsonArray.map { it.jsonPrimitive.content })
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.FOLDER_MISSING, "hud")), executor.call("list_manager_types", buildJsonObject { put("folder", "hud") }))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.PAGE_INVALID)), executor.call("list_manager_types", buildJsonObject { put("offset", -1) }))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.NO_ACTOR_TYPES)), executor(commandContext(blockTypes = null)).call("list_manager_types", JsonObject(emptyMap())))
+    }
+
+    @Test
+    fun scenesAreListedByFolderAPageAtATimeReadingOnlyThePage() = runTest {
+        val context = commandContext(ball)
+        @OptIn(EditorMutation::class)
+        run {
+            repeat(3) { context.scenes.write("levels/forest/$it", scene) }
+            context.scenes.write("levels/cave", "nope")
+            context.scenes.write("main", scene)
+            context.scenes.createFolder("empty")
+        }
+        val executor = executor(context)
+        suspend fun list(arguments: JsonObjectBuilder.() -> Unit) = executor.read("list_scenes", buildJsonObject(arguments)).jsonObject
+        fun JsonObject.names() = getValue("scenes").jsonArray.map { it.jsonObject.getValue("name").jsonPrimitive.content }
+
+        val all = list {}
+        assertEquals(listOf("levels/cave", "levels/forest/0", "levels/forest/1", "levels/forest/2", "main"), all.names())
+        assertEquals(listOf("empty", "levels", "levels/forest"), all.getValue("folders").jsonArray.map { it.jsonPrimitive.content })
+        val levels = list { put("folder", "levels"); put("count", 2) }
+        assertEquals(4, levels.getValue("total").jsonPrimitive.int)
+        assertEquals(2, levels.getValue("nextOffset").jsonPrimitive.int)
+        assertEquals(
+            Json.parseToJsonElement("""[{"name":"levels/cave","isValid":false},{"name":"levels/forest/0","actorCount":2}]"""),
+            levels.getValue("scenes"),
+        )
+        assertEquals(listOf("levels/forest"), levels.getValue("folders").jsonArray.map { it.jsonPrimitive.content })
+        assertEquals(listOf("levels/forest/2"), list { put("folder", "levels/forest"); put("offset", 2) }.names())
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.FOLDER_MISSING, "caves")), executor.call("list_scenes", buildJsonObject { put("folder", "caves") }))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.PAGE_INVALID)), executor.call("list_scenes", buildJsonObject { put("count", 0) }))
     }
 
     @Test
