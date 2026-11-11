@@ -20,6 +20,7 @@ import kubriko.creator.generated.resources.error_command_block_insertion_index_i
 import kubriko.creator.generated.resources.error_command_block_missing
 import kubriko.creator.generated.resources.error_command_block_missing_none
 import kubriko.creator.generated.resources.error_command_blocks_count_too_large
+import kubriko.creator.generated.resources.error_command_blocks_none_to_remove
 import kubriko.creator.generated.resources.error_command_document_missing
 import kubriko.creator.generated.resources.error_command_document_missing_similar
 import kubriko.creator.generated.resources.error_command_event_missing
@@ -71,6 +72,7 @@ internal fun LookupProblem.toResource(): StringResource = when (this) {
     LookupProblem.ACTOR_TYPE_MISSING -> Res.string.error_command_actor_type_missing
     LookupProblem.ACTOR_TYPE_MISSING_SIMILAR -> Res.string.error_command_actor_type_missing_similar
     LookupProblem.BLOCKS_COUNT_TOO_LARGE -> Res.string.error_command_blocks_count_too_large
+    LookupProblem.BLOCKS_NONE_TO_REMOVE -> Res.string.error_command_blocks_none_to_remove
     LookupProblem.BLOCK_INSERTION_INDEX_INVALID -> Res.string.error_command_block_insertion_index_invalid
     LookupProblem.BLOCK_MISSING -> Res.string.error_command_block_missing
     LookupProblem.BLOCK_MISSING_NONE -> Res.string.error_command_block_missing_none

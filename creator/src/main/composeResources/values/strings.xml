@@ -581,8 +581,9 @@
     <string name="error_command_event_missing">%1$s has no Event at index %2$s. Its Events are at indexes 0 to %3$s.</string>
     <string name="error_command_event_missing_none">%1$s has no Events yet, so none at index %2$s.</string>
     <string name="error_command_block_missing">Event %2$s of %1$s has no Block at index %3$s. Its Blocks are at indexes 0 to %4$s.</string>
-    <string name="error_command_blocks_count_too_large">Event %2$s of %1$s has %3$s Blocks from index %4$s on, so remove at most that many.</string>
-    <string name="error_command_block_insertion_index_invalid">Event %2$s of %1$s has %3$s Blocks, so Blocks go in at an index from 0 to %3$s.</string>
+    <string name="error_command_blocks_count_too_large">Event %2$s of %1$s has Blocks up to index %3$s, so remove at most %5$s from index %4$s.</string>
+    <string name="error_command_blocks_none_to_remove">Event %2$s of %1$s has no Block at index %3$s or after it, so there is nothing to remove there. Give a count of 0 to only add Blocks.</string>
+    <string name="error_command_block_insertion_index_invalid">Blocks go into Event %2$s of %1$s at an index from 0, its start, to %3$s, its end.</string>
     <string name="error_command_block_missing_none">Event %2$s of %1$s has no Blocks yet, so none at index %3$s.</string>
     <string name="error_blocks_nothing_to_replace">Give Blocks to add, a count (0 or more) of Blocks to remove, or both.</string>
     <string name="error_command_index_invalid">%1$s isn't a valid index there. Use one from 0 to %2$s.</string>

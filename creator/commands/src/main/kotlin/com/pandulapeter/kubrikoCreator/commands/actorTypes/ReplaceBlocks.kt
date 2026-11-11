@@ -50,8 +50,15 @@ public object ReplaceBlocks : WriteCommand<ReplaceBlocks.Input> {
         when {
             input.count < 0 || (input.count == 0 && input.blocks.isEmpty()) -> Rejection(CommandProblem.BLOCKS_NOTHING_TO_REPLACE)
             input.index !in 0..size -> Rejection(LookupProblem.BLOCK_INSERTION_INDEX_INVALID, input.actorType, input.eventIndex.toString(), size.toString())
-            input.count > size - input.index ->
-                Rejection(LookupProblem.BLOCKS_COUNT_TOO_LARGE, input.actorType, input.eventIndex.toString(), (size - input.index).toString(), input.index.toString())
+            input.count > 0 && input.index == size -> Rejection(LookupProblem.BLOCKS_NONE_TO_REMOVE, input.actorType, input.eventIndex.toString(), input.index.toString())
+            input.count > size - input.index -> Rejection(
+                LookupProblem.BLOCKS_COUNT_TOO_LARGE,
+                input.actorType,
+                input.eventIndex.toString(),
+                (size - 1).toString(),
+                input.index.toString(),
+                (size - input.index).toString(),
+            )
             else -> null
         }
     }
