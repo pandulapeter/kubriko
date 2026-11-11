@@ -60,7 +60,7 @@ public object ImportSpriteFrames : WriteCommand<ImportSpriteFrames.Input> {
             images.indexOfFirst { it.width != first.width || it.height != first.height }.takeIf { it >= 0 }?.let { index ->
                 return@withContext Rejection(SpriteProblem.FRAMES_DIFFER_IN_SIZE, input.files[index], first.width.toString(), first.height.toString())
             }
-            if (first.width * images.size > EditSprite.MAXIMUM_SIZE) return@withContext Rejection(SpriteProblem.SPRITE_SIZE_INVALID, EditSprite.MAXIMUM_SIZE.toString())
+            if (first.width.toLong() * images.size > EditSprite.MAXIMUM_SIZE || first.height > EditSprite.MAXIMUM_SIZE) return@withContext Rejection(SpriteProblem.SPRITE_SIZE_INVALID, EditSprite.MAXIMUM_SIZE.toString())
             if (context.resourceFilesOnDisk().isTaken(input.path)) return@withContext Rejection(CommandProblem.RESOURCE_TAKEN, input.path)
             val sheet = SpriteSheet(frameWidth = first.width, frameHeight = first.height, frameCount = images.size, framesPerRow = images.size)
             val strip = images.foldIndexed(SpriteFrames.of(PixelImage(first.width * images.size, first.height), sheet)) { index, frames, image -> frames.withFrame(index, image) }

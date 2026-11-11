@@ -169,4 +169,14 @@ class SpriteDrawingCommandsTest {
         )
         assertEquals(300, context.image().width)
     }
+
+    @Test
+    fun framesTallerThanASpriteMayBeAreRefused() = runTest {
+        val context = context()
+        val tall = File(testDirectory(), "tall.png").apply { writeBytes(PixelImage(1, 4097).toPng()) }
+        assertEquals(
+            Rejection(SpriteProblem.SPRITE_SIZE_INVALID, "4096"),
+            ImportSpriteFrames.apply(context, ImportSpriteFrames.Input(listOf(tall.path), "drawable/tall.png")).failure,
+        )
+    }
 }
