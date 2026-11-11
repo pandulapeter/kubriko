@@ -58,7 +58,7 @@ public object MoveFolder : WriteCommand<MoveFolder.Input> {
         @SerialName("group") val group: FolderGroup,
         @Description("The folder's path, as for rename_folder.")
         @SerialName("path") val path: String,
-        @Description("The folder to move it into, or an empty text for none.")
+        @Description("The folder to move it into, or empty for none (for audio, files itself).")
         @SerialName("folder") val folder: String,
         @Transient val movesOnly: Boolean = false,
     ) {
