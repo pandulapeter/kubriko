@@ -22,9 +22,10 @@ public suspend fun CommandContext.healthFindings(): List<HealthFinding> = health
  * What about the open project is worth a look, with the Scenes' Actor counts [sceneCounts] already read ([sceneTypeCounts]),
  * among every Scene, those that can't be read too.
  */
-internal fun CommandContext.healthFindings(sceneCounts: Map<String, Map<String, Int>>): List<HealthFinding> {
+internal suspend fun CommandContext.healthFindings(sceneCounts: Map<String, Map<String, Int>>): List<HealthFinding> {
     val types = blockTypes?.types?.value.orEmpty()
-    return HealthChecks.of(types, ProjectRelations(types, sceneCounts), scenes.names(), audioFiles(), sceneMusic(), firstSceneSettings(project.rootDirectory)?.firstScene)
+    val firstScene = withContext(ioDispatcher) { firstSceneSettings(project.rootDirectory)?.firstScene }
+    return HealthChecks.of(types, ProjectRelations(types, sceneCounts), scenes.names(), audioFiles(), sceneMusic(), firstScene)
 }
 
 /**
