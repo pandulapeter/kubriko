@@ -65,5 +65,5 @@ public sealed interface PropertyDefinition {
     }
 }
 
-private const val NAME_DESCRIPTION = "The name of the Property, and of its Kotlin property: a lowercase letter, then letters and numbers."
-private const val INITIAL_VALUE_DESCRIPTION = "The value each Actor starts with, unless the Scene gives it another one."
+private const val NAME_DESCRIPTION = "Its name, also in Kotlin: a lowercase letter, then letters and numbers."
+private const val INITIAL_VALUE_DESCRIPTION = "What each Actor starts with, unless its Scene says otherwise."

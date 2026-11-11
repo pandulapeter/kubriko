@@ -501,8 +501,12 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   adapter. Creator may say in plain text that it runs Claude Code, but no feature carries Claude Code's or Anthropic's names or logos:
   the panel is "Assistant", and the agent "Claude Agent", as the registry names it.
 - **Guards:** `EvalSetTest` replays the calls models make for realistic requests, so a tool change that would break them fails
-  without tokens, and `TokenBudgetTest` keeps the tool list, the digest, and the big reads under budgets set just above what they
-  cost.
+  without tokens, and `TokenBudgetTest` keeps the tool list, the tools loaded from the start, the digest, and the big reads under
+  budgets set just above what they cost.
+- **Round trips cost most:** every call re-reads the whole conversation, so the tools a session uses most are loaded from the
+  start (`CommandRegistry.alwaysLoaded`, sent as `anthropic/alwaysLoad`, since a schema the model looks up stays in the
+  conversation anyway), what repeats across schemas is said once (`@SummarizedSchema` on a sealed type or an enum a read tool
+  describes), and a tool used in long runs takes many at once (`press_keys` steps with a screenshot, `replace_blocks`).
 
 ## Settings
 

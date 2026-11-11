@@ -16,6 +16,8 @@ import kotlinx.serialization.json.JsonObject
  *
  * @param isReadOnly Whether calling the tool leaves the project as it is.
  * @param isDestructive Whether calling the tool throws work away for good.
+ * @param isAlwaysLoaded Whether a client that loads tool schemas only when the model asks for them (Claude Code's tool
+ *   search) should load this one from the start, as one nearly every conversation uses.
  */
 public data class ToolDefinition(
     val name: String,
@@ -23,4 +25,5 @@ public data class ToolDefinition(
     val inputSchema: JsonObject,
     val isReadOnly: Boolean,
     val isDestructive: Boolean,
+    val isAlwaysLoaded: Boolean = false,
 )

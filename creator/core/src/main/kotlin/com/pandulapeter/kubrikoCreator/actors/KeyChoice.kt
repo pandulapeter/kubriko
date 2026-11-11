@@ -39,8 +39,8 @@ public value class KeyChoice(
         /**
          * How the AI tools describe a key.
          */
-        public const val DESCRIPTION: String = "named like its constant in Compose's androidx.compose.ui.input.key.Key: DirectionLeft, DirectionRight, DirectionUp, " +
-            "DirectionDown, Spacebar, Enter, Escape, Tab, ShiftLeft, CtrlLeft, A to Z, Zero to Nine, F1 to F12, NumPad0 to NumPad9, and every other one."
+        public const val DESCRIPTION: String = "named like Compose's Key constants: DirectionLeft to DirectionDown, Spacebar, Enter, Escape, ShiftLeft, " +
+            "A to Z, Zero to Nine, F1 to F12, and the rest."
 
         public val LEFT: KeyChoice = KeyChoice("DirectionLeft")
         public val RIGHT: KeyChoice = KeyChoice("DirectionRight")

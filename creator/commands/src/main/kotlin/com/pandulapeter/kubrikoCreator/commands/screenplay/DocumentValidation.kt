@@ -41,4 +41,4 @@ internal fun CommandContext.validateFreeDocumentPath(path: String, moved: String
 internal fun validateDocumentText(text: String): Rejection? =
     if (text.length > DOCUMENT_MAXIMUM_LENGTH) Rejection(CommandProblem.DOCUMENT_TOO_LONG, DOCUMENT_MAXIMUM_LENGTH.toString()) else null
 
-internal const val DOCUMENT_PATH_DESCRIPTION = "The document's path from the project's root, with .md, like README.md or docs/combat.md."
+internal const val DOCUMENT_PATH_DESCRIPTION = "The document's path from the project's root, with .md, like docs/combat.md."

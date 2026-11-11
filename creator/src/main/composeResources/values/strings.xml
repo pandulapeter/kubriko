@@ -565,6 +565,7 @@
     <string name="error_command_text_size_invalid">The size of a text has to be a number above 0.</string>
     <string name="error_command_event_missing">%1$s has no Event at index %2$s.</string>
     <string name="error_command_block_missing">Event %2$s of %1$s has no Block at index %3$s.</string>
+    <string name="error_blocks_nothing_to_replace">Give Blocks to add, a count (0 or more) of Blocks to remove, or both.</string>
     <string name="error_command_index_invalid">%1$s isn't a valid index there.</string>
     <string name="error_command_size_invalid">The width and height have to be positive numbers.</string>
     <string name="error_command_number_invalid">Every number has to be finite.</string>
@@ -623,6 +624,7 @@
     <string name="command_edit_block">Edit Block</string>
     <string name="command_move_block">Move Block</string>
     <string name="command_remove_block">Remove Block</string>
+    <string name="command_replace_blocks">Replace Blocks</string>
     <string name="command_add_property">Add Property</string>
     <string name="command_edit_property">Edit Property</string>
     <string name="command_remove_property">Remove Property</string>
@@ -773,6 +775,8 @@
     <string name="error_game_no_answer">The game didn't answer.</string>
     <string name="error_game_command_failed">The game couldn't do that: %1$s</string>
     <string name="error_game_keys_count">Press between 1 and %1$s keys at a time.</string>
+    <string name="error_game_keys_or_steps">Give either keys or steps, not both.</string>
+    <string name="error_game_steps_count">Use between 1 and %1$s steps.</string>
     <string name="error_game_key_unknown">There's no key called %1$s.</string>
     <string name="error_game_duration_invalid">Use between 1 and %1$s milliseconds.</string>
     <string name="ai_client_variant">%1$s (%2$s)</string>

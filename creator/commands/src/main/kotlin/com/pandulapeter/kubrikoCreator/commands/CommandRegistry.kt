@@ -27,6 +27,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveEvent
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameTimer
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.ReplaceBlocks
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
@@ -111,14 +112,19 @@ import com.pandulapeter.kubrikoCreator.commands.screenplay.ViewPageImage
 /**
  * Every command of the editor. The AI tool list is generated from it, so a command reaches the AI as soon as it is
  * registered, and a test fails if a command exists that isn't.
+ *
+ * @param alwaysLoaded The commands nearly every conversation uses, whose tools a client that defers tool schemas loads
+ *   from the start, saving the model a round trip to look each one up.
  */
 public class CommandRegistry(
     public val commands: List<EditorCommand<*>>,
+    public val alwaysLoaded: Set<EditorCommand<*>> = emptySet(),
 ) {
     private val commandsByName = commands.associateBy { it.name }
 
     init {
         require(commandsByName.size == commands.size) { "Command names must be unique." }
+        require(commands.containsAll(alwaysLoaded)) { "Only registered commands can be always loaded." }
     }
 
     public operator fun get(name: String): EditorCommand<*>? = commandsByName[name]
@@ -131,6 +137,7 @@ public class CommandRegistry(
                 inputSchema = JsonSchema.of(command.inputSerializer.descriptor),
                 isReadOnly = command is ReadCommand,
                 isDestructive = command is WriteCommand && command.isDestructive,
+                isAlwaysLoaded = command in alwaysLoaded,
             )
         }
     }
@@ -208,6 +215,7 @@ public class CommandRegistry(
                 EditBlock,
                 MoveBlock,
                 RemoveBlock,
+                ReplaceBlocks,
                 AddProperty,
                 EditProperty,
                 RemoveProperty,
@@ -236,6 +244,24 @@ public class CommandRegistry(
                 Commit,
                 DiscardChanges,
                 UpgradeProject,
+            ),
+            // What a session with the assistant reads, changes, and plays the game with, by what real sessions called.
+            alwaysLoaded = setOf(
+                GetProjectDigest,
+                ReadActorType,
+                ReadManagerType,
+                ReadPages,
+                EditPage,
+                AddEvent,
+                AddBlock,
+                EditBlock,
+                ReplaceBlocks,
+                AddProperty,
+                StartGame,
+                PressKeys,
+                TakeScreenshot,
+                StopGame,
+                AskUser,
             ),
         )
     }

@@ -28,6 +28,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveEvent
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameTimer
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.ReplaceBlocks
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
@@ -182,6 +183,7 @@ import kubriko.creator.generated.resources.command_rename_folder
 import kubriko.creator.generated.resources.command_rename_manager_type
 import kubriko.creator.generated.resources.command_rename_scene
 import kubriko.creator.generated.resources.command_rename_timer
+import kubriko.creator.generated.resources.command_replace_blocks
 import kubriko.creator.generated.resources.command_restore_actor
 import kubriko.creator.generated.resources.command_restore_actors
 import kubriko.creator.generated.resources.command_set_actor_state
@@ -241,6 +243,7 @@ private val commandTitles = mapOf(
     MoveEvent.name to Res.string.command_move_event,
     ReadActorType.name to Res.string.command_read_actor_type,
     RemoveBlock.name to Res.string.command_remove_block,
+    ReplaceBlocks.name to Res.string.command_replace_blocks,
     RemoveEvent.name to Res.string.command_remove_event,
     RemoveProperty.name to Res.string.command_remove_property,
     RenameActorType.name to Res.string.command_rename_actor_type,

@@ -34,6 +34,12 @@ class TokenBudgetTest {
     }
 
     @Test
+    fun theToolsLoadedFromTheStartStayUnderTheirBudget() {
+        val alwaysLoaded = CommandRegistry.editor.tools.filter { it.isAlwaysLoaded }
+        assertUnder(ALWAYS_LOADED_BUDGET, "The tools loaded from the start", alwaysLoaded.joinToString("") { it.name + it.description + it.inputSchema })
+    }
+
+    @Test
     fun readingBreakoutStaysUnderItsBudgets() = runTest {
         val executor = breakout()
         assertUnder(DIGEST_BUDGET, "The digest", executor.read("get_project_digest", JsonObject(emptyMap())))
@@ -87,7 +93,8 @@ class TokenBudgetTest {
         /**
          * The tools that take a Block list only the Blocks' names, so get_block_catalog describes them once.
          */
-        const val TOOL_LIST_BUDGET = 20_150
+        const val TOOL_LIST_BUDGET = 19_680
+        const val ALWAYS_LOADED_BUDGET = 3_820
         const val DIGEST_BUDGET = 300
 
         /**

@@ -210,6 +210,7 @@ public class McpToolServer(
                     required = tool.inputSchema["required"]?.jsonArray?.map { it.jsonPrimitive.content },
                 ),
                 toolAnnotations = ToolAnnotations(readOnlyHint = tool.isReadOnly, destructiveHint = tool.isDestructive, openWorldHint = false),
+                meta = alwaysLoadedMeta.takeIf { tool.isAlwaysLoaded },
             ) { request ->
                 val origin = conversationId?.let { AiStepOrigin(conversationId = it, toolCallId = (request.meta?.json?.get(TOOL_USE_ID_META) as? JsonPrimitive)?.contentOrNull) }
                 val clientName = server.sessions[sessionId]?.clientVersion?.name
@@ -270,6 +271,13 @@ public class McpToolServer(
         private const val CONVERSATION_PARAMETER = "conversation"
 
         /**
+         * The `_meta` that keeps a tool's schema loaded in a client that otherwise loads them only when the model looks
+         * one up (Claude Code's tool search, which reads `anthropic/alwaysLoad`), so the tools nearly every conversation
+         * uses cost no extra round trip.
+         */
+        private val alwaysLoadedMeta = buildJsonObject { put("anthropic/alwaysLoad", true) }
+
+        /**
          * Where Claude Code puts the ID of its tool use in a call's `_meta`, which is also the ID of the ACP tool call.
          */
         private const val TOOL_USE_ID_META = "claudecode/toolUseId"
@@ -299,8 +307,10 @@ public class McpToolServer(
             (when something happens) and Blocks (what happens then), and Kubriko Creator generates Kotlin from them.
             Scenes place Actors of those types. Start with get_project_digest and get_block_catalog. Every change shows
             up in Kubriko Creator right away and can be undone there. Changes reach the game through a build: try them with
-            start_game, press_keys, take_screenshot, and stop_game, and use read_console for what the game logged. Places are
-            written Type#event.block, with indexes from 0. Make
+            start_game, press_keys, take_screenshot, and stop_game, and use read_console for what the game logged. Every call
+            costs a round trip, so play a sequence of moves with one press_keys (steps, with screenshotWidth to see the
+            result), and change several Blocks of an Event with one replace_blocks. Places are written Type#event.block,
+            with indexes from 0. Make
             every change through these tools, never by editing the project's files in other ways: Kubriko Creator owns the
             generated code, and the user can't see or undo such edits in it. When a request needs something no Event or
             Block offers, a Kotlin Block can run a short snippet inside an Event; when even that isn't enough, do what the

@@ -44,7 +44,7 @@ internal fun validatePageName(name: String): Rejection? = PageNaming.validate(na
 
 internal fun validatePageText(text: String): Rejection? = if (text.length > PAGE_MAXIMUM_LENGTH) Rejection(CommandProblem.PAGE_TOO_LONG, PAGE_MAXIMUM_LENGTH.toString()) else null
 
-internal const val PAGE_NAME_DESCRIPTION = "The name of the page: its path in the screenplay folder without .md, like hero or levels/cave. README is the first page, The game."
+internal const val PAGE_NAME_DESCRIPTION = "The page: its path in the screenplay folder without .md, like levels/cave; README is the first page."
 
 /**
  * Why the AI may not write [text] into the page at [pagePath]: it breaks the screenplay's writing rules

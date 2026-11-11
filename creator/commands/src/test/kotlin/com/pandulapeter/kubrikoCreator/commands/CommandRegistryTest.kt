@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
+import com.pandulapeter.kubrikoCreator.commands.project.GetProjectDigest
 import com.pandulapeter.kubrikoCreator.commands.screenplay.MovePageToDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.RemovePage
 import com.pandulapeter.kubrikoCreator.commands.screenplay.RestoreMarkdown
@@ -24,6 +25,8 @@ import java.lang.reflect.Modifier
 import java.util.jar.JarFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -62,6 +65,15 @@ class CommandRegistryTest {
         assertEquals(registry.commands.map { it.description }, registry.tools.map { it.description })
         assertEquals(registry.commands.map { it is ReadCommand }, registry.tools.map { it.isReadOnly })
         registry.commands.forEach { assertEquals(it, registry[it.name]) }
+    }
+
+    @Test
+    fun onlyTheCoreToolsAreLoadedFromTheStart() {
+        val alwaysLoaded = CommandRegistry.editor.tools.filter { it.isAlwaysLoaded }.map { it.name }
+        assertEquals(CommandRegistry.editor.alwaysLoaded.map { it.name }.toSet(), alwaysLoaded.toSet())
+        assertTrue("add_block" in alwaysLoaded && "press_keys" in alwaysLoaded)
+        assertFalse("delete_actor_type" in alwaysLoaded)
+        assertFailsWith<IllegalArgumentException> { CommandRegistry(commands = emptyList(), alwaysLoaded = setOf(GetProjectDigest)) }
     }
 
     @Test

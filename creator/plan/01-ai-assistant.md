@@ -20,8 +20,6 @@ Creator computes compact, always fresh context from its own model of the game, w
 understanding and the model pays for it. These serve the panel and outside MCP clients alike, and whatever helps the AI understand
 the game is shown to the user too.
 
-- **A smaller tool list:** terser descriptions, and Claude Code's tool search, which loads tool schemas only when they are needed;
-  lower `TOOL_LIST_BUDGET` with it.
 - **Paging** `list_manager_types` and `list_scenes` like `list_actor_types`.
 - **"Last time" summaries:** the agent writing a real summary at the end of a conversation, in place of the start of its last
   answer that a new conversation hears now.

@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.ui.texts
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.assistant_turn_cancelled
+import kubriko.creator.generated.resources.error_blocks_nothing_to_replace
 import kubriko.creator.generated.resources.error_command_actor_id_empty
 import kubriko.creator.generated.resources.error_command_actor_id_invalid
 import kubriko.creator.generated.resources.error_command_actor_id_letter_beyond_a_to_z
@@ -103,9 +104,11 @@ import kubriko.creator.generated.resources.error_game_command_failed
 import kubriko.creator.generated.resources.error_game_duration_invalid
 import kubriko.creator.generated.resources.error_game_key_unknown
 import kubriko.creator.generated.resources.error_game_keys_count
+import kubriko.creator.generated.resources.error_game_keys_or_steps
 import kubriko.creator.generated.resources.error_game_no_answer
 import kubriko.creator.generated.resources.error_game_not_on_desktop
 import kubriko.creator.generated.resources.error_game_not_running
+import kubriko.creator.generated.resources.error_game_steps_count
 import kubriko.creator.generated.resources.error_game_unsupported
 import kubriko.creator.generated.resources.error_mcp_internal
 import kubriko.creator.generated.resources.error_scene_folder_reserved
@@ -130,6 +133,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.ACTORS_EMPTY -> Res.string.error_command_actors_empty
     CommandProblem.ALREADY_UNDER_VERSION_CONTROL -> Res.string.error_command_already_under_version_control
     CommandProblem.BLOCK_MISSING -> Res.string.error_command_block_missing
+    CommandProblem.BLOCKS_NOTHING_TO_REPLACE -> Res.string.error_blocks_nothing_to_replace
     CommandProblem.CHANGE_MISSING -> Res.string.error_command_change_missing
     CommandProblem.CHANGED_OUTSIDE -> Res.string.error_command_changed_outside
     CommandProblem.CHANGES_NOT_WRITTEN -> Res.string.error_command_changes_not_written
@@ -210,6 +214,8 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.GAME_DURATION_INVALID -> Res.string.error_game_duration_invalid
     CommandProblem.GAME_KEY_UNKNOWN -> Res.string.error_game_key_unknown
     CommandProblem.GAME_KEYS_COUNT -> Res.string.error_game_keys_count
+    CommandProblem.GAME_KEYS_OR_STEPS -> Res.string.error_game_keys_or_steps
+    CommandProblem.GAME_STEPS_COUNT -> Res.string.error_game_steps_count
     CommandProblem.GAME_NO_ANSWER -> Res.string.error_game_no_answer
     CommandProblem.GAME_NOT_ON_DESKTOP -> Res.string.error_game_not_on_desktop
     CommandProblem.GAME_NOT_RUNNING -> Res.string.error_game_not_running

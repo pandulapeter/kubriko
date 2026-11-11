@@ -20,6 +20,11 @@ import javax.imageio.ImageIO
 internal object ScreenshotImage {
 
     /**
+     * The widths a tool may ask for, at most the width the game's screenshots are taken at.
+     */
+    val widths = 160..1280
+
+    /**
      * [png] cropped to the region from [left], [top] to [right], [bottom] (fractions of its size, from 0 to 1) and scaled
      * down to at most [maximumWidth] pixels wide, or [png] itself when there is nothing to do or it can't be read.
      */

@@ -20,8 +20,8 @@ import kotlinx.serialization.Serializable
  * Speeds and velocities are in scene units per second.
  */
 @Serializable
-@Description("One statement an Event runs: its type and that type's properties.")
-@SummarizedSchema("Which Block it is. get_block_catalog lists each one's properties and the Events that allow it.")
+@Description("A Block: its type and that type's properties.")
+@SummarizedSchema("Which Block; get_block_catalog lists their properties and the Events allowing them.")
 public sealed interface BlockDefinition {
 
     @Serializable

@@ -82,7 +82,8 @@ internal object JsonSchema {
             })
             else -> error("${descriptor.serialName} is a $kind, which command inputs don't support.")
         }
-        val text = listOfNotNull(description, descriptor.enumValueDescriptions()).joinToString(" ").ifEmpty { null }
+        val values = if (descriptor.kind == SerialKind.ENUM) descriptor.summary ?: descriptor.enumValueDescriptions() else null
+        val text = listOfNotNull(description, values).joinToString(" ").ifEmpty { null }
         text?.let { put("description", it) }
     }
 
@@ -112,11 +113,8 @@ internal object JsonSchema {
         putJsonArray("required") { add(TYPE_PROPERTY) }
     }
 
-    private fun SerialDescriptor.enumValueDescriptions() = if (kind == SerialKind.ENUM) {
+    private fun SerialDescriptor.enumValueDescriptions() =
         (0 until elementsCount).mapNotNull { index -> elementDescription(index)?.let { "${getElementName(index)}: $it" } }.joinToString(" ").ifEmpty { null }
-    } else {
-        null
-    }
 
     private val SerialDescriptor.summary get() = annotations.filterIsInstance<SummarizedSchema>().firstOrNull()?.text
 

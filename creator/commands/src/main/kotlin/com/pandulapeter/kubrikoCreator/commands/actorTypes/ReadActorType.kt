@@ -39,7 +39,7 @@ public object ReadActorType : ReadCommand<ReadActorType.Input> {
     public data class Input(
         @Description(Descriptions.ACTOR_TYPE_NAME)
         @SerialName("actorType") val actorType: String,
-        @Description("How much of it to return: outline (Events by title), blocks (Events with their Blocks, the default), or json (everything, as the write tools take it).")
+        @Description("Blocks unless another is given.")
         @SerialName("detail") val detail: ReadDetail = ReadDetail.BLOCKS,
         @Description("Only the Event at this index, in full, and nothing else of the type.")
         @SerialName("eventIndex") val eventIndex: Int? = null,

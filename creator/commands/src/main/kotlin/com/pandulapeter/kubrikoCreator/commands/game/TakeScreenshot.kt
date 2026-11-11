@@ -34,20 +34,17 @@ public object TakeScreenshot : ActionCommand<TakeScreenshot.Input> {
             console = step.console,
             png = step.png?.let { png ->
                 withContext(Dispatchers.Default) {
-                    ScreenshotImage.edited(png, input.width.coerceIn(MINIMUM_WIDTH, MAXIMUM_WIDTH), input.left, input.top, input.right, input.bottom)
+                    ScreenshotImage.edited(png, input.width.coerceIn(ScreenshotImage.widths), input.left, input.top, input.right, input.bottom)
                 }
             },
         )
         else -> step
     }.toOutcome()
 
-    private const val MINIMUM_WIDTH = 160
-    private const val MAXIMUM_WIDTH = 1280
-
     @Serializable
     public data class Input(
         @Description("At most how many pixels wide, from 160 to 1280.")
-        @SerialName("width") val width: Int = MAXIMUM_WIDTH,
+        @SerialName("width") val width: Int = 1280,
         @Description("The left edge of the region to keep, as a fraction of the width from 0 to 1.")
         @SerialName("left") val left: Float = 0f,
         @Description("The top edge of the region to keep, as a fraction of the height from 0 to 1.")

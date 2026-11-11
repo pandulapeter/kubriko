@@ -46,6 +46,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import java.io.IOException
 import java.net.InetAddress
@@ -124,6 +125,8 @@ class McpToolServerTest {
         assertEquals(true, discard.annotations?.destructiveHint)
         assertEquals(false, discard.annotations?.readOnlyHint)
         assertEquals(true, tools.single { it.name == "read_scene" }.annotations?.readOnlyHint)
+        assertEquals(JsonPrimitive(true), tools.single { it.name == "add_block" }.meta?.get("anthropic/alwaysLoad"))
+        assertNull(tools.single { it.name == "delete_actor_type" }.meta?.get("anthropic/alwaysLoad"))
         assertEquals(listOf("paths"), discard.inputSchema.required)
         assertTrue("paths" in discard.inputSchema.properties.orEmpty())
     }

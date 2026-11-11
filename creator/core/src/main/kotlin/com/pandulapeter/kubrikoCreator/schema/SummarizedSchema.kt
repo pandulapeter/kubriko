@@ -13,9 +13,9 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialInfo
 
 /**
- * Marks a sealed type whose subclasses a read tool describes in full, so the tool schemas generated from command inputs
- * ([com.pandulapeter.kubrikoCreator.commands.JsonSchema]) list only the subclasses' names, described by [text], rather
- * than repeating every subclass in each tool that takes one.
+ * Marks a sealed type whose subclasses, or an enum whose values, a read tool describes in full, so the tool schemas
+ * generated from command inputs ([com.pandulapeter.kubrikoCreator.commands.JsonSchema]) list only their names, described
+ * by [text], rather than repeating every one in each tool that takes one.
  */
 @OptIn(ExperimentalSerializationApi::class)
 @SerialInfo

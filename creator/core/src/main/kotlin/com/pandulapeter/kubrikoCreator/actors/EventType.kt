@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.actors
 
 import com.pandulapeter.kubrikoCreator.schema.Description
+import com.pandulapeter.kubrikoCreator.schema.SummarizedSchema
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -21,6 +22,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 @Description("When an Event happens.")
+@SummarizedSchema("get_block_catalog describes each, and whether Actor types or Manager types have it.")
 public enum class EventType(public val misplacedProblem: PlacementProblem? = null) {
 
     @Description("Once, when the game starts. Only Manager types have it.")

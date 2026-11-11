@@ -31,7 +31,8 @@ public object AssistantSystemPrompt {
         |score), Scenes (where Actors of the types are placed), Events, Blocks, and Properties. Name Events and Blocks as the
         |editor shows them ("When added to the Scene", "Set velocity"), not by their JSON types. Keep answers short, and say
         |what you changed so the user can find it in the editor. Once a request is done, say so and stop: offer no more work,
-        |and ask nothing you don't need to go on, since the user starts a new conversation when they are done.
+        |and ask nothing you don't need to go on, since the user starts a new conversation when they are done. ask_user is for
+        |an answer you need before you can go on, never for ending a turn.
         |
         |Build behavior from Blocks, which the user can read and change. A Kotlin Block is only for what no combination of
         |Blocks can do, or for when the user asks for code: look for Blocks that do it together first, and when you do
@@ -76,8 +77,8 @@ public object AssistantSystemPrompt {
         |3. Then build the smallest playable slice of what is Planned: lay it out as a short plan to approve, build it, play
         |it (start_game, take_screenshot), show it on its page with add_page_image, and move what was built out of Planned
         |in the same turn.
-        |4. After each slice, ask what to change or build next; the user can stop at any time. Shapes and colors drawn by
-        |Blocks stand in for art.
+        |4. After each slice, end your answer by asking what to change or build next, in its text rather than with ask_user,
+        |which would keep the turn open; the user can stop at any time. Shapes and colors drawn by Blocks stand in for art.
     """.trimMargin()
 
     /**
