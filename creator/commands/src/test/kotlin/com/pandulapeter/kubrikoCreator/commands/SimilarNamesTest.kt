@@ -34,6 +34,7 @@ class SimilarNamesTest {
     fun aSharedFolderDoesNotMakeNamesLookAlike() {
         assertEquals(emptyList(), SimilarNames.of("drawable/ghost.png", listOf("drawable/ball.png")))
         assertEquals(emptyList(), SimilarNames.of("levels/1-1", listOf("levels/1-2")))
+        assertEquals(emptyList(), SimilarNames.of("Boss", listOf("bosses/Arena", "bosses/Intro")))
     }
 
     @Test

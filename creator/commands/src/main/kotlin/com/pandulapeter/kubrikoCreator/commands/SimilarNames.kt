@@ -55,19 +55,21 @@ internal object SimilarNames {
 
     /**
      * How far [candidate] is from [wanted], or null if it doesn't look like it. Typos are allowed by the length of the
-     * shorter file name, without its folders and extension, so a shared folder doesn't make two names look alike.
+     * shorter file name, without its folders and extension, and only file names are looked for in each other, so a
+     * shared folder doesn't make two names look alike.
      */
     private fun distanceOf(wanted: String, candidate: String): Int? {
         val normalizedWanted = normalized(wanted)
         val normalizedCandidate = normalized(candidate)
         val edits = editDistance(normalizedWanted, normalizedCandidate)
-        val shorter = minOf(normalized(fileNameOf(wanted)).length, normalized(fileNameOf(candidate)).length)
-        val lowercaseWanted = wanted.lowercase()
-        val lowercaseCandidate = candidate.lowercase()
+        val wantedFileName = fileNameOf(wanted).lowercase()
+        val candidateFileName = fileNameOf(candidate).lowercase()
+        val shorter = minOf(normalized(wantedFileName).length, normalized(candidateFileName).length)
         return when {
             edits == 0 || (edits == 1 && normalizedWanted.length != normalizedCandidate.length) -> edits
             shorter > SHORT_NAME_LENGTH && edits <= maxOf(1, shorter / 4) -> edits
-            minOf(wanted.length, candidate.length) >= 3 && (lowercaseCandidate.contains(lowercaseWanted) || lowercaseWanted.contains(lowercaseCandidate)) -> CONTAINED + edits
+            minOf(wantedFileName.length, candidateFileName.length) >= 3 &&
+                (candidateFileName.contains(wantedFileName) || wantedFileName.contains(candidateFileName)) -> CONTAINED + edits
             else -> null
         }
     }
