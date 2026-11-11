@@ -25,17 +25,23 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Start `01-ai-assistant.md` at its first item (Kubriko's sources, under The panel).
+Start `01-ai-assistant.md` at its first item (A smaller tool list, under Context for large games).
 
-This session finished Chips, reviewed with `/code-review`, its findings fixed in a commit of their own (the picture is recorded
-only when asked for, on the thread that draws, within a time limit; the Scene picture is turned on per Scene; a closed type
-editor's Event is forgotten):
+This session finished The panel's three items, reviewed with `/code-review`, its findings fixed in two commits of their own
+(Antigravity's tools turned off whenever it shows its `_meta` extension, not only with the appended prompt; a configuration
+chosen in settings waiting for the panel; the configuration's description naming its tool; one helper opening the agents' log):
 
-- The type editor reports the Event it shows, and the Scene editor a way to take a picture of the open Scene, to
-  `EditorAttention` (in `WorkspaceUiState`), which the AI panel reads: an Event chip (`AttentionChip.Event`, a link by its
-  index) beside the type's, and a Scene picture chip (`AttentionChip.SceneScreen`) that is off until the user turns it on,
-  since an image with every message costs far more than a link. The picture is recorded from the Scene's viewport into a
-  `GraphicsLayer` on the next frame once asked for (`SceneViewport`, `PictureRequests`), on the editor's background, and scaled to the game screenshots' 1280 pixels.
+- Kubriko's sources: a live scenario (`AssistantLiveScenariosTest.kubrikosApiIsLookedUp…`) showed Claude reaching for
+  `get_kubriko_api` by itself and never reading Kubriko's sources with its own tools, so the tool's description stayed.
+- AI in Creator settings: Assistant (the agent and its configuration) and AI connection (port, token, commands) pages,
+  listed only while AI features are on; the MCP panel's Advanced is a button opening that page (`LocalOpenCreatorSettings`).
+  An agent chosen there (`isPanelShown = false`) starts at once only if it has worked before, and a configuration chosen
+  there never does, since saved conversations don't say which account they ran as; the panel opens a conversation whenever
+  it is shown without one.
+- Google Antigravity's own tools: `AntigravityMeta` turns off `edit_file`, `create_file`, and `run_command`, the names a real
+  session showed `disabledTools` takes (its model calls them `replace_file_content`, `write_to_file`, and `run_command`, and
+  the first two are not turned off by those names); it has no read-only mode. The appended system prompt was seen working in
+  the same real session.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
@@ -44,10 +50,10 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
 - A project created from an idea, through to the room's first questions, in the real app (an end-to-end scenario could cover
   it under Xvfb, but it needs a signed-in agent).
 - Pasting an image from the system clipboard, and dropping one from Finder, onto a page.
-- A real agent other than Claude Agent switched to its read-only mode, asking before its own edits, and one that edits
-  without asking being marked (Codex's `read-only` sandbox once it has quota again, after Nov 21, 2026).
-- Google Antigravity following the appended system prompt in a real conversation (it spends the user's Antigravity
-  requests; the binary Creator downloaded is in the settings folder's `tools/agents`).
+- A real agent other than Claude Agent switched to its read-only mode, and one that edits without asking being marked
+  (Codex's `read-only` sandbox once it has quota again, after Nov 21, 2026).
+- Google Antigravity's tools turned off through Creator itself rather than a hand-written ACP client (the same `_meta`;
+  the binary Creator downloaded is in the settings folder's `tools/agents`).
 - A real agent reading the Scene picture chip's image and following the Event chip's link (unit and offscreen tests cover
   both, and the capture of a real Kubriko viewport).
 - Codex started as a `codex-work` alias's account signing in to that `CODEX_HOME` (running `codex-acp` fetched from npm wasn't
