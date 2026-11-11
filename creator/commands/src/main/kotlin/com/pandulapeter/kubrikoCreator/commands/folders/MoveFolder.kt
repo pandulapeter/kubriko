@@ -39,17 +39,15 @@ public object MoveFolder : WriteCommand<MoveFolder.Input> {
             input.path.isEmpty() -> Rejection(CommandProblem.FOLDER_TOP)
             FolderPaths.isWithin(input.folder, input.path) -> Rejection(CommandProblem.FOLDER_INTO_ITSELF, input.path)
             FolderPaths.parentOf(input.path) == input.folder -> Rejection(CommandProblem.FOLDER_ALREADY_THERE, input.path)
-            else -> context.validateFolderRelocation(input.group, input.path, moved(input))
+            else -> context.validateFolderRelocation(input.group, input.path, input.newPath)
         }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        val newPath = moved(input)
+        val newPath = input.newPath
         return context.relocateFolder(input.group, input.path, newPath, input.movesOnly) { movesOnly ->
             Invocation(MoveFolder, Input(input.group, newPath, FolderPaths.parentOf(input.path), movesOnly))
         }
     }
-
-    private fun moved(input: Input) = FolderPaths.child(input.folder, FolderPaths.nameOf(input.path))
 
     /**
      * @param movesOnly Whether an audio folder's files only move, leaving what uses them: how undo and redo move them,
@@ -64,5 +62,10 @@ public object MoveFolder : WriteCommand<MoveFolder.Input> {
         @Description("The folder to move it into, or an empty text for none.")
         @SerialName("folder") val folder: String,
         @Transient val movesOnly: Boolean = false,
-    )
+    ) {
+        /**
+         * Where the folder is once it moved.
+         */
+        val newPath: String get() = FolderPaths.child(folder, FolderPaths.nameOf(path))
+    }
 }

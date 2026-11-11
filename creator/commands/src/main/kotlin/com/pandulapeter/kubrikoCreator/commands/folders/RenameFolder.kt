@@ -35,17 +35,15 @@ public object RenameFolder : WriteCommand<RenameFolder.Input> {
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateFolder(input.group, input.path) ?: when {
         input.path.isEmpty() -> Rejection(CommandProblem.FOLDER_TOP)
-        else -> FolderPaths.validateName(input.newName)?.let(::Rejection) ?: context.validateFolderRelocation(input.group, input.path, renamed(input))
+        else -> FolderPaths.validateName(input.newName)?.let(::Rejection) ?: context.validateFolderRelocation(input.group, input.path, input.newPath)
     }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        val newPath = renamed(input)
+        val newPath = input.newPath
         return context.relocateFolder(input.group, input.path, newPath, input.movesOnly) { movesOnly ->
             Invocation(RenameFolder, Input(input.group, newPath, FolderPaths.nameOf(input.path), movesOnly))
         }
     }
-
-    private fun renamed(input: Input) = FolderPaths.child(FolderPaths.parentOf(input.path), input.newName)
 
     /**
      * @param movesOnly Whether an audio folder's files only move, leaving what uses them: how undo and redo move them,
@@ -60,5 +58,10 @@ public object RenameFolder : WriteCommand<RenameFolder.Input> {
         @Description("Its new name (only the last part of the path changes).")
         @SerialName("newName") val newName: String,
         @Transient val movesOnly: Boolean = false,
-    )
+    ) {
+        /**
+         * Where the folder is once it is renamed.
+         */
+        val newPath: String get() = FolderPaths.child(FolderPaths.parentOf(path), newName)
+    }
 }

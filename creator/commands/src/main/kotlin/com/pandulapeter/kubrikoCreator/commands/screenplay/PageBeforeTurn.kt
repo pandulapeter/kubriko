@@ -9,9 +9,13 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.screenplay
 
+import com.pandulapeter.kubrikoCreator.actors.FolderPaths
 import com.pandulapeter.kubrikoCreator.commands.CommandHistory
 import com.pandulapeter.kubrikoCreator.commands.CompositeCommand
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
+import com.pandulapeter.kubrikoCreator.commands.folders.MoveFolder
+import com.pandulapeter.kubrikoCreator.commands.folders.RenameFolder
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 
 /**
@@ -44,8 +48,14 @@ private class TrackedPage(var name: String) {
             is DeletePage.Input -> if (isTracked(input.page)) before = ""
             is MovePageToDocument.Input -> if (isTracked(input.page)) before = ""
             is MovePage.Input -> if (isTracked(input.page)) name = input.newPage
+            is RenameFolder.Input -> if (input.group == FolderGroup.PAGES) followFolder(input.path, input.newPath)
+            is MoveFolder.Input -> if (input.group == FolderGroup.PAGES) followFolder(input.path, input.newPath)
             is RestoreMarkdown.Input -> input.contents[PageNaming.pathOf(name)]?.let { before = it }
         }
+    }
+
+    private fun followFolder(path: String, newPath: String) {
+        if (FolderPaths.isWithin(PageNaming.folderOf(name), path)) name = newPath + name.removePrefix(path)
     }
 
     private fun isTracked(page: String) = page == name

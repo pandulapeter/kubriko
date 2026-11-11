@@ -14,6 +14,8 @@ import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.commandContext
+import com.pandulapeter.kubrikoCreator.commands.folders.CreateFolder
+import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.commands.testScope
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -91,5 +93,17 @@ class PageBeforeTurnTest {
         executor.byAi("edit_page", arguments = arrayOf("page" to "people/hero", "text" to "# The hero\n\nA knight who rolls.\n"))
         assertEquals(hero, executor.before(since, "people/hero"))
         assertEquals(linking, executor.before(since, "README"))
+    }
+
+    @Test
+    fun aPageWhoseFolderTheTurnMovedOrRenamedIsFollowedBack() = runTest {
+        val executor = executor()
+        executor.execute(Invocation(CreatePage, CreatePage.Input("levels/cave", hero)))
+        executor.execute(Invocation(CreateFolder, CreateFolder.Input(FolderGroup.PAGES, "world")))
+        val since = executor.changeLog.revision
+        executor.byAi("edit_page", arguments = arrayOf("page" to "levels/cave", "text" to "# The hero\n\nA knight who rolls.\n"))
+        executor.byAi("move_folder", arguments = arrayOf("group" to "pages", "path" to "levels", "folder" to "world"))
+        executor.byAi("rename_folder", arguments = arrayOf("group" to "pages", "path" to "world/levels", "newName" to "stages"))
+        assertEquals(hero, executor.before(since, "world/stages/cave"))
     }
 }
