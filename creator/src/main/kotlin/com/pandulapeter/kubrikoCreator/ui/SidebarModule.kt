@@ -67,7 +67,19 @@ internal data class SidebarModule(
         }
     }
 
-    fun withoutSelection() = copy(folderGroups = folderGroups.mapValues { (_, state) -> state.copy(selectedName = null) })
+    fun withoutSelection() = copy(
+        folderGroups = folderGroups.mapValues { (_, state) -> state.copy(selectedName = null) },
+        resourceTrees = resourceTrees.mapValues { (_, state) -> state.copy(selectedName = null) },
+    )
+
+    /**
+     * This module with the sprite at [path] (from `composeResources`) shown as selected, if it lists it.
+     */
+    fun withSelectedSprite(path: String?) = if (path == null) {
+        this
+    } else {
+        copy(resourceTrees = resourceTrees.mapValues { (group, state) -> if (group == ResourceGroup.SPRITES) state.copy(selectedName = path) else state })
+    }
 
     /**
      * The [SidebarOutline] nodes of this module, under its own when [isGrouped] (the project has several modules), which

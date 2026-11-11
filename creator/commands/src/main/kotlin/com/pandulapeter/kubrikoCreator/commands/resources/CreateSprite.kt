@@ -40,8 +40,8 @@ public object CreateSprite : WriteCommand<CreateSprite.Input> {
     override fun target(context: CommandContext, input: Input): CommandTarget = CommandTarget.Project
 
     override fun validate(context: CommandContext, input: Input): Rejection? = when {
-        ResourceKind.of(input.path) != ResourceKind.SPRITE || !input.path.endsWith(".png") -> Rejection(CommandProblem.SPRITE_PATH_INVALID, input.path)
-        input.width !in 1..EditSprite.MAXIMUM_SIZE || input.height !in 1..EditSprite.MAXIMUM_SIZE -> Rejection(CommandProblem.SPRITE_SIZE_INVALID, EditSprite.MAXIMUM_SIZE.toString())
+        ResourceKind.of(input.path) != ResourceKind.SPRITE || !input.path.endsWith(".png") -> Rejection(SpriteProblem.SPRITE_PATH_INVALID, input.path)
+        input.width !in 1..EditSprite.MAXIMUM_SIZE || input.height !in 1..EditSprite.MAXIMUM_SIZE -> Rejection(SpriteProblem.SPRITE_SIZE_INVALID, EditSprite.MAXIMUM_SIZE.toString())
         else -> context.validateNewResource(input.path) ?: context.validateFolder(FolderGroup.SPRITES, input.folder)
     }
 
@@ -51,14 +51,14 @@ public object CreateSprite : WriteCommand<CreateSprite.Input> {
             val file = try {
                 ReplaceFiles.writeNew(context, context.projectPathOf(File(context.scenes.resourcesDirectory, input.path)), PixelImage(input.width, input.height).toPng())
             } catch (exception: IOException) {
-                return@withContext Rejection(CommandProblem.SPRITE_NOT_WRITTEN, input.path, exception.message ?: exception.toString())
+                return@withContext Rejection(SpriteProblem.SPRITE_NOT_WRITTEN, input.path, exception.message ?: exception.toString())
             }
             if (input.folder.isNotEmpty()) {
                 try {
                     context.spriteFolders.move(ResourceKind.nameOf(input.path), input.folder)
                 } catch (exception: IOException) {
                     ReplaceFiles.delete(context, file)
-                    return@withContext Rejection(CommandProblem.SPRITE_NOT_WRITTEN, input.path, exception.message ?: exception.toString())
+                    return@withContext Rejection(SpriteProblem.SPRITE_NOT_WRITTEN, input.path, exception.message ?: exception.toString())
                 }
             }
             null

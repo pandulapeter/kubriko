@@ -46,6 +46,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.MenuIconButton
 import com.pandulapeter.kubrikoCreator.workspace.ProjectLayout
 import com.pandulapeter.kubrikoCreator.workspace.SidebarFolderExpansion
+import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_new
 import kubriko.creator.generated.resources.action_new_document
@@ -72,7 +73,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param documentActions What the documents listed in each band do ([documentRows]); a band offers New document too.
  * @param resourceActions What the sprites, sounds, and music do ([resourceGroupSection]); files of theirs dropped onto
  *   the sidebar are added.
- * @param selectedDocument The path of the document shown in the center, if any.
+ * @param selection What the center shows: a document or a sprite lights up its row.
  * @param spriteFolders The sprites' folders, which are Kubriko Creator's own ([SpriteFolderStore]).
  * @param folderExpansion Where what is open is kept for the next session, if anywhere, and what it follows.
  */
@@ -85,7 +86,7 @@ internal fun ProjectSidebar(
     dragState: SidebarDragState,
     documentActions: DocumentActions,
     resourceActions: ResourceActions = ResourceActions(),
-    selectedDocument: String? = null,
+    selection: WorkspaceSelection = WorkspaceSelection.None,
     layout: ProjectLayout = ProjectLayout(),
     gameModule: String? = null,
     spriteFolders: SpriteFolderStore.State = SpriteFolderStore.State(),
@@ -98,7 +99,10 @@ internal fun ProjectSidebar(
     var query by remember { mutableStateOf("") }
     var naming by remember { mutableStateOf<SidebarNaming?>(null) }
     val isFiltering = query.isNotBlank()
-    val modules = remember(resources, folderGroups, layout, gameModule, spriteFolders) { sidebarModules(resources, folderGroups, layout, gameModule, spriteFolders) }
+    val selectedSprite = (selection as? WorkspaceSelection.Sprite)?.path
+    val modules = remember(resources, folderGroups, layout, gameModule, spriteFolders, selectedSprite) {
+        sidebarModules(resources, folderGroups, layout, gameModule, spriteFolders).map { it.withSelectedSprite(selectedSprite) }
+    }
     val isGrouped = modules.size > 1
     val structure = remember(modules) { modules.map { it.withoutSelection() } }
     val outline = remember(structure) { SidebarOutline(structure.flatMap { it.outlineNodes(isGrouped) }) }
@@ -181,7 +185,7 @@ internal fun ProjectSidebar(
                     tree = tree,
                     naming = naming,
                     onNamingChange = { naming = it },
-                    selectedDocument = selectedDocument,
+                    selectedDocument = (selection as? WorkspaceSelection.Document)?.path,
                     onSelectionCleared = folderActions.onSelectionCleared,
                     rows = rows,
                     flash = flash,

@@ -49,7 +49,7 @@ public object SetSpriteSheet : WriteCommand<SetSpriteSheet.Input> {
         if (input.sheet != null && image != null) {
             val size = withContext(context.ioDispatcher) { SpriteFiles.sizeOf(image) }
             if (size != null && input.sheet.problemWithImage(size.first, size.second) != null) {
-                return Applied.failed(Rejection(CommandProblem.SPRITE_SHEET_DOES_NOT_FIT, input.sprite, size.first.toString(), size.second.toString()))
+                return Applied.failed(Rejection(SpriteProblem.SPRITE_SHEET_DOES_NOT_FIT, input.sprite, size.first.toString(), size.second.toString()))
             }
         }
         val root = context.project.rootDirectory
@@ -62,7 +62,7 @@ public object SetSpriteSheet : WriteCommand<SetSpriteSheet.Input> {
                 before + context.spriteFolders.filesOf(name).map { it.relativeTo(root).invariantSeparatorsPath }.filter { it !in before }.associateWith { null }
             }
         } catch (exception: IOException) {
-            return Applied.failed(Rejection(CommandProblem.SPRITE_SHEET_NOT_WRITTEN, input.sprite, exception.message ?: exception.toString()))
+            return Applied.failed(Rejection(SpriteProblem.SPRITE_SHEET_NOT_WRITTEN, input.sprite, exception.message ?: exception.toString()))
         }
         // The sprite's files byte for byte, so that undoing brings back even a sheet written by hand that can't be played.
         return Applied(inverse = previous.takeIf { it.isNotEmpty() }?.let { Invocation(ReplaceFiles, ReplaceFiles.Input(it)) })

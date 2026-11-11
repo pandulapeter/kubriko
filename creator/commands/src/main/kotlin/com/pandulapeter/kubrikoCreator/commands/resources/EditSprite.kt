@@ -35,16 +35,16 @@ public object EditSprite : WriteCommand<EditSprite.Input> {
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSprite(input.sprite)
         ?: context.validateFrame(input.sprite, input.frame)
         ?: when (val operation = input.operation) {
-            is Operation.ResizeCanvas -> Rejection(CommandProblem.SPRITE_SIZE_INVALID, MAXIMUM_SIZE.toString()).takeIf { operation.width !in 1..MAXIMUM_SIZE || operation.height !in 1..MAXIMUM_SIZE }
-            is Operation.Scale -> Rejection(CommandProblem.SPRITE_SCALE_INVALID).takeIf { operation.factor !in 1..MAXIMUM_SCALE }
+            is Operation.ResizeCanvas -> Rejection(SpriteProblem.SPRITE_SIZE_INVALID, MAXIMUM_SIZE.toString()).takeIf { operation.width !in 1..MAXIMUM_SIZE || operation.height !in 1..MAXIMUM_SIZE }
+            is Operation.Scale -> Rejection(SpriteProblem.SPRITE_SCALE_INVALID).takeIf { operation.factor !in 1..MAXIMUM_SCALE }
             else -> null
         }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied = context.editSpriteImage(input.sprite) { frames ->
         val edited = frames.mapped(input.frame) { frame -> input.operation.applyTo(frame) }
         when {
-            edited == null -> SpriteEdit.Rejected(Rejection(CommandProblem.SPRITE_FRAME_SIZE_ALONE))
-            edited.toImage().let { it.width > MAXIMUM_SIZE || it.height > MAXIMUM_SIZE } -> SpriteEdit.Rejected(Rejection(CommandProblem.SPRITE_SIZE_INVALID, MAXIMUM_SIZE.toString()))
+            edited == null -> SpriteEdit.Rejected(Rejection(SpriteProblem.SPRITE_FRAME_SIZE_ALONE))
+            edited.toImage().let { it.width > MAXIMUM_SIZE || it.height > MAXIMUM_SIZE } -> SpriteEdit.Rejected(Rejection(SpriteProblem.SPRITE_SIZE_INVALID, MAXIMUM_SIZE.toString()))
             else -> SpriteEdit.Edited(edited)
         }
     }

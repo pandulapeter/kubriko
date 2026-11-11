@@ -1,0 +1,122 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubrikoCreator.ui.sprites
+
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import com.pandulapeter.kubrikoCreator.sprites.pixels.Pixel
+import com.pandulapeter.kubrikoCreator.sprites.pixels.PixelImage
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+
+class SpriteEditorStateTest {
+    private val red = 0xFFFF0000.toInt()
+    private val blue = 0xFF0000FF.toInt()
+    private val frame = PixelImage(4, 4).with(listOf(Pixel(0, 0, red), Pixel(1, 0, red)))
+    private val drawn = mutableListOf<List<Pixel>>()
+    private val state = SpriteEditorState().apply {
+        primaryColor = blue
+        secondaryColor = red
+    }
+
+    private fun press(at: IntOffset, isSecondary: Boolean = false, moves: List<IntOffset> = emptyList()) {
+        val gesture = SpriteGesture.start(state, frame, at, isSecondary) { drawn += it }
+        moves.forEach(gesture::moveTo)
+        gesture.finish { drawn += it }
+    }
+
+    @Test
+    fun aPencilStrokeIsOneStepOfThePixelsItChangedInTheButtonsColor() {
+        press(IntOffset(0, 1), isSecondary = false, listOf(IntOffset(2, 1), IntOffset(2, 1)))
+        assertEquals(listOf(listOf(Pixel(0, 1, blue), Pixel(1, 1, blue), Pixel(2, 1, blue))), drawn.filter { it.isNotEmpty() })
+        drawn.clear()
+        press(IntOffset(0, 0), isSecondary = true)
+        assertEquals(emptyList(), drawn.filter { it.isNotEmpty() }, "red over red changes nothing")
+    }
+
+    @Test
+    fun shapesFillsAndTheEraserDrawWhatTheirToolsCover() {
+        state.tool = SpriteTool.RECTANGLE
+        state.isShapeFilled = true
+        assertEquals(4, state.also { it.startStroke(IntOffset(2, 2), false); it.continueStroke(IntOffset(3, 3)) }.finishStroke(frame).size)
+        state.tool = SpriteTool.FILL
+        state.startStroke(IntOffset(0, 0), false)
+        assertEquals(listOf(Pixel(0, 0, blue), Pixel(1, 0, blue)), state.finishStroke(frame).sortedBy { it.x })
+        state.tool = SpriteTool.ERASER
+        state.startStroke(IntOffset(1, 0), false)
+        assertEquals(listOf(Pixel(1, 0, PixelImage.TRANSPARENT)), state.finishStroke(frame))
+    }
+
+    @Test
+    fun thePickerTakesAColorForEitherButton() {
+        state.tool = SpriteTool.PICKER
+        press(IntOffset(0, 0), isSecondary = false)
+        assertEquals(red, state.primaryColor)
+        press(IntOffset(3, 3), isSecondary = true)
+        assertEquals(PixelImage.TRANSPARENT, state.secondaryColor)
+    }
+
+    @Test
+    fun aSelectionIsDraggedMovedAsOneStepAndCleared() {
+        state.tool = SpriteTool.SELECT
+        press(IntOffset(0, 0), false, listOf(IntOffset(1, 0)))
+        assertEquals(IntRect(0, 0, 2, 1), state.selection)
+        press(IntOffset(0, 0), false, listOf(IntOffset(0, 2)))
+        assertEquals(IntOffset(0, 2), state.floating?.position)
+        assertEquals(emptyList(), drawn.filter { it.isNotEmpty() }, "nothing is drawn while it floats")
+        assertTrue(state.onKey(Key.Enter, isShortcut = false, frame) { drawn += it })
+        val moved = drawn.single { it.isNotEmpty() }
+        assertEquals(Pixel(0, 0, PixelImage.TRANSPARENT), moved.first())
+        assertEquals(listOf(Pixel(0, 2, red), Pixel(1, 2, red)), moved.takeLast(2))
+        assertEquals(IntRect(0, 2, 2, 3), state.selection)
+    }
+
+    @Test
+    fun copiedPixelsPasteFloatingAndKeysLetGoOfThem() {
+        state.selection = IntRect(0, 0, 2, 1)
+        assertTrue(state.onKey(Key.C, isShortcut = true, frame) { drawn += it })
+        assertTrue(state.onKey(Key.V, isShortcut = true, frame) { drawn += it })
+        assertEquals(SpriteTool.SELECT, state.tool)
+        assertEquals(IntOffset(0, 0), state.floating?.position)
+        assertTrue(state.onKey(Key.Escape, isShortcut = false, frame) { drawn += it })
+        assertNull(state.floating)
+        state.selection = IntRect(0, 0, 2, 1)
+        assertTrue(state.onKey(Key.Delete, isShortcut = false, frame) { drawn += it })
+        assertEquals(listOf(Pixel(0, 0, PixelImage.TRANSPARENT), Pixel(1, 0, PixelImage.TRANSPARENT)), drawn.last())
+        assertFalse(state.onKey(Key.Z, isShortcut = true, frame) { drawn += it }, "undo goes on to the workspace")
+        assertTrue(state.onKey(Key.G, isShortcut = false, frame) { drawn += it })
+        assertEquals(SpriteTool.FILL, state.tool)
+    }
+
+    @Test
+    fun theZoomGoesBySteps() {
+        repeat(20) { state.zoomIn() }
+        assertEquals(32, state.zoom)
+        state.zoomToFit(16, 8, 300f, 300f)
+        assertEquals(16, state.zoom)
+        state.showSprite("drawable/a.png")
+        state.frameIndex = 3
+        state.showSprite("drawable/b.png")
+        assertEquals(0, state.frameIndex)
+        assertEquals(blue, state.primaryColor, "the colors go from one sprite to the next")
+    }
+
+    @Test
+    fun theCanvasMapsItsPositionsToPixels() {
+        val geometry = SpriteCanvasGeometry(androidx.compose.ui.geometry.Size(100f, 100f), 4, 2, 10, androidx.compose.ui.geometry.Offset(0f, 5f))
+        assertEquals(androidx.compose.ui.geometry.Offset(30f, 45f), geometry.topLeft)
+        assertEquals(IntOffset(0, 0), geometry.pixelAt(androidx.compose.ui.geometry.Offset(31f, 46f)))
+        assertEquals(IntOffset(-1, 1), geometry.pixelAt(androidx.compose.ui.geometry.Offset(29f, 55f)))
+    }
+}

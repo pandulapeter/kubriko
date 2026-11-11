@@ -89,6 +89,7 @@ import com.pandulapeter.kubrikoCreator.commands.resources.EditSprite
 import com.pandulapeter.kubrikoCreator.commands.resources.ListResources
 import com.pandulapeter.kubrikoCreator.commands.resources.ReadSprite
 import com.pandulapeter.kubrikoCreator.commands.resources.RenameResource
+import com.pandulapeter.kubrikoCreator.commands.resources.SetPalette
 import com.pandulapeter.kubrikoCreator.commands.resources.SetSpriteSheet
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
@@ -223,6 +224,7 @@ import kubriko.creator.generated.resources.command_set_event_other_actor_type
 import kubriko.creator.generated.resources.command_set_event_timer
 import kubriko.creator.generated.resources.command_set_game_notes
 import kubriko.creator.generated.resources.command_set_kotlin_ui
+import kubriko.creator.generated.resources.command_set_palette
 import kubriko.creator.generated.resources.command_set_parent
 import kubriko.creator.generated.resources.command_set_plan
 import kubriko.creator.generated.resources.command_set_project_settings
@@ -291,6 +293,7 @@ private val commandTitles = mapOf(
     DrawPixels.name to Res.string.command_draw_pixels,
     EditSprite.name to Res.string.command_edit_sprite,
     ReadSprite.name to Res.string.command_read_sprite,
+    SetPalette.name to Res.string.command_set_palette,
     RenameFolder.name to Res.string.command_rename_folder,
     MoveFolder.name to Res.string.command_move_folder,
     PressKeys.name to Res.string.command_press_keys,

@@ -35,10 +35,10 @@ public object DrawPixels : WriteCommand<DrawPixels.Input> {
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSprite(input.sprite)
         ?: context.validateFrame(input.sprite, input.frame)
         ?: when {
-            input.pixels.isEmpty() && input.rows.isEmpty() -> Rejection(CommandProblem.PIXELS_NONE)
-            input.palette.any { it.letter.length != 1 || it.letter == LEAVE } -> Rejection(CommandProblem.PIXELS_PALETTE_KEY)
+            input.pixels.isEmpty() && input.rows.isEmpty() -> Rejection(SpriteProblem.PIXELS_NONE)
+            input.palette.any { it.letter.length != 1 || it.letter == LEAVE } -> Rejection(SpriteProblem.PIXELS_PALETTE_KEY)
             else -> input.rows.joinToString("").toSet().filter { letter -> letter.toString() != LEAVE && input.palette.none { it.letter == letter.toString() } }.takeIf { it.isNotEmpty() }
-                ?.let { Rejection(CommandProblem.PIXELS_LETTER_UNKNOWN, it.joinToString(" ")) }
+                ?.let { Rejection(SpriteProblem.PIXELS_LETTER_UNKNOWN, it.joinToString(" ")) }
         }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied = context.editSpriteImage(input.sprite) { frames ->
@@ -46,7 +46,7 @@ public object DrawPixels : WriteCommand<DrawPixels.Input> {
         val pixels = input.drawnPixels()
         val outside = pixels.firstOrNull { !frame.contains(it.x, it.y) }
         if (outside != null) {
-            SpriteEdit.Rejected(Rejection(CommandProblem.PIXELS_OUTSIDE_FRAME, "${outside.x}, ${outside.y}", frame.width.toString(), frame.height.toString()))
+            SpriteEdit.Rejected(Rejection(SpriteProblem.PIXELS_OUTSIDE_FRAME, "${outside.x}, ${outside.y}", frame.width.toString(), frame.height.toString()))
         } else {
             SpriteEdit.Edited(frames.withFrame(input.frame, frame.with(pixels)))
         }

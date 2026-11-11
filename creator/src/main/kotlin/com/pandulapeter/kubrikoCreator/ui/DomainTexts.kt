@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.resources.SpriteProblem
 import com.pandulapeter.kubrikoCreator.foundation.DomainText
 import com.pandulapeter.kubrikoCreator.git.GitStatus
 import com.pandulapeter.kubrikoCreator.project.GameSettingsProblem
@@ -51,6 +52,7 @@ internal val DomainText.resource: StringResource
         is LookupProblem -> toResource()
         is PlacementProblem -> toResource()
         is SpriteSheetProblem -> toResource()
+        is SpriteProblem -> toResource()
         is WorkspaceStatus -> toResource()
         is ScreenplayStyle.Rule -> toResource()
         else -> error("No string for ${this::class.simpleName}.$this")

@@ -93,7 +93,7 @@ class SetSpriteSheetTest {
     fun framesThatDontFitTheImageAreRefusedAndNothingChanges() = runTest {
         val context = context(width = 48)
         val applied = SetSpriteSheet.apply(context, SetSpriteSheet.Input("drawable/bat.png", sheet))
-        assertEquals(Rejection(CommandProblem.SPRITE_SHEET_DOES_NOT_FIT, "drawable/bat.png", "48", "16"), applied.failure)
+        assertEquals(Rejection(SpriteProblem.SPRITE_SHEET_DOES_NOT_FIT, "drawable/bat.png", "48", "16"), applied.failure)
         assertEquals(emptyMap(), context.spriteFolders.state.value.sheets)
     }
 
@@ -104,7 +104,7 @@ class SetSpriteSheetTest {
         directory.setWritable(false)
         try {
             assumeFalse("the folder still takes new files", runCatching { File(directory, "probe").createNewFile() }.getOrDefault(false))
-            assertEquals(CommandProblem.SPRITE_SHEET_NOT_WRITTEN, SetSpriteSheet.apply(context, SetSpriteSheet.Input("drawable/bat.png", sheet)).failure?.reason)
+            assertEquals(SpriteProblem.SPRITE_SHEET_NOT_WRITTEN, SetSpriteSheet.apply(context, SetSpriteSheet.Input("drawable/bat.png", sheet)).failure?.reason)
         } finally {
             directory.setWritable(true)
         }

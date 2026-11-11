@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.resources.SpriteProblem
 import com.pandulapeter.kubrikoCreator.foundation.DomainText
 import com.pandulapeter.kubrikoCreator.git.GitStatus
 import com.pandulapeter.kubrikoCreator.project.GameSettingsProblem
@@ -51,6 +52,7 @@ class DomainTextsTest {
         LookupProblem::class to LookupProblem.entries,
         PlacementProblem::class to PlacementProblem.entries,
         SpriteSheetProblem::class to SpriteSheetProblem.entries,
+        SpriteProblem::class to SpriteProblem.entries,
         WorkspaceStatus::class to WorkspaceStatus.entries,
         ScreenplayStyle.Rule::class to ScreenplayStyle.Rule.entries,
     )

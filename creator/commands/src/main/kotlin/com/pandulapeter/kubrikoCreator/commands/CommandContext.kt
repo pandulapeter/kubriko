@@ -26,6 +26,7 @@ import com.pandulapeter.kubrikoCreator.screenplay.DocumentStore
 import com.pandulapeter.kubrikoCreator.screenplay.MovedFiles
 import com.pandulapeter.kubrikoCreator.screenplay.ScreenplayStore
 import com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore
+import com.pandulapeter.kubrikoCreator.sprites.SpritePalette
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -92,6 +93,11 @@ public class CommandContext(
      * The sidebar's folders of sprites, whose writes are recorded as Kubriko Creator's own with the Scenes'.
      */
     public val spriteFolders: SpriteFolderStore = SpriteFolderStore(project.rootDirectory, scenes.ownWrites)
+
+    /**
+     * The colors the project keeps for drawing its sprites, whose writes are recorded as Kubriko Creator's own with the Scenes'.
+     */
+    public val palette: SpritePalette = SpritePalette(project.rootDirectory, scenes.ownWrites)
 
     /**
      * The screenplay's pages, whose writes are recorded as Kubriko Creator's own with the Scenes'.

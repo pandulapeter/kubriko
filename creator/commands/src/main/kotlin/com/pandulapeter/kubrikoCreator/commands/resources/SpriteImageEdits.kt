@@ -52,7 +52,7 @@ internal suspend fun CommandContext.readSpriteFrames(path: String): SpriteFrames
  */
 internal fun CommandContext.validateFrame(path: String, frame: Int?): Rejection? {
     val frameCount = spriteFolders.state.value.sheets.sheetOfSprite(path)?.frameCount ?: 1
-    return if (frame == null || frame in 0 until frameCount) null else Rejection(CommandProblem.SPRITE_FRAME_MISSING, path, frame.toString(), (frameCount - 1).toString())
+    return if (frame == null || frame in 0 until frameCount) null else Rejection(SpriteProblem.SPRITE_FRAME_MISSING, path, frame.toString(), (frameCount - 1).toString())
 }
 
 /**
@@ -62,7 +62,7 @@ internal fun CommandContext.validateFrame(path: String, frame: Int?): Rejection?
  */
 @OptIn(EditorMutation::class)
 internal suspend fun CommandContext.editSpriteImage(path: String, edit: (SpriteFrames) -> SpriteEdit): Applied {
-    val frames = readSpriteFrames(path) ?: return Applied.failed(Rejection(CommandProblem.SPRITE_UNREADABLE, path))
+    val frames = readSpriteFrames(path) ?: return Applied.failed(Rejection(SpriteProblem.SPRITE_UNREADABLE, path))
     val edited = when (val result = edit(frames)) {
         is SpriteEdit.Rejected -> return Applied.failed(result.rejection)
         is SpriteEdit.Edited -> result.frames
@@ -88,7 +88,7 @@ internal suspend fun CommandContext.editSpriteImage(path: String, edit: (SpriteF
             Applied(inverse = Invocation(ReplaceFiles, ReplaceFiles.Input(previousImage + previousSheet)))
         }
     } catch (exception: IOException) {
-        Applied.failed(Rejection(CommandProblem.SPRITE_NOT_WRITTEN, path, exception.message ?: exception.toString()))
+        Applied.failed(Rejection(SpriteProblem.SPRITE_NOT_WRITTEN, path, exception.message ?: exception.toString()))
     }
 }
 

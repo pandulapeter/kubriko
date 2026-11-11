@@ -78,6 +78,11 @@ public class SelectionController internal constructor(
     public fun openDocument(path: String): Unit = openText(WorkspaceSelection.Document(path))
 
     /**
+     * Shows the sprite at [path] (from `composeResources`) in the sprite editor, closing the Scene and deselecting the type.
+     */
+    public fun openSprite(path: String): Unit = openText(WorkspaceSelection.Sprite(path))
+
+    /**
      * Shows nothing: closes the Scene and deselects the type.
      */
     public fun clear() {

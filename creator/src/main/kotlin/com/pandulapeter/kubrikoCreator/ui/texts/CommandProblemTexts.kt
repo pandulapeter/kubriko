@@ -108,24 +108,10 @@ import kubriko.creator.generated.resources.error_game_steps_duration
 import kubriko.creator.generated.resources.error_game_unsupported
 import kubriko.creator.generated.resources.error_mcp_internal
 import kubriko.creator.generated.resources.error_not_a_resource_group
-import kubriko.creator.generated.resources.error_pixels_letter_unknown
-import kubriko.creator.generated.resources.error_pixels_none
-import kubriko.creator.generated.resources.error_pixels_outside_frame
-import kubriko.creator.generated.resources.error_pixels_palette_key
 import kubriko.creator.generated.resources.error_scene_folder_reserved
 import kubriko.creator.generated.resources.error_scene_name_taken
 import kubriko.creator.generated.resources.error_scene_not_moved
-import kubriko.creator.generated.resources.error_sprite_frame_missing
-import kubriko.creator.generated.resources.error_sprite_frame_size_alone
 import kubriko.creator.generated.resources.error_sprite_not_moved
-import kubriko.creator.generated.resources.error_sprite_not_written
-import kubriko.creator.generated.resources.error_sprite_path_invalid
-import kubriko.creator.generated.resources.error_sprite_scale_invalid
-import kubriko.creator.generated.resources.error_sprite_sheet_does_not_fit
-import kubriko.creator.generated.resources.error_sprite_sheet_not_written
-import kubriko.creator.generated.resources.error_sprite_size_invalid
-import kubriko.creator.generated.resources.error_sprite_too_large_for_rows
-import kubriko.creator.generated.resources.error_sprite_unreadable
 import kubriko.creator.generated.resources.warning_resource_music_not_followed
 import kubriko.creator.generated.resources.warning_resource_named_in_code
 import kubriko.creator.generated.resources.warning_scene_named_in_code
@@ -235,20 +221,6 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.INTERNAL -> Res.string.error_mcp_internal
     CommandProblem.NOT_A_RESOURCE_GROUP -> Res.string.error_not_a_resource_group
     CommandProblem.SPRITE_NOT_MOVED -> Res.string.error_sprite_not_moved
-    CommandProblem.PIXELS_NONE -> Res.string.error_pixels_none
-    CommandProblem.PIXELS_PALETTE_KEY -> Res.string.error_pixels_palette_key
-    CommandProblem.PIXELS_LETTER_UNKNOWN -> Res.string.error_pixels_letter_unknown
-    CommandProblem.PIXELS_OUTSIDE_FRAME -> Res.string.error_pixels_outside_frame
-    CommandProblem.SPRITE_SIZE_INVALID -> Res.string.error_sprite_size_invalid
-    CommandProblem.SPRITE_SCALE_INVALID -> Res.string.error_sprite_scale_invalid
-    CommandProblem.SPRITE_FRAME_SIZE_ALONE -> Res.string.error_sprite_frame_size_alone
-    CommandProblem.SPRITE_PATH_INVALID -> Res.string.error_sprite_path_invalid
-    CommandProblem.SPRITE_TOO_LARGE_FOR_ROWS -> Res.string.error_sprite_too_large_for_rows
-    CommandProblem.SPRITE_UNREADABLE -> Res.string.error_sprite_unreadable
-    CommandProblem.SPRITE_NOT_WRITTEN -> Res.string.error_sprite_not_written
-    CommandProblem.SPRITE_FRAME_MISSING -> Res.string.error_sprite_frame_missing
-    CommandProblem.SPRITE_SHEET_NOT_WRITTEN -> Res.string.error_sprite_sheet_not_written
-    CommandProblem.SPRITE_SHEET_DOES_NOT_FIT -> Res.string.error_sprite_sheet_does_not_fit
     CommandProblem.SCENE_FOLDER_RESERVED -> Res.string.error_scene_folder_reserved
     CommandProblem.SCENE_NAME_TAKEN -> Res.string.error_scene_name_taken
     CommandProblem.SCENE_NOT_MOVED -> Res.string.error_scene_not_moved

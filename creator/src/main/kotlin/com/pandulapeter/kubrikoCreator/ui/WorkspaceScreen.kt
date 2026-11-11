@@ -189,7 +189,7 @@ private fun WorkspaceContent(
                         dragState = sidebarDragState,
                         documentActions = rememberDocumentActions(controller.creation, controller.commands, controller.selection, uiState),
                         resourceActions = rememberResourceActions(controller.commands),
-                        selectedDocument = (selection as? WorkspaceSelection.Document)?.path,
+                        selection = selection,
                         layout = controller.layout.collectAsState().value,
                         gameModule = controller.gameModule.modules.collectAsState().value?.chosen?.let(::moduleFolderOf),
                         spriteFolders = controller.commands.context.spriteFolders.state.collectAsState().value,
@@ -444,6 +444,7 @@ private fun FollowingAiSteps(
             is WorkspaceSelection.Scene -> controller.selection.openScene(target.name)
             is WorkspaceSelection.Page -> controller.selection.openPage(target.name)
             is WorkspaceSelection.Document -> controller.selection.openDocument(target.path)
+            is WorkspaceSelection.Sprite -> controller.selection.openSprite(target.path)
             WorkspaceSelection.None, null -> Unit
         }
     }
@@ -494,4 +495,6 @@ private fun WorkspaceCenterOf(
     markdownIdentity = rememberMarkdownIdentity(selection, controller.commands.context.movedFiles),
     onAddPageImage = rememberPageImageAdder(selection) { controller.commands.dispatch(it) },
     spriteSheets = controller.commands.context.spriteFolders.state.collectAsState().value.sheets,
+    spriteImagesRevision = controller.commands.context.spriteImagesRevision.collectAsState().value,
+    palette = controller.commands.context.palette.colors.collectAsState().value,
 )

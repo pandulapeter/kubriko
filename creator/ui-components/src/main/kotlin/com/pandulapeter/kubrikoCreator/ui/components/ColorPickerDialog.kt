@@ -52,7 +52,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param isAlphaEnabled Whether the color may be translucent.
  */
 @Composable
-internal fun ColorPickerDialog(
+public fun ColorPickerDialog(
     initialColor: Long,
     onColorSelected: (Long) -> Unit,
     onDismiss: () -> Unit,

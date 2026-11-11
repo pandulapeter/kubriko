@@ -32,21 +32,24 @@ import kotlinx.serialization.json.putJsonArray
 public object ReadSprite : ReadCommand<ReadSprite.Input> {
     override val name: String = "read_sprite"
     override val description: String = "Shows a frame of a sprite, or its whole image, scaled up with sharp pixels, with its size, how it is cut into " +
-        "frames, and the colors it uses. With asRows, also every pixel as rows of letters and their palette, as draw_pixels takes them."
+        "frames, the colors it uses, and the project's palette (set_palette). With asRows, also every pixel as rows of letters and their palette, as draw_pixels takes them."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override suspend fun read(context: CommandContext, input: Input): CommandOutcome {
         (context.validateSprite(input.sprite) ?: context.validateFrame(input.sprite, input.frame))?.let { return CommandOutcome.Rejected(it) }
-        val frames = context.readSpriteFrames(input.sprite) ?: return CommandOutcome.Rejected(Rejection(CommandProblem.SPRITE_UNREADABLE, input.sprite))
+        val frames = context.readSpriteFrames(input.sprite) ?: return CommandOutcome.Rejected(Rejection(SpriteProblem.SPRITE_UNREADABLE, input.sprite))
         val image = input.frame?.let(frames.frames::get) ?: frames.toImage()
         val colors = image.colors()
         if (input.asRows && (image.width > MAXIMUM_ROWS_SIZE || image.height > MAXIMUM_ROWS_SIZE || colors.size >= LETTERS.length)) {
-            return CommandOutcome.Rejected(Rejection(CommandProblem.SPRITE_TOO_LARGE_FOR_ROWS, MAXIMUM_ROWS_SIZE.toString(), (LETTERS.length - 1).toString()))
+            return CommandOutcome.Rejected(Rejection(SpriteProblem.SPRITE_TOO_LARGE_FOR_ROWS, MAXIMUM_ROWS_SIZE.toString(), (LETTERS.length - 1).toString()))
         }
         val result = buildJsonObject {
             put("width", image.width)
             put("height", image.height)
             frames.sheet?.let { put("sheet", Json.encodeToJsonElement(SpriteSheet.serializer(), it)) }
+            context.palette.colors.value.takeIf { it.isNotEmpty() }?.let { palette ->
+                putJsonArray("projectPalette") { palette.forEach { add(JsonPrimitive(ColorHex.format(it))) } }
+            }
             putJsonArray("colors") { colors.take(MAXIMUM_COLORS).forEach { add(JsonPrimitive(ColorHex.format(it.toLong() and 0xFFFFFFFFL))) } }
             if (input.asRows) putRows(image, colors)
         }

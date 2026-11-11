@@ -111,6 +111,19 @@ class SelectionControllerTest {
     }
 
     @Test
+    fun openingASpriteTakesThePagesPlaceAndClosesTheScene() = runTest {
+        val controller = createController()
+        controller.selection.openPage("hero")
+        controller.selection.openSprite("drawable/ship.png")
+        assertEquals(WorkspaceSelection.Sprite("drawable/ship.png"), controller.selection.current.value)
+        controller.sceneEditing.open(scene)
+        assertEquals(WorkspaceSelection.Scene("level"), controller.selection.current.value)
+        controller.selection.openSprite("drawable/ship.png")
+        assertEquals(SceneEditingState.Closed, controller.sceneEditing.state.value)
+        assertEquals(WorkspaceSelection.Sprite("drawable/ship.png"), controller.selection.current.value)
+    }
+
+    @Test
     fun anUnknownTypeOrSceneChangesNothing() = runTest {
         val controller = createController()
         controller.selection.selectType("Player")

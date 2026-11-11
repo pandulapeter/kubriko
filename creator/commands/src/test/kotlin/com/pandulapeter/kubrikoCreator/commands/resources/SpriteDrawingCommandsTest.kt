@@ -71,12 +71,12 @@ class SpriteDrawingCommandsTest {
     fun drawingSaysWhatIsWrongWithItsPixels() = runTest {
         val context = context()
         fun rejection(input: DrawPixels.Input) = DrawPixels.validate(context, input)
-        assertEquals(Rejection(CommandProblem.PIXELS_NONE), rejection(DrawPixels.Input("drawable/ship.png")))
-        assertEquals(Rejection(CommandProblem.PIXELS_LETTER_UNKNOWN, "x"), rejection(DrawPixels.Input("drawable/ship.png", rows = listOf(".x"))))
-        assertEquals(Rejection(CommandProblem.PIXELS_PALETTE_KEY), rejection(DrawPixels.Input("drawable/ship.png", rows = listOf("."), palette = listOf(DrawPixels.PaletteColor(".", red)))))
-        assertEquals(Rejection(CommandProblem.SPRITE_FRAME_MISSING, "drawable/ship.png", "1", "0"), rejection(DrawPixels.Input("drawable/ship.png", frame = 1, rows = listOf("."))))
+        assertEquals(Rejection(SpriteProblem.PIXELS_NONE), rejection(DrawPixels.Input("drawable/ship.png")))
+        assertEquals(Rejection(SpriteProblem.PIXELS_LETTER_UNKNOWN, "x"), rejection(DrawPixels.Input("drawable/ship.png", rows = listOf(".x"))))
+        assertEquals(Rejection(SpriteProblem.PIXELS_PALETTE_KEY), rejection(DrawPixels.Input("drawable/ship.png", rows = listOf("."), palette = listOf(DrawPixels.PaletteColor(".", red)))))
+        assertEquals(Rejection(SpriteProblem.SPRITE_FRAME_MISSING, "drawable/ship.png", "1", "0"), rejection(DrawPixels.Input("drawable/ship.png", frame = 1, rows = listOf("."))))
         val outside = DrawPixels.apply(context, DrawPixels.Input("drawable/ship.png", pixels = listOf(DrawPixels.DrawnPixel(4, 0, red))))
-        assertEquals(Rejection(CommandProblem.PIXELS_OUTSIDE_FRAME, "4, 0", "4", "2"), outside.failure)
+        assertEquals(Rejection(SpriteProblem.PIXELS_OUTSIDE_FRAME, "4, 0", "4", "2"), outside.failure)
         assertEquals(PixelImage(4, 2), context.image())
     }
 
@@ -90,10 +90,10 @@ class SpriteDrawingCommandsTest {
         assertEquals(8 to 4, scaled.first.width to scaled.first.height)
         assertEquals(mapOf("ship" to sheet.copy(frameWidth = 4, frameHeight = 4, originX = 2)), scaled.second)
         assertEquals(
-            Rejection(CommandProblem.SPRITE_FRAME_SIZE_ALONE),
+            Rejection(SpriteProblem.SPRITE_FRAME_SIZE_ALONE),
             EditSprite.apply(context, EditSprite.Input("drawable/ship.png", EditSprite.Operation.ResizeCanvas(3, 2), frame = 0)).failure,
         )
-        assertEquals(Rejection(CommandProblem.SPRITE_SCALE_INVALID), EditSprite.validate(context, EditSprite.Input("drawable/ship.png", EditSprite.Operation.Scale(0))))
+        assertEquals(Rejection(SpriteProblem.SPRITE_SCALE_INVALID), EditSprite.validate(context, EditSprite.Input("drawable/ship.png", EditSprite.Operation.Scale(0))))
     }
 
     @Test
@@ -104,8 +104,8 @@ class SpriteDrawingCommandsTest {
         val heroFile = File(context.scenes.resourcesDirectory, "drawable/hero.png")
         val created = context.assertRoundTrip(Invocation(CreateSprite, input)) { heroFile.takeIf { it.isFile }?.readBytes()?.let(PixelImage::of) to context.spriteFolders.state.value.folderOf["hero"] }
         assertEquals(PixelImage(3, 5) to "player", created)
-        assertEquals(Rejection(CommandProblem.SPRITE_PATH_INVALID, "drawable/hero.jpg"), CreateSprite.validate(context, input.copy(path = "drawable/hero.jpg")))
-        assertEquals(Rejection(CommandProblem.SPRITE_SIZE_INVALID, "4096"), CreateSprite.validate(context, input.copy(width = 0)))
+        assertEquals(Rejection(SpriteProblem.SPRITE_PATH_INVALID, "drawable/hero.jpg"), CreateSprite.validate(context, input.copy(path = "drawable/hero.jpg")))
+        assertEquals(Rejection(SpriteProblem.SPRITE_SIZE_INVALID, "4096"), CreateSprite.validate(context, input.copy(width = 0)))
     }
 
     @Test
@@ -119,5 +119,13 @@ class SpriteDrawingCommandsTest {
         assertEquals("#FF0000", result.getValue("palette").jsonArray.single().jsonObject.getValue("color").jsonPrimitive.content)
         val preview = assertNotNull(PixelImage.of(assertNotNull(outcome.image)))
         assertEquals(32 to 16, preview.width to preview.height)
+    }
+
+    @Test
+    fun thePaletteIsSetAndUndoneAndHoldsAtMostSixtyFourColors() = runTest {
+        val context = context()
+        val colors = context.assertRoundTrip(Invocation(SetPalette, SetPalette.Input(listOf(red, blue, red)))) { context.palette.colors.value }
+        assertEquals(listOf(red, blue), colors)
+        assertEquals(Rejection(SpriteProblem.PALETTE_TOO_LARGE, "64"), SetPalette.validate(context, SetPalette.Input(List(65) { it.toLong() })))
     }
 }

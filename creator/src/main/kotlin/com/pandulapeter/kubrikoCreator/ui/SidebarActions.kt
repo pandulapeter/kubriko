@@ -83,7 +83,8 @@ internal fun rememberFolderTreeActions(
                 FolderGroup.SCENES -> selection.openScene(name)
                 FolderGroup.PAGES -> selection.openPage(name)
                 FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> selection.selectType(name)
-                FolderGroup.SPRITES, FolderGroup.SOUNDS, FolderGroup.MUSIC -> Unit
+                FolderGroup.SPRITES -> if (ResourceKind.of(name) == ResourceKind.SPRITE) selection.openSprite(name)
+                FolderGroup.SOUNDS, FolderGroup.MUSIC -> Unit
             }
         },
         onSelectionCleared = selection::clear,

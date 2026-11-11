@@ -173,6 +173,7 @@ Besides its tests passing, a change:
 | The `game.*` keys of `gradle.properties` (the game's identity and settings) | Creator | Edited line by line by Project settings; a value changed by hand shows there the next time it opens. |
 | A target's own files (`androidApp/`, `iosApp/`, `src/androidMain`, `src/iosMain`) | User after creation | Created by turning the target on when missing, never rewritten, and kept when it is turned off. |
 | The `PRODUCT_BUNDLE_IDENTIFIER` line of `iosApp/Configuration/Config.xcconfig` | Creator | Follows `game.applicationId`; the Xcode build fails, naming both, while they differ. |
+| `.kubriko/palette.json` (the project's palette for drawing sprites) | Creator | Read again with the resource tree within a second; written only through `set_palette`, and absent while it holds no color. |
 | `.kubriko/screenplay.json` | Creator | How the screenplay is kept (`ScreenplaySettings`, its reminders), in a file of its own rather than `project.json`, so an older Creator just keeps reminding and no format raise is needed; kept through `JsonFileStore`, and absent while it would hold only the defaults, so undoing the first change leaves no file. |
 | `.kubriko/local/` | Creator | Git-ignored, by a `.gitignore` of its own (`LocalProjectStore`), since a project Creator didn't make doesn't ignore it. |
 
@@ -686,9 +687,15 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   (`commonMain`, `main`) at the top, each platform's in a container with its Play menu icon (closed at first), and a folder
   for each package below the one all files share, merged with its only child folder while it holds nothing else (`ui.menu`).
   The package is the one each file declares (`KotlinPackages`), since Kotlin lets folders leave out the shared root package.
-- What the center shows is one `WorkspaceSelection` (a type, a Scene being prepared, open, or failed, a page, or nothing),
+- What the center shows is one `WorkspaceSelection` (a type, a Scene being prepared, open, or failed, a page, a document, a sprite, or nothing),
   changed only through `SelectionController`, the one place that pairs selecting a type with closing the Scene. The workspace screen's
   own panels, dialogs, and the AI step the user went back to live in `WorkspaceUiState`, a plain class its tests reach without a UI.
+- The sprite editor (`ui/sprites`) changes a sprite only through commands, so its steps are undone like any other and
+  the AI can make each: a stroke, a shape, or a fill is one `draw_pixels` of the pixels it changed when the pointer is
+  let go, and pixels lifted or pasted float until they are put down, as one step that clears where they came from.
+  What it draws shows over the frame until the image is read again (`pendingPixels`), so nothing flickers back while
+  the write is under way. Its `SpriteEditorState` lives as long as the workspace, so the colors, the tool, and what was
+  copied go from one sprite to the next, while the view and the selection start over.
 - The type editor's selected Event is its `ListItemKeys` key, not its index (`EventSelectionState`), so it stays on the same
   Event through undo, redo, and the AI's Event changes; an added Event is selected only once its add succeeded, found
   by its key in the type as it is at that moment (an add may wait behind an AI tool call that changes the Events).

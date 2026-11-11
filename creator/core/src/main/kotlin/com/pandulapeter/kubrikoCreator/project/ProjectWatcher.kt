@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.foundation.ATOMIC_WRITE_SUFFIX
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import com.pandulapeter.kubrikoCreator.screenplay.ScreenplaySettings
 import com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore
+import com.pandulapeter.kubrikoCreator.sprites.SpritePalette
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -111,7 +112,7 @@ public class ProjectWatcher(
             path == BlockTypeStore.SETTINGS_FILE -> ProjectChange.SETTINGS
             path == GradlePropertiesFile.NAME -> ProjectChange.GAME_SETTINGS
             path.startsWith(".kubriko/actors/") || path.startsWith(".kubriko/managers/") -> ProjectChange.BLOCK_TYPE_DEFINITIONS
-            path.startsWith(SpriteFolderStore.DIRECTORY + "/") -> ProjectChange.SPRITE_FOLDERS
+            path.startsWith(SpriteFolderStore.DIRECTORY + "/") || path == SpritePalette.FILE -> ProjectChange.SPRITE_FOLDERS
             ResourceScanner.classify(path) == ResourceGroup.SCENES -> ProjectChange.SCENES
             path.startsWith(PageNaming.FOLDER + "/") || path == ScreenplaySettings.FILE -> ProjectChange.SCREENPLAY
             ResourceScanner.isDocument(path) -> ProjectChange.DOCUMENTS

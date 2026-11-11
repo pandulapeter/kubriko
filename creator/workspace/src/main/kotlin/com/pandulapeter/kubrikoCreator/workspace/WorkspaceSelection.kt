@@ -14,7 +14,7 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 
 /**
  * What the workspace's center shows: one type, one Scene (being prepared, open, or failed), one page of the screenplay, one
- * other Markdown document, or nothing.
+ * other Markdown document, one sprite in the sprite editor, or nothing.
  */
 public sealed interface WorkspaceSelection {
 
@@ -48,6 +48,13 @@ public sealed interface WorkspaceSelection {
      * The document at [path] (from the project's root) is shown in the page editor.
      */
     public data class Document(
+        public val path: String,
+    ) : WorkspaceSelection
+
+    /**
+     * The sprite at [path] (from `composeResources`, like `drawable/ship.png`) is shown in the sprite editor.
+     */
+    public data class Sprite(
         public val path: String,
     ) : WorkspaceSelection
 }

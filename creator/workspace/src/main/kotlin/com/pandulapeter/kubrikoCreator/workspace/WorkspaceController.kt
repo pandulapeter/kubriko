@@ -423,6 +423,7 @@ public class WorkspaceController(
         var spriteSheets = emptyMap<String, SpriteSheet>()
         val (resources, layout) = withContext(ioDispatcher) {
             commands.context.audioFolders.refresh()
+            commands.context.palette.refresh()
             spriteSheets = commands.context.spriteFolders.refresh().sheets
             files.scanResources(project.rootDirectory, currentSnapshot).let { resources ->
                 resources to ProjectLayout.of(project.rootDirectory, resources, generatedPath, sceneHome, currentSnapshot, commands.context.audioFolders.folders())

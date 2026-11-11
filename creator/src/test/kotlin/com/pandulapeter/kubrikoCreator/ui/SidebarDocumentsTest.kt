@@ -30,6 +30,7 @@ import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
 import com.pandulapeter.kubrikoCreator.workspace.ProjectLayout
+import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -97,7 +98,7 @@ class SidebarDocumentsTest {
                 folderActions = FolderTreeActions({ _, _ -> }, {}, { _, _ -> null }, { _, _ -> null }, { _, _, _ -> null }, { _, _, _ -> }, { _, _, _ -> null }, { _, _ -> }),
                 dragState = SidebarDragState(),
                 documentActions = actions,
-                selectedDocument = "README.md",
+                selection = WorkspaceSelection.Document("README.md"),
             )
         }
         onNodeWithText("README.md").assertExists()
