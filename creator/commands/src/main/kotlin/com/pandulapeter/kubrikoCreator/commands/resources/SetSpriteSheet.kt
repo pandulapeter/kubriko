@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.ReplaceFiles
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
@@ -44,7 +45,6 @@ public object SetSpriteSheet : WriteCommand<SetSpriteSheet.Input> {
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val name = ResourceKind.nameOf(input.sprite)
-        val previous = context.spriteFolders.state.value.sheets[name]
         val image = context.spriteFiles()?.files?.get(input.sprite)
         if (input.sheet != null && image != null) {
             val size = withContext(context.ioDispatcher) { SpriteFiles.sizeOf(image) }
@@ -52,12 +52,18 @@ public object SetSpriteSheet : WriteCommand<SetSpriteSheet.Input> {
                 return Applied.failed(Rejection(CommandProblem.SPRITE_SHEET_DOES_NOT_FIT, input.sprite, size.first.toString(), size.second.toString()))
             }
         }
-        try {
-            withContext(context.ioDispatcher) { context.spriteFolders.setSheet(name, input.sheet) }
+        val root = context.project.rootDirectory
+        val previous = try {
+            withContext(context.ioDispatcher) {
+                val before = context.spriteFolders.filesOf(name).associate { it.relativeTo(root).invariantSeparatorsPath to it.readBytes() }
+                context.spriteFolders.setSheet(name, input.sheet)
+                before + context.spriteFolders.filesOf(name).map { it.relativeTo(root).invariantSeparatorsPath }.filter { it !in before }.associateWith { null }
+            }
         } catch (exception: IOException) {
             return Applied.failed(Rejection(CommandProblem.SPRITE_SHEET_NOT_WRITTEN, input.sprite, exception.message ?: exception.toString()))
         }
-        return Applied(inverse = Invocation(SetSpriteSheet, input.copy(sheet = previous)))
+        // The sprite's files byte for byte, so that undoing brings back even a sheet written by hand that can't be played.
+        return Applied(inverse = previous.takeIf { it.isNotEmpty() }?.let { Invocation(ReplaceFiles, ReplaceFiles.Input(it)) })
     }
 
     override fun mergeKey(input: Input): Any? = input.sprite

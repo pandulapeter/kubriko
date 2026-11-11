@@ -60,6 +60,17 @@ class SetSpriteSheetTest {
     }
 
     @Test
+    fun undoingBringsBackTheSpritesFileByteForByteEvenWithASheetThatCantBePlayed() = runTest {
+        val context = context()
+        val file = File(context.project.rootDirectory, ".kubriko/sprites/enemies/bat.json").apply { parentFile.mkdirs() }
+        val handWritten = "{\"sheet\":{\"frameWidth\":16,\"frameHeight\":16,\"frameCount\":4,\"framesPerRow\":4,\"framesPerSecond\":0},\"later\":1}\r\n"
+        file.writeText(handWritten)
+        context.spriteFolders.refresh()
+        val after = context.assertRoundTrip(Invocation(SetSpriteSheet, SetSpriteSheet.Input("drawable/bat.png", sheet))) { file.readText() }
+        assertEquals(mapOf("bat" to sheet), context.spriteFolders.state.value.sheets, after)
+    }
+
+    @Test
     fun onlyASpriteThatExistsIsCutAndOnlyIntoFramesThatCanBePlayed() = runTest {
         val context = context()
         assertEquals(Rejection(LookupProblem.RESOURCE_MISSING, "files/sounds/hit.wav"), SetSpriteSheet.validate(context, SetSpriteSheet.Input("files/sounds/hit.wav", sheet)))
