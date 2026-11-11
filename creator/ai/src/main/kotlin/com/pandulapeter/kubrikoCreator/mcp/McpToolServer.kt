@@ -324,7 +324,7 @@ public class McpToolServer(
             game (enemies, levels/world-1, ui) once a group holds more than a handful (list_resources shows the sprites',
             sounds', and music's). Put each new thing in its folder,
             making the folder first (create_folder); split a folder that grows past a dozen or so; move what is misplaced
-            (move_to_folder, move_sprite_to_folder, rename_scene, move_page, rename_resource or rename_folder for audio),
+            (move_to_folder, move_sprite_to_folder, rename_scene, move_page, and, for audio, rename_resource or rename_folder),
             which changes no type's name, while what refers to a moved Scene or file follows it; and name things like their
             neighbors. When a group you work in is cluttered, tidy it in the same plan, saying what moves where.
         """.trimIndent().replace("\n", " ")
