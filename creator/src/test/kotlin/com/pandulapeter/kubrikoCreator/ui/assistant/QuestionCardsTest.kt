@@ -63,6 +63,7 @@ class QuestionCardsTest {
             )
         }
         saveSnapshot("question-in-conversation")
+        onNodeWithText("Another answer").assertDoesNotExist()
         onNodeWithText("The agent stopped waiting", substring = true).assertDoesNotExist()
         onNodeWithText("Working", substring = true).assertDoesNotExist()
         onNodeWithText("Flies").performClick()
@@ -86,6 +87,7 @@ class QuestionCardsTest {
         }
         saveSnapshot("question-late")
         onNodeWithText("The agent stopped waiting", substring = true).assertExists()
+        onNodeWithText("Another answer").assertExists()
         onNodeWithText("Flies").assertIsNotEnabled()
         canSendMessage = true
         onNodeWithText("Flies").assertIsEnabled().performClick()

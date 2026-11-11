@@ -38,8 +38,10 @@ import com.agentclientprotocol.model.AvailableCommand
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.action_answer
 import kubriko.creator.generated.resources.action_send
 import kubriko.creator.generated.resources.action_stop
+import kubriko.creator.generated.resources.assistant_input_answer_hint
 import kubriko.creator.generated.resources.assistant_input_hint
 import kubriko.creator.generated.resources.ic_send
 import kubriko.creator.generated.resources.ic_stop
@@ -51,6 +53,7 @@ import org.jetbrains.compose.resources.stringResource
  *
  * @param isEnabled Whether the conversation takes prompts.
  * @param isBusy Whether the agent works on a turn, which Stop ends.
+ * @param isAnswering Whether the turn waits for the user to answer the agent's question, which what is sent then answers.
  */
 @Composable
 internal fun AssistantComposer(
@@ -60,6 +63,7 @@ internal fun AssistantComposer(
     onSend: (String) -> Unit,
     onStop: () -> Unit,
     modifier: Modifier = Modifier,
+    isAnswering: Boolean = false,
 ) = Column(
     modifier = modifier,
 ) {
@@ -67,7 +71,7 @@ internal fun AssistantComposer(
     val text = value.text
     val completions = remember(text, commands) { slashCompletions(text, commands) }
     fun send() {
-        if (!isEnabled || isBusy || text.isBlank()) return
+        if (!isEnabled || (isBusy && !isAnswering) || text.isBlank()) return
         onSend(text.trim())
         value = TextFieldValue()
     }
@@ -99,22 +103,23 @@ internal fun AssistantComposer(
                 },
             value = value,
             onValueChange = { value = it },
-            placeholder = stringResource(Res.string.assistant_input_hint),
+            placeholder = stringResource(if (isAnswering) Res.string.assistant_input_answer_hint else Res.string.assistant_input_hint),
             isSingleLine = false,
         )
+        if (!isBusy || isAnswering) {
+            IconActionButton(
+                icon = Res.drawable.ic_send,
+                label = if (isAnswering) Res.string.action_answer else Res.string.action_send,
+                onClick = ::send,
+                isEnabled = isEnabled && text.isNotBlank(),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+        }
         if (isBusy) {
             IconActionButton(
                 icon = Res.drawable.ic_stop,
                 label = Res.string.action_stop,
                 onClick = onStop,
-            )
-        } else {
-            IconActionButton(
-                icon = Res.drawable.ic_send,
-                label = Res.string.action_send,
-                onClick = ::send,
-                isEnabled = isEnabled && text.isNotBlank(),
-                tint = MaterialTheme.colorScheme.primary,
             )
         }
     }

@@ -38,10 +38,13 @@ import kubriko.creator.generated.resources.question_other_answer
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * An AI's question ([UserQuestions]) with its answers as buttons and a field for any other answer, which [onAnswer] sends.
+ * An AI's question ([UserQuestions]) with its answers as buttons and, unless the composer takes it, a field for any other
+ * answer, which [onAnswer] sends.
  *
  * @param isLate Whether the agent stopped waiting for the answer, which then goes to it as the user's next message.
  * @param isEnabled Whether an answer can be sent now: a late one only while the conversation takes a message.
+ * @param hasOwnAnswerField Whether the card has its field for another answer: not where the conversation's composer
+ *   answers the question while the agent waits, since two fields for the same answer would leave the user guessing.
  */
 @Composable
 internal fun QuestionCard(
@@ -50,6 +53,7 @@ internal fun QuestionCard(
     modifier: Modifier = Modifier,
     isLate: Boolean = false,
     isEnabled: Boolean = true,
+    hasOwnAnswerField: Boolean = true,
 ) = Column(
     modifier = modifier
         .fillMaxWidth()
@@ -73,7 +77,22 @@ internal fun QuestionCard(
             OutlinedButton(enabled = isEnabled, onClick = { onAnswer(answer) }) { Text(answer) }
         }
     }
-    var other by remember(question.id) { mutableStateOf("") }
+    if (hasOwnAnswerField) {
+        OtherAnswerField(
+            questionId = question.id,
+            isEnabled = isEnabled,
+            onAnswer = onAnswer,
+        )
+    }
+}
+
+@Composable
+private fun OtherAnswerField(
+    questionId: Long,
+    isEnabled: Boolean,
+    onAnswer: (String) -> Unit,
+) {
+    var other by remember(questionId) { mutableStateOf("") }
     Row(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,

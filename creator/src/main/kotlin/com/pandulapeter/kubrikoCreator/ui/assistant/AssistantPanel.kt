@@ -207,6 +207,7 @@ private fun ChatContent(
     val toolsId by chat.toolsId.collectAsState()
     val steps = remember(transcript.items, aiSteps, toolsId) { aiStepsOf(transcript.items, aiSteps, toolsId) }
     val transcriptQuestions = remember(transcript.items, questions, toolsId) { questionsOf(transcript.items, questions, toolsId) }
+    val waitingQuestion = remember(transcriptQuestions, transcript.items, isBusy) { transcriptQuestions.waitingQuestion(transcript.items, isBusy) }
     val answering = rememberCoroutineScope()
     Box(
         modifier = Modifier.weight(1f).fillMaxWidth(),
@@ -271,9 +272,14 @@ private fun ChatContent(
         commands = chat.availableCommands.collectAsState().value,
         isEnabled = state == ChatState.Ready,
         isBusy = isBusy,
+        isAnswering = waitingQuestion != null,
         onSend = { text ->
-            val chips = attention.filter { it.isSentWith(toggled) }
-            chat.send(text) { AttentionChip.contentOf(chips, captureScreenshot) }
+            if (waitingQuestion != null) {
+                onAnswer(waitingQuestion.id, text)
+            } else {
+                val chips = attention.filter { it.isSentWith(toggled) }
+                chat.send(text) { AttentionChip.contentOf(chips, captureScreenshot) }
+            }
         },
         onStop = chat::stop,
     )

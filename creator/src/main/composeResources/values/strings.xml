@@ -949,6 +949,7 @@
     <string name="action_keep">Keep</string>
     <string name="assistant_starting_download">The first time, it is downloaded, which can take a minute.</string>
     <string name="assistant_input_hint">Ask the assistant (Enter sends, Shift+Enter starts a new line)</string>
+    <string name="assistant_input_answer_hint">Answer the question above, or pick one of its answers (Enter sends)</string>
     <string name="assistant_thinking">Thinking</string>
     <string name="assistant_working">Working…</string>
     <string name="action_assistant_setup">Assistant setup (%1$s)</string>

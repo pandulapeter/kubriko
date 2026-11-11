@@ -12,6 +12,9 @@ package com.pandulapeter.kubrikoCreator.ui.assistant
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -314,6 +317,27 @@ class AssistantPanelTest {
         waitUntil(timeoutMillis = 10_000) { launcher.agents.single().prompts.isNotEmpty() }
         assertEquals(listOf(1L to "Flies"), answered)
         assertEquals(listOf("My answer to \"How does the hero get around?\": Flies"), launcher.agents.single().prompts)
+    }
+
+    @Test
+    fun whatIsTypedWhileTheAgentWaitsForAnAnswerAnswersItRatherThanBeingLost() = uiTest {
+        val chat = readyChat()
+        val model = FakeAssistantPanelModel().apply { currentChat.value = chat }
+        val question = UserQuestions.Question(1, "How does the hero get around?", listOf("Runs and jumps", "Flies"), AiStepOrigin(TOOLS_ID))
+        val answered = mutableListOf<Pair<Long, String>>()
+        var questions by mutableStateOf(emptyList<UserQuestions.Question>())
+        showing {
+            AssistantPanel(model = model, aiSteps = emptyList(), onShowStep = {}, questions = questions, onAnswer = { id, answer -> answered += id to answer })
+        }
+        runBlocking { withContext(mainThread) { chat.send("wait") } }
+        waitUntil(timeoutMillis = 10_000) { chat.isBusy.value }
+        questions = listOf(question)
+        onNodeWithText("Answer the question above", substring = true).assertExists()
+        onNodeWithText("Another answer").assertDoesNotExist()
+        onNode(hasSetTextAction()).performTextInput("Rides a dragon")
+        onNodeWithContentDescription("Answer").performClick()
+        assertEquals(listOf(1L to "Rides a dragon"), answered)
+        assertEquals(listOf("wait"), launcher.agents.single().prompts)
     }
 
     private companion object {

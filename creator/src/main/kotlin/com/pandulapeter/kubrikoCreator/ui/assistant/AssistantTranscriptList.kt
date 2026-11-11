@@ -179,6 +179,7 @@ private fun TranscriptQuestion(
     onAnswer = { onAnswer(question, it, isLate) },
     isLate = isLate,
     isEnabled = !isLate || canSendMessage,
+    hasOwnAnswerField = isLate,
 )
 
 @Composable
