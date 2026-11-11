@@ -77,7 +77,7 @@ class SpriteEditorUiTest {
             writeBytes(PixelImage(8, 4).with((0 until 4).map { Pixel(it, it, red) } + (4 until 8).map { Pixel(it, 0, blue) }).toPng())
         }
         val commands = mutableListOf<Invocation<*>>()
-        val state = SpriteEditorState()
+        val state = SpriteEditorState().apply { tool = SpriteTool.RECTANGLE }
         showing {
             SpriteEditor(
                 path = "drawable/hero.png",
@@ -91,6 +91,7 @@ class SpriteEditorUiTest {
             )
         }
         waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("Frame 1 of 2")).fetchSemanticsNodes().isNotEmpty() }
+        onNodeWithText("Filled").assertExists()
         saveSnapshot("sprite-editor")
         onNodeWithContentDescription("Next frame").performClick()
         onNodeWithText("Frame 2 of 2").assertExists()

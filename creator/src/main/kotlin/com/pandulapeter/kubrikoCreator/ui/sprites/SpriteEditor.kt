@@ -125,6 +125,8 @@ internal fun SpriteEditor(
             onFit = { state.zoomToFit(frame.width, frame.height, canvasSize.width.toFloat(), canvasSize.height.toFloat()) },
         )
         HorizontalDivider()
+        SpriteToolOptionsBar(state = state)
+        HorizontalDivider()
         Row(Modifier.weight(1f).fillMaxWidth()) {
             SpriteToolColumn(state = state, modifier = Modifier.fillMaxHeight())
             VerticalDivider()
