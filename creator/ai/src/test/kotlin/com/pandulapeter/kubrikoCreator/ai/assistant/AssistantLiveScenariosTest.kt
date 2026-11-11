@@ -120,6 +120,22 @@ class AssistantLiveScenariosTest {
     }
 
     @Test
+    fun kubrikosApiIsLookedUpThroughCreatorsToolRatherThanReadFromItsSources() = live { session ->
+        val chat = session.chat()
+        chat.ask(
+            "Write a Kotlin Block at the end of the Ball's collision with Brick that shakes the camera: move it by a random offset of up to " +
+                "four scene units with the ViewportManager.",
+        )
+        val calls = chat.transcript.value.items.filterIsInstance<TranscriptItem.ToolCall>()
+        calls.forEach { println("Tool call: ${it.kind} ${it.creatorToolName ?: it.title}") }
+        assertContains(calls.mapNotNull { it.creatorToolName }, "get_kubriko_api")
+        val ownReadsOfKubriko = calls.filter { it.creatorToolName == null && it.title.contains("kubriko", ignoreCase = true) && !it.title.contains(session.projectPath) }
+        assertEquals(emptyList(), ownReadsOfKubriko.map { it.title }, "Kubriko's sources were read with the agent's own tools.")
+        val collision = session.context.ball().events.first { it.type == EventType.COLLISION && it.otherActorType == "Brick" }
+        assertContains((collision.blocks.last() as BlockDefinition.Kotlin).code, "CameraPosition")
+    }
+
+    @Test
     fun aPitchInTheWritersRoomBecomesAPlayableSliceWithPagesThatKeepTheRules() = live(isBlank = true) { session ->
         val questions = session.context.questions
         // Whatever the room asks is answered with its first suggestion, as a user who agrees with everything would.
@@ -186,6 +202,7 @@ class AssistantLiveScenariosTest {
         val mainThread = Dispatchers.Default
         private val scope = CoroutineScope(SupervisorJob() + mainThread)
         private val projectDirectory = createTempDirectory().toFile()
+        val projectPath: String = projectDirectory.path
         private val npx = File(assertNotNull(ShellProcessRunner().locate("npx"), "Node.js isn't installed."))
         private val configDirectory = System.getenv("KUBRIKO_CREATOR_CLAUDE_CONFIG_DIR")
         lateinit var context: CommandContext
