@@ -63,13 +63,13 @@ public data class SpriteSheet(
     /**
      * The number of rows the frames take.
      */
-    public val rowCount: Int get() = (frameCount + framesPerRow - 1) / framesPerRow
+    public val rowCount: Int get() = frameCount / framesPerRow + if (frameCount % framesPerRow == 0) 0 else 1
 
     /**
      * Why the sheet doesn't fit an image of [width] by [height] pixels, or null if every frame is inside it.
      */
     public fun problemWithImage(width: Int, height: Int): SpriteSheetProblem? = when {
-        frameWidth * minOf(framesPerRow, frameCount) > width || frameHeight * rowCount > height -> SpriteSheetProblem.LARGER_THAN_IMAGE
+        frameWidth.toLong() * minOf(framesPerRow, frameCount) > width || frameHeight.toLong() * rowCount > height -> SpriteSheetProblem.LARGER_THAN_IMAGE
         else -> null
     }
 

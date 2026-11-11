@@ -34,6 +34,9 @@ class SpriteSheetTest {
         assertEquals(SpriteSheetProblem.LARGER_THAN_IMAGE, sheet.problemWithImage(31, 24))
         assertEquals(SpriteSheetProblem.LARGER_THAN_IMAGE, sheet.problemWithImage(32, 23))
         assertNull(sheet.copy(frameCount = 1, framesPerRow = 4).problemWithImage(16, 8))
+        val huge = SpriteSheet(frameWidth = 65_536, frameHeight = 65_536, frameCount = Int.MAX_VALUE, framesPerRow = 65_536)
+        assertEquals(SpriteSheetProblem.LARGER_THAN_IMAGE, huge.problemWithImage(64, 64))
+        assertEquals(32_768, huge.rowCount)
     }
 
     @Test
