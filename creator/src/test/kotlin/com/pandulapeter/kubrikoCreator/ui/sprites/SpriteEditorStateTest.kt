@@ -176,4 +176,19 @@ class SpriteEditorStateTest {
         state.continueStroke(IntOffset(3, 3))
         assertEquals(4, state.strokeShape.size)
     }
+
+    @Test
+    fun framesAreConvertedAgainOnlyWhenTheyChanged() {
+        val converted = mutableListOf<PixelImage>()
+        val cache = FrameCache { image: PixelImage -> image.also { converted += it } }
+        val first = PixelImage(2, 2)
+        val second = PixelImage(2, 2)
+        cache.of(listOf(first, second))
+        assertEquals(2, converted.size)
+        val drawn = second.with(listOf(Pixel(0, 0, red)))
+        assertEquals(listOf(first, drawn), cache.of(listOf(first, drawn)))
+        assertEquals(3, converted.size, "only the frame drawn on")
+        cache.of(listOf(drawn, first))
+        assertEquals(3, converted.size, "reordered frames are the same frames")
+    }
 }

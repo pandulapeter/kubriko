@@ -56,7 +56,7 @@ internal fun SpriteAnimationPreview(
     modifier = modifier,
     verticalArrangement = Arrangement.spacedBy(6.dp),
 ) {
-    val bitmaps = remember(frames) { frames.map { it.toImageBitmap() } }
+    val bitmaps = rememberFrameBitmaps(frames)
     val playingFrame = rememberPlayingFrame(sheet)
     Canvas(Modifier.fillMaxWidth().aspectRatio(1f)) {
         val index = if (state.isPreviewPlaying) playingFrame.value else shownIndex

@@ -24,6 +24,7 @@ import org.jetbrains.skia.ColorAlphaType
 import org.jetbrains.skia.ColorType
 import org.jetbrains.skia.ImageInfo
 import java.io.File
+import java.util.IdentityHashMap
 
 /**
  * This image as one Compose draws, its pixels as they are (not premultiplied), so see-through ones stay see-through.
@@ -76,6 +77,33 @@ internal class SpriteImageReader {
             lastBytes = bytes
         }
         return lastImage
+    }
+}
+
+/**
+ * [frames] as images to draw, remembered across changes, so that after a stroke only the frame it changed is converted
+ * again (an edit leaves the other frames the same instances).
+ */
+@Composable
+internal fun rememberFrameBitmaps(frames: List<PixelImage>): List<ImageBitmap> {
+    val cache = remember { FrameCache(PixelImage::toImageBitmap) }
+    return remember(frames) { cache.of(frames) }
+}
+
+/**
+ * Converts frames with [convert], reusing what it converted for the frames of the last call that are still there (the
+ * same instances).
+ */
+internal class FrameCache<T>(private val convert: (PixelImage) -> T) {
+    private var lastFrames: List<PixelImage> = emptyList()
+    private var lastValues: List<T> = emptyList()
+
+    fun of(frames: List<PixelImage>): List<T> {
+        val previous = IdentityHashMap<PixelImage, T>(lastFrames.size).apply { lastFrames.indices.forEach { put(lastFrames[it], lastValues[it]) } }
+        val values = frames.map { previous[it] ?: convert(it) }
+        lastFrames = frames
+        lastValues = values
+        return values
     }
 }
 
