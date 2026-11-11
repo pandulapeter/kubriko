@@ -53,11 +53,12 @@ internal fun SpriteFramesRow(
     val bitmap = rememberImageFile(sprites.fileOf(path))
     val sheet = sprites.sheetOf(path)
     var isEditing by remember(path) { mutableStateOf(false) }
+    val frame = rememberPlayingFrame(sheet)
     SpriteThumbnail(
         modifier = Modifier.size(48.dp),
         bitmap = bitmap,
         sheet = sheet,
-        frame = rememberPlayingFrame(sheet),
+        frame = { frame.value },
         tint = tint,
     )
     Column {

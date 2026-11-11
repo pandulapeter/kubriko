@@ -102,6 +102,7 @@ internal fun SpriteSheetDialog(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             val shown = sheet?.takeIf { problem == null }
+            val frame = rememberPlayingFrame(shown)
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
@@ -114,7 +115,7 @@ internal fun SpriteSheetDialog(
                     modifier = Modifier.size(120.dp),
                     bitmap = bitmap,
                     sheet = shown,
-                    frame = rememberPlayingFrame(shown),
+                    frame = { frame.value },
                 )
             }
             if (bitmap != null) {

@@ -10,7 +10,10 @@
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.IntOffset
@@ -46,15 +49,19 @@ internal fun fittedInto(size: IntSize, bounds: Size): Pair<Offset, Size> {
 }
 
 /**
- * The frame of [sheet] shown now, going round at its frames per second; always the first for a sheet of one frame, and
- * for none.
+ * The frame of [sheet] shown now, going round at its frames per second from the first whenever [sheet] changes; always
+ * the first for a sheet of one frame, and for none. Read it only where it is drawn, so nothing recomposes at the frame rate.
  */
 @Composable
-internal fun rememberPlayingFrame(sheet: SpriteSheet?): Int = produceState(0, sheet) {
-    if (sheet == null || sheet.frameCount < 2 || sheet.problem != null) return@produceState
-    val frameDuration = (1000 / sheet.framesPerSecond).toLong().coerceAtLeast(1)
-    while (true) {
-        delay(frameDuration)
-        value = (value + 1) % sheet.frameCount
+internal fun rememberPlayingFrame(sheet: SpriteSheet?): State<Int> {
+    val frame = remember(sheet) { mutableIntStateOf(0) }
+    LaunchedEffect(frame) {
+        if (sheet == null || sheet.frameCount < 2 || sheet.problem != null) return@LaunchedEffect
+        val frameDuration = (1000 / sheet.framesPerSecond).toLong().coerceAtLeast(1)
+        while (true) {
+            delay(frameDuration)
+            frame.intValue = (frame.intValue + 1) % sheet.frameCount
+        }
     }
-}.value
+    return frame
+}

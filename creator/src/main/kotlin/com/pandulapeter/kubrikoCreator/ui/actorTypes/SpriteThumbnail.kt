@@ -26,21 +26,21 @@ import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import com.pandulapeter.kubrikoCreator.ui.components.checkerboard
 
 /**
- * [bitmap], or its frame [frame] when [sheet] cuts it into frames, as large as fits, its pixels kept sharp and multiplied
+ * [bitmap], or the frame [frame] returns when [sheet] cuts it into frames (read only while drawing), as large as fits, its pixels kept sharp and multiplied
  * by [tint] if there is one, as the game tints it, over the checkerboard that shows what is see-through.
  */
 @Composable
 internal fun SpriteThumbnail(
     bitmap: ImageBitmap?,
     sheet: SpriteSheet?,
-    frame: Int,
+    frame: () -> Int,
     modifier: Modifier = Modifier,
     tint: Color? = null,
 ) = Canvas(
     modifier = modifier.clip(RoundedCornerShape(4.dp)).checkerboard(4.dp),
 ) {
     if (bitmap == null) return@Canvas
-    val region = frameRegionOf(sheet, frame, IntSize(bitmap.width, bitmap.height))
+    val region = frameRegionOf(sheet, frame(), IntSize(bitmap.width, bitmap.height))
     val (offset, fitted) = fittedInto(region.size, size)
     drawImage(
         image = bitmap,
