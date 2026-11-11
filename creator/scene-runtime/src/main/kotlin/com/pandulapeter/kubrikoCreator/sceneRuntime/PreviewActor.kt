@@ -50,7 +50,9 @@ internal class PreviewActor(
     override val body = BoxBody(
         initialPosition = bodyObject.pair("position", "x", "y")?.let { (x, y) -> SceneOffset(x.sceneUnit, y.sceneUnit) } ?: SceneOffset.Zero,
         initialSize = size,
-        initialPivot = bodyObject.pair("pivot", "x", "y")?.let { (x, y) -> SceneOffset(x.sceneUnit, y.sceneUnit) } ?: size.center,
+        initialPivot = typeLook.sheet?.originFraction?.let { (x, y) -> SceneOffset(size.width * x, size.height * y) }
+            ?: bodyObject.pair("pivot", "x", "y")?.let { (x, y) -> SceneOffset(x.sceneUnit, y.sceneUnit) }
+            ?: size.center,
         initialScale = bodyObject.pair("scale", "horizontal", "vertical")?.let { (horizontal, vertical) -> Scale(horizontal, vertical) } ?: Scale.Unit,
         initialRotation = ((bodyObject?.get("rotation") as? JsonPrimitive)?.floatOrNull ?: 0f).rad,
     )

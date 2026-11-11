@@ -84,6 +84,14 @@ class PreviewActorTest {
     }
 
     @Test
+    fun aSpriteWithAnOriginTurnsAroundItWhateverPivotTheStateHas() {
+        val sheet = SpriteSheet(frameWidth = 8, frameHeight = 8, frameCount = 1, framesPerRow = 1, originX = 2, originY = 8)
+        val state = ActorStateEdits.withChanges(SceneDocument.blockBuiltState(0f, 0f, 40f, 30f), ActorStateEdits.Changes(width = 40f, height = 30f))!!
+        assertEquals(SceneOffset(10f.sceneUnit, 30f.sceneUnit), PreviewActor(state, look.copy(isSprite = true, sheet = sheet)).body.pivot)
+        assertEquals(SceneOffset(20f.sceneUnit, 15f.sceneUnit), PreviewActor(state, look.copy(isSprite = true, sheet = sheet.copy(originX = null, originY = null))).body.pivot)
+    }
+
+    @Test
     fun savingKeepsTheStateWithThePositionTheActorWasMovedTo() {
         val actor = PreviewActor(SceneDocument.blockBuiltState(10f, 20f, 40f, 30f), look)
         actor.body.position = SceneOffset(5f.sceneUnit, 6f.sceneUnit)

@@ -49,16 +49,16 @@ public data class SpriteSheet(
         }
 
     /**
-     * Where an Actor of [width] by [height] scene units drawn as this sheet turns around and is placed by, from its top
+     * Where an Actor drawn as this sheet turns around and is placed by, as fractions of its width and height from its top
      * left: the origin, scaled from a frame to the Actor, or null when it has none, which is the middle, where Kubriko puts
      * a body's pivot unless told otherwise.
      */
-    public fun pivotIn(width: Float, height: Float): Pair<Float, Float>? {
-        if (originX == null && originY == null) return null
-        val x = originX?.let { width * it / frameWidth } ?: (width / 2)
-        val y = originY?.let { height * it / frameHeight } ?: (height / 2)
-        return x to y
-    }
+    public val originFraction: Pair<Float, Float>?
+        get() = if (originX == null && originY == null) {
+            null
+        } else {
+            (originX?.let { it.toFloat() / frameWidth } ?: 0.5f) to (originY?.let { it.toFloat() / frameHeight } ?: 0.5f)
+        }
 
     /**
      * The number of rows the frames take.

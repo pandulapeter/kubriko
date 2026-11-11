@@ -116,17 +116,14 @@ public object SceneDocument {
     /**
      * The state of a newly placed Actor of a block-built Actor type, which leaves everything but its body to the
      * Actor type's defaults.
-     *
-     * @param pivot Where it turns around from its top left, or null for the middle, which a body without one gets.
      */
-    public fun blockBuiltState(x: Float, y: Float, width: Float, height: Float, pivot: Pair<Float, Float>? = null): String = buildJsonObject {
+    public fun blockBuiltState(x: Float, y: Float, width: Float, height: Float): String = buildJsonObject {
         put("body", buildJsonObject {
             put("position", position(x, y))
             put("size", buildJsonObject {
                 put("width", width)
                 put("height", height)
             })
-            pivot?.let { (pivotX, pivotY) -> put("pivot", position(pivotX, pivotY)) }
         })
     }.toString()
 

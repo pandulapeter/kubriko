@@ -125,7 +125,7 @@ internal class ActorClassEmitter(
         }
         if (role == Role.STANDALONE) appendLook(definition, imports, sheet, isFamilyMember = false, usesSetFrame = features.usesSetFrame)
         if (features.usesNumberText) appendNumberTextFunction(visibility)
-        if (role == Role.STANDALONE) appendSavedState(definition, properties, packageName, imports, sheet)
+        if (role == Role.STANDALONE) appendSavedState(definition, properties, packageName, imports)
         appendLine("}")
     }
 

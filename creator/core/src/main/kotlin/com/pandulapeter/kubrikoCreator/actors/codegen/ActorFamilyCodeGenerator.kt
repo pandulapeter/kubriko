@@ -145,7 +145,7 @@ internal object ActorFamilyCodeGenerator {
             appendOverrides(definition, hookOf, imports, scopeOf)
         }
         appendLook(definition, imports, sheet, isFamilyMember = true, usesSetFrame = features.usesSetFrame)
-        appendSavedState(definition, family.propertiesOf(name), packageName, imports, sheet)
+        appendSavedState(definition, family.propertiesOf(name), packageName, imports)
         appendLine("}")
     }
 

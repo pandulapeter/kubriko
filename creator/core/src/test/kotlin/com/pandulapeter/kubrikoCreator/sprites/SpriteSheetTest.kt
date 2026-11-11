@@ -38,9 +38,9 @@ class SpriteSheetTest {
 
     @Test
     fun theOriginIsScaledFromAFrameToTheActor() {
-        assertNull(sheet.pivotIn(32f, 16f))
-        assertEquals(8f to 16f, sheet.copy(originX = 4, originY = 8).pivotIn(32f, 16f))
-        assertEquals(16f to 0f, sheet.copy(originY = 0).pivotIn(32f, 16f))
+        assertNull(sheet.originFraction)
+        assertEquals(0.25f to 1f, sheet.copy(originX = 4, originY = 8).originFraction)
+        assertEquals(0.5f to 0f, sheet.copy(originY = 0).originFraction)
     }
 
     @Test

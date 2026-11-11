@@ -134,7 +134,7 @@ public object ActorTypeCodeGenerator {
             }
             else -> {
                 imports += ANIMATED_LOOK_IMPORTS
-                appendAnimation(sheet, isFamilyMember, usesSetFrame)
+                appendAnimation(sheet, isFamilyMember, usesSetFrame, imports)
                 appendLine(spriteLook("$ANIMATION_FIELD.applyTo(field)$tint"))
             }
         }
@@ -144,7 +144,15 @@ public object ActorTypeCodeGenerator {
      * The frames of a sprite [sheet] cuts it into, and the functions that play them: the standalone type's update steps
      * them itself, a family member's in the hook its base class calls.
      */
-    private fun StringBuilder.appendAnimation(sheet: SpriteSheet, isFamilyMember: Boolean, usesSetFrame: Boolean) {
+    private fun StringBuilder.appendAnimation(sheet: SpriteSheet, isFamilyMember: Boolean, usesSetFrame: Boolean, imports: MutableSet<String>) {
+        sheet.originFraction?.let { (x, y) ->
+            imports += "com.pandulapeter.kubriko.types.SceneOffset"
+            appendLine("    init {")
+            appendLine("        // Every Actor turns around its sprite's origin, whatever size it has, as the sprite's frames say.")
+            appendLine("        body.pivot = SceneOffset(body.size.width * ${floatLiteral(x)}, body.size.height * ${floatLiteral(y)})")
+            appendLine("    }")
+            appendLine()
+        }
         appendLine(
             """
             |    /**
@@ -183,7 +191,6 @@ public object ActorTypeCodeGenerator {
         properties: List<PropertyDefinition>,
         packageName: String,
         imports: MutableSet<String>,
-        sheet: SpriteSheet?,
     ) {
         val spriteAccessor = definition.sprite?.let(SpriteFiles::accessorOf)
         imports += SAVED_STATE_IMPORTS
@@ -216,12 +223,7 @@ public object ActorTypeCodeGenerator {
             appendLine()
         }
         appendLine("        val metadata = EditableMetadata.create<${definition.name}, State>(typeId = \"${definition.name}\") { position ->")
-        val size = "SceneSize(${unitLiteral(definition.width)}, ${unitLiteral(definition.height)})"
-        val pivot = sheet?.pivotIn(definition.width, definition.height)?.let { (x, y) ->
-            imports += "com.pandulapeter.kubriko.types.SceneOffset"
-            ", initialPivot = SceneOffset(${unitLiteral(x)}, ${unitLiteral(y)})"
-        }.orEmpty()
-        appendLine("            State(body = BoxBody(initialPosition = position, initialSize = $size$pivot))")
+        appendLine("            State(body = BoxBody(initialPosition = position, initialSize = SceneSize(${unitLiteral(definition.width)}, ${unitLiteral(definition.height)})))")
         appendLine("        }")
         appendLine("    }")
     }

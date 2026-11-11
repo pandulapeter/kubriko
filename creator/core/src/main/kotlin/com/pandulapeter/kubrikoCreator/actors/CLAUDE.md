@@ -71,7 +71,9 @@
   any Event, so a Set the frame Block shows exactly that frame. In a family the base class runs every member's Blocks but
   only a member's final class knows its sprite, so the base class (of any family with a member drawn as a sheet) declares
   the speed and looping fields and `open` no-op hooks (`setFrame`, `stepAnimation`) that such a member overrides; the
-  animation Blocks become a comment in a type (or family) with no sheet.
+  animation Blocks become a comment in a type (or family) with no sheet. A sheet's origin is the type's, not each Actor's:
+  the final class sets the body's pivot from it as it is created, so every Actor, placed or added, follows the origin and
+  its own size (Creator never sets a pivot by hand, and resizing an Actor puts its saved pivot back in the middle).
 - Sprites are found through `Res.allDrawableResources[accessor]` rather than their accessor, so a deleted image doesn't break the
   build; images in qualified folders aren't offered, since the sprite plugin doesn't scale them back.
 - `BlockTypeStore` writes only files whose code changed, never writes over a generated file changed by hand, and deletes the

@@ -75,16 +75,13 @@ class SpriteLookCodeTest {
     }
 
     @Test
-    fun theOriginIsWhereANewlyPlacedActorTurnsAround() {
-        assertContains(
-            generate(spriteSheets = mapOf("hero-walk" to sheet.copy(originX = 5, originY = 10))),
-            "initialSize = SceneSize(40f.sceneUnit, 20f.sceneUnit), initialPivot = SceneOffset(10f.sceneUnit, 20f.sceneUnit)))",
-        )
-        assertContains(
-            generate(spriteSheets = mapOf("hero-walk" to sheet.copy(originY = 0))),
-            "initialPivot = SceneOffset(20f.sceneUnit, 0f.sceneUnit)))",
-        )
-        assertFalse("initialPivot" in generate())
+    fun everyActorTurnsAroundTheOriginWhateverItsSize() {
+        val code = generate(spriteSheets = mapOf("hero-walk" to sheet.copy(originX = 5, originY = 10)))
+        assertContains(code, "    init {\n")
+        assertContains(code, "        body.pivot = SceneOffset(body.size.width * 0.25f, body.size.height * 1f)\n")
+        assertContains(code, "import com.pandulapeter.kubriko.types.SceneOffset\n")
+        assertContains(generate(spriteSheets = mapOf("hero-walk" to sheet.copy(originY = 0))), "body.pivot = SceneOffset(body.size.width * 0.5f, body.size.height * 0f)")
+        assertFalse("body.pivot" in generate())
     }
 
     @Test
