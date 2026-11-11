@@ -113,7 +113,7 @@ public class CommandExecutor(
      */
     public fun dispatchIfValidWatching(invocation: Invocation<*>, onFailure: () -> Unit): Rejection? {
         validate(invocation)?.let { return it }
-        scope.launch(start = CoroutineStart.UNDISPATCHED) { execute(invocation).report(onFailure = onFailure) }
+        launch(invocation, onFailure = onFailure)
         return null
     }
 
@@ -122,8 +122,13 @@ public class CommandExecutor(
      * A change that needs no disk or git access shows before this returns, unless an AI tool call holds the change lock, so
      * text fields never lag behind what was typed.
      */
-    public fun dispatch(invocation: Invocation<*>, onSuccess: () -> Unit = {}) {
-        scope.launch(start = CoroutineStart.UNDISPATCHED) { execute(invocation).report(onSuccess) }
+    public fun dispatch(invocation: Invocation<*>, onSuccess: () -> Unit = {}): Unit = launch(invocation, onSuccess = onSuccess)
+
+    /**
+     * What every dispatch shares: applies [invocation] in the background, starting right away, and reports how it went.
+     */
+    private fun launch(invocation: Invocation<*>, onSuccess: () -> Unit = {}, onFailure: () -> Unit = {}) {
+        scope.launch(start = CoroutineStart.UNDISPATCHED) { execute(invocation).report(onSuccess, onFailure) }
     }
 
     internal suspend fun execute(invocation: Invocation<*>): CommandOutcome = execute(invocation, origin = null, isByAi = false).outcome
