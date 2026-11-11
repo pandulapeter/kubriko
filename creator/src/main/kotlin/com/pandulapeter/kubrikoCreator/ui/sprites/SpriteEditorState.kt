@@ -203,15 +203,10 @@ internal class SpriteEditorState {
     fun redo(): Boolean = draft?.takeIf { it.canRedo }?.let { draft = it.redone() } != null
 
     /**
-     * Marks the draft saved as its save starts, returning what was saved before, for [onSaveFailed].
+     * Marks [frames] of the sprite at [path] saved, once their save succeeded, unless another sprite is shown by then.
      */
-    fun markSaved(): SpriteFrames? = draft?.let { current -> current.saved.also { draft = current.markedSaved() } }
-
-    /**
-     * Brings the draft's changes back after its save failed.
-     */
-    fun onSaveFailed(previouslySaved: SpriteFrames) {
-        draft = draft?.unsaved(previouslySaved)
+    fun markSaved(path: String, frames: SpriteFrames) {
+        if (path == shownSprite) draft = draft?.savedAs(frames)
     }
 
     /**

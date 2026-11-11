@@ -50,16 +50,14 @@ internal class SpriteDraft private constructor(
     fun redone(): SpriteDraft = redoSteps.lastOrNull()?.let { SpriteDraft(saved, it, undoSteps + current, redoSteps.dropLast(1)) } ?: this
 
     /**
-     * This draft as it is once [current] is saved: unchanged, its steps given over to the workspace's history, where the
-     * save is one step of its own.
+     * This draft once [frames] it held are saved: unchanged when they are still [current], its steps given over to the
+     * workspace's history, where the save is one step of its own; otherwise with what was drawn since still a change.
      */
-    fun markedSaved(): SpriteDraft = SpriteDraft(current, current, emptyList(), emptyList())
-
-    /**
-     * This draft with what was saved before as [saved] again, its save having failed, so what it saved counts as a change
-     * again (and whatever was drawn since).
-     */
-    fun unsaved(previouslySaved: SpriteFrames): SpriteDraft = SpriteDraft(previouslySaved, current, undoSteps, redoSteps)
+    fun savedAs(frames: SpriteFrames): SpriteDraft = if (frames === current) {
+        SpriteDraft(frames, frames, emptyList(), emptyList())
+    } else {
+        SpriteDraft(frames, current, undoSteps, redoSteps)
+    }
 
     /**
      * Whether [frames] (as read from the disk) are what was saved, so they bring nothing new: the editor's own save read

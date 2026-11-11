@@ -94,17 +94,32 @@ class SpriteDraftTest {
     }
 
     @Test
-    fun aSaveRefusedOrFailingBringsTheChangesBack() {
+    fun theDraftIsSavedOnlyOnceItsSaveSucceeded() {
         state.draw(0, listOf(Pixel(0, 0, red)))
         val refusal = Rejection(SpriteProblem.SPRITE_FRAME_MISSING, path, "1", "0")
         assertEquals(refusal, state.save(path, shown(), 0, { _, _, _ -> refusal }) { error("not saved") })
         assertTrue(state.hasChanges)
-        var fail: () -> Unit = {}
-        state.save(path, shown(), 0, { _, _, onFailure -> null.also { fail = onFailure } }) { error("not saved") }
-        assertFalse(state.hasChanges)
-        fail()
-        assertTrue(state.hasChanges)
-        assertSame(original, state.draft!!.saved)
+        var succeed: () -> Unit = {}
+        state.save(path, shown(), 0, { _, onSuccess, _ -> null.also { succeed = onSuccess } }) {}
+        assertTrue(state.hasChanges, "still changed while the save is under way")
+        assertTrue(state.draft!!.canUndo, "and a failing save leaves its steps")
+        state.draw(0, listOf(Pixel(1, 0, red)))
+        succeed()
+        assertTrue(state.hasChanges, "what was drawn since isn't saved")
+        assertEquals(red, state.draft!!.saved.frames.single()[0, 0])
+        assertEquals(PixelImage.TRANSPARENT, state.draft!!.saved.frames.single()[1, 0])
+    }
+
+    @Test
+    fun aSaveSucceedingAfterAnotherSpriteIsShownLeavesThatOneAlone() {
+        state.draw(0, listOf(Pixel(0, 0, red)))
+        var succeed: () -> Unit = {}
+        state.save(path, shown(), 0, { _, onSuccess, _ -> null.also { succeed = onSuccess } }) {}
+        state.showSprite("drawable/other.png")
+        val other = SpriteFrames.of(PixelImage(2, 2), sheet = null)
+        state.onRead(other)
+        succeed()
+        assertSame(other, state.draft!!.saved)
     }
 
     @Test

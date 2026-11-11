@@ -214,7 +214,8 @@ private fun LeaveDialog(path: String, state: SpriteEditorState, onSave: () -> Un
 
 /**
  * Saves the draft through [onCommand] (putting down what floats on [frame], frame [frameIndex], first), calling [onSaved]
- * once it is saved, or at once when there is nothing to save. A save refused or failing brings the changes back.
+ * once it is saved, or at once when there is nothing to save. The draft counts as saved only once the save succeeded,
+ * so one refused or failing leaves it, and its steps, as they were.
  *
  * @return Why the save was refused, or null.
  */
@@ -227,9 +228,12 @@ internal fun SpriteEditorState.save(
 ): Rejection? {
     draw(frameIndex, settle(frame))
     val frames = draft?.takeIf { it.isChanged }?.current ?: return null.also { onSaved() }
-    val previouslySaved = markSaved() ?: return null
     keepOwnChanges()
-    return onCommand(Invocation(SaveSprite, SaveSprite.Input(path, frames)), onSaved) { onSaveFailed(previouslySaved) }?.also { onSaveFailed(previouslySaved) }
+    val onSuccess = {
+        markSaved(path, frames)
+        onSaved()
+    }
+    return onCommand(Invocation(SaveSprite, SaveSprite.Input(path, frames)), onSuccess) {}
 }
 
 /**
