@@ -82,6 +82,7 @@ import com.pandulapeter.kubrikoCreator.commands.project.SetTarget
 import com.pandulapeter.kubrikoCreator.commands.project.UpgradeProject
 import com.pandulapeter.kubrikoCreator.commands.resources.AddResource
 import com.pandulapeter.kubrikoCreator.commands.resources.DeleteResource
+import com.pandulapeter.kubrikoCreator.commands.resources.ListResources
 import com.pandulapeter.kubrikoCreator.commands.resources.RenameResource
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
@@ -163,6 +164,7 @@ import kubriko.creator.generated.resources.command_list_actor_types
 import kubriko.creator.generated.resources.command_list_manager_types
 import kubriko.creator.generated.resources.command_list_pages
 import kubriko.creator.generated.resources.command_list_play_targets
+import kubriko.creator.generated.resources.command_list_resources
 import kubriko.creator.generated.resources.command_list_scenes
 import kubriko.creator.generated.resources.command_move_actor
 import kubriko.creator.generated.resources.command_move_actor_order
@@ -331,6 +333,7 @@ private val commandTitles = mapOf(
     CreateScene.name to Res.string.command_create_scene,
     DeleteScene.name to Res.string.command_delete_scene,
     ListScenes.name to Res.string.command_list_scenes,
+    ListResources.name to Res.string.command_list_resources,
     MoveActor.name to Res.string.command_move_actor,
     MoveActorOrder.name to Res.string.command_move_actor_order,
     PlaceActor.name to Res.string.command_place_actor,

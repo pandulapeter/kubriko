@@ -13,20 +13,28 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.resources.DeleteResource
+import com.pandulapeter.kubrikoCreator.commands.resources.ListResources
 import com.pandulapeter.kubrikoCreator.commands.resources.RenameResource
 import com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertNull
 
 class SpriteFolderCommandsTest {
@@ -116,5 +124,16 @@ class SpriteFolderCommandsTest {
         val context = context("drawable/ball.png").withLeftoverFile()
         val after = context.assertRoundTrip(Invocation(DeleteFolder, DeleteFolder.Input(FolderGroup.SPRITES, "enemies"))) { context.snapshot() }
         assertEquals(SpriteFolderStore.State(), after.second)
+    }
+
+    @Test
+    fun theResourcesAreListedWithTheirFolders() = runTest {
+        val context = context("drawable/bat.png", "drawable/ball.png")
+        CreateFolder.apply(context, CreateFolder.Input(FolderGroup.SPRITES, "enemies"))
+        MoveSpriteToFolder.apply(context, MoveSpriteToFolder.Input("drawable/bat.png", "enemies"))
+        val listed = assertIs<CommandOutcome.Success>(ListResources.read(context, ListResources.Input(FolderGroup.SPRITES, folder = "enemies"))).result.jsonObject
+        assertEquals(1, listed.getValue("total").jsonPrimitive.int)
+        assertEquals("drawable/bat.png", listed.getValue("resources").jsonArray.single().jsonObject.getValue("path").jsonPrimitive.content)
+        assertEquals(Rejection(CommandProblem.NOT_A_RESOURCE_GROUP), assertIs<CommandOutcome.Rejected>(ListResources.read(context, ListResources.Input(FolderGroup.SCENES))).rejection)
     }
 }

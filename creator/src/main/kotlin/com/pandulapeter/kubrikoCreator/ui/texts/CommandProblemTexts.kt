@@ -105,6 +105,7 @@ import kubriko.creator.generated.resources.error_game_steps_count
 import kubriko.creator.generated.resources.error_game_steps_duration
 import kubriko.creator.generated.resources.error_game_unsupported
 import kubriko.creator.generated.resources.error_mcp_internal
+import kubriko.creator.generated.resources.error_not_a_resource_group
 import kubriko.creator.generated.resources.error_scene_folder_reserved
 import kubriko.creator.generated.resources.error_scene_name_taken
 import kubriko.creator.generated.resources.error_scene_not_moved
@@ -214,6 +215,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.GAME_NOT_RUNNING -> Res.string.error_game_not_running
     CommandProblem.GAME_UNSUPPORTED -> Res.string.error_game_unsupported
     CommandProblem.INTERNAL -> Res.string.error_mcp_internal
+    CommandProblem.NOT_A_RESOURCE_GROUP -> Res.string.error_not_a_resource_group
     CommandProblem.SPRITE_NOT_MOVED -> Res.string.error_sprite_not_moved
     CommandProblem.SCENE_FOLDER_RESERVED -> Res.string.error_scene_folder_reserved
     CommandProblem.SCENE_NAME_TAKEN -> Res.string.error_scene_name_taken

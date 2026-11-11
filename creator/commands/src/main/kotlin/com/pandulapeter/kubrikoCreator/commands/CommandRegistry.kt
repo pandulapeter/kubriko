@@ -81,6 +81,7 @@ import com.pandulapeter.kubrikoCreator.commands.project.SetTarget
 import com.pandulapeter.kubrikoCreator.commands.project.UpgradeProject
 import com.pandulapeter.kubrikoCreator.commands.resources.AddResource
 import com.pandulapeter.kubrikoCreator.commands.resources.DeleteResource
+import com.pandulapeter.kubrikoCreator.commands.resources.ListResources
 import com.pandulapeter.kubrikoCreator.commands.resources.RenameResource
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
@@ -166,6 +167,7 @@ public class CommandRegistry(
                 ListManagerTypes,
                 ReadManagerType,
                 ListScenes,
+                ListResources,
                 ReadScene,
                 GetRelations,
                 GetHealthChecks,
