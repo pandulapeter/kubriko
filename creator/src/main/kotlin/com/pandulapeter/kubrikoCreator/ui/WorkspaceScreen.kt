@@ -162,7 +162,7 @@ private fun WorkspaceContent(
                 .fillMaxSize()
                 .onSizeChanged { columnHeight = with(density) { it.height.toDp() } }
                 .historyShortcutTarget()
-                .onKeyEvent { event -> event.toHistoryStep()?.let { isUndo -> if (isUndo) controller.commands.undo() else controller.commands.redo() } != null },
+                .onKeyEvent { event -> event.toHistoryStep()?.let { isUndo -> uiState.spriteEditor.step(isUndo, controller.commands) } != null },
         ) {
             WorkspaceToolbarOf(
                 controller = controller,
@@ -252,8 +252,9 @@ private fun WorkspaceToolbarOf(
     sessionState = sessionState,
     isBuilding = controller.runningBuilds.collectAsState().value > 0,
     history = controller.commands.history,
-    onUndo = controller.commands::undo,
-    onRedo = controller.commands::redo,
+    onUndo = { uiState.spriteEditor.step(isUndo = true, controller.commands) },
+    onRedo = { uiState.spriteEditor.step(isUndo = false, controller.commands) },
+    editorHistory = uiState.spriteEditor,
     gitState = controller.git.state,
     isAiConnected = isAiConnected,
     openPanel = uiState.openPanel,
@@ -495,5 +496,5 @@ private fun WorkspaceCenterOf(
     markdownLinks = rememberPageLinks(controller.commands.context, controller.selection, selection, markdownText, blockTypes, resources),
     markdownIdentity = rememberMarkdownIdentity(selection, controller.commands.context.movedFiles),
     onAddPageImage = rememberPageImageAdder(selection) { controller.commands.dispatch(it) },
-    sprites = rememberSpriteEditing(controller.commands, controller.selection),
+    sprites = rememberSpriteEditing(controller.commands, controller.selection, uiState.spriteEditor),
 )

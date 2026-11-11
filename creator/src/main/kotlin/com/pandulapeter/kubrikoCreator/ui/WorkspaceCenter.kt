@@ -43,7 +43,6 @@ import com.pandulapeter.kubrikoCreator.ui.screenplay.markdownTitleOf
 import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberReviewOf
 import com.pandulapeter.kubrikoCreator.ui.sprites.SpriteEditing
 import com.pandulapeter.kubrikoCreator.ui.sprites.SpriteEditor
-import com.pandulapeter.kubrikoCreator.ui.sprites.SpriteEditorState
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 import kotlinx.coroutines.flow.Flow
 import kubriko.creator.generated.resources.Res
@@ -99,7 +98,6 @@ internal fun WorkspaceCenter(
     onAddPageImage: ((PageImageSource, section: String?) -> Unit)? = null,
     sprites: SpriteEditing = SpriteEditing(),
 ) {
-    val spriteEditorState = remember { SpriteEditorState() }
     val contentModifier = modifier.fadeInOnChange(shownContentKey(selection, sceneEditing))
     val markdownTitle = markdownTitleOf(selection)
     val actorTypes = remember(blockTypes) { blockTypes.filterIsInstance<ActorTypeDefinition>() }
@@ -162,7 +160,7 @@ internal fun WorkspaceCenter(
                 file = remember(resources, selection.path) { SpriteFiles.of(resources).files[selection.path] },
                 sheet = sprites.sheets.sheetOfSprite(selection.path),
                 revision = sprites.imagesRevision to resources,
-                state = spriteEditorState,
+                state = sprites.state,
                 editing = sprites,
             )
         }

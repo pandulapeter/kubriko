@@ -114,6 +114,10 @@ internal fun SpriteEditor(
     LaunchedEffect(canvasSize, frame.width, frame.height) {
         if (state.isFitPending && canvasSize != IntSize.Zero) state.zoomToFit(frame.width, frame.height, canvasSize.width.toFloat(), canvasSize.height.toFloat())
     }
+    DisposableEffect(state) {
+        state.isShown = true
+        onDispose { state.isShown = false }
+    }
     val hasChanges = state.hasChanges
     DisposableEffect(hasChanges, editing.onGuardLeaving) {
         editing.onGuardLeaving(if (hasChanges) { proceed -> pendingLeave = proceed } else null)
@@ -245,13 +249,7 @@ internal fun SpriteEditorState.save(
 internal fun SpriteEditorState.onDraftKey(key: Key, isShortcut: Boolean, isShift: Boolean, onSave: () -> Unit): Boolean {
     if (isShortcut && key == Key.S) return true.also { onSave() }
     val isUndo = historyStep(key, isShortcutPressed = isShortcut, isShiftPressed = isShift) ?: return false
-    val isDone = draft?.let { if (isUndo) it.canUndo else it.canRedo } == true
-    if (isDone) {
-        floating = null
-        selection = null
-        if (isUndo) undo() else redo()
-    }
-    return isDone
+    return if (isUndo) undo() else redo()
 }
 
 /**

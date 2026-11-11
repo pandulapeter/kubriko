@@ -12,14 +12,17 @@ package com.pandulapeter.kubrikoCreator.ui.sprites
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.resources.EditSprite
 import com.pandulapeter.kubrikoCreator.commands.resources.EditSpriteFrames
 import com.pandulapeter.kubrikoCreator.commands.resources.SaveSprite
 import com.pandulapeter.kubrikoCreator.commands.resources.SpriteProblem
+import com.pandulapeter.kubrikoCreator.commands.testScope
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import com.pandulapeter.kubrikoCreator.sprites.pixels.Pixel
 import com.pandulapeter.kubrikoCreator.sprites.pixels.PixelImage
 import com.pandulapeter.kubrikoCreator.sprites.pixels.SpriteFrames
+import com.pandulapeter.kubrikoCreator.ui.step
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -33,6 +36,7 @@ class SpriteDraftTest {
     private val path = "drawable/hero.png"
     private val original = SpriteFrames.of(PixelImage(4, 4), sheet = null)
     private val state = SpriteEditorState().apply {
+        isShown = true
         showSprite(path)
         onRead(original)
     }
@@ -229,5 +233,19 @@ class SpriteDraftTest {
         state.setFramesPerSecond(8f)
         assertTrue(state.undo())
         assertEquals(6f, state.draft!!.current.sheet?.framesPerSecond, "a speed typed after another step is a step of its own")
+    }
+
+    @Test
+    fun theWorkspaceUndoesOnlyOnceTheShownEditorHasNoStepsOfItsOwn() = kotlinx.coroutines.test.runTest {
+        val executor = com.pandulapeter.kubrikoCreator.commands.CommandExecutor(commandContext(), testScope())
+        state.draw(0, listOf(Pixel(0, 0, red)))
+        state.step(isUndo = true, executor)
+        assertFalse(state.hasChanges, "the editor's step was undone")
+        state.step(isUndo = false, executor)
+        assertTrue(state.hasChanges)
+        state.isShown = false
+        assertFalse(state.canUndo, "a sprite editor not on screen has no steps to undo")
+        state.step(isUndo = true, executor)
+        assertTrue(state.hasChanges)
     }
 }

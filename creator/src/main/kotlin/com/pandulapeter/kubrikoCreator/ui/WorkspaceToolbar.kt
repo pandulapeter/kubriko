@@ -88,6 +88,7 @@ internal fun WorkspaceToolbar(
     history: StateFlow<CommandHistory>,
     onUndo: () -> Unit,
     onRedo: () -> Unit,
+    editorHistory: EditorHistory? = null,
     gitState: StateFlow<GitState>,
     isAiConnected: Boolean,
     openPanel: SidePanel?,
@@ -148,6 +149,7 @@ internal fun WorkspaceToolbar(
     SessionStatus(sessionState)
     HistoryButtons(
         history = history,
+        editorHistory = editorHistory,
         onUndo = onUndo,
         onRedo = onRedo,
     )
@@ -220,24 +222,31 @@ private fun RowScope.SessionStatus(
     }
 }
 
+/**
+ * Undo and redo, which take the steps of [editorHistory] (the sprite editor's draft) first while it has some, named after
+ * the command each would undo or redo otherwise.
+ */
 @Composable
 private fun HistoryButtons(
     history: StateFlow<CommandHistory>,
+    editorHistory: EditorHistory? = null,
     onUndo: () -> Unit,
     onRedo: () -> Unit,
 ) {
     val history by history.collectAsState()
+    val canUndoInEditor = editorHistory?.canUndo == true
+    val canRedoInEditor = editorHistory?.canRedo == true
     IconActionButton(
         icon = Res.drawable.ic_undo,
-        label = history.nextUndoCommandName?.let { stringResource(Res.string.action_undo_named, commandTitleText(it)) } ?: stringResource(Res.string.action_undo),
+        label = history.nextUndoCommandName?.takeUnless { canUndoInEditor }?.let { stringResource(Res.string.action_undo_named, commandTitleText(it)) } ?: stringResource(Res.string.action_undo),
         onClick = onUndo,
-        isEnabled = history.nextUndoCommandName != null,
+        isEnabled = canUndoInEditor || history.nextUndoCommandName != null,
     )
     IconActionButton(
         icon = Res.drawable.ic_redo,
-        label = history.nextRedoCommandName?.let { stringResource(Res.string.action_redo_named, commandTitleText(it)) } ?: stringResource(Res.string.action_redo),
+        label = history.nextRedoCommandName?.takeUnless { canRedoInEditor }?.let { stringResource(Res.string.action_redo_named, commandTitleText(it)) } ?: stringResource(Res.string.action_redo),
         onClick = onRedo,
-        isEnabled = history.nextRedoCommandName != null,
+        isEnabled = canRedoInEditor || history.nextRedoCommandName != null,
     )
 }
 

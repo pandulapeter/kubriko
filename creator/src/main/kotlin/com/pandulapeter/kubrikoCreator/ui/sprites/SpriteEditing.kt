@@ -21,6 +21,7 @@ import com.pandulapeter.kubrikoCreator.workspace.SelectionController
 /**
  * What the sprite editor needs of the workspace.
  *
+ * @param state What the sprite editor keeps, as long as the workspace.
  * @param sheets How the sprites cut into frames are cut, by their names.
  * @param imagesRevision Changes whenever Kubriko Creator wrote a sprite's image, so the sprite editor reads it again.
  * @param palette The project's palette, each `0xAARRGGBB`.
@@ -30,6 +31,7 @@ import com.pandulapeter.kubrikoCreator.workspace.SelectionController
  *   Creator quits (the sprite editor's question about its unsaved changes), or clears it for null.
  */
 internal class SpriteEditing(
+    val state: SpriteEditorState = SpriteEditorState(),
     val sheets: Map<String, SpriteSheet> = emptyMap(),
     val imagesRevision: Int = 0,
     val palette: List<Long> = emptyList(),
@@ -38,10 +40,11 @@ internal class SpriteEditing(
 )
 
 /**
- * The [SpriteEditing] of the project [commands] change, whose leaving [selection] guards.
+ * The [SpriteEditing] of the project [commands] change, whose leaving [selection] guards, keeping [state].
  */
 @Composable
-internal fun rememberSpriteEditing(commands: CommandExecutor, selection: SelectionController) = SpriteEditing(
+internal fun rememberSpriteEditing(commands: CommandExecutor, selection: SelectionController, state: SpriteEditorState) = SpriteEditing(
+    state = state,
     sheets = commands.context.spriteFolders.state.collectAsState().value.sheets,
     imagesRevision = commands.context.spriteImagesRevision.collectAsState().value,
     palette = commands.context.palette.colors.collectAsState().value,

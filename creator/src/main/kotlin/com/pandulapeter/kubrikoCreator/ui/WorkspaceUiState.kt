@@ -20,6 +20,7 @@ import com.pandulapeter.kubrikoCreator.commands.screenplay.AddDocumentToScreenpl
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeleteDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeletePage
 import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettingsPage
+import com.pandulapeter.kubrikoCreator.ui.sprites.SpriteEditorState
 
 /**
  * What the workspace screen shows besides the project: its side panels, its dialogs, and the AI step the user went back to.
@@ -29,6 +30,11 @@ internal class WorkspaceUiState {
      * What the editors in the center show, which the assistant offers.
      */
     val editorAttention = EditorAttention()
+
+    /**
+     * What the sprite editor keeps, its draft's undo steps among it, which the toolbar's buttons take first.
+     */
+    val spriteEditor = SpriteEditorState()
 
     var openPanel: SidePanel? by mutableStateOf(null)
         private set

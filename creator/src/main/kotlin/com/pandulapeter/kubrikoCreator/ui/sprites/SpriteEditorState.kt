@@ -27,6 +27,7 @@ import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import com.pandulapeter.kubrikoCreator.sprites.pixels.Pixel
 import com.pandulapeter.kubrikoCreator.sprites.pixels.PixelImage
 import com.pandulapeter.kubrikoCreator.sprites.pixels.SpriteFrames
+import com.pandulapeter.kubrikoCreator.ui.EditorHistory
 
 /**
  * What the sprite editor keeps besides the sprite itself: the tool and its options, the two colors (the left mouse
@@ -34,7 +35,7 @@ import com.pandulapeter.kubrikoCreator.sprites.pixels.SpriteFrames
  * what was copied. One lives as long as the workspace, so the colors, the tool, and what was copied go from one sprite to
  * the next ([showSprite]), while the rest starts over.
  */
-internal class SpriteEditorState {
+internal class SpriteEditorState : EditorHistory {
     var tool by mutableStateOf(SpriteTool.PENCIL)
     var primaryColor by mutableIntStateOf(0xFF000000.toInt())
     var secondaryColor by mutableIntStateOf(PixelImage.TRANSPARENT)
@@ -198,9 +199,29 @@ internal class SpriteEditorState {
         draft = current.with(current.current.withFramesPerSecond(framesPerSecond), stepKind = SPEED_STEP)
     }
 
-    fun undo(): Boolean = draft?.takeIf { it.canUndo }?.let { draft = it.undone() } != null
+    /**
+     * Whether the sprite editor is on screen, so its draft's steps are what undo and redo take first.
+     */
+    var isShown by mutableStateOf(false)
 
-    fun redo(): Boolean = draft?.takeIf { it.canRedo }?.let { draft = it.redone() } != null
+    override val canUndo: Boolean get() = isShown && draft?.canUndo == true
+
+    override val canRedo: Boolean get() = isShown && draft?.canRedo == true
+
+    /**
+     * Undoes the draft's last step, letting go of the selection and what floats first.
+     */
+    override fun undo(): Boolean = canUndo.also { if (it) draft = draft?.undone().also { letGo() } }
+
+    /**
+     * Redoes the draft's last undone step, letting go of the selection and what floats first.
+     */
+    override fun redo(): Boolean = canRedo.also { if (it) draft = draft?.redone().also { letGo() } }
+
+    private fun letGo() {
+        floating = null
+        selection = null
+    }
 
     /**
      * Marks [frames] of the sprite at [path] saved, once their save succeeded, unless another sprite is shown by then.

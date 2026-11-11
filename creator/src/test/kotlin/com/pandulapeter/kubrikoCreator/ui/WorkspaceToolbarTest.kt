@@ -83,13 +83,40 @@ class WorkspaceToolbarTest {
         assertEquals(1, plays)
     }
 
+    @Test
+    fun undoIsOfferedForAnEditorsOwnStepsWhenTheWorkspaceHasNone() = uiTest(width = 1200, height = 80) {
+        val editor = object : EditorHistory {
+            override var canUndo by mutableStateOf(false)
+            override val canRedo = false
+
+            override fun undo() = canUndo
+
+            override fun redo() = false
+        }
+        var undos = 0
+        showing { Toolbar(SessionState.Idle, editorHistory = editor, onUndo = { undos++ }) }
+        onNodeWithContentDescription("Undo").assertIsNotEnabled()
+        editor.canUndo = true
+        waitForIdle()
+        onNodeWithContentDescription("Undo").assertIsEnabled().performClick()
+        assertEquals(1, undos)
+    }
+
     @Composable
-    private fun Toolbar(sessionState: SessionState, gameModules: GameModules? = null, isBuilding: Boolean = false, onPlay: () -> Unit = {}) = WorkspaceToolbar(
+    private fun Toolbar(
+        sessionState: SessionState,
+        gameModules: GameModules? = null,
+        isBuilding: Boolean = false,
+        onPlay: () -> Unit = {},
+        editorHistory: EditorHistory? = null,
+        onUndo: () -> Unit = {},
+    ) = WorkspaceToolbar(
         sessionState = sessionState,
         isBuilding = isBuilding,
         history = MutableStateFlow(CommandHistory()),
-        onUndo = {},
+        onUndo = onUndo,
         onRedo = {},
+        editorHistory = editorHistory,
         gitState = MutableStateFlow(GitState.NoRepository),
         isAiConnected = false,
         openPanel = null,
