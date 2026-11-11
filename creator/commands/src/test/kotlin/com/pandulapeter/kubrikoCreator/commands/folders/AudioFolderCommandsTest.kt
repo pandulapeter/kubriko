@@ -152,4 +152,11 @@ class AudioFolderCommandsTest {
         DeleteFolder.apply(context, DeleteFolder.Input(FolderGroup.SOUNDS, "empty", keepsContents = true))
         assertTrue(context.directory("$common/files/empty/out/data.json").isFile)
     }
+
+    @Test
+    fun aFolderTheGroupDoesNotShowIsStillTaken() = runTest {
+        val context = context(sounds = listOf("files/sfx/hit.wav"), music = listOf("files/music/theme.mp3"))
+        assertEquals(Rejection(CommandProblem.FOLDER_EXISTS, "music"), RenameFolder.validate(context, RenameFolder.Input(FolderGroup.SOUNDS, "sfx", "music")))
+        assertEquals(Rejection(CommandProblem.FOLDER_EXISTS, "Music"), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.SOUNDS, "Music")))
+    }
 }

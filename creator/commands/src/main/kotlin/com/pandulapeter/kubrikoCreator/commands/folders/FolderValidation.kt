@@ -80,9 +80,15 @@ private fun CommandContext.validateFreeFolder(group: FolderGroup, path: String):
     group == FolderGroup.SCENES && SceneNaming.reservedFolderOf(path, isFolder = true) != null ->
         Rejection(CommandProblem.SCENE_FOLDER_RESERVED, SceneNaming.reservedFolderOf(path, isFolder = true).orEmpty())
     group.resourceKind != null && ResourceKind.isScenesFolder(path) -> Rejection(CommandProblem.AUDIO_FOLDER_RESERVED, path)
-    foldersOf(group).any { it.equals(path, ignoreCase = true) } -> Rejection(CommandProblem.FOLDER_EXISTS, path)
+    existingFoldersOf(group).any { it.equals(path, ignoreCase = true) } -> Rejection(CommandProblem.FOLDER_EXISTS, path)
     else -> validateFolder(group, FolderPaths.parentOf(path))
 }
+
+/**
+ * The folders a new folder of [group] can't be called like: its own, and for sounds and music, every real folder of
+ * `files`, since one the group doesn't show (`music` among the sounds) is still there on disk.
+ */
+private fun CommandContext.existingFoldersOf(group: FolderGroup): Set<String> = if (group.resourceKind != null) audioFolders.folders() else foldersOf(group)
 
 /**
  * Why [path] can't name a folder of [group]: a Scene's folders are part of its name, and so are a page's, and an audio
