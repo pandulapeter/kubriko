@@ -36,6 +36,7 @@ import com.pandulapeter.kubrikoCreator.testing.uiTest
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -103,6 +104,9 @@ class SpriteEditorUiTest {
         assertTrue(state.isOnionSkinOn)
         onNodeWithText("1 frame each way").assertExists()
         saveSnapshot("sprite-editor-onion-skin")
+        onNodeWithContentDescription("Pause on the frame being drawn").performClick()
+        assertFalse(state.isPreviewPlaying)
+        onNodeWithContentDescription("Play the animation").assertExists()
         onNodeWithText("Save").assertIsNotEnabled()
         onNodeWithText("Image").performClick()
         onNodeWithText("Flip vertically").performClick()

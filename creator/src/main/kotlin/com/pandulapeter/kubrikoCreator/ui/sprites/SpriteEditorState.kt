@@ -23,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.resources.EditSprite
 import com.pandulapeter.kubrikoCreator.commands.resources.EditSpriteFrames
 import com.pandulapeter.kubrikoCreator.commands.resources.SpriteEdit
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import com.pandulapeter.kubrikoCreator.sprites.pixels.Pixel
 import com.pandulapeter.kubrikoCreator.sprites.pixels.PixelImage
 import com.pandulapeter.kubrikoCreator.sprites.pixels.SpriteFrames
@@ -52,6 +53,11 @@ internal class SpriteEditorState {
     var isOnionSkinOn by mutableStateOf(false)
     var onionSkinReach by mutableIntStateOf(1)
     var onionSkinOpacity by mutableFloatStateOf(DEFAULT_ONION_SKIN_OPACITY)
+
+    /**
+     * Whether the preview plays the animation, rather than showing the frame being drawn.
+     */
+    var isPreviewPlaying by mutableStateOf(true)
 
     var zoom by mutableIntStateOf(DEFAULT_ZOOM)
         private set
@@ -180,6 +186,16 @@ internal class SpriteEditorState {
             }
             is SpriteEdit.Rejected -> edited.rejection
         }
+    }
+
+    /**
+     * Plays the draft's animation at [framesPerSecond], as one step however many times it changes in a row, unless it
+     * isn't a speed its sheet can have.
+     */
+    fun setFramesPerSecond(framesPerSecond: Float) {
+        val current = draft ?: return
+        if (!(framesPerSecond > 0f) || framesPerSecond > SpriteSheet.MAXIMUM_FRAMES_PER_SECOND || current.current.sheet?.framesPerSecond == framesPerSecond) return
+        draft = current.with(current.current.withFramesPerSecond(framesPerSecond), stepKind = SPEED_STEP)
     }
 
     fun undo(): Boolean = draft?.takeIf { it.canUndo }?.let { draft = it.undone() } != null
@@ -369,6 +385,7 @@ internal class SpriteEditorState {
     companion object {
         val ZOOM_STEPS = listOf(1, 2, 3, 4, 6, 8, 12, 16, 24, 32)
         val ONION_SKIN_REACHES = listOf(1, 2, 3)
+        private const val SPEED_STEP = "speed"
         val ONION_SKIN_OPACITIES = 0.1f..0.8f
         private const val DEFAULT_ONION_SKIN_OPACITY = 0.35f
         private const val DEFAULT_ZOOM = 8

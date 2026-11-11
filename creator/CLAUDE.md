@@ -694,7 +694,7 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   `SpriteDraft` (with undo and redo of its own, stroke by stroke) until the user saves it, as an image editor does, so a
   half-drawn sprite reaches neither the game nor git; the save is one `SaveSprite` command (not a tool: the AI draws
   through `DrawPixels` and `EditSprite`, which save as they go), and the Image menu applies `EditSprite.edited` to the
-  draft, so it changes pixels exactly as the AI's command, as the frame strip applies `EditSpriteFrames.edited`. Undo and redo pass on to the workspace once the draft has no
+  draft, so it changes pixels exactly as the AI's command, as the frame strip applies `EditSpriteFrames.edited`; the preview's speed is the draft's sheet too, so it is saved with the frames rather than through `set_sprite_sheet`, which would be written over. Undo and redo pass on to the workspace once the draft has no
   steps left. While it holds changes it sets `SelectionController.leaveGuard`, so showing something else, closing the
   project, or quitting asks to save first, and following the AI's steps pauses. A change to the sprite from elsewhere
   replaces an unchanged draft, and is offered beside a changed one rather than dropping either. Its `SpriteEditorState`

@@ -57,6 +57,7 @@ import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import com.pandulapeter.kubrikoCreator.sprites.pixels.OnionSkin
 import com.pandulapeter.kubrikoCreator.sprites.pixels.Pixel
 import com.pandulapeter.kubrikoCreator.sprites.pixels.PixelImage
+import com.pandulapeter.kubrikoCreator.sprites.pixels.SpriteFrames
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.spriteLabel
 import com.pandulapeter.kubrikoCreator.ui.components.ProgressScreen
 import com.pandulapeter.kubrikoCreator.ui.text
@@ -155,11 +156,11 @@ internal fun SpriteEditor(
                 onionSkin = rememberOnionSkin(frames.frames, frameIndex, state),
             )
             VerticalDivider()
-            SpriteColorsColumn(
-                modifier = Modifier.width(COLORS_WIDTH).fillMaxHeight(),
+            SpriteSidePanel(
+                frames = frames,
+                frameIndex = frameIndex,
                 state = state,
                 palette = editing.palette,
-                frameColors = remember(frame) { frame.colors().take(MAXIMUM_FRAME_COLORS) },
                 onPaletteChange = { problem = editing.onCommand(Invocation(SetPalette, SetPalette.Input(it)), {}, {}) },
             )
         }
@@ -252,6 +253,34 @@ internal fun SpriteEditorState.onDraftKey(key: Key, isShortcut: Boolean, isShift
         }
         else -> false
     }
+}
+
+/**
+ * Beside the canvas: the animation's preview, for a sprite of several frames, above the colors.
+ */
+@Composable
+private fun SpriteSidePanel(frames: SpriteFrames, frameIndex: Int, state: SpriteEditorState, palette: List<Long>, onPaletteChange: (List<Long>) -> Unit) = Column(
+    modifier = Modifier.width(COLORS_WIDTH).fillMaxHeight(),
+) {
+    val sheet = frames.sheet
+    if (sheet != null && frames.frames.size > 1) {
+        SpriteAnimationPreview(
+            modifier = Modifier.padding(start = 10.dp, end = 10.dp, top = 10.dp),
+            frames = frames.frames,
+            sheet = sheet,
+            shownIndex = frameIndex,
+            state = state,
+            onSpeedChange = state::setFramesPerSecond,
+        )
+        HorizontalDivider(Modifier.padding(top = 10.dp))
+    }
+    SpriteColorsColumn(
+        modifier = Modifier.weight(1f).fillMaxWidth(),
+        state = state,
+        palette = palette,
+        frameColors = remember(frames.frames.getOrNull(frameIndex)) { frames.frames.getOrNull(frameIndex)?.colors()?.take(MAXIMUM_FRAME_COLORS).orEmpty() },
+        onPaletteChange = onPaletteChange,
+    )
 }
 
 /**

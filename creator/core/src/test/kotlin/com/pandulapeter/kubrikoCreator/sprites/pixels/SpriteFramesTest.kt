@@ -70,4 +70,13 @@ class SpriteFramesTest {
         assertEquals(SpriteSheet(frameWidth = 2, frameHeight = 1, frameCount = 2, framesPerRow = 2), cut.sheet)
         assertEquals(listOf("abcd"), cut.toImage().rows())
     }
+
+    @Test
+    fun theSpeedIsTheSheetsAndLeavesTheImageAsItIs() {
+        val faster = SpriteFrames.of(image, sheet).withFramesPerSecond(24f)
+        assertEquals(sheet.copy(framesPerSecond = 24f), faster.sheet)
+        assertEquals(image, faster.toImage())
+        val single = SpriteFrames.of(image, null)
+        assertEquals(single, single.withFramesPerSecond(24f))
+    }
 }

@@ -22,6 +22,7 @@ internal class SpriteDraft private constructor(
     val current: SpriteFrames,
     private val undoSteps: List<SpriteFrames>,
     private val redoSteps: List<SpriteFrames>,
+    private val lastStepKind: Any? = null,
 ) {
     constructor(frames: SpriteFrames) : this(frames, frames, emptyList(), emptyList())
 
@@ -35,9 +36,14 @@ internal class SpriteDraft private constructor(
     val canRedo: Boolean get() = redoSteps.isNotEmpty()
 
     /**
-     * This draft with [frames] as one more step.
+     * This draft with [frames] as one more step, or as part of the last one when both are of [stepKind] (a value typed
+     * into a field, changing as it is typed), so undoing goes back past all of it at once.
      */
-    fun with(frames: SpriteFrames): SpriteDraft = SpriteDraft(saved, frames, (undoSteps + current).takeLast(MAXIMUM_STEPS), emptyList())
+    fun with(frames: SpriteFrames, stepKind: Any? = null): SpriteDraft = if (stepKind != null && stepKind == lastStepKind && undoSteps.isNotEmpty()) {
+        SpriteDraft(saved, frames, undoSteps, emptyList(), stepKind)
+    } else {
+        SpriteDraft(saved, frames, (undoSteps + current).takeLast(MAXIMUM_STEPS), emptyList(), stepKind)
+    }
 
     fun undone(): SpriteDraft = undoSteps.lastOrNull()?.let { SpriteDraft(saved, it, undoSteps.dropLast(1), redoSteps + current) } ?: this
 

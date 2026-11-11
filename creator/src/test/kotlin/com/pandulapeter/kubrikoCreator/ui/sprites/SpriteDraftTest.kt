@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.commands.resources.EditSprite
 import com.pandulapeter.kubrikoCreator.commands.resources.EditSpriteFrames
 import com.pandulapeter.kubrikoCreator.commands.resources.SaveSprite
 import com.pandulapeter.kubrikoCreator.commands.resources.SpriteProblem
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import com.pandulapeter.kubrikoCreator.sprites.pixels.Pixel
 import com.pandulapeter.kubrikoCreator.sprites.pixels.PixelImage
 import com.pandulapeter.kubrikoCreator.sprites.pixels.SpriteFrames
@@ -168,5 +169,23 @@ class SpriteDraftTest {
         assertEquals(2, frameDropIndex(from = 0, offset = 130f, pitch = 62f, count = 4))
         assertEquals(0, frameDropIndex(from = 1, offset = -500f, pitch = 62f, count = 4))
         assertEquals(3, frameDropIndex(from = 3, offset = 20f, pitch = 62f, count = 4))
+    }
+
+    @Test
+    fun theSpeedTypedIsOneStepAndOnlyASpeedTheSheetCanHave() {
+        state.editFrames(path, EditSpriteFrames.Operation.Add())
+        state.setFramesPerSecond(1f)
+        state.setFramesPerSecond(12f)
+        state.setFramesPerSecond(0f)
+        state.setFramesPerSecond(SpriteSheet.MAXIMUM_FRAMES_PER_SECOND + 1)
+        assertEquals(12f, state.draft!!.current.sheet?.framesPerSecond)
+        assertTrue(state.undo())
+        assertEquals(SpriteSheet.DEFAULT_FRAMES_PER_SECOND, state.draft!!.current.sheet?.framesPerSecond, "typing a speed is undone at once")
+        assertEquals(2, state.draft!!.current.frames.size)
+        state.setFramesPerSecond(6f)
+        state.draw(0, listOf(Pixel(0, 0, red)))
+        state.setFramesPerSecond(8f)
+        assertTrue(state.undo())
+        assertEquals(6f, state.draft!!.current.sheet?.framesPerSecond, "a speed typed after another step is a step of its own")
     }
 }

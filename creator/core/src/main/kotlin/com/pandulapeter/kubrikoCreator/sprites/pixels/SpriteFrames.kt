@@ -44,6 +44,11 @@ public class SpriteFrames private constructor(
     }
 
     /**
+     * These frames played at [framesPerSecond] (their sheet's speed), or these unchanged when they aren't cut into frames.
+     */
+    public fun withFramesPerSecond(framesPerSecond: Float): SpriteFrames = sheet?.let { SpriteFrames(image, cutBy, it.copy(framesPerSecond = framesPerSecond), frames) } ?: this
+
+    /**
      * These frames with [operation] applied to frame [index], or to each of them for null; null when the frames it leaves
      * aren't all of one size (one frame of several turned to another size), which a sheet can't hold. A changed frame
      * size changes the sheet's. When every frame changes (or the only one), the sheet's origin follows the pixels as [origin] moves it (given
