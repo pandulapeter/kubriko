@@ -368,6 +368,7 @@ public class WorkspaceController(
         changes.refreshResources()
         scope.launch { merge(commands.context.documents.structureRevision.drop(1), commands.context.filesRevision.drop(1)).collect { changes.refreshResources() } }
         scope.launch { commands.context.spriteFolders.state.collect { changes.onSpriteSheets(it.sheets) } }
+        scope.launch { commands.context.spriteImagesRevision.drop(1).collect { changes.onSpriteImagesWritten() } }
         refreshScreenplay()
         refreshProjectUpgrade()
         blockTypes?.let { types ->

@@ -112,6 +112,15 @@ internal class ProjectChanges(
         }
     }
 
+    /**
+     * Follows Kubriko Creator's own writes of sprites' images, which the watcher never reports: as an image changed outside
+     * it, the Scene view is built again and the playing game follows.
+     */
+    fun onSpriteImagesWritten() {
+        following(markSceneOutdated)
+        following(onCodeChanged)
+    }
+
     private val spriteSheetsLock = Any()
 
     /**

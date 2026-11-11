@@ -124,6 +124,16 @@ public class CommandContext(
 
     internal fun onFilesChanged() = _filesRevision.update { it + 1 }
 
+    private val _spriteImagesRevision = MutableStateFlow(0)
+
+    /**
+     * Raised whenever a command wrote, deleted, or moved a sprite's image, which the watcher never reports, being Kubriko
+     * Creator's own write, so that the Scene view and the playing game follow it as they follow one made outside.
+     */
+    public val spriteImagesRevision: StateFlow<Int> = _spriteImagesRevision.asStateFlow()
+
+    internal fun onSpriteImagesChanged() = _spriteImagesRevision.update { it + 1 }
+
     /**
      * The project's Markdown files that aren't pages, whose writes are recorded as Kubriko Creator's own with the Scenes'.
      */

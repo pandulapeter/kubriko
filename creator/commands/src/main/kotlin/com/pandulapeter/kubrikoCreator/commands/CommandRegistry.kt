@@ -81,8 +81,12 @@ import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
 import com.pandulapeter.kubrikoCreator.commands.project.SetTarget
 import com.pandulapeter.kubrikoCreator.commands.project.UpgradeProject
 import com.pandulapeter.kubrikoCreator.commands.resources.AddResource
+import com.pandulapeter.kubrikoCreator.commands.resources.CreateSprite
 import com.pandulapeter.kubrikoCreator.commands.resources.DeleteResource
+import com.pandulapeter.kubrikoCreator.commands.resources.DrawPixels
+import com.pandulapeter.kubrikoCreator.commands.resources.EditSprite
 import com.pandulapeter.kubrikoCreator.commands.resources.ListResources
+import com.pandulapeter.kubrikoCreator.commands.resources.ReadSprite
 import com.pandulapeter.kubrikoCreator.commands.resources.RenameResource
 import com.pandulapeter.kubrikoCreator.commands.resources.SetSpriteSheet
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
@@ -170,6 +174,7 @@ public class CommandRegistry(
                 ReadManagerType,
                 ListScenes,
                 ListResources,
+                ReadSprite,
                 ReadScene,
                 GetRelations,
                 GetHealthChecks,
@@ -253,6 +258,9 @@ public class CommandRegistry(
                 RenameResource,
                 DeleteResource,
                 SetSpriteSheet,
+                CreateSprite,
+                DrawPixels,
+                EditSprite,
                 PlaceActor,
                 PlaceActors,
                 MoveActor,

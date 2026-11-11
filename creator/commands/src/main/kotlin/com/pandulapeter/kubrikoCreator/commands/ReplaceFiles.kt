@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
+import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.foundation.writeBytesAtomically
 import com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore
@@ -73,6 +74,7 @@ internal object ReplaceFiles : WriteCommand<ReplaceFiles.Input> {
         }
         scenes.ownWrites.record(file)
         onFilesChanged()
+        if (ResourceKind.of(file.invariantSeparatorsPath.substringAfter("/composeResources/", "")) == ResourceKind.SPRITE) onSpriteImagesChanged()
     }
 
     /**

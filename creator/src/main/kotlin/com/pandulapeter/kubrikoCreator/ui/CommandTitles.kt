@@ -82,8 +82,12 @@ import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
 import com.pandulapeter.kubrikoCreator.commands.project.SetTarget
 import com.pandulapeter.kubrikoCreator.commands.project.UpgradeProject
 import com.pandulapeter.kubrikoCreator.commands.resources.AddResource
+import com.pandulapeter.kubrikoCreator.commands.resources.CreateSprite
 import com.pandulapeter.kubrikoCreator.commands.resources.DeleteResource
+import com.pandulapeter.kubrikoCreator.commands.resources.DrawPixels
+import com.pandulapeter.kubrikoCreator.commands.resources.EditSprite
 import com.pandulapeter.kubrikoCreator.commands.resources.ListResources
+import com.pandulapeter.kubrikoCreator.commands.resources.ReadSprite
 import com.pandulapeter.kubrikoCreator.commands.resources.RenameResource
 import com.pandulapeter.kubrikoCreator.commands.resources.SetSpriteSheet
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
@@ -137,6 +141,7 @@ import kubriko.creator.generated.resources.command_create_folder
 import kubriko.creator.generated.resources.command_create_manager_type
 import kubriko.creator.generated.resources.command_create_page
 import kubriko.creator.generated.resources.command_create_scene
+import kubriko.creator.generated.resources.command_create_sprite
 import kubriko.creator.generated.resources.command_delete_actor_type
 import kubriko.creator.generated.resources.command_delete_document
 import kubriko.creator.generated.resources.command_delete_folder
@@ -147,10 +152,12 @@ import kubriko.creator.generated.resources.command_delete_scene
 import kubriko.creator.generated.resources.command_delete_timer
 import kubriko.creator.generated.resources.command_discard_changes
 import kubriko.creator.generated.resources.command_discard_changes_made_by_hand
+import kubriko.creator.generated.resources.command_draw_pixels
 import kubriko.creator.generated.resources.command_edit_block
 import kubriko.creator.generated.resources.command_edit_document
 import kubriko.creator.generated.resources.command_edit_page
 import kubriko.creator.generated.resources.command_edit_property
+import kubriko.creator.generated.resources.command_edit_sprite
 import kubriko.creator.generated.resources.command_edit_text
 import kubriko.creator.generated.resources.command_get_block_catalog
 import kubriko.creator.generated.resources.command_get_health_checks
@@ -188,6 +195,7 @@ import kubriko.creator.generated.resources.command_read_game_notes
 import kubriko.creator.generated.resources.command_read_manager_type
 import kubriko.creator.generated.resources.command_read_pages
 import kubriko.creator.generated.resources.command_read_scene
+import kubriko.creator.generated.resources.command_read_sprite
 import kubriko.creator.generated.resources.command_remember_for_next_time
 import kubriko.creator.generated.resources.command_remove_actor
 import kubriko.creator.generated.resources.command_remove_actors
@@ -279,6 +287,10 @@ private val commandTitles = mapOf(
     MoveToFolder.name to Res.string.command_move_to_folder,
     MoveSpriteToFolder.name to Res.string.command_move_sprite_to_folder,
     SetSpriteSheet.name to Res.string.command_set_sprite_sheet,
+    CreateSprite.name to Res.string.command_create_sprite,
+    DrawPixels.name to Res.string.command_draw_pixels,
+    EditSprite.name to Res.string.command_edit_sprite,
+    ReadSprite.name to Res.string.command_read_sprite,
     RenameFolder.name to Res.string.command_rename_folder,
     MoveFolder.name to Res.string.command_move_folder,
     PressKeys.name to Res.string.command_press_keys,
