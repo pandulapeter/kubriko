@@ -17,7 +17,7 @@ which needs the signing. Every value lives where the build reads it, so the proj
 
 Two variants, named the same on every platform:
 
-- **Debug** is what Play already runs: the play session, logging, Play from this Scene, hot reload, and the debugger (`06-debugger.md`).
+- **Debug** is what Play already runs: the play session, logging, Play from this Scene, hot reload, and the debugger (`05-debugger.md`).
   Exporting it is offered only where someone else runs it: an Android debug APK for testers, and an unminified web build with source maps.
   Desktop has no debug export, since Play is that.
 - **Release** is what Export makes, and the only variant a player gets: shrunk, optimized, obfuscated where the platform can be, and with
@@ -55,7 +55,7 @@ smoke-tests it by starting it and waiting a few seconds for a crash.
 | Target | How | Signing |
 |---|---|---|
 | Web | The Wasm distribution task, zipped as static files | None |
-| Android | APK and AAB, with the SDK the first-run setup downloads (`07-installing-creator.md`). | Keystore created with `keytool` into a signing profile (Signing, below), stored outside the project with a prominent backup reminder, passwords in the OS keychain |
+| Android | APK and AAB, with the SDK the first-run setup downloads (`06-installing-creator.md`). | Keystore created with `keytool` into a signing profile (Signing, below), stored outside the project with a prominent backup reminder, passwords in the OS keychain |
 | Windows | `packageExe` / `packageMsi`, on Windows only | Authenticode through `signtool`, the user's certificate |
 | macOS | `packageDmg`, on macOS only | Signing and notarization with the user's Apple Developer account |
 | Linux | `packageDeb` / `packageRpm`, on Linux only | None standard |
@@ -64,7 +64,7 @@ smoke-tests it by starting it and waiting a few seconds for a crash.
 Desktop installers build only for the host OS; an optional generated GitHub Actions workflow builds all three (as this repository does for the
 Showcase). Every export is the release variant (above), named and versioned from Project settings → Identity, and signed with the
 signing profile the project names (Signing, below); keystores and certificates stay outside the project. A project with editions
-(`10-project-upkeep.md` → Editions, which adds this once editions exist) exports the ones chosen in one go, each from its own entry points, with its own name, version, and
+(`09-project-upkeep.md` → Editions, which adds this once editions exist) exports the ones chosen in one go, each from its own entry points, with its own name, version, and
 application ID, and the check of what a release has stripped also looks for what only another edition uses.
 
 ## Project settings

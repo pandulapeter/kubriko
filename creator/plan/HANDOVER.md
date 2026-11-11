@@ -26,35 +26,30 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Go on with `01-sprite-editor.md`, now only its animation side: the frame strip, onion skinning, and the preview. The user
-asked (2026-11-11) for everything up to and including the editor, after the in-app Assistant said it couldn't make a
-sprite; the AI's drawing tools came first for that reason. Done (82d823d14..c8a10a1c8), reviewed with `/code-review`
-twice (the work, then its fixes), every finding fixed in a commit of its own:
+Go on with `01-search.md`. The sprite editor's plan is done (2026-11-11) and deleted, its leftovers (layers, color
+replacement, outline helpers) in `12-later.md`. What it came to, besides its first part (82d823d14..c8a10a1c8, reviewed with
+`/code-review` twice):
 
-- A pixel model in `:creator:core` (`sprites/pixels`: `PixelImage`, `PixelShapes`, `PixelOperations`, `SpriteFrames`),
-  with no Skia.
-- The AI's tools: `create_sprite`, `draw_pixels` (single pixels, or rows of letters with a palette, which the editor
-  also uses for many pixels), `edit_sprite` (flip, turn, shift, resize the canvas, scale; one frame or every one, the
-  origin following the pixels), `read_sprite` (an image, scaled up, and optionally the pixels as rows), `set_palette`
-  (`.kubriko/palette.json`), and `import_sprite_frames`. Every change goes through `editSpriteImage`, whose undo writes
-  the image and the sheet back byte for byte (`ReplaceFiles`). Their problems are `SpriteProblem`, out of
-  `CommandProblem`, whose mapping had reached its size limit.
-- Writes are synchronous within their command (atomic, refused with the reason when they fail), rather than queued and
-  retried as the plan once said, so nothing is ever left unsaved for builds or git to wait for.
-- The sprite editor (`ui/sprites`), opened from the sidebar (`WorkspaceSelection.Sprite`): pencil, eraser, line,
-  rectangle, ellipse, fill, picker, and a selection that moves, copies, cuts, and pastes (between frames and sprites);
-  two colors, the project's palette, the frame's colors; zoom, grid, panning; the Image menu; frame arrows (which the
-  frame strip replaces). New sprite… and Sprite from frames… are in the sidebar's New menu.
-- `dispatchIfValidWatching` tells the editor when a stroke's write fails, so it stops showing it. Own writes of sprite
-  images raise `spriteImagesRevision`, followed at most once a second by the Scene view and the game.
+- Trackpad pinches zoom the sprite editor (`window/TrackpadPinches.kt`: macOS's magnification events through reflection,
+  with `--add-exports=java.desktop/com.apple.eawt.event`; on Windows a pinch is a Ctrl scroll; Linux's AWT gets none, so
+  Ctrl and a two-finger scroll is the way there), and only a pressed mouse button starts a stroke (efe11682d..684b469ea).
+- The sprite editor keeps a draft until it is saved (the user's call, the one exception to saving every change): `SpriteDraft`
+  with undo of its own, Save and Cmd+S (`SaveSprite`, not a tool), and `SelectionController.leaveGuard` asking before the
+  center shows something else, the project closes, or Creator quits; following the AI's steps pauses meanwhile
+  (d44499753, c72e9b84a).
+- `edit_sprite_frames` and the frame strip (add, duplicate, delete, drag to reorder), onion skinning (`OnionSkin`, a pure
+  composite), and the preview with its speed, a step of the draft (b9a2b2d18..). The tool list's budget went to 23,500.
 
-The tool list's budget went from 21,600 to 23,200 for the drawing tools.
+None of the work since c8a10a1c8 has had a `/code-review` yet: run one over c8a10a1c8..HEAD first, fixing each finding in
+a commit of its own.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
 - The sprite editor in the real app: drawing with each tool and both mouse buttons, the selection with copy, cut, and
-  paste, the Image menu, and a drawn sprite reaching the playing game; and the Assistant drawing a sprite with
-  `create_sprite` and `draw_pixels` (the alienshooter conversation that asked for a ship).
+  paste, the Image menu, Save and the question on leaving (switching sprites, closing the project, and quitting), the frame
+  strip's dragging, the onion skin, the preview, pinching on a trackpad, and a drawn sprite reaching the playing game; and
+  the Assistant drawing a sprite with `create_sprite`, `draw_pixels`, and `edit_sprite_frames` (the alienshooter
+  conversation that asked for a ship).
 - A sprite sheet playing in a real game, and the Frames dialog and the playing thumbnail in the real app: an end-to-end
   scenario under Xvfb could cut the Breakout ball's sprite into frames through `set_sprite_sheet` and check by pixels, in
   two `take_screenshot`s with an `actorType` crop, that its frame changes.
