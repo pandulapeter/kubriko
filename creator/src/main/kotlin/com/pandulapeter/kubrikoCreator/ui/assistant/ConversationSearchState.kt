@@ -56,6 +56,14 @@ internal class ConversationSearchState {
         jump = null
     }
 
+    /**
+     * Forgets the message to scroll to when the conversation shown, [shownId], is known and isn't the one it is in: its
+     * conversation didn't open (the assistant was off), or the user went to another, so it never scrolls later.
+     */
+    fun onConversationShown(shownId: String?) {
+        if (shownId != null && shownId != jump?.conversation?.id) jump = null
+    }
+
     fun stopReading() {
         reading = null
     }

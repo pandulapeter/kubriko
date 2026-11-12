@@ -73,6 +73,18 @@ class ConversationSearchTest {
     }
 
     @Test
+    fun aJumpIsForgottenWhenAnotherConversationShows() {
+        val search = ConversationSearchState()
+        search.choose(own) {}
+        search.onConversationShown(null)
+        assertEquals(own, search.jump, "the conversation hasn't started yet")
+        search.onConversationShown(own.conversation.id)
+        assertEquals(own, search.jump)
+        search.onConversationShown("other")
+        assertNull(search.jump)
+    }
+
+    @Test
     fun theMatchesAreListedWithTheirConversationsAndWhoSaidIt() = uiTest(width = 380, height = 400) {
         val chosen = mutableListOf<ConversationMatch>()
         var query by mutableStateOf("")

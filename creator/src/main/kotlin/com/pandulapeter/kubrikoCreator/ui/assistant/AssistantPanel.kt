@@ -202,6 +202,8 @@ private fun ConversationSearchOf(
     search: ConversationSearchState,
     modifier: Modifier,
 ) {
+    val shownId = model.currentChat.collectAsState().value?.conversationId?.collectAsState()?.value
+    LaunchedEffect(shownId, search.jump) { search.onConversationShown(shownId) }
     if (search.isOpen) {
         ConversationSearchView(
             modifier = modifier,
