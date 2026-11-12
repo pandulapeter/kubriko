@@ -21,6 +21,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import com.pandulapeter.kubrikoCreator.ai.assistant.AgentChoice
 import com.pandulapeter.kubrikoCreator.ai.assistant.ConversationMatch
 import com.pandulapeter.kubrikoCreator.ai.assistant.KeptMessage
 import com.pandulapeter.kubrikoCreator.ai.assistant.SavedConversation
@@ -163,4 +164,24 @@ class ConversationSearchTest {
         showing { AssistantTranscriptList(items = listOf(TranscriptItem.AgentMessage("Done.")), isBusy = false, steps = emptyMap(), onShowStep = {}, jumpTo = own, onJumped = { jumps++ }) }
         waitUntil(timeoutMillis = 5_000) { jumps == 1 }
     }
+
+    @Test
+    fun aMatchFoundBeforeTheAgentChangedIsReadRatherThanContinuedWithAnotherAgent() = uiTest(width = 420, height = 600) {
+        val model = FakeAssistantPanelModel().apply {
+            conversationMatches = listOf(own.copy(conversation = own.conversation.copy(agentId = agent.value.id)))
+            keptMessages = listOf(KeptMessage(true, "Make the ball faster"))
+        }
+        showing { AssistantPanel(model = model, aiSteps = emptyList(), onShowStep = {}, forms = rememberAssistantForms()) }
+        onNodeWithContentDescription("Search conversations").performClick()
+        onNode(hasSetTextAction()).performTextInput("ball")
+        awaitText("Make the ball faster · You")
+        model.agent.value = AgentChoice.Custom("other-agent")
+        awaitText("Make the ball faster · You · held by another agent")
+        onNodeWithText("Make the ball faster · You · held by another agent").performClick()
+        awaitText("Another agent holds this conversation", substring = true)
+        assertTrue(model.calls.none { it.startsWith("show") })
+    }
+
+    private fun ComposeUiTest.awaitText(text: String, substring: Boolean) =
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText(text, substring = substring).fetchSemanticsNodes().isNotEmpty() }
 }

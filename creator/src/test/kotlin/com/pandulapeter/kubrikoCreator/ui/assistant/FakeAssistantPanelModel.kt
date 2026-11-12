@@ -79,7 +79,7 @@ internal class FakeAssistantPanelModel(
     var conversationMatches = emptyList<ConversationMatch>()
     var keptMessages = emptyList<KeptMessage>()
 
-    override suspend fun searchConversations(query: String) = conversationMatches.filter { it.query == query }
+    override suspend fun searchConversations(query: String) = conversationMatches.filter { it.query == query }.map { it.copy(isHeldByAnotherAgent = it.conversation.agentId != agent.value.id) }
 
     override suspend fun keptMessagesOf(conversation: SavedConversation) = keptMessages
 

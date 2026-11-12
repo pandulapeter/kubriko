@@ -61,6 +61,9 @@ import org.jetbrains.compose.resources.stringResource
  * The search of the project's saved conversations, shown in place of the conversation: a field, and every message
  * holding what is typed ([search]), each under its conversation's title with the words around it, which [onChosen]
  * goes to. Escape, or the close button, goes back to the conversation ([onClose]).
+ *
+ * @param agentId The agent chosen, which the conversations are searched again for when it changes, since whether one is
+ *   another agent's depends on it.
  */
 @Composable
 internal fun ConversationSearchView(
@@ -70,12 +73,13 @@ internal fun ConversationSearchView(
     onChosen: (ConversationMatch) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    agentId: String? = null,
 ) = Column(
     modifier = modifier,
 ) {
     ConversationSearchField(query = query, onQueryChange = onQueryChange, onClose = onClose)
     val trimmed = query.trim()
-    val found by produceState<ConversationSearchResult?>(null, trimmed) {
+    val found by produceState<ConversationSearchResult?>(null, trimmed, agentId) {
         if (trimmed.isEmpty()) {
             value = null
             return@produceState

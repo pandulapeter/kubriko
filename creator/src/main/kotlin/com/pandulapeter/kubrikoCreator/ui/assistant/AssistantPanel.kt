@@ -219,7 +219,8 @@ private fun ConversationSearchOf(
             query = search.query,
             onQueryChange = { search.query = it },
             search = model::searchConversations,
-            onChosen = { match -> search.choose(match) { model.show(it.conversation) } },
+            onChosen = { match -> search.choose(match.copy(isHeldByAnotherAgent = match.conversation.agentId != model.agent.value.id)) { model.show(it.conversation) } },
+            agentId = model.agent.collectAsState().value.id,
             onClose = search::close,
         )
     }
