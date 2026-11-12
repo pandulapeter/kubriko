@@ -50,6 +50,13 @@ class NameMatchingTest {
     }
 
     @Test
+    fun aCapitalEndingARunOfCapitalsStartsAWord() {
+        assertEquals(NameMatch(Quality.SCATTERED, listOf(4..4, 6..6)), NameMatching.match("HTTPServer", "sr"))
+        assertEquals(NameMatch(Quality.WORD_START, listOf(2..7)), NameMatching.match("UIButton", "button"))
+        assertNull(NameMatching.match("HTTPServer", "ts"), "a capital inside a run of capitals starts no word")
+    }
+
+    @Test
     fun matchesSaysWhetherThereIsAMatch() {
         assertTrue(NameMatching.matches("Brick", "brk"))
         assertFalse(NameMatching.matches("Brick", "x"))

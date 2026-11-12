@@ -71,7 +71,8 @@ public object NameMatching {
 
     /**
      * Whether a word of [name] starts at [index]: its first letter, a capital after a small letter (`Ball` in
-     * `BigBall`), a letter or digit after anything else (`ball` in `big_ball`), or a digit after a letter.
+     * `BigBall`) or ending a run of capitals before a small letter (`Server` in `HTTPServer`), a letter or digit after
+     * anything else (`ball` in `big_ball`), or a digit after a letter.
      */
     private fun isWordStart(name: String, index: Int): Boolean {
         if (index == 0) return true
@@ -79,7 +80,7 @@ public object NameMatching {
         val current = name[index]
         return when {
             !previous.isLetterOrDigit() -> current.isLetterOrDigit()
-            current.isUpperCase() -> previous.isLowerCase() || previous.isDigit()
+            current.isUpperCase() -> !previous.isUpperCase() || name.getOrNull(index + 1)?.isLowerCase() == true
             current.isDigit() -> previous.isLetter()
             else -> false
         }
