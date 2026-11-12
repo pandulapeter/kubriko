@@ -12,9 +12,6 @@
 Finding things past a few dozen Actor types, Scenes, or sprites, for the user and the AI alike. Each addition lands with its command and
 AI tool.
 
-- **Find usages:** from a type, Property, sprite, sound, or Scene, every Block, condition, text, Scene, and collision Event that refers
-  to it, each one clickable (opening the type at that Event and Block, or the Scene with that Actor selected), and the pages that
-  mention it. It reads `ProjectReferences`, which the deletes already use, rather than finding them again.
 - **Search in Blocks and pages:** texts in Log Blocks, screen texts, Kotlin Blocks, and the screenplay's pages, from the same panel.
 - **AI tools:** `search_project` (names, Block texts, and page texts, with paths) and `find_usages`, read-only; `find_usages` builds on
   `ProjectRelations`, which `get_relations` already reads types, Properties, and Scenes from, and on `resourceUsagesOf` for sprites, sounds, and music,
@@ -30,4 +27,4 @@ AI tool.
 
 ## Order
 
-Find usages, search in Blocks and pages with the AI tools, and searching conversations last.
+Search in Blocks and pages with the AI tools, and searching conversations last.
