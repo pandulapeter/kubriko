@@ -23,6 +23,7 @@ import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.buildSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonEncoder
@@ -60,7 +61,11 @@ internal abstract class NumberValueFormat(
         val json = (encoder as? JsonEncoder)?.json ?: throw SerializationException("A number value is only written as JSON.")
         encoder.encodeJsonElement(
             when (value) {
-                is NumberValue.Fixed -> if (isWhole) JsonPrimitive(value.value.roundToLong()) else JsonPrimitive(value.value)
+                is NumberValue.Fixed -> when {
+                    !value.value.isFinite() && !json.configuration.allowSpecialFloatingPointValues -> throw SerializationException("${value.value} isn't a finite number, which JSON can't hold.")
+                    isWhole -> JsonPrimitive(value.value.roundToLong())
+                    else -> JsonPrimitive(value.value)
+                }
                 is NumberValue.Random -> withType(RANDOM_NAME, json.encodeToJsonElement(NumberValue.Random.serializer(), value))
                 is NumberValue.Property -> withType(PROPERTY_NAME, json.encodeToJsonElement(NumberValue.Property.serializer(), value))
             },
@@ -70,7 +75,7 @@ internal abstract class NumberValueFormat(
     override fun deserialize(decoder: Decoder): NumberValue {
         val json = (decoder as? JsonDecoder)?.json ?: throw SerializationException("A number value is only read from JSON.")
         return when (val element = decoder.decodeJsonElement()) {
-            is JsonPrimitive -> fixedOf(element)
+            is JsonPrimitive -> fixedOf(element, json)
             is JsonObject -> {
                 val fields = JsonObject(element - TYPE_KEY)
                 when (val type = (element[TYPE_KEY] as? JsonPrimitive)?.contentOrNull) {
@@ -84,8 +89,9 @@ internal abstract class NumberValueFormat(
         }
     }
 
-    private fun fixedOf(element: JsonPrimitive): NumberValue.Fixed {
+    private fun fixedOf(element: JsonPrimitive, json: Json): NumberValue.Fixed {
         val number = element.takeUnless { it.isString }?.contentOrNull?.toFloatOrNull()
+            ?.takeIf { it.isFinite() || json.configuration.allowSpecialFloatingPointValues }
             ?: throw SerializationException("$element isn't a number.")
         if (isWhole && number != number.toLong().toFloat()) throw SerializationException("${element.content} isn't a whole number.")
         return NumberValue.Fixed(number)

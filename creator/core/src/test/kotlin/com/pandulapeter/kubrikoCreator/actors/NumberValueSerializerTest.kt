@@ -50,6 +50,8 @@ class NumberValueSerializerTest {
         mapOf(
             "\"5\"" to "\"5\" isn't a number.",
             "null" to "null isn't a number.",
+            "NaN" to "NaN isn't a number.",
+            "Infinity" to "Infinity isn't a number.",
             "[1]" to "[1] isn't a number value: it is a number, or an object of the type random or property.",
             """{"from":1}""" to "A number value written as an object needs a type: random or property.",
             """{"type":"edge"}""" to "There is no number value of the type 'edge': it is a number, or an object of the type random or property.",
@@ -65,5 +67,13 @@ class NumberValueSerializerTest {
         assertEquals("""{"type":"setVelocity","x":200.0,"y":{"type":"property","property":"speed","manager":null}}""", text)
         assertEquals(block, json.decodeFromString(BlockDefinition.serializer(), text))
         assertEquals(BlockDefinition.Repeat(NumberValue.Fixed(4f)), json.decodeFromString(BlockDefinition.serializer(), """{"type":"repeat","times":4}"""))
+    }
+
+    @Test
+    fun aNumberThatIsntFiniteIsNeitherWrittenNorReadUnlessTheJsonAllowsIt() {
+        assertEquals("NaN isn't a finite number, which JSON can't hold.", assertFailsWith<SerializationException> { json.encodeToString(NumberValueSerializer, NumberValue.Fixed(Float.NaN)) }.message)
+        val lenient = Json { allowSpecialFloatingPointValues = true }
+        assertEquals("Infinity", lenient.encodeToString(NumberValueSerializer, NumberValue.Fixed(Float.POSITIVE_INFINITY)))
+        assertEquals(NumberValue.Fixed(Float.NEGATIVE_INFINITY), lenient.decodeFromString(NumberValueSerializer, "-Infinity"))
     }
 }
