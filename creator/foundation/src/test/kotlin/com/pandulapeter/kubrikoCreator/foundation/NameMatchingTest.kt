@@ -50,6 +50,13 @@ class NameMatchingTest {
     }
 
     @Test
+    fun aLetterIsTakenFromTheStartOfALaterWordWhenTheRestCanStillFollow() {
+        assertEquals(NameMatch(Quality.SCATTERED, listOf(0..0, 4..4)), NameMatching.match("BoboBall", "bb"))
+        assertEquals(NameMatch(Quality.SCATTERED, listOf(0..0, 4..5)), NameMatching.match("BoboBall", "bba"))
+        assertEquals(NameMatch(Quality.SCATTERED, listOf(0..0, 2..3)), NameMatching.match("BobxBy", "bbx"), "By's B leaves no x for the rest")
+    }
+
+    @Test
     fun aCapitalEndingARunOfCapitalsStartsAWord() {
         assertEquals(NameMatch(Quality.SCATTERED, listOf(4..4, 6..6)), NameMatching.match("HTTPServer", "sr"))
         assertEquals(NameMatch(Quality.WORD_START, listOf(2..7)), NameMatching.match("UIButton", "button"))

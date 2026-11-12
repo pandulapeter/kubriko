@@ -49,8 +49,10 @@ public object NameMatching {
     }
 
     /**
-     * The query's letters in order, the first starting a word, each taken as early as it comes, which finds a match
-     * whenever there is one, since starting later leaves fewer letters to take the rest from.
+     * The query's letters in order, the first starting a word, the rest each at the next word starting with it when the
+     * letters after it can still follow (`bb` in `BoboBall` takes `Ball`'s), otherwise as early as it comes. Starting at
+     * the first word that can start it finds a match whenever there is one, since starting later leaves fewer letters
+     * to take the rest from.
      */
     private fun scatteredMatch(name: String, query: String): NameMatch? {
         val start = name.indices.firstOrNull { isWordStart(name, it) && name[it].equals(query[0], ignoreCase = true) } ?: return null
@@ -58,7 +60,12 @@ public object NameMatching {
         var rangeStart = start
         var previous = start
         for (queryIndex in 1 until query.length) {
-            val index = (previous + 1 until name.length).firstOrNull { name[it].equals(query[queryIndex], ignoreCase = true) } ?: return null
+            val earliest = (previous + 1 until name.length).firstOrNull { name[it].equals(query[queryIndex], ignoreCase = true) } ?: return null
+            val index = (earliest until name.length).firstOrNull { candidate ->
+                isWordStart(name, candidate) &&
+                    name[candidate].equals(query[queryIndex], ignoreCase = true) &&
+                    canFollow(name, candidate + 1, query, queryIndex + 1)
+            } ?: earliest
             if (index != previous + 1) {
                 ranges += rangeStart..previous
                 rangeStart = index
@@ -67,6 +74,17 @@ public object NameMatching {
         }
         ranges += rangeStart..previous
         return NameMatch(NameMatch.Quality.SCATTERED, ranges)
+    }
+
+    /**
+     * Whether the letters of [query] from [queryIndex] on are in [name] in order from [nameIndex] on.
+     */
+    private fun canFollow(name: String, nameIndex: Int, query: String, queryIndex: Int): Boolean {
+        var position = nameIndex
+        for (index in queryIndex until query.length) {
+            position = (position until name.length).firstOrNull { name[it].equals(query[index], ignoreCase = true) }?.plus(1) ?: return false
+        }
+        return true
     }
 
     /**
