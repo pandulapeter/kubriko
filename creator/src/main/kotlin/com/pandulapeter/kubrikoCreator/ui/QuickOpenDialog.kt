@@ -43,6 +43,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -71,7 +72,7 @@ internal fun QuickOpenDialog(
     onDismiss: () -> Unit,
 ) = Popup(
     alignment = Alignment.TopCenter,
-    offset = IntOffset(0, 96),
+    offset = with(LocalDensity.current) { IntOffset(0, QUICK_OPEN_TOP.roundToPx()) },
     onDismissRequest = onDismiss,
     properties = PopupProperties(focusable = true),
 ) {
@@ -190,3 +191,8 @@ private fun QuickOpenRow(
         )
     }
 }
+
+/**
+ * How far below the window's top quick open opens, near the top as IDEs show theirs, below the toolbar.
+ */
+private val QUICK_OPEN_TOP = 96.dp
