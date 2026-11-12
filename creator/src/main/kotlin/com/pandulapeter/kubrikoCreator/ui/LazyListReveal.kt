@@ -28,3 +28,24 @@ internal suspend fun LazyListState.revealItem(key: Any) {
         scrollBy(layoutInfo.viewportSize.height.toFloat())
     }
 }
+
+/**
+ * Scrolls the list as little as it takes to show all of the item at [index]: not at all when it is in view already, to
+ * the item's top when it is above the view, and to its bottom when it is below.
+ */
+internal suspend fun LazyListState.keepInView(index: Int) {
+    val visible = layoutInfo.visibleItemsInfo
+    val item = visible.firstOrNull { it.index == index }
+    val viewportStart = layoutInfo.viewportStartOffset
+    val viewportEnd = layoutInfo.viewportEndOffset
+    when {
+        item != null && item.offset >= viewportStart && item.offset + item.size <= viewportEnd -> Unit
+        item != null && item.offset < viewportStart -> scrollBy((item.offset - viewportStart).toFloat())
+        item != null -> scrollBy((item.offset + item.size - viewportEnd).toFloat())
+        visible.isEmpty() || index < visible.first().index -> scrollToItem(index)
+        else -> {
+            scrollToItem(index)
+            layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }?.let { shown -> scrollBy((shown.size - (viewportEnd - viewportStart)).toFloat()) }
+        }
+    }
+}

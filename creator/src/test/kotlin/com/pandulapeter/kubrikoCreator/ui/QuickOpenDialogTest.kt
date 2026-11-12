@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.onNodeWithText
@@ -99,6 +100,19 @@ class QuickOpenDialogTest {
         assertTrue(field.left >= 0f && field.right <= 360f, "the field fits the window: $field")
         assertTrue(onNodeWithText("brick.png", substring = true).fetchSemanticsNode().boundsInWindow.width > 40f, "a long folder doesn't squeeze the name away")
         saveSnapshot("quick-open-narrow")
+    }
+
+    @Test
+    fun theListScrollsOnlyOnceTheLitRowLeavesIt() = uiTest(width = 700, height = 700) {
+        val many = (1..40).map { QuickOpenItem("Enemy$it", null, QuickOpenTarget.Property("Enemy$it", isOfManagerType = false, name = "hp")) }
+        showing { QuickOpenDialog(items = many, onOpen = { opened += it }, onDismiss = { dismissals++ }) }
+        val firstTop = onNodeWithText("Enemy1").fetchSemanticsNode().boundsInWindow.top
+        repeat(3) { onNode(hasSetTextAction()).performKeyInput { pressKey(Key.DirectionDown) } }
+        assertEquals(firstTop, onNodeWithText("Enemy1").fetchSemanticsNode().boundsInWindow.top, "a row in view needs no scroll")
+        repeat(20) { onNode(hasSetTextAction()).performKeyInput { pressKey(Key.DirectionDown) } }
+        onNodeWithText("Enemy24").assertIsDisplayed()
+        onNode(hasSetTextAction()).performKeyInput { pressKey(Key.Enter) }
+        assertEquals("Enemy24", (opened.single() as QuickOpenTarget.Property).type)
     }
 
     @Test

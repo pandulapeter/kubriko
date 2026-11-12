@@ -80,7 +80,7 @@ internal fun QuickOpenDialog(
     var lit by remember { mutableStateOf(0) }
     val matches = remember(query, items) { quickOpenMatchesOf(query, items) }
     val listState = rememberLazyListState()
-    LaunchedEffect(lit) { if (lit in matches.indices) listState.animateScrollToItem(lit) }
+    LaunchedEffect(lit) { if (lit in matches.indices) listState.keepInView(lit) }
     Surface(
         modifier = Modifier.padding(horizontal = 16.dp).widthIn(max = QUICK_OPEN_WIDTH).fillMaxWidth(),
         shape = MenuStyle.shape,
