@@ -156,6 +156,22 @@ public interface AssistantPanelModel {
     public fun resume(conversation: SavedConversation)
 
     /**
+     * What [query] finds in what was said in the open project's saved conversations, every agent's, the newest first
+     * ([ConversationSearch]), read off the main thread.
+     */
+    public suspend fun searchConversations(query: String): List<ConversationMatch> = emptyList()
+
+    /**
+     * What was said in [conversation] as Kubriko Creator kept it, for reading one its own agent isn't there to continue.
+     */
+    public suspend fun keptMessagesOf(conversation: SavedConversation): List<KeptMessage> = emptyList()
+
+    /**
+     * Shows [conversation], held by the agent chosen: the open conversation it is, or continues it.
+     */
+    public fun show(conversation: SavedConversation): Unit = resume(conversation)
+
+    /**
      * Shows the conversation [chat] instead.
      */
     public fun select(chat: AssistantChat)

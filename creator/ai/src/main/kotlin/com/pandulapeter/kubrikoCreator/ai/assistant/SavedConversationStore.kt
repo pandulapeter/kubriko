@@ -42,6 +42,16 @@ public class SavedConversationStore(
     internal fun of(project: File) = read().filter { it.project == project.absolutePath }.sortedByDescending { it.updatedAt }
 
     /**
+     * What [query] finds in the kept messages of the conversations about [project], every agent's
+     * ([ConversationSearch]), at most [limit] matches.
+     */
+    @Synchronized
+    internal fun search(project: File, query: String, agentId: String, limit: Int): List<ConversationMatch> {
+        val texts = texts ?: return emptyList()
+        return ConversationSearch.search(query, of(project).map { it to texts.read(it.agentId, it.id) }, agentId, limit)
+    }
+
+    /**
      * Whether the agent [agentId] holds a conversation about any project, which means it has worked here before.
      */
     @Synchronized

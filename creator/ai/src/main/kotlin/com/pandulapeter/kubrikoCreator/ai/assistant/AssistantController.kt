@@ -211,6 +211,19 @@ public class AssistantController(
 
     private suspend fun lastConversationOf(directory: File) = withContext(ioDispatcher) { storage.conversations?.of(directory, selection.agent.value.id)?.firstOrNull() }
 
+    override suspend fun searchConversations(query: String): List<ConversationMatch> {
+        val directory = project ?: return emptyList()
+        val agentId = selection.agent.value.id
+        return withContext(ioDispatcher) { storage.conversations?.search(directory, query, agentId, CONVERSATION_MATCH_LIMIT).orEmpty() }
+    }
+
+    override suspend fun keptMessagesOf(conversation: SavedConversation): List<KeptMessage> =
+        withContext(ioDispatcher) { storage.conversations?.texts?.read(conversation.agentId, conversation.id).orEmpty() }
+
+    override fun show(conversation: SavedConversation) {
+        chatList.open.value.firstOrNull { it.conversationId.value == conversation.id }?.let(chatList::select) ?: resume(conversation)
+    }
+
     override fun resume(conversation: SavedConversation) {
         if (!host.isOn) return
         chatList.onResumed(conversation.id)
@@ -382,3 +395,8 @@ public class AssistantController(
      */
     public suspend fun awaitPending(): Unit = host.awaitPending()
 }
+
+/**
+ * How many messages a search of the conversations lists at most, enough to look through; a longer query finds the rest.
+ */
+private const val CONVERSATION_MATCH_LIMIT = 100

@@ -135,4 +135,14 @@ class SavedConversationStoreTest {
         store.save(saved("c", 4))
         assertEquals(hello, texts.read("claude-acp", "c"), "a save without messages keeps the ones kept")
     }
+
+    @Test
+    fun theProjectsConversationsAreSearchedWhicheverAgentHoldsThem() {
+        val store = SavedConversationStore(file, texts = ConversationTextStore(File(directory, "conversations")))
+        store.save(saved("a", 1), listOf(KeptMessage(isFromUser = true, text = "Make the ball faster")))
+        store.save(saved("b", 2, agentId = "antigravity-acp"), listOf(KeptMessage(isFromUser = false, text = "The ball is faster now.")))
+        store.save(saved("c", 3, project = File("/projects/other")), listOf(KeptMessage(isFromUser = true, text = "ball")))
+        assertEquals(listOf("b" to true, "a" to false), store.search(breakout, "ball", "claude-acp", limit = 10).map { it.conversation.id to it.isHeldByAnotherAgent })
+        assertEquals(emptyList(), SavedConversationStore(file).search(breakout, "ball", "claude-acp", limit = 10), "nothing kept, nothing found")
+    }
 }
