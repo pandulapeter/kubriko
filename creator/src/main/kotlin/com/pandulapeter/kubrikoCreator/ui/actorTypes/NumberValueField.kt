@@ -67,7 +67,7 @@ internal fun NumberValueField(
         options = NumberValueKind.offeredBy(isWhole),
         optionText = { stringResource(it.title) },
         optionIcon = { it.icon },
-        onSelected = { if (it != kind) onValueChange(it.of(value)) },
+        onSelected = { if (it != kind) onValueChange(it.of(value, isWhole)) },
     )
     when (value) {
         is NumberValue.Fixed -> NumberField(

@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.ui.actorTypes
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 /**
  * What a number field of a Block holds, as its menu offers the choice.
@@ -25,12 +26,12 @@ internal enum class NumberValueKind {
 
     /**
      * [value] turned into this kind, keeping what it can: a fixed number becomes a random one between 0 and it, and a
-     * random one becomes the number it starts from.
+     * random one becomes the number it starts from, rounded in a field that only takes whole numbers.
      */
-    fun of(value: NumberValue): NumberValue = when (this) {
+    fun of(value: NumberValue, isWholeField: Boolean = false): NumberValue = when (this) {
         FIXED -> when (value) {
             is NumberValue.Fixed -> value
-            is NumberValue.Random -> NumberValue.Fixed(value.from)
+            is NumberValue.Random -> NumberValue.Fixed(if (isWholeField) value.from.roundToInt().toFloat() else value.from)
             is NumberValue.Property -> NumberValue.Fixed(0f)
         }
         RANDOM, RANDOM_WHOLE -> when (value) {

@@ -21,6 +21,8 @@ class NumberValueKindTest {
         assertEquals(NumberValue.Random(-5f, 0f, isWhole = true), NumberValueKind.RANDOM_WHOLE.of(NumberValue.Fixed(-5f)))
         assertEquals(NumberValue.Random(0f, 1f), NumberValueKind.RANDOM.of(NumberValue.Fixed(0f)))
         assertEquals(NumberValue.Fixed(3f), NumberValueKind.FIXED.of(NumberValue.Random(3f, 9f)))
+        assertEquals(NumberValue.Fixed(1.5f), NumberValueKind.FIXED.of(NumberValue.Random(1.5f, 4f)))
+        assertEquals(NumberValue.Fixed(2f), NumberValueKind.FIXED.of(NumberValue.Random(1.5f, 4f), isWholeField = true))
         assertEquals(NumberValue.Random(3f, 9f, isWhole = true), NumberValueKind.RANDOM_WHOLE.of(NumberValue.Random(3f, 9f)))
     }
 
