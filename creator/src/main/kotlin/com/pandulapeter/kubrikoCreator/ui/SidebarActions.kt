@@ -129,6 +129,7 @@ internal fun rememberFolderTreeActions(
                 dispatch = commands::dispatch,
             )
         },
+        onFindUsages = { group, name -> uiState.findUsages(usageSubjectOf(group, name)) },
     )
 }
 

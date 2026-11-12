@@ -29,6 +29,7 @@ import kubriko.creator.generated.resources.action_delete_manager_type
 import kubriko.creator.generated.resources.action_delete_page
 import kubriko.creator.generated.resources.action_delete_resource
 import kubriko.creator.generated.resources.action_delete_scene
+import kubriko.creator.generated.resources.action_find_usages
 import kubriko.creator.generated.resources.action_new_actor_type
 import kubriko.creator.generated.resources.action_new_manager_type
 import kubriko.creator.generated.resources.action_new_page
@@ -39,6 +40,7 @@ import kubriko.creator.generated.resources.ic_edit
 import kubriko.creator.generated.resources.ic_music
 import kubriko.creator.generated.resources.ic_page
 import kubriko.creator.generated.resources.ic_scene
+import kubriko.creator.generated.resources.ic_search
 import kubriko.creator.generated.resources.ic_sound
 import kubriko.creator.generated.resources.ic_sprite
 import kubriko.creator.generated.resources.new_actor_type_hint
@@ -82,6 +84,7 @@ internal class FolderTreeActions(
     val onDeleteFolder: (FolderGroup, path: String, isEmpty: Boolean) -> Unit,
     val onRenameItem: (FolderGroup, name: String, newName: String) -> Rejection?,
     val onDeleteItem: (FolderGroup, name: String) -> Unit,
+    val onFindUsages: (FolderGroup, name: String) -> Unit = { _, _ -> },
 )
 
 /**
@@ -265,6 +268,7 @@ private fun FolderTreeItem(
         flashKey = flashKey,
         hints = LocalHealthHints.current.ofRow(group, row.name),
         actions = listOf(
+            ContextAction(stringResource(Res.string.action_find_usages), Res.drawable.ic_search) { actions.onFindUsages(group, row.name) },
             ContextAction(stringResource(Res.string.action_rename), Res.drawable.ic_edit) { onNamingChange(SidebarNaming.RenamedItem(group, row.name)) },
             ContextAction(stringResource(group.deleteItemLabel), Res.drawable.ic_delete, isDestructive = true) { actions.onDeleteItem(group, row.name) },
         ),

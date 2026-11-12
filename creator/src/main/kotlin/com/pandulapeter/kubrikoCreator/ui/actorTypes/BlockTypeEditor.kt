@@ -39,8 +39,10 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
+import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.ui.HealthFindingPlace
 import com.pandulapeter.kubrikoCreator.ui.HealthHintsList
+import com.pandulapeter.kubrikoCreator.ui.LocalUsageFinder
 import com.pandulapeter.kubrikoCreator.ui.WriteDescriptionButton
 import com.pandulapeter.kubrikoCreator.ui.components.DescriptionPreview
 import com.pandulapeter.kubrikoCreator.ui.components.DragPreviewChip
@@ -267,6 +269,7 @@ private fun PropertiesColumn(
     actions: BlockTypeEditorActions,
     flashedProperty: Pair<Any, String>?,
     modifier: Modifier = Modifier,
+    findUsages: ((RelationSubject) -> Unit)? = LocalUsageFinder.current,
 ) = LazyColumn(
     modifier = modifier,
 ) {
@@ -293,6 +296,7 @@ private fun PropertiesColumn(
         onRenamed = actions::renameProperty,
         onRemoved = actions::removeProperty,
         flashedProperty = flashedProperty,
+        onFindUsages = findUsages?.let { find -> { name -> find(RelationSubject.Property(definition.name, name)) } },
     )
     if (definition is ManagerTypeDefinition) {
         item {

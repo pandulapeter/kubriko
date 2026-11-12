@@ -631,7 +631,11 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   disagree about what matches.
 - Quick open (Cmd/Ctrl+P, or Shift twice) offers what a page can mention, plus every type's Properties, and opens the
   chosen one in the center as the sidebar does, or, for what Creator has no editor for (sounds, music, Kotlin), in the
-  system's app as a page's link does. The search shortcuts are read before the focused element sees the key
+  system's app as a page's link does.
+- Find usages (the menu of a sidebar row or a Property's row) opens the Search panel on the same `ProjectReferences` a
+  delete reads (`find_usages` for the AI), read off the change lock and again after every change, still showing the
+  last list meanwhile but never another subject's; each result goes to its place (`UsageOpening`), a Scene with the
+  type's Actors there selected. The search shortcuts are read before the focused element sees the key
   (`SearchShortcuts`, on the workspace's `onPreviewKeyEvent`), so a text field never swallows them, and `DoubleShift`
   counts a Shift only when pressed alone.
 - Opening a closed folder, Kotlin container, group, or module opens it with every folder in it closed, so a deep tree opens

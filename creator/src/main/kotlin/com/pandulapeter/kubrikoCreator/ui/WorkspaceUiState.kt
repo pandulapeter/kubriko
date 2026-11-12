@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.commands.screenplay.AddDocumentToScreenplay
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeleteDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeletePage
+import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettingsPage
 import com.pandulapeter.kubrikoCreator.ui.sprites.SpriteEditorState
 
@@ -95,6 +96,20 @@ internal class WorkspaceUiState {
 
     fun hideQuickOpen() {
         isQuickOpenShown = false
+    }
+
+    /**
+     * What the Search panel lists the usages of, or null while it searches the project's texts.
+     */
+    var usagesSubject: RelationSubject? by mutableStateOf(null)
+        private set
+
+    /**
+     * Opens the Search panel on what refers to [subject].
+     */
+    fun findUsages(subject: RelationSubject) {
+        usagesSubject = subject
+        openPanel = SidePanel.SEARCH
     }
 
     /**

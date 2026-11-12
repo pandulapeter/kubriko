@@ -9,18 +9,32 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
-import com.pandulapeter.kubrikoCreator.context.RelationSubject
+import com.pandulapeter.kubrikoCreator.actors.ResourceKind
+import com.pandulapeter.kubrikoCreator.context.RelationPlace
 import com.pandulapeter.kubrikoCreator.context.Usage
+import com.pandulapeter.kubrikoCreator.context.UsagePlace
+import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
+import com.pandulapeter.kubrikoCreator.workspace.RevealedPlace
 import com.pandulapeter.kubrikoCreator.workspace.SelectionController
 
 /**
- * Shows the Actor type, Manager type, Scene, or page [usage] is in ([placeOwner]), if it is in one.
+ * Shows where [usage] is, lit up: the Event or Block of a type, a Manager type for its texts and Kotlin UI, a Scene with
+ * its Actors of [actorIds] selected, a page or document, or a sprite.
+ *
+ * @return False for a place the center has no view of (hand-written Kotlin, sounds and music, the game's settings),
+ *   which the caller opens its own way, if at all.
  */
-internal fun SelectionController.open(usage: Usage) {
-    when (val owner = usage.placeOwner) {
-        is RelationSubject.Type -> selectType(owner.name)
-        is RelationSubject.Scene -> openScene(owner.name)
-        is RelationSubject.Page -> openPage(owner.name)
-        is RelationSubject.Property, is RelationSubject.Image, is RelationSubject.Resource, is RelationSubject.Timer, is RelationSubject.Folder, null -> Unit
+internal fun SelectionController.open(usage: Usage, actorIds: List<String> = emptyList()): Boolean {
+    when (val place = usage.place) {
+        is UsagePlace.InModel -> when (val inModel = place.place) {
+            is RelationPlace.Type -> selectType(inModel.name, RevealedPlace.InType(inModel.name, inModel.eventIndex, inModel.blockIndex))
+            is RelationPlace.Text -> selectType(inModel.manager, RevealedPlace.InType(inModel.manager))
+            is RelationPlace.KotlinUi -> selectType(inModel.manager, RevealedPlace.InType(inModel.manager))
+            is RelationPlace.Scene -> openScene(inModel.name, actorIds)
+        }
+        is UsagePlace.Markdown -> PageNaming.nameOf(place.path)?.let(::openPage) ?: openDocument(place.path)
+        is UsagePlace.ResourceFile -> if (ResourceKind.of(place.path) == ResourceKind.SPRITE) openSprite(place.path) else return false
+        is UsagePlace.KotlinFile, UsagePlace.GameSettings -> return false
     }
+    return true
 }

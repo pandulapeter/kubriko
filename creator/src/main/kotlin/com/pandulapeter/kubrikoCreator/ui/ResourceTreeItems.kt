@@ -20,9 +20,11 @@ import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.action_find_usages
 import kubriko.creator.generated.resources.action_rename
 import kubriko.creator.generated.resources.ic_delete
 import kubriko.creator.generated.resources.ic_edit
+import kubriko.creator.generated.resources.ic_search
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -159,6 +161,7 @@ private fun ResourceTreeItem(
             },
             actions = if (canChange) {
                 listOf(
+                    ContextAction(stringResource(Res.string.action_find_usages), Res.drawable.ic_search) { actions.onFindUsages(group, row.name) },
                     ContextAction(stringResource(Res.string.action_rename), Res.drawable.ic_edit) { onNamingChange(SidebarNaming.RenamedItem(group, row.name)) },
                     ContextAction(stringResource(group.deleteItemLabel), Res.drawable.ic_delete, isDestructive = true) { actions.onDeleteItem(group, row.name) },
                 )

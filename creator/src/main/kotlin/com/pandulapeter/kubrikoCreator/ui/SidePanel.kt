@@ -15,4 +15,5 @@ package com.pandulapeter.kubrikoCreator.ui
 internal enum class SidePanel {
     AI,
     VERSION_CONTROL,
+    SEARCH,
 }

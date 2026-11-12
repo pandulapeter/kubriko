@@ -59,12 +59,14 @@ import com.pandulapeter.kubrikoCreator.ui.components.rightClickMenu
 import com.pandulapeter.kubrikoCreator.ui.toFieldError
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_add_property
+import kubriko.creator.generated.resources.action_find_usages
 import kubriko.creator.generated.resources.action_remove
 import kubriko.creator.generated.resources.actor_type_inherited_property
 import kubriko.creator.generated.resources.actor_type_properties
 import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_property
+import kubriko.creator.generated.resources.ic_search
 import kubriko.creator.generated.resources.property_initial_value
 import kubriko.creator.generated.resources.property_name
 import kubriko.creator.generated.resources.property_toggle_initially_on
@@ -82,6 +84,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param onRenamed Called with a Property's current name and what it should become, for a new name, returning why the
  *   Property can't have it.
  * @param flashedProperty What makes a Property's row light up, and the name of that Property.
+ * @param onFindUsages Lists what refers to the Property of the given name, or null where nothing can.
  */
 internal fun LazyListScope.propertyListItems(
     properties: List<PropertyDefinition>,
@@ -93,6 +96,7 @@ internal fun LazyListScope.propertyListItems(
     onRemoved: (name: String) -> Unit,
     inheritedProperties: List<PropertyDefinition> = emptyList(),
     flashedProperty: Pair<Any, String>? = null,
+    onFindUsages: ((name: String) -> Unit)? = null,
 ) {
     item {
         PanelHeader(
@@ -139,6 +143,7 @@ internal fun LazyListScope.propertyListItems(
             onChange = { onChanged(property.name, it) },
             onRename = { onRenamed(property.name, property.withName(it)) },
             onRemove = { onRemoved(property.name) },
+            onFindUsages = onFindUsages?.let { find -> { find(property.name) } },
         )
     }
     item {
@@ -162,6 +167,7 @@ private fun PropertyRow(
     onChange: (PropertyDefinition) -> Unit,
     onRename: (String) -> Rejection?,
     onRemove: () -> Unit,
+    onFindUsages: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val hover = rememberHoverRevealState()
@@ -191,7 +197,13 @@ private fun PropertyRow(
             )
             Box {
                 IconActionButton(modifier = Modifier.revealedWhen(hover.isActive), icon = Res.drawable.ic_close, label = Res.string.action_remove, onClick = onRemove)
-                RightClickMenu(menu, listOf(ContextAction(stringResource(Res.string.action_remove), Res.drawable.ic_close, isDestructive = true, onClick = onRemove)))
+                RightClickMenu(
+                    menu,
+                    listOfNotNull(
+                        onFindUsages?.let { ContextAction(stringResource(Res.string.action_find_usages), Res.drawable.ic_search, onClick = it) },
+                        ContextAction(stringResource(Res.string.action_remove), Res.drawable.ic_close, isDestructive = true, onClick = onRemove),
+                    ),
+                )
             }
         }
         renameRejection?.let { FieldErrorText(it.toFieldError(), Modifier.padding(start = 22.dp)) }

@@ -14,8 +14,11 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performMouseInput
+import androidx.compose.ui.test.rightClick
 import com.pandulapeter.kubrikoCreator.ai.assistant.AcpAgent
 import com.pandulapeter.kubrikoCreator.ai.assistant.Assistant
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
@@ -150,5 +153,17 @@ class WorkspaceScreenTest {
         onNode(tab("Blocks")).performClick()
         awaitText("Movement")
         saveSnapshot("workspace-narrowest")
+    }
+
+    @Test
+    fun findingUsagesFromTheSidebarListsWhatRefersToATypeAndGoesThere() = showingTheBall(1600, 1000, isAiPanelOpen = false) {
+        onAllNodesWithText("Brick").onFirst().performMouseInput { rightClick() }
+        onNodeWithText("Find usages").performClick()
+        awaitText("Usages of Brick")
+        awaitText("Based on Brick")
+        onNodeWithText("Collides with Brick").assertExists()
+        saveSnapshot("workspace-usages")
+        onNodeWithText("Based on Brick").performClick()
+        awaitText("a brick worth more")
     }
 }

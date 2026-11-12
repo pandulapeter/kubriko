@@ -29,6 +29,7 @@ public object PanelWidths {
         SIDEBAR(260.dp, "sidebar", PanelSide.START),
         AI(360.dp, "ai", PanelSide.END),
         VERSION_CONTROL(300.dp, "versionControl", PanelSide.END),
+        SEARCH(320.dp, "search", PanelSide.END),
         SCENE_ACTORS(220.dp, "sceneActors", PanelSide.START),
         SCENE_INSPECTOR(260.dp, "sceneInspector", PanelSide.END),
         CONSOLE(200.dp, "console", PanelSide.BOTTOM),

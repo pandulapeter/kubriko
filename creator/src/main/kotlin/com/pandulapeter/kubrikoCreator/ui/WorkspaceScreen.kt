@@ -103,6 +103,7 @@ internal fun WorkspaceScreen(
         LocalHealthHints provides rememberHealthHints(controller.health.findings, controller.blockTypes?.types),
         LocalWritersRoom provides rememberWritersRoom(uiState::showAssistant, assistant::startWritersRoom),
         LocalPageReviews provides rememberPageReviews(assistant.chats, controller.commands.history),
+        LocalUsageFinder provides uiState::findUsages,
     ) {
         WorkspaceContent(
             controller = controller,
@@ -173,11 +174,11 @@ private fun WorkspaceContent(
             HorizontalDivider()
             WorkspaceNotices(uiState = uiState, aiSteps = aiSteps, readOnlyReason = readOnlyReason, isUpgradeNeeded = projectUpgrade != null)
             val isAiPanelShown = uiState.openPanel == SidePanel.AI && isAiEnabled
-            val isGitPanelShown = uiState.openPanel == SidePanel.VERSION_CONTROL
+            val isOtherPanelShown = uiState.openPanel == SidePanel.VERSION_CONTROL || uiState.openPanel == SidePanel.SEARCH
             BoxWithConstraints(
                 modifier = Modifier.fillMaxWidth().weight(1f),
             ) {
-                val row = PanelRow(maxWidth, panelsInRow = if (isAiPanelShown || isGitPanelShown) 2 else 1)
+                val row = PanelRow(maxWidth, panelsInRow = if (isAiPanelShown || isOtherPanelShown) 2 else 1)
                 val sidebarWidth = rememberPanelWidth(Panel.SIDEBAR, panelLayout)
                 Row(Modifier.fillMaxSize()) {
                     ProjectSidebar(
@@ -355,6 +356,7 @@ private fun WorkspaceSidePanel(
             row = row,
         )
         SidePanel.VERSION_CONTROL -> WorkspaceGitSidePanelOf(controller, rememberPanelWidth(Panel.VERSION_CONTROL, panelLayout), row)
+        SidePanel.SEARCH -> WorkspaceSearchSidePanel(controller.commands, controller.selection, controller.project.rootDirectory, uiState, rememberPanelWidth(Panel.SEARCH, panelLayout), row)
     }
 }
 

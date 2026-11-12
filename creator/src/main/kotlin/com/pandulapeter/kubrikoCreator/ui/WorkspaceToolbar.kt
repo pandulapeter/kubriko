@@ -59,6 +59,7 @@ import kubriko.creator.generated.resources.action_redo
 import kubriko.creator.generated.resources.action_redo_named
 import kubriko.creator.generated.resources.action_stop
 import kubriko.creator.generated.resources.action_toggle_ai
+import kubriko.creator.generated.resources.action_toggle_search
 import kubriko.creator.generated.resources.action_toggle_version_control
 import kubriko.creator.generated.resources.action_undo
 import kubriko.creator.generated.resources.action_undo_named
@@ -67,6 +68,7 @@ import kubriko.creator.generated.resources.ic_branch
 import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_play
 import kubriko.creator.generated.resources.ic_redo
+import kubriko.creator.generated.resources.ic_search
 import kubriko.creator.generated.resources.ic_settings
 import kubriko.creator.generated.resources.ic_stop
 import kubriko.creator.generated.resources.ic_undo
@@ -153,29 +155,12 @@ internal fun WorkspaceToolbar(
         onUndo = onUndo,
         onRedo = onRedo,
     )
-    if (LocalIsAiEnabled.current) {
-        PanelToggle(
-            isOpen = openPanel == SidePanel.AI,
-            onClick = { onPanelToggled(SidePanel.AI) },
-        ) {
-            Icon(
-                modifier = Modifier.size(16.dp),
-                painter = painterResource(Res.drawable.ic_ai),
-                contentDescription = null,
-                tint = if (isAiConnected) MaterialTheme.colorScheme.primary else LocalContentColor.current,
-            )
-            Text(
-                modifier = Modifier.padding(start = 6.dp),
-                text = stringResource(Res.string.action_toggle_ai),
-            )
-        }
-    }
-    PanelToggle(
-        isOpen = openPanel == SidePanel.VERSION_CONTROL,
-        onClick = { onPanelToggled(SidePanel.VERSION_CONTROL) },
-    ) {
-        VersionControlLabel(gitState)
-    }
+    PanelToggles(
+        openPanel = openPanel,
+        onPanelToggled = onPanelToggled,
+        isAiConnected = isAiConnected,
+        gitState = gitState,
+    )
     MenuIconButton(
         icon = Res.drawable.ic_settings,
         label = Res.string.action_open_settings,
@@ -343,5 +328,54 @@ internal fun SessionState.description() = when (this) {
             PlayTarget.Kind.ANDROID -> Res.string.session_playing_on_android
             PlayTarget.Kind.IOS -> Res.string.session_playing_on_ios
         }
+    }
+}
+
+/**
+ * The buttons opening and closing the side panels: the AI's (while AI features are on), Search, and Version control.
+ */
+@Composable
+private fun PanelToggles(
+    openPanel: SidePanel?,
+    onPanelToggled: (SidePanel) -> Unit,
+    isAiConnected: Boolean,
+    gitState: StateFlow<GitState>,
+) {
+    if (LocalIsAiEnabled.current) {
+        PanelToggle(
+            isOpen = openPanel == SidePanel.AI,
+            onClick = { onPanelToggled(SidePanel.AI) },
+        ) {
+            Icon(
+                modifier = Modifier.size(16.dp),
+                painter = painterResource(Res.drawable.ic_ai),
+                contentDescription = null,
+                tint = if (isAiConnected) MaterialTheme.colorScheme.primary else LocalContentColor.current,
+            )
+            Text(
+                modifier = Modifier.padding(start = 6.dp),
+                text = stringResource(Res.string.action_toggle_ai),
+            )
+        }
+    }
+    PanelToggle(
+        isOpen = openPanel == SidePanel.SEARCH,
+        onClick = { onPanelToggled(SidePanel.SEARCH) },
+    ) {
+        Icon(
+            modifier = Modifier.size(16.dp),
+            painter = painterResource(Res.drawable.ic_search),
+            contentDescription = null,
+        )
+        Text(
+            modifier = Modifier.padding(start = 6.dp),
+            text = stringResource(Res.string.action_toggle_search),
+        )
+    }
+    PanelToggle(
+        isOpen = openPanel == SidePanel.VERSION_CONTROL,
+        onClick = { onPanelToggled(SidePanel.VERSION_CONTROL) },
+    ) {
+        VersionControlLabel(gitState)
     }
 }
