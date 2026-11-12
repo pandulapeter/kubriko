@@ -24,7 +24,7 @@
   pins) uses it.
 - Every number a Block takes is a `NumberValue` (a number, a random number between two, or a number Property's value), one
   type every field shares rather than a random variant of each Block, so a new kind of number reaches every Block at once
-  (`withNumberValues` is the one `when` that knows where they are). A fixed number stays a bare JSON number, so files only
+  (`numberValues` reads them and `withNumberValues` replaces them, and `NumberValueFieldsTest` keeps the two agreeing). A fixed number stays a bare JSON number, so files only
   change where a value is something else. `NumberValueCode` makes each one operand that allocates nothing, and every random
   number comes from the one `KubrikoWiring.random`, so a test can seed the whole game.
 - Flow stays in each Event's flat Block list (if, else, repeat, and end mark sections), so every Block keeps its plain index

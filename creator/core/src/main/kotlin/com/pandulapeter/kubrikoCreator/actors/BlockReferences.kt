@@ -163,14 +163,34 @@ internal val BlockDefinition.audioFile
     }?.ifEmpty { null }
 
 /**
- * Every number [this] Block takes, in the order its fields are declared.
+ * Every number [this] Block takes, in the order its fields are declared: the same ones [withNumberValues] replaces, read
+ * without copying the Block.
  */
 public val BlockDefinition.numberValues: List<NumberValue>
-    get() = buildList {
-        withNumberValues { value ->
-            add(value)
-            value
+    get() = when (this) {
+        is BlockDefinition.SetVelocity -> listOf(x, y)
+        is BlockDefinition.AddToVelocity -> listOf(x, y)
+        is BlockDefinition.JumpTo -> listOf(x, y)
+        is BlockDefinition.SetNumber -> listOf(value)
+        is BlockDefinition.ChangeNumber -> listOf(by)
+        is BlockDefinition.AddActor -> listOf(x, y)
+        is BlockDefinition.MoveTowardsNearest -> listOf(speed)
+        is BlockDefinition.StartTimer -> listOf(seconds)
+        is BlockDefinition.SetFrame -> listOf(frame)
+        is BlockDefinition.SetAnimation -> listOf(speed)
+        is BlockDefinition.Repeat -> listOf(times)
+        is BlockDefinition.If -> when (val condition = condition) {
+            is ConditionDefinition.Number -> listOf(condition.value)
+            is ConditionDefinition.Velocity -> listOf(condition.value)
+            is ConditionDefinition.Chance -> listOf(condition.percent)
+            is ConditionDefinition.Text, is ConditionDefinition.Toggle, is ConditionDefinition.KeyHeld, is ConditionDefinition.Paused -> emptyList()
         }
+        BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf,
+        BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther, is BlockDefinition.SetText, is BlockDefinition.SetToggle,
+        is BlockDefinition.StopTimer, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
+        is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, BlockDefinition.Else,
+        BlockDefinition.End, is BlockDefinition.Log, is BlockDefinition.Kotlin,
+        -> emptyList()
     }
 
 /**
