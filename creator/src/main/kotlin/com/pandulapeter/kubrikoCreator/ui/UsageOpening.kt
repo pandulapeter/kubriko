@@ -71,7 +71,12 @@ internal suspend fun SelectionController.goTo(usage: Usage, subject: RelationSub
 }
 
 /**
- * Whether [goTo] has somewhere to go for this usage: everywhere but a sound or music file, which Kubriko Creator has no
+ * Whether [goTo] has somewhere to go for this usage ([UsagePlace.canBeShown]).
+ */
+internal val Usage.canBeShown: Boolean get() = place.canBeShown
+
+/**
+ * Whether there is somewhere to go for this place: everywhere but a sound or music file, which Kubriko Creator has no
  * view of and names only by its path from `composeResources`.
  */
-internal val Usage.canBeShown: Boolean get() = (place as? UsagePlace.ResourceFile)?.let { ResourceKind.of(it.path) == ResourceKind.SPRITE } ?: true
+internal val UsagePlace.canBeShown: Boolean get() = (this as? UsagePlace.ResourceFile)?.let { ResourceKind.of(it.path) == ResourceKind.SPRITE } ?: true

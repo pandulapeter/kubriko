@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.context.SearchHit
+import com.pandulapeter.kubrikoCreator.ui.canBeShown
 import com.pandulapeter.kubrikoCreator.ui.components.highlighted
 import com.pandulapeter.kubrikoCreator.ui.components.matchHighlightStyle
 import com.pandulapeter.kubrikoCreator.ui.components.scrollEdgeFades
@@ -64,7 +65,7 @@ internal fun TextResults(
                 modifier = Modifier.fillMaxWidth().scrollEdgeFades(listState, MaterialTheme.colorScheme.surfaceContainerLow),
                 state = listState,
             ) {
-                items(state.results.hits) { hit -> TextHitRow(hit = hit, onClick = { onHitSelected(hit) }) }
+                items(state.results.hits) { hit -> TextHitRow(hit = hit, onClick = if (hit.place.canBeShown) ({ onHitSelected(hit) }) else null) }
                 val more = state.results.total - state.results.hits.size
                 if (more > 0) item { SearchMessage(stringResource(Res.string.search_texts_more, more)) }
             }
@@ -73,16 +74,17 @@ internal fun TextResults(
 }
 
 /**
- * One line found: where it is, with the icon of that kind of place, and the line with what matched highlighted.
+ * One line found: where it is, with the icon of that kind of place, and the line with what matched highlighted; clicked,
+ * it goes there, unless there is nowhere to go ([onClick] is null).
  */
 @Composable
 private fun TextHitRow(
     hit: SearchHit,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)?,
 ) = Row(
     modifier = Modifier
         .fillMaxWidth()
-        .clickable(onClick = onClick)
+        .clickable(enabled = onClick != null) { onClick?.invoke() }
         .padding(horizontal = 12.dp, vertical = 6.dp),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalAlignment = Alignment.CenterVertically,

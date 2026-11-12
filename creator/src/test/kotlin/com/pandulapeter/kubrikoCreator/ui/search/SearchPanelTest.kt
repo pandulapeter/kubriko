@@ -176,4 +176,23 @@ class SearchPanelTest {
     }
 
     private fun ComposeUiTest.awaitText(text: String) = waitUntil(timeoutMillis = 5_000) { onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty() }
+
+    @Test
+    fun aLineInASoundsPlaceLeadsNowhereSoItIsNotClickable() = uiTest(width = 360, height = 300) {
+        val sound = SearchHit(UsagePlace.ResourceFile("files/sounds/hit.wav"), SearchHit.Kind.NAME, "hit.wav", listOf(0..2))
+        val selected = mutableListOf<SearchHit>()
+        showing {
+            SearchPanel(
+                usagesSubject = null,
+                usages = UsagesState.Reading(null),
+                onUsageSelected = {},
+                query = "hit",
+                texts = rememberTextSearch("hit", revision = 0) { SearchResults(listOf(sound), 1) },
+                onHitSelected = { selected += it },
+            )
+        }
+        awaitText("hit.wav")
+        onNodeWithText("hit.wav").performClick()
+        assertEquals(emptyList(), selected)
+    }
 }
