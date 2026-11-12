@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.NameProblem
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
@@ -46,7 +47,7 @@ class FamilyPropertyCommandsTest {
         events = listOf(
             EventDefinition(
                 EventType.EVERY_FRAME,
-                blocks = listOf(BlockDefinition.SetNumber("health", 3f), BlockDefinition.Kotlin("health += 1f"), BlockDefinition.Log("Health: {health}")),
+                blocks = listOf(BlockDefinition.SetNumber("health", NumberValue.Fixed(3f)), BlockDefinition.Kotlin("health += 1f"), BlockDefinition.Log("Health: {health}")),
             ),
         ),
     )
@@ -77,7 +78,7 @@ class FamilyPropertyCommandsTest {
         val context = context()
         val renamed = context.assertRoundTrip(rename("Parent", "hp")) { listOf(context.type("Parent"), context.type("Child"), context.type("GrandChild")) to context.states() }
         assertEquals(listOf(PropertyDefinition.Number("hp")), renamed.first[0].properties)
-        assertEquals(listOf(BlockDefinition.SetNumber("hp", 3f), BlockDefinition.Kotlin("hp += 1f"), BlockDefinition.Log("Health: {hp}")), renamed.first[1].events[0].blocks)
+        assertEquals(listOf(BlockDefinition.SetNumber("hp", NumberValue.Fixed(3f)), BlockDefinition.Kotlin("hp += 1f"), BlockDefinition.Log("Health: {hp}")), renamed.first[1].events[0].blocks)
         assertEquals(listOf(PropertyDefinition.Number("hp", 5f)), renamed.first[2].properties)
         assertEquals(listOf("""{"hp":1.0}""", """{"hp":2.0}""", """{"hp":3.0}"""), renamed.second)
     }

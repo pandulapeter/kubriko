@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.project
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.store.KotlinBlockImportsMigration
 import com.pandulapeter.kubrikoCreator.actors.store.ManagerFieldMigration
+import com.pandulapeter.kubrikoCreator.actors.store.NumberValuesMigration
 import com.pandulapeter.kubrikoCreator.actors.store.ProjectSettingsReader
 import com.pandulapeter.kubrikoCreator.actors.store.ReservedPropertyMigration
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
@@ -89,6 +90,7 @@ public class ProjectFormat(
             KotlinBlockImportsMigration,
             ReservedPropertyMigration.LOOK,
             ReservedPropertyMigration.ANIMATION,
+            NumberValuesMigration,
         )
 
         /**

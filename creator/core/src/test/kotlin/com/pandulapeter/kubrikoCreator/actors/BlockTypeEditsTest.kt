@@ -15,7 +15,7 @@ import kotlin.test.assertSame
 
 class BlockTypeEditsTest {
     private val stop = BlockDefinition.Stop
-    private val jump = BlockDefinition.JumpTo(1f, 2f)
+    private val jump = BlockDefinition.JumpTo(NumberValue.Fixed(1f), NumberValue.Fixed(2f))
     private val remove = BlockDefinition.RemoveSelf
     private val definition = ActorTypeDefinition(
         name = "Ball",
@@ -45,7 +45,7 @@ class BlockTypeEditsTest {
     fun blocksAreInsertedReplacedAndRemovedWithinTheirEvent() {
         assertEquals(listOf(stop), definition.withBlockInserted(1, 0, stop).events[1].blocks)
         assertEquals(listOf(stop, remove, jump, remove), definition.withBlockInserted(0, 1, remove).events[0].blocks)
-        assertEquals(listOf(stop, BlockDefinition.JumpTo(5f, 5f), remove), definition.withBlockReplaced(0, 1, BlockDefinition.JumpTo(5f, 5f)).events[0].blocks)
+        assertEquals(listOf(stop, BlockDefinition.JumpTo(NumberValue.Fixed(5f), NumberValue.Fixed(5f)), remove), definition.withBlockReplaced(0, 1, BlockDefinition.JumpTo(NumberValue.Fixed(5f), NumberValue.Fixed(5f))).events[0].blocks)
         assertEquals(listOf(stop, remove), definition.withBlockRemoved(0, 1).events[0].blocks)
         assertEquals(definition.events[1], definition.withBlockRemoved(0, 1).events[1])
     }
@@ -103,6 +103,50 @@ class BlockTypeEditsTest {
         assertEquals(
             listOf(BlockDefinition.ChangeNumber("points", manager = "Game"), BlockDefinition.ChangeNumber("score"), BlockDefinition.Log("{Game.points} {score}")),
             brick.withManagerPropertyRenamed("Game", "score", "points").events.single().blocks,
+        )
+    }
+
+    @Test
+    fun renamesFollowThePropertiesBlocksReadAsNumbers() {
+        val game = NumberValue.Property("score", manager = "Game")
+        val own = NumberValue.Property("score")
+        val brick = ActorTypeDefinition(
+            name = "Brick",
+            properties = listOf(PropertyDefinition.Number("score")),
+            events = listOf(
+                EventDefinition(
+                    EventType.EVERY_FRAME,
+                    blocks = listOf(
+                        BlockDefinition.SetVelocity(x = game, y = own),
+                        BlockDefinition.If(ConditionDefinition.Chance(game)),
+                        BlockDefinition.Repeat(times = own),
+                    ),
+                ),
+            ),
+        )
+        assertEquals(
+            listOf(
+                BlockDefinition.SetVelocity(x = game.copy(property = "points"), y = own),
+                BlockDefinition.If(ConditionDefinition.Chance(game.copy(property = "points"))),
+                BlockDefinition.Repeat(times = own),
+            ),
+            brick.withManagerPropertyRenamed("Game", "score", "points").events.single().blocks,
+        )
+        assertEquals(
+            listOf(
+                BlockDefinition.SetVelocity(x = game.copy(manager = "Match"), y = own),
+                BlockDefinition.If(ConditionDefinition.Chance(game.copy(manager = "Match"))),
+                BlockDefinition.Repeat(times = own),
+            ),
+            brick.withManagerRenamed("Game", "Match").events.single().blocks,
+        )
+        assertEquals(
+            listOf(
+                BlockDefinition.SetVelocity(x = game, y = own.copy(property = "points")),
+                BlockDefinition.If(ConditionDefinition.Chance(game)),
+                BlockDefinition.Repeat(times = own.copy(property = "points")),
+            ),
+            brick.withPropertyUsesRenamed("score", "points").events.single().blocks,
         )
     }
 

@@ -20,12 +20,14 @@ import com.pandulapeter.kubrikoCreator.actors.ConditionKind
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KotlinIdentifiers
 import com.pandulapeter.kubrikoCreator.actors.KotlinUi
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
 import com.pandulapeter.kubrikoCreator.actors.PropertyReference
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
+import com.pandulapeter.kubrikoCreator.actors.numberValues
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import kotlin.math.absoluteValue
 import kotlin.math.roundToLong
@@ -55,7 +57,7 @@ public object BlockCodeGenerator {
     private const val NORMALIZED_IMPORT = "com.pandulapeter.kubriko.helpers.extensions.normalized"
     private const val LOGGER_IMPORT = "com.pandulapeter.kubriko.logger.Logger"
     private const val KEY_IMPORT = "androidx.compose.ui.input.key.Key"
-    private const val RANDOM_IMPORT = "kotlin.random.Random"
+    private const val ROUND_TO_LONG_IMPORT = "kotlin.math.roundToLong"
 
     /**
      * The statements of an Event of [eventType] that runs [blocks]: their sections become Kotlin blocks, closed at the end
@@ -92,7 +94,7 @@ public object BlockCodeGenerator {
         return when {
             kind.needsActor && scope.kind != BlockTypeKind.ACTOR -> BlockCode(listOf("// This Block only works in an Actor type."))
             kind.onlyIn != null && kind.onlyIn != eventType -> BlockCode(listOfNotNull(kind.misplacedComment))
-            else -> emittedCode(block, scope)
+            else -> emittedCode(block, scope).let { code -> code.copy(managers = code.managers + NumberValueCode.managersReadBy(block.numberValues, scope)) }
         }
     }
 
@@ -100,11 +102,11 @@ public object BlockCodeGenerator {
         block: BlockDefinition,
         scope: BlockScope,
     ): BlockCode = when (block) {
-        is BlockDefinition.SetVelocity -> movementCode("velocity = ${offsetLiteral(block.x, block.y)}")
-        is BlockDefinition.AddToVelocity -> movementCode("velocity += ${offsetLiteral(block.x, block.y)}")
+        is BlockDefinition.SetVelocity -> movementCode("velocity = ${offsetCode(block.x, block.y, scope)}")
+        is BlockDefinition.AddToVelocity -> movementCode("velocity += ${offsetCode(block.x, block.y, scope)}")
         BlockDefinition.Stop -> movementCode("velocity = SceneOffset.Zero")
         BlockDefinition.RunParentEvent -> BlockCode(listOf(scope.parentEventCall ?: "// Only an Actor type with a parent runs its parent's Event."))
-        is BlockDefinition.JumpTo -> movementCode("body.position = ${offsetLiteral(block.x, block.y)}")
+        is BlockDefinition.JumpTo -> movementCode("body.position = ${offsetCode(block.x, block.y, scope)}")
         BlockDefinition.BounceOffEdge -> BlockCode(
             lines = listOf(
                 "if (isTouchingLeftEdge) velocity = SceneOffset(velocity.x.raw.absoluteValue.sceneUnit, velocity.y)",
@@ -118,20 +120,13 @@ public object BlockCodeGenerator {
         BlockDefinition.RemoveSelf -> BlockCode(listOf("$REMOVED_FIELD = true", "actorManager.remove(this)"), needs = setOf(BlockNeed.ACTOR_MANAGER))
         BlockDefinition.BounceOffOther -> BlockCode(listOf("$BOUNCE_OFF_FUNCTION(other)"), needs = setOf(BlockNeed.MOVEMENT, BlockNeed.BOUNCE_OFF))
         BlockDefinition.RemoveOther -> BlockCode(listOf("other.$REMOVED_FIELD = true", "actorManager.remove(other)"), needs = setOf(BlockNeed.ACTOR_MANAGER))
-        is BlockDefinition.SetNumber -> propertyCode(block, scope) { "$it = ${floatLiteral(block.value)}" }
-        is BlockDefinition.ChangeNumber -> propertyCode(block, scope) { "$it += ${floatLiteral(block.by)}" }
+        is BlockDefinition.SetNumber -> propertyCode(block, scope) { "$it = ${NumberValueCode.float(block.value, scope)}" }
+        is BlockDefinition.ChangeNumber -> propertyCode(block, scope) { "$it += ${NumberValueCode.float(block.by, scope)}" }
         is BlockDefinition.SetText -> propertyCode(block, scope) { "$it = ${stringLiteral(block.value)}" }
         is BlockDefinition.SetToggle -> propertyCode(block, scope) { "$it = ${block.value}" }
         is BlockDefinition.AddActor -> addActorCode(block, scope)
         is BlockDefinition.MoveTowardsNearest -> moveTowardsNearestCode(block, scope)
-        is BlockDefinition.StartTimer -> BlockCode(
-            if (TimerNaming.isValid(block.timer)) {
-                val milliseconds = (block.seconds * 1000).roundToLong().coerceAtLeast(1)
-                listOf("${TimerNaming.remainingField(block.timer)} = $milliseconds", "${TimerNaming.periodField(block.timer)} = ${if (block.isRepeating) milliseconds else 0}")
-            } else {
-                listOf("// Give this Block's Timer a name made of letters and digits.")
-            },
-        )
+        is BlockDefinition.StartTimer -> startTimerCode(block, scope)
         is BlockDefinition.StopTimer -> BlockCode(listOf(if (TimerNaming.isValid(block.timer)) "${TimerNaming.remainingField(block.timer)} = 0" else "// Give this Block's Timer a name made of letters and digits."))
         is BlockDefinition.GoToScene -> if (block.scene.isNotEmpty()) {
             BlockCode(listOf("$SCENES_FIELD.goTo(${stringLiteral(block.scene)})"), needs = setOf(BlockNeed.SCENES))
@@ -160,10 +155,10 @@ public object BlockCodeGenerator {
             BlockCode(listOf("// Choose music for this Block."))
         }
         BlockDefinition.StopMusic -> BlockCode(listOf("$AUDIO_FIELD.stopMusic()"), needs = setOf(BlockNeed.AUDIO))
-        is BlockDefinition.SetFrame -> animationCode(scope, BlockNeed.FRAME, "$SET_FRAME_FUNCTION(${block.frame.coerceAtLeast(0)})")
-        is BlockDefinition.SetAnimation -> animationCode(scope, BlockNeed.ANIMATION, "$ANIMATION_SPEED_FIELD = ${floatLiteral(block.speed)}", "$ANIMATION_LOOPING_FIELD = ${block.isLooping}")
+        is BlockDefinition.SetFrame -> animationCode(scope, BlockNeed.FRAME, "$SET_FRAME_FUNCTION(${NumberValueCode.whole(block.frame, scope)})")
+        is BlockDefinition.SetAnimation -> animationCode(scope, BlockNeed.ANIMATION, "$ANIMATION_SPEED_FIELD = ${NumberValueCode.float(block.speed, scope)}", "$ANIMATION_LOOPING_FIELD = ${block.isLooping}")
         is BlockDefinition.If -> conditionCode(block, scope).let { condition -> condition.copy(lines = listOf("if (${condition.lines.single()}) {")) }
-        is BlockDefinition.Repeat -> BlockCode(listOf("repeat(${block.times.coerceAtLeast(0)}) {"))
+        is BlockDefinition.Repeat -> BlockCode(listOf("repeat(${NumberValueCode.whole(block.times, scope)}) {"))
         BlockDefinition.Else, BlockDefinition.End -> BlockCode.NONE
         is BlockDefinition.Log -> logCode(block, scope)
         is BlockDefinition.Kotlin -> kotlinCode(block, scope)
@@ -175,10 +170,30 @@ public object BlockCodeGenerator {
         BlockCode(listOf("// This Block only works in an Actor type whose sprite is cut into frames."))
     }
 
+    /**
+     * Starting a Timer for a fixed time is worked out here; any other time is worked out when the Block runs, in the
+     * remaining field, which the period then copies.
+     */
+    private fun startTimerCode(block: BlockDefinition.StartTimer, scope: BlockScope): BlockCode {
+        if (!TimerNaming.isValid(block.timer)) return BlockCode(listOf("// Give this Block's Timer a name made of letters and digits."))
+        val remaining = TimerNaming.remainingField(block.timer)
+        val period = TimerNaming.periodField(block.timer)
+        val seconds = block.seconds
+        return if (seconds is NumberValue.Fixed) {
+            val milliseconds = (seconds.value * 1000).roundToLong().coerceAtLeast(1)
+            BlockCode(listOf("$remaining = $milliseconds", "$period = ${if (block.isRepeating) milliseconds else 0}"))
+        } else {
+            BlockCode(
+                lines = listOf("$remaining = (${NumberValueCode.float(seconds, scope)} * 1000f).roundToLong().coerceAtLeast(1)", "$period = ${if (block.isRepeating) remaining else "0"}"),
+                imports = setOf(ROUND_TO_LONG_IMPORT),
+            )
+        }
+    }
+
     private fun movementCode(line: String) = BlockCode(listOf(line), needs = setOf(BlockNeed.MOVEMENT), imports = setOf(SCENE_OFFSET_IMPORT))
 
     private fun addActorCode(block: BlockDefinition.AddActor, scope: BlockScope) = if (block.actorType in scope.actorTypeNames) {
-        val position = offsetLiteral(block.x, block.y)
+        val position = offsetCode(block.x, block.y, scope)
         val isActor = scope.kind == BlockTypeKind.ACTOR
         BlockCode(
             lines = listOf("actorManager.add(${block.actorType}.metadata.instantiate(${if (block.isRelative && isActor) "body.position + $position" else position}).restore())"),
@@ -209,7 +224,7 @@ public object BlockCodeGenerator {
                 "            nearestDistanceSquared = distanceSquared",
                 "        }",
                 "    }",
-                "    if (nearest != null) velocity = (nearest.body.position - body.position).normalized() * ${floatLiteral(block.speed)}",
+                "    if (nearest != null) velocity = (nearest.body.position - body.position).normalized() * ${NumberValueCode.float(block.speed, scope)}",
                 "}",
             ),
             needs = setOf(BlockNeed.MOVEMENT, BlockNeed.ACTOR_MANAGER),
@@ -268,7 +283,7 @@ public object BlockCodeGenerator {
         val property = reference?.let { propertyExpression(it, scope) }
         val managers = managersReachedBy(reference?.manager, scope)
         return when (condition) {
-            is ConditionDefinition.Number -> BlockCode(listOf("$property ${condition.comparison.operator} ${floatLiteral(condition.value)}"), managers = managers)
+            is ConditionDefinition.Number -> BlockCode(listOf("$property ${condition.comparison.operator} ${NumberValueCode.float(condition.value, scope)}"), managers = managers)
             is ConditionDefinition.Text -> BlockCode(listOf("$property ${if (condition.isEqual) "==" else "!="} ${stringLiteral(condition.value)}"), managers = managers)
             is ConditionDefinition.Toggle -> BlockCode(listOf(if (condition.isOn) "$property" else "!$property"), managers = managers)
             is ConditionDefinition.KeyHeld -> if (condition.key.isKnown) {
@@ -281,10 +296,10 @@ public object BlockCodeGenerator {
                 BlockCode(listOf((!condition.isHeld).toString()))
             }
             is ConditionDefinition.Velocity -> BlockCode(
-                lines = listOf("velocity.${if (condition.axis == Axis.HORIZONTAL) "x" else "y"} ${condition.comparison.operator} ${unitLiteral(condition.value)}"),
+                lines = listOf("velocity.${if (condition.axis == Axis.HORIZONTAL) "x" else "y"} ${condition.comparison.operator} ${NumberValueCode.sceneUnit(condition.value, scope)}"),
                 needs = setOf(BlockNeed.MOVEMENT),
             )
-            is ConditionDefinition.Chance -> BlockCode(listOf("Random.nextFloat() * 100f < ${floatLiteral(condition.percent)}"), imports = setOf(RANDOM_IMPORT))
+            is ConditionDefinition.Chance -> BlockCode(listOf("${ManagerTypeCodeGenerator.WIRING_NAME}.${ManagerTypeCodeGenerator.RANDOM_FIELD}.nextFloat() * 100f < ${NumberValueCode.float(condition.percent, scope)}"))
             is ConditionDefinition.Paused -> BlockCode(listOf((if (condition.isPaused) "!" else "") + "$STATE_MANAGER_FIELD.isRunning.value"), needs = setOf(BlockNeed.STATE_MANAGER))
         }
     }
@@ -307,7 +322,7 @@ public object BlockCodeGenerator {
      * A type's own Property by its name, and a Manager type's through the field the generated class keeps it in
      * ([managersReachedBy] names that Manager type).
      */
-    private fun propertyExpression(reference: PropertyReference, scope: BlockScope) = scope.ownerOf(reference.manager).let { owner ->
+    internal fun propertyExpression(reference: PropertyReference, scope: BlockScope) = scope.ownerOf(reference.manager).let { owner ->
         if (owner == "this") reference.name else "$owner.${reference.name}"
     }
 
@@ -382,7 +397,7 @@ public object BlockCodeGenerator {
         is PropertyDefinition.Toggle -> property.initialValue.toString()
     }
 
-    private fun offsetLiteral(x: Float, y: Float) = "SceneOffset(${unitLiteral(x)}, ${unitLiteral(y)})"
+    private fun offsetCode(x: NumberValue, y: NumberValue, scope: BlockScope) = "SceneOffset(${NumberValueCode.sceneUnit(x, scope)}, ${NumberValueCode.sceneUnit(y, scope)})"
 
     internal fun unitLiteral(value: Float) = "${floatLiteral(value)}.sceneUnit"
 

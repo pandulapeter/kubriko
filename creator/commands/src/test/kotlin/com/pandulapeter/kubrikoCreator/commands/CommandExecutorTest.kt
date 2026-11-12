@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.NameProblem
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddEvent
@@ -70,7 +71,7 @@ import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class CommandExecutorTest {
-    private val ball = ActorTypeDefinition(name = "Ball", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetVelocity(1f, 1f)))))
+    private val ball = ActorTypeDefinition(name = "Ball", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetVelocity(NumberValue.Fixed(1f), NumberValue.Fixed(1f))))))
     private val rejections = mutableListOf<Rejection>()
 
     private fun TestScope.executor(vararg definitions: ActorTypeDefinition) = commandContext(*definitions).let { context ->
@@ -191,7 +192,7 @@ class CommandExecutorTest {
         val (executor, context) = executor(ball)
         listOf(1f, 12f, 123f).forEach { executor.execute(width(it)) }
         executor.execute(Invocation(SetAppearance, SetAppearance.Input("Ball", height = 5f)))
-        listOf(2f, 3f).forEach { executor.execute(Invocation(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.SetVelocity(it, 1f)))) }
+        listOf(2f, 3f).forEach { executor.execute(Invocation(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.SetVelocity(NumberValue.Fixed(it), NumberValue.Fixed(1f))))) }
         assertEquals(3, executor.history.value.undoable.size)
         assertEquals("edit_block", executor.history.value.nextUndoCommandName)
         executor.undo()
@@ -236,7 +237,7 @@ class CommandExecutorTest {
         assertEquals("set_appearance", executor.history.value.nextUndoCommandName)
         val event = buildJsonObject { put("actorType", "Ball"); put("eventIndex", 0); put("blockIndex", 0); put("block", buildJsonObject { put("type", "jumpTo"); put("x", 5) }) }
         assertIs<CommandOutcome.Success>(executor.call("edit_block", event))
-        assertEquals(BlockDefinition.JumpTo(5f, 0f), context.blockTypes["Ball"]!!.events[0].blocks[0])
+        assertEquals(BlockDefinition.JumpTo(NumberValue.Fixed(5f), NumberValue.Fixed(0f)), context.blockTypes["Ball"]!!.events[0].blocks[0])
     }
 
     @Test
@@ -606,7 +607,7 @@ class CommandExecutorTest {
 
     private fun resizeTo(width: Float) = Invocation(SetActorValues, SetActorValues.Input("level", "i0", width = width))
 
-    private fun editBlock(x: Float) = Invocation(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.SetVelocity(x, 1f)))
+    private fun editBlock(x: Float) = Invocation(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.SetVelocity(NumberValue.Fixed(x), NumberValue.Fixed(1f))))
 
     private fun changedOutside(name: String) = CommandOutcome.Rejected(Rejection(CommandProblem.CHANGED_OUTSIDE, name))
 
@@ -616,7 +617,7 @@ class CommandExecutorTest {
         val context = commandContext(blockTypes = blockTypesController(repository = repository))
         val executor = executorOver(context)
         executor.execute(editBlock(2f))
-        val reordered = ball.copy(events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Stop, BlockDefinition.SetVelocity(2f, 1f)))))
+        val reordered = ball.copy(events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Stop, BlockDefinition.SetVelocity(NumberValue.Fixed(2f), NumberValue.Fixed(1f))))))
         repository.stored["Ball"] = reordered
         context.blockTypes!!.reload()
         assertEquals(changedOutside("Ball"), executor.step(isUndo = true))

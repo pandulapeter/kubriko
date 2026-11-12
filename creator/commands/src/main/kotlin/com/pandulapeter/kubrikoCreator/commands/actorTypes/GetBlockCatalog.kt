@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.JsonSchema
@@ -31,7 +32,8 @@ import kotlinx.serialization.json.putJsonArray
 public object GetBlockCatalog : ReadCommand<NoInput> {
     override val name: String = "get_block_catalog"
     override val description: String = "Lists every Event an Actor type or Manager type can react to and every Block an Event can run: what each one does, " +
-        "which Events allow which Blocks (in an Actor type; a Manager type has no Blocks that need an Actor), and the properties of each Block."
+        "which Events allow which Blocks (in an Actor type; a Manager type has no Blocks that need an Actor), the properties of each Block, " +
+        "and what any number of a Block can be besides a number (numberValue)."
     override val inputSerializer: KSerializer<NoInput> = NoInput.serializer()
     override val readsProject: Boolean = false
 
@@ -53,6 +55,7 @@ public object GetBlockCatalog : ReadCommand<NoInput> {
                     })
                 }
             }
+            put("numberValue", JsonSchema.expanded(NumberValue.serializer().descriptor))
             putJsonArray("blocks") {
                 BlockKind.entries.forEach { kind ->
                     add(buildJsonObject {

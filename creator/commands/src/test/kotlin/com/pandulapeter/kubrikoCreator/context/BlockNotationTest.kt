@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -29,12 +30,18 @@ class BlockNotationTest {
 
     @Test
     fun blocksReadAsTheEditorShowsThem() {
-        assertEquals("Change score of Game by 10", BlockNotation.of(BlockDefinition.ChangeNumber("score", 10f, manager = "Game")))
-        assertEquals("Set velocity to (200, -0.5)", BlockNotation.of(BlockDefinition.SetVelocity(200f, -0.5f)))
+        assertEquals("Change score of Game by 10", BlockNotation.of(BlockDefinition.ChangeNumber("score", NumberValue.Fixed(10f), manager = "Game")))
+        assertEquals("Set velocity to (200, -0.5)", BlockNotation.of(BlockDefinition.SetVelocity(NumberValue.Fixed(200f), NumberValue.Fixed(-0.5f))))
         assertEquals("Add an Actor of (none) at (0, 0) from this Actor", BlockNotation.of(BlockDefinition.AddActor()))
-        assertEquals("Start Timer spawn for 2 s, repeating", BlockNotation.of(BlockDefinition.StartTimer("spawn", 2f, isRepeating = true)))
-        assertEquals("If lives of Game is at most 0", BlockNotation.of(BlockDefinition.If(ConditionDefinition.Number("lives", Comparison.LESS_OR_EQUAL, 0f, "Game"))))
+        assertEquals("Start Timer spawn for 2 s, repeating", BlockNotation.of(BlockDefinition.StartTimer("spawn", NumberValue.Fixed(2f), isRepeating = true)))
+        assertEquals("If lives of Game is at most 0", BlockNotation.of(BlockDefinition.If(ConditionDefinition.Number("lives", Comparison.LESS_OR_EQUAL, NumberValue.Fixed(0f), "Game"))))
         assertEquals("Write to the console \"Say \\\"hi\\\"\\n\"", BlockNotation.of(BlockDefinition.Log("Say \"hi\"\n")))
+        assertEquals(
+            "Set velocity to (a random number from -50 to 50, speed of Game)",
+            BlockNotation.of(BlockDefinition.SetVelocity(NumberValue.Random(-50f, 50f), NumberValue.Property("speed", manager = "Game"))),
+        )
+        assertEquals("Repeat a random whole number from 1 to 3 times", BlockNotation.of(BlockDefinition.Repeat(NumberValue.Random(1f, 3f, isWhole = true))))
+        assertEquals("If by chance ((none)%)", BlockNotation.of(BlockDefinition.If(ConditionDefinition.Chance(NumberValue.Property()))))
     }
 
     @Test
@@ -45,7 +52,7 @@ class BlockNotationTest {
             blocks = listOf(
                 BlockDefinition.RemoveOther,
                 BlockDefinition.If(ConditionDefinition.KeyHeld(KeyChoice.SPACE)),
-                BlockDefinition.ChangeNumber("score", 10f, manager = "Game"),
+                BlockDefinition.ChangeNumber("score", NumberValue.Fixed(10f), manager = "Game"),
                 BlockDefinition.End,
             ),
         )

@@ -26,6 +26,11 @@ public enum class UsageEffect(
     PLACEHOLDER_TO_TEXT("the placeholder becomes plain text"),
 
     /**
+     * A Block reading a deleted Property as one of its numbers, which then becomes the Property's starting value.
+     */
+    VALUE_TO_NUMBER("the Property's value becomes a fixed number"),
+
+    /**
      * Kotlin Kubriko Creator never rewrites, so the build fails until it is changed by hand.
      */
     KOTLIN_TO_CHANGE("left as it is, so the build fails until it is changed"),

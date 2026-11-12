@@ -42,10 +42,18 @@ internal object JsonSchema {
      */
     const val TYPE_PROPERTY = "type"
 
+    private const val BARE_VALUE_DESCRIPTION = "Written as it is, without an object around it."
+
     fun of(descriptor: SerialDescriptor): JsonObject = schema(descriptor, description = descriptor.description)
 
-    private fun schema(descriptor: SerialDescriptor, description: String?): JsonObject = if (descriptor.isNullable) {
-        JsonObject(nonNullSchema(descriptor, description).mapValues { (key, value) ->
+    /**
+     * The schema of [descriptor] listing every subclass even when it is marked [SummarizedSchema]: what the read tool
+     * describing a summarized type hands out.
+     */
+    fun expanded(descriptor: SerialDescriptor): JsonObject = schema(descriptor, description = descriptor.description, isSummarized = false)
+
+    private fun schema(descriptor: SerialDescriptor, description: String?, isSummarized: Boolean = true): JsonObject = if (descriptor.isNullable) {
+        JsonObject(nonNullSchema(descriptor, description, isSummarized).mapValues { (key, value) ->
             when (key) {
                 "type" -> buildJsonArray { add(value); add("null") }
                 "enum" -> buildJsonArray { value.jsonArray.forEach { add(it) }; add(JsonNull) }
@@ -54,10 +62,10 @@ internal object JsonSchema {
             }
         })
     } else {
-        nonNullSchema(descriptor, description)
+        nonNullSchema(descriptor, description, isSummarized)
     }
 
-    private fun nonNullSchema(descriptor: SerialDescriptor, description: String?): JsonObject = buildJsonObject {
+    private fun nonNullSchema(descriptor: SerialDescriptor, description: String?, isSummarized: Boolean): JsonObject = buildJsonObject {
         if (descriptor.serialName == JsonObject.serializer().descriptor.serialName) put("type", "object") else when (val kind = descriptor.kind) {
             PrimitiveKind.STRING, PrimitiveKind.CHAR -> put("type", "string")
             PrimitiveKind.BOOLEAN -> put("type", "boolean")
@@ -72,17 +80,27 @@ internal object JsonSchema {
                 put("items", schema(descriptor.getElementDescriptor(0), descriptor.getElementDescriptor(0).description))
             }
             StructureKind.CLASS, StructureKind.OBJECT -> putObjectProperties(descriptor, discriminator = null)
-            PolymorphicKind.SEALED -> descriptor.summary?.let { summary -> putSummary(descriptor, summary) } ?: put("oneOf", buildJsonArray {
+            PolymorphicKind.SEALED -> descriptor.summary?.takeIf { isSummarized }?.let { summary -> putSummary(descriptor, summary) } ?: put("oneOf", buildJsonArray {
                 descriptor.getElementDescriptor(1).elementDescriptors.forEach { subclass ->
-                    add(buildJsonObject {
-                        putObjectProperties(subclass, discriminator = subclass.serialName)
-                        subclass.description?.let { put("description", it) }
-                    })
+                    add(
+                        if (subclass.kind is PrimitiveKind) {
+                            JsonObject(schema(subclass, description = null) + ("description" to JsonPrimitive(BARE_VALUE_DESCRIPTION)))
+                        } else {
+                            buildJsonObject {
+                                putObjectProperties(subclass, discriminator = subclass.serialName)
+                                subclass.description?.let { put("description", it) }
+                            }
+                        },
+                    )
                 }
             })
             else -> error("${descriptor.serialName} is a $kind, which command inputs don't support.")
         }
-        val values = if (descriptor.kind == SerialKind.ENUM) descriptor.summary ?: descriptor.enumValueDescriptions() else null
+        val values = when {
+            descriptor.kind == SerialKind.ENUM -> descriptor.summary ?: descriptor.enumValueDescriptions()
+            descriptor.kind == PolymorphicKind.SEALED && isSummarized && descriptor.bareValue != null -> descriptor.summary
+            else -> null
+        }
         val text = listOfNotNull(description, values).joinToString(" ").ifEmpty { null }
         text?.let { put("description", it) }
     }
@@ -101,7 +119,18 @@ internal object JsonSchema {
         put("additionalProperties", false)
     }
 
+    /**
+     * A summarized sealed type whose first subclass is written as a bare value (a [com.pandulapeter.kubrikoCreator.actors.NumberValue]'s
+     * number) is that value or an object, which the summary describes after the property's own description.
+     */
     private fun JsonObjectBuilder.putSummary(descriptor: SerialDescriptor, summary: String) {
+        descriptor.bareValue?.let { bareValue ->
+            putJsonArray("type") {
+                add(checkNotNull(schema(bareValue, description = null)["type"]))
+                add("object")
+            }
+            return
+        }
         put("type", "object")
         putJsonObject("properties") {
             putJsonObject(TYPE_PROPERTY) {
@@ -115,6 +144,8 @@ internal object JsonSchema {
 
     private fun SerialDescriptor.enumValueDescriptions() =
         (0 until elementsCount).mapNotNull { index -> elementDescription(index)?.let { "${getElementName(index)}: $it" } }.joinToString(" ").ifEmpty { null }
+
+    private val SerialDescriptor.bareValue get() = getElementDescriptor(1).elementDescriptors.firstOrNull()?.takeIf { it.kind is PrimitiveKind }
 
     private val SerialDescriptor.summary get() = annotations.filterIsInstance<SummarizedSchema>().firstOrNull()?.text
 

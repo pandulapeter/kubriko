@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
@@ -36,7 +37,7 @@ public object BreakoutFixture {
         color = 0xFFFFFFFF,
         properties = listOf(PropertyDefinition.Number("speed", 300f)),
         events = listOf(
-            EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.SetVelocity(200f, -300f))),
+            EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.SetVelocity(NumberValue.Fixed(200f), NumberValue.Fixed(-300f)))),
             EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.BounceOffEdge, BlockDefinition.PlaySound("files/sounds/wall.wav"))),
             EventDefinition(
                 type = EventType.COLLISION,
@@ -44,16 +45,16 @@ public object BreakoutFixture {
                 blocks = listOf(
                     BlockDefinition.BounceOffOther,
                     BlockDefinition.RemoveOther,
-                    BlockDefinition.ChangeNumber("score", 10f, manager = "Game"),
+                    BlockDefinition.ChangeNumber("score", NumberValue.Fixed(10f), manager = "Game"),
                     BlockDefinition.PlaySound("files/sounds/hit.wav"),
                 ),
             ),
-            EventDefinition(EventType.COLLISION, otherActorType = "Paddle", blocks = listOf(BlockDefinition.BounceOffOther, BlockDefinition.AddToVelocity(0f, -20f))),
+            EventDefinition(EventType.COLLISION, otherActorType = "Paddle", blocks = listOf(BlockDefinition.BounceOffOther, BlockDefinition.AddToVelocity(NumberValue.Fixed(0f), NumberValue.Fixed(-20f)))),
             EventDefinition(
                 type = EventType.EVERY_FRAME,
                 blocks = listOf(
-                    BlockDefinition.If(ConditionDefinition.Velocity(comparison = Comparison.GREATER, value = 600f)),
-                    BlockDefinition.SetVelocity(400f, 400f),
+                    BlockDefinition.If(ConditionDefinition.Velocity(comparison = Comparison.GREATER, value = NumberValue.Fixed(600f))),
+                    BlockDefinition.SetVelocity(NumberValue.Fixed(400f), NumberValue.Fixed(400f)),
                     BlockDefinition.End,
                 ),
             ),
@@ -66,8 +67,8 @@ public object BreakoutFixture {
         width = 120f,
         height = 20f,
         events = listOf(
-            EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.LEFT, blocks = listOf(BlockDefinition.SetVelocity(-400f, 0f))),
-            EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.of("DirectionRight"), blocks = listOf(BlockDefinition.SetVelocity(400f, 0f))),
+            EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.LEFT, blocks = listOf(BlockDefinition.SetVelocity(NumberValue.Fixed(-400f), NumberValue.Fixed(0f)))),
+            EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.of("DirectionRight"), blocks = listOf(BlockDefinition.SetVelocity(NumberValue.Fixed(400f), NumberValue.Fixed(0f)))),
             EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.If(ConditionDefinition.KeyHeld(KeyChoice.LEFT, isHeld = false)), BlockDefinition.Stop, BlockDefinition.End)),
             EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.Stop)),
         ),
@@ -81,7 +82,7 @@ public object BreakoutFixture {
         events = listOf(
             EventDefinition(
                 type = EventType.EVERY_FRAME,
-                blocks = listOf(BlockDefinition.If(ConditionDefinition.Number("lives", Comparison.LESS_OR_EQUAL, 0f)), BlockDefinition.GoToScene("game-over"), BlockDefinition.End),
+                blocks = listOf(BlockDefinition.If(ConditionDefinition.Number("lives", Comparison.LESS_OR_EQUAL, NumberValue.Fixed(0f))), BlockDefinition.GoToScene("game-over"), BlockDefinition.End),
             ),
         ),
         texts = listOf(ScreenTextDefinition("Score: {score}"), ScreenTextDefinition("Lives: {lives}")),

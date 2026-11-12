@@ -20,6 +20,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
@@ -103,7 +104,7 @@ class ActorTypeCodeGeneratorTest {
     @Test
     fun addedToSceneBlocksRunAfterTheManagersAreResolved() {
         val code = generate(
-            EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.SetVelocity(240f, 180f))),
+            EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.SetVelocity(NumberValue.Fixed(240f), NumberValue.Fixed(180f)))),
             EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.BounceOffEdge)),
         )
         val onAdded = functionBody(code, "onAdded(kubriko: Kubriko)")
@@ -168,7 +169,7 @@ class ActorTypeCodeGeneratorTest {
 
     @Test
     fun aMovingActorStaysActiveOffScreenStepsAtMost33MillisecondsAndIsSkippedOnceRemoved() {
-        val code = generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetVelocity(1f, 0f), BlockDefinition.RemoveSelf)))
+        val code = generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetVelocity(NumberValue.Fixed(1f), NumberValue.Fixed(0f)), BlockDefinition.RemoveSelf)))
         assertContains(code, "    override val isAlwaysActive = true\n")
         assertContains(code, "    var isRemoved = false\n")
         assertContains(code, "    override fun update(deltaTimeInMilliseconds: Int) {\n        if (isRemoved) return\n")
@@ -216,7 +217,7 @@ class ActorTypeCodeGeneratorTest {
         assertFalse("KeyboardInputAware" in generate())
         val code = generate(
             EventDefinition(EventType.KEY_PRESSED, KeyChoice.SPACE, blocks = listOf(BlockDefinition.Stop)),
-            EventDefinition(EventType.KEY_PRESSED, KeyChoice.LEFT, blocks = listOf(BlockDefinition.AddToVelocity(-50f, 0f))),
+            EventDefinition(EventType.KEY_PRESSED, KeyChoice.LEFT, blocks = listOf(BlockDefinition.AddToVelocity(NumberValue.Fixed(-50f), NumberValue.Fixed(0f)))),
             EventDefinition(EventType.KEY_PRESSED, KeyChoice.SPACE, blocks = listOf(BlockDefinition.RemoveSelf)),
         )
         assertContains(code, ", KeyboardInputAware {")
@@ -237,10 +238,10 @@ class ActorTypeCodeGeneratorTest {
 
     @Test
     fun everyBlockBecomesItsStatement() {
-        assertEquals(listOf("velocity = SceneOffset(1.5f.sceneUnit, -2f.sceneUnit)"), BlockCodeGenerator.blockCode(BlockDefinition.SetVelocity(1.5f, -2f), EventType.EVERY_FRAME, BlockScope("Ball")).lines)
-        assertEquals(listOf("velocity += SceneOffset(0f.sceneUnit, 3f.sceneUnit)"), BlockCodeGenerator.blockCode(BlockDefinition.AddToVelocity(0f, 3f), EventType.EVERY_FRAME, BlockScope("Ball")).lines)
+        assertEquals(listOf("velocity = SceneOffset(1.5f.sceneUnit, -2f.sceneUnit)"), BlockCodeGenerator.blockCode(BlockDefinition.SetVelocity(NumberValue.Fixed(1.5f), NumberValue.Fixed(-2f)), EventType.EVERY_FRAME, BlockScope("Ball")).lines)
+        assertEquals(listOf("velocity += SceneOffset(0f.sceneUnit, 3f.sceneUnit)"), BlockCodeGenerator.blockCode(BlockDefinition.AddToVelocity(NumberValue.Fixed(0f), NumberValue.Fixed(3f)), EventType.EVERY_FRAME, BlockScope("Ball")).lines)
         assertEquals(listOf("velocity = SceneOffset.Zero"), BlockCodeGenerator.blockCode(BlockDefinition.Stop, EventType.EVERY_FRAME, BlockScope("Ball")).lines)
-        assertEquals(listOf("body.position = SceneOffset(-10f.sceneUnit, 10f.sceneUnit)"), BlockCodeGenerator.blockCode(BlockDefinition.JumpTo(-10f, 10f), EventType.EVERY_FRAME, BlockScope("Ball")).lines)
+        assertEquals(listOf("body.position = SceneOffset(-10f.sceneUnit, 10f.sceneUnit)"), BlockCodeGenerator.blockCode(BlockDefinition.JumpTo(NumberValue.Fixed(-10f), NumberValue.Fixed(10f)), EventType.EVERY_FRAME, BlockScope("Ball")).lines)
         assertEquals(listOf("isRemoved = true", "actorManager.remove(this)"), BlockCodeGenerator.blockCode(BlockDefinition.RemoveSelf, EventType.EVERY_FRAME, BlockScope("Ball")).lines)
         assertEquals(4, BlockCodeGenerator.blockCode(BlockDefinition.BounceOffEdge, EventType.EDGE_TOUCHED, BlockScope("Ball")).lines.size)
     }
@@ -338,7 +339,7 @@ class ActorTypeCodeGeneratorTest {
         assertContains(rectangle, "initialSize = body.size * body.scale,\n        initialRotation = body.rotation,")
         assertContains(rectangle, "import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask")
         assertFalse("CircleCollisionMask" in rectangle)
-        val moving = generate(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.SetVelocity(1f, 0f))), isCollidable = true)
+        val moving = generate(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.SetVelocity(NumberValue.Fixed(1f), NumberValue.Fixed(0f)))), isCollidable = true)
         val update = moving.substringAfter("override fun update(").substringBefore("\n    }")
         assertTrue(update.trimEnd().endsWith("collisionMask.position = bodyCenter\n        collisionMask.radius = body.size.width * body.scale.horizontal / 2"), update)
         assertContains(circle, "    private val bodyCenter get() = body.axisAlignedBoundingBox.let { (it.min + it.max) / 2 }\n")
@@ -347,7 +348,7 @@ class ActorTypeCodeGeneratorTest {
 
     @Test
     fun anActorTypeNoCollisionInvolvesHasNoMask() {
-        val code = generate(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.SetVelocity(1f, 0f))))
+        val code = generate(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.SetVelocity(NumberValue.Fixed(1f), NumberValue.Fixed(0f)))))
         listOf("Collidable", "collision", "CollisionMask", "bodyCenter").forEach { assertFalse(it in code, it) }
         assertContains(code, "    var color: Color = state.color\n\n    /**\n")
     }
@@ -445,8 +446,8 @@ class ActorTypeCodeGeneratorTest {
     fun propertyBlocksChangeTheirPropertyOrBecomeACommentWithoutIt() {
         val properties = listOf(PropertyDefinition.Number("score"), PropertyDefinition.Text("title"), PropertyDefinition.Toggle("isShielded"))
         fun lines(block: BlockDefinition) = BlockCodeGenerator.blockCode(block, EventType.EVERY_FRAME, BlockScope("Player", properties = properties)).lines
-        assertEquals(listOf("score = 10f"), lines(BlockDefinition.SetNumber("score", 10f)))
-        assertEquals(listOf("score += -1.5f"), lines(BlockDefinition.ChangeNumber("score", -1.5f)))
+        assertEquals(listOf("score = 10f"), lines(BlockDefinition.SetNumber("score", NumberValue.Fixed(10f))))
+        assertEquals(listOf("score += -1.5f"), lines(BlockDefinition.ChangeNumber("score", NumberValue.Fixed(-1.5f))))
         assertEquals(listOf("title = \"Game \\\"over\\\"\""), lines(BlockDefinition.SetText("title", "Game \"over\"")))
         assertEquals(listOf("isShielded = false"), lines(BlockDefinition.SetToggle("isShielded", false)))
         val comment = listOf("// Choose a Property for this Block.")
@@ -484,20 +485,20 @@ class ActorTypeCodeGeneratorTest {
     fun sectionsBecomeKotlinBlocksClosedAtTheEndOfTheEventAndStrayOnesBecomeComments() {
         val blocks = listOf(
             BlockDefinition.End,
-            BlockDefinition.If(ConditionDefinition.Chance(25f)),
-            BlockDefinition.Repeat(times = 2),
+            BlockDefinition.If(ConditionDefinition.Chance(NumberValue.Fixed(25f))),
+            BlockDefinition.Repeat(times = NumberValue.Fixed(2f)),
             BlockDefinition.Stop,
             BlockDefinition.End,
             BlockDefinition.Else,
             BlockDefinition.RemoveSelf,
             BlockDefinition.Else,
-            BlockDefinition.If(ConditionDefinition.Velocity(Axis.VERTICAL, Comparison.LESS_OR_EQUAL, -3f)),
+            BlockDefinition.If(ConditionDefinition.Velocity(Axis.VERTICAL, Comparison.LESS_OR_EQUAL, NumberValue.Fixed(-3f))),
             BlockDefinition.Stop,
         )
         assertEquals(
             listOf(
                 "// End only works after an if or repeat Block.",
-                "if (Random.nextFloat() * 100f < 25f) {",
+                "if (KubrikoWiring.random.nextFloat() * 100f < 25f) {",
                 "    repeat(2) {",
                 "        velocity = SceneOffset.Zero",
                 "    }",
@@ -518,7 +519,7 @@ class ActorTypeCodeGeneratorTest {
     fun conditionsCheckPropertiesKeysVelocityAndChance() {
         val properties = listOf(PropertyDefinition.Number("score"), PropertyDefinition.Text("title"), PropertyDefinition.Toggle("isShielded"))
         fun line(condition: ConditionDefinition) = BlockCodeGenerator.blockCode(BlockDefinition.If(condition), EventType.EVERY_FRAME, BlockScope("Player", properties = properties)).lines.single()
-        assertEquals("if (score >= 10f) {", line(ConditionDefinition.Number("score", Comparison.GREATER_OR_EQUAL, 10f)))
+        assertEquals("if (score >= 10f) {", line(ConditionDefinition.Number("score", Comparison.GREATER_OR_EQUAL, NumberValue.Fixed(10f))))
         assertEquals("if (title != \"Game \\\"over\\\"\") {", line(ConditionDefinition.Text("title", "Game \"over\"", isEqual = false)))
         assertEquals("if (!isShielded) {", line(ConditionDefinition.Toggle("isShielded", isOn = false)))
         assertEquals("if (keyboardInputManager.isKeyPressed(Key.Spacebar)) {", line(ConditionDefinition.KeyHeld(KeyChoice.SPACE)))
@@ -531,15 +532,15 @@ class ActorTypeCodeGeneratorTest {
     }
 
     @Test
-    fun aKeyConditionGetsTheKeyboardAndAChanceConditionGetsRandomness() {
+    fun aKeyConditionGetsTheKeyboardAndAChanceConditionDrawsFromTheWiringsRandom() {
         assertFalse("keyboardInputManager" in generate())
-        assertFalse("kotlin.random.Random" in generate())
         val code = generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.If(ConditionDefinition.KeyHeld()), BlockDefinition.If(ConditionDefinition.Chance()))))
         assertContains(code, "    private lateinit var keyboardInputManager: KeyboardInputManager\n")
         assertContains(code, "        keyboardInputManager = kubriko.get()\n")
         assertContains(code, "import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager\n")
         assertContains(code, "import androidx.compose.ui.input.key.Key\n")
-        assertContains(code, "import kotlin.random.Random\n")
+        assertContains(code, "KubrikoWiring.random.nextFloat()")
+        assertFalse("kotlin.random" in code)
         assertFalse("KeyboardInputAware" in code)
     }
 
@@ -555,7 +556,7 @@ class ActorTypeCodeGeneratorTest {
     fun timersAreCountedDownAtTheStartOfEachFrameAndRunTheirEventWhenTheyFinish() {
         assertFalse("RemainingInMilliseconds" in generate())
         val code = generate(
-            EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.StartTimer(timer = "timer2", seconds = 1.5f, isRepeating = true))),
+            EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.StartTimer(timer = "timer2", seconds = NumberValue.Fixed(1.5f), isRepeating = true))),
             EventDefinition(EventType.TIMER_FINISHED, timer = "timer2", blocks = listOf(BlockDefinition.Stop, BlockDefinition.StopTimer(timer = "timer2"))),
         )
         assertContains(code, "    private var timer2RemainingInMilliseconds = 0L\n    private var timer2PeriodInMilliseconds = 0L\n")
@@ -581,7 +582,7 @@ class ActorTypeCodeGeneratorTest {
     @Test
     fun timerBlocksStartOnceOrRepeatingAndInvalidTimerNamesBecomeComments() {
         fun lines(block: BlockDefinition) = BlockCodeGenerator.blockCode(block, EventType.EVERY_FRAME, BlockScope("Player")).lines
-        assertEquals(listOf("timerRemainingInMilliseconds = 1", "timerPeriodInMilliseconds = 0"), lines(BlockDefinition.StartTimer(seconds = 0f)))
+        assertEquals(listOf("timerRemainingInMilliseconds = 1", "timerPeriodInMilliseconds = 0"), lines(BlockDefinition.StartTimer(seconds = NumberValue.Fixed(0f))))
         assertEquals(listOf("spawnEnemy2RemainingInMilliseconds = 0"), lines(BlockDefinition.StopTimer(timer = "spawnEnemy2")))
         assertEquals(listOf("// Give this Block's Timer a name made of letters and digits."), lines(BlockDefinition.StartTimer(timer = "Spawn enemy")))
         assertFalse("Spawn" in generate(EventDefinition(EventType.TIMER_FINISHED, timer = "Spawn", blocks = listOf(BlockDefinition.Stop))))
@@ -590,8 +591,8 @@ class ActorTypeCodeGeneratorTest {
     @Test
     fun actorsAreAddedWithTheirTypesDefaultsRelativeToThisActorOrTheScene() {
         fun lines(block: BlockDefinition) = BlockCodeGenerator.blockCode(block, EventType.EVERY_FRAME, BlockScope("Player", actorTypeNames = listOf("Player", "Bullet"))).lines
-        assertEquals(listOf("actorManager.add(Bullet.metadata.instantiate(body.position + SceneOffset(0f.sceneUnit, -20f.sceneUnit)).restore())"), lines(BlockDefinition.AddActor("Bullet", 0f, -20f)))
-        assertEquals(listOf("actorManager.add(Player.metadata.instantiate(SceneOffset(5f.sceneUnit, 0f.sceneUnit)).restore())"), lines(BlockDefinition.AddActor("Player", 5f, isRelative = false)))
+        assertEquals(listOf("actorManager.add(Bullet.metadata.instantiate(body.position + SceneOffset(0f.sceneUnit, -20f.sceneUnit)).restore())"), lines(BlockDefinition.AddActor("Bullet", NumberValue.Fixed(0f), NumberValue.Fixed(-20f))))
+        assertEquals(listOf("actorManager.add(Player.metadata.instantiate(SceneOffset(5f.sceneUnit, 0f.sceneUnit)).restore())"), lines(BlockDefinition.AddActor("Player", NumberValue.Fixed(5f), isRelative = false)))
         assertEquals(listOf("// Choose an Actor type for this Block."), lines(BlockDefinition.AddActor("Deleted")))
         assertEquals(listOf("// Choose an Actor type for this Block."), lines(BlockDefinition.MoveTowardsNearest()))
     }
@@ -600,7 +601,7 @@ class ActorTypeCodeGeneratorTest {
     fun movingTowardsTheNearestLooksAtEveryOtherActorOfTheTypeWithoutAllocating() {
         assertFalse("distanceTo" in generate())
         val code = ActorTypeCodeGenerator.generateActorType(
-            ActorTypeDefinition(name = "Player", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.MoveTowardsNearest("Coin", 150f))))),
+            ActorTypeDefinition(name = "Player", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.MoveTowardsNearest("Coin", NumberValue.Fixed(150f)))))),
             packageName,
             knownActorTypeNames = listOf("Player", "Coin"),
         )
@@ -623,7 +624,7 @@ class ActorTypeCodeGeneratorTest {
                     EventType.EVERY_FRAME,
                     blocks = listOf(
                         BlockDefinition.If(ConditionDefinition.Toggle("isOver", manager = "Game")),
-                        BlockDefinition.ChangeNumber("score", 10f, manager = "Game"),
+                        BlockDefinition.ChangeNumber("score", NumberValue.Fixed(10f), manager = "Game"),
                         BlockDefinition.Log("Score: {Game.score}"),
                         BlockDefinition.SetNumber("score", manager = "Missing"),
                     ),
@@ -640,8 +641,8 @@ class ActorTypeCodeGeneratorTest {
     @Test
     fun aManagerFieldNeverClashesWithAPropertyOfTheManagersName() {
         val scope = BlockScope("Brick", properties = listOf(PropertyDefinition.Number("game")), managerTypes = listOf(ManagerTypeDefinition("Game", properties = listOf(PropertyDefinition.Number("score")))))
-        assertEquals(listOf("gameManager.score = 1f"), BlockCodeGenerator.blockCode(BlockDefinition.SetNumber("score", 1f, manager = "Game"), EventType.EVERY_FRAME, scope).lines)
-        assertEquals(listOf("game = 1f"), BlockCodeGenerator.blockCode(BlockDefinition.SetNumber("game", 1f), EventType.EVERY_FRAME, scope).lines)
+        assertEquals(listOf("gameManager.score = 1f"), BlockCodeGenerator.blockCode(BlockDefinition.SetNumber("score", NumberValue.Fixed(1f), manager = "Game"), EventType.EVERY_FRAME, scope).lines)
+        assertEquals(listOf("game = 1f"), BlockCodeGenerator.blockCode(BlockDefinition.SetNumber("game", NumberValue.Fixed(1f)), EventType.EVERY_FRAME, scope).lines)
     }
 
     @Test

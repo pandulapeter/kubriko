@@ -54,6 +54,11 @@ public object ManagerTypeCodeGenerator {
     public const val FIRST_SCENE_FLAG: String = "firstSceneOverride"
 
     /**
+     * The field of [WIRING_NAME] that every random number of the Blocks is drawn from.
+     */
+    internal const val RANDOM_FIELD: String = "random"
+
+    /**
      * The field of [WIRING_NAME] listing the game's running Kubriko instances, which `GameEntryPoint` reports to Kubriko
      * Creator.
      */
@@ -187,6 +192,7 @@ public object ManagerTypeCodeGenerator {
         appendLine("import com.pandulapeter.kubriko.manager.Manager")
         if (pluginManagers.usesSprites) appendLine("import com.pandulapeter.kubriko.sprites.SpriteManager")
         appendLine("import kotlin.concurrent.Volatile")
+        appendLine("import kotlin.random.Random")
         appendLine()
         appendLine("/**")
         appendLine(" * What Kubriko needs from the types built in Kubriko Creator.")
@@ -204,6 +210,12 @@ public object ManagerTypeCodeGenerator {
         appendLine("     * entry points read it as `$FIRST_SCENE_PROPERTY`); null in a released game.")
         appendLine("     */")
         appendLine("    var $FIRST_SCENE_FLAG: String? = null")
+        appendLine()
+        appendLine("    /**")
+        appendLine("     * Where every random number of the Blocks comes from (random values and the chance condition), which a test can")
+        appendLine("     * replace with a seeded one to play the game the same way every time.")
+        appendLine("     */")
+        appendLine("    var $RANDOM_FIELD: Random = Random.Default")
         appendLine()
         appendLine("    /**")
         appendLine("     * The game's running Kubriko instances: `Game.kt` adds its own while it is shown, and `GameEntryPoint` reports them, so")

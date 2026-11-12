@@ -17,7 +17,8 @@ import kotlinx.serialization.Serializable
 /**
  * One action an Event performs. Each one becomes a few lines of ordinary Kotlin in the generated Actor type.
  *
- * Speeds and velocities are in scene units per second.
+ * Speeds and velocities are in scene units per second. Every number is a [NumberValue], so it can also be random or a
+ * Property's value.
  */
 @Serializable
 @Description("A Block: its type and that type's properties.")
@@ -29,9 +30,9 @@ public sealed interface BlockDefinition {
     @Description("Sets the velocity of the Actor, in scene units per second.")
     public data class SetVelocity(
         @Description("The horizontal velocity, positive to the right.")
-        @SerialName("x") val x: Float = 0f,
+        @SerialName("x") val x: NumberValue = NumberValue.Fixed(0f),
         @Description("The vertical velocity, positive downwards.")
-        @SerialName("y") val y: Float = 0f,
+        @SerialName("y") val y: NumberValue = NumberValue.Fixed(0f),
     ) : BlockDefinition
 
     @Serializable
@@ -39,9 +40,9 @@ public sealed interface BlockDefinition {
     @Description("Adds to the velocity of the Actor, in scene units per second.")
     public data class AddToVelocity(
         @Description("Added to the horizontal velocity, positive to the right.")
-        @SerialName("x") val x: Float = 0f,
+        @SerialName("x") val x: NumberValue = NumberValue.Fixed(0f),
         @Description("Added to the vertical velocity, positive downwards.")
-        @SerialName("y") val y: Float = 0f,
+        @SerialName("y") val y: NumberValue = NumberValue.Fixed(0f),
     ) : BlockDefinition
 
     @Serializable
@@ -59,9 +60,9 @@ public sealed interface BlockDefinition {
     @Description("Moves the Actor to a position in the Scene at once.")
     public data class JumpTo(
         @Description("The horizontal position, where 0 is the center of the Scene.")
-        @SerialName("x") val x: Float = 0f,
+        @SerialName("x") val x: NumberValue = NumberValue.Fixed(0f),
         @Description("The vertical position, where 0 is the center of the Scene, positive downwards.")
-        @SerialName("y") val y: Float = 0f,
+        @SerialName("y") val y: NumberValue = NumberValue.Fixed(0f),
     ) : BlockDefinition
 
     @Serializable
@@ -91,7 +92,7 @@ public sealed interface BlockDefinition {
         @Description(PROPERTY_DESCRIPTION)
         @SerialName("property") val property: String = "",
         @Description("The new value.")
-        @SerialName("value") val value: Float = 0f,
+        @SerialName("value") val value: NumberValue = NumberValue.Fixed(0f),
         @Description(MANAGER_DESCRIPTION)
         @SerialName("manager") val manager: String? = null,
     ) : BlockDefinition
@@ -103,7 +104,7 @@ public sealed interface BlockDefinition {
         @Description(PROPERTY_DESCRIPTION)
         @SerialName("property") val property: String = "",
         @Description("The amount added.")
-        @SerialName("by") val by: Float = 1f,
+        @SerialName("by") val by: NumberValue = NumberValue.Fixed(1f),
         @Description(MANAGER_DESCRIPTION)
         @SerialName("manager") val manager: String? = null,
     ) : BlockDefinition
@@ -139,9 +140,9 @@ public sealed interface BlockDefinition {
         @Description("The name of the Actor type.")
         @SerialName("actorType") val actorType: String = "",
         @Description("The horizontal position, positive to the right.")
-        @SerialName("x") val x: Float = 0f,
+        @SerialName("x") val x: NumberValue = NumberValue.Fixed(0f),
         @Description("The vertical position, positive downwards.")
-        @SerialName("y") val y: Float = 0f,
+        @SerialName("y") val y: NumberValue = NumberValue.Fixed(0f),
         @Description("True to place it relative to this Actor, false to place it relative to the center of the Scene.")
         @SerialName("isRelative") val isRelative: Boolean = true,
     ) : BlockDefinition
@@ -153,7 +154,7 @@ public sealed interface BlockDefinition {
         @Description("The name of the Actor type.")
         @SerialName("actorType") val actorType: String = "",
         @Description("The speed, in scene units per second.")
-        @SerialName("speed") val speed: Float = 200f,
+        @SerialName("speed") val speed: NumberValue = NumberValue.Fixed(200f),
     ) : BlockDefinition
 
     @Serializable
@@ -164,7 +165,7 @@ public sealed interface BlockDefinition {
         @Serializable(with = TimerNameSerializer::class)
         @SerialName("timer") val timer: String = TimerNaming.DEFAULT_NAME,
         @Description("How long it takes, in seconds.")
-        @SerialName("seconds") val seconds: Float = 1f,
+        @SerialName("seconds") val seconds: NumberValue = NumberValue.Fixed(1f),
         @Description("True to start it again each time it finishes, until a stopTimer Block stops it.")
         @SerialName("isRepeating") val isRepeating: Boolean = false,
     ) : BlockDefinition
@@ -227,7 +228,8 @@ public sealed interface BlockDefinition {
     @Description("Shows a frame of the Actor's sprite, when its sprite is cut into frames; the animation goes on from there.")
     public data class SetFrame(
         @Description("The frame, from 0 for the first; one past the last shows the last.")
-        @SerialName("frame") val frame: Int = 0,
+        @Serializable(with = WholeNumberValueSerializer::class)
+        @SerialName("frame") val frame: NumberValue = NumberValue.Fixed(0f),
     ) : BlockDefinition
 
     @Serializable
@@ -235,7 +237,7 @@ public sealed interface BlockDefinition {
     @Description("Sets how the Actor's sprite plays its frames, when it is cut into them. Actors start at speed 1, looping.")
     public data class SetAnimation(
         @Description("How fast the frames play: 1 for the sprite's own frames per second, 2 for twice as fast, 0 to stop on the frame shown, and below 0 to play backwards.")
-        @SerialName("speed") val speed: Float = 1f,
+        @SerialName("speed") val speed: NumberValue = NumberValue.Fixed(1f),
         @Description("Whether the animation starts over after its last frame, rather than stopping on it.")
         @SerialName("isLooping") val isLooping: Boolean = true,
     ) : BlockDefinition
@@ -258,7 +260,8 @@ public sealed interface BlockDefinition {
     @Description("Runs the Blocks after it, up to the matching end Block, a number of times.")
     public data class Repeat(
         @Description("How many times, from 0.")
-        @SerialName("times") val times: Int = 3,
+        @Serializable(with = WholeNumberValueSerializer::class)
+        @SerialName("times") val times: NumberValue = NumberValue.Fixed(3f),
     ) : BlockDefinition
 
     @Serializable

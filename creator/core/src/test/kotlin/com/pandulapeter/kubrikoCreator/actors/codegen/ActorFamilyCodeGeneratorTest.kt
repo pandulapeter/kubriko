@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -26,7 +27,7 @@ class ActorFamilyCodeGeneratorTest {
         name = "Enemy",
         properties = listOf(PropertyDefinition.Number("hp", initialValue = 3f)),
         events = listOf(
-            EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.ChangeNumber("hp", by = -1f))),
+            EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.ChangeNumber("hp", by = NumberValue.Fixed(-1f)))),
             EventDefinition(EventType.COLLISION, otherActorType = "Wall", blocks = listOf(BlockDefinition.Stop)),
         ),
     )

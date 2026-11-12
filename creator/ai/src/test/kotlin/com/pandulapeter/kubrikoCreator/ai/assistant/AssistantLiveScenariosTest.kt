@@ -15,6 +15,7 @@ import com.agentclientprotocol.model.ToolKind
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.context.BreakoutFixture
 import com.pandulapeter.kubrikoCreator.context.screenplayTexts
@@ -37,6 +38,7 @@ import kotlin.math.hypot
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
@@ -55,7 +57,9 @@ class AssistantLiveScenariosTest {
         val chat = session.chat()
         chat.ask("Make the Ball faster: double the velocity it starts with.")
         val start = session.context.ball().events.first { it.type == EventType.ADDED_TO_SCENE }.blocks.filterIsInstance<BlockDefinition.SetVelocity>().single()
-        assertTrue(hypot(start.x, start.y) > hypot(200f, -300f), "The Ball starts at $start.")
+        val x = assertIs<NumberValue.Fixed>(start.x, "The Ball starts at $start.").value
+        val y = assertIs<NumberValue.Fixed>(start.y, "The Ball starts at $start.").value
+        assertTrue(hypot(x, y) > hypot(200f, -300f), "The Ball starts at $start.")
         val changes = assertNotNull(chat.transcript.value.items.filterIsInstance<TranscriptItem.TurnChanges>().lastOrNull(), "No card of what changed.")
         withContext(session.mainThread) { chat.undoChanges(changes.sinceRevision) }
         withContext(Dispatchers.Default) {

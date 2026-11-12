@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.NameProblem
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
@@ -55,7 +56,7 @@ import kotlin.test.assertNull
 
 class ActorTypeCommandsTest {
     private val stop = BlockDefinition.Stop
-    private val jump = BlockDefinition.JumpTo(1f, 2f)
+    private val jump = BlockDefinition.JumpTo(NumberValue.Fixed(1f), NumberValue.Fixed(2f))
     private val ball = ActorTypeDefinition(
         name = "Ball",
         events = listOf(
@@ -112,7 +113,7 @@ class ActorTypeCommandsTest {
         )
         assertEquals(
             Rejection(CommandProblem.NUMBER_INVALID),
-            context.rejection(CreateActorType, ActorTypeDefinition("Paddle", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetVelocity(Float.NaN, 0f)))))),
+            context.rejection(CreateActorType, ActorTypeDefinition("Paddle", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetVelocity(NumberValue.Fixed(Float.NaN), NumberValue.Fixed(0f))))))),
         )
         assertEquals(Rejection(NameProblem.TYPE_TAKEN), context.rejection(RenameActorType, RenameActorType.Input("Ball", "Wall")))
         assertEquals(Rejection(LookupProblem.ACTOR_TYPE_MISSING, "Ghost"), context.rejection(DeleteActorType, DeleteActorType.Input("Ghost")))
@@ -121,7 +122,7 @@ class ActorTypeCommandsTest {
     @Test
     fun newActorTypesAreValidatedAgainstTheProject() = runTest {
         val context = commandContext(ball.copy(properties = listOf(PropertyDefinition.Number("hp"))), wall, spriteFiles = SpriteFiles())
-        val setsHp = EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetNumber("hp", 1f)))
+        val setsHp = EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetNumber("hp", NumberValue.Fixed(1f))))
         assertNull(context.rejection(CreateActorType, ActorTypeDefinition("Bat", parent = "Ball", events = listOf(setsHp))))
         assertEquals(Rejection(LookupProblem.ACTOR_TYPE_MISSING, "Nope"), context.rejection(CreateActorType, ActorTypeDefinition("Bat", parent = "Nope")))
         assertEquals(
@@ -219,9 +220,9 @@ class ActorTypeCommandsTest {
         val context = commandContext(ball, wall)
         val bounce = BlockDefinition.BounceOffOther
         assertEquals(listOf(bounce, BlockDefinition.RemoveOther), context.assertRoundTrip(Invocation(AddBlock, AddBlock.Input("Ball", 2, bounce, index = 0))) { context.ball() }!!.events[2].blocks)
-        assertEquals(listOf(BlockDefinition.SetVelocity(3f, 4f), jump), context.assertRoundTrip(Invocation(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.SetVelocity(3f, 4f)))) { context.ball() }!!.events[0].blocks)
-        assertEquals(listOf(jump, BlockDefinition.SetVelocity(3f, 4f)), context.assertRoundTrip(Invocation(MoveBlock, MoveBlock.Input("Ball", 0, 0, 1))) { context.ball() }!!.events[0].blocks)
-        assertEquals(listOf(BlockDefinition.SetVelocity(3f, 4f)), context.assertRoundTrip(Invocation(RemoveBlock, RemoveBlock.Input("Ball", 0, 0))) { context.ball() }!!.events[0].blocks)
+        assertEquals(listOf(BlockDefinition.SetVelocity(NumberValue.Fixed(3f), NumberValue.Fixed(4f)), jump), context.assertRoundTrip(Invocation(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.SetVelocity(NumberValue.Fixed(3f), NumberValue.Fixed(4f))))) { context.ball() }!!.events[0].blocks)
+        assertEquals(listOf(jump, BlockDefinition.SetVelocity(NumberValue.Fixed(3f), NumberValue.Fixed(4f))), context.assertRoundTrip(Invocation(MoveBlock, MoveBlock.Input("Ball", 0, 0, 1))) { context.ball() }!!.events[0].blocks)
+        assertEquals(listOf(BlockDefinition.SetVelocity(NumberValue.Fixed(3f), NumberValue.Fixed(4f))), context.assertRoundTrip(Invocation(RemoveBlock, RemoveBlock.Input("Ball", 0, 0))) { context.ball() }!!.events[0].blocks)
     }
 
     @Test
@@ -257,7 +258,7 @@ class ActorTypeCommandsTest {
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.ChangeNumber("score"))))
         assertEquals(Rejection(PlacementProblem.NUMBER_PROPERTY_MISSING, "lives", "Ball"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.SetNumber("lives"))))
         assertEquals(Rejection(PlacementProblem.TEXT_PROPERTY_OF_OTHER_KIND, "isFast", "Ball"), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.SetText("isFast"))))
-        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.SetNumber("score", Float.NaN))))
+        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.SetNumber("score", NumberValue.Fixed(Float.NaN)))))
         assertEquals(
             Rejection(NameProblem.PROPERTY_TAKEN),
             context.rejection(CreateActorType, ActorTypeDefinition("Paddle", properties = listOf(PropertyDefinition.Number("speed"), PropertyDefinition.Text("Speed".lowercase())))),
@@ -275,8 +276,8 @@ class ActorTypeCommandsTest {
         assertEquals(Rejection(NameProblem.NAME_KEYWORD), context.rejection(SetEventTimer, SetEventTimer.Input("Ball", 3, "while")))
         assertEquals(Rejection(PlacementProblem.TIMER_NOT_ALLOWED), context.rejection(AddEvent, AddEvent.Input("Ball", EventType.EVERY_FRAME, timer = "timer2")))
         assertEquals(Rejection(NameProblem.NAME_EMPTY), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.StopTimer(timer = ""))))
-        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.StartTimer(seconds = -1f))))
-        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.StartTimer(timer = "timer9", seconds = 0f, isRepeating = true))))
+        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.StartTimer(seconds = NumberValue.Fixed(-1f)))))
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.StartTimer(timer = "timer9", seconds = NumberValue.Fixed(0f), isRepeating = true))))
     }
 
     @Test
@@ -285,21 +286,21 @@ class ActorTypeCommandsTest {
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor())))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.MoveTowardsNearest("Wall"))))
         assertEquals(Rejection(LookupProblem.ACTOR_TYPE_MISSING, "Brick"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor("Brick"))))
-        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor("Wall", x = Float.NaN))))
-        Invocation(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor("Wall", 1f, 2f))).apply(context)
+        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor("Wall", x = NumberValue.Fixed(Float.NaN)))))
+        Invocation(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor("Wall", NumberValue.Fixed(1f), NumberValue.Fixed(2f)))).apply(context)
         Invocation(RenameActorType, RenameActorType.Input("Wall", "Brick")).apply(context)
-        assertEquals(BlockDefinition.AddActor("Brick", 1f, 2f), context.ball()!!.events[0].blocks.last())
+        assertEquals(BlockDefinition.AddActor("Brick", NumberValue.Fixed(1f), NumberValue.Fixed(2f)), context.ball()!!.events[0].blocks.last())
     }
 
     @Test
     fun flowBlocksAreValidated() = runTest {
         val context = commandContext(ball.copy(properties = listOf(PropertyDefinition.Number("score"))), wall)
-        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.Number("score", value = 3f)))))
-        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.Repeat(times = 0))))
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.Number("score", value = NumberValue.Fixed(3f))))))
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.Repeat(times = NumberValue.Fixed(0f)))))
         assertEquals(Rejection(PlacementProblem.NUMBER_PROPERTY_MISSING, "lives", "Ball"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.Number("lives")))))
-        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.Chance(101f)))))
-        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.Velocity(value = Float.POSITIVE_INFINITY)))))
-        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.Repeat(times = -1))))
+        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.Chance(NumberValue.Fixed(101f))))))
+        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.Velocity(value = NumberValue.Fixed(Float.POSITIVE_INFINITY))))))
+        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.Repeat(times = NumberValue.Fixed(-1f)))))
     }
 
     @Test

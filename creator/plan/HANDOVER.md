@@ -26,26 +26,13 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Go on with `01-blocks.md`. Search is done (2026-11-12, 89f39803c..) and its plan file deleted; every item was reviewed with
-`/code-review` and every finding fixed in a commit of its own or answered below. What it came to:
+Go on with `01-blocks.md`, at The edges as values. Random values are done (2026-11-12): every number a Block takes is a
+`NumberValue` (a number, a random number between two, or a number Property's value), format version 5, edited through
+`NumberValueField`'s kind menu, and drawn from `KubrikoWiring.random`. A deleted Property a value reads becomes its
+starting value (`VALUE_TO_NUMBER`). Its review is noted below.
 
-- The sidebar's filter matches as IDEs do (`NameMatching`: `brk` finds `Brick`, `HTTPServer`'s `Server` is a word),
-  highlights what matched (folders too), and takes the focus on Cmd/Ctrl+F; every list of names ranks and highlights the
-  same way (`matchingOptions`, `highlightedMatch`).
-- Quick open (Cmd/Ctrl+P, or Shift twice, `DoubleShift`): types, Scenes, pages, documents, files, and Properties, a
-  Property lit up in its type through `SelectionController.revealed`, which find usages and the text search use too.
-- Find usages (a sidebar row's or a Property's menu, inherited ones too) in the new Search panel (toolbar, or
-  Cmd/Ctrl+Shift+F for its field), each usage going to its place, a Scene with the type's Actors selected; `find_usages`
-  for the AI.
-- The Search panel's field searches descriptions, Block texts, Kotlin, screen texts, pages, and documents
-  (`ProjectSearch`); `search_project` searches names too. The tool list's budget went to 24,000.
-- Searching conversations (the assistant's Search conversations button): every saved conversation's messages are kept as
-  text beside it (`ConversationTextStore`), a match in the chosen agent's conversation continues it and scrolls to the
-  message, and another agent's is read from the kept text.
-
-Left as they are, on purpose: `search_project`'s Property hits point at the type, not the Property (only the AI searches
-names, and its hit reads `Game.score`); a type renamed while the Search panel shows its usages is said to be gone rather
-than followed, since nothing records the old name to the new.
+Left as they are, on purpose: a wrong value in a number field is refused without its path (`"fast" isn't a number.`),
+since a custom serializer can't see where it is; the value says which field it was.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
@@ -79,6 +66,8 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
   (`WorkspaceScreenTest`), but no person has used them in the real app yet.
 - Searching conversations against a real agent: continuing a found conversation through `session/load` and scrolling to
   the message once its history arrives (`jumpIndexOf`) is tested with transcripts written by hand, not a replayed one.
+- The number value field in the real app (switching kinds, typing a range, choosing a Property), and a played game drawing
+  random numbers (the integration test compiles every kind, but nothing runs one).
 - The eval set has no request using `find_usages` or `search_project`, nor the new resource tools, `move_folder`, `set_sprite_sheet`, the animation Blocks, or the drawing tools yet; record one (`EvalSetLiveTest` with
   `KUBRIKO_CREATOR_EVAL_RECORD=true`) once a live run can be spent on it.
 

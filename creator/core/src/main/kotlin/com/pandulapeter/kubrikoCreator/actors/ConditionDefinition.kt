@@ -29,7 +29,7 @@ public sealed interface ConditionDefinition {
         @Description("How the Property is compared with the value.")
         @SerialName("comparison") val comparison: Comparison = Comparison.GREATER,
         @Description("The value.")
-        @SerialName("value") val value: Float = 0f,
+        @SerialName("value") val value: NumberValue = NumberValue.Fixed(0f),
         @Description(MANAGER_DESCRIPTION)
         @SerialName("manager") val manager: String? = null,
     ) : ConditionDefinition
@@ -79,7 +79,7 @@ public sealed interface ConditionDefinition {
         @Description("How the velocity is compared with the value.")
         @SerialName("comparison") val comparison: Comparison = Comparison.GREATER,
         @Description("The value.")
-        @SerialName("value") val value: Float = 0f,
+        @SerialName("value") val value: NumberValue = NumberValue.Fixed(0f),
     ) : ConditionDefinition
 
     @Serializable
@@ -87,7 +87,7 @@ public sealed interface ConditionDefinition {
     @Description("True by chance, each time it is checked.")
     public data class Chance(
         @Description("How likely it is to be true, in percent, from 0 to 100.")
-        @SerialName("percent") val percent: Float = 50f,
+        @SerialName("percent") val percent: NumberValue = NumberValue.Fixed(50f),
     ) : ConditionDefinition
 
     @Serializable

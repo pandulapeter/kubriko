@@ -12,14 +12,12 @@ package com.pandulapeter.kubrikoCreator.ui.actorTypes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
-import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_parameter_frame
 import kubriko.creator.generated.resources.block_parameter_looping
@@ -33,6 +31,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun AnimationBlockParameters(
     block: BlockDefinition,
+    scope: BlockScope,
     onBlockChange: (BlockDefinition) -> Unit,
 ) = FlowRow(
     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -40,17 +39,19 @@ internal fun AnimationBlockParameters(
     itemVerticalAlignment = Alignment.CenterVertically,
 ) {
     when (block) {
-        is BlockDefinition.SetFrame -> NumberField(
-            modifier = Modifier.width(96.dp),
+        is BlockDefinition.SetFrame -> NumberValueField(
             label = Res.string.block_parameter_frame,
-            value = block.frame.toFloat(),
-            onValueChange = { if (it >= 0f && it == it.toInt().toFloat()) onBlockChange(block.copy(frame = it.toInt())) },
+            value = block.frame,
+            scope = scope,
+            onValueChange = { onBlockChange(block.copy(frame = it)) },
+            isWhole = true,
+            accepts = { it >= 0f },
         )
         is BlockDefinition.SetAnimation -> {
-            NumberField(
-                modifier = Modifier.width(96.dp),
+            NumberValueField(
                 label = Res.string.block_parameter_speed,
                 value = block.speed,
+                scope = scope,
                 onValueChange = { onBlockChange(block.copy(speed = it)) },
             )
             LabeledSwitch(

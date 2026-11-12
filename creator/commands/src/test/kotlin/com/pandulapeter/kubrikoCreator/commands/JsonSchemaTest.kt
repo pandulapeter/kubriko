@@ -10,9 +10,11 @@
 package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddEvent
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.GetBlockCatalog
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.serialName
 import com.pandulapeter.kubrikoCreator.schema.Description
@@ -111,5 +113,20 @@ class JsonSchemaTest {
     fun customSerializersKeepTheirOwnFormat() {
         val color = JsonSchema.of(ActorTypeDefinition.serializer().descriptor)["properties"]!!.jsonObject["color"]!!.jsonObject
         assertEquals("string", color["type"]!!.jsonPrimitive.content)
+    }
+
+    @Test
+    fun aNumberIsANumberOrAnObjectDescribedOnceInTheCatalog() {
+        val schema = JsonSchema.of(AddBlock.inputSerializer.descriptor)
+        val catalogBlock = JsonSchema.of(BlockDefinition.SetVelocity.serializer().descriptor)
+        val x = catalogBlock.getValue("properties").jsonObject.getValue("x").jsonObject
+        assertEquals(listOf("number", "object"), x.getValue("type").jsonArray.map { it.jsonPrimitive.content })
+        assertEquals("The horizontal velocity, positive to the right. A number, or a random or property number value (get_block_catalog's numberValue describes them).", x.getValue("description").jsonPrimitive.content)
+        val times = JsonSchema.of(BlockDefinition.Repeat.serializer().descriptor).getValue("properties").jsonObject.getValue("times").jsonObject
+        assertEquals(listOf("integer", "object"), times.getValue("type").jsonArray.map { it.jsonPrimitive.content })
+        val expanded = GetBlockCatalog.catalog.getValue("numberValue").jsonObject.getValue("oneOf").jsonArray.map { it.jsonObject }
+        assertEquals("number", expanded[0].getValue("type").jsonPrimitive.content)
+        assertEquals(listOf("random", "property"), expanded.drop(1).map { it.getValue("properties").jsonObject.getValue("type").jsonObject.getValue("const").jsonPrimitive.content })
+        assertNull(schema["oneOf"])
     }
 }

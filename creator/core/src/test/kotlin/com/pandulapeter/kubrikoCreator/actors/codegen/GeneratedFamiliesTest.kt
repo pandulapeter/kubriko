@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -24,7 +25,7 @@ class GeneratedFamiliesTest {
     private val enemy = ActorTypeDefinition(
         name = "Enemy",
         properties = listOf(PropertyDefinition.Number("hp", initialValue = 3f)),
-        events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.ChangeNumber("hp", by = -1f)))),
+        events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.ChangeNumber("hp", by = NumberValue.Fixed(-1f))))),
     )
     private val children = List(30) { index ->
         ActorTypeDefinition(

@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.KotlinIdentifiers
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ResourceKind
+import com.pandulapeter.kubrikoCreator.actors.numberPropertyReferences
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.screenplay.PageLinks
 
@@ -109,16 +110,26 @@ internal class ProjectReferences(
             RelationKind.MENTIONS -> usage(UsageEffect.MENTION_TO_TEXT)
             RelationKind.DRAWN_AS, RelationKind.PLAYS, RelationKind.SHOWS, RelationKind.USES_TIMER, RelationKind.IS_IN -> error("${relation.kind} is found apart from the relations, never among them.")
             RelationKind.READS -> when (val block = blockAt(relation.place)) {
-                is BlockDefinition.If -> usage(UsageEffect.SECTION_REMOVED, sectionOf(relation.place as RelationPlace.Type).count() - 1)
                 null, is BlockDefinition.Log -> usage(UsageEffect.PLACEHOLDER_TO_TEXT)
-                else -> error("${block::class.simpleName} doesn't read a Property.")
+                else -> if (block is BlockDefinition.If && isConditionOn(block, relation)) {
+                    usage(UsageEffect.SECTION_REMOVED, sectionOf(relation.place as RelationPlace.Type).count() - 1)
+                } else {
+                    usage(UsageEffect.VALUE_TO_NUMBER)
+                }
             }
         }
     }
 
     /**
+     * Whether the condition of [block] checks the Property [relation] reads, rather than only reading it as a number.
+     */
+    private fun isConditionOn(block: BlockDefinition.If, relation: Relation) = block.propertyReference?.let { reference ->
+        relations.propertyOf((relation.place.owner as RelationSubject.Type).name, reference.manager, reference.name) == relation.subject
+    } == true
+
+    /**
      * Blocks that have the Manager type [subject] chosen but none of its Properties yet, which [ProjectRelations] leaves
-     * out, since they refer to no Property.
+     * out, since they refer to no Property: as the Property they change or check, or as one of their numbers.
      */
     private fun managerChoiceUsagesOf(subject: RelationSubject) = buildList {
         if (subject !is RelationSubject.Type) return@buildList
@@ -126,9 +137,12 @@ internal class ProjectReferences(
             if (type.name == subject.name) return@forEach
             type.events.forEachIndexed { eventIndex, event ->
                 event.blocks.forEachIndexed { blockIndex, block ->
+                    val place = RelationPlace.Type(type.name, eventIndex, blockIndex)
+                    if (block.numberPropertyReferences.any { it.manager == subject.name && it.name.isEmpty() }) {
+                        add(Usage(UsagePlace.InModel(place), RelationKind.READS, subject, UsageEffect.VALUE_TO_NUMBER))
+                    }
                     val reference = block.propertyReference ?: return@forEachIndexed
                     if (reference.manager != subject.name || reference.name.isNotEmpty()) return@forEachIndexed
-                    val place = RelationPlace.Type(type.name, eventIndex, blockIndex)
                     add(
                         if (block is BlockDefinition.If) {
                             Usage(UsagePlace.InModel(place), RelationKind.READS, subject, UsageEffect.SECTION_REMOVED, blocksInside = sectionOf(place).count() - 1)

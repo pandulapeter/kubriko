@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.Comparison
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 
 /**
@@ -63,13 +64,13 @@ internal object BlockNotation {
         BlockDefinition.RemoveSelf -> "Remove this Actor"
         BlockDefinition.BounceOffOther -> "Bounce off it"
         BlockDefinition.RemoveOther -> "Remove the other Actor"
-        is BlockDefinition.SetNumber -> "Set ${property(block.property, block.manager)} to ${number(block.value)}"
-        is BlockDefinition.ChangeNumber -> "Change ${property(block.property, block.manager)} by ${number(block.by)}"
+        is BlockDefinition.SetNumber -> "Set ${property(block.property, block.manager)} to ${value(block.value)}"
+        is BlockDefinition.ChangeNumber -> "Change ${property(block.property, block.manager)} by ${value(block.by)}"
         is BlockDefinition.SetText -> "Set ${property(block.property, block.manager)} to ${text(block.value)}"
         is BlockDefinition.SetToggle -> "Turn ${property(block.property, block.manager)} ${if (block.value) "on" else "off"}"
         is BlockDefinition.AddActor -> "Add an Actor of ${name(block.actorType)} at ${point(block.x, block.y)} " + if (block.isRelative) "from this Actor" else "from the center"
-        is BlockDefinition.MoveTowardsNearest -> "Move towards the nearest ${name(block.actorType)} at speed ${number(block.speed)}"
-        is BlockDefinition.StartTimer -> "Start Timer ${block.timer} for ${number(block.seconds)} s" + if (block.isRepeating) ", repeating" else ""
+        is BlockDefinition.MoveTowardsNearest -> "Move towards the nearest ${name(block.actorType)} at speed ${value(block.speed)}"
+        is BlockDefinition.StartTimer -> "Start Timer ${block.timer} for ${value(block.seconds)} s" + if (block.isRepeating) ", repeating" else ""
         is BlockDefinition.StopTimer -> "Stop Timer ${block.timer}"
         is BlockDefinition.GoToScene -> "Go to Scene ${name(block.scene)}"
         BlockDefinition.RestartScene -> "Restart the Scene"
@@ -81,23 +82,23 @@ internal object BlockNotation {
         is BlockDefinition.PlaySound -> "Play sound ${name(block.sound)}"
         is BlockDefinition.PlayMusic -> "Play music ${name(block.music)}" + if (block.isLooping) "" else ", once"
         BlockDefinition.StopMusic -> "Stop the music"
-        is BlockDefinition.SetFrame -> "Show frame ${block.frame} of the sprite"
-        is BlockDefinition.SetAnimation -> "Play the sprite's frames at speed ${number(block.speed)}" + if (block.isLooping) ", looping" else ", once"
+        is BlockDefinition.SetFrame -> "Show frame ${value(block.frame)} of the sprite"
+        is BlockDefinition.SetAnimation -> "Play the sprite's frames at speed ${value(block.speed)}" + if (block.isLooping) ", looping" else ", once"
         is BlockDefinition.If -> "If ${of(block.condition)}"
         BlockDefinition.Else -> "Else"
-        is BlockDefinition.Repeat -> "Repeat ${block.times} times"
+        is BlockDefinition.Repeat -> "Repeat ${value(block.times)} times"
         BlockDefinition.End -> "End"
         is BlockDefinition.Log -> "Write to the console ${text(block.message)}"
         is BlockDefinition.Kotlin -> "Run Kotlin code ${text(block.code)}"
     }
 
     fun of(condition: ConditionDefinition): String = when (condition) {
-        is ConditionDefinition.Number -> "${property(condition.property, condition.manager)} ${of(condition.comparison)} ${number(condition.value)}"
+        is ConditionDefinition.Number -> "${property(condition.property, condition.manager)} ${of(condition.comparison)} ${value(condition.value)}"
         is ConditionDefinition.Text -> "${property(condition.property, condition.manager)} ${if (condition.isEqual) "is" else "isn't"} ${text(condition.value)}"
         is ConditionDefinition.Toggle -> "${property(condition.property, condition.manager)} ${if (condition.isOn) "is on" else "is off"}"
         is ConditionDefinition.KeyHeld -> "${condition.key.composeKeyName} ${if (condition.isHeld) "is held" else "isn't held"}"
-        is ConditionDefinition.Velocity -> "the ${if (condition.axis == Axis.HORIZONTAL) "horizontal" else "vertical"} velocity ${of(condition.comparison)} ${number(condition.value)}"
-        is ConditionDefinition.Chance -> "by chance (${number(condition.percent)}%)"
+        is ConditionDefinition.Velocity -> "the ${if (condition.axis == Axis.HORIZONTAL) "horizontal" else "vertical"} velocity ${of(condition.comparison)} ${value(condition.value)}"
+        is ConditionDefinition.Chance -> "by chance (${value(condition.percent)}%)"
         is ConditionDefinition.Paused -> if (condition.isPaused) "the game is paused" else "the game isn't paused"
     }
 
@@ -115,7 +116,16 @@ internal object BlockNotation {
         Comparison.GREATER -> "is more than"
     }
 
-    private fun point(x: Float, y: Float) = "(${number(x)}, ${number(y)})"
+    /**
+     * A number a Block takes: `200`, `a random number from 1 to 5`, or `speed of Game`.
+     */
+    fun value(value: NumberValue) = when (value) {
+        is NumberValue.Fixed -> number(value.value)
+        is NumberValue.Random -> "a random ${if (value.isWhole) "whole " else ""}number from ${number(value.from)} to ${number(value.to)}"
+        is NumberValue.Property -> property(value.property, value.manager)
+    }
+
+    private fun point(x: NumberValue, y: NumberValue) = "(${value(x)}, ${value(y)})"
 
     private fun property(name: String, manager: String?) = name(name) + (manager?.let { " of $it" } ?: "")
 

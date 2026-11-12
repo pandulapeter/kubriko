@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
@@ -64,8 +65,8 @@ class ManagerTypeCodeGeneratorTest {
         val code = generate(
             game.copy(
                 events = listOf(
-                    EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.SetNumber("lives", 3f))),
-                    EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.If(ConditionDefinition.Number("lives", Comparison.LESS_OR_EQUAL, 0f)), BlockDefinition.SetToggle("isOver", true))),
+                    EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.SetNumber("lives", NumberValue.Fixed(3f)))),
+                    EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.If(ConditionDefinition.Number("lives", Comparison.LESS_OR_EQUAL, NumberValue.Fixed(0f))), BlockDefinition.SetToggle("isOver", true))),
                 ),
             ),
         )
@@ -77,7 +78,7 @@ class ManagerTypeCodeGeneratorTest {
 
     @Test
     fun onUpdateStaysTheSameSizeHoweverManyBlocksTheEventsHave() {
-        fun onUpdate(blockCount: Int) = generate(game.copy(events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = List(blockCount) { BlockDefinition.ChangeNumber("score", 1f) }))))
+        fun onUpdate(blockCount: Int) = generate(game.copy(events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = List(blockCount) { BlockDefinition.ChangeNumber("score", NumberValue.Fixed(1f)) }))))
             .substringAfter("override fun onUpdate(deltaTimeInMilliseconds: Int) {\n")
             .substringBefore("\n    }")
         assertEquals(onUpdate(1), onUpdate(200))
@@ -97,8 +98,8 @@ class ManagerTypeCodeGeneratorTest {
         val code = generate(
             game.copy(
                 events = listOf(
-                    EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.SPACE, blocks = listOf(BlockDefinition.StartTimer("timer2", 0.5f))),
-                    EventDefinition(EventType.TIMER_FINISHED, timer = "timer2", blocks = listOf(BlockDefinition.ChangeNumber("score", 1f))),
+                    EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.SPACE, blocks = listOf(BlockDefinition.StartTimer("timer2", NumberValue.Fixed(0.5f)))),
+                    EventDefinition(EventType.TIMER_FINISHED, timer = "timer2", blocks = listOf(BlockDefinition.ChangeNumber("score", NumberValue.Fixed(1f)))),
                 ),
             ),
         )
@@ -114,13 +115,13 @@ class ManagerTypeCodeGeneratorTest {
 
     @Test
     fun blocksThatNeedAnActorBecomeComments() {
-        val code = generate(game.copy(events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetVelocity(1f, 1f), BlockDefinition.RemoveSelf, BlockDefinition.If(ConditionDefinition.Velocity()))))))
+        val code = generate(game.copy(events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetVelocity(NumberValue.Fixed(1f), NumberValue.Fixed(1f)), BlockDefinition.RemoveSelf, BlockDefinition.If(ConditionDefinition.Velocity()))))))
         assertContains(code, "        // This Block only works in an Actor type.\n        // This Block only works in an Actor type.\n        if (false) {\n")
     }
 
     @Test
     fun actorsAreAddedRelativeToTheScene() {
-        val code = generate(game.copy(events = listOf(EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.AddActor("Ball", 10f, 20f, isRelative = true))))), actorTypeNames = listOf("Ball"))
+        val code = generate(game.copy(events = listOf(EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.AddActor("Ball", NumberValue.Fixed(10f), NumberValue.Fixed(20f), isRelative = true))))), actorTypeNames = listOf("Ball"))
         assertContains(code, "        actorManager.add(Ball.metadata.instantiate(SceneOffset(10f.sceneUnit, 20f.sceneUnit)).restore())\n")
         assertContains(code, "import com.pandulapeter.kubriko.types.SceneOffset\n")
     }
@@ -175,7 +176,7 @@ class ManagerTypeCodeGeneratorTest {
         val level = ManagerTypeDefinition("Level", properties = listOf(PropertyDefinition.Number("number")))
         val code = generate(
             game.copy(
-                events = listOf(EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.ChangeNumber("number", 1f, manager = "Level"), BlockDefinition.SetNumber("score", manager = "Game")))),
+                events = listOf(EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.ChangeNumber("number", NumberValue.Fixed(1f), manager = "Level"), BlockDefinition.SetNumber("score", manager = "Game")))),
                 texts = listOf(ScreenTextDefinition("Level {Level.number}")),
             ),
             managerTypes = listOf(game, level),

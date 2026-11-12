@@ -20,12 +20,7 @@ for code (`AssistantSystemPrompt`). The first writers' room game (a side-scrolli
 needed twelve Kotlin Blocks, all for simple behavior. Each item replaces some of them, and the section is done when the eval set
 (`EvalSet`) builds the same game with no Kotlin Block left.
 
-- **Random values:** any number a Block takes can be a fixed number, a random number between two (whole or not), or a Property, as one
-  value type every number field shares rather than a random variant of each Block. A Property as a value covers "Set velocity to the
-  speed Property" too. A format raise; every random value draws from one generated `Random`, which rehearsals later seed
-  (`10-rehearsals.md`). Covers an enemy appearing at a random height (`jumpTo` with a random y) and filling the sky with stars at
-  random places.
-- **The edges as values:** the same value type also takes an edge of the Scene's bounds (or of the screen, when the Scene has none,
+- **The edges as values:** the number value type (`NumberValue`) also takes an edge of the Scene's bounds (or of the screen, when the Scene has none,
   as the edge Event already decides) plus an offset, and a random number between two edges. "Add a Drifter at the right edge + 50, at
   a random y between the top and bottom edges" then needs no hand-measured numbers, and stays right when the window or the Scene
   changes size. Generated from the same bounds the edge Event reads, allocating nothing per frame.

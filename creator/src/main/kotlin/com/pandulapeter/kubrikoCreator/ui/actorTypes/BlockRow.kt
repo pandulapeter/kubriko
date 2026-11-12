@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -36,13 +35,13 @@ import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.BlockNesting
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
-import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
 import com.pandulapeter.kubrikoCreator.ui.components.accentEdge
 import com.pandulapeter.kubrikoCreator.ui.components.flashBackground
@@ -181,7 +180,7 @@ private fun InlineParameters(
         itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         ActorTypeChoice(block.actorType, scope.actorTypeNames) { onBlockChange(block.copy(actorType = it)) }
-        OffsetParameters(block.x, block.y, isVelocity = false) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
+        OffsetParameters(block.x, block.y, scope, isVelocity = false) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
         if (scope.kind == BlockTypeKind.ACTOR) {
             LabeledSwitch(
                 label = stringResource(Res.string.block_parameter_relative),
@@ -196,10 +195,10 @@ private fun InlineParameters(
         itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         ActorTypeChoice(block.actorType, scope.actorTypeNames) { onBlockChange(block.copy(actorType = it)) }
-        NumberField(
-            modifier = Modifier.width(96.dp),
+        NumberValueField(
             label = Res.string.block_parameter_speed,
             value = block.speed,
+            scope = scope,
             onValueChange = { onBlockChange(block.copy(speed = it)) },
         )
         Text(
@@ -215,11 +214,12 @@ private fun InlineParameters(
         itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         TimerChoice(block.timer, scope.timerNames, { onBlockChange(block.copy(timer = it)) })
-        NumberField(
-            modifier = Modifier.width(96.dp),
+        NumberValueField(
             label = Res.string.block_parameter_seconds,
             value = block.seconds,
-            onValueChange = { if (it >= 0f) onBlockChange(block.copy(seconds = it)) },
+            scope = scope,
+            onValueChange = { onBlockChange(block.copy(seconds = it)) },
+            accepts = { it >= 0f },
         )
         LabeledSwitch(
             label = stringResource(Res.string.block_parameter_repeating),
@@ -249,16 +249,18 @@ private fun InlineParameters(
         onSelected = { onBlockChange(block.copy(action = it)) },
     )
     is BlockDefinition.If -> ConditionParameters(block.condition, scope) { onBlockChange(block.copy(condition = it)) }
-    is BlockDefinition.Repeat -> NumberField(
-        modifier = Modifier.width(96.dp),
+    is BlockDefinition.Repeat -> NumberValueField(
         label = Res.string.block_parameter_times,
-        value = block.times.toFloat(),
-        onValueChange = { if (it >= 0f && it == it.toInt().toFloat()) onBlockChange(block.copy(times = it.toInt())) },
+        value = block.times,
+        scope = scope,
+        onValueChange = { onBlockChange(block.copy(times = it)) },
+        isWhole = true,
+        accepts = { it >= 0f },
     )
-    is BlockDefinition.SetVelocity -> OffsetParameters(block.x, block.y, isVelocity = true) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
-    is BlockDefinition.AddToVelocity -> OffsetParameters(block.x, block.y, isVelocity = true) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
-    is BlockDefinition.JumpTo -> OffsetParameters(block.x, block.y, isVelocity = false) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
-    is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation -> AnimationBlockParameters(block, onBlockChange)
+    is BlockDefinition.SetVelocity -> OffsetParameters(block.x, block.y, scope, isVelocity = true) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
+    is BlockDefinition.AddToVelocity -> OffsetParameters(block.x, block.y, scope, isVelocity = true) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
+    is BlockDefinition.JumpTo -> OffsetParameters(block.x, block.y, scope, isVelocity = false) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
+    is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation -> AnimationBlockParameters(block, scope, onBlockChange)
     is BlockDefinition.Log -> BufferedTextField(
         modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
         value = block.message,
@@ -272,25 +274,26 @@ private fun InlineParameters(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun OffsetParameters(
-    x: Float,
-    y: Float,
+    x: NumberValue,
+    y: NumberValue,
+    scope: BlockScope,
     isVelocity: Boolean,
-    onChange: (x: Float, y: Float) -> Unit,
+    onChange: (x: NumberValue, y: NumberValue) -> Unit,
 ) = FlowRow(
     horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalArrangement = Arrangement.spacedBy(4.dp),
     itemVerticalAlignment = Alignment.CenterVertically,
 ) {
-    NumberField(
-        modifier = Modifier.width(96.dp),
+    NumberValueField(
         label = Res.string.block_parameter_x,
         value = x,
+        scope = scope,
         onValueChange = { onChange(it, y) },
     )
-    NumberField(
-        modifier = Modifier.width(96.dp),
+    NumberValueField(
         label = Res.string.block_parameter_y,
         value = y,
+        scope = scope,
         onValueChange = { onChange(x, it) },
     )
     if (isVelocity) {

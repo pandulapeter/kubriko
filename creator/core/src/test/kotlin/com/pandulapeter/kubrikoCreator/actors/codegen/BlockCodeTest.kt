@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.ACTOR_MANAGER
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.AUDIO
@@ -79,7 +80,7 @@ class BlockCodeTest {
             BlockKind.STOP_MUSIC to Expected(setOf(AUDIO)),
             BlockKind.SET_FRAME to Expected(),
             BlockKind.SET_ANIMATION to Expected(),
-            BlockKind.IF to Expected(imports = setOf("kotlin.random.Random")),
+            BlockKind.IF to Expected(),
             BlockKind.ELSE to Expected(),
             BlockKind.REPEAT to Expected(),
             BlockKind.END to Expected(),
@@ -101,8 +102,8 @@ class BlockCodeTest {
             BlockDefinition.AddActor("Missing") to Expected(),
             BlockDefinition.MoveTowardsNearest("Ball") to Expected(setOf(MOVEMENT, ACTOR_MANAGER), setOf("com.pandulapeter.kubriko.helpers.extensions.normalized", sceneOffset)),
             BlockDefinition.MoveTowardsNearest("Missing") to Expected(),
-            BlockDefinition.SetNumber("speed", 1f) to Expected(),
-            BlockDefinition.SetNumber("score", 1f, manager = "Game") to Expected(managers = setOf("Game")),
+            BlockDefinition.SetNumber("speed", NumberValue.Fixed(1f)) to Expected(),
+            BlockDefinition.SetNumber("score", NumberValue.Fixed(1f), manager = "Game") to Expected(managers = setOf("Game")),
             BlockDefinition.If(ConditionDefinition.Number("speed")) to Expected(),
             BlockDefinition.If(ConditionDefinition.Number("score", manager = "Game")) to Expected(managers = setOf("Game")),
             BlockDefinition.If(ConditionDefinition.Text("missing")) to Expected(),
@@ -110,7 +111,12 @@ class BlockCodeTest {
             BlockDefinition.If(ConditionDefinition.KeyHeld()) to Expected(setOf(KEYBOARD_INPUT_MANAGER), setOf("androidx.compose.ui.input.key.Key")),
             BlockDefinition.If(ConditionDefinition.KeyHeld(KeyChoice("NoSuchKey"))) to Expected(),
             BlockDefinition.If(ConditionDefinition.Velocity()) to Expected(setOf(MOVEMENT)),
-            BlockDefinition.If(ConditionDefinition.Chance()) to Expected(imports = setOf("kotlin.random.Random")),
+            BlockDefinition.If(ConditionDefinition.Chance()) to Expected(),
+            BlockDefinition.If(ConditionDefinition.Chance(NumberValue.Property("score", manager = "Game"))) to Expected(managers = setOf("Game")),
+            BlockDefinition.SetVelocity(x = NumberValue.Property("score", manager = "Game"), y = NumberValue.Random()) to Expected(setOf(MOVEMENT), setOf(sceneOffset), setOf("Game")),
+            BlockDefinition.SetVelocity(x = NumberValue.Property("missing", manager = "Game")) to Expected(setOf(MOVEMENT), setOf(sceneOffset)),
+            BlockDefinition.SetVelocity(x = NumberValue.Property("speed")) to Expected(setOf(MOVEMENT), setOf(sceneOffset)),
+            BlockDefinition.StartTimer(seconds = NumberValue.Random()) to Expected(imports = setOf("kotlin.math.roundToLong")),
             BlockDefinition.If(ConditionDefinition.Paused()) to Expected(setOf(STATE_MANAGER)),
             BlockDefinition.Log("{speed}") to Expected(setOf(NUMBER_TEXT), setOf(logger)),
             BlockDefinition.Log("{Game.score}") to Expected(setOf(NUMBER_TEXT), setOf(logger), setOf("Game")),
@@ -124,11 +130,11 @@ class BlockCodeTest {
         val animatedScope = actorScope.copy(isAnimated = true)
         assertEquals(
             BlockCode(listOf("setFrame(0)"), needs = setOf(BlockNeed.FRAME)),
-            BlockCodeGenerator.blockCode(BlockDefinition.SetFrame(frame = -3), EventType.EVERY_FRAME, animatedScope),
+            BlockCodeGenerator.blockCode(BlockDefinition.SetFrame(frame = NumberValue.Fixed(-3f)), EventType.EVERY_FRAME, animatedScope),
         )
         assertEquals(
             BlockCode(listOf("animationSpeed = 0f", "isAnimationLooping = false"), needs = setOf(BlockNeed.ANIMATION)),
-            BlockCodeGenerator.blockCode(BlockDefinition.SetAnimation(speed = 0f, isLooping = false), EventType.EVERY_FRAME, animatedScope),
+            BlockCodeGenerator.blockCode(BlockDefinition.SetAnimation(speed = NumberValue.Fixed(0f), isLooping = false), EventType.EVERY_FRAME, animatedScope),
         )
         listOf(BlockDefinition.SetFrame(), BlockDefinition.SetAnimation()).forEach { block ->
             assertEquals(

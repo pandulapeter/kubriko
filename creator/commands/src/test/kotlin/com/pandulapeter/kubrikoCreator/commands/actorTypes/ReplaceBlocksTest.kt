@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
@@ -29,7 +30,7 @@ import kotlin.test.assertNull
 
 class ReplaceBlocksTest {
     private val stop = BlockDefinition.Stop
-    private val jump = BlockDefinition.JumpTo(1f, 2f)
+    private val jump = BlockDefinition.JumpTo(NumberValue.Fixed(1f), NumberValue.Fixed(2f))
     private val log = BlockDefinition.Log("hit")
     private val ball = ActorTypeDefinition(
         name = "Ball",
@@ -44,7 +45,7 @@ class ReplaceBlocksTest {
     @Test
     fun severalBlocksAreAddedRemovedOrRewrittenInOneUndoStep() = runTest {
         val context = commandContext(ball)
-        val velocity = BlockDefinition.SetVelocity(3f, 4f)
+        val velocity = BlockDefinition.SetVelocity(NumberValue.Fixed(3f), NumberValue.Fixed(4f))
         assertEquals(listOf(stop, velocity, log, jump, log), context.assertRoundTrip(Invocation(ReplaceBlocks, ReplaceBlocks.Input("Ball", 0, 1, blocks = listOf(velocity, log)))) { context.blocks() })
         assertEquals(listOf(stop, jump, log), context.assertRoundTrip(Invocation(ReplaceBlocks, ReplaceBlocks.Input("Ball", 0, 1, count = 2))) { context.blocks() })
         assertEquals(listOf(velocity, log), context.assertRoundTrip(Invocation(ReplaceBlocks, ReplaceBlocks.Input("Ball", 0, 0, count = 3, blocks = listOf(velocity, log)))) { context.blocks() })

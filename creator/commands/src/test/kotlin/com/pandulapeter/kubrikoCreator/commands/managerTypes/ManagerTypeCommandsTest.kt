@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.NameProblem
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
@@ -53,7 +54,7 @@ class ManagerTypeCommandsTest {
     )
     private val brick = ActorTypeDefinition(
         name = "Brick",
-        events = listOf(EventDefinition(EventType.COLLISION, otherActorType = "Brick", blocks = listOf(BlockDefinition.ChangeNumber("score", 10f, manager = "Game"), BlockDefinition.Log("{Game.score}")))),
+        events = listOf(EventDefinition(EventType.COLLISION, otherActorType = "Brick", blocks = listOf(BlockDefinition.ChangeNumber("score", NumberValue.Fixed(10f), manager = "Game"), BlockDefinition.Log("{Game.score}")))),
     )
 
     private fun CommandContext.game() = blockTypes!!.managerType("Game")
@@ -64,7 +65,7 @@ class ManagerTypeCommandsTest {
         assertEquals(game, context.assertRoundTrip(Invocation(CreateManagerType, game)) { context.game() })
         val renamed = context.assertRoundTrip(Invocation(RenameManagerType, RenameManagerType.Input("Game", "Match"))) { context.blockTypes!!.types.value }
         assertEquals(listOf("Brick", "Match"), renamed.map { it.name })
-        assertEquals(listOf(BlockDefinition.ChangeNumber("score", 10f, manager = "Match"), BlockDefinition.Log("{Match.score}")), (renamed[0] as ActorTypeDefinition).events.single().blocks)
+        assertEquals(listOf(BlockDefinition.ChangeNumber("score", NumberValue.Fixed(10f), manager = "Match"), BlockDefinition.Log("{Match.score}")), (renamed[0] as ActorTypeDefinition).events.single().blocks)
         assertNull(context.assertRoundTrip(Invocation(DeleteManagerType, DeleteManagerType.Input("Match"))) { context.blockTypes!!.managerType("Match") })
     }
 
@@ -108,7 +109,7 @@ class ManagerTypeCommandsTest {
     fun renamingAManagersPropertyUpdatesEveryTypeThatUsesIt() = runTest {
         val context = commandContext(brick, game)
         val renamed = context.assertRoundTrip(Invocation(EditProperty, EditProperty.Input("Game", "score", PropertyDefinition.Number("points")))) { context.blockTypes!!.types.value }
-        assertEquals(listOf(BlockDefinition.ChangeNumber("points", 10f, manager = "Game"), BlockDefinition.Log("{Game.points}")), (renamed[0] as ActorTypeDefinition).events.single().blocks)
+        assertEquals(listOf(BlockDefinition.ChangeNumber("points", NumberValue.Fixed(10f), manager = "Game"), BlockDefinition.Log("{Game.points}")), (renamed[0] as ActorTypeDefinition).events.single().blocks)
         assertEquals("Score: {points}", (renamed[1] as ManagerTypeDefinition).texts.single().text)
     }
 

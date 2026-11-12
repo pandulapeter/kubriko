@@ -24,7 +24,6 @@ import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.withPropertyReference
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
-import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_parameter_by
 import kubriko.creator.generated.resources.block_parameter_text
@@ -50,16 +49,16 @@ internal fun PropertyBlockParameters(
     PropertyChoice(reference, scope) { onBlockChange(block.withPropertyReference(it.manager, it.name)) }
     if (propertyChoices(scope, reference.kind).isEmpty()) return@FlowRow
     when (block) {
-        is BlockDefinition.SetNumber -> NumberField(
-            modifier = Modifier.width(96.dp),
+        is BlockDefinition.SetNumber -> NumberValueField(
             label = Res.string.block_parameter_value,
             value = block.value,
+            scope = scope,
             onValueChange = { onBlockChange(block.copy(value = it)) },
         )
-        is BlockDefinition.ChangeNumber -> NumberField(
-            modifier = Modifier.width(96.dp),
+        is BlockDefinition.ChangeNumber -> NumberValueField(
             label = Res.string.block_parameter_by,
             value = block.by,
+            scope = scope,
             onValueChange = { onBlockChange(block.copy(by = it)) },
         )
         is BlockDefinition.SetText -> BufferedTextField(

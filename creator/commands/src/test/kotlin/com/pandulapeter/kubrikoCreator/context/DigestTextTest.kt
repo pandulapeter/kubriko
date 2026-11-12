@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -30,7 +31,7 @@ class DigestTextTest {
             EventDefinition(
                 type = EventType.COLLISION,
                 otherActorType = "Brick",
-                blocks = listOf(BlockDefinition.RemoveOther, BlockDefinition.ChangeNumber("score", 10f, manager = "Game"), BlockDefinition.GoToScene("won")),
+                blocks = listOf(BlockDefinition.RemoveOther, BlockDefinition.ChangeNumber("score", NumberValue.Fixed(10f), manager = "Game"), BlockDefinition.GoToScene("won")),
             ),
         ),
     )

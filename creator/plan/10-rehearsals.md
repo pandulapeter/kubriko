@@ -143,8 +143,8 @@ class BallRehearsal {
   viewport. Both are additions to the public API of the input plugins and `ViewportManager`, so their shape is confirmed before they land
   (the root `CLAUDE.md` → Public API stability). The kit's own tests use `:tools:test-fixtures`; whether that module then builds on the
   kit is decided once both exist.
-- **Deterministic randomness:** the random Blocks draw from one generated `Random` that `rehearse` seeds, so a rehearsal of a random
-  spawn fails the same way every time.
+- **Deterministic randomness:** the random Blocks draw from `KubrikoWiring.random`, which `rehearse` replaces with a seeded one, so
+  a rehearsal of a random spawn fails the same way every time.
 - **The project's side** (a `TemplateStep`, so existing projects get it as an upgrade, and the starter from the start): `Game.kt`'s
   Manager list moves into `createGameManagers(firstScene)`, which `Game()` and the user-owned
   `src/desktopTest/kotlin/<package>/Rehearsal.kt` (`rehearse { }`, over the kit's `gameTest`) both call, so a rehearsal plays the same

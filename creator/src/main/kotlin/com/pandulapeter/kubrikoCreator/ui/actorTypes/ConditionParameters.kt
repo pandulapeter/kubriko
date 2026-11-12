@@ -26,7 +26,6 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyReference
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
-import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_parameter_text
 import kubriko.creator.generated.resources.block_parameter_value
@@ -72,11 +71,12 @@ internal fun ConditionParameters(
         is ConditionDefinition.Number -> {
             PropertyChoice(PropertyReference(condition.property, PropertyKind.NUMBER, condition.manager), scope) { onConditionChange(condition.copy(property = it.name, manager = it.manager)) }
             ComparisonChoice(condition.comparison) { onConditionChange(condition.copy(comparison = it)) }
-            NumberField(
-                modifier = Modifier.width(88.dp),
+            NumberValueField(
                 label = Res.string.block_parameter_value,
                 value = condition.value,
+                scope = scope,
                 onValueChange = { onConditionChange(condition.copy(value = it)) },
+                fieldWidth = 88.dp,
             )
         }
         is ConditionDefinition.Text -> {
@@ -108,18 +108,21 @@ internal fun ConditionParameters(
                 onSelected = { onConditionChange(condition.copy(axis = it)) },
             )
             ComparisonChoice(condition.comparison) { onConditionChange(condition.copy(comparison = it)) }
-            NumberField(
-                modifier = Modifier.width(88.dp),
+            NumberValueField(
                 label = Res.string.block_parameter_value,
                 value = condition.value,
+                scope = scope,
                 onValueChange = { onConditionChange(condition.copy(value = it)) },
+                fieldWidth = 88.dp,
             )
         }
-        is ConditionDefinition.Chance -> NumberField(
-            modifier = Modifier.width(88.dp),
+        is ConditionDefinition.Chance -> NumberValueField(
             label = Res.string.condition_percent,
             value = condition.percent,
-            onValueChange = { if (it in 0f..100f) onConditionChange(condition.copy(percent = it)) },
+            scope = scope,
+            onValueChange = { onConditionChange(condition.copy(percent = it)) },
+            accepts = { it in 0f..100f },
+            fieldWidth = 88.dp,
         )
         is ConditionDefinition.Paused -> YesNoChoice(condition.isPaused, Res.string.condition_is_paused, Res.string.condition_is_not_paused) { onConditionChange(condition.copy(isPaused = it)) }
     }

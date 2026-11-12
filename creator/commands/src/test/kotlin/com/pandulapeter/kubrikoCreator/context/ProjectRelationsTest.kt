@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import kotlin.test.Test
@@ -32,14 +33,14 @@ class ProjectRelationsTest {
     private val ball = ActorTypeDefinition(
         name = "Ball",
         events = listOf(
-            EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.SetVelocity(200f, 200f))),
+            EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.SetVelocity(NumberValue.Fixed(200f), NumberValue.Fixed(200f)))),
             EventDefinition(
                 type = EventType.COLLISION,
                 otherActorType = "Brick",
                 blocks = listOf(
                     BlockDefinition.RemoveOther,
-                    BlockDefinition.ChangeNumber("score", 10f, manager = "Game"),
-                    BlockDefinition.If(ConditionDefinition.Number("score", value = 100f, manager = "Game")),
+                    BlockDefinition.ChangeNumber("score", NumberValue.Fixed(10f), manager = "Game"),
+                    BlockDefinition.If(ConditionDefinition.Number("score", value = NumberValue.Fixed(100f), manager = "Game")),
                     BlockDefinition.GoToScene("won"),
                     BlockDefinition.End,
                     BlockDefinition.Log("Score: {Game.score}"),
@@ -86,7 +87,7 @@ class ProjectRelationsTest {
     fun inheritedPropertiesBelongToTheTypeDeclaringThem() {
         assertEquals("Block", relations.ownerOfProperty("Brick", "points"))
         assertEquals("Brick", relations.ownerOfProperty("Brick", "missing"))
-        val child = ProjectRelations(listOf(block, brick.copy(events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetNumber("points", 1f)))))), emptyMap())
+        val child = ProjectRelations(listOf(block, brick.copy(events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetNumber("points", NumberValue.Fixed(1f))))))), emptyMap())
         assertEquals(listOf("Brick#0.0 changes Block.points"), child.to(RelationSubject.Property("Block", "points")).map { it.toString() })
     }
 }

@@ -100,13 +100,15 @@ public fun BlockDefinition.withTimerRenamed(oldName: String, newName: String): B
 }
 
 /**
- * [this] Block with the Property of [manager] (the type's own one, if null) that it changes, or shows in a Log Block,
- * renamed from [oldName] to [newName].
+ * [this] Block with the Property of [manager] (the type's own one, if null) that it changes, reads as a number, or shows
+ * in a Log Block, renamed from [oldName] to [newName].
  */
 internal fun BlockDefinition.withPropertyRenamed(oldName: String, newName: String, manager: String? = null) = when {
     propertyReference?.let { it.manager == manager && it.name == oldName } == true -> withPropertyReference(manager, newName)
     this is BlockDefinition.Log -> copy(message = PropertyPlaceholders.withPropertyRenamed(message, manager, oldName, newName))
     else -> this
+}.withNumberValues { value ->
+    if (value is NumberValue.Property && value.manager == manager && value.property == oldName) value.copy(property = newName) else value
 }
 
 /**
@@ -117,7 +119,7 @@ internal fun BlockDefinition.withManagerRenamed(oldName: String, newName: String
     propertyReference?.manager == oldName -> withPropertyReference(newName, propertyReference!!.name)
     this is BlockDefinition.Log -> copy(message = PropertyPlaceholders.withManagerRenamed(message, oldName, newName))
     else -> this
-}
+}.withNumberValues { value -> if (value is NumberValue.Property && value.manager == oldName) value.copy(manager = newName) else value }
 
 /**
  * [this] Block using the Property called [name] of [manager] (the type's own one, if null) instead, if it is one that
@@ -159,3 +161,51 @@ internal val BlockDefinition.audioFile
         is BlockDefinition.Repeat, BlockDefinition.End, is BlockDefinition.Log, is BlockDefinition.Kotlin,
         -> null
     }?.ifEmpty { null }
+
+/**
+ * Every number [this] Block takes, in the order its fields are declared.
+ */
+public val BlockDefinition.numberValues: List<NumberValue>
+    get() = buildList {
+        withNumberValues { value ->
+            add(value)
+            value
+        }
+    }
+
+/**
+ * [this] Block with each number it takes replaced by what [transform] makes of it.
+ */
+public fun BlockDefinition.withNumberValues(transform: (NumberValue) -> NumberValue): BlockDefinition = when (this) {
+    is BlockDefinition.SetVelocity -> copy(x = transform(x), y = transform(y))
+    is BlockDefinition.AddToVelocity -> copy(x = transform(x), y = transform(y))
+    is BlockDefinition.JumpTo -> copy(x = transform(x), y = transform(y))
+    is BlockDefinition.SetNumber -> copy(value = transform(value))
+    is BlockDefinition.ChangeNumber -> copy(by = transform(by))
+    is BlockDefinition.AddActor -> copy(x = transform(x), y = transform(y))
+    is BlockDefinition.MoveTowardsNearest -> copy(speed = transform(speed))
+    is BlockDefinition.StartTimer -> copy(seconds = transform(seconds))
+    is BlockDefinition.SetFrame -> copy(frame = transform(frame))
+    is BlockDefinition.SetAnimation -> copy(speed = transform(speed))
+    is BlockDefinition.Repeat -> copy(times = transform(times))
+    is BlockDefinition.If -> copy(condition = condition.withNumberValues(transform))
+    BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf,
+    BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther, is BlockDefinition.SetText, is BlockDefinition.SetToggle,
+    is BlockDefinition.StopTimer, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
+    is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, BlockDefinition.Else,
+    BlockDefinition.End, is BlockDefinition.Log, is BlockDefinition.Kotlin,
+    -> this
+}
+
+private fun ConditionDefinition.withNumberValues(transform: (NumberValue) -> NumberValue) = when (this) {
+    is ConditionDefinition.Number -> copy(value = transform(value))
+    is ConditionDefinition.Velocity -> copy(value = transform(value))
+    is ConditionDefinition.Chance -> copy(percent = transform(percent))
+    is ConditionDefinition.Text, is ConditionDefinition.Toggle, is ConditionDefinition.KeyHeld, is ConditionDefinition.Paused -> this
+}
+
+/**
+ * The Properties [this] Block reads as numbers ([NumberValue.Property]), with or without a name chosen yet.
+ */
+public val BlockDefinition.numberPropertyReferences: List<PropertyReference>
+    get() = numberValues.mapNotNull { it.propertyReference }

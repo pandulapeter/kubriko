@@ -52,7 +52,7 @@ class TimerNamingTest {
     fun numbersAreReadAsTheirNamesAndNamesAreWrittenAsThemselves() {
         assertEquals(EventDefinition(EventType.TIMER_FINISHED, timer = "timer2"), json.decodeFromString<EventDefinition>("""{"type":"timerFinished","timer":2}"""))
         assertEquals(BlockDefinition.StopTimer("timer8"), json.decodeFromString<BlockDefinition>("""{"type":"stopTimer","timer":8}"""))
-        val block = BlockDefinition.StartTimer("spawnEnemy", seconds = 2f)
+        val block = BlockDefinition.StartTimer("spawnEnemy", seconds = NumberValue.Fixed(2f))
         assertEquals(block, json.decodeFromString<BlockDefinition>(json.encodeToString<BlockDefinition>(block)))
         assertTrue("\"timer\":\"spawnEnemy\"" in json.encodeToString<BlockDefinition>(block))
     }

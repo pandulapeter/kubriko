@@ -150,9 +150,16 @@ class FormatFixturesTest {
      * up to the current format doesn't make up.
      */
     private fun BlockTypeDefinition.asOf(version: Int): BlockTypeDefinition {
-        if (version >= 4) return this
-        val withoutAnimation = withEvents(events.map { event -> event.copy(blocks = event.blocks.filterNot { it is BlockDefinition.SetFrame || it is BlockDefinition.SetAnimation }) })
+        if (version >= 5) return this
+        val withFixedNumbers = withEvents(events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.numberValueBlocks)) })
+        if (version == 4) return withFixedNumbers
+        val withoutAnimation = withFixedNumbers.withEvents(withFixedNumbers.events.map { event -> event.copy(blocks = event.blocks.filterNot { it is BlockDefinition.SetFrame || it is BlockDefinition.SetAnimation }) })
         return if (withoutAnimation is ActorTypeDefinition) withoutAnimation.copy(tintsSprite = false) else withoutAnimation
+    }
+
+    private fun List<BlockDefinition>.without(blocks: List<BlockDefinition>): List<BlockDefinition> {
+        val start = (0..size - blocks.size).firstOrNull { subList(it, it + blocks.size) == blocks } ?: return this
+        return (take(start) + drop(start + blocks.size)).without(blocks)
     }
 
     private fun copyOfFixture(version: Int): File {

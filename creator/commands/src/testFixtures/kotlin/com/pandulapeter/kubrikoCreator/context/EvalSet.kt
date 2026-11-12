@@ -15,11 +15,13 @@ import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import kotlin.math.hypot
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 /**
@@ -49,7 +51,7 @@ public object EvalSet {
         },
         Request("bricks-give-20-points", "Make every Brick give 20 points.") { context ->
             val scoring = context.blocks().filterIsInstance<BlockDefinition.ChangeNumber>().filter { it.property == "score" }
-            assertEquals(listOf(20f), scoring.map { it.by }.distinct(), "The score changes by ${scoring.map { it.by }}.")
+            assertEquals(listOf<NumberValue>(NumberValue.Fixed(20f)), scoring.map { it.by }.distinct(), "The score changes by ${scoring.map { it.by }}.")
         },
         Request("log-when-the-game-starts", "Log a message when the game starts.") { context ->
             val events = context.blockTypes!!.types.value.filterIsInstance<ManagerTypeDefinition>().flatMap { it.events }
@@ -103,7 +105,9 @@ public object EvalSet {
 
     private fun assertBallStartsFaster(context: CommandContext) {
         val start = context.actorType("Ball").events.first { it.type == EventType.ADDED_TO_SCENE }.blocks.filterIsInstance<BlockDefinition.SetVelocity>().last()
-        assertTrue(hypot(start.x, start.y) > hypot(200f, -300f), "The Ball starts at $start.")
+        val x = assertIs<NumberValue.Fixed>(start.x, "The Ball starts at $start.").value
+        val y = assertIs<NumberValue.Fixed>(start.y, "The Ball starts at $start.").value
+        assertTrue(hypot(x, y) > hypot(200f, -300f), "The Ball starts at $start.")
     }
 
     private fun CommandContext.blocks() = blockTypes!!.types.value.flatMap { type -> type.events.flatMap { it.blocks } }

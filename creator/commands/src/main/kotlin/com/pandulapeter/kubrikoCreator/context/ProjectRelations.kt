@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.numberPropertyReferences
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 
 /**
@@ -89,6 +90,9 @@ internal class ProjectRelations(
             is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic,
             is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
             -> Unit
+        }
+        block.numberPropertyReferences.forEach { reference ->
+            if (reference.name.isNotEmpty()) add(Relation(place, RelationKind.READS, propertyOf(typeName, reference.manager, reference.name)))
         }
     }
 

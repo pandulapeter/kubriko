@@ -1,0 +1,41 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubrikoCreator.ui.actorTypes
+
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+class NumberValueKindTest {
+
+    @Test
+    fun aNumberBecomesARandomOneBetweenZeroAndItAndBack() {
+        assertEquals(NumberValue.Random(0f, 200f), NumberValueKind.RANDOM.of(NumberValue.Fixed(200f)))
+        assertEquals(NumberValue.Random(-5f, 0f, isWhole = true), NumberValueKind.RANDOM_WHOLE.of(NumberValue.Fixed(-5f)))
+        assertEquals(NumberValue.Random(0f, 1f), NumberValueKind.RANDOM.of(NumberValue.Fixed(0f)))
+        assertEquals(NumberValue.Fixed(3f), NumberValueKind.FIXED.of(NumberValue.Random(3f, 9f)))
+        assertEquals(NumberValue.Random(3f, 9f, isWhole = true), NumberValueKind.RANDOM_WHOLE.of(NumberValue.Random(3f, 9f)))
+    }
+
+    @Test
+    fun aPropertyStartsUnchosenAndLeavesZeroBehind() {
+        assertEquals(NumberValue.Property(), NumberValueKind.PROPERTY.of(NumberValue.Fixed(5f)))
+        assertEquals(NumberValue.Fixed(0f), NumberValueKind.FIXED.of(NumberValue.Property("speed")))
+        assertEquals(NumberValue.Random(), NumberValueKind.RANDOM.of(NumberValue.Property("speed")))
+    }
+
+    @Test
+    fun aWholeFieldShowsAndOffersOneRandomKind() {
+        assertEquals(NumberValueKind.RANDOM, NumberValueKind.of(NumberValue.Random(isWhole = true), isWholeField = true))
+        assertEquals(NumberValueKind.RANDOM_WHOLE, NumberValueKind.of(NumberValue.Random(isWhole = true), isWholeField = false))
+        assertEquals(listOf(NumberValueKind.FIXED, NumberValueKind.RANDOM, NumberValueKind.PROPERTY), NumberValueKind.offeredBy(isWholeField = true))
+        assertEquals(NumberValueKind.entries, NumberValueKind.offeredBy(isWholeField = false))
+    }
+}

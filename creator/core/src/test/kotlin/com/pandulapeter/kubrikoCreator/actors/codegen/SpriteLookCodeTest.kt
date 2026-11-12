@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -56,7 +57,7 @@ class SpriteLookCodeTest {
     @Test
     fun theFrameBlockGetsItsFunctionAndTheAnimationBlockItsFields() {
         val code = generate(
-            hero.copy(events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetFrame(9), BlockDefinition.SetAnimation(speed = 2f))))),
+            hero.copy(events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetFrame(NumberValue.Fixed(9f)), BlockDefinition.SetAnimation(speed = NumberValue.Fixed(2f)))))),
         )
         assertContains(code, "    private fun setFrame(frame: Int) {\n        animation.frameIndex = frame.coerceIn(0, animation.frameCount - 1)\n    }\n")
         assertContains(code, "        setFrame(9)\n        animationSpeed = 2f\n        isAnimationLooping = true\n")
@@ -86,7 +87,7 @@ class SpriteLookCodeTest {
 
     @Test
     fun aFamilysBaseClassPlaysTheFramesOfWhicheverMemberHasThem() {
-        val parent = ActorTypeDefinition(name = "Enemy", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetFrame(1)))))
+        val parent = ActorTypeDefinition(name = "Enemy", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetFrame(NumberValue.Fixed(1f))))))
         val child = hero.copy(name = "Bat", parent = "Enemy")
         val types = listOf(parent, child)
         val parentCode = generate(parent, actorTypes = types)

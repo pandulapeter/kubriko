@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.NameProblem
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyNaming
 import com.pandulapeter.kubrikoCreator.project.ProjectFormat
@@ -123,13 +124,13 @@ class ReservedPropertyMigrationTest {
         store.save(
             ActorTypeDefinition(
                 name = "Ball",
-                events = everyFrame(BlockDefinition.SetNumber(manager = "Game", property = "look", value = 1f), BlockDefinition.Kotlin("gameManager.look += 1f")),
+                events = everyFrame(BlockDefinition.SetNumber(manager = "Game", property = "look", value = NumberValue.Fixed(1f)), BlockDefinition.Kotlin("gameManager.look += 1f")),
             ),
         )
         val types = migratedTypes()
         assertEquals(listOf(PropertyDefinition.Number("look2")), (types.getValue("Game") as ManagerTypeDefinition).properties)
         assertEquals(
-            everyFrame(BlockDefinition.SetNumber(manager = "Game", property = "look2", value = 1f), BlockDefinition.Kotlin("gameManager.look2 += 1f")),
+            everyFrame(BlockDefinition.SetNumber(manager = "Game", property = "look2", value = NumberValue.Fixed(1f)), BlockDefinition.Kotlin("gameManager.look2 += 1f")),
             (types.getValue("Ball") as ActorTypeDefinition).events,
         )
     }

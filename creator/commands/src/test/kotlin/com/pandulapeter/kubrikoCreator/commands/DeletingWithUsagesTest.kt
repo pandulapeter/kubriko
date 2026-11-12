@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddProperty
@@ -142,14 +143,14 @@ class DeletingWithUsagesTest {
                 EventDefinition(
                     EventType.EVERY_FRAME,
                     blocks = listOf(
-                        BlockDefinition.If(ConditionDefinition.Number("score", value = 3f, manager = "Game")),
+                        BlockDefinition.If(ConditionDefinition.Number("score", value = NumberValue.Fixed(3f), manager = "Game")),
                         BlockDefinition.If(ConditionDefinition.Chance()),
                         BlockDefinition.Stop,
                         BlockDefinition.End,
                         BlockDefinition.Else,
                         BlockDefinition.RemoveSelf,
                         BlockDefinition.End,
-                        BlockDefinition.SetNumber("score", 1f, manager = "Game"),
+                        BlockDefinition.SetNumber("score", NumberValue.Fixed(1f), manager = "Game"),
                         BlockDefinition.Log("Score {Game.score}"),
                         BlockDefinition.Kotlin("gameManager.score += 1"),
                         BlockDefinition.BounceOffEdge,

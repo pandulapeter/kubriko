@@ -13,7 +13,10 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
+import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
+import com.pandulapeter.kubrikoCreator.actors.withNumberValues
 
 /**
  * What deleting something does to the types that use it ([ProjectReferences.typesAfterDeleting]): Blocks and Events
@@ -26,11 +29,14 @@ internal class ReferenceCleanup(
 ) {
 
     fun typesAfter(usages: List<Usage>): List<BlockTypeDefinition> {
-        val deletedProperties = usages.mapNotNullTo(HashSet()) { it.subject as? RelationSubject.Property }
+        val deleted = Deleted(
+            properties = usages.mapNotNullTo(HashSet()) { it.subject as? RelationSubject.Property },
+            types = usages.mapNotNullTo(HashSet()) { (it.subject as? RelationSubject.Type)?.name },
+        )
         val removals = removalsOf(usages)
         return types.mapNotNull { type ->
             val removal = removals[type.name] ?: return@mapNotNull null
-            cleaned(type, removal, deletedProperties).takeIf { it != type }
+            cleaned(type, removal, deleted).takeIf { it != type }
         }
     }
 
@@ -73,7 +79,7 @@ internal class ReferenceCleanup(
                             val blocks = types.first { it.name == place.name }.events[eventIndex].blocks
                             removal.blocks.getOrPut(eventIndex, ::HashSet) += ProjectReferences.sectionOf(blocks, checkNotNull(blockIndex))
                         }
-                        UsageEffect.PLACEHOLDER_TO_TEXT, UsageEffect.ACTORS_REMOVED, UsageEffect.KOTLIN_TO_CHANGE, UsageEffect.PREVENTS_DELETING, UsageEffect.MENTION_TO_TEXT,
+                        UsageEffect.PLACEHOLDER_TO_TEXT, UsageEffect.VALUE_TO_NUMBER, UsageEffect.ACTORS_REMOVED, UsageEffect.KOTLIN_TO_CHANGE, UsageEffect.PREVENTS_DELETING, UsageEffect.MENTION_TO_TEXT,
                         UsageEffect.SPRITE_CLEARED, UsageEffect.MUSIC_CLEARED, UsageEffect.IMAGE_COPIED, UsageEffect.DELETED_WITH_FOLDER,
                         -> Unit
                     }
@@ -85,8 +91,8 @@ internal class ReferenceCleanup(
         return removals
     }
 
-    private fun cleaned(type: BlockTypeDefinition, removal: Removal, deletedProperties: Set<RelationSubject.Property>): BlockTypeDefinition {
-        fun isDeleted(placeholder: PropertyPlaceholders.Placeholder) = relations.propertyOf(type.name, placeholder.manager, placeholder.name) in deletedProperties
+    private fun cleaned(type: BlockTypeDefinition, removal: Removal, deleted: Deleted): BlockTypeDefinition {
+        fun isDeleted(placeholder: PropertyPlaceholders.Placeholder) = relations.propertyOf(type.name, placeholder.manager, placeholder.name) in deleted.properties
         val events = type.events.mapIndexedNotNull { eventIndex, event ->
             if (eventIndex in removal.events) return@mapIndexedNotNull null
             val removed = removal.blocks[eventIndex].orEmpty()
@@ -95,7 +101,7 @@ internal class ReferenceCleanup(
                     when {
                         blockIndex in removed -> null
                         block is BlockDefinition.Log -> block.copy(message = PropertyPlaceholders.withPlaceholdersAsText(block.message, ::isDeleted))
-                        else -> block
+                        else -> block.withNumberValues { value -> if (value is NumberValue.Property) fixedInsteadOf(type.name, value, deleted) ?: value else value }
                     }
                 },
             )
@@ -111,6 +117,22 @@ internal class ReferenceCleanup(
             withEvents
         }
     }
+
+    /**
+     * The starting value of the Property [value] reads, as a fixed number, if that Property, or the Manager type it is
+     * chosen from, is deleted.
+     */
+    private fun fixedInsteadOf(typeName: String, value: NumberValue.Property, deleted: Deleted): NumberValue.Fixed? {
+        val property = relations.propertyOf(typeName, value.manager, value.property)
+        if (property !in deleted.properties && value.manager !in deleted.types) return null
+        val definition = types.firstOrNull { it.name == property.owner }?.properties?.firstOrNull { it.name == property.name }
+        return NumberValue.Fixed((definition as? PropertyDefinition.Number)?.initialValue ?: 0f)
+    }
+
+    private class Deleted(
+        val properties: Set<RelationSubject.Property>,
+        val types: Set<String>,
+    )
 
     private class Removal {
         val events = HashSet<Int>()

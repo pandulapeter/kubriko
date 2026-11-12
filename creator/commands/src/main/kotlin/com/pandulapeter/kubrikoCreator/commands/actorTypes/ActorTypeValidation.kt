@@ -23,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
@@ -32,6 +33,9 @@ import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.actorTypeReference
+import com.pandulapeter.kubrikoCreator.actors.isFinite
+import com.pandulapeter.kubrikoCreator.actors.numberPropertyReferences
+import com.pandulapeter.kubrikoCreator.actors.numberValues
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypes
 import com.pandulapeter.kubrikoCreator.actors.timerName
@@ -163,7 +167,7 @@ internal fun validateBlock(block: BlockDefinition, eventType: EventType, scope: 
 
 private fun validateBlockValues(block: BlockDefinition, scope: BlockScope): Rejection? = when {
     block is BlockDefinition.If && !ConditionKind.of(block.condition).isAvailableIn(scope.kind) -> Rejection(PlacementProblem.CONDITION_NOT_ALLOWED)
-    !block.areNumbersFinite -> Rejection(CommandProblem.NUMBER_INVALID)
+    !block.areNumbersValid -> Rejection(CommandProblem.NUMBER_INVALID)
     ((block as? BlockDefinition.If)?.condition as? ConditionDefinition.KeyHeld)?.key?.isKnown == false -> unknownKey((block.condition as ConditionDefinition.KeyHeld).key)
     else -> block.timerName?.let(TimerNaming::validate)?.let(::Rejection) ?: validateBlockReferences(block, scope)
 }
@@ -176,7 +180,7 @@ private fun validateBlockReferences(block: BlockDefinition, scope: BlockScope): 
         SimilarNames.rejection(LookupProblem.SOUND_MISSING, LookupProblem.SOUND_MISSING_SIMILAR, block.sound, scope.audioFiles?.sounds.orEmpty(), block.sound)
     block is BlockDefinition.PlayMusic && block.music.isNotEmpty() && scope.audioFiles?.music?.contains(block.music) == false ->
         SimilarNames.rejection(LookupProblem.MUSIC_MISSING, LookupProblem.MUSIC_MISSING_SIMILAR, block.music, scope.audioFiles?.music.orEmpty(), block.music)
-    else -> block.propertyReference?.let { reference -> validatePropertyReference(reference, scope) }
+    else -> (listOfNotNull(block.propertyReference) + block.numberPropertyReferences).firstNotNullOfOrNull { reference -> validatePropertyReference(reference, scope) }
 }
 
 private fun validatePropertyReference(reference: PropertyReference, scope: BlockScope): Rejection? {
@@ -262,30 +266,32 @@ internal fun CommandContext.validateSprite(sprite: String): Rejection? {
  */
 internal fun validateText(text: ScreenTextDefinition) = if (text.size.isFinite() && text.size > 0f) null else Rejection(CommandProblem.TEXT_SIZE_INVALID)
 
-private val BlockDefinition.areNumbersFinite
-    get() = when (this) {
-        is BlockDefinition.SetVelocity -> x.isFinite() && y.isFinite()
-        is BlockDefinition.AddToVelocity -> x.isFinite() && y.isFinite()
-        is BlockDefinition.JumpTo -> x.isFinite() && y.isFinite()
-        is BlockDefinition.If -> when (val condition = condition) {
-            is ConditionDefinition.Number -> condition.value.isFinite()
-            is ConditionDefinition.Velocity -> condition.value.isFinite()
-            is ConditionDefinition.Chance -> condition.percent.isFinite() && condition.percent in 0f..100f
-            is ConditionDefinition.Text, is ConditionDefinition.Toggle, is ConditionDefinition.KeyHeld, is ConditionDefinition.Paused -> true
-        }
-        is BlockDefinition.Repeat -> times >= 0
-        is BlockDefinition.StartTimer -> seconds.isFinite() && seconds >= 0f
-        is BlockDefinition.AddActor -> x.isFinite() && y.isFinite()
-        is BlockDefinition.MoveTowardsNearest -> speed.isFinite()
-        is BlockDefinition.SetNumber -> value.isFinite()
-        is BlockDefinition.ChangeNumber -> by.isFinite()
-        is BlockDefinition.SetFrame -> frame >= 0
-        is BlockDefinition.SetAnimation -> speed.isFinite()
+/**
+ * Whether every number [this] Block takes is finite and, where a field allows only some, within them. A Property's value
+ * can't be checked before the game runs, so the generated code keeps it within them instead.
+ */
+private val BlockDefinition.areNumbersValid
+    get() = numberValues.all { it.isFinite } && when (this) {
+        is BlockDefinition.If -> (condition as? ConditionDefinition.Chance)?.percent?.isWithin(0f, 100f) ?: true
+        is BlockDefinition.Repeat -> times.isWithin(minimum = 0f) && times.isWholeWhenFixed
+        is BlockDefinition.StartTimer -> seconds.isWithin(minimum = 0f)
+        is BlockDefinition.SetFrame -> frame.isWithin(minimum = 0f) && frame.isWholeWhenFixed
+        is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.JumpTo, is BlockDefinition.AddActor,
+        is BlockDefinition.MoveTowardsNearest, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetAnimation,
         BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
         is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.StopTimer, BlockDefinition.Else, BlockDefinition.End,
         is BlockDefinition.Log, is BlockDefinition.Kotlin, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
-        is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic -> true
+        is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic,
+        -> true
     }
+
+private val NumberValue.isWholeWhenFixed get() = this !is NumberValue.Fixed || value == value.toLong().toFloat()
+
+private fun NumberValue.isWithin(minimum: Float, maximum: Float = Float.POSITIVE_INFINITY) = when (this) {
+    is NumberValue.Fixed -> value in minimum..maximum
+    is NumberValue.Random -> from in minimum..maximum && to in minimum..maximum
+    is NumberValue.Property -> true
+}
 
 /**
  * Why the Actor type [actorType] can't have [property]: one of its ancestors or descendants has a Property of that name

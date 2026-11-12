@@ -1,0 +1,35 @@
+{
+    "name": "EveryGrandchild",
+    "parent": "EveryChild",
+    "shape": "circle",
+    "sprite": "drawable/every-block.png",
+    "color": "#6060AA",
+    "tintsSprite": false,
+    "width": 80.0,
+    "height": 80.0,
+    "properties": [
+        {
+            "type": "toggle",
+            "name": "isLast",
+            "initialValue": false
+        }
+    ],
+    "events": [
+        {
+            "type": "everyFrame",
+            "blocks": [
+                {
+                    "type": "runParentEvent"
+                },
+                {
+                    "type": "stop"
+                },
+                {
+                    "type": "setToggle",
+                    "property": "isLast",
+                    "value": true
+                }
+            ]
+        }
+    ]
+}

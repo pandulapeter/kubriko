@@ -27,8 +27,8 @@ public enum class BlockKind(
     public val otherEventProblem: PlacementProblem? = null,
 ) {
 
-    SET_VELOCITY({ BlockDefinition.SetVelocity(x = 200f, y = 0f) }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE),
-    ADD_TO_VELOCITY({ BlockDefinition.AddToVelocity(x = 50f, y = 0f) }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE),
+    SET_VELOCITY({ BlockDefinition.SetVelocity(x = NumberValue.Fixed(200f)) }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE),
+    ADD_TO_VELOCITY({ BlockDefinition.AddToVelocity(x = NumberValue.Fixed(50f)) }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE),
     STOP({ BlockDefinition.Stop }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE),
     RUN_PARENT_EVENT({ BlockDefinition.RunParentEvent }, managerTypeProblem = PlacementProblem.BLOCK_RUN_PARENT_EVENT_IN_MANAGER_TYPE),
     JUMP_TO({ BlockDefinition.JumpTo() }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE),

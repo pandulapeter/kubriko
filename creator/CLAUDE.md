@@ -264,7 +264,7 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   name it, is deleted by that cleanup alone, across every type sharing it (`timerSharersOf`, one subject whichever of them
   it is asked through); deleting an Actor type, Manager type, Scene, or Property
   removes its type's Actors from every Scene and the Blocks and Events that only mean something with it (an if Block with its
-  section), draws a deleted sprite's Actor types as their shapes and clears a deleted music from the Scenes playing it, gives
+  section), turns a deleted Property a Block reads as a number into its starting value (`VALUE_TO_NUMBER`), draws a deleted sprite's Actor types as their shapes and clears a deleted music from the Scenes playing it, gives
   each page showing a deleted sprite a copy of it next to it (`KeepPageImages`), turns placeholders of its Properties and the pages' mentions of it into text (`UnlinkMentions`; documents are the user's,
   so theirs are left, as renames leave them), and
   leaves Kotlin alone (listed instead), as one undo step that brings it all back byte for byte (`ReplaceTypes`, `ReplaceScenes`,

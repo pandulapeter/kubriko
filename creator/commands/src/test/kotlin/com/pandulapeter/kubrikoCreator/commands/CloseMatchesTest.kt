@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
@@ -93,7 +94,7 @@ class CloseMatchesTest {
         val scope = context.scopeOf(paddle)
         assertEquals(
             Rejection(PlacementProblem.NUMBER_PROPERTY_MISSING_SIMILAR, "sped", "Paddle", "speed"),
-            validateBlock(BlockDefinition.SetNumber("sped", 1f), EventType.EVERY_FRAME, scope),
+            validateBlock(BlockDefinition.SetNumber("sped", NumberValue.Fixed(1f)), EventType.EVERY_FRAME, scope),
         )
         assertEquals(
             Rejection(PlacementProblem.TEXT_PROPERTY_OF_OTHER_KIND, "speed", "Paddle"),

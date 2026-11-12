@@ -34,7 +34,16 @@ class InputProblemTest {
 
     @Test
     fun aValueOfTheWrongKindIsNamedWithWhatItShouldBe() =
-        assertEquals("\"fast\" at 'x' isn't a float.", problemOf("""{"actorType":"Ball","eventIndex":0,"block":{"type":"setVelocity","x":"fast"}}"""))
+        assertEquals("\"fast\" at 'isRepeating' isn't a boolean.", problemOf("""{"actorType":"Ball","eventIndex":0,"block":{"type":"startTimer","isRepeating":"fast"}}"""))
+
+    @Test
+    fun aNumberOfTheWrongKindSaysWhatANumberCanBe() {
+        assertEquals("\"fast\" isn't a number.", problemOf("""{"actorType":"Ball","eventIndex":0,"block":{"type":"setVelocity","x":"fast"}}"""))
+        assertEquals(
+            "There is no number value of the type 'edge': it is a number, or an object of the type random or property.",
+            problemOf("""{"actorType":"Ball","eventIndex":0,"block":{"type":"setVelocity","x":{"type":"edge"}}}"""),
+        )
+    }
 
     @Test
     fun missingPropertiesAreListed() {

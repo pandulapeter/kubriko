@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditProperty
@@ -112,7 +113,7 @@ class RenamingFollowsReferencesTest {
         val hud = ManagerTypeDefinition(name = "Hud", texts = listOf(ScreenTextDefinition(text = "Score: {Game.score}")))
         val player = ActorTypeDefinition(
             name = "Player",
-            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetNumber("score", 1f, manager = "Game"), BlockDefinition.If(ConditionDefinition.Number("score", value = 3f, manager = "Game")), BlockDefinition.End))),
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetNumber("score", NumberValue.Fixed(1f), manager = "Game"), BlockDefinition.If(ConditionDefinition.Number("score", value = NumberValue.Fixed(3f), manager = "Game")), BlockDefinition.End))),
         )
         val context = commandContext(game, hud, player)
         CreatePage.apply(context, CreatePage.Input("README", "# Game\n\nThe [game](../.kubriko/managers/Game.json) keeps the score.\n"))
@@ -143,7 +144,7 @@ class RenamingFollowsReferencesTest {
             properties = listOf(PropertyDefinition.Number("hp")),
             events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Log("{hp} left"), BlockDefinition.ChangeNumber("hp"), BlockDefinition.If(ConditionDefinition.Number("hp")), BlockDefinition.End))),
         )
-        val boss = ActorTypeDefinition(name = "Boss", parent = "Enemy", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetNumber("hp", 5f)))))
+        val boss = ActorTypeDefinition(name = "Boss", parent = "Enemy", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetNumber("hp", NumberValue.Fixed(5f))))))
         val context = commandContext(enemy, boss)
         context.assertFollowed(RelationSubject.Property("Enemy", "hp"), RelationSubject.Property("Enemy", "health"), propertyKinds) {
             EditProperty.apply(context, EditProperty.Input("Enemy", "hp", PropertyDefinition.Number("health")))

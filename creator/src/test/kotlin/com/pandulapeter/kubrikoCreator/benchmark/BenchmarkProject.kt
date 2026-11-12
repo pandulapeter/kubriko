@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
@@ -103,19 +104,19 @@ internal object BenchmarkProject {
                 PropertyDefinition.Toggle("isAngry"),
             ),
             events = listOf(
-                EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.SetVelocity(x = 40f, y = 20f), BlockDefinition.StartTimer(timer = "spawn", seconds = 2f, isRepeating = true))),
+                EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.SetVelocity(x = NumberValue.Fixed(40f), y = NumberValue.Fixed(20f)), BlockDefinition.StartTimer(timer = "spawn", seconds = NumberValue.Fixed(2f), isRepeating = true))),
                 EventDefinition(
                     EventType.EVERY_FRAME,
                     blocks = listOf(
-                        BlockDefinition.If(ConditionDefinition.Number("hp", Comparison.LESS_OR_EQUAL, 0f)),
-                        BlockDefinition.ChangeNumber("score", by = 10f, manager = managerTypeName(index % MANAGER_TYPE_COUNT)),
+                        BlockDefinition.If(ConditionDefinition.Number("hp", Comparison.LESS_OR_EQUAL, NumberValue.Fixed(0f))),
+                        BlockDefinition.ChangeNumber("score", by = NumberValue.Fixed(10f), manager = managerTypeName(index % MANAGER_TYPE_COUNT)),
                         BlockDefinition.RemoveSelf,
                         BlockDefinition.End,
                     ),
                 ),
-                EventDefinition(EventType.COLLISION, otherActorType = other, blocks = listOf(BlockDefinition.BounceOffOther, BlockDefinition.ChangeNumber("hp", by = -1f), BlockDefinition.Log("{label} was hit: {hp}"))),
-                EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.SPACE, blocks = listOf(BlockDefinition.SetToggle("isAngry", value = true), BlockDefinition.MoveTowardsNearest(other, speed = 80f))),
-                EventDefinition(EventType.TIMER_FINISHED, timer = "spawn", blocks = listOf(BlockDefinition.AddActor(actorTypeName((index + 7) % ACTOR_TYPE_COUNT), x = 16f))),
+                EventDefinition(EventType.COLLISION, otherActorType = other, blocks = listOf(BlockDefinition.BounceOffOther, BlockDefinition.ChangeNumber("hp", by = NumberValue.Fixed(-1f)), BlockDefinition.Log("{label} was hit: {hp}"))),
+                EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.SPACE, blocks = listOf(BlockDefinition.SetToggle("isAngry", value = true), BlockDefinition.MoveTowardsNearest(other, speed = NumberValue.Fixed(80f)))),
+                EventDefinition(EventType.TIMER_FINISHED, timer = "spawn", blocks = listOf(BlockDefinition.AddActor(actorTypeName((index + 7) % ACTOR_TYPE_COUNT), x = NumberValue.Fixed(16f)))),
                 EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.BounceOffEdge)),
             ),
         )
@@ -125,8 +126,8 @@ internal object BenchmarkProject {
         name = managerTypeName(index),
         properties = listOf(PropertyDefinition.Number("score"), PropertyDefinition.Number("lives", initialValue = 3f)),
         events = listOf(
-            EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.SetNumber("score", value = 0f))),
-            EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.If(ConditionDefinition.Number("lives", Comparison.LESS_OR_EQUAL, 0f)), BlockDefinition.RestartScene, BlockDefinition.End)),
+            EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.SetNumber("score", value = NumberValue.Fixed(0f)))),
+            EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.If(ConditionDefinition.Number("lives", Comparison.LESS_OR_EQUAL, NumberValue.Fixed(0f))), BlockDefinition.RestartScene, BlockDefinition.End)),
         ),
         texts = listOf(ScreenTextDefinition("Score: {score}"), ScreenTextDefinition("Lives: {lives}")),
     )

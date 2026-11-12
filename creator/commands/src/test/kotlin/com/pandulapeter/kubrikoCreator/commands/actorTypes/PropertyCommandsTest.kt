@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.NameProblem
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
@@ -48,8 +49,8 @@ class PropertyCommandsTest {
         name = "Player",
         properties = listOf(score, title),
         events = listOf(
-            EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.ChangeNumber("score", 2f), BlockDefinition.Log("Score: {score}, {scoreboard}"))),
-            EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.If(ConditionDefinition.Number("score", value = 3f)))),
+            EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.ChangeNumber("score", NumberValue.Fixed(2f)), BlockDefinition.Log("Score: {score}, {scoreboard}"))),
+            EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.If(ConditionDefinition.Number("score", value = NumberValue.Fixed(3f))))),
         ),
     )
 
@@ -88,8 +89,8 @@ class PropertyCommandsTest {
         )
         val renamed = context.assertRoundTrip(Invocation(EditProperty, EditProperty.Input("Player", "score", PropertyDefinition.Number("points", 5f)))) { context.player() to context.states() }
         assertEquals(listOf(PropertyDefinition.Number("points", 5f), title), renamed.first.properties)
-        assertEquals(listOf(BlockDefinition.ChangeNumber("points", 2f), BlockDefinition.Log("Score: {points}, {scoreboard}")), renamed.first.events[0].blocks)
-        assertEquals(listOf(BlockDefinition.If(ConditionDefinition.Number("points", value = 3f))), renamed.first.events[1].blocks)
+        assertEquals(listOf(BlockDefinition.ChangeNumber("points", NumberValue.Fixed(2f)), BlockDefinition.Log("Score: {points}, {scoreboard}")), renamed.first.events[0].blocks)
+        assertEquals(listOf(BlockDefinition.If(ConditionDefinition.Number("points", value = NumberValue.Fixed(3f)))), renamed.first.events[1].blocks)
         assertEquals(listOf("""{"points":12.0,"title":"Hi"}""", """{"score":7.0}"""), renamed.second)
         assertEquals(setOf(SceneChange.Written("main", isNew = false)), context.scenes.takeChanges().toSet())
     }
@@ -192,7 +193,7 @@ class PropertyCommandsTest {
         val game = ManagerTypeDefinition(name = "Game", properties = listOf(PropertyDefinition.Number("score")))
         val brick = ActorTypeDefinition(
             name = "Brick",
-            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.ChangeNumber("score", 10f, manager = "Game")))),
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.ChangeNumber("score", NumberValue.Fixed(10f), manager = "Game")))),
         )
         val context = lockableContext(brick, game, actors = listOf(SceneActorEntry("Game", """{"score":1.0}""")))
         val executor = CommandExecutor(context, testScope())
