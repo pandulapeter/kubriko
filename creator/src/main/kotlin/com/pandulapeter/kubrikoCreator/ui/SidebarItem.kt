@@ -27,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.context.HealthFinding
@@ -36,9 +35,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import com.pandulapeter.kubrikoCreator.ui.components.RowActionsButton
 import com.pandulapeter.kubrikoCreator.ui.components.WithTooltip
 import com.pandulapeter.kubrikoCreator.ui.components.flashBackground
-import com.pandulapeter.kubrikoCreator.ui.components.highlightedMatch
 import com.pandulapeter.kubrikoCreator.ui.components.hoverReveal
-import com.pandulapeter.kubrikoCreator.ui.components.matchHighlightStyle
 import com.pandulapeter.kubrikoCreator.ui.components.rememberHoverRevealState
 import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
 import com.pandulapeter.kubrikoCreator.ui.components.revealedWhen
@@ -104,10 +101,9 @@ internal fun SidebarItem(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val query = LocalSidebarFilter.current
             Text(
                 modifier = Modifier.weight(1f, fill = false),
-                text = if (query.isBlank()) AnnotatedString(text) else highlightedMatch(text, query, matchHighlightStyle()),
+                text = rememberFilterHighlighted(text),
                 style = MaterialTheme.typography.bodyMedium,
                 color = color,
                 maxLines = 1,
