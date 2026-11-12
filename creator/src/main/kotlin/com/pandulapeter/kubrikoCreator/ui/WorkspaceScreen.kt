@@ -37,7 +37,6 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.commands.screenplay.unusedImagesOf
-import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpServerState
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
@@ -316,14 +315,7 @@ private fun WorkspaceDialogsOf(
     validate = controller.commands::validate,
     iosSimulatorOptions = controller.iosSimulatorSetup::options,
     createIosSimulator = controller.iosSimulatorSetup::create,
-    onUsageSelected = { usage ->
-        when (val owner = usage.placeOwner) {
-            is RelationSubject.Type -> controller.selection.selectType(owner.name)
-            is RelationSubject.Scene -> controller.selection.openScene(owner.name)
-            is RelationSubject.Page -> controller.selection.openPage(owner.name)
-            is RelationSubject.Property, is RelationSubject.Image, is RelationSubject.Resource, is RelationSubject.Timer, is RelationSubject.Folder, null -> Unit
-        }
-    },
+    selection = controller.selection,
 )
 
 /**

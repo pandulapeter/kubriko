@@ -33,6 +33,7 @@ import com.pandulapeter.kubrikoCreator.workspace.IosDeviceType
 import com.pandulapeter.kubrikoCreator.workspace.IosRuntime
 import com.pandulapeter.kubrikoCreator.workspace.IosSimulatorCreation
 import com.pandulapeter.kubrikoCreator.workspace.IosSimulatorOptions
+import com.pandulapeter.kubrikoCreator.workspace.SelectionController
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.StateFlow
 import kubriko.creator.generated.resources.Res
@@ -56,7 +57,7 @@ import java.io.File
  * @param onConfirmedDelete Dispatches a delete (or a change to a document) the user confirmed, with what runs once it was
  *   applied.
  * @param validate Why a change can't be made, or null, for what a confirmation lets the user still change.
- * @param onUsageSelected Goes to the place of a usage the delete's confirmation lists.
+ * @param selection What the center shows, which goes to the place of a usage the delete's confirmation lists.
  * @param iosSimulatorOptions Lists what a new iOS simulator can be made of.
  * @param createIosSimulator Makes a new iOS simulator, which Play then uses.
  */
@@ -75,7 +76,7 @@ internal fun WorkspaceDialogs(
     unusedImagesOf: suspend (page: String) -> List<String>,
     onConfirmedDelete: (Invocation<*>, () -> Unit) -> Unit,
     validate: (Invocation<*>) -> Rejection?,
-    onUsageSelected: (Usage) -> Unit,
+    selection: SelectionController,
     iosSimulatorOptions: suspend () -> IosSimulatorOptions,
     createIosSimulator: suspend (name: String, deviceType: IosDeviceType, runtime: IosRuntime) -> IosSimulatorCreation,
 ) {
@@ -102,7 +103,7 @@ internal fun WorkspaceDialogs(
             },
             onUsageSelected = { usage ->
                 uiState.finishDeleting()
-                onUsageSelected(usage)
+                selection.open(usage)
             },
             onDismiss = uiState::finishDeleting,
         )
