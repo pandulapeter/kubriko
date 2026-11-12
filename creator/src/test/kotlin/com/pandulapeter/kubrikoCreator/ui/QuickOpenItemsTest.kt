@@ -67,4 +67,15 @@ class QuickOpenItemsTest {
     )
 
     private fun resource(group: ResourceGroup, path: String) = ProjectResource(group, File(path), path)
+
+    @Test
+    fun theLitRowFollowsItsItemWhereverTheListMovesIt() {
+        val brick = items.single { it.title == "Brick" }.target
+        val game = items.single { it.title == "Game" }.target
+        val matches = quickOpenMatchesOf("", items)
+        assertEquals(0, litIndexOf(matches, null))
+        assertEquals(1, litIndexOf(matches, game))
+        assertEquals(0, litIndexOf(matches.drop(1), game), "Game moved up when Brick went")
+        assertEquals(0, litIndexOf(matches.drop(1), brick), "an item the list no longer has lights the closest match")
+    }
 }

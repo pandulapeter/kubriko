@@ -97,3 +97,11 @@ internal fun quickOpenMatchesOf(query: String, items: List<QuickOpenItem>, limit
  * How many matches quick open lists at most: enough to scroll through, few enough to read.
  */
 internal const val QUICK_OPEN_LIMIT = 50
+
+/**
+ * The row of [matches] to light: the one of [litTarget] (where the arrows moved), wherever the list now has it, or the
+ * closest match when nothing was chosen or the list no longer has it, so a list changing underneath never lights
+ * another item at the same place.
+ */
+internal fun litIndexOf(matches: List<QuickOpenMatch>, litTarget: QuickOpenTarget?): Int =
+    litTarget?.let { target -> matches.indexOfFirst { it.item.target == target }.takeIf { it >= 0 } } ?: 0
