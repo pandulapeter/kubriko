@@ -630,7 +630,8 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   what it matched (`highlightedMatch`), so the filter, quick open, the choice lists, and the mention suggestions never
   disagree about what matches.
 - Quick open (Cmd/Ctrl+P, or Shift twice) offers what a page can mention, plus every type's Properties, and opens the
-  chosen one where the sidebar would. The search shortcuts are read before the focused element sees the key
+  chosen one in the center as the sidebar does, or, for what Creator has no editor for (sounds, music, Kotlin), in the
+  system's app as a page's link does. The search shortcuts are read before the focused element sees the key
   (`SearchShortcuts`, on the workspace's `onPreviewKeyEvent`), so a text field never swallows them, and `DoubleShift`
   counts a Shift only when pressed alone.
 - Opening a closed folder, Kotlin container, group, or module opens it with every folder in it closed, so a deep tree opens
