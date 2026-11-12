@@ -31,29 +31,28 @@ its file's Waiting on others. Inside a file, its Order section says what comes f
 loses its number and moves to Waiting below, and the rest are numbered again, since nothing in it can be worked on until what it
 waits for happens.
 
-1. [Search](01-search.md) - the sidebar filter, quick open, find usages, search in Blocks and pages, and searching conversations.
-2. [Blocks, Actor types, and Manager types](02-blocks.md) - Blocks for the simple behavior a first game still needs Kotlin for, the
+1. [Blocks, Actor types, and Manager types](01-blocks.md) - Blocks for the simple behavior a first game still needs Kotlin for, the
    rest of the Block set, UI elements, the Scene editor's handles and snapping, Convert to code, and the Paddle game template.
-3. [Reuse, Traits, and bigger games](03-reuse-and-traits.md) - parent types, custom Blocks (the user's and the AI's own,
+2. [Reuse, Traits, and bigger games](02-reuse-and-traits.md) - parent types, custom Blocks (the user's and the AI's own,
    with parameters, results, and Kotlin bodies, shared between projects), Traits, what bigger games need, and the
    platformer and top-down templates.
-4. [Version control](04-git.md) - change markers, restoring, checkpoints, nested repositories, branches, remotes, cloning, and
+3. [Version control](03-git.md) - change markers, restoring, checkpoints, nested repositories, branches, remotes, cloning, and
    conflicts.
-5. [Debugger](05-debugger.md) - pausing, stepping, and slowing the game for the user and the AI, the debug agent and its panels, other
+4. [Debugger](04-debugger.md) - pausing, stepping, and slowing the game for the user and the AI, the debug agent and its panels, other
    targets, and retiring the debug menu.
-6. [Installing Creator](06-installing-creator.md) - first-run setup that downloads the JDK, Gradle, and the Android SDK with progress,
+5. [Installing Creator](05-installing-creator.md) - first-run setup that downloads the JDK, Gradle, and the Android SDK with progress,
    a new Android emulator from Play's menu, installers, and updates.
-7. [Export](07-export.md) - release builds stripped of Creator, Release, Icons, and Signing settings, exports for every target, and
+6. [Export](06-export.md) - release builds stripped of Creator, Release, Icons, and Signing settings, exports for every target, and
    Play on an iOS device.
-8. [Demo games](08-demo-games.md) - five bundled games of increasing complexity, each built entirely in Creator, improving Creator
+7. [Demo games](07-demo-games.md) - five bundled games of increasing complexity, each built entirely in Creator, improving Creator
    wherever it falls short.
-9. [Project upkeep](09-project-upkeep.md) - multi-module projects, every entry point (IntelliJ's run configurations included),
+8. [Project upkeep](08-project-upkeep.md) - multi-module projects, every entry point (IntelliJ's run configurations included),
     editions such as a demo and a full version, opting existing projects in, Kubriko versions, and template drift.
-10. [Tesselar in Creator](10-tesselar.md) - playing Tesselar and running its tools from Creator, its rendering on the engine's batched
+9. [Tesselar in Creator](09-tesselar.md) - playing Tesselar and running its tools from Creator, its rendering on the engine's batched
     looks, and the asset editor extension point that hosts its editors.
-11. [Rehearsals](11-rehearsals.md) - automated tests: the ones a project already has found, listed, and run with one click, a test kit
+10. [Rehearsals](10-rehearsals.md) - automated tests: the ones a project already has found, listed, and run with one click, a test kit
     for games in Kotlin, and the AI writing and keeping them.
-12. [Later](12-later.md) - the code editor and what waits for demand, a decision, or the benchmarks.
+11. [Later](11-later.md) - the code editor and what waits for demand, a decision, or the benchmarks.
 
 ## Waiting
 
@@ -79,7 +78,7 @@ Gradle project that builds in IntelliJ exactly as if written by hand.
 compatibility or a copy of its look, icons, or action set; running Creator itself on mobile or the web.
 
 **Two reference projects keep the design honest:** a beginner game built only from Blocks (the Getting started paddle game, and the
-Breakout in `~/Projects/breakout`), and Tesselar (`10-tesselar.md`). The principles every plan keeps, and who owns which
+Breakout in `~/Projects/breakout`), and Tesselar (`09-tesselar.md`). The principles every plan keeps, and who owns which
 project file, are in `../CLAUDE.md`.
 
 ## Terminology

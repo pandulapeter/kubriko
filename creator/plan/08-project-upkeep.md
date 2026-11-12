@@ -172,7 +172,7 @@ A demo and a full version, a free and a paid one, a build for an event: the same
   Creator passes, and IntelliJ and plain Gradle leave out, building the default) into a generated `GameEdition` constant beside
   `GameSettings`. Blocks get a condition "the edition is", and hand-written code reads `GameEdition.current`. The constant is known at
   compile time in a release build, so the shrinker drops what only another edition uses, as it drops Log Blocks
-  (`07-export.md`), and the export check looks for it. Each edition other than the default gets a run configuration
+  (`06-export.md`), and the export check looks for it. Each edition other than the default gets a run configuration
   per target in `.run/`, so IntelliJ plays the demo too. Removing the last edition but one removes the block again as a diff.
 - **Project settings → Editions:** added, renamed, reordered (the first is the default), and removed, each with its name, application
   ID suffix, version, and the Scenes it leaves out. Identity shows each value with the edition overriding it, so a demo's name is set
@@ -187,7 +187,7 @@ A demo and a full version, a free and a paid one, a build for an event: the same
   they treat the generated ones, without Creator touching the build; a project with editions of both kinds is fine.
 - **Playing and exporting.** Play's menu offers the edition only when there are several. Choosing one chooses every target's entry
   point together and the Scene editor's classes (a Block reading `GameEdition` previews as it plays); Export makes the editions
-  chosen in one go, each named, versioned, and signed as its own identity says (`07-export.md`).
+  chosen in one go, each named, versioned, and signed as its own identity says (`06-export.md`).
 - **Checked** with unit tests over the property block (parsed exactly as the template's Gradle code parses it, as `GameSettings.of`
   is), the registry per edition, and recorded flavor models, and one end-to-end scenario on a copy of the Breakout fixture that adds a
   demo edition leaving a Scene out, builds both, and plays the demo, whose `GameEdition` Block shows.
