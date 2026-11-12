@@ -36,4 +36,17 @@ class RevealHighlightsTest {
         assertNull(reveal.highlightInScene("other"))
         assertNull(Reveal(RevealedPlace.InScene("level", emptyList())).highlightInScene("level"))
     }
+
+    @Test
+    fun whicheverLitUpLastIsShown() {
+        val newest = NewestHighlight()
+        val reveal = Reveal(RevealedPlace.InType("Ball", eventIndex = 0))
+        assertNull(newest.revealIfNewer(null, aiStepKey = 1))
+        assertEquals(reveal, newest.revealIfNewer(reveal, aiStepKey = 1), "the user went somewhere after the AI's step")
+        assertNull(newest.revealIfNewer(reveal, aiStepKey = 2), "the AI took a step after that")
+        assertNull(newest.revealIfNewer(reveal, aiStepKey = 2))
+        val again = Reveal(RevealedPlace.InType("Ball", eventIndex = 0))
+        assertEquals(again, newest.revealIfNewer(again, aiStepKey = 2), "going there again lights it up again")
+        assertEquals(again, newest.revealIfNewer(again, aiStepKey = null), "no AI step shown any more")
+    }
 }

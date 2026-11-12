@@ -57,7 +57,8 @@ import org.jetbrains.compose.resources.stringResource
  * @param modifier Applied to whichever of them is shown, which the workspace's row places.
  * @param changedByHand The names of the types whose generated code was changed by hand.
  * @param shownAiStep The AI's step the type editor lights up, if any.
- * @param revealed The place the user went to, which lights up in the type or Scene shown before the AI's step does.
+ * @param revealed The place the user went to, which lights up in the type or Scene shown instead of the AI's step while
+ *   it is the newer of the two ([NewestHighlight]).
  * @param onCommand Applies a command, calling its `onSuccess` unless it is rejected.
  * @param currentBlockType The type of the given name as it is now, not as last composed.
  * @param onCommandIfValid Applies a command unless it is rejected, returning why it was.
@@ -102,6 +103,7 @@ internal fun WorkspaceCenter(
     revealed: Reveal? = null,
 ) {
     val contentModifier = modifier.fadeInOnChange(shownContentKey(selection, sceneEditing))
+    val newestReveal = remember { NewestHighlight() }.revealIfNewer(revealed, shownAiStep?.flashKey)
     val markdownTitle = markdownTitleOf(selection)
     val actorTypes = remember(blockTypes) { blockTypes.filterIsInstance<ActorTypeDefinition>() }
     val audioFiles = remember(resources) { AudioFiles.ofScanned(resources) }
@@ -112,7 +114,7 @@ internal fun WorkspaceCenter(
         music = audioFiles?.music,
         sceneDescriptions = sceneDescriptions,
         shownAiStep = shownAiStep,
-        revealed = revealed,
+        revealed = newestReveal,
         actorTypeDragState = actorTypeDragState,
         panelLayout = panelLayout,
         onCommand = onCommand,
@@ -138,7 +140,7 @@ internal fun WorkspaceCenter(
             currentBlockType = currentBlockType,
             onCommandIfValid = onCommandIfValid,
             onTypeSelected = onTypeSelected,
-            highlight = revealed?.highlightIn(selectedBlockType.name) ?: shownAiStep?.let { it.step.highlightIn(selectedBlockType.name, it.flashKey) },
+            highlight = newestReveal?.highlightIn(selectedBlockType.name) ?: shownAiStep?.let { it.step.highlightIn(selectedBlockType.name, it.flashKey) },
             editorAttention = editorAttention,
         )
     } else if (markdownTitle != null && sceneEditing == SceneEditingState.Closed) {

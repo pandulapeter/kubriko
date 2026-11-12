@@ -29,3 +29,29 @@ internal fun Reveal.highlightIn(typeName: String): ActorTypeHighlight? = (place 
 internal fun Reveal.highlightInScene(sceneName: String, startedAt: Long? = null): SceneHighlight? = (place as? RevealedPlace.InScene)
     ?.takeIf { it.scene == sceneName && it.actorIds.isNotEmpty() }
     ?.let { place -> SceneHighlight(key = this, actorIds = place.actorIds.toSet(), startedAt = startedAt, isSelecting = true) }
+
+/**
+ * Tells which of a place the user went to and the AI's step shown lit up last, so that the editors light that one up:
+ * a place gone to stays until something else is shown, and would otherwise keep the AI's later steps in the same type
+ * or Scene dark.
+ */
+internal class NewestHighlight {
+    private var reveal: Reveal? = null
+    private var aiStepKey: Any? = null
+    private var isRevealNewer = false
+
+    /**
+     * [reveal], when it changed after [aiStepKey] (what lights up the AI's step shown) last did, or null.
+     */
+    fun revealIfNewer(reveal: Reveal?, aiStepKey: Any?): Reveal? {
+        if (aiStepKey !== this.aiStepKey) {
+            this.aiStepKey = aiStepKey
+            if (aiStepKey != null) isRevealNewer = false
+        }
+        if (reveal !== this.reveal) {
+            this.reveal = reveal
+            if (reveal != null) isRevealNewer = true
+        }
+        return reveal?.takeIf { isRevealNewer }
+    }
+}
