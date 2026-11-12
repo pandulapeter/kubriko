@@ -30,7 +30,7 @@ public sealed interface NumberValue {
 
     @Serializable
     @SerialName("random")
-    @Description("A random number between from and to (both included), drawn anew each time the Block runs.")
+    @Description("A random number from from up to to, drawn anew each time the Block runs; a whole one can also be to itself.")
     public data class Random(
         @Description("The smallest number it can be.")
         @SerialName("from") val from: Float = 0f,

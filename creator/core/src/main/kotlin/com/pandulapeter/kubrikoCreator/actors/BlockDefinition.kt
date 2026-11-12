@@ -164,7 +164,7 @@ public sealed interface BlockDefinition {
         @Description("The name of the Timer, like spawnEnemy: a letter, then letters and digits, starting lowercase. A Timer exists once a Block or an Event names it.")
         @Serializable(with = TimerNameSerializer::class)
         @SerialName("timer") val timer: String = TimerNaming.DEFAULT_NAME,
-        @Description("How long it takes, in seconds.")
+        @Description("How long it takes, in seconds. A random number or a Property's value is worked out when the Block runs, and a repeating Timer keeps it for every round; for a new one each round, start the Timer again in its timerFinished Event instead.")
         @SerialName("seconds") val seconds: NumberValue = NumberValue.Fixed(1f),
         @Description("True to start it again each time it finishes, until a stopTimer Block stops it.")
         @SerialName("isRepeating") val isRepeating: Boolean = false,
