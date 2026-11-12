@@ -70,6 +70,40 @@ class SelectionControllerTest {
     }
 
     @Test
+    fun aPlaceAskedForIsRevealedUntilSomethingElseIsShown() = runTest {
+        val controller = createController()
+        val selection = controller.selection
+        assertTrue(selection.selectType("Player", RevealedPlace.InType("Player", eventIndex = 1, blockIndex = 2)))
+        assertEquals(RevealedPlace.InType("Player", eventIndex = 1, blockIndex = 2), selection.revealed.value?.place)
+        assertTrue(selection.openScene("level", actorIds = listOf("3")))
+        assertEquals(RevealedPlace.InScene("level", listOf("3")), selection.revealed.value?.place)
+        val first = selection.revealed.value
+        selection.openScene("level", actorIds = listOf("3"))
+        assertTrue(first !== selection.revealed.value, "going to the same place again lights it up again")
+        selection.openPage("story")
+        assertNull(selection.revealed.value)
+    }
+
+    @Test
+    fun aPlaceIsForgottenOnceItsTypeIsNoLongerShownHoweverThatHappened() = runTest {
+        val controller = createController()
+        controller.selection.selectType("Player", RevealedPlace.InType("Player", property = "speed"))
+        controller.selection.selectType("Player")
+        assertNull(controller.selection.revealed.value, "selecting without a place reveals nothing")
+        controller.selection.selectType("Player", RevealedPlace.InType("Player", property = "speed"))
+        controller.blockTypes!!.select(null)
+        runCurrent()
+        assertNull(controller.selection.revealed.value)
+    }
+
+    @Test
+    fun aPlaceInAnotherTypeIsNotRevealed() = runTest {
+        val controller = createController()
+        controller.selection.selectType("Player", RevealedPlace.InType("Enemy", eventIndex = 0))
+        assertNull(controller.selection.revealed.value)
+    }
+
+    @Test
     fun openingASceneDeselectsTheType() = runTest {
         val controller = createController()
         controller.selection.selectType("Player")

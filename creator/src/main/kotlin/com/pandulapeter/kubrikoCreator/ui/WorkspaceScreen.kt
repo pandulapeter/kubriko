@@ -485,4 +485,5 @@ private fun WorkspaceCenterOf(
     markdownIdentity = rememberMarkdownIdentity(selection, controller.commands.context.movedFiles),
     onAddPageImage = rememberPageImageAdder(selection) { controller.commands.dispatch(it) },
     sprites = rememberSpriteEditing(controller.commands, controller.selection, uiState.spriteEditor),
+    revealed = controller.selection.revealed.collectAsState().value,
 )

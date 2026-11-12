@@ -102,7 +102,8 @@ import org.jetbrains.compose.resources.stringResource
  *   shows it, unless it is the Scene settings.
  * @param onViewFailed Called when the project's code threw while the view of the Scene was being created.
  * @param pictureHost Offered a picture of the Scene while it is shown.
- * @param highlight Actors to light up on the canvas and in the Actor list, as the AI changed them.
+ * @param highlight Actors to light up on the canvas and in the Actor list, as the AI changed them, or the user went
+ *   to them (the first of which is selected).
  */
 @Composable
 internal fun SceneEditorPane(
@@ -124,7 +125,7 @@ internal fun SceneEditorPane(
 ) = Column(
     modifier = modifier,
 ) {
-    val selection = rememberSceneSelection(state, broughtBack)
+    val selection = rememberSceneSelection(state, broughtBack, highlight)
     val flash = rememberSceneFlash(highlight)
     val view = rememberSceneView(state, onViewFailed) ?: return@Column ProgressScreen(stringResource(Res.string.scene_preparing, state.scene.name))
     SelectingRestoredActor(selection, view)

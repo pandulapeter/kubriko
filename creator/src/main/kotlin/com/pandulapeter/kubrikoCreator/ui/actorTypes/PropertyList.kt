@@ -50,6 +50,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
 import com.pandulapeter.kubrikoCreator.ui.components.confirmingOnEnter
+import com.pandulapeter.kubrikoCreator.ui.components.flashBackground
 import com.pandulapeter.kubrikoCreator.ui.components.hoverReveal
 import com.pandulapeter.kubrikoCreator.ui.components.rememberHoverRevealState
 import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
@@ -80,6 +81,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param onChanged Called with a Property's current name and what it should become, for a change of its initial value.
  * @param onRenamed Called with a Property's current name and what it should become, for a new name, returning why the
  *   Property can't have it.
+ * @param flashedProperty What makes a Property's row light up, and the name of that Property.
  */
 internal fun LazyListScope.propertyListItems(
     properties: List<PropertyDefinition>,
@@ -90,6 +92,7 @@ internal fun LazyListScope.propertyListItems(
     onRenamed: (name: String, PropertyDefinition) -> Rejection?,
     onRemoved: (name: String) -> Unit,
     inheritedProperties: List<PropertyDefinition> = emptyList(),
+    flashedProperty: Pair<Any, String>? = null,
 ) {
     item {
         PanelHeader(
@@ -128,7 +131,9 @@ internal fun LazyListScope.propertyListItems(
     val names = properties.map { it.name }
     itemsIndexed(properties, key = { index, _ -> propertyKeys[index] }) { index, property ->
         PropertyRow(
-            modifier = Modifier.propertyItemPadding(isFirst = index == 0 && inheritedProperties.isEmpty()),
+            modifier = Modifier
+                .flashBackground(flashedProperty?.takeIf { it.second == property.name }?.first)
+                .propertyItemPadding(isFirst = index == 0 && inheritedProperties.isEmpty()),
             property = property,
             otherNames = names - property.name,
             onChange = { onChanged(property.name, it) },

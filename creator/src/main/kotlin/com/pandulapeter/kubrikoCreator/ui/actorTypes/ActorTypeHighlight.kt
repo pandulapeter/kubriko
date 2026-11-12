@@ -10,14 +10,16 @@
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 /**
- * The part of the open Actor type the AI just worked on, which the editor selects and lights up.
+ * The part of the open Actor type the AI just worked on, or the user went to, which the editor selects and lights up.
  *
  * @param key Changes with every step, so that the same part lights up again when it is worked on again.
  * @param eventIndex The Event, or null for the Actor type as a whole.
  * @param blockIndex The Block of that Event, or null for the Event as a whole.
+ * @param property A Property of the type, lit up in its list rather than the type as a whole.
  */
 internal data class ActorTypeHighlight(
     val key: Any,
     val eventIndex: Int?,
     val blockIndex: Int?,
+    val property: String? = null,
 )

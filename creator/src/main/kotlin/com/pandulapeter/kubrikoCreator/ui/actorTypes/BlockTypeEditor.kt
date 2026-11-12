@@ -102,7 +102,7 @@ internal fun BlockTypeEditor(
             definition = definition,
             inheritance = inheritance,
             isChangedByHand = isChangedByHand,
-            flashKey = highlight?.key?.takeIf { highlight.eventIndex == null },
+            flashKey = highlight?.key?.takeIf { highlight.eventIndex == null && highlight.property == null },
             onTypeSelected = onTypeSelected,
             actions = actions,
         )
@@ -123,6 +123,7 @@ internal fun BlockTypeEditor(
                         propertyKeys = propertyKeys,
                         inheritedProperties = inheritance.properties,
                         actions = actions,
+                        flashedProperty = highlight?.property?.let { property -> highlight.key to property },
                     )
                 },
                 events = { columnModifier ->
@@ -264,6 +265,7 @@ private fun PropertiesColumn(
     propertyKeys: List<Long>,
     inheritedProperties: List<PropertyDefinition>,
     actions: BlockTypeEditorActions,
+    flashedProperty: Pair<Any, String>?,
     modifier: Modifier = Modifier,
 ) = LazyColumn(
     modifier = modifier,
@@ -290,6 +292,7 @@ private fun PropertiesColumn(
         onChanged = actions::editProperty,
         onRenamed = actions::renameProperty,
         onRemoved = actions::removeProperty,
+        flashedProperty = flashedProperty,
     )
     if (definition is ManagerTypeDefinition) {
         item {

@@ -696,7 +696,10 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   for each package below the one all files share, merged with its only child folder while it holds nothing else (`ui.menu`).
   The package is the one each file declares (`KotlinPackages`), since Kotlin lets folders leave out the shared root package.
 - What the center shows is one `WorkspaceSelection` (a type, a Scene being prepared, open, or failed, a page, a document, a sprite, or nothing),
-  changed only through `SelectionController`, the one place that pairs selecting a type with closing the Scene. The workspace screen's
+  changed only through `SelectionController`, the one place that pairs selecting a type with closing the Scene. Going to a place
+  in it (a Block, a Property, a Scene's Actors) is the controller's `revealed`, set with the selection and forgotten once
+  anything else is shown however that happens, so it never lights up again later; the editors light it up through the
+  same highlights as the AI's steps (`RevealHighlights`), and a Scene's first revealed Actor is selected too. The workspace screen's
   own panels, dialogs, and the AI step the user went back to live in `WorkspaceUiState`, a plain class its tests reach without a UI.
 - The sprite editor (`ui/sprites`) is the one exception to saving every change as it is made: it keeps what is drawn in a
   `SpriteDraft` (with undo and redo of its own, stroke by stroke) until the user saves it, as an image editor does, so a

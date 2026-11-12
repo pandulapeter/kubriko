@@ -160,6 +160,17 @@ class SceneEditorPaneTest {
     }
 
     @Test
+    fun anActorTheUserWentToIsSelectedButOneTheAiChangedIsNot() = uiTest(width = 900, height = 600) {
+        var highlight by mutableStateOf<SceneHighlight?>(SceneHighlight(key = Any(), actorIds = setOf("ball")))
+        showPane(emptyFlow(), highlight = { highlight })
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText(INSPECTOR_HINT)).fetchSemanticsNodes().isNotEmpty() }
+        waitForIdle()
+        onNodeWithText(INSPECTOR_HINT).assertExists()
+        highlight = SceneHighlight(key = Any(), actorIds = setOf("ball"), isSelecting = true)
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasContentDescription(REMOVE)).fetchSemanticsNodes().isNotEmpty() }
+    }
+
+    @Test
     fun anActorBroughtBackThatTheNextLoadDoesntShowIsDroppedRatherThanSelectedLater() = uiTest(width = 900, height = 600) {
         val broughtBack = MutableSharedFlow<ActorsBroughtBack>(extraBufferCapacity = 4)
         val wall = ball.copy(id = "wall")

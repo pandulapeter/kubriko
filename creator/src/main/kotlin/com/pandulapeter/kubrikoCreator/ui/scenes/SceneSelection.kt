@@ -52,13 +52,16 @@ internal class SceneSelection {
 
 /**
  * The selection of [state]'s Scene, following what [broughtBack] reports from the moment the Scene opens, even while it
- * is still prepared.
+ * is still prepared, and selecting the first Actor a [highlight] that selects names once the Scene shows it.
  */
 @Composable
-internal fun rememberSceneSelection(state: SceneEditingState.Open, broughtBack: Flow<ActorsBroughtBack>): SceneSelection {
+internal fun rememberSceneSelection(state: SceneEditingState.Open, broughtBack: Flow<ActorsBroughtBack>, highlight: SceneHighlight? = null): SceneSelection {
     val selection = remember(state.scene.file) { SceneSelection() }
     LaunchedEffect(selection, broughtBack, state.sceneName) {
         broughtBack.collect { actors -> restoredSelectionOf(actors, state.sceneName)?.let(selection::restore) }
+    }
+    LaunchedEffect(selection, highlight?.key) {
+        highlight?.takeIf { it.isSelecting }?.actorIds?.firstOrNull()?.let(selection::restore)
     }
     return selection
 }

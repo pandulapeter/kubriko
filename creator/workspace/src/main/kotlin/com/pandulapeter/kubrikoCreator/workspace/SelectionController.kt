@@ -16,9 +16,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 /**
  * The only place that pairs selecting a type with closing the Scene shown, and opening a Scene, a page, or a document with deselecting
@@ -33,6 +35,12 @@ public class SelectionController internal constructor(
     scope: CoroutineScope,
 ) {
     private val openText = MutableStateFlow<WorkspaceSelection?>(null)
+    private val _revealed = MutableStateFlow<Reveal?>(null)
+
+    /**
+     * The place the center lights up in what it shows, if one was asked for, until something else is shown.
+     */
+    public val revealed: StateFlow<Reveal?> = _revealed.asStateFlow()
 
     /**
      * What is asked before the center shows something else, the project closes, or Creator quits, while what it shows
@@ -59,33 +67,46 @@ public class SelectionController internal constructor(
     public val current: StateFlow<WorkspaceSelection> = combine(blockTypes?.selectedName ?: flowOf(null), sceneEditing.state, openText, ::selectionOf)
         .stateIn(scope, SharingStarted.Eagerly, selectionOf(blockTypes?.selectedName?.value, sceneEditing.state.value, openText.value))
 
+    init {
+        // The center can change without this controller (a deleted type deselects itself), and a place left behind
+        // would light up again when its type or Scene is shown next.
+        scope.launch { current.collect { selection -> if (_revealed.value?.place?.isIn(selection) == false) _revealed.value = null } }
+    }
+
     /**
-     * Shows the type [name], closing the Scene shown.
+     * Shows the type [name], closing the Scene shown, and lights up [place] in it, if given.
      *
      * @return False, changing nothing, when there is no such type.
      */
-    public fun selectType(name: String): Boolean {
+    public fun selectType(name: String, place: RevealedPlace.InType? = null): Boolean {
         if (blockTypes?.get(name) == null) return false
         leaving {
             sceneEditing.close()
             openText.value = null
             blockTypes.select(name)
+            _revealed.value = place?.takeIf { it.type == name }?.let(::Reveal)
         }
         return true
     }
 
     /**
-     * Shows the Scene [name] unless it is shown already, deselecting the type.
+     * Shows the Scene [name] unless it is shown already, deselecting the type, and lights up the Actors of [actorIds] in
+     * it, if any.
      *
      * @return False, changing nothing, when there is no such Scene file.
      */
-    public fun openScene(name: String): Boolean {
+    public fun openScene(name: String, actorIds: List<String> = emptyList()): Boolean {
         val scene = sceneOf(name) ?: return false
-        if (sceneEditing.state.value.sceneName == name) return true
+        val reveal = actorIds.takeIf { it.isNotEmpty() }?.let { Reveal(RevealedPlace.InScene(name, it)) }
+        if (sceneEditing.state.value.sceneName == name) {
+            _revealed.value = reveal
+            return true
+        }
         leaving {
             blockTypes?.select(null)
             openText.value = null
             sceneEditing.open(scene)
+            _revealed.value = reveal
         }
         return true
     }
@@ -112,6 +133,7 @@ public class SelectionController internal constructor(
         sceneEditing.close()
         blockTypes?.select(null)
         openText.value = null
+        _revealed.value = null
     }
 
     private fun openText(selection: WorkspaceSelection) {
@@ -120,9 +142,15 @@ public class SelectionController internal constructor(
             sceneEditing.close()
             blockTypes?.select(null)
             openText.value = selection
+            _revealed.value = null
         }
     }
 
     private fun selectionOf(selectedName: String?, state: SceneEditingState, text: WorkspaceSelection?): WorkspaceSelection =
         state.sceneName?.let(WorkspaceSelection::Scene) ?: text ?: selectedName?.let(WorkspaceSelection::BlockType) ?: WorkspaceSelection.None
+
+    private fun RevealedPlace.isIn(selection: WorkspaceSelection) = when (this) {
+        is RevealedPlace.InType -> selection == WorkspaceSelection.BlockType(type)
+        is RevealedPlace.InScene -> selection == WorkspaceSelection.Scene(scene)
+    }
 }

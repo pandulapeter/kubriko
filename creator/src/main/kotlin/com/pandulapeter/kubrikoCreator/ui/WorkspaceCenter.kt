@@ -43,6 +43,7 @@ import com.pandulapeter.kubrikoCreator.ui.screenplay.markdownTitleOf
 import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberReviewOf
 import com.pandulapeter.kubrikoCreator.ui.sprites.SpriteEditing
 import com.pandulapeter.kubrikoCreator.ui.sprites.SpriteEditor
+import com.pandulapeter.kubrikoCreator.workspace.Reveal
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 import kotlinx.coroutines.flow.Flow
 import kubriko.creator.generated.resources.Res
@@ -56,6 +57,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param modifier Applied to whichever of them is shown, which the workspace's row places.
  * @param changedByHand The names of the types whose generated code was changed by hand.
  * @param shownAiStep The AI's step the type editor lights up, if any.
+ * @param revealed The place the user went to, which lights up in the type or Scene shown before the AI's step does.
  * @param onCommand Applies a command, calling its `onSuccess` unless it is rejected.
  * @param currentBlockType The type of the given name as it is now, not as last composed.
  * @param onCommandIfValid Applies a command unless it is rejected, returning why it was.
@@ -97,6 +99,7 @@ internal fun WorkspaceCenter(
     markdownIdentity: Any? = null,
     onAddPageImage: ((PageImageSource, section: String?) -> Unit)? = null,
     sprites: SpriteEditing = SpriteEditing(),
+    revealed: Reveal? = null,
 ) {
     val contentModifier = modifier.fadeInOnChange(shownContentKey(selection, sceneEditing))
     val markdownTitle = markdownTitleOf(selection)
@@ -109,6 +112,7 @@ internal fun WorkspaceCenter(
         music = audioFiles?.music,
         sceneDescriptions = sceneDescriptions,
         shownAiStep = shownAiStep,
+        revealed = revealed,
         actorTypeDragState = actorTypeDragState,
         panelLayout = panelLayout,
         onCommand = onCommand,
@@ -134,7 +138,7 @@ internal fun WorkspaceCenter(
             currentBlockType = currentBlockType,
             onCommandIfValid = onCommandIfValid,
             onTypeSelected = onTypeSelected,
-            highlight = shownAiStep?.let { it.step.highlightIn(selectedBlockType.name, it.flashKey) },
+            highlight = revealed?.highlightIn(selectedBlockType.name) ?: shownAiStep?.let { it.step.highlightIn(selectedBlockType.name, it.flashKey) },
             editorAttention = editorAttention,
         )
     } else if (markdownTitle != null && sceneEditing == SceneEditingState.Closed) {
@@ -182,6 +186,7 @@ private fun SceneContent(
     music: List<String>?,
     sceneDescriptions: Map<String, String>,
     shownAiStep: ShownAiStep?,
+    revealed: Reveal?,
     actorTypeDragState: SidebarDragState,
     panelLayout: PanelLayout,
     onCommand: (Invocation<*>, onSuccess: () -> Unit) -> Unit,
@@ -193,7 +198,7 @@ private fun SceneContent(
     editorAttention: EditorAttention?,
 ) {
     // Kept here rather than in the Scene's pane, so that a Scene opened again goes on with its flash instead of starting it anew.
-    val flashStartedAt = remember(shownAiStep?.flashKey) { System.currentTimeMillis() }
+    val flashStartedAt = remember(shownAiStep?.flashKey, revealed) { System.currentTimeMillis() }
     when (sceneEditing) {
         is SceneEditingState.Open -> SceneEditorPane(
             modifier = modifier,
@@ -210,7 +215,8 @@ private fun SceneContent(
             onClose = onCloseScene,
             onViewFailed = { exception, isShowingOlderClasses -> onSceneViewFailed(sceneEditing.revision, exception, isShowingOlderClasses) },
             pictureHost = editorAttention,
-            highlight = shownAiStep?.let { it.step.highlightInScene(sceneEditing.sceneName, it.flashKey, flashStartedAt) },
+            highlight = revealed?.highlightInScene(sceneEditing.sceneName, flashStartedAt)
+                ?: shownAiStep?.let { it.step.highlightInScene(sceneEditing.sceneName, it.flashKey, flashStartedAt) },
         )
         is SceneEditingState.Unsupported -> SceneNotice(
             modifier = modifier,

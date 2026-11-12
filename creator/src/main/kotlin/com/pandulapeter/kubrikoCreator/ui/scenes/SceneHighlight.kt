@@ -20,16 +20,18 @@ import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashStrength
 
 /**
  * Actors of the open Scene that light up, the canvas drawing them and the Actor list their rows in the flash's color,
- * to show what the AI just changed.
+ * to show what the AI just changed, or where the user went.
  *
  * @param key What makes them light up, a new one each time.
  * @param startedAt When they first lit up, in milliseconds since the epoch, so that a Scene opened again later goes on
  *   from there rather than lighting them up anew, or null for now.
+ * @param isSelecting Whether the first of them is selected too, once the Scene shows it: for a place the user went to.
  */
 internal data class SceneHighlight(
     val key: Any,
     val actorIds: Set<String>,
     val startedAt: Long? = null,
+    val isSelecting: Boolean = false,
 )
 
 /**
