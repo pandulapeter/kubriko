@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.context.SearchResults
 import com.pandulapeter.kubrikoCreator.context.Usage
 import com.pandulapeter.kubrikoCreator.context.findUsages
+import com.pandulapeter.kubrikoCreator.context.isInProject
 import com.pandulapeter.kubrikoCreator.context.mentionPathsOf
 import com.pandulapeter.kubrikoCreator.context.pagesMentioning
 import com.pandulapeter.kubrikoCreator.context.pagesMentioningDeleted
@@ -194,9 +195,10 @@ public class CommandExecutor(
     public suspend fun usagesOf(invocation: Invocation<*>): List<Usage>? = invocation.deletedSubject?.let { subject -> changes.withLock { context.usagesOf(subject) } }
 
     /**
-     * Every place that refers to [subject] (`find_usages`), read while no change is being made.
+     * Every place that refers to [subject] (`find_usages`), read while no change is being made, or null when it is no
+     * longer in the project (renamed or deleted since it was asked about).
      */
-    public suspend fun findUsages(subject: RelationSubject): List<Usage> = changes.withLock { context.findUsages(subject) }
+    public suspend fun findUsages(subject: RelationSubject): List<Usage>? = changes.withLock { if (context.isInProject(subject)) context.findUsages(subject) else null }
 
     /**
      * What [query] finds in the project's texts (`search_project`), at most [limit] hits, read while no change is being made.

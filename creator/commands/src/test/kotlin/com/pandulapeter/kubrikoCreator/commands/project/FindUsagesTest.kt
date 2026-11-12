@@ -77,7 +77,10 @@ class FindUsagesTest {
     @Test
     fun theUserSeesWhatTheAiDoes() = runTest {
         val executor = executor()
-        assertEquals(listOf("Paddle#0 collides with Ball", "Scene main places Ball (2)"), executor.findUsages(RelationSubject.Type("Ball")).map { it.reference })
+        assertEquals(listOf("Paddle#0 collides with Ball", "Scene main places Ball (2)"), executor.findUsages(RelationSubject.Type("Ball"))?.map { it.reference })
+        assertEquals(null, executor.findUsages(RelationSubject.Type("Wall")), "a type renamed or deleted since")
+        assertEquals(null, executor.findUsages(RelationSubject.Property("Game", "lives")))
+        assertEquals(null, executor.findUsages(RelationSubject.Scene("nowhere")))
     }
 
     @Test

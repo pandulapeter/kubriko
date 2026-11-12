@@ -539,6 +539,7 @@
     <string name="search_usages_title">Usages of %1$s</string>
     <string name="search_usages_none">Nothing refers to %1$s.</string>
     <string name="search_usages_reading">Looking for what refers to %1$s…</string>
+    <string name="search_usages_missing">%1$s is no longer in the project: it was renamed or deleted.</string>
     <string name="search_usages_failed">The usages couldn't be read: %1$s</string>
     <string name="action_find_usages">Find usages</string>
     <string name="git_no_repository">This project isn't under version control yet. Start it to save versions of your game you can always go back to.</string>

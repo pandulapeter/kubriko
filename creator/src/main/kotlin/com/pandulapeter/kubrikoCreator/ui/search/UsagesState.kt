@@ -31,6 +31,13 @@ internal sealed interface UsagesState {
         val usages: List<Usage>,
     ) : UsagesState
 
+    /**
+     * It is no longer in the project: renamed or deleted since it was asked about.
+     */
+    data class Missing(
+        override val subject: RelationSubject,
+    ) : UsagesState
+
     data class Failed(
         override val subject: RelationSubject,
         val message: String,
@@ -38,15 +45,15 @@ internal sealed interface UsagesState {
 }
 
 /**
- * The usages of [subject] as [findUsages] reads them, read again whenever [revision] changes (the project changed),
+ * The usages of [subject] as [findUsages] reads them (null for a subject no longer in the project), read again whenever [revision] changes (the project changed),
  * still showing the last ones of the same subject meanwhile, so the list doesn't blink.
  */
 @Composable
-internal fun rememberUsages(subject: RelationSubject?, revision: Any?, findUsages: suspend (RelationSubject) -> List<Usage>): UsagesState {
+internal fun rememberUsages(subject: RelationSubject?, revision: Any?, findUsages: suspend (RelationSubject) -> List<Usage>?): UsagesState {
     val state by produceState<UsagesState>(UsagesState.Reading(subject), subject, revision) {
         if (subject == null) return@produceState
         value = try {
-            UsagesState.Read(subject, findUsages(subject))
+            findUsages(subject)?.let { UsagesState.Read(subject, it) } ?: UsagesState.Missing(subject)
         } catch (exception: CancellationException) {
             throw exception
         } catch (exception: Exception) {

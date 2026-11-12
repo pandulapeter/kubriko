@@ -44,6 +44,7 @@ import kubriko.creator.generated.resources.ic_scene
 import kubriko.creator.generated.resources.ic_settings
 import kubriko.creator.generated.resources.ic_sprite
 import kubriko.creator.generated.resources.search_usages_failed
+import kubriko.creator.generated.resources.search_usages_missing
 import kubriko.creator.generated.resources.search_usages_none
 import kubriko.creator.generated.resources.search_usages_reading
 import kubriko.creator.generated.resources.search_usages_title
@@ -69,6 +70,7 @@ internal fun UsageResults(
     when (usages) {
         is UsagesState.Reading -> SearchMessage(stringResource(Res.string.search_usages_reading, name))
         is UsagesState.Failed -> SearchMessage(stringResource(Res.string.search_usages_failed, usages.message))
+        is UsagesState.Missing -> SearchMessage(stringResource(Res.string.search_usages_missing, name))
         is UsagesState.Read -> if (usages.usages.isEmpty()) {
             SearchMessage(stringResource(Res.string.search_usages_none, name))
         } else {

@@ -94,4 +94,10 @@ class SearchPanelTest {
         onNodeWithText("Ball, Event 3").assertExists()
         assertEquals(2, reads)
     }
+
+    @Test
+    fun aSubjectRenamedOrDeletedSinceIsSaidToBeGone() = uiTest(width = 360, height = 300) {
+        showing { SearchPanel(usagesSubject = brick, usages = rememberUsages(brick, revision = 0) { null }, onUsageSelected = {}) }
+        onNodeWithText("Brick is no longer in the project: it was renamed or deleted.").assertExists()
+    }
 }
