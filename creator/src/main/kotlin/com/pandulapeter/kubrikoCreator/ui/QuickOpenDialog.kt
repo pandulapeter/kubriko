@@ -19,7 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -82,7 +82,7 @@ internal fun QuickOpenDialog(
     val listState = rememberLazyListState()
     LaunchedEffect(lit) { if (lit in matches.indices) listState.animateScrollToItem(lit) }
     Surface(
-        modifier = Modifier.width(560.dp),
+        modifier = Modifier.padding(horizontal = 16.dp).widthIn(max = QUICK_OPEN_WIDTH).fillMaxWidth(),
         shape = MenuStyle.shape,
         color = MenuStyle.color,
         border = MenuStyle.border,
@@ -183,6 +183,7 @@ private fun QuickOpenRow(
     )
     target.detailText(match.item.detail)?.let { detail ->
         Text(
+            modifier = Modifier.weight(1f, fill = false),
             text = detail,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -196,3 +197,8 @@ private fun QuickOpenRow(
  * How far below the window's top quick open opens, near the top as IDEs show theirs, below the toolbar.
  */
 private val QUICK_OPEN_TOP = 96.dp
+
+/**
+ * How wide quick open is at most: it narrows with a window narrower than that.
+ */
+private val QUICK_OPEN_WIDTH = 560.dp

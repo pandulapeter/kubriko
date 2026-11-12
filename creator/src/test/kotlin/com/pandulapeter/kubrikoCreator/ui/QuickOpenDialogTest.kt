@@ -92,6 +92,16 @@ class QuickOpenDialogTest {
     }
 
     @Test
+    fun aNarrowWindowNarrowsIt() = uiTest(width = 360, height = 400) {
+        showing { QuickOpenDialog(items = items, onOpen = { opened += it }, onDismiss = { dismissals++ }) }
+        onNode(hasSetTextAction()).performTextInput("brk")
+        val field = onNode(hasSetTextAction()).fetchSemanticsNode().boundsInWindow
+        assertTrue(field.left >= 0f && field.right <= 360f, "the field fits the window: $field")
+        assertTrue(onNodeWithText("brick.png", substring = true).fetchSemanticsNode().boundsInWindow.width > 40f, "a long folder doesn't squeeze the name away")
+        saveSnapshot("quick-open-narrow")
+    }
+
+    @Test
     fun nothingMatchingSaysSo() = uiTest(width = 700, height = 500) {
         showing { QuickOpenDialog(items = items, onOpen = { opened += it }, onDismiss = { dismissals++ }) }
         onNode(hasSetTextAction()).performTextInput("zzz")
