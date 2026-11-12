@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -34,7 +35,7 @@ import com.pandulapeter.kubrikoCreator.ui.theme.CreatorMotion
  */
 @Composable
 internal fun SidebarRowTitle(
-    text: String,
+    text: AnnotatedString,
     style: TextStyle,
     isPointedAt: Boolean,
     subfolderActions: SubfolderActions?,

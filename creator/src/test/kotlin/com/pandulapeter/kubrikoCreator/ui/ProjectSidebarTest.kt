@@ -16,11 +16,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
@@ -121,6 +123,33 @@ class ProjectSidebarTest {
         onNodeWithText("Ball").assertExists()
         listOf("Bat", "Intro", "Level", "Finale", "hero.png").forEach { onNodeWithText(it).assertDoesNotExist() }
         saveSnapshot("sidebar-filter-letters-in-order")
+    }
+
+    @Test
+    fun aSceneShownForItsFoldersNameHasThatFolderHighlighted() = uiTest(width = 300, height = 600) {
+        showing {
+            ProjectSidebar(
+                modifier = Modifier.fillMaxSize(),
+                resources = emptyMap(),
+                folderGroups = folderTreeGroups(
+                    types = emptyList(),
+                    typeFolders = emptyMap(),
+                    selectedTypeName = null,
+                    sceneNames = listOf("levels/cave", "Intro"),
+                    sceneFolders = setOf("levels"),
+                    openSceneName = null,
+                ),
+                folderActions = folderActions,
+                documentActions = noDocumentActions,
+                dragState = SidebarDragState(),
+            )
+        }
+        onNode(hasSetTextAction()).performTextInput("levels")
+        onNodeWithText("cave").assertExists()
+        onNodeWithText("Intro").assertDoesNotExist()
+        val folderName = onNode(hasText("levels") and !hasSetTextAction()).fetchSemanticsNode().config[SemanticsProperties.Text].single()
+        assertEquals(listOf(0 to 6), folderName.spanStyles.map { it.start to it.end })
+        saveSnapshot("sidebar-filter-folder-highlighted")
     }
 
     @Test

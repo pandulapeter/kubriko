@@ -20,8 +20,8 @@ import com.pandulapeter.kubrikoCreator.ui.components.matchHighlightStyle
 
 /**
  * Whether [name] (a type, Scene, or file name) matches [query]: its last part, after a path's folders, matches as names
- * do ([NameMatching], so `brk` finds `Brick`), or the whole contains the trimmed query, ignoring case. An empty query
- * matches everything.
+ * do ([NameMatching], so `brk` finds `Brick`), or the whole contains the trimmed query, ignoring case, which the folder
+ * rows show by highlighting it in their names. An empty query matches everything.
  */
 internal fun matchesSidebarFilter(name: String, query: String) =
     NameMatching.matches(name.substringAfterLast('/'), query) || name.contains(query.trim(), ignoreCase = true)

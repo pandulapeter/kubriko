@@ -96,7 +96,7 @@ internal fun SidebarFolderRow(
         }
         SidebarRowTitle(
             modifier = Modifier.padding(start = if (isTopLevel) 0.dp else 4.dp).weight(1f),
-            text = name,
+            text = rememberFilterHighlighted(name),
             style = MaterialTheme.typography.bodyMedium,
             isPointedAt = hover.isActive || menu.isOpen,
             subfolderActions = subfolderActions,

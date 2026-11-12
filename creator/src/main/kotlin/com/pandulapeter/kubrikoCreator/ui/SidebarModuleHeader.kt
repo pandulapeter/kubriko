@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import com.pandulapeter.kubrikoCreator.ui.components.RowActionsButton
@@ -73,7 +74,7 @@ internal fun SidebarModuleHeader(
         )
         SidebarRowTitle(
             modifier = Modifier.weight(1f),
-            text = moduleFolderName(path),
+            text = AnnotatedString(moduleFolderName(path)),
             style = MaterialTheme.typography.titleSmall,
             isPointedAt = hover.isActive,
             subfolderActions = subfolderActions,
