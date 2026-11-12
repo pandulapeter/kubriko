@@ -356,7 +356,7 @@ private fun WorkspaceSidePanel(
             row = row,
         )
         SidePanel.VERSION_CONTROL -> WorkspaceGitSidePanelOf(controller, rememberPanelWidth(Panel.VERSION_CONTROL, panelLayout), row)
-        SidePanel.SEARCH -> WorkspaceSearchSidePanel(controller.commands, controller.selection, controller.project.rootDirectory, uiState, rememberPanelWidth(Panel.SEARCH, panelLayout), row)
+        SidePanel.SEARCH -> WorkspaceSearchSidePanel(controller.commands, controller.selection, controller.project.rootDirectory, controller.outsideChanges, uiState, rememberPanelWidth(Panel.SEARCH, panelLayout), row)
     }
 }
 

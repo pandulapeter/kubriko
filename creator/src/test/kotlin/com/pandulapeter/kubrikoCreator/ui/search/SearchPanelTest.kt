@@ -81,4 +81,17 @@ class SearchPanelTest {
         paddleUsages.complete(emptyList())
         onNodeWithText("Nothing refers to Paddle.").assertExists()
     }
+
+    @Test
+    fun theUsagesAreReadAgainWhenTheProjectChanges() = uiTest(width = 360, height = 300) {
+        var revision by mutableStateOf(0)
+        var reads = 0
+        showing {
+            SearchPanel(usagesSubject = brick, usages = rememberUsages(brick, revision) { reads++; if (reads == 1) emptyList() else listOf(collision) }, onUsageSelected = {})
+        }
+        onNodeWithText("Nothing refers to Brick.").assertExists()
+        revision++
+        onNodeWithText("Ball, Event 3").assertExists()
+        assertEquals(2, reads)
+    }
 }

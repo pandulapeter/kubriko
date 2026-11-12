@@ -21,12 +21,13 @@ import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
 import com.pandulapeter.kubrikoCreator.ui.search.SearchPanel
 import com.pandulapeter.kubrikoCreator.ui.search.rememberUsages
 import com.pandulapeter.kubrikoCreator.workspace.SelectionController
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.io.File
 
 /**
  * The workspace's Search panel, after the splitter that resizes it: what refers to what [uiState] asks about, read again
- * after every change, each going to its place when chosen ([goTo]).
+ * after every change, Kubriko Creator's or one on disk ([outsideChanges]), each going to its place when chosen ([goTo]).
  *
  * @param rootDirectory The project's folder, which the paths of hand-written Kotlin files start from.
  */
@@ -35,13 +36,14 @@ internal fun WorkspaceSearchSidePanel(
     commands: CommandExecutor,
     selection: SelectionController,
     rootDirectory: File,
+    outsideChanges: StateFlow<Int>,
     uiState: WorkspaceUiState,
     width: PanelWidthState,
     row: PanelRow,
 ) {
     PanelSplitter(width, row)
     val subject = uiState.usagesSubject
-    val revision = commands.history.collectAsState().value to commands.context.blockTypes?.types?.collectAsState()?.value
+    val revision = Triple(commands.history.collectAsState().value, commands.context.blockTypes?.types?.collectAsState()?.value, outsideChanges.collectAsState().value)
     val scope = rememberCoroutineScope()
     SearchPanel(
         modifier = Modifier.sidePanel(width.widthIn(row)),

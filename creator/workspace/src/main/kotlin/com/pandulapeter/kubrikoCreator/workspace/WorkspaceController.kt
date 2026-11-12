@@ -44,7 +44,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -330,15 +329,18 @@ public class WorkspaceController(
     private val aiStepNumbering = AiStepNumbering(project.rootDirectory, commands, scope, ioDispatcher)
 
     /** Emits whenever the watcher finds files changed outside Kubriko Creator, which the health checks and the map read. */
-    private val changedOutside = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    private val changedOutside = OutsideChanges()
+
+    /** How many times files changed on disk since the project opened, outside Creator's own writes ([OutsideChanges]). */
+    public val outsideChanges: StateFlow<Int> get() = changedOutside.count
 
     /**
      * What about the project is worth a look, for the sidebar, the editors, and the Game map.
      */
-    public val health: ProjectHealth = ProjectHealth.of(blockTypes, resources, commands, changedOutside, scope, ioDispatcher, ::reportUnexpectedProblem)
+    public val health: ProjectHealth = ProjectHealth.of(blockTypes, resources, commands, changedOutside.changes, scope, ioDispatcher, ::reportUnexpectedProblem)
 
     /** The AI panel's Game map, computed only while it is shown. */
-    public val gameMap: GameMapState = GameMapState.of(blockTypes, resources, scenes, commands, changedOutside, health.findings, scope, ::reportUnexpectedProblem)
+    public val gameMap: GameMapState = GameMapState.of(blockTypes, resources, scenes, commands, changedOutside.changes, health.findings, scope, ::reportUnexpectedProblem)
 
     /**
      * The assistant's one offer to write the screenplay of a game that has none.
@@ -388,7 +390,7 @@ public class WorkspaceController(
         if (ProjectChange.DOCUMENTS in changes) commands.context.documents.onChangedOutside()
         this.changes.onProjectChanged(changes, snapshot)
         missingReferences.onChangedOutside()
-        changedOutside.tryEmit(Unit)
+        changedOutside.record()
     }
 
     private fun refreshScreenplay() {

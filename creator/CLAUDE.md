@@ -634,7 +634,7 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   system's app as a page's link does.
 - Find usages (the menu of a sidebar row or a Property's row) opens the Search panel on the same `ProjectReferences` a
   delete reads (`find_usages` for the AI), read off the main thread under the change lock (so after a change in
-  progress) and again after every change, still showing the
+  progress) and again after every change, Creator's or one on disk (`WorkspaceController.outsideChanges`), still showing the
   last list meanwhile but never another subject's; each result goes to its place (`UsageOpening`), a Scene with the
   type's Actors there selected. The search shortcuts are read before the focused element sees the key
   (`SearchShortcuts`, on the workspace's `onPreviewKeyEvent`), so a text field never swallows them, and `DoubleShift`
