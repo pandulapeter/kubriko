@@ -92,7 +92,7 @@ internal class ProjectRelations(
             -> Unit
         }
         block.numberPropertyReferences.forEach { reference ->
-            if (reference.name.isNotEmpty()) add(Relation(place, RelationKind.READS, propertyOf(typeName, reference.manager, reference.name)))
+            if (reference.name.isNotEmpty()) add(Relation(place, RelationKind.READS_AS_NUMBER, propertyOf(typeName, reference.manager, reference.name)))
         }
     }
 

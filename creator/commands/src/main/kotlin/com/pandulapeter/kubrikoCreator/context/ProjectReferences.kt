@@ -110,22 +110,13 @@ internal class ProjectReferences(
             RelationKind.MENTIONS -> usage(UsageEffect.MENTION_TO_TEXT)
             RelationKind.DRAWN_AS, RelationKind.PLAYS, RelationKind.SHOWS, RelationKind.USES_TIMER, RelationKind.IS_IN -> error("${relation.kind} is found apart from the relations, never among them.")
             RelationKind.READS -> when (val block = blockAt(relation.place)) {
+                is BlockDefinition.If -> usage(UsageEffect.SECTION_REMOVED, sectionOf(relation.place as RelationPlace.Type).count() - 1)
                 null, is BlockDefinition.Log -> usage(UsageEffect.PLACEHOLDER_TO_TEXT)
-                else -> if (block is BlockDefinition.If && isConditionOn(block, relation)) {
-                    usage(UsageEffect.SECTION_REMOVED, sectionOf(relation.place as RelationPlace.Type).count() - 1)
-                } else {
-                    usage(UsageEffect.VALUE_TO_NUMBER)
-                }
+                else -> error("${block::class.simpleName} doesn't read a Property.")
             }
+            RelationKind.READS_AS_NUMBER -> usage(UsageEffect.VALUE_TO_NUMBER)
         }
     }
-
-    /**
-     * Whether the condition of [block] checks the Property [relation] reads, rather than only reading it as a number.
-     */
-    private fun isConditionOn(block: BlockDefinition.If, relation: Relation) = block.propertyReference?.let { reference ->
-        relations.propertyOf((relation.place.owner as RelationSubject.Type).name, reference.manager, reference.name) == relation.subject
-    } == true
 
     /**
      * Blocks that have the Manager type [subject] chosen but none of its Properties yet, which [ProjectRelations] leaves
@@ -139,7 +130,7 @@ internal class ProjectReferences(
                 event.blocks.forEachIndexed { blockIndex, block ->
                     val place = RelationPlace.Type(type.name, eventIndex, blockIndex)
                     if (block.numberPropertyReferences.any { it.manager == subject.name && it.name.isEmpty() }) {
-                        add(Usage(UsagePlace.InModel(place), RelationKind.READS, subject, UsageEffect.VALUE_TO_NUMBER))
+                        add(Usage(UsagePlace.InModel(place), RelationKind.READS_AS_NUMBER, subject, UsageEffect.VALUE_TO_NUMBER))
                     }
                     val reference = block.propertyReference ?: return@forEachIndexed
                     if (reference.manager != subject.name || reference.name.isNotEmpty()) return@forEachIndexed

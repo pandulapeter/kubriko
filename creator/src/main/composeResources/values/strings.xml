@@ -1119,6 +1119,7 @@
     <string name="game_map_moves_towards">Moves towards %1$s</string>
     <string name="game_map_goes_to">Goes to %1$s</string>
     <string name="game_map_reads">Reads %1$s</string>
+    <string name="game_map_reads_as_number">Reads %1$s as a number</string>
     <string name="game_map_changes">Changes %1$s</string>
     <string name="game_map_names_in_kotlin">Names %1$s in Kotlin</string>
     <string name="game_map_starts_with">Starts with %1$s</string>

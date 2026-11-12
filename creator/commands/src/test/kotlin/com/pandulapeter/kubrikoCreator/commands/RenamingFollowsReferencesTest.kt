@@ -52,9 +52,9 @@ class RenamingFollowsReferencesTest {
         RelationKind.INHERITS_FROM,
         RelationKind.MENTIONS,
     )
-    private val managerTypeKinds = setOf(RelationKind.CHANGES, RelationKind.READS, RelationKind.MENTIONS)
+    private val managerTypeKinds = setOf(RelationKind.CHANGES, RelationKind.READS, RelationKind.READS_AS_NUMBER, RelationKind.MENTIONS)
     private val sceneKinds = setOf(RelationKind.GOES_TO, RelationKind.STARTS_WITH, RelationKind.NAMES_IN_KOTLIN, RelationKind.MENTIONS)
-    private val propertyKinds = setOf(RelationKind.READS, RelationKind.CHANGES)
+    private val propertyKinds = setOf(RelationKind.READS, RelationKind.READS_AS_NUMBER, RelationKind.CHANGES)
     private val pageKinds = setOf(RelationKind.MENTIONS)
     private val spriteKinds = setOf(RelationKind.DRAWN_AS, RelationKind.SHOWS, RelationKind.NAMES_IN_KOTLIN, RelationKind.MENTIONS)
     private val audioKinds = setOf(RelationKind.PLAYS, RelationKind.NAMES_IN_KOTLIN, RelationKind.MENTIONS)
@@ -113,7 +113,7 @@ class RenamingFollowsReferencesTest {
         val hud = ManagerTypeDefinition(name = "Hud", texts = listOf(ScreenTextDefinition(text = "Score: {Game.score}")))
         val player = ActorTypeDefinition(
             name = "Player",
-            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetNumber("score", NumberValue.Fixed(1f), manager = "Game"), BlockDefinition.If(ConditionDefinition.Number("score", value = NumberValue.Fixed(3f), manager = "Game")), BlockDefinition.End))),
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetNumber("score", NumberValue.Fixed(1f), manager = "Game"), BlockDefinition.If(ConditionDefinition.Number("score", value = NumberValue.Fixed(3f), manager = "Game")), BlockDefinition.End, BlockDefinition.SetVelocity(x = NumberValue.Property("score", manager = "Game"))))),
         )
         val context = commandContext(game, hud, player)
         CreatePage.apply(context, CreatePage.Input("README", "# Game\n\nThe [game](../.kubriko/managers/Game.json) keeps the score.\n"))
@@ -144,7 +144,7 @@ class RenamingFollowsReferencesTest {
             properties = listOf(PropertyDefinition.Number("hp")),
             events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Log("{hp} left"), BlockDefinition.ChangeNumber("hp"), BlockDefinition.If(ConditionDefinition.Number("hp")), BlockDefinition.End))),
         )
-        val boss = ActorTypeDefinition(name = "Boss", parent = "Enemy", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetNumber("hp", NumberValue.Fixed(5f))))))
+        val boss = ActorTypeDefinition(name = "Boss", parent = "Enemy", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetNumber("hp", NumberValue.Fixed(5f)), BlockDefinition.JumpTo(y = NumberValue.Property("hp"))))))
         val context = commandContext(enemy, boss)
         context.assertFollowed(RelationSubject.Property("Enemy", "hp"), RelationSubject.Property("Enemy", "health"), propertyKinds) {
             EditProperty.apply(context, EditProperty.Input("Enemy", "hp", PropertyDefinition.Number("health")))

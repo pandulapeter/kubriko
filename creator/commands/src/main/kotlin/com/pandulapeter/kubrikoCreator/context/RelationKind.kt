@@ -22,6 +22,11 @@ public enum class RelationKind(
     GOES_TO("goes to"),
     PLACES("places"),
     READS("reads"),
+
+    /**
+     * A Block reading a Property as one of its numbers ([com.pandulapeter.kubrikoCreator.actors.NumberValue.Property]).
+     */
+    READS_AS_NUMBER("reads as a number"),
     CHANGES("changes"),
     NAMES_IN_KOTLIN("names in Kotlin"),
 

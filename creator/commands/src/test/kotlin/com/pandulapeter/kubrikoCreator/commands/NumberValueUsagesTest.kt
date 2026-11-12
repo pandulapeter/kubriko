@@ -87,7 +87,7 @@ class NumberValueUsagesTest {
     fun aPropertyReadAsANumberIsAUsageThatBecomesItsStartingValue() = runTest {
         val context = commandContext(enemy)
         val usages = context.usagesOf(RelationSubject.Property("Enemy", "speed"))
-        assertEquals(listOf(RelationKind.READS, RelationKind.READS, RelationKind.READS), usages.map { it.kind })
+        assertEquals(listOf(RelationKind.READS_AS_NUMBER, RelationKind.READS_AS_NUMBER, RelationKind.READS), usages.map { it.kind })
         assertEquals(listOf(UsageEffect.VALUE_TO_NUMBER, UsageEffect.VALUE_TO_NUMBER, UsageEffect.SECTION_REMOVED), usages.map { it.effect })
         val after = context.assertRoundTrip(Invocation(RemoveProperty, RemoveProperty.Input("Enemy", "speed"))) { context.blockTypes!!.types.value }
         assertEquals(

@@ -36,7 +36,7 @@ internal object HealthChecks {
         val family = ActorTypeFamily(actorTypes)
         val instantiated = relations.all.filter { it.kind == RelationKind.PLACES || it.kind == RelationKind.ADDS }.mapNotNullTo(HashSet()) { (it.subject as? RelationSubject.Type)?.name }
         fun isPresent(name: String) = name in instantiated || family.descendantsOf(name).any { it in instantiated }
-        val read = relations.all.filter { it.kind == RelationKind.READS }.mapNotNullTo(HashSet()) { it.subject as? RelationSubject.Property }
+        val read = relations.all.filter { it.kind == RelationKind.READS || it.kind == RelationKind.READS_AS_NUMBER }.mapNotNullTo(HashSet()) { it.subject as? RelationSubject.Property }
         val kotlin = types.flatMap { type -> type.events.flatMap { it.blocks }.filterIsInstance<BlockDefinition.Kotlin>().map { it.code } + listOfNotNull((type as? ManagerTypeDefinition)?.kotlinUi) }
         val reached = relations.all.filter { it.kind == RelationKind.GOES_TO }.mapNotNullTo(HashSet()) { (it.subject as? RelationSubject.Scene)?.name }
         val declared = types.associate { it.name to it.properties.mapTo(HashSet()) { property -> property.name } }
