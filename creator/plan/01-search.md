@@ -12,8 +12,6 @@
 Finding things past a few dozen Actor types, Scenes, or sprites, for the user and the AI alike. Each addition lands with its command and
 AI tool.
 
-- **Quick open** (Cmd/Ctrl+P, or Shift twice): a list over everything (types, Scenes, pages, sprites, sounds, Kotlin files, and
-  Properties and custom Blocks by their type) that opens the chosen one.
 - **Find usages:** from a type, Property, sprite, sound, or Scene, every Block, condition, text, Scene, and collision Event that refers
   to it, each one clickable (opening the type at that Event and Block, or the Scene with that Actor selected), and the pages that
   mention it. It reads `ProjectReferences`, which the deletes already use, rather than finding them again.
@@ -32,4 +30,4 @@ AI tool.
 
 ## Order
 
-Quick open, find usages, search in Blocks and pages with the AI tools, and searching conversations last.
+Find usages, search in Blocks and pages with the AI tools, and searching conversations last.
