@@ -69,6 +69,17 @@ class QuickOpenDialogTest {
     }
 
     @Test
+    fun typingLightsTheClosestMatchAgain() = uiTest(width = 700, height = 500) {
+        showing { QuickOpenDialog(items = items, onOpen = { opened += it }, onDismiss = { dismissals++ }) }
+        onNode(hasSetTextAction()).performTextInput("b")
+        onNode(hasSetTextAction()).performKeyInput { pressKey(Key.DirectionDown) }
+        onNode(hasSetTextAction()).performKeyInput { pressKey(Key.DirectionDown) }
+        onNode(hasSetTextAction()).performTextInput("all")
+        onNode(hasSetTextAction()).performKeyInput { pressKey(Key.Enter) }
+        assertEquals(listOf("Ball"), opened.map { target -> items.single { it.target == target }.title })
+    }
+
+    @Test
     fun aClickOpensAPropertysTypeAndEscapeCloses() = uiTest(width = 700, height = 500) {
         showing { QuickOpenDialog(items = items, onOpen = { opened += it }, onDismiss = { dismissals++ }) }
         onNode(hasSetTextAction()).performTextInput("hits")

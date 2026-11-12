@@ -79,7 +79,6 @@ internal fun QuickOpenDialog(
     var lit by remember { mutableStateOf(0) }
     val matches = remember(query, items) { quickOpenMatchesOf(query, items) }
     val listState = rememberLazyListState()
-    LaunchedEffect(matches) { lit = 0 }
     LaunchedEffect(lit) { if (lit in matches.indices) listState.animateScrollToItem(lit) }
     Surface(
         modifier = Modifier.width(560.dp),
@@ -91,12 +90,15 @@ internal fun QuickOpenDialog(
         Column {
             QuickOpenField(
                 query = query,
-                onQueryChange = { query = it },
+                onQueryChange = {
+                    query = it
+                    lit = 0
+                },
                 onKey = { key ->
                     when (key) {
                         Key.DirectionDown -> if (matches.isNotEmpty()) lit = (lit + 1) % matches.size
                         Key.DirectionUp -> if (matches.isNotEmpty()) lit = (lit - 1 + matches.size) % matches.size
-                        Key.Enter, Key.NumPadEnter -> matches.getOrNull(lit)?.let { onOpen(it.item.target) }
+                        Key.Enter, Key.NumPadEnter -> (matches.getOrNull(lit) ?: matches.firstOrNull())?.let { onOpen(it.item.target) }
                         Key.Escape -> onDismiss()
                         else -> return@QuickOpenField false
                     }
