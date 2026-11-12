@@ -119,6 +119,7 @@ public object ManagerTypeCodeGenerator {
             if (texts.isNotEmpty()) addAll(TEXT_IMPORTS)
             if (texts.isNotEmpty() || kotlinUi != null) addAll(COMPOSABLE_IMPORTS)
             kotlinUi?.imports?.let(::addAll)
+            kotlinUi?.let { ui -> BlockCodeGenerator.randomImportFor(ui.statements.joinToString("\n"), ui.imports)?.let(::add) }
         }.sorted()
         return GeneratedFile.withHeader(" from ${DefinitionPaths.definitionPath(definition)}", buildString {
             appendLine("package $packageName.${ActorTypeCodeGenerator.GENERATED_PACKAGE}")

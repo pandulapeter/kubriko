@@ -332,4 +332,13 @@ class ManagerTypeCodeGeneratorTest {
         assertContains(generate(withTitle.copy(texts = listOf(ScreenTextDefinition("{score}")))), "    private fun Float.asText() = ")
         assertFalse("asText" in generate(withTitle.copy(texts = listOf(ScreenTextDefinition("{title}")))))
     }
+
+    @Test
+    fun kotlinUiNamingRandomGetsKotlinsRandomUnlessItImportsOne() {
+        val game = ManagerTypeDefinition("Game")
+        assertContains(generate(game.copy(kotlinUi = "BasicText(Random.nextInt(6).toString())")), "import kotlin.random.Random\n")
+        val ownRandom = generate(game.copy(kotlinUi = "import java.util.Random\nBasicText(Random().nextInt(6).toString())"))
+        assertContains(ownRandom, "import java.util.Random\n")
+        assertFalse("import kotlin.random.Random" in ownRandom)
+    }
 }

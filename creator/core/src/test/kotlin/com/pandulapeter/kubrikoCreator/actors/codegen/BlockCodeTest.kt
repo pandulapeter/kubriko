@@ -121,6 +121,9 @@ class BlockCodeTest {
             BlockDefinition.Log("{speed}") to Expected(setOf(NUMBER_TEXT), setOf(logger)),
             BlockDefinition.Log("{Game.score}") to Expected(setOf(NUMBER_TEXT), setOf(logger), setOf("Game")),
             BlockDefinition.Kotlin("velocity = SceneOffset.Zero") to Expected(setOf(MOVEMENT, ACTOR_MANAGER, VIEWPORT_MANAGER), setOf(sceneOffset)),
+            BlockDefinition.Kotlin("score = Random.nextInt(3)") to Expected(setOf(MOVEMENT, ACTOR_MANAGER, VIEWPORT_MANAGER), setOf(sceneOffset, "kotlin.random.Random")),
+            BlockDefinition.Kotlin("import java.util.Random\nscore = Random().nextInt(3)") to Expected(setOf(MOVEMENT, ACTOR_MANAGER, VIEWPORT_MANAGER), setOf(sceneOffset, "java.util.Random")),
+            BlockDefinition.Kotlin("val random = kotlin.random.Random.nextInt(3)") to Expected(setOf(MOVEMENT, ACTOR_MANAGER, VIEWPORT_MANAGER), setOf(sceneOffset)),
         )
         variants.forEach { (block, expected) -> assertEquals(expected, codeOf(block, EventType.EVERY_FRAME), block.toString()) }
     }

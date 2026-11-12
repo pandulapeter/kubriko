@@ -58,6 +58,8 @@ public object BlockCodeGenerator {
     private const val LOGGER_IMPORT = "com.pandulapeter.kubriko.logger.Logger"
     private const val KEY_IMPORT = "androidx.compose.ui.input.key.Key"
     private const val ROUND_TO_LONG_IMPORT = "kotlin.math.roundToLong"
+    private const val RANDOM_IMPORT = "kotlin.random.Random"
+    private const val RANDOM = "Random"
 
     /**
      * The statements of an Event of [eventType] that runs [blocks]: their sections become Kotlin blocks, closed at the end
@@ -267,8 +269,19 @@ public object BlockCodeGenerator {
             imports = imports.toSet() + setOfNotNull(
                 SCENE_OFFSET_IMPORT.takeIf { scope.kind == BlockTypeKind.ACTOR },
                 ABSOLUTE_VALUE_IMPORT.takeIf { KotlinIdentifiers.find(lines.joinToString("\n")).any { it.name == ABSOLUTE_VALUE } },
+                randomImportFor(lines.joinToString("\n"), imports),
             ),
         )
+    }
+
+    /**
+     * Kotlin's `Random` for [code] that names it without importing a `Random` of its own ([imports]): generated files
+     * imported it for every chance condition until the Blocks' randomness moved to the wiring, and Kotlin written since
+     * may rely on it.
+     */
+    internal fun randomImportFor(code: String, imports: Collection<String>) = RANDOM_IMPORT.takeIf {
+        imports.none { it.substringAfterLast('.') == RANDOM || it.endsWith(" as $RANDOM") } &&
+            KotlinIdentifiers.find(code).any { it.name == RANDOM && it.receiver == null }
     }
 
     /**
