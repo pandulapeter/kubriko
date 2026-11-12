@@ -73,11 +73,12 @@ internal object NumberValueCode {
     }
 
     /**
-     * The whole numbers from [from] to [to], both included, or the one nearest to them if there is none between them.
+     * The whole numbers from [from] to [to], both included, or the one nearest to them if there is none between them. It
+     * ends below `Int.MAX_VALUE`, since the random draw takes the number after its last.
      */
     private fun wholeRange(from: Float, to: Float): IntRange {
-        val first = ceil(from).toInt()
-        val last = floor(to).toInt()
+        val first = ceil(from).toInt().coerceAtMost(Int.MAX_VALUE - 1)
+        val last = floor(to).toInt().coerceAtMost(Int.MAX_VALUE - 1)
         return if (last >= first) first..last else from.roundToInt().let { it..it }
     }
 

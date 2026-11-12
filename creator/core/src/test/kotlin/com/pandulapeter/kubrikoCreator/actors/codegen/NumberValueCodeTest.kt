@@ -52,6 +52,9 @@ class NumberValueCodeTest {
         assertEquals("3", NumberValueCode.whole(NumberValue.Random(3f, 3f), scope))
         assertEquals("0", NumberValueCode.whole(NumberValue.Random(-5f, -1f), scope))
         assertEquals("3", NumberValueCode.whole(NumberValue.Random(2.4f, 3f), scope))
+        assertEquals("KubrikoWiring.random.nextInt(0, 2147483647)", NumberValueCode.whole(NumberValue.Random(0f, 3e9f), scope))
+        assertEquals("2147483646", NumberValueCode.whole(NumberValue.Random(3e9f, 4e9f), scope))
+        assertEquals("KubrikoWiring.random.nextInt(-2147483648, 2147483647).toFloat()", NumberValueCode.float(NumberValue.Random(-3e9f, 3e9f, isWhole = true), scope))
         assertEquals("3f", NumberValueCode.float(NumberValue.Random(3f, 2.4f, isWhole = true), scope))
     }
 
