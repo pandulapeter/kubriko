@@ -87,6 +87,7 @@ public enum class CommandProblem(override val english: String) : DomainText {
     RESOURCE_UNCHANGED("%1\$s already has that name."),
     RESOURCE_TAKEN("There's already a file at %1\$s, or one the game would mix up with it, differing only in capital letters, dashes, or underscores."),
     RELATIONS_SUBJECT("Name either a type (with a Property of it, optionally) or a Scene."),
+    USAGES_SUBJECT("Name one thing: a type (with a Property of it, optionally), a Scene, a page, or a sprite, sound, or music file."),
     SCENE_ACTOR_NOT_BLOCK_BUILT("%1\$s isn't a block-built Actor type, so it has no color or Properties to set."),
     SCENE_ACTOR_WITHOUT_POSITION("The Actor %1\$s has no position."),
     SCENE_CONTENT_INVALID("That isn't valid Scene content."),

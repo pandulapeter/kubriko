@@ -62,6 +62,7 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.SetKotlinUi
 import com.pandulapeter.kubrikoCreator.commands.project.AskUser
 import com.pandulapeter.kubrikoCreator.commands.project.Build
 import com.pandulapeter.kubrikoCreator.commands.project.CheckChange
+import com.pandulapeter.kubrikoCreator.commands.project.FindUsages
 import com.pandulapeter.kubrikoCreator.commands.project.GetHealthChecks
 import com.pandulapeter.kubrikoCreator.commands.project.GetKubrikoApi
 import com.pandulapeter.kubrikoCreator.commands.project.GetProjectDigest
@@ -164,6 +165,7 @@ import kubriko.creator.generated.resources.command_edit_property
 import kubriko.creator.generated.resources.command_edit_sprite
 import kubriko.creator.generated.resources.command_edit_sprite_frames
 import kubriko.creator.generated.resources.command_edit_text
+import kubriko.creator.generated.resources.command_find_usages
 import kubriko.creator.generated.resources.command_get_block_catalog
 import kubriko.creator.generated.resources.command_get_health_checks
 import kubriko.creator.generated.resources.command_get_kubriko_api
@@ -338,6 +340,7 @@ private val commandTitles = mapOf(
     GetProjectUpgrade.name to Res.string.command_get_project_upgrade,
     GetTargetChange.name to Res.string.command_get_target_change,
     GetRelations.name to Res.string.command_get_relations,
+    FindUsages.name to Res.string.command_find_usages,
     GetVersionControlStatus.name to Res.string.command_get_version_control_status,
     Play.name to Res.string.command_play,
     ReadConsole.name to Res.string.command_read_console,

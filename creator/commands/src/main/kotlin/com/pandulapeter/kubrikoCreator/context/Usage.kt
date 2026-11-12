@@ -24,6 +24,11 @@ public data class Usage(
     val count: Int = 1,
     val blocksInside: Int = 0,
 ) {
+    /**
+     * Where this usage is and how it refers to its subject, without what a delete does there: what find usages lists.
+     */
+    public val reference: String get() = "$place ${kind.verb} $subject" + if (count > 1) " ($count)" else ""
+
     override fun toString(): String = "$place ${kind.verb} $subject" + (if (count > 1) " ($count)" else "") + ": " + when (effect) {
         UsageEffect.SECTION_REMOVED -> "${effect.english} ($blocksInside inside)."
         else -> "${effect.english}."

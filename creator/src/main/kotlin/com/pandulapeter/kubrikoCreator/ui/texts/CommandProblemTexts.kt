@@ -91,6 +91,7 @@ import kubriko.creator.generated.resources.error_command_text_size_invalid
 import kubriko.creator.generated.resources.error_command_timer_taken
 import kubriko.creator.generated.resources.error_command_upgrade_by_hand
 import kubriko.creator.generated.resources.error_command_upgrade_not_needed
+import kubriko.creator.generated.resources.error_command_usages_subject
 import kubriko.creator.generated.resources.error_folder_already_there
 import kubriko.creator.generated.resources.error_folder_exists
 import kubriko.creator.generated.resources.error_folder_into_itself
@@ -180,6 +181,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.PROPERTY_KIND_IN_DESCENDANT -> Res.string.error_command_property_kind_in_descendant
     CommandProblem.PROPERTY_VALUE_INVALID -> Res.string.error_command_property_value_invalid
     CommandProblem.RELATIONS_SUBJECT -> Res.string.error_command_relations_subject
+    CommandProblem.USAGES_SUBJECT -> Res.string.error_command_usages_subject
     CommandProblem.RESOURCE_CONTENT_MISMATCH -> Res.string.error_command_resource_content_mismatch
     CommandProblem.RESOURCE_KIND_CHANGED -> Res.string.error_command_resource_kind_changed
     CommandProblem.RESOURCE_MUSIC_NOT_FOLLOWED -> Res.string.warning_resource_music_not_followed

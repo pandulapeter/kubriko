@@ -9,7 +9,9 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
+import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.context.Usage
+import com.pandulapeter.kubrikoCreator.context.findUsages
 import com.pandulapeter.kubrikoCreator.context.mentionPathsOf
 import com.pandulapeter.kubrikoCreator.context.pagesMentioning
 import com.pandulapeter.kubrikoCreator.context.pagesMentioningDeleted
@@ -188,6 +190,11 @@ public class CommandExecutor(
      * is being made, or null if it deletes nothing.
      */
     public suspend fun usagesOf(invocation: Invocation<*>): List<Usage>? = invocation.deletedSubject?.let { subject -> changes.withLock { context.usagesOf(subject) } }
+
+    /**
+     * Every place that refers to [subject] (`find_usages`), read while no change is being made.
+     */
+    public suspend fun findUsages(subject: RelationSubject): List<Usage> = changes.withLock { context.findUsages(subject) }
 
     public fun undo(): Unit = stepForUser(isUndo = true)
 

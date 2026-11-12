@@ -879,6 +879,7 @@
     <string name="error_command_resource_missing">There's no sprite, sound, or music file at %1$s.</string>
     <string name="error_command_resource_missing_similar">There's no sprite, sound, or music file at %1$s. Close matches: %2$s.</string>
     <string name="error_command_relations_subject">Name either a type (with a Property of it, optionally) or a Scene.</string>
+    <string name="error_command_usages_subject">Name one thing: a type (with a Property of it, optionally), a Scene, a page, or a sprite, sound, or music file.</string>
     <string name="error_command_relations_property_missing">There's no Property called %1$s in %2$s.</string>
     <string name="error_command_relations_property_missing_similar">There's no Property called %1$s in %2$s. Close matches: %3$s.</string>
     <string name="error_command_game_notes_too_long">The game's notes can be at most %1$s characters long.</string>
@@ -989,6 +990,7 @@
     <string name="command_list_scenes">List the Scenes</string>
     <string name="command_read_scene">Read a Scene</string>
     <string name="command_get_relations">Look at what refers to what</string>
+    <string name="command_find_usages">Look at what refers to something</string>
     <string name="command_check_change">Check a change before making it</string>
     <string name="command_get_health_checks">Look for what is worth a look</string>
     <string name="command_set_description">Change a description</string>

@@ -61,6 +61,7 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.SetKotlinUi
 import com.pandulapeter.kubrikoCreator.commands.project.AskUser
 import com.pandulapeter.kubrikoCreator.commands.project.Build
 import com.pandulapeter.kubrikoCreator.commands.project.CheckChange
+import com.pandulapeter.kubrikoCreator.commands.project.FindUsages
 import com.pandulapeter.kubrikoCreator.commands.project.GetHealthChecks
 import com.pandulapeter.kubrikoCreator.commands.project.GetKubrikoApi
 import com.pandulapeter.kubrikoCreator.commands.project.GetProjectDigest
@@ -180,6 +181,7 @@ public class CommandRegistry(
                 ReadSprite,
                 ReadScene,
                 GetRelations,
+                FindUsages,
                 GetHealthChecks,
                 CheckChange,
                 ReadGameNotes,
