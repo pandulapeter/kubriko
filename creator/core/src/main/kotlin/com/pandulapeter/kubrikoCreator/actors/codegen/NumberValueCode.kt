@@ -38,7 +38,7 @@ internal object NumberValueCode {
             val from = min(value.from, value.to)
             val to = max(value.from, value.to)
             when {
-                value.isWhole -> wholeRandom(from, to)?.let { "$it.toFloat()" } ?: BlockCodeGenerator.floatLiteral(from.roundToInt().toFloat())
+                value.isWhole -> wholeRange(from, to).let { range -> if (range.first == range.last) BlockCodeGenerator.floatLiteral(range.first.toFloat()) else "${wholeRandom(range)}.toFloat()" }
                 from == to -> BlockCodeGenerator.floatLiteral(from)
                 else -> "($RANDOM.nextFloat() * ${BlockCodeGenerator.floatLiteral(to - from)} ${if (from < 0f) "-" else "+"} ${BlockCodeGenerator.floatLiteral(abs(from))})"
             }
@@ -55,7 +55,7 @@ internal object NumberValueCode {
         is NumberValue.Random -> {
             val from = max(min(value.from, value.to), minimum.toFloat())
             val to = max(value.from, value.to)
-            wholeRandom(from, to) ?: from.roundToInt().coerceAtLeast(minimum).toString()
+            wholeRange(from, to).let { range -> if (range.first == range.last) range.first.toString() else wholeRandom(range) }
         }
         is NumberValue.Property -> propertyOf(value, scope)?.let { "$it.toInt().coerceAtLeast($minimum)" } ?: minimum.toString()
     }
@@ -73,13 +73,15 @@ internal object NumberValueCode {
     }
 
     /**
-     * A random whole number from [from] to [to], both included, or null if there is at most one between them.
+     * The whole numbers from [from] to [to], both included, or the one nearest to them if there is none between them.
      */
-    private fun wholeRandom(from: Float, to: Float): String? {
+    private fun wholeRange(from: Float, to: Float): IntRange {
         val first = ceil(from).toInt()
         val last = floor(to).toInt()
-        return if (last > first) "$RANDOM.nextInt($first, ${last + 1})" else null
+        return if (last >= first) first..last else from.roundToInt().let { it..it }
     }
+
+    private fun wholeRandom(range: IntRange) = "$RANDOM.nextInt(${range.first}, ${range.last + 1})"
 
     private fun propertyOf(value: NumberValue.Property, scope: BlockScope) =
         value.propertyReference?.takeIf { scope.hasProperty(it) }?.let { BlockCodeGenerator.propertyExpression(it, scope) }
