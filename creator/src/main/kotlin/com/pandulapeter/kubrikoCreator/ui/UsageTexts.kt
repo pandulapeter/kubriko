@@ -66,7 +66,13 @@ internal fun RelationSubject.deleteConfirmationTitle() = when (this) {
  * Where [this] usage is, for people: Events and Blocks counted from 1, as the editor lists them.
  */
 @Composable
-internal fun Usage.placeText() = when (val place = place) {
+internal fun Usage.placeText() = place.text()
+
+/**
+ * Where [this] place is, for people: Events and Blocks counted from 1, as the editor lists them.
+ */
+@Composable
+internal fun UsagePlace.text() = when (val place = this) {
     is UsagePlace.InModel -> when (val inModel = place.place) {
         is RelationPlace.Type -> {
             val eventIndex = inModel.eventIndex

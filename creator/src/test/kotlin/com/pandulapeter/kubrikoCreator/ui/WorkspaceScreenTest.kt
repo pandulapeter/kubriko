@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.onAllNodesWithText
@@ -18,6 +19,7 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performMouseInput
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.rightClick
 import com.pandulapeter.kubrikoCreator.ai.assistant.AcpAgent
 import com.pandulapeter.kubrikoCreator.ai.assistant.Assistant
@@ -127,7 +129,8 @@ class WorkspaceScreenTest {
         }
     }
 
-    private fun ComposeUiTest.awaitText(text: String) = waitUntil(timeoutMillis = 5_000) { onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty() }
+    private fun ComposeUiTest.awaitText(text: String, substring: Boolean = false) =
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText(text, substring = substring).fetchSemanticsNodes().isNotEmpty() }
 
     private fun tab(title: String) = hasText(title) and isSelectable()
 
@@ -165,5 +168,15 @@ class WorkspaceScreenTest {
         saveSnapshot("workspace-usages")
         onNodeWithText("Based on Brick").performClick()
         awaitText("a brick worth more")
+    }
+
+    @Test
+    fun searchingTheTextsFindsAScreenTextAndGoesToItsManagerType() = showingTheBall(1600, 1000, isAiPanelOpen = false) {
+        onNodeWithText("Search").performClick()
+        awaitText("Type to find text in the project", substring = true)
+        onNode(hasSetTextAction() and hasText("Find in Blocks, texts, Kotlin, and pages")).performTextInput("lives:")
+        awaitText("Lives: {lives}")
+        onNodeWithText("Lives: {lives}").performClick()
+        awaitText("the score and the lives")
     }
 }

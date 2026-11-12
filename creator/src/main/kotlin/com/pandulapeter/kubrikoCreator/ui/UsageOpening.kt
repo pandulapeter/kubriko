@@ -31,7 +31,12 @@ import java.io.File
  *   center has no view of (hand-written Kotlin, sounds and music, the game's settings), which the caller opens its own
  *   way, if at all.
  */
-internal fun SelectionController.open(usage: Usage, actorIds: List<String> = emptyList()): Boolean = when (val place = usage.place) {
+internal fun SelectionController.open(usage: Usage, actorIds: List<String> = emptyList()): Boolean = open(usage.place, actorIds)
+
+/**
+ * Shows [place] as [open] shows a usage's.
+ */
+internal fun SelectionController.open(place: UsagePlace, actorIds: List<String> = emptyList()): Boolean = when (place) {
     is UsagePlace.InModel -> when (val inModel = place.place) {
         is RelationPlace.Type -> selectType(inModel.name, RevealedPlace.InType(inModel.name, inModel.eventIndex, inModel.blockIndex))
         is RelationPlace.Text -> selectType(inModel.manager, RevealedPlace.InType(inModel.manager))

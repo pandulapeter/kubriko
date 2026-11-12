@@ -55,6 +55,17 @@ class SearchShortcutsTest {
     )
 
     @Test
+    fun cmdOrCtrlShiftFOpensTheSearchPanelOnItsFieldLeavingTheUsagesItShowed() {
+        assertEquals(SearchShortcut.FIND_IN_PROJECT, searchShortcutOf(Key.F, isShortcutPressed = true, isShiftPressed = true, isAltPressed = false))
+        val uiState = WorkspaceUiState()
+        uiState.findUsages(com.pandulapeter.kubrikoCreator.context.RelationSubject.Type("Ball"))
+        uiState.findInProject()
+        assertEquals(SidePanel.SEARCH, uiState.openPanel)
+        assertEquals(null, uiState.usagesSubject)
+        assertTrue(uiState.searchFieldFocus.isPending)
+    }
+
+    @Test
     fun aKeyWithoutCmdOrCtrlOrWithAltIsNoShortcut() {
         assertNull(searchShortcutOf(Key.F, isShortcutPressed = false, isShiftPressed = false, isAltPressed = false))
         assertNull(searchShortcutOf(Key.F, isShortcutPressed = true, isShiftPressed = false, isAltPressed = true))

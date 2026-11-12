@@ -636,7 +636,9 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   delete reads (`find_usages` for the AI), read off the main thread under the change lock (so after a change in
   progress) and again after every change, Creator's or one on disk (`WorkspaceController.outsideChanges`), still showing the
   last list meanwhile but never another subject's; each result goes to its place (`UsageOpening`), a Scene with the
-  type's Actors there selected. The search shortcuts are read before the focused element sees the key
+  type's Actors there selected. Without a subject the panel's field (Cmd/Ctrl+Shift+F) searches the project's texts
+  (`ProjectSearch`: descriptions, Block texts, Kotlin, screen texts, pages, and documents, line by line, containing the
+  query), which `search_project` reads with the names too, so the user and the AI search alike. The search shortcuts are read before the focused element sees the key
   (`SearchShortcuts`, on the workspace's `onPreviewKeyEvent`), so a text field never swallows them, and `DoubleShift`
   counts a Shift only when pressed alone.
 - Opening a closed folder, Kotlin container, group, or module opens it with every folder in it closed, so a deep tree opens

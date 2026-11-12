@@ -33,6 +33,9 @@ internal enum class SearchShortcut {
 
     /** Cmd/Ctrl+P, or Shift twice ([DoubleShift]): quick open. */
     QUICK_OPEN,
+
+    /** Cmd/Ctrl+Shift+F: the Search panel's field. */
+    FIND_IN_PROJECT,
 }
 
 /**
@@ -43,6 +46,7 @@ internal fun searchShortcutOf(key: Key, isShortcutPressed: Boolean, isShiftPress
     !isShortcutPressed || isAltPressed -> null
     key == Key.F && !isShiftPressed -> SearchShortcut.FILTER_SIDEBAR
     key == Key.P && !isShiftPressed -> SearchShortcut.QUICK_OPEN
+    key == Key.F && isShiftPressed -> SearchShortcut.FIND_IN_PROJECT
     else -> null
 }
 
@@ -76,6 +80,7 @@ internal fun KeyEvent.openSearch(uiState: WorkspaceUiState): Boolean {
     return when (if (isDown) searchShortcutOf(key, isShortcutPressed = isMetaPressed || isCtrlPressed, isShiftPressed = isShiftPressed, isAltPressed = isAltPressed) else null) {
         SearchShortcut.FILTER_SIDEBAR -> true.also { uiState.sidebarFilterFocus.request() }
         SearchShortcut.QUICK_OPEN -> true.also { uiState.showQuickOpen() }
+        SearchShortcut.FIND_IN_PROJECT -> true.also { uiState.findInProject() }
         null -> false
     }
 }

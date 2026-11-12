@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.PanelSplitter
 import com.pandulapeter.kubrikoCreator.ui.components.PanelWidthState
 import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
 import com.pandulapeter.kubrikoCreator.ui.search.SearchPanel
+import com.pandulapeter.kubrikoCreator.ui.search.rememberTextSearch
 import com.pandulapeter.kubrikoCreator.ui.search.rememberUsages
 import com.pandulapeter.kubrikoCreator.workspace.SelectionController
 import kotlinx.coroutines.flow.StateFlow
@@ -26,8 +27,9 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 /**
- * The workspace's Search panel, after the splitter that resizes it: what refers to what [uiState] asks about, read again
- * after every change, Kubriko Creator's or one on disk ([outsideChanges]), each going to its place when chosen ([goTo]).
+ * The workspace's Search panel, after the splitter that resizes it: what refers to what [uiState] asks about, or what its
+ * field finds in the project's texts, read again after every change, Kubriko Creator's or one on disk
+ * ([outsideChanges]), each going to its place when chosen ([goTo]).
  *
  * @param rootDirectory The project's folder, which the paths of hand-written Kotlin files start from.
  */
@@ -50,5 +52,16 @@ internal fun WorkspaceSearchSidePanel(
         usagesSubject = subject,
         usages = rememberUsages(subject, revision, commands::findUsages),
         onUsageSelected = { usage -> scope.launch { selection.goTo(usage, subject, commands.context.scenes, rootDirectory, uiState::showProjectSettings) } },
+        query = uiState.searchQuery,
+        onQueryChange = uiState::changeSearchQuery,
+        texts = rememberTextSearch(uiState.searchQuery, revision) { query -> commands.searchTexts(query, TEXT_HIT_LIMIT) },
+        onHitSelected = { hit -> selection.open(hit.place) },
+        onBackToSearch = uiState::stopFindingUsages,
+        fieldFocus = uiState.searchFieldFocus,
     )
 }
+
+/**
+ * How many lines a search of the project's texts lists at most, enough to look through; a longer query finds the rest.
+ */
+private const val TEXT_HIT_LIMIT = 200

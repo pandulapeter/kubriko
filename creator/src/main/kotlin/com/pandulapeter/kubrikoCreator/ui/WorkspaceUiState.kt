@@ -113,6 +113,37 @@ internal class WorkspaceUiState {
     }
 
     /**
+     * What the Search panel's field holds, which it searches the project's texts for.
+     */
+    var searchQuery by mutableStateOf("")
+        private set
+
+    /**
+     * Asks the Search panel's field to take the focus.
+     */
+    val searchFieldFocus = FocusRequest()
+
+    fun changeSearchQuery(query: String) {
+        searchQuery = query
+    }
+
+    /**
+     * Opens the Search panel on its field (Cmd/Ctrl+Shift+F), leaving the usages it showed.
+     */
+    fun findInProject() {
+        usagesSubject = null
+        openPanel = SidePanel.SEARCH
+        searchFieldFocus.request()
+    }
+
+    /**
+     * Goes back from the usages the Search panel shows to its field.
+     */
+    fun stopFindingUsages() {
+        usagesSubject = null
+    }
+
+    /**
      * Opens [panel], or closes it if it is open.
      *
      * @return Whether version control just opened, which refreshes its state.

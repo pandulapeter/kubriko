@@ -542,6 +542,14 @@
     <string name="search_usages_missing">%1$s is no longer in the project: it was renamed or deleted.</string>
     <string name="search_usages_failed">The usages couldn't be read: %1$s</string>
     <string name="action_find_usages">Find usages</string>
+    <string name="action_back_to_search">Back to the search</string>
+    <string name="search_field">Find in Blocks, texts, Kotlin, and pages</string>
+    <string name="search_hint">Type to find text in the project. To see what refers to a type, a Property, a Scene, a page, or a file, choose Find usages in its menu.</string>
+    <string name="search_texts_reading">Searching for %1$s…</string>
+    <string name="search_texts_none">Nothing contains %1$s.</string>
+    <string name="search_texts_failed">The project couldn't be searched: %1$s</string>
+    <string name="search_texts_more">And %1$d more: search for something longer to see them.</string>
+    <string name="search_place_line">%1$s, line %2$d</string>
     <string name="git_no_repository">This project isn't under version control yet. Start it to save versions of your game you can always go back to.</string>
     <string name="action_start_version_control">Start version control</string>
     <string name="git_branch">On branch %1$s</string>

@@ -33,11 +33,14 @@ import com.pandulapeter.kubrikoCreator.context.Usage
 import com.pandulapeter.kubrikoCreator.context.UsagePlace
 import com.pandulapeter.kubrikoCreator.ui.canBeShown
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
+import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.scrollEdgeFades
 import com.pandulapeter.kubrikoCreator.ui.placeText
 import com.pandulapeter.kubrikoCreator.ui.relationText
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.action_back_to_search
 import kubriko.creator.generated.resources.ic_block
+import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_code
 import kubriko.creator.generated.resources.ic_page
 import kubriko.creator.generated.resources.ic_scene
@@ -53,20 +56,28 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * What refers to [subject], in the project's order, each row going to its place when clicked ([onUsageSelected]).
+ * What refers to [subject], in the project's order, each row going to its place when clicked ([onUsageSelected]),
+ * under a title with the way back to searching the project's texts ([onBack]).
  */
 @Composable
 internal fun UsageResults(
     subject: RelationSubject,
     usages: UsagesState,
     onUsageSelected: (Usage) -> Unit,
+    onBack: () -> Unit,
 ) = Column {
     val name = subject.shownName
-    Text(
-        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-        text = stringResource(Res.string.search_usages_title, name),
-        style = MaterialTheme.typography.titleSmall,
-    )
+    Row(
+        modifier = Modifier.padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            modifier = Modifier.weight(1f),
+            text = stringResource(Res.string.search_usages_title, name),
+            style = MaterialTheme.typography.titleSmall,
+        )
+        IconActionButton(icon = Res.drawable.ic_close, label = Res.string.action_back_to_search, onClick = onBack)
+    }
     when (usages) {
         is UsagesState.Reading -> SearchMessage(stringResource(Res.string.search_usages_reading, name))
         is UsagesState.Failed -> SearchMessage(stringResource(Res.string.search_usages_failed, usages.message))
@@ -126,21 +137,6 @@ private fun UsageResultRow(
         )
     }
 }
-
-/**
- * The icon and accent of the kind of place [this] is.
- */
-private val UsagePlace.look: Pair<DrawableResource, Accent?>
-    get() = when (this) {
-        is UsagePlace.InModel -> when (place) {
-            is RelationPlace.Scene -> Res.drawable.ic_scene to Accent.SCENE
-            is RelationPlace.Type, is RelationPlace.Text, is RelationPlace.KotlinUi -> Res.drawable.ic_block to Accent.EVENT
-        }
-        is UsagePlace.KotlinFile -> Res.drawable.ic_code to Accent.CODE
-        is UsagePlace.Markdown -> Res.drawable.ic_page to Accent.SCREENPLAY
-        is UsagePlace.ResourceFile -> Res.drawable.ic_sprite to Accent.CODE
-        UsagePlace.GameSettings -> Res.drawable.ic_settings to null
-    }
 
 /**
  * What [this] is called where people read it: a Property with its type (`Game.score`), a file by its path.
