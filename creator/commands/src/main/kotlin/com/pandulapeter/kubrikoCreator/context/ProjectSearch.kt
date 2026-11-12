@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.resources.knownResourcePaths
 import com.pandulapeter.kubrikoCreator.foundation.NameMatching
+import com.pandulapeter.kubrikoCreator.foundation.TextSnippet
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import kotlinx.coroutines.withContext
 
@@ -81,42 +82,13 @@ internal object ProjectSearch {
     }
 
     /**
-     * A hit for every line of [text] containing [query], with the line's number when [isNumbered] (for code and Markdown,
-     * whose lines mean something), shortened around the first match when it is long.
+     * A hit for every line of [text] containing [query] ([TextSnippet]), with the line's number when [isNumbered] (for
+     * code and Markdown, whose lines mean something).
      */
     private fun textHits(text: String, query: String, place: UsagePlace, kind: SearchHit.Kind, isNumbered: Boolean = false): List<SearchHit> =
         text.lines().mapIndexedNotNull { index, line ->
-            val starts = generateSequence(line.indexOf(query, ignoreCase = true).takeIf { it >= 0 }) { previous ->
-                line.indexOf(query, startIndex = previous + query.length, ignoreCase = true).takeIf { it >= 0 }
-            }.toList()
-            if (starts.isEmpty()) null else snippetOf(line, starts, query.length).let { (snippet, ranges) -> SearchHit(place, kind, snippet, ranges, (index + 1).takeIf { isNumbered }) }
+            TextSnippet.of(line, query)?.let { snippet -> SearchHit(place, kind, snippet.text, snippet.ranges, (index + 1).takeIf { isNumbered }) }
         }
-
-    /**
-     * [line] trimmed, and cut to about [SNIPPET_LENGTH] characters around the first match when longer, with what the
-     * matches at [starts] (each [length] long) cover in it.
-     */
-    private fun snippetOf(line: String, starts: List<Int>, length: Int): Pair<String, List<IntRange>> {
-        val trimmedStart = line.indexOfFirst { !it.isWhitespace() }.coerceAtLeast(0)
-        val trimmedEnd = line.indexOfLast { !it.isWhitespace() } + 1
-        var from = trimmedStart
-        var to = trimmedEnd
-        if (to - from > SNIPPET_LENGTH) {
-            from = (starts.first() - SNIPPET_LENGTH / 3).coerceIn(trimmedStart, trimmedEnd)
-            to = (from + SNIPPET_LENGTH).coerceAtMost(trimmedEnd)
-        }
-        val prefix = if (from > trimmedStart) ELLIPSIS else ""
-        val suffix = if (to < trimmedEnd) ELLIPSIS else ""
-        val ranges = starts.mapNotNull { start ->
-            val first = maxOf(start, from)
-            val last = minOf(start + length, to) - 1
-            if (first > last) null else first - from + prefix.length..last - from + prefix.length
-        }
-        return prefix + line.substring(from, to) + suffix to ranges
-    }
-
-    private const val SNIPPET_LENGTH = 120
-    private const val ELLIPSIS = "…"
 }
 
 /**
