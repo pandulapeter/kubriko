@@ -22,12 +22,13 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.testing.showing
@@ -76,7 +77,7 @@ class SearchShortcutsTest {
         showing {
             val focusRequester = remember { FocusRequester() }
             LaunchedEffect(Unit) { focusRequester.requestFocus() }
-            Box(Modifier.fillMaxSize().onPreviewKeyEvent { it.openSearch(uiState) }) {
+            Box(Modifier.fillMaxSize().searchShortcuts(uiState)) {
                 Box(
                     Modifier
                         .size(50.dp)
@@ -93,5 +94,21 @@ class SearchShortcutsTest {
         }
         assertTrue(uiState.isQuickOpenShown)
         assertEquals(listOf(KeyEventType.KeyDown, KeyEventType.KeyUp, KeyEventType.KeyDown, KeyEventType.KeyUp), seen)
+    }
+
+    @Test
+    fun aClickBetweenTwoShiftsIsNoDoubleShift() = uiTest(width = 200, height = 200) {
+        val uiState = WorkspaceUiState()
+        showing {
+            val focusRequester = remember { FocusRequester() }
+            LaunchedEffect(Unit) { focusRequester.requestFocus() }
+            Box(Modifier.fillMaxSize().searchShortcuts(uiState)) {
+                Box(Modifier.size(50.dp).focusRequester(focusRequester).focusable().testTag("focused"))
+            }
+        }
+        onNodeWithTag("focused").performKeyInput { pressKey(Key.ShiftLeft) }
+        onNodeWithTag("focused").performMouseInput { click() }
+        onNodeWithTag("focused").performKeyInput { pressKey(Key.ShiftLeft) }
+        assertFalse(uiState.isQuickOpenShown)
     }
 }

@@ -28,7 +28,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -160,7 +159,7 @@ private fun WorkspaceContent(
                 .fillMaxSize()
                 .onSizeChanged { columnHeight = with(density) { it.height.toDp() } }
                 .historyShortcutTarget()
-                .onPreviewKeyEvent { event -> event.openSearch(uiState) }
+                .searchShortcuts(uiState)
                 .onKeyEvent { event -> event.toHistoryStep()?.let { isUndo -> uiState.spriteEditor.step(isUndo, controller.commands) } != null },
         ) {
             WorkspaceToolbarOf(

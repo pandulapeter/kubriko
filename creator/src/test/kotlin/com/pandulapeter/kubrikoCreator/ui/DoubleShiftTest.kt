@@ -53,6 +53,14 @@ class DoubleShiftTest {
     }
 
     @Test
+    fun aClickInBetweenBreaksIt() {
+        press(Key.ShiftLeft)
+        release(Key.ShiftLeft, after = 50)
+        doubleShift.onPointerPressed()
+        assertEquals(false, press(Key.ShiftLeft, after = 50))
+    }
+
+    @Test
     fun aThirdPressStartsOver() {
         press(Key.ShiftLeft)
         release(Key.ShiftLeft, after = 10)

@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
@@ -17,7 +18,11 @@ import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isMetaPressed
 import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.pointerInput
 
 /**
  * The ways of finding something in the workspace that a shortcut opens.
@@ -40,6 +45,19 @@ internal fun searchShortcutOf(key: Key, isShortcutPressed: Boolean, isShiftPress
     key == Key.P && !isShiftPressed -> SearchShortcut.QUICK_OPEN
     else -> null
 }
+
+/**
+ * Opens what the search shortcuts ask for in [uiState] ([openSearch]), seeing every key before the focused element does
+ * and every press of a pointer inside, which breaks a double Shift.
+ */
+internal fun Modifier.searchShortcuts(uiState: WorkspaceUiState): Modifier = onPreviewKeyEvent { event -> event.openSearch(uiState) }
+    .pointerInput(uiState) {
+        awaitPointerEventScope {
+            while (true) {
+                if (awaitPointerEvent(PointerEventPass.Initial).type == PointerEventType.Press) uiState.doubleShift.onPointerPressed()
+            }
+        }
+    }
 
 /**
  * Opens what this key event's search shortcut asks for in [uiState], Shift pressed twice ([WorkspaceUiState.doubleShift])

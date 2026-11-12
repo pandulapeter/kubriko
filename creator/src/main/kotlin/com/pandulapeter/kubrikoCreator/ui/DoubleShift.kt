@@ -12,8 +12,9 @@ package com.pandulapeter.kubrikoCreator.ui
 import androidx.compose.ui.input.key.Key
 
 /**
- * Tells Shift pressed twice in quick succession, with no other key between, as IDEs open their search with: a Shift held
- * while typing a capital, or pressed and released with another key, never counts.
+ * Tells Shift pressed twice in quick succession, with no other key or click between, as IDEs open their search with: a
+ * Shift held while typing a capital or clicking (to pick several rows), or pressed and released with another key, never
+ * counts.
  *
  * @param now The time in milliseconds on a clock that only moves forward, which the system clock's adjustments don't
  *   move.
@@ -48,6 +49,11 @@ internal class DoubleShift(
         isPressedAlone = true
         return false
     }
+
+    /**
+     * Notes a mouse button or a touch going down, which no double Shift has in it.
+     */
+    fun onPointerPressed() = reset()
 
     private fun reset() {
         lastRelease = null
