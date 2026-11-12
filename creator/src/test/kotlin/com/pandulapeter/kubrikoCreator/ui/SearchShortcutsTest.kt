@@ -12,7 +12,9 @@ package com.pandulapeter.kubrikoCreator.ui
 import androidx.compose.ui.input.key.Key
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class SearchShortcutsTest {
 
@@ -30,10 +32,11 @@ class SearchShortcutsTest {
     }
 
     @Test
-    fun aShortcutFocusesTheSidebarsFilterAgainEveryTime() {
-        val uiState = WorkspaceUiState()
-        uiState.focusSidebarFilter()
-        uiState.focusSidebarFilter()
-        assertEquals(2, uiState.sidebarFilterFocusRequests)
+    fun aFocusRequestIsPendingUntilItIsTaken() {
+        val request = FocusRequest()
+        request.request()
+        assertTrue(request.isPending)
+        request.consume()
+        assertFalse(request.isPending)
     }
 }

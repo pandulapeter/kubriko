@@ -28,7 +28,8 @@ internal enum class SearchShortcut {
 }
 
 /**
- * The search [key] with Cmd/Ctrl ([isShortcutPressed]) and Shift asks for, if any.
+ * The search [key] with Cmd/Ctrl ([isShortcutPressed]), Shift, and Alt asks for, if any: none with Alt, which the
+ * system's own shortcuts use.
  */
 internal fun searchShortcutOf(key: Key, isShortcutPressed: Boolean, isShiftPressed: Boolean, isAltPressed: Boolean) = when {
     !isShortcutPressed || isAltPressed -> null
@@ -44,7 +45,7 @@ internal fun searchShortcutOf(key: Key, isShortcutPressed: Boolean, isShiftPress
 internal fun KeyEvent.openSearch(uiState: WorkspaceUiState): Boolean {
     if (type != KeyEventType.KeyDown) return false
     return when (searchShortcutOf(key, isShortcutPressed = isMetaPressed || isCtrlPressed, isShiftPressed = isShiftPressed, isAltPressed = isAltPressed)) {
-        SearchShortcut.FILTER_SIDEBAR -> true.also { uiState.focusSidebarFilter() }
+        SearchShortcut.FILTER_SIDEBAR -> true.also { uiState.sidebarFilterFocus.request() }
         null -> false
     }
 }

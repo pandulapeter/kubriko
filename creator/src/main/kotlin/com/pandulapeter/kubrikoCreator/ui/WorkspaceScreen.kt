@@ -194,7 +194,7 @@ private fun WorkspaceContent(
                         folderExpansion = controller.sidebarExpansion,
                         flashedName = shownAiStep?.step?.sidebarName(),
                         flashKey = shownAiStep?.flashKey,
-                        filterFocusRequests = uiState.sidebarFilterFocusRequests,
+                        filterFocus = uiState.sidebarFilterFocus,
                     )
                     PanelSplitter(sidebarWidth, row)
                     WorkspaceCenterOf(

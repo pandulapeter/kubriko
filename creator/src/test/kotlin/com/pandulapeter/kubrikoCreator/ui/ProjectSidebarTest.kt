@@ -49,6 +49,7 @@ import com.pandulapeter.kubrikoCreator.workspace.ProjectLayout
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalTestApi::class)
@@ -103,22 +104,30 @@ class ProjectSidebarTest {
     }
 
     @Test
-    fun theFilterFindsNamesByTheirLettersInOrderAndTakesTheFocusWhenAskedTo() = uiTest(width = 300, height = 600) {
-        var focusRequests by mutableStateOf(0)
+    fun theFilterFindsNamesByTheirLettersInOrderAndTakesTheFocusOnceEachTimeItIsAskedTo() = uiTest(width = 300, height = 600) {
+        val focus = FocusRequest()
+        var isShown by mutableStateOf(true)
         showing {
-            ProjectSidebar(
-                modifier = Modifier.fillMaxSize(),
-                resources = resources,
-                folderGroups = folderGroups,
-                folderActions = folderActions,
-                documentActions = noDocumentActions,
-                dragState = SidebarDragState(),
-                filterFocusRequests = focusRequests,
-            )
+            if (isShown) {
+                ProjectSidebar(
+                    modifier = Modifier.fillMaxSize(),
+                    resources = resources,
+                    folderGroups = folderGroups,
+                    folderActions = folderActions,
+                    documentActions = noDocumentActions,
+                    dragState = SidebarDragState(),
+                    filterFocus = focus,
+                )
+            }
         }
         onNode(hasSetTextAction() and isFocused()).assertDoesNotExist()
-        focusRequests++
+        focus.request()
         onNode(hasSetTextAction() and isFocused()).assertExists()
+        assertFalse(focus.isPending, "the request is taken once")
+        isShown = false
+        waitForIdle()
+        isShown = true
+        onNode(hasSetTextAction() and isFocused()).assertDoesNotExist()
         onNode(hasSetTextAction()).performTextInput("bl")
         onNodeWithText("Ball").assertExists()
         listOf("Bat", "Intro", "Level", "Finale", "hero.png").forEach { onNodeWithText(it).assertDoesNotExist() }

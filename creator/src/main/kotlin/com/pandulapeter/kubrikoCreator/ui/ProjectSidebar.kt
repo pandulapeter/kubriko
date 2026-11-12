@@ -83,8 +83,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param selection What the center shows: a document or a sprite lights up its row.
  * @param spriteFolders The sprites' folders, which are Kubriko Creator's own ([SpriteFolderStore]).
  * @param folderExpansion Where what is open is kept for the next session, if anywhere, and what it follows.
- * @param filterFocusRequests How many times the filter field was asked to take the focus (Cmd/Ctrl+F): each new one
- *   focuses it.
+ * @param filterFocus Asks the filter field to take the focus (Cmd/Ctrl+F).
  */
 @Composable
 internal fun ProjectSidebar(
@@ -102,7 +101,7 @@ internal fun ProjectSidebar(
     folderExpansion: SidebarFolderExpansion? = null,
     flashedName: String? = null,
     flashKey: Any? = null,
-    filterFocusRequests: Int = 0,
+    filterFocus: FocusRequest = remember { FocusRequest() },
 ) = Column(
     modifier = modifier,
 ) {
@@ -134,7 +133,7 @@ internal fun ProjectSidebar(
     SidebarTopRow(
         query = query,
         onQueryChange = { query = it },
-        filterFocusRequests = filterFocusRequests,
+        filterFocus = filterFocus,
         newItems = remember(modules) { sidebarNewItems(modules) },
         resourceActions = resourceActions,
         onNew = { item ->
@@ -282,7 +281,7 @@ private fun LazyListScope.moduleSections(
 private fun SidebarTopRow(
     query: String,
     onQueryChange: (String) -> Unit,
-    filterFocusRequests: Int,
+    filterFocus: FocusRequest,
     newItems: List<SidebarNewItem>,
     resourceActions: ResourceActions,
     onNew: (SidebarNewItem) -> Unit,
@@ -296,7 +295,7 @@ private fun SidebarTopRow(
         modifier = Modifier.weight(1f),
         query = query,
         onQueryChange = onQueryChange,
-        focusRequests = filterFocusRequests,
+        focus = filterFocus,
     )
     MenuIconButton(
         icon = Res.drawable.ic_add,
@@ -335,11 +334,16 @@ private fun SidebarTopRow(
 private fun SidebarFilterField(
     query: String,
     onQueryChange: (String) -> Unit,
-    focusRequests: Int,
+    focus: FocusRequest,
     modifier: Modifier = Modifier,
 ) {
     val focusRequester = remember { FocusRequester() }
-    LaunchedEffect(focusRequests) { if (focusRequests > 0) focusRequester.requestFocus() }
+    LaunchedEffect(focus.isPending) {
+        if (focus.isPending) {
+            focusRequester.requestFocus()
+            focus.consume()
+        }
+    }
     SidebarFilterField(query, onQueryChange, modifier.focusRequester(focusRequester))
 }
 

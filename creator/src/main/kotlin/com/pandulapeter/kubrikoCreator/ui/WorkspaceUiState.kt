@@ -74,14 +74,9 @@ internal class WorkspaceUiState {
         private set
 
     /**
-     * How many times the sidebar's filter field was asked to take the focus, each new request focusing it.
+     * Asks the sidebar's filter field to take the focus (Cmd/Ctrl+F).
      */
-    var sidebarFilterFocusRequests by mutableStateOf(0)
-        private set
-
-    fun focusSidebarFilter() {
-        sidebarFilterFocusRequests++
-    }
+    val sidebarFilterFocus = FocusRequest()
 
     /**
      * Opens [panel], or closes it if it is open.
