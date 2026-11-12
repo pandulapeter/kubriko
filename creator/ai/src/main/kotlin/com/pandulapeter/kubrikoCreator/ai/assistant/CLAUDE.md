@@ -70,6 +70,13 @@ Hosts Agent Client Protocol agents through the official Kotlin SDK. Tests run `F
 - **Deleting** a conversation ends it and forgets it for good; it is removed from the saved ones only once it ended, since a turn
   ending meanwhile would save it again. The panel lists open and saved conversations together, the one talked in last first
   (`AssistantChat.lastMessageAt`).
+- **Searching conversations:** the agent holds a conversation's transcript, which Creator only replays, so each saved
+  conversation's user and agent messages are kept as plain text beside it (`KeptMessage`, capped, newest kept; one file of
+  its own each, readable by the user only, `ConversationTextStore`), written at every turn's end and forgotten with the
+  conversation, however it goes. The search reads them all in memory off the main thread, every agent's, since a project's
+  conversations belong to it. A match is told from the others by how many later messages hold the query too
+  (`ConversationMatch.laterOccurrences`), since kept messages leave out a long conversation's oldest; another agent's is
+  read from the kept text, as only its own agent can continue it.
 - **Updates:** an agent announces its slash commands before anything collects a conversation's `updates`, so
   `AgentConversation.availableCommands` keeps the first announcement.
 - **Downloads** (`BinaryAgentInstaller`, `NodeRuntime`) are checked against the published SHA-256 where there is one and refuse

@@ -131,7 +131,7 @@ public class AssistantChat(
     /**
      * The agent's ID of the conversation, which continues it after a restart, once it has started.
      */
-    internal val conversationId = _conversationId.asStateFlow()
+    public val conversationId: StateFlow<String?> = _conversationId.asStateFlow()
     private val _lastMessageAt = MutableStateFlow(lastMessageAt ?: clock())
 
     /**

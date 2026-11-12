@@ -40,6 +40,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantTranscript
 import com.pandulapeter.kubrikoCreator.ai.assistant.AttentionChip
 import com.pandulapeter.kubrikoCreator.ai.assistant.AuthStatus
 import com.pandulapeter.kubrikoCreator.ai.assistant.ChatState
+import com.pandulapeter.kubrikoCreator.ai.assistant.ConversationMatch
 import com.pandulapeter.kubrikoCreator.ai.assistant.FailureReason
 import com.pandulapeter.kubrikoCreator.ai.assistant.SignInMethod
 import com.pandulapeter.kubrikoCreator.commands.AiStep
@@ -116,9 +117,11 @@ private fun AssistantPanelContent(
     LaunchedEffect(Unit) { model.findConfigurations() }
     // The agent chosen in Creator settings ends the conversations without starting a new one while the panel may be hidden.
     LaunchedEffect(chat == null) { if (model.currentChat.value == null) model.newChat() }
+    val search = remember { ConversationSearchState() }
     ConversationBar(
         canDelete = chat?.isEmpty?.collectAsState()?.value == false,
         onDelete = { chat?.let(model::delete) },
+        onSearch = search::open,
     ) { modifier ->
         ConversationMenu(
             modifier = modifier,
@@ -143,7 +146,8 @@ private fun AssistantPanelContent(
     val session by model.signIn.collectAsState()
     val needsSignIn by model.needsSignIn.collectAsState()
     val hasApiKeyFailed by model.apiKeyFailed.collectAsState()
-    chat?.let { current ->
+    ConversationSearchOf(model = model, search = search, modifier = Modifier.weight(1f))
+    chat?.takeIf { !search.isOpen }?.let { current ->
         ChatContent(
             modifier = Modifier.weight(1f),
             chat = current,
@@ -159,6 +163,8 @@ private fun AssistantPanelContent(
             onShowStep = onShowStep,
             questions = questions,
             onAnswer = onAnswer,
+            jumpTo = search.jump?.takeIf { it.conversation.id == current.conversationId.collectAsState().value },
+            onJumped = search::onJumped,
             onStartNew = {
                 model.newChat()
                 model.currentChat.value !== current
@@ -186,6 +192,56 @@ private fun AssistantPanelContent(
     }
 }
 
+/**
+ * The search of the project's conversations while [search] has it open, in place of the conversation, and the
+ * conversation of another agent it opened, read from what was kept of it.
+ */
+@Composable
+private fun ConversationSearchOf(
+    model: AssistantPanelModel,
+    search: ConversationSearchState,
+    modifier: Modifier,
+) {
+    if (search.isOpen) {
+        ConversationSearchView(
+            modifier = modifier,
+            query = search.query,
+            onQueryChange = { search.query = it },
+            search = model::searchConversations,
+            onChosen = { match -> search.choose(match) { model.show(it.conversation) } },
+            onClose = search::close,
+        )
+    }
+    search.reading?.let { match ->
+        KeptConversationDialog(match = match, readMessages = { model.keptMessagesOf(match.conversation) }, onDismiss = search::stopReading)
+    }
+}
+
+/**
+ * Why the conversation failed, over it, while nothing is being downloaded ([isShown]) and it has nothing to show yet, or
+ * lost what it had: a conversation that was lost can't be tried again.
+ */
+@Composable
+private fun ChatFailure(
+    state: ChatState,
+    isShown: Boolean,
+    hasTranscript: Boolean,
+    onTryAgain: () -> Unit,
+    onOpenLog: (() -> Unit)?,
+    onInstallNode: (() -> Unit)?,
+    nodeInstallFailure: String?,
+) {
+    val failed = (state as? ChatState.Failed)?.takeIf { isShown && (!hasTranscript || it.reason == FailureReason.CONVERSATION_LOST) } ?: return
+    AssistantFailure(
+        modifier = Modifier.fillMaxSize(),
+        state = failed,
+        onTryAgain = onTryAgain.takeIf { failed.reason != FailureReason.CONVERSATION_LOST },
+        onOpenLog = onOpenLog,
+        onInstallNode = onInstallNode,
+        nodeInstallFailure = nodeInstallFailure,
+    )
+}
+
 @Composable
 private fun ChatContent(
     chat: AssistantChat,
@@ -201,6 +257,8 @@ private fun ChatContent(
     onShowStep: (AiStep) -> Unit,
     questions: List<UserQuestions.Question>,
     onAnswer: (id: Long, answer: String) -> Unit,
+    jumpTo: ConversationMatch?,
+    onJumped: () -> Unit,
     onStartNew: () -> Boolean,
     modifier: Modifier = Modifier,
     signInArea: @Composable (isPromptRefused: Boolean) -> Unit,
@@ -237,20 +295,21 @@ private fun ChatContent(
                     onAnswer(question.id, answer)
                     if (isLate) answering.launch { chat.send(getString(Res.string.assistant_question_late_answer, question.text, answer)) }
                 },
+                jumpTo = jumpTo,
+                onJumped = onJumped,
             )
             state is ChatState.Ready -> Hint(stringResource(Res.string.assistant_empty))
             state is ChatState.Starting || download != null -> AssistantStarting(download)
         }
-        (state as? ChatState.Failed)?.takeIf { download == null && (transcript.items.isEmpty() || it.reason == FailureReason.CONVERSATION_LOST) }?.let { failed ->
-            AssistantFailure(
-                modifier = Modifier.fillMaxSize(),
-                state = failed,
-                onTryAgain = chat::retry.takeIf { failed.reason != FailureReason.CONVERSATION_LOST },
-                onOpenLog = onOpenLog,
-                onInstallNode = onInstallNode,
-                nodeInstallFailure = nodeInstallFailure,
-            )
-        }
+        ChatFailure(
+            state = state,
+            isShown = download == null,
+            hasTranscript = transcript.items.isNotEmpty(),
+            onTryAgain = chat::retry,
+            onOpenLog = onOpenLog,
+            onInstallNode = onInstallNode,
+            nodeInstallFailure = nodeInstallFailure,
+        )
     }
     ChatPlan(transcript.plan, rememberPlanApproval(chat, state, isBusy, isAnyQuestionOpen = transcriptQuestions.isAnyOpen))
     signInArea(transcript.needsSignIn)

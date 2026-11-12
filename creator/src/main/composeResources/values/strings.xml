@@ -1076,6 +1076,17 @@
     <string name="game_map_title">What the AI knows about your game</string>
     <string name="action_toggle_ai">AI</string>
     <string name="action_toggle_search">Search</string>
+    <string name="action_search_conversations">Search conversations</string>
+    <string name="action_close_conversation_search">Back to the conversation</string>
+    <string name="conversation_search_field">Find in what was said</string>
+    <string name="conversation_search_hint">Type to find what you asked or the agent answered in this project's conversations, every agent's.</string>
+    <string name="conversation_search_none">No conversation holds %1$s.</string>
+    <string name="conversation_search_failed">The conversations couldn't be searched: %1$s</string>
+    <string name="conversation_search_you">You</string>
+    <string name="conversation_search_agent">Agent</string>
+    <string name="conversation_search_from">%1$s · %2$s</string>
+    <string name="conversation_search_other_agent">%1$s · %2$s · held by another agent</string>
+    <string name="conversation_kept_notice">Another agent holds this conversation, so it is shown here as Kubriko Creator kept it. Choose that agent to continue it.</string>
     <string name="game_map_description">The summary every conversation starts with</string>
     <string name="ai_panel_assistant">Assistant</string>
     <string name="ai_panel_own_tool">Your own AI tool</string>

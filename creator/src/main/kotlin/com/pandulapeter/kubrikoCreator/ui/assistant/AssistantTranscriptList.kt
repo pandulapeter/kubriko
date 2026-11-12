@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import com.agentclientprotocol.model.StopReason
 import com.agentclientprotocol.model.ToolCallId
 import com.agentclientprotocol.model.ToolCallStatus
+import com.pandulapeter.kubrikoCreator.ai.assistant.ConversationMatch
 import com.pandulapeter.kubrikoCreator.ai.assistant.FailureReason
 import com.pandulapeter.kubrikoCreator.ai.assistant.TranscriptItem
 import com.pandulapeter.kubrikoCreator.commands.AiStep
@@ -93,6 +94,8 @@ import org.jetbrains.compose.resources.stringResource
  * @param canSendMessage Whether the conversation takes a message now, which a late answer ([isLate]) is sent as.
  * @param composerQuestionId The question the composer answers ([waitingQuestions]' newest), whose card needs no field of its own.
  * @param onAnswer Answers a question, telling whether the agent stopped waiting for it.
+ * @param jumpTo A message a search of the conversations found, which the list scrolls to once it holds it ([jumpIndexOf]),
+ *   no longer following the end, and then hands back through [onJumped].
  */
 @Composable
 internal fun AssistantTranscriptList(
@@ -108,6 +111,8 @@ internal fun AssistantTranscriptList(
     canSendMessage: Boolean = false,
     composerQuestionId: Long? = null,
     onAnswer: (question: UserQuestions.Question, answer: String, isLate: Boolean) -> Unit = { _, _, _ -> },
+    jumpTo: ConversationMatch? = null,
+    onJumped: () -> Unit = {},
 ) {
     val shownItems = remember(items, isTurnReviewShown) { if (isTurnReviewShown) items else items.filterNot { it is TranscriptItem.TurnReview } }
     val listState = rememberLazyListState()
@@ -120,6 +125,12 @@ internal fun AssistantTranscriptList(
                 isFollowing = followsEnd(isFollowing, previous, current, canScrollForward)
                 previous = current
             }
+    }
+    LaunchedEffect(jumpTo, shownItems.size) {
+        val index = jumpTo?.let { jumpIndexOf(shownItems, it.query, it.laterOccurrences) } ?: return@LaunchedEffect
+        isFollowing = false
+        listState.scrollToItem(index)
+        onJumped()
     }
     LaunchedEffect(shownItems.size, (last as? TranscriptItem.AgentMessage)?.text?.length, isBusy, questions) {
         if (isFollowing && shownItems.isNotEmpty()) listState.scrollToItem(shownItems.lastIndex + if (isBusy) 1 else 0, Int.MAX_VALUE)

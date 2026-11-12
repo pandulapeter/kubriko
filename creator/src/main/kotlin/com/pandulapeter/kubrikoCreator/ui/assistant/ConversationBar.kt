@@ -31,25 +31,34 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_cancel
 import kubriko.creator.generated.resources.action_delete
 import kubriko.creator.generated.resources.action_delete_conversation
+import kubriko.creator.generated.resources.action_search_conversations
 import kubriko.creator.generated.resources.assistant_delete_conversation_message
 import kubriko.creator.generated.resources.assistant_delete_conversation_title
 import kubriko.creator.generated.resources.ic_delete
+import kubriko.creator.generated.resources.ic_search
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The line above a conversation: its [conversation] title, which takes all the room the panel has, and deleting it once
- * something has been said in it ([canDelete]), asked first, since a deleted conversation can't be continued.
+ * The line above a conversation: its [conversation] title, which takes all the room the panel has, searching the
+ * project's conversations ([onSearch]), and deleting it once something has been said in it ([canDelete]), asked first,
+ * since a deleted conversation can't be continued.
  */
 @Composable
 internal fun ConversationBar(
     canDelete: Boolean,
     onDelete: () -> Unit,
+    onSearch: () -> Unit,
     conversation: @Composable (Modifier) -> Unit,
 ) = Row(
     modifier = Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, top = 4.dp),
     verticalAlignment = Alignment.CenterVertically,
 ) {
     conversation(Modifier.weight(1f))
+    IconActionButton(
+        icon = Res.drawable.ic_search,
+        label = Res.string.action_search_conversations,
+        onClick = onSearch,
+    )
     if (canDelete) {
         var isConfirming by remember { mutableStateOf(false) }
         IconActionButton(

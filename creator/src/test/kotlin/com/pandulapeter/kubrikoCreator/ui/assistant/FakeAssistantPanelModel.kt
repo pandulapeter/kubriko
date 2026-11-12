@@ -15,6 +15,8 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.AgentDownload
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantChat
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantPanelModel
 import com.pandulapeter.kubrikoCreator.ai.assistant.AuthStatus
+import com.pandulapeter.kubrikoCreator.ai.assistant.ConversationMatch
+import com.pandulapeter.kubrikoCreator.ai.assistant.KeptMessage
 import com.pandulapeter.kubrikoCreator.ai.assistant.RegistryAgent
 import com.pandulapeter.kubrikoCreator.ai.assistant.SavedConversation
 import com.pandulapeter.kubrikoCreator.ai.assistant.SignInMethod
@@ -72,6 +74,17 @@ internal class FakeAssistantPanelModel(
 
     override fun resume(conversation: SavedConversation) {
         calls += "resume"
+    }
+
+    var conversationMatches = emptyList<ConversationMatch>()
+    var keptMessages = emptyList<KeptMessage>()
+
+    override suspend fun searchConversations(query: String) = conversationMatches.filter { it.query == query }
+
+    override suspend fun keptMessagesOf(conversation: SavedConversation) = keptMessages
+
+    override fun show(conversation: SavedConversation) {
+        calls += "show: ${conversation.id}"
     }
 
     override fun select(chat: AssistantChat) {
