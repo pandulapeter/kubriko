@@ -45,20 +45,19 @@ internal fun searchShortcutOf(key: Key, isShortcutPressed: Boolean, isShiftPress
  * Opens what this key event's search shortcut asks for in [uiState], Shift pressed twice ([WorkspaceUiState.doubleShift])
  * among them.
  *
- * @return Whether it was one.
+ * @return Whether the event was taken: a Cmd/Ctrl shortcut is, while a Shift press is left for the focused element too,
+ *   which would otherwise see Shift released without seeing it pressed.
  */
 internal fun KeyEvent.openSearch(uiState: WorkspaceUiState): Boolean {
     val isDown = type == KeyEventType.KeyDown
     if (type != KeyEventType.KeyUp && !isDown) return false
-    val shortcut = when {
-        uiState.doubleShift.onKey(key, isDown) -> SearchShortcut.QUICK_OPEN
-        isDown -> searchShortcutOf(key, isShortcutPressed = isMetaPressed || isCtrlPressed, isShiftPressed = isShiftPressed, isAltPressed = isAltPressed)
-        else -> null
+    if (uiState.doubleShift.onKey(key, isDown)) {
+        uiState.showQuickOpen()
+        return false
     }
-    when (shortcut) {
-        SearchShortcut.FILTER_SIDEBAR -> uiState.sidebarFilterFocus.request()
-        SearchShortcut.QUICK_OPEN -> uiState.showQuickOpen()
-        null -> Unit
+    return when (if (isDown) searchShortcutOf(key, isShortcutPressed = isMetaPressed || isCtrlPressed, isShiftPressed = isShiftPressed, isAltPressed = isAltPressed) else null) {
+        SearchShortcut.FILTER_SIDEBAR -> true.also { uiState.sidebarFilterFocus.request() }
+        SearchShortcut.QUICK_OPEN -> true.also { uiState.showQuickOpen() }
+        null -> false
     }
-    return shortcut != null
 }

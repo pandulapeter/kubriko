@@ -9,13 +9,36 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.pressKey
+import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.testing.showing
+import com.pandulapeter.kubrikoCreator.testing.uiTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+@OptIn(ExperimentalTestApi::class)
 class SearchShortcutsTest {
 
     @Test
@@ -44,5 +67,31 @@ class SearchShortcutsTest {
         assertTrue(request.isPending)
         request.consume()
         assertFalse(request.isPending)
+    }
+
+    @Test
+    fun shiftPressedTwiceOpensQuickOpenAndTheFocusedElementStillSeesBothPresses() = uiTest(width = 200, height = 200) {
+        val uiState = WorkspaceUiState()
+        val seen = mutableListOf<KeyEventType>()
+        showing {
+            val focusRequester = remember { FocusRequester() }
+            LaunchedEffect(Unit) { focusRequester.requestFocus() }
+            Box(Modifier.fillMaxSize().onPreviewKeyEvent { it.openSearch(uiState) }) {
+                Box(
+                    Modifier
+                        .size(50.dp)
+                        .focusRequester(focusRequester)
+                        .focusable()
+                        .testTag("focused")
+                        .onKeyEvent { event -> false.also { if (event.key == Key.ShiftLeft) seen += event.type } },
+                )
+            }
+        }
+        onNodeWithTag("focused").performKeyInput {
+            pressKey(Key.ShiftLeft)
+            pressKey(Key.ShiftLeft)
+        }
+        assertTrue(uiState.isQuickOpenShown)
+        assertEquals(listOf(KeyEventType.KeyDown, KeyEventType.KeyUp, KeyEventType.KeyDown, KeyEventType.KeyUp), seen)
     }
 }
