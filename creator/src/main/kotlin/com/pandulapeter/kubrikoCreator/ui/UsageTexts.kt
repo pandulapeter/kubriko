@@ -112,16 +112,6 @@ internal fun UsageEffect.text() = stringResource(
 )
 
 /**
- * The Actor type, Manager type, Scene, or page [this] usage is in, if it is in Kubriko Creator's model or a page.
- */
-internal val Usage.placeOwner
-    get() = when (val place = place) {
-        is UsagePlace.InModel -> place.place.owner
-        is UsagePlace.Markdown -> PageNaming.nameOf(place.path)?.let(RelationSubject::Page)
-        is UsagePlace.KotlinFile, is UsagePlace.ResourceFile, UsagePlace.GameSettings -> null
-    }
-
-/**
  * Whether [this] usage is something the user still has to deal with: Kotlin to change, or what refuses the delete.
  */
 internal val Usage.needsAttention get() = effect == UsageEffect.KOTLIN_TO_CHANGE || effect == UsageEffect.PREVENTS_DELETING
