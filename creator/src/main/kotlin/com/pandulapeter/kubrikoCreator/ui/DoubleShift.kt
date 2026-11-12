@@ -15,10 +15,11 @@ import androidx.compose.ui.input.key.Key
  * Tells Shift pressed twice in quick succession, with no other key between, as IDEs open their search with: a Shift held
  * while typing a capital, or pressed and released with another key, never counts.
  *
- * @param now The current time in milliseconds.
+ * @param now The time in milliseconds on a clock that only moves forward, which the system clock's adjustments don't
+ *   move.
  */
 internal class DoubleShift(
-    private val now: () -> Long = System::currentTimeMillis,
+    private val now: () -> Long = { System.nanoTime() / 1_000_000 },
 ) {
     private var lastRelease: Long? = null
     private var isPressedAlone = false
