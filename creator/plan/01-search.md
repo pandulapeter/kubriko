@@ -12,10 +12,6 @@
 Finding things past a few dozen Actor types, Scenes, or sprites, for the user and the AI alike. Each addition lands with its command and
 AI tool.
 
-- **Search in Blocks and pages:** texts in Log Blocks, screen texts, Kotlin Blocks, and the screenplay's pages, from the same panel.
-- **AI tools:** `search_project` (names, Block texts, and page texts, with paths) and `find_usages`, read-only; `find_usages` builds on
-  `ProjectRelations`, which `get_relations` already reads types, Properties, and Scenes from, and on `resourceUsagesOf` for sprites, sounds, and music,
-  which deletes already read.
 - **Searching conversations:** a search field over the open project's saved conversations, never another project's, that finds a query
   in what the user asked and what the agent answered, ignoring case, and lists the matches with the words around them highlighted;
   choosing one continues that conversation and scrolls to the match. `SavedConversation` keeps only the title, the start of the
@@ -27,4 +23,4 @@ AI tool.
 
 ## Order
 
-Search in Blocks and pages with the AI tools, and searching conversations last.
+Searching conversations.
