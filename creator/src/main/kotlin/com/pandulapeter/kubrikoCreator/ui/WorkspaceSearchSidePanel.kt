@@ -51,7 +51,7 @@ internal fun WorkspaceSearchSidePanel(
         modifier = Modifier.sidePanel(width.widthIn(row)),
         usagesSubject = subject,
         usages = rememberUsages(subject, revision, commands::findUsages),
-        onUsageSelected = { usage -> scope.launch { selection.goTo(usage, subject, commands.context.scenes, rootDirectory, uiState::showProjectSettings) } },
+        onUsageSelected = { usage -> scope.launch { selection.goTo(usage, commands.context.scenes, rootDirectory, uiState::showProjectSettings) } },
         query = uiState.searchQuery,
         onQueryChange = uiState::changeSearchQuery,
         texts = rememberTextSearch(uiState.searchQuery, revision) { query -> commands.searchTexts(query, TEXT_HIT_LIMIT) },

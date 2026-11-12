@@ -49,14 +49,15 @@ internal fun SelectionController.open(place: UsagePlace, actorIds: List<String> 
 }
 
 /**
- * Goes to where [usage] (of [subject]) is, wherever it can be shown ([canBeShown]): in the center ([open]), with the
- * type's Actors selected in a Scene placing them, a hand-written Kotlin file in the system's app for it, and the game's
+ * Goes to where [usage] is, wherever it can be shown ([canBeShown]): in the center ([open]), with the Actors of the
+ * type it is about selected in a Scene placing them (a folder delete's usages each name a type in the folder), a hand-written Kotlin file in the system's app for it, and the game's
  * settings through [onOpenGameSettings]. Reads the Scene off the main thread.
  *
  * @param rootDirectory The project's folder, which a Kotlin file's path starts from.
  */
-internal suspend fun SelectionController.goTo(usage: Usage, subject: RelationSubject?, scenes: SceneStore, rootDirectory: File, onOpenGameSettings: () -> Unit) {
+internal suspend fun SelectionController.goTo(usage: Usage, scenes: SceneStore, rootDirectory: File, onOpenGameSettings: () -> Unit) {
     val scene = ((usage.place as? UsagePlace.InModel)?.place as? RelationPlace.Scene)?.name
+    val subject = usage.subject
     val actorIds = if (scene != null && subject is RelationSubject.Type) {
         withContext(Dispatchers.IO) { scenes.actors(scene)?.filter { it.typeId == subject.name }?.map { it.id }?.filter { it.isNotEmpty() } }.orEmpty()
     } else {

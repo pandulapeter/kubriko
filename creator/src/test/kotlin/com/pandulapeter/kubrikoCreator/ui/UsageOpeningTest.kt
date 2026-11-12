@@ -87,7 +87,7 @@ class UsageOpeningTest {
     fun goingToTheGamesSettingsOpensProjectSettingsAndASoundIsNowhereToGo() = runTest {
         val controller = createController()
         var settingsOpened = 0
-        controller.selection.goTo(usage(UsagePlace.GameSettings), brick, controller.commands.context.scenes, testDirectory()) { settingsOpened++ }
+        controller.selection.goTo(usage(UsagePlace.GameSettings), controller.commands.context.scenes, testDirectory()) { settingsOpened++ }
         assertEquals(1, settingsOpened)
         assertFalse(usage(UsagePlace.ResourceFile("files/sounds/hit.wav")).canBeShown)
         assertTrue(usage(UsagePlace.ResourceFile("drawable/ball.png")).canBeShown)
@@ -109,7 +109,10 @@ class UsageOpeningTest {
         ).also { runCurrent() }
         @OptIn(EditorMutation::class)
         controller.commands.context.scenes.write("level", """[{"typeId":"Brick","state":"{}","id":"a"},{"typeId":"Ball","state":"{}","id":"b"},{"typeId":"Brick","state":"{}","id":"c"}]""")
-        controller.selection.goTo(usage(UsagePlace.InModel(RelationPlace.Scene("level"))), brick, controller.commands.context.scenes, root) {}
+        controller.selection.goTo(usage(UsagePlace.InModel(RelationPlace.Scene("level"))), controller.commands.context.scenes, root) {}
         assertEquals(RevealedPlace.InScene("level", listOf("a", "c")), controller.selection.revealed.value?.place)
+        val ofBall = Usage(UsagePlace.InModel(RelationPlace.Scene("level")), RelationKind.PLACES, RelationSubject.Type("Ball"), UsageEffect.DELETED_WITH_FOLDER)
+        controller.selection.goTo(ofBall, controller.commands.context.scenes, root) {}
+        assertEquals(RevealedPlace.InScene("level", listOf("b")), controller.selection.revealed.value?.place, "a folder delete's usage selects the type it names")
     }
 }

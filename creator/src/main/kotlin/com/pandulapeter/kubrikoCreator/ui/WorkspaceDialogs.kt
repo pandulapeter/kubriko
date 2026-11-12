@@ -114,7 +114,7 @@ internal fun WorkspaceDialogs(
             },
             onUsageSelected = { usage ->
                 uiState.finishDeleting()
-                scope.launch { selection.goTo(usage, pending.invocation.deletedSubject, scenes, rootDirectory, uiState::showProjectSettings) }
+                scope.launch { selection.goTo(usage, scenes, rootDirectory, uiState::showProjectSettings) }
             },
             onDismiss = uiState::finishDeleting,
         )
