@@ -31,6 +31,7 @@ import com.pandulapeter.kubrikoCreator.context.RelationPlace
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.context.Usage
 import com.pandulapeter.kubrikoCreator.context.UsagePlace
+import com.pandulapeter.kubrikoCreator.ui.canBeShown
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.scrollEdgeFades
 import com.pandulapeter.kubrikoCreator.ui.placeText
@@ -76,23 +77,24 @@ internal fun UsageResults(
                 modifier = Modifier.fillMaxWidth().scrollEdgeFades(listState, MaterialTheme.colorScheme.surfaceContainerLow),
                 state = listState,
             ) {
-                items(usages.usages) { usage -> UsageResultRow(usage = usage, onClick = { onUsageSelected(usage) }) }
+                items(usages.usages) { usage -> UsageResultRow(usage = usage, onClick = if (usage.canBeShown) ({ onUsageSelected(usage) }) else null) }
             }
         }
     }
 }
 
 /**
- * One usage: where it is, with the icon of that kind of place, and how it refers to what it is the usage of.
+ * One usage: where it is, with the icon of that kind of place, and how it refers to what it is the usage of; clicked,
+ * it goes there, unless there is nowhere to go ([onClick] is null).
  */
 @Composable
 private fun UsageResultRow(
     usage: Usage,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)?,
 ) = Row(
     modifier = Modifier
         .fillMaxWidth()
-        .clickable(onClick = onClick)
+        .clickable(enabled = onClick != null) { onClick?.invoke() }
         .padding(horizontal = 12.dp, vertical = 6.dp),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalAlignment = Alignment.CenterVertically,

@@ -15,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandHistory
@@ -38,6 +39,7 @@ import com.pandulapeter.kubrikoCreator.workspace.IosSimulatorOptions
 import com.pandulapeter.kubrikoCreator.workspace.SelectionController
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.project_upgrade_commit_message
 import org.jetbrains.compose.resources.stringResource
@@ -101,6 +103,7 @@ internal fun WorkspaceDialogs(
             onDismiss = uiState::finishDocumentChange,
         )
     }
+    val scope = rememberCoroutineScope()
     uiState.pendingDelete?.let { pending ->
         PendingDeleteConfirmation(
             pending = pending,
@@ -111,7 +114,7 @@ internal fun WorkspaceDialogs(
             },
             onUsageSelected = { usage ->
                 uiState.finishDeleting()
-                selection.open(usage)
+                scope.launch { selection.goTo(usage, pending.invocation.deletedSubject, scenes, rootDirectory, uiState::showProjectSettings) }
             },
             onDismiss = uiState::finishDeleting,
         )

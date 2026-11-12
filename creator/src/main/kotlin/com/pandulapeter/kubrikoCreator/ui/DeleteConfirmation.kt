@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.context.Usage
 import com.pandulapeter.kubrikoCreator.context.UsageEffect
-import com.pandulapeter.kubrikoCreator.context.UsagePlace
 import com.pandulapeter.kubrikoCreator.ui.components.CreatorDialog
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_cancel
@@ -107,7 +106,7 @@ private fun UsageList(
     modifier = Modifier.heightIn(max = 320.dp).verticalScroll(rememberScrollState()),
 ) {
     usages.forEach { usage ->
-        UsageRow(usage = usage, onClick = if (usage.place is UsagePlace.InModel) ({ onUsageSelected(usage) }) else null)
+        UsageRow(usage = usage, onClick = if (usage.canBeShown) ({ onUsageSelected(usage) }) else null)
     }
 }
 

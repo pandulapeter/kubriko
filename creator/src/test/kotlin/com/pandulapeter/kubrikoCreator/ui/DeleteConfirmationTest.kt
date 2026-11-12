@@ -57,7 +57,7 @@ class DeleteConfirmationTest {
         saveSnapshot("delete-confirmation")
         onNodeWithText("Ball, Event 1, Block 3 · Adds Brick").performClick()
         onNodeWithText("src/commonMain/kotlin/Game.kt · Names Brick in Kotlin").performClick()
-        assertEquals(listOf(adds), selected)
+        assertEquals(listOf(adds, kotlin), selected, "a hand-written Kotlin file opens too, in the system's app")
         onNodeWithText("Delete").assertIsEnabled().performClick()
         assertEquals(true, isConfirmed)
     }
