@@ -30,7 +30,8 @@ internal object ProjectSearch {
     /**
      * What [query] finds in [types], [names] (Scenes, files, and the like, each with its place), and [markdown] (each
      * page's and document's text by its path from the project's root): the names first, then the types' texts in their
-     * order, then the Markdown, at most [limit] of them, with how many there are in all.
+     * order, then the Markdown, at most [limit] of them, with how many there are in all, the ones past the limit only
+     * counted, so a short query that finds nearly every line builds no more than it lists.
      */
     fun search(
         query: String,
@@ -42,53 +43,75 @@ internal object ProjectSearch {
     ): SearchResults {
         val trimmed = query.trim()
         if (trimmed.isEmpty()) return SearchResults(emptyList(), 0)
-        val hits = buildList {
-            if (isSearchingNames) {
-                types.forEach { type ->
-                    nameHit(type.name, UsagePlace.InModel(RelationPlace.Type(type.name)), trimmed)?.let(::add)
-                    type.properties.forEach { property -> nameHit(property.name, UsagePlace.InModel(RelationPlace.Type(type.name)), trimmed, "${type.name}.${property.name}")?.let(::add) }
-                }
-                names.forEach { (name, place) -> nameHit(name, place, trimmed)?.let(::add) }
+        val hits = Hits(limit)
+        if (isSearchingNames) {
+            types.forEach { type ->
+                hits.addName(type.name, UsagePlace.InModel(RelationPlace.Type(type.name)), trimmed)
+                type.properties.forEach { property -> hits.addName(property.name, UsagePlace.InModel(RelationPlace.Type(type.name)), trimmed, "${type.name}.${property.name}") }
             }
-            types.forEach { type -> addAll(textHitsOf(type, trimmed)) }
-            markdown.keys.sorted().forEach { path -> addAll(textHits(markdown.getValue(path), trimmed, UsagePlace.Markdown(path), SearchHit.Kind.MARKDOWN, isNumbered = true)) }
+            names.forEach { (name, place) -> hits.addName(name, place, trimmed) }
         }
-        return SearchResults(hits.take(limit), hits.size)
-    }
-
-    private fun nameHit(name: String, place: UsagePlace, query: String, shown: String = name): SearchHit? {
-        val match = NameMatching.match(name, query) ?: return null
-        val offset = shown.length - name.length
-        return SearchHit(place, SearchHit.Kind.NAME, shown, match.ranges.map { it.first + offset..it.last + offset })
-    }
-
-    private fun textHitsOf(type: BlockTypeDefinition, query: String): List<SearchHit> = buildList {
-        type.description?.let { addAll(textHits(it, query, UsagePlace.InModel(RelationPlace.Type(type.name)), SearchHit.Kind.DESCRIPTION)) }
-        type.events.forEachIndexed { eventIndex, event ->
-            event.blocks.forEachIndexed { blockIndex, block ->
-                val place = UsagePlace.InModel(RelationPlace.Type(type.name, eventIndex, blockIndex))
-                when (block) {
-                    is BlockDefinition.Log -> addAll(textHits(block.message, query, place, SearchHit.Kind.BLOCK_TEXT))
-                    is BlockDefinition.SetText -> addAll(textHits(block.value, query, place, SearchHit.Kind.BLOCK_TEXT))
-                    is BlockDefinition.Kotlin -> addAll(textHits(block.code, query, place, SearchHit.Kind.KOTLIN, isNumbered = true))
-                    else -> Unit
-                }
-            }
-        }
-        if (type is ManagerTypeDefinition) {
-            type.texts.forEachIndexed { index, text -> addAll(textHits(text.text, query, UsagePlace.InModel(RelationPlace.Text(type.name, index)), SearchHit.Kind.SCREEN_TEXT)) }
-            type.kotlinUi?.let { addAll(textHits(it, query, UsagePlace.InModel(RelationPlace.KotlinUi(type.name)), SearchHit.Kind.KOTLIN, isNumbered = true)) }
-        }
+        types.forEach { type -> hits.addTextsOf(type, trimmed) }
+        markdown.keys.sorted().forEach { path -> hits.addLines(markdown.getValue(path), trimmed, UsagePlace.Markdown(path), SearchHit.Kind.MARKDOWN, isNumbered = true) }
+        return SearchResults(hits.listed, hits.total)
     }
 
     /**
-     * A hit for every line of [text] containing [query] ([TextSnippet]), with the line's number when [isNumbered] (for
-     * code and Markdown, whose lines mean something).
+     * The first [limit] hits found, and how many there are in all.
      */
-    private fun textHits(text: String, query: String, place: UsagePlace, kind: SearchHit.Kind, isNumbered: Boolean = false): List<SearchHit> =
-        text.lines().mapIndexedNotNull { index, line ->
-            TextSnippet.of(line, query)?.let { snippet -> SearchHit(place, kind, snippet.text, snippet.ranges, (index + 1).takeIf { isNumbered }) }
+    private class Hits(
+        private val limit: Int,
+    ) {
+        val listed = ArrayList<SearchHit>()
+        var total = 0
+            private set
+
+        private val isFull get() = listed.size >= limit
+
+        fun addName(name: String, place: UsagePlace, query: String, shown: String = name) {
+            val match = NameMatching.match(name, query) ?: return
+            total++
+            if (isFull) return
+            val offset = shown.length - name.length
+            listed += SearchHit(place, SearchHit.Kind.NAME, shown, match.ranges.map { it.first + offset..it.last + offset })
         }
+
+        fun addTextsOf(type: BlockTypeDefinition, query: String) {
+            type.description?.let { addLines(it, query, UsagePlace.InModel(RelationPlace.Type(type.name)), SearchHit.Kind.DESCRIPTION) }
+            type.events.forEachIndexed { eventIndex, event ->
+                event.blocks.forEachIndexed { blockIndex, block ->
+                    val place = UsagePlace.InModel(RelationPlace.Type(type.name, eventIndex, blockIndex))
+                    when (block) {
+                        is BlockDefinition.Log -> addLines(block.message, query, place, SearchHit.Kind.BLOCK_TEXT)
+                        is BlockDefinition.SetText -> addLines(block.value, query, place, SearchHit.Kind.BLOCK_TEXT)
+                        is BlockDefinition.Kotlin -> addLines(block.code, query, place, SearchHit.Kind.KOTLIN, isNumbered = true)
+                        else -> Unit
+                    }
+                }
+            }
+            if (type is ManagerTypeDefinition) {
+                type.texts.forEachIndexed { index, text -> addLines(text.text, query, UsagePlace.InModel(RelationPlace.Text(type.name, index)), SearchHit.Kind.SCREEN_TEXT) }
+                type.kotlinUi?.let { addLines(it, query, UsagePlace.InModel(RelationPlace.KotlinUi(type.name)), SearchHit.Kind.KOTLIN, isNumbered = true) }
+            }
+        }
+
+        /**
+         * A hit for every line of [text] containing [query] ([TextSnippet]), with the line's number when [isNumbered]
+         * (for code and Markdown, whose lines mean something).
+         */
+        fun addLines(text: String, query: String, place: UsagePlace, kind: SearchHit.Kind, isNumbered: Boolean = false) {
+            text.lineSequence().forEachIndexed { index, line ->
+                if (isFull) {
+                    if (line.contains(query, ignoreCase = true)) total++
+                } else {
+                    TextSnippet.of(line, query)?.let { snippet ->
+                        total++
+                        listed += SearchHit(place, kind, snippet.text, snippet.ranges, (index + 1).takeIf { isNumbered })
+                    }
+                }
+            }
+        }
+    }
 }
 
 /**
