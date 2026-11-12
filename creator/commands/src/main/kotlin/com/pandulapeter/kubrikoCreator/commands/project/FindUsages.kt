@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.project
 
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
@@ -74,8 +76,14 @@ public object FindUsages : ReadCommand<FindUsages.Input> {
         else -> RelationSubject.Resource(input.resource!!)
     }
 
+    /**
+     * Why [type] has no [property], offering the close ones among its own and those it inherits, which it may be asked
+     * about too.
+     */
     private fun missingProperty(context: CommandContext, type: String, property: String): Rejection {
-        val names = context.blockTypes?.get(type)?.properties.orEmpty().map { it.name }
+        val types = context.blockTypes?.types?.value.orEmpty()
+        val own = types.firstOrNull { it.name == type }?.properties.orEmpty()
+        val names = (own + ActorTypeFamily(types.filterIsInstance<ActorTypeDefinition>()).propertiesOf(type)).map { it.name }.distinct()
         return SimilarNames.rejection(LookupProblem.RELATIONS_PROPERTY_MISSING, LookupProblem.RELATIONS_PROPERTY_MISSING_SIMILAR, property, names, property, type)
     }
 

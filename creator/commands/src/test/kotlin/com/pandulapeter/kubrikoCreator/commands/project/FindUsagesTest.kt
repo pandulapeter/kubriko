@@ -96,4 +96,17 @@ class FindUsagesTest {
             buildJsonObject { put("page", "nowhere") },
         ).forEach { arguments -> assertIs<CommandOutcome.Rejected>(executor.call("find_usages", arguments), arguments.toString()) }
     }
+
+    @Test
+    fun aMissingPropertyIsAnsweredWithTheCloseOnesItsTypeInheritsToo() = runTest {
+        val enemy = ActorTypeDefinition(name = "Enemy", properties = listOf(PropertyDefinition.Number("health")))
+        val bat = ActorTypeDefinition(name = "Bat", parent = "Enemy")
+        val executor = CommandExecutor(commandContext(enemy, bat), testScope())
+        val rejection = assertIs<CommandOutcome.Rejected>(executor.call("find_usages", buildJsonObject { put("type", "Bat"); put("property", "heath") }))
+        kotlin.test.assertTrue("health" in rejection.rejection.toString(), rejection.rejection.toString())
+        assertEquals(
+            Json.parseToJsonElement("""{"subject":"Enemy.health","usages":[]}"""),
+            executor.find(buildJsonObject { put("type", "Bat"); put("property", "health") }),
+        )
+    }
 }
