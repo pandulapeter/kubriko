@@ -85,6 +85,7 @@ import kubriko.creator.generated.resources.error_command_scene_invalid
 import kubriko.creator.generated.resources.error_command_scene_is_first
 import kubriko.creator.generated.resources.error_command_screenplay_settings_unreadable
 import kubriko.creator.generated.resources.error_command_screenplay_style
+import kubriko.creator.generated.resources.error_command_search_query_blank
 import kubriko.creator.generated.resources.error_command_size_invalid
 import kubriko.creator.generated.resources.error_command_summary_invalid
 import kubriko.creator.generated.resources.error_command_text_size_invalid
@@ -181,6 +182,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.PROPERTY_KIND_IN_DESCENDANT -> Res.string.error_command_property_kind_in_descendant
     CommandProblem.PROPERTY_VALUE_INVALID -> Res.string.error_command_property_value_invalid
     CommandProblem.RELATIONS_SUBJECT -> Res.string.error_command_relations_subject
+    CommandProblem.SEARCH_QUERY_BLANK -> Res.string.error_command_search_query_blank
     CommandProblem.USAGES_SUBJECT -> Res.string.error_command_usages_subject
     CommandProblem.RESOURCE_CONTENT_MISMATCH -> Res.string.error_command_resource_content_mismatch
     CommandProblem.RESOURCE_KIND_CHANGED -> Res.string.error_command_resource_kind_changed

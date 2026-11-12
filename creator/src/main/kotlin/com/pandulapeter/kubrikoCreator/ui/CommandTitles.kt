@@ -76,6 +76,7 @@ import com.pandulapeter.kubrikoCreator.commands.project.Play
 import com.pandulapeter.kubrikoCreator.commands.project.ReadConsole
 import com.pandulapeter.kubrikoCreator.commands.project.ReadGameNotes
 import com.pandulapeter.kubrikoCreator.commands.project.RememberForNextTime
+import com.pandulapeter.kubrikoCreator.commands.project.SearchProject
 import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
 import com.pandulapeter.kubrikoCreator.commands.project.SetGameNotes
 import com.pandulapeter.kubrikoCreator.commands.project.SetPlan
@@ -221,6 +222,7 @@ import kubriko.creator.generated.resources.command_replace_blocks
 import kubriko.creator.generated.resources.command_restore_actor
 import kubriko.creator.generated.resources.command_restore_actors
 import kubriko.creator.generated.resources.command_save_sprite
+import kubriko.creator.generated.resources.command_search_project
 import kubriko.creator.generated.resources.command_set_actor_state
 import kubriko.creator.generated.resources.command_set_actor_values
 import kubriko.creator.generated.resources.command_set_actors_state
@@ -341,6 +343,7 @@ private val commandTitles = mapOf(
     GetTargetChange.name to Res.string.command_get_target_change,
     GetRelations.name to Res.string.command_get_relations,
     FindUsages.name to Res.string.command_find_usages,
+    SearchProject.name to Res.string.command_search_project,
     GetVersionControlStatus.name to Res.string.command_get_version_control_status,
     Play.name to Res.string.command_play,
     ReadConsole.name to Res.string.command_read_console,

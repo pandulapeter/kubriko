@@ -10,11 +10,13 @@
 package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
+import com.pandulapeter.kubrikoCreator.context.SearchResults
 import com.pandulapeter.kubrikoCreator.context.Usage
 import com.pandulapeter.kubrikoCreator.context.findUsages
 import com.pandulapeter.kubrikoCreator.context.mentionPathsOf
 import com.pandulapeter.kubrikoCreator.context.pagesMentioning
 import com.pandulapeter.kubrikoCreator.context.pagesMentioningDeleted
+import com.pandulapeter.kubrikoCreator.context.searchProject
 import com.pandulapeter.kubrikoCreator.context.writeSummary
 import com.pandulapeter.kubrikoCreator.foundation.reportProblem
 import com.pandulapeter.kubrikoCreator.scenes.SceneChange
@@ -195,6 +197,11 @@ public class CommandExecutor(
      * Every place that refers to [subject] (`find_usages`), read while no change is being made.
      */
     public suspend fun findUsages(subject: RelationSubject): List<Usage> = changes.withLock { context.findUsages(subject) }
+
+    /**
+     * What [query] finds in the project's texts (`search_project`), at most [limit] hits, read while no change is being made.
+     */
+    public suspend fun searchTexts(query: String, limit: Int): SearchResults = changes.withLock { context.searchProject(query, isSearchingNames = false, limit = limit) }
 
     public fun undo(): Unit = stepForUser(isUndo = true)
 

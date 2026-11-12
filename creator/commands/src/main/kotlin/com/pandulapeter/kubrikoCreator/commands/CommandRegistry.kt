@@ -75,6 +75,7 @@ import com.pandulapeter.kubrikoCreator.commands.project.Play
 import com.pandulapeter.kubrikoCreator.commands.project.ReadConsole
 import com.pandulapeter.kubrikoCreator.commands.project.ReadGameNotes
 import com.pandulapeter.kubrikoCreator.commands.project.RememberForNextTime
+import com.pandulapeter.kubrikoCreator.commands.project.SearchProject
 import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
 import com.pandulapeter.kubrikoCreator.commands.project.SetGameNotes
 import com.pandulapeter.kubrikoCreator.commands.project.SetPlan
@@ -182,6 +183,7 @@ public class CommandRegistry(
                 ReadScene,
                 GetRelations,
                 FindUsages,
+                SearchProject,
                 GetHealthChecks,
                 CheckChange,
                 ReadGameNotes,
