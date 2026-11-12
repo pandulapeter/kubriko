@@ -21,6 +21,7 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -129,6 +130,17 @@ class AssistantPanelTest {
     }
 
     private fun ComposeUiTest.openSetup() = onNodeWithContentDescription("Assistant setup", substring = true).performClick()
+
+    @Test
+    fun searchingTheConversationsKeepsWhatIsTypedInTheComposer() = uiTest {
+        val model = FakeAssistantPanelModel().apply { currentChat.value = readyChat() }
+        showing { AssistantPanelWithActions(model) }
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasSetTextAction()).fetchSemanticsNodes().isNotEmpty() }
+        onNode(hasSetTextAction()).performTextInput("half a thought")
+        onNodeWithContentDescription("Search conversations").performClick()
+        onNodeWithContentDescription("Back to the conversation").performClick()
+        onNode(hasSetTextAction() and hasText("half a thought")).assertExists()
+    }
 
     @Test
     fun anUntestedAgentShowsTheUntestedNoteAndNoClaudeOptions() = uiTest {

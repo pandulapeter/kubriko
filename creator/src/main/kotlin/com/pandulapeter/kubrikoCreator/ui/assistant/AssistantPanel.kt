@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.assistant
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.agentclientprotocol.annotations.UnstableApi
 import com.agentclientprotocol.model.PlanEntry
@@ -146,49 +148,54 @@ private fun AssistantPanelContent(
     val session by model.signIn.collectAsState()
     val needsSignIn by model.needsSignIn.collectAsState()
     val hasApiKeyFailed by model.apiKeyFailed.collectAsState()
-    ConversationSearchOf(model = model, search = search, modifier = Modifier.weight(1f))
-    chat?.takeIf { !search.isOpen }?.let { current ->
-        ChatContent(
-            modifier = Modifier.weight(1f),
-            chat = current,
-            download = model.download.collectAsState().value,
-            attention = attention,
-            captureScreenshot = captureScreenshot,
-            onInstallNode = model::installNode.takeIf { model.canInstallNode },
-            nodeInstallFailure = model.nodeInstallFailure.collectAsState().value,
-            isBilledToApiKey = hasApiKey,
-            isAgentChangingFilesUnasked = LocalAgent.current.identity in model.agentsChangingFilesUnasked.collectAsState().value,
-            onOpenLog = model.agentLogOpening(),
-            aiSteps = aiSteps,
-            onShowStep = onShowStep,
-            questions = questions,
-            onAnswer = onAnswer,
-            jumpTo = search.jump?.takeIf { it.conversation.id == current.conversationId.collectAsState().value },
-            onJumped = search::onJumped,
-            onStartNew = {
-                model.newChat()
-                model.currentChat.value !== current
-            },
-        ) { isPromptRefused ->
-            AssistantSignInArea(
-                session = session,
-                isEnteringApiKey = forms.isEnteringApiKey,
-                needsSignIn = needsSignIn || isPromptRefused,
-                methods = signInMethods,
-                canKeepApiKey = model.canKeepApiKey,
-                hasApiKeyFailed = hasApiKeyFailed,
-                onSignIn = model::signIn,
-                onCloseSignIn = model::closeSignIn,
-                onUseApiKey = { forms.isEnteringApiKey = true },
-                onSaveApiKey = { key -> model.setApiKey(key) { forms.isEnteringApiKey = false } },
-                onCancelApiKey = { forms.isEnteringApiKey = false },
-                variablesForm = model.variablesForm.collectAsState().value,
-                hasVariablesFailed = model.variablesFailed.collectAsState().value,
-                onSaveVariables = model::setVariables,
-                onCancelVariables = model::closeVariablesForm,
-                systemTerminal = rememberSystemTerminalOffer(model),
-            )
+    // The search lies over the conversation rather than replacing it, which keeps what is typed and where it is read.
+    Box(
+        modifier = Modifier.weight(1f),
+    ) {
+        chat?.let { current ->
+            ChatContent(
+                modifier = Modifier.fillMaxSize(),
+                chat = current,
+                download = model.download.collectAsState().value,
+                attention = attention,
+                captureScreenshot = captureScreenshot,
+                onInstallNode = model::installNode.takeIf { model.canInstallNode },
+                nodeInstallFailure = model.nodeInstallFailure.collectAsState().value,
+                isBilledToApiKey = hasApiKey,
+                isAgentChangingFilesUnasked = LocalAgent.current.identity in model.agentsChangingFilesUnasked.collectAsState().value,
+                onOpenLog = model.agentLogOpening(),
+                aiSteps = aiSteps,
+                onShowStep = onShowStep,
+                questions = questions,
+                onAnswer = onAnswer,
+                jumpTo = search.jump?.takeIf { it.conversation.id == current.conversationId.collectAsState().value },
+                onJumped = search::onJumped,
+                onStartNew = {
+                    model.newChat()
+                    model.currentChat.value !== current
+                },
+            ) { isPromptRefused ->
+                AssistantSignInArea(
+                    session = session,
+                    isEnteringApiKey = forms.isEnteringApiKey,
+                    needsSignIn = needsSignIn || isPromptRefused,
+                    methods = signInMethods,
+                    canKeepApiKey = model.canKeepApiKey,
+                    hasApiKeyFailed = hasApiKeyFailed,
+                    onSignIn = model::signIn,
+                    onCloseSignIn = model::closeSignIn,
+                    onUseApiKey = { forms.isEnteringApiKey = true },
+                    onSaveApiKey = { key -> model.setApiKey(key) { forms.isEnteringApiKey = false } },
+                    onCancelApiKey = { forms.isEnteringApiKey = false },
+                    variablesForm = model.variablesForm.collectAsState().value,
+                    hasVariablesFailed = model.variablesFailed.collectAsState().value,
+                    onSaveVariables = model::setVariables,
+                    onCancelVariables = model::closeVariablesForm,
+                    systemTerminal = rememberSystemTerminalOffer(model),
+                )
+            }
         }
+        ConversationSearchOf(model = model, search = search, modifier = Modifier.fillMaxSize())
     }
 }
 
@@ -206,7 +213,9 @@ private fun ConversationSearchOf(
     LaunchedEffect(shownId, search.jump) { search.onConversationShown(shownId) }
     if (search.isOpen) {
         ConversationSearchView(
-            modifier = modifier,
+            modifier = modifier
+                .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                .pointerInput(Unit) { awaitPointerEventScope { while (true) awaitPointerEvent() } },
             query = search.query,
             onQueryChange = { search.query = it },
             search = model::searchConversations,
