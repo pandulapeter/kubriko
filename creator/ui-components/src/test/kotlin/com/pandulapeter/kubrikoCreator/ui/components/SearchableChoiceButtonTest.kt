@@ -13,11 +13,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -54,6 +56,8 @@ class SearchableChoiceButtonTest {
         onNode(hasSetTextAction()).performTextInput("play")
         onNodeWithText("Player").assertExists()
         onNodeWithText("Enemy01").assertDoesNotExist()
+        val player = onNode(hasText("Player") and !hasSetTextAction()).fetchSemanticsNode().config[SemanticsProperties.Text].single()
+        assertEquals(listOf(0 to 4), player.spanStyles.map { it.start to it.end }, "what was typed is highlighted")
         saveSnapshot("searchable-choice-filtered")
         onNode(hasSetTextAction()).performKeyInput { pressKey(Key.Enter) }
         assertEquals("Player", selected)

@@ -52,7 +52,7 @@ internal fun MentionSuggestionsAnchor(
     }
     if (suggestions != null) {
         Popover(state = popover, isFocusable = false) {
-            MentionSuggestionList(candidates = suggestions.matches, highlighted = highlighted, onChoose = onChoose)
+            MentionSuggestionList(candidates = suggestions.matches, query = suggestions.query.text, highlighted = highlighted, onChoose = onChoose)
         }
     }
 }

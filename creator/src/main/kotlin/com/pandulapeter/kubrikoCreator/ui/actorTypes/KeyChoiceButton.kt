@@ -47,6 +47,8 @@ import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButtonFace
 import com.pandulapeter.kubrikoCreator.ui.components.MenuStyle
+import com.pandulapeter.kubrikoCreator.ui.components.highlightedMatch
+import com.pandulapeter.kubrikoCreator.ui.components.matchHighlightStyle
 import com.pandulapeter.kubrikoCreator.ui.components.matchingOptions
 import com.pandulapeter.kubrikoCreator.ui.components.scrollEdgeFades
 import kubriko.creator.generated.resources.Res
@@ -145,6 +147,7 @@ private fun KeyChoicePanel(
             )
         }
         val listState = rememberLazyListState()
+        val highlightStyle = matchHighlightStyle()
         LazyColumn(
             modifier = Modifier.fillMaxWidth().scrollEdgeFades(listState, MenuStyle.color),
             state = listState,
@@ -156,7 +159,7 @@ private fun KeyChoicePanel(
                         .fillMaxWidth()
                         .clickable { onSelected(key) }
                         .padding(horizontal = 12.dp, vertical = 6.dp),
-                    text = commonTitles[key] ?: readableKeyName(key.composeKeyName),
+                    text = highlightedMatch(commonTitles[key] ?: readableKeyName(key.composeKeyName), query, highlightStyle),
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }
@@ -165,8 +168,8 @@ private fun KeyChoicePanel(
 }
 
 /**
- * Every key whose title (from [titleOf]) or Compose name contains [query], those it matches exactly first, then those
- * starting with it, otherwise in the order of [KeyChoice.all].
+ * Every key whose title (from [titleOf]) or Compose name matches [query] ([matchingOptions]), the closest first,
+ * otherwise in the order of [KeyChoice.all].
  */
 internal fun matchingKeys(query: String, titleOf: (KeyChoice) -> String) = matchingOptions(query, KeyChoice.all, titleOf, alsoMatching = { it.composeKeyName })
 

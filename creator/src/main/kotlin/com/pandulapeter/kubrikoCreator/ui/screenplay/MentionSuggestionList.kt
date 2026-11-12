@@ -29,19 +29,24 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
+import com.pandulapeter.kubrikoCreator.ui.components.highlightedMatch
+import com.pandulapeter.kubrikoCreator.ui.components.matchHighlightStyle
 
 /**
- * The things a mention being typed may name, [highlighted] one lit, each chosen by a click. Its rows never take the
+ * The things a mention being typed may name, what of them [query] matches highlighted and the [highlighted] one lit,
+ * each chosen by a click. Its rows never take the
  * focus, so the text keeps it.
  */
 @Composable
 internal fun MentionSuggestionList(
     candidates: List<MentionCandidate>,
+    query: String,
     highlighted: Int,
     onChoose: (MentionCandidate) -> Unit,
 ) = Column(
     modifier = Modifier.width(SUGGESTIONS_WIDTH).padding(vertical = 4.dp),
 ) {
+    val highlightStyle = matchHighlightStyle()
     candidates.forEachIndexed { index, candidate ->
         Row(
             modifier = Modifier
@@ -54,7 +59,7 @@ internal fun MentionSuggestionList(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(Modifier.size(8.dp).background((accentOf(candidate.mention) ?: Accent.CODE).color, CircleShape))
-            Text(text = candidate.title, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(text = highlightedMatch(candidate.title, query, highlightStyle), style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
             candidate.detail?.let { detail ->
                 Text(
                     text = detail,

@@ -123,6 +123,7 @@ private fun ChoicePanel(
         }
         if (titles.isNotEmpty()) {
             val listState = rememberLazyListState()
+            val highlightStyle = matchHighlightStyle()
             LazyColumn(
                 modifier = Modifier.weight(1f, fill = false).fillMaxWidth().scrollEdgeFades(listState, MenuStyle.color),
                 state = listState,
@@ -134,7 +135,7 @@ private fun ChoicePanel(
                             .fillMaxWidth()
                             .clickable { onSelected(index) }
                             .padding(horizontal = 12.dp, vertical = 6.dp),
-                        text = titles[index],
+                        text = highlightedMatch(titles[index], query, highlightStyle),
                         style = MaterialTheme.typography.bodyMedium,
                         color = if (titles[index] == label) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                     )
