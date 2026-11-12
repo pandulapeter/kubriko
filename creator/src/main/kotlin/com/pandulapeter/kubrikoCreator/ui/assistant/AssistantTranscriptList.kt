@@ -34,6 +34,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -56,6 +57,9 @@ import com.pandulapeter.kubrikoCreator.ui.commandTitle
 import com.pandulapeter.kubrikoCreator.ui.components.FailureDetails
 import com.pandulapeter.kubrikoCreator.ui.components.MarkdownText
 import com.pandulapeter.kubrikoCreator.ui.description
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.assistant_failure_agent_not_started
 import kubriko.creator.generated.resources.assistant_failure_agent_stopped
@@ -94,8 +98,8 @@ import org.jetbrains.compose.resources.stringResource
  * @param canSendMessage Whether the conversation takes a message now, which a late answer ([isLate]) is sent as.
  * @param composerQuestionId The question the composer answers ([waitingQuestions]' newest), whose card needs no field of its own.
  * @param onAnswer Answers a question, telling whether the agent stopped waiting for it.
- * @param jumpTo A message a search of the conversations found, which the list scrolls to once it holds it ([jumpIndexOf]),
- *   no longer following the end, and then hands back through [onJumped].
+ * @param jumpTo A message a search of the conversations found, given once the conversation holds its whole history, which
+ *   the list scrolls to ([jumpIndexOf]), no longer following the end, and hands back through [onJumped], found or not.
  */
 @Composable
 internal fun AssistantTranscriptList(
@@ -126,10 +130,15 @@ internal fun AssistantTranscriptList(
                 previous = current
             }
     }
-    LaunchedEffect(jumpTo, shownItems.size) {
-        val index = jumpTo?.let { jumpIndexOf(shownItems, it) } ?: return@LaunchedEffect
-        isFollowing = false
-        listState.scrollToItem(index)
+    val currentItems by rememberUpdatedState(shownItems)
+    LaunchedEffect(jumpTo) {
+        val match = jumpTo ?: return@LaunchedEffect
+        // The transcript shown is throttled, so the history a ready conversation holds may still be on its way.
+        val index = withTimeoutOrNull(JUMP_WAIT_IN_MILLISECONDS) { snapshotFlow { jumpIndexOf(currentItems, match) }.filterNotNull().first() }
+        if (index != null) {
+            isFollowing = false
+            listState.scrollToItem(index)
+        }
         onJumped()
     }
     LaunchedEffect(shownItems.size, (last as? TranscriptItem.AgentMessage)?.text?.length, isBusy, questions) {
@@ -380,3 +389,8 @@ internal fun FailureReason.description(): String = stringResource(
     },
     LocalAgent.current.name,
 )
+
+/**
+ * How long the list waits for the message a search found to arrive before it gives up on scrolling to it.
+ */
+private const val JUMP_WAIT_IN_MILLISECONDS = 2_000L

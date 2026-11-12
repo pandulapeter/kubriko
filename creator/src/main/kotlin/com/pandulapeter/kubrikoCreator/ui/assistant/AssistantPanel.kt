@@ -295,7 +295,7 @@ private fun ChatContent(
                     onAnswer(question.id, answer)
                     if (isLate) answering.launch { chat.send(getString(Res.string.assistant_question_late_answer, question.text, answer)) }
                 },
-                jumpTo = jumpTo,
+                jumpTo = jumpTo?.takeIf { state == ChatState.Ready },
                 onJumped = onJumped,
             )
             state is ChatState.Ready -> Hint(stringResource(Res.string.assistant_empty))

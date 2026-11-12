@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -131,4 +132,23 @@ class ConversationSearchTest {
     }
 
     private fun ComposeUiTest.awaitText(text: String) = waitUntil(timeoutMillis = 5_000) { onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty() }
+
+    @Test
+    fun theTranscriptScrollsToTheMessageFoundOnceItArrivesAndHandsTheJumpBackEitherWay() = uiTest(width = 420, height = 300) {
+        var items by mutableStateOf<List<TranscriptItem>>(List(30) { TranscriptItem.AgentMessage("Line $it") })
+        var jumps = 0
+        showing { AssistantTranscriptList(items = items, isBusy = false, steps = emptyMap(), onShowStep = {}, jumpTo = own, onJumped = { jumps++ }) }
+        waitForIdle()
+        assertEquals(0, jumps, "waiting for the history")
+        items = listOf<TranscriptItem>(TranscriptItem.UserMessage("Make the ball faster")) + items
+        waitUntil(timeoutMillis = 5_000) { jumps == 1 }
+        onNodeWithText("Make the ball faster").assertIsDisplayed()
+    }
+
+    @Test
+    fun aMessageThatNeverArrivesIsGivenUpOn() = uiTest(width = 420, height = 300) {
+        var jumps = 0
+        showing { AssistantTranscriptList(items = listOf(TranscriptItem.AgentMessage("Done.")), isBusy = false, steps = emptyMap(), onShowStep = {}, jumpTo = own, onJumped = { jumps++ }) }
+        waitUntil(timeoutMillis = 5_000) { jumps == 1 }
+    }
 }
