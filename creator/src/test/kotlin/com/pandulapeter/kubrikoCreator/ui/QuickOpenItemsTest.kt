@@ -18,7 +18,6 @@ import com.pandulapeter.kubrikoCreator.screenplay.Mention
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
 class QuickOpenItemsTest {
     private val types = listOf(
@@ -59,13 +58,6 @@ class QuickOpenItemsTest {
     fun aBlankQueryListsTheFirstItemsUpToTheLimit() {
         assertEquals(items.take(3).map { it.title }, quickOpenMatchesOf(" ", items, limit = 3).map { it.item.title })
         assertEquals(2, quickOpenMatchesOf("b", items, limit = 2).size)
-    }
-
-    @Test
-    fun aSpritesPathIsTakenFromItsComposeResourcesFolder() {
-        assertEquals("drawable/brick.png", spritePathOf("src/commonMain/composeResources/drawable/brick.png"))
-        assertEquals("drawable/a.png", spritePathOf("composeResources/drawable/a.png"))
-        assertNull(spritePathOf("art/brick.png"))
     }
 
     @Test

@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.screenplay
 
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.DefinitionPaths
+import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import java.io.File
@@ -87,7 +88,7 @@ public sealed interface Mention {
          */
         public fun of(path: String): Mention {
             val extension = path.substringAfterLast('.', "").lowercase()
-            val composeResource = "/$path".indexOf("/$COMPOSE_RESOURCES/").takeIf { it >= 0 }?.let { path.substring(it + COMPOSE_RESOURCES.length + 1) }
+            val composeResource = ResourceKind.pathFromComposeResources(path)
             return when {
                 extension == "json" && path.startsWith(DefinitionPaths.folderPath(BlockTypeKind.ACTOR, "") + "/") -> ActorType(nameOf(path), path)
                 extension == "json" && path.startsWith(DefinitionPaths.folderPath(BlockTypeKind.MANAGER, "") + "/") -> ManagerType(nameOf(path), path)
@@ -103,7 +104,6 @@ public sealed interface Mention {
 
         private fun nameOf(path: String) = path.substringAfterLast('/').substringBeforeLast('.')
 
-        private const val COMPOSE_RESOURCES = "composeResources"
         private const val SCENES = "files/scenes"
         private val audioExtensions = setOf("wav", "mp3", "ogg", "m4a", "aac", "flac")
     }

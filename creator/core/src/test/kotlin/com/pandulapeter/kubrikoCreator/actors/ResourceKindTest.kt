@@ -33,6 +33,15 @@ class ResourceKindTest {
     }
 
     @Test
+    fun aFilesPathIsTakenFromTheOutermostComposeResourcesFolderItIsIn() {
+        assertEquals("drawable/ball.png", ResourceKind.pathFromComposeResources("src/commonMain/composeResources/drawable/ball.png"))
+        assertEquals("files/a.wav", ResourceKind.pathFromComposeResources("composeResources/files/a.wav"))
+        assertEquals("files/composeResources/a.wav", ResourceKind.pathFromComposeResources("x/composeResources/files/composeResources/a.wav"))
+        assertEquals(null, ResourceKind.pathFromComposeResources("art/ball.png"))
+        assertEquals(null, ResourceKind.pathFromComposeResources("mycomposeResources/drawable/ball.png"), "only a folder of that name counts")
+    }
+
+    @Test
     fun namesUseLettersNumbersDashesAndUnderscores() {
         assertNull(ResourceKind.validate("drawable/ball-red_2.png"))
         assertNull(ResourceKind.validate("drawable/1up.png"))

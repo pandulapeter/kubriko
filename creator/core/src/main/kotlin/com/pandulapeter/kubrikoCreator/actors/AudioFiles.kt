@@ -44,11 +44,10 @@ public data class AudioFiles(
         /**
          * The path of [resource] from its `composeResources` folder, or null if the game can't read it by its path.
          */
-        internal fun pathOf(resource: ProjectResource) = resource.relativePath.substringAfter("$COMPOSE_RESOURCES/", "").takeIf { it.startsWith("$FILES/") }
+        internal fun pathOf(resource: ProjectResource) = ResourceKind.pathFromComposeResources(resource.relativePath)?.takeIf { it.startsWith("$FILES/") }
 
         private fun pathsOf(resources: List<ProjectResource>) = resources.mapNotNull(::pathOf).distinct().sorted()
 
-        private const val COMPOSE_RESOURCES = "composeResources"
         private const val FILES = "files"
     }
 }

@@ -147,6 +147,16 @@ public enum class ResourceKind(
         }
 
         /**
+         * The path of the file at [path] (from the project's root, with `/` between folders) from the `composeResources`
+         * folder it is in, the outermost one, as the game names it (`drawable/ball.png`), or null when it is in none.
+         */
+        public fun pathFromComposeResources(path: String): String? {
+            val marker = "/$COMPOSE_RESOURCES/"
+            val start = "/$path".indexOf(marker).takeIf { it >= 0 } ?: return null
+            return "/$path".substring(start + marker.length)
+        }
+
+        /**
          * The name of the folder of every `composeResources` path.
          */
         public const val COMPOSE_RESOURCES: String = "composeResources"

@@ -70,9 +70,8 @@ public data class SpriteFiles(
             null
         }
 
-        private fun pathOf(resource: ProjectResource) = resource.relativePath.substringAfter("$COMPOSE_RESOURCES/", "").takeIf { accessorOf(it) != null }
+        private fun pathOf(resource: ProjectResource) = ResourceKind.pathFromComposeResources(resource.relativePath)?.takeIf { accessorOf(it) != null }
 
-        private const val COMPOSE_RESOURCES = "composeResources"
         private const val DRAWABLE = "drawable"
         private val EXTENSIONS = setOf("png", "jpg", "jpeg", "webp")
         private val accessorPattern = Regex("[A-Za-z_][A-Za-z0-9_]*")

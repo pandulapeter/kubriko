@@ -154,11 +154,8 @@ internal fun CommandContext.moveBack(moved: List<Pair<File, File>>) {
 
 private fun pathFromComposeResources(resource: ProjectResource) = pathFromComposeResources(resource.relativePath)
 
-private fun pathFromComposeResources(path: String): String? {
-    val marker = "/${ResourceKind.COMPOSE_RESOURCES}/"
-    val start = "/$path".lastIndexOf(marker).takeIf { it >= 0 } ?: return null
-    return "/$path".substring(start + marker.length).takeIf { ResourceKind.of(it) != null || drawableAccessorOf(it) != null }
-}
+private fun pathFromComposeResources(path: String): String? =
+    ResourceKind.pathFromComposeResources(path)?.takeIf { ResourceKind.of(it) != null || drawableAccessorOf(it) != null }
 
 private const val DRAWABLE = "drawable"
 private const val SOURCES = "src"
