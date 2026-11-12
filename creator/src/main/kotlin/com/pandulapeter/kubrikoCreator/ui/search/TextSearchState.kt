@@ -45,7 +45,7 @@ internal sealed interface TextSearchState {
 }
 
 /**
- * What [search] finds for [query] (trimmed), once typing pauses for a moment, searched again whenever [revision] changes
+ * What [search] finds for [query] (trimmed), once typing pauses for a moment, searched again a moment after [revision] changes
  * (the project changed), still showing what the same query found meanwhile but never another query's.
  */
 @Composable
@@ -56,7 +56,7 @@ internal fun rememberTextSearch(query: String, revision: Any?, search: suspend (
             value = TextSearchState.Idle
             return@produceState
         }
-        if (value.query != trimmed) delay(TYPING_PAUSE_IN_MILLISECONDS)
+        delay(if (value.query != trimmed) TYPING_PAUSE_IN_MILLISECONDS else REFRESH_PAUSE_IN_MILLISECONDS)
         value = try {
             TextSearchState.Found(trimmed, search(trimmed))
         } catch (exception: CancellationException) {

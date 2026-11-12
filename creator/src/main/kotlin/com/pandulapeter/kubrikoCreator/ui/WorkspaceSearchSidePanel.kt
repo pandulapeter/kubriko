@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.PanelSplitter
 import com.pandulapeter.kubrikoCreator.ui.components.PanelWidthState
 import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
 import com.pandulapeter.kubrikoCreator.ui.search.SearchPanel
+import com.pandulapeter.kubrikoCreator.ui.search.TextSearchState
 import com.pandulapeter.kubrikoCreator.ui.search.rememberTextSearch
 import com.pandulapeter.kubrikoCreator.ui.search.rememberUsages
 import com.pandulapeter.kubrikoCreator.workspace.SelectionController
@@ -54,7 +55,7 @@ internal fun WorkspaceSearchSidePanel(
         onUsageSelected = { usage -> scope.launch { selection.goTo(usage, commands.context.scenes, rootDirectory, uiState::showProjectSettings) } },
         query = uiState.searchQuery,
         onQueryChange = uiState::changeSearchQuery,
-        texts = rememberTextSearch(uiState.searchQuery, revision) { query -> commands.searchTexts(query, TEXT_HIT_LIMIT) },
+        texts = if (subject == null) rememberTextSearch(uiState.searchQuery, revision) { query -> commands.searchTexts(query, TEXT_HIT_LIMIT) } else TextSearchState.Idle,
         onHitSelected = { hit -> selection.open(hit.place) },
         onBackToSearch = uiState::stopFindingUsages,
         fieldFocus = uiState.searchFieldFocus,

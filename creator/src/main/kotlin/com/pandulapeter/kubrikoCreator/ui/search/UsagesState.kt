@@ -15,6 +15,7 @@ import androidx.compose.runtime.produceState
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.context.Usage
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 
 /**
  * How far reading the usages of [subject] got.
@@ -45,13 +46,15 @@ internal sealed interface UsagesState {
 }
 
 /**
- * The usages of [subject] as [findUsages] reads them (null for a subject no longer in the project), read again whenever [revision] changes (the project changed),
- * still showing the last ones of the same subject meanwhile, so the list doesn't blink.
+ * The usages of [subject] as [findUsages] reads them (null for a subject no longer in the project), read again a moment
+ * after [revision] changes (the project changed), so a burst of changes (typing into a field) reads once, still showing
+ * the last ones of the same subject meanwhile, so the list doesn't blink.
  */
 @Composable
 internal fun rememberUsages(subject: RelationSubject?, revision: Any?, findUsages: suspend (RelationSubject) -> List<Usage>?): UsagesState {
     val state by produceState<UsagesState>(UsagesState.Reading(subject), subject, revision) {
         if (subject == null) return@produceState
+        if (value.subject == subject && value !is UsagesState.Reading) delay(REFRESH_PAUSE_IN_MILLISECONDS)
         value = try {
             findUsages(subject)?.let { UsagesState.Read(subject, it) } ?: UsagesState.Missing(subject)
         } catch (exception: CancellationException) {
@@ -62,3 +65,8 @@ internal fun rememberUsages(subject: RelationSubject?, revision: Any?, findUsage
     }
     return state.takeIf { it.subject == subject } ?: UsagesState.Reading(subject)
 }
+
+/**
+ * How long a search waits after the project changed before reading again, so the changes of one burst read once.
+ */
+internal const val REFRESH_PAUSE_IN_MILLISECONDS = 300L

@@ -103,7 +103,7 @@ class SearchPanelTest {
         }
         onNodeWithText("Nothing refers to Brick.").assertExists()
         revision++
-        onNodeWithText("Ball, Event 3").assertExists()
+        awaitText("Ball, Event 3")
         assertEquals(2, reads)
     }
 
@@ -194,5 +194,22 @@ class SearchPanelTest {
         awaitText("hit.wav")
         onNodeWithText("hit.wav").performClick()
         assertEquals(emptyList(), selected)
+    }
+
+    @Test
+    fun aBurstOfChangesReadsTheUsagesOnce() = uiTest(width = 360, height = 300) {
+        var revision by mutableStateOf(0)
+        var reads = 0
+        mainClock.autoAdvance = false
+        showing { SearchPanel(usagesSubject = brick, usages = rememberUsages(brick, revision) { reads++; emptyList() }, onUsageSelected = {}) }
+        mainClock.advanceTimeBy(100)
+        assertEquals(1, reads)
+        repeat(3) {
+            revision++
+            mainClock.advanceTimeBy(50)
+        }
+        assertEquals(1, reads, "still typing")
+        mainClock.advanceTimeBy(REFRESH_PAUSE_IN_MILLISECONDS + 100)
+        assertEquals(2, reads)
     }
 }
