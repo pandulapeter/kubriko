@@ -462,6 +462,8 @@
     <string name="key_none_found">No key matches.</string>
     <string name="choice_none_found">Nothing matches.</string>
     <string name="sidebar_filter">Filter types, Scenes, and files</string>
+    <string name="quick_open_placeholder">Open a type, Scene, page, file, or Property by its name</string>
+    <string name="quick_open_property">Property of %1$s</string>
     <string name="action_new_actor_type">New Actor type</string>
     <string name="action_new_folder">New folder</string>
     <string name="action_rename_actor_type">Rename Actor type</string>

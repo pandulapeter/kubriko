@@ -79,6 +79,25 @@ internal class WorkspaceUiState {
     val sidebarFilterFocus = FocusRequest()
 
     /**
+     * Tells Shift pressed twice, which opens quick open.
+     */
+    val doubleShift = DoubleShift()
+
+    /**
+     * Whether quick open (Cmd/Ctrl+P, or Shift twice) is shown.
+     */
+    var isQuickOpenShown by mutableStateOf(false)
+        private set
+
+    fun showQuickOpen() {
+        isQuickOpenShown = true
+    }
+
+    fun hideQuickOpen() {
+        isQuickOpenShown = false
+    }
+
+    /**
      * Opens [panel], or closes it if it is open.
      *
      * @return Whether version control just opened, which refreshes its state.

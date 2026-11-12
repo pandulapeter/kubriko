@@ -627,8 +627,12 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
 - A field above the sidebar's groups (Cmd/Ctrl+F) filters everything in it by name, showing the folders that hold matches opened; the folders
   the user collapsed are left as they were and come back once the filter is cleared. Every search of names matches as
   `NameMatching` does (IDE-like: `brk` finds `Brick`), ranks by `NameMatch`'s order (`matchingOptions`), and highlights
-  what it matched (`highlightedMatch`), so the filter, the choice lists, and the mention suggestions never disagree about
-  what matches.
+  what it matched (`highlightedMatch`), so the filter, quick open, the choice lists, and the mention suggestions never
+  disagree about what matches.
+- Quick open (Cmd/Ctrl+P, or Shift twice) offers what a page can mention, plus every type's Properties, and opens the
+  chosen one where the sidebar would. The search shortcuts are read before the focused element sees the key
+  (`SearchShortcuts`, on the workspace's `onPreviewKeyEvent`), so a text field never swallows them, and `DoubleShift`
+  counts a Shift only when pressed alone.
 - Opening a closed folder, Kotlin container, group, or module opens it with every folder in it closed, so a deep tree opens
   a level at a time, and a row holding folders offers Expand all and Collapse all while it is pointed at. What is open is
   kept by key (`SidebarKeys`) over an outline of everything as if it were all open (`SidebarOutline`), so a folder keeps its

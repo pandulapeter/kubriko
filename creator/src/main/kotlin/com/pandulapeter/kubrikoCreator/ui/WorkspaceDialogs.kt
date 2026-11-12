@@ -25,6 +25,8 @@ import com.pandulapeter.kubrikoCreator.commands.git.Commit
 import com.pandulapeter.kubrikoCreator.commands.project.UpgradeProject
 import com.pandulapeter.kubrikoCreator.context.Usage
 import com.pandulapeter.kubrikoCreator.git.GitState
+import com.pandulapeter.kubrikoCreator.project.ProjectResource
+import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.template.GameTargets
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
@@ -42,11 +44,15 @@ import org.jetbrains.compose.resources.stringResource
 import java.io.File
 
 /**
- * The workspace's dialogs: Project settings, the template upgrade, and a new iOS simulator, while [uiState] shows them.
+ * The workspace's dialogs: Project settings, the template upgrade, a new iOS simulator, and quick open, while [uiState]
+ * shows them.
  *
  * @param projectUpgrade The template upgrade the project needs, if any.
  * @param rootDirectory The project's folder, whose settings Project settings shows.
- * @param blockTypes The project's Block-built types, which Project settings says its libraries are used by.
+ * @param blockTypes The project's Block-built types, which Project settings says its libraries are used by, and quick
+ *   open offers with their Properties.
+ * @param resources The project's files, which quick open offers.
+ * @param pageNames The screenplay's pages, which quick open offers.
  * @param scenes The project's Scenes, which Project settings offers as the first one.
  * @param targets The platforms the game is built for, which Project settings turns on and off, or null if they can't be.
  * @param history The command history, after every change of which Project settings reads the settings again.
@@ -67,6 +73,8 @@ internal fun WorkspaceDialogs(
     projectUpgrade: TemplateUpgrade.Needed?,
     rootDirectory: File,
     blockTypes: StateFlow<List<BlockTypeDefinition>>?,
+    resources: StateFlow<Map<ResourceGroup, List<ProjectResource>>>,
+    pageNames: StateFlow<List<String>>,
     scenes: SceneStore,
     targets: GameTargets?,
     history: StateFlow<CommandHistory>,
@@ -127,6 +135,16 @@ internal fun WorkspaceDialogs(
             onDismiss = uiState::finishMakingIosSimulator,
         )
     }
+    if (uiState.isQuickOpenShown) {
+        QuickOpenDialog(
+            items = rememberQuickOpenItems(blockTypes, resources, pageNames),
+            onOpen = { target ->
+                uiState.hideQuickOpen()
+                selection.open(target, rootDirectory)
+            },
+            onDismiss = uiState::hideQuickOpen,
+        )
+    }
     val upgradeCommitMessage = stringResource(Res.string.project_upgrade_commit_message)
     if (projectUpgrade != null && uiState.isReviewingUpgrade) {
         ProjectUpgradeDialog(
@@ -174,4 +192,19 @@ private fun PendingDeleteConfirmation(
         onUsageSelected = onUsageSelected,
         onDismiss = onDismiss,
     )
+}
+
+/**
+ * What quick open offers ([quickOpenItemsOf]), listed again only when the project's types, files, or pages change.
+ */
+@Composable
+private fun rememberQuickOpenItems(
+    blockTypes: StateFlow<List<BlockTypeDefinition>>?,
+    resources: StateFlow<Map<ResourceGroup, List<ProjectResource>>>,
+    pageNames: StateFlow<List<String>>,
+): List<QuickOpenItem> {
+    val types = blockTypes?.collectAsState()?.value.orEmpty()
+    val files by resources.collectAsState()
+    val pages by pageNames.collectAsState()
+    return remember(types, files, pages) { quickOpenItemsOf(types, files, pages) }
 }

@@ -81,8 +81,9 @@ code that is truly used once. Kotlin stays the last resort, and when it is neede
   Block, offers the values the user picks as parameters, and offers to replace the same run wherever else it appears, in one undo
   step. "Put the Blocks back" reverses it at one call or every one. Deleting a custom Block that is still called offers that instead.
 - **Renames and references** follow as for Properties: a renamed custom Block or parameter changes every call and its Kotlin body
-  (`KotlinIdentifiers`), find usages (`01-search.md`) lists the calls, and a call to a deleted one shows on its card
-  and in the health checks, as a missing choice does.
+  (`KotlinIdentifiers`), find usages (`01-search.md`) lists the calls, quick open (`QuickOpenItems`) offers each by
+  the type it is on, as it offers Properties, and a call to a deleted one shows on its card and in the health checks, as a
+  missing choice does.
 - **The AI:** commands (`:creator:commands`, each with its tool, validation, and inverse) to create, edit, and delete custom Blocks,
   their parameters, and their bodies; `get_block_catalog` lists the project's own beside the built-in ones; the digest names them
   in one line. The system prompt keeps the ladder above: before adding the same Blocks to a third place it makes a custom Block,

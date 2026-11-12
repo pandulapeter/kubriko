@@ -25,6 +25,9 @@ import androidx.compose.ui.input.key.type
 internal enum class SearchShortcut {
     /** Cmd/Ctrl+F: the sidebar's filter field. */
     FILTER_SIDEBAR,
+
+    /** Cmd/Ctrl+P, or Shift twice ([DoubleShift]): quick open. */
+    QUICK_OPEN,
 }
 
 /**
@@ -34,18 +37,28 @@ internal enum class SearchShortcut {
 internal fun searchShortcutOf(key: Key, isShortcutPressed: Boolean, isShiftPressed: Boolean, isAltPressed: Boolean) = when {
     !isShortcutPressed || isAltPressed -> null
     key == Key.F && !isShiftPressed -> SearchShortcut.FILTER_SIDEBAR
+    key == Key.P && !isShiftPressed -> SearchShortcut.QUICK_OPEN
     else -> null
 }
 
 /**
- * Opens what this key event's search shortcut asks for in [uiState].
+ * Opens what this key event's search shortcut asks for in [uiState], Shift pressed twice ([WorkspaceUiState.doubleShift])
+ * among them.
  *
  * @return Whether it was one.
  */
 internal fun KeyEvent.openSearch(uiState: WorkspaceUiState): Boolean {
-    if (type != KeyEventType.KeyDown) return false
-    return when (searchShortcutOf(key, isShortcutPressed = isMetaPressed || isCtrlPressed, isShiftPressed = isShiftPressed, isAltPressed = isAltPressed)) {
-        SearchShortcut.FILTER_SIDEBAR -> true.also { uiState.sidebarFilterFocus.request() }
-        null -> false
+    val isDown = type == KeyEventType.KeyDown
+    if (type != KeyEventType.KeyUp && !isDown) return false
+    val shortcut = when {
+        uiState.doubleShift.onKey(key, isDown) -> SearchShortcut.QUICK_OPEN
+        isDown -> searchShortcutOf(key, isShortcutPressed = isMetaPressed || isCtrlPressed, isShiftPressed = isShiftPressed, isAltPressed = isAltPressed)
+        else -> null
     }
+    when (shortcut) {
+        SearchShortcut.FILTER_SIDEBAR -> uiState.sidebarFilterFocus.request()
+        SearchShortcut.QUICK_OPEN -> uiState.showQuickOpen()
+        null -> Unit
+    }
+    return shortcut != null
 }

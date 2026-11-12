@@ -25,6 +25,12 @@ class SearchShortcutsTest {
     )
 
     @Test
+    fun cmdOrCtrlPOpensQuickOpen() = assertEquals(
+        SearchShortcut.QUICK_OPEN,
+        searchShortcutOf(Key.P, isShortcutPressed = true, isShiftPressed = false, isAltPressed = false),
+    )
+
+    @Test
     fun aKeyWithoutCmdOrCtrlOrWithAltIsNoShortcut() {
         assertNull(searchShortcutOf(Key.F, isShortcutPressed = false, isShiftPressed = false, isAltPressed = false))
         assertNull(searchShortcutOf(Key.F, isShortcutPressed = true, isShiftPressed = false, isAltPressed = true))

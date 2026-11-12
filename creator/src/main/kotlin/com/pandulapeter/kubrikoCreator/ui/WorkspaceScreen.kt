@@ -28,6 +28,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -159,7 +160,8 @@ private fun WorkspaceContent(
                 .fillMaxSize()
                 .onSizeChanged { columnHeight = with(density) { it.height.toDp() } }
                 .historyShortcutTarget()
-                .onKeyEvent { event -> event.openSearch(uiState) || event.toHistoryStep()?.let { isUndo -> uiState.spriteEditor.step(isUndo, controller.commands) } != null },
+                .onPreviewKeyEvent { event -> event.openSearch(uiState) }
+                .onKeyEvent { event -> event.toHistoryStep()?.let { isUndo -> uiState.spriteEditor.step(isUndo, controller.commands) } != null },
         ) {
             WorkspaceToolbarOf(
                 controller = controller,
@@ -304,6 +306,8 @@ private fun WorkspaceDialogsOf(
     projectUpgrade = projectUpgrade,
     rootDirectory = controller.project.rootDirectory,
     blockTypes = controller.blockTypes?.types,
+    resources = controller.resources,
+    pageNames = controller.commands.context.screenplay.current,
     scenes = controller.scenes,
     targets = controller.targets,
     history = controller.commands.history,
