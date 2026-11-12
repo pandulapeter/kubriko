@@ -29,10 +29,15 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 Go on with `01-blocks.md`, at The edges as values. Random values are done (2026-11-12): every number a Block takes is a
 `NumberValue` (a number, a random number between two, or a number Property's value), format version 5, edited through
 `NumberValueField`'s kind menu, and drawn from `KubrikoWiring.random`. A deleted Property a value reads becomes its
-starting value (`VALUE_TO_NUMBER`). Its review is noted below.
+starting value (`VALUE_TO_NUMBER`, through the `READS_AS_NUMBER` relation). It was reviewed with `/code-review`
+(597d3f410..eaa68ff6b), and every finding fixed in a commit of its own: the one whole number a range holds, ranges kept
+inside `Int`, Kotlin's `Random` still imported for Kotlin that names it, Timer times that can't throw on NaN, whole
+fields kept whole when switching kinds, non-finite numbers refused, and Block numbers read without copying.
 
 Left as they are, on purpose: a wrong value in a number field is refused without its path (`"fast" isn't a number.`),
-since a custom serializer can't see where it is; the value says which field it was.
+since a custom serializer can't see where it is; the value says which field it was. A repeating Timer keeps the random
+or Property time it started with for every round (starting it again in its timerFinished Event draws a new one), and a
+random number that isn't whole stops just short of its end; both are said in the tools' descriptions.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
