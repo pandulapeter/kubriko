@@ -38,20 +38,22 @@ import kotlin.test.assertTrue
 class ConversationSearchTest {
     private val faster = SavedConversation("/game", "claude-acp", "a", "Make the ball faster", 2)
     private val bricks = SavedConversation("/game", "other-acp", "b", "Add gold bricks", 1)
-    private val own = ConversationMatch(faster, "ball", messageIndex = 0, laterOccurrences = 1, isFromUser = true, isHeldByAnotherAgent = false, snippet = TextSnippet("Make the ball faster", listOf(9..12)))
-    private val others = ConversationMatch(bricks, "ball", messageIndex = 1, laterOccurrences = 0, isFromUser = false, isHeldByAnotherAgent = true, snippet = TextSnippet("The ball breaks them.", listOf(4..7)))
+    private val own = ConversationMatch(faster, "ball", 0, "Make the ball faster", 0, isFromUser = true, isHeldByAnotherAgent = false, snippet = TextSnippet("Make the ball faster", listOf(9..12)))
+    private val others = ConversationMatch(bricks, "ball", 1, "The ball breaks them.", 0, isFromUser = false, isHeldByAnotherAgent = true, snippet = TextSnippet("The ball breaks them.", listOf(4..7)))
 
     @Test
-    fun theMessageFoundIsTheOneWithAsManyLaterOnesHoldingTheQuery() {
+    fun theMessageFoundIsTheOneKeptWithItsTextWithAsManyKeptAlikeAfterIt() {
         val items = listOf(
-            TranscriptItem.UserMessage("Make the BALL faster"),
-            TranscriptItem.Thought("ball"),
-            TranscriptItem.AgentMessage("The ball moves at 400."),
+            TranscriptItem.UserMessage("Make the ball faster"),
             TranscriptItem.AgentMessage("Done."),
+            TranscriptItem.UserMessage("Make the ball faster"),
+            TranscriptItem.AgentMessage("Make the ball faster"),
         )
-        assertEquals(0, jumpIndexOf(items, "ball", laterOccurrences = 1))
-        assertEquals(2, jumpIndexOf(items, "ball", laterOccurrences = 0))
-        assertNull(jumpIndexOf(items, "ball", laterOccurrences = 2), "the history hasn't arrived yet")
+        assertEquals(2, jumpIndexOf(items, own))
+        assertEquals(0, jumpIndexOf(items, own.copy(laterDuplicates = 1)))
+        assertNull(jumpIndexOf(items, own.copy(messageText = "Something else")), "not in the conversation")
+        val long = "x".repeat(KeptMessage.MESSAGE_LENGTH + 5)
+        assertEquals(0, jumpIndexOf(listOf(TranscriptItem.AgentMessage(long)), own.copy(isFromUser = false, messageText = long.take(KeptMessage.MESSAGE_LENGTH))), "as far as it was kept")
     }
 
     @Test

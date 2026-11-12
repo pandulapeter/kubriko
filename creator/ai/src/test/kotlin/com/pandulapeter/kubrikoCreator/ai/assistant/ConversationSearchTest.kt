@@ -24,9 +24,9 @@ class ConversationSearchTest {
     @Test
     fun everyMessageHoldingTheQueryIsFoundNewestConversationFirstWithTheWordsAround() = assertEquals(
         listOf(
-            ConversationMatch(newer, "ball", 0, 1, isFromUser = true, isHeldByAnotherAgent = false, snippet = TextSnippet("Make the BALL faster", listOf(9..12))),
-            ConversationMatch(newer, "ball", 1, 0, isFromUser = false, isHeldByAnotherAgent = false, snippet = TextSnippet("The ball now moves at 400.", listOf(4..7))),
-            ConversationMatch(older, "ball", 1, 0, isFromUser = false, isHeldByAnotherAgent = true, snippet = TextSnippet("The ball breaks them in two hits.", listOf(4..7))),
+            ConversationMatch(newer, "ball", 0, "Make the BALL faster", 0, isFromUser = true, isHeldByAnotherAgent = false, snippet = TextSnippet("Make the BALL faster", listOf(9..12))),
+            ConversationMatch(newer, "ball", 1, "Done.\nThe ball now moves at 400.", 0, isFromUser = false, isHeldByAnotherAgent = false, snippet = TextSnippet("The ball now moves at 400.", listOf(4..7))),
+            ConversationMatch(older, "ball", 1, "The ball breaks them in two hits.", 0, isFromUser = false, isHeldByAnotherAgent = true, snippet = TextSnippet("The ball breaks them in two hits.", listOf(4..7))),
         ),
         ConversationSearch.search(" ball ", conversations, agentId = "claude-acp", limit = 10),
     )
@@ -35,5 +35,12 @@ class ConversationSearchTest {
     fun theMatchesStopAtTheLimitAndABlankQueryFindsNothing() {
         assertEquals(2, ConversationSearch.search("ball", conversations, agentId = "claude-acp", limit = 2).size)
         assertEquals(emptyList(), ConversationSearch.search("  ", conversations, agentId = "claude-acp", limit = 10))
+    }
+
+    @Test
+    fun aMessageKeptTwiceAlikeIsToldApartByHowManyAlikeComeAfterIt() {
+        val again = SavedConversation("/game", "claude-acp", "c", "Again", 3)
+        val matches = ConversationSearch.search("ball", listOf(again to listOf(KeptMessage(true, "ball"), KeptMessage(false, "ball"), KeptMessage(true, "ball"))), "claude-acp", 10)
+        assertEquals(listOf(1, 0, 0), matches.map { it.laterDuplicates })
     }
 }

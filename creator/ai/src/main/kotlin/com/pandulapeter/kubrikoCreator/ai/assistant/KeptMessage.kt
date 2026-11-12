@@ -26,6 +26,16 @@ public data class KeptMessage(
     public companion object {
 
         /**
+         * Whether [item] is a message that was kept as [message]: what the user asked or the agent answered, with the
+         * same text as far as it was kept.
+         */
+        public fun isKeptAs(item: TranscriptItem, message: KeptMessage): Boolean = when (item) {
+            is TranscriptItem.UserMessage -> message.isFromUser && item.text.take(MESSAGE_LENGTH) == message.text
+            is TranscriptItem.AgentMessage -> !message.isFromUser && item.text.take(MESSAGE_LENGTH) == message.text
+            else -> false
+        }
+
+        /**
          * The messages of [items] kept for searching: what the user asked and the agent answered, without tool calls,
          * thoughts, or anything else, each at most [MESSAGE_LENGTH] characters, and only the newest that fit in
          * [TOTAL_LENGTH] characters together, so a long conversation keeps a bounded file.

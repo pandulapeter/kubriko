@@ -74,9 +74,10 @@ Hosts Agent Client Protocol agents through the official Kotlin SDK. Tests run `F
   conversation's user and agent messages are kept as plain text beside it (`KeptMessage`, capped, newest kept; one file of
   its own each, readable by the user only, `ConversationTextStore`), written at every turn's end and forgotten with the
   conversation, however it goes. The search reads them all in memory off the main thread, every agent's, since a project's
-  conversations belong to it. A match is told from the others by how many later messages hold the query too
-  (`ConversationMatch.laterOccurrences`), since kept messages leave out a long conversation's oldest; another agent's is
-  read from the kept text, as only its own agent can continue it.
+  conversations belong to it. A match is found again in the conversation by its kept text (`KeptMessage.isKeptAs`, so the
+  search and the jump never count differently) and how many later messages were kept alike, counted from the end, since
+  kept messages leave out a long conversation's oldest; another agent's is read from the kept text, as only its own agent
+  can continue it.
 - **Updates:** an agent announces its slash commands before anything collects a conversation's `updates`, so
   `AgentConversation.availableCommands` keeps the first announcement.
 - **Downloads** (`BinaryAgentInstaller`, `NodeRuntime`) are checked against the published SHA-256 where there is one and refuse

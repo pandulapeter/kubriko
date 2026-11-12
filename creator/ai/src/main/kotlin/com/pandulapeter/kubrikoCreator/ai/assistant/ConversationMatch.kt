@@ -16,8 +16,10 @@ import com.pandulapeter.kubrikoCreator.foundation.TextSnippet
  *
  * @param query What was searched for, which the message is scrolled to once the conversation shows.
  * @param messageIndex Where the message is among the conversation's kept messages.
- * @param laterOccurrences How many later messages of the conversation hold [query] too, which tells this one apart from
- *   them once the conversation shows it: counted from the end, since kept messages leave out the oldest of a long
+ * @param messageText The message as it was kept, which finds it in the conversation once that shows
+ *   ([KeptMessage.isKeptAs]).
+ * @param laterDuplicates How many later messages of the conversation were kept with the same text and from the same side,
+ *   which tells this one apart from them: counted from the end, since kept messages leave out the oldest of a long
  *   conversation, which the agent's history still has.
  * @param isHeldByAnotherAgent Whether an agent other than the one chosen holds the conversation, which only that agent
  *   can continue, so it is read from its kept messages instead.
@@ -27,7 +29,8 @@ public data class ConversationMatch(
     val conversation: SavedConversation,
     val query: String,
     val messageIndex: Int,
-    val laterOccurrences: Int,
+    val messageText: String,
+    val laterDuplicates: Int,
     val isFromUser: Boolean,
     val isHeldByAnotherAgent: Boolean,
     val snippet: TextSnippet,

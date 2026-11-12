@@ -9,20 +9,16 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.assistant
 
+import com.pandulapeter.kubrikoCreator.ai.assistant.ConversationMatch
+import com.pandulapeter.kubrikoCreator.ai.assistant.KeptMessage
 import com.pandulapeter.kubrikoCreator.ai.assistant.TranscriptItem
 
 /**
- * Where among [items] the message a search found is: the message holding [query] (ignoring case) that has
- * [laterOccurrences] more such messages after it, or null while the transcript doesn't hold that many yet (its history
- * still arriving).
+ * Where among [items] the message a search found ([match]) is: the message kept with its text, with as many later ones
+ * kept alike after it as it had, or null when the conversation doesn't hold it.
  */
-internal fun jumpIndexOf(items: List<TranscriptItem>, query: String, laterOccurrences: Int): Int? {
-    val holding = items.indices.filter { index ->
-        when (val item = items[index]) {
-            is TranscriptItem.UserMessage -> item.text.contains(query, ignoreCase = true)
-            is TranscriptItem.AgentMessage -> item.text.contains(query, ignoreCase = true)
-            else -> false
-        }
-    }
-    return holding.getOrNull(holding.size - 1 - laterOccurrences)
+internal fun jumpIndexOf(items: List<TranscriptItem>, match: ConversationMatch): Int? {
+    val message = KeptMessage(match.isFromUser, match.messageText)
+    val alike = items.indices.filter { KeptMessage.isKeptAs(items[it], message) }
+    return alike.getOrNull(alike.size - 1 - match.laterDuplicates)
 }

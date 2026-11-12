@@ -27,9 +27,10 @@ internal object ConversationSearch {
         if (trimmed.isEmpty()) return emptyList()
         val matches = ArrayList<ConversationMatch>()
         for ((conversation, messages) in conversations) {
-            val found = messages.mapIndexedNotNull { index, message -> message.text.lineSequence().firstNotNullOfOrNull { TextSnippet.of(it, trimmed) }?.let { index to it } }
-            found.forEachIndexed { occurrence, (index, snippet) ->
-                matches += ConversationMatch(conversation, trimmed, index, found.size - 1 - occurrence, messages[index].isFromUser, conversation.agentId != agentId, snippet)
+            messages.forEachIndexed { index, message ->
+                val snippet = message.text.lineSequence().firstNotNullOfOrNull { TextSnippet.of(it, trimmed) } ?: return@forEachIndexed
+                val laterDuplicates = (index + 1 until messages.size).count { messages[it] == message }
+                matches += ConversationMatch(conversation, trimmed, index, message.text, laterDuplicates, message.isFromUser, conversation.agentId != agentId, snippet)
                 if (matches.size == limit) return matches
             }
         }

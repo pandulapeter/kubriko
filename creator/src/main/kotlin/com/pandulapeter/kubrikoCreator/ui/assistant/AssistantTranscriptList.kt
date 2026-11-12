@@ -127,7 +127,7 @@ internal fun AssistantTranscriptList(
             }
     }
     LaunchedEffect(jumpTo, shownItems.size) {
-        val index = jumpTo?.let { jumpIndexOf(shownItems, it.query, it.laterOccurrences) } ?: return@LaunchedEffect
+        val index = jumpTo?.let { jumpIndexOf(shownItems, it) } ?: return@LaunchedEffect
         isFollowing = false
         listState.scrollToItem(index)
         onJumped()
