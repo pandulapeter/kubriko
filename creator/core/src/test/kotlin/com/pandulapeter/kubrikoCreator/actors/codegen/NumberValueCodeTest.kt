@@ -95,7 +95,7 @@ class NumberValueCodeTest {
         assertEquals(listOf("repeat(speed.toInt().coerceAtLeast(0)) {"), lines(BlockDefinition.Repeat(NumberValue.Property("speed"))))
         assertEquals(listOf("setFrame(KubrikoWiring.random.nextInt(1, 4))"), lines(BlockDefinition.SetFrame(random)))
         assertEquals(
-            listOf("timerOneRemainingInMilliseconds = (speed * 1000f).roundToLong().coerceAtLeast(1)", "timerOnePeriodInMilliseconds = timerOneRemainingInMilliseconds"),
+            listOf("timerOneRemainingInMilliseconds = (speed * 1000f + 0.5f).toLong().coerceAtLeast(1)", "timerOnePeriodInMilliseconds = timerOneRemainingInMilliseconds"),
             lines(BlockDefinition.StartTimer("timerOne", NumberValue.Property("speed"), isRepeating = true)),
         )
         assertEquals(listOf("timerOneRemainingInMilliseconds = 1500", "timerOnePeriodInMilliseconds = 0"), lines(BlockDefinition.StartTimer("timerOne", NumberValue.Fixed(1.5f))))

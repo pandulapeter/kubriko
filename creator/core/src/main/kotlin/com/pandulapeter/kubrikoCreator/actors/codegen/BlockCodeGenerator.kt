@@ -57,7 +57,6 @@ public object BlockCodeGenerator {
     private const val NORMALIZED_IMPORT = "com.pandulapeter.kubriko.helpers.extensions.normalized"
     private const val LOGGER_IMPORT = "com.pandulapeter.kubriko.logger.Logger"
     private const val KEY_IMPORT = "androidx.compose.ui.input.key.Key"
-    private const val ROUND_TO_LONG_IMPORT = "kotlin.math.roundToLong"
     private const val RANDOM_IMPORT = "kotlin.random.Random"
     private const val RANDOM = "Random"
 
@@ -174,7 +173,8 @@ public object BlockCodeGenerator {
 
     /**
      * Starting a Timer for a fixed time is worked out here; any other time is worked out when the Block runs, in the
-     * remaining field, which the period then copies.
+     * remaining field, which the period then copies. That rounds through `toLong`, which turns a Property that became NaN
+     * into the shortest time rather than throwing as `roundToLong` would.
      */
     private fun startTimerCode(block: BlockDefinition.StartTimer, scope: BlockScope): BlockCode {
         if (!TimerNaming.isValid(block.timer)) return BlockCode(listOf("// Give this Block's Timer a name made of letters and digits."))
@@ -186,8 +186,7 @@ public object BlockCodeGenerator {
             BlockCode(listOf("$remaining = $milliseconds", "$period = ${if (block.isRepeating) milliseconds else 0}"))
         } else {
             BlockCode(
-                lines = listOf("$remaining = (${NumberValueCode.float(seconds, scope)} * 1000f).roundToLong().coerceAtLeast(1)", "$period = ${if (block.isRepeating) remaining else "0"}"),
-                imports = setOf(ROUND_TO_LONG_IMPORT),
+                lines = listOf("$remaining = (${NumberValueCode.float(seconds, scope)} * 1000f + 0.5f).toLong().coerceAtLeast(1)", "$period = ${if (block.isRepeating) remaining else "0"}"),
             )
         }
     }

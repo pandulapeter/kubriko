@@ -116,7 +116,7 @@ class BlockCodeTest {
             BlockDefinition.SetVelocity(x = NumberValue.Property("score", manager = "Game"), y = NumberValue.Random()) to Expected(setOf(MOVEMENT), setOf(sceneOffset), setOf("Game")),
             BlockDefinition.SetVelocity(x = NumberValue.Property("missing", manager = "Game")) to Expected(setOf(MOVEMENT), setOf(sceneOffset)),
             BlockDefinition.SetVelocity(x = NumberValue.Property("speed")) to Expected(setOf(MOVEMENT), setOf(sceneOffset)),
-            BlockDefinition.StartTimer(seconds = NumberValue.Random()) to Expected(imports = setOf("kotlin.math.roundToLong")),
+            BlockDefinition.StartTimer(seconds = NumberValue.Random()) to Expected(),
             BlockDefinition.If(ConditionDefinition.Paused()) to Expected(setOf(STATE_MANAGER)),
             BlockDefinition.Log("{speed}") to Expected(setOf(NUMBER_TEXT), setOf(logger)),
             BlockDefinition.Log("{Game.score}") to Expected(setOf(NUMBER_TEXT), setOf(logger), setOf("Game")),
