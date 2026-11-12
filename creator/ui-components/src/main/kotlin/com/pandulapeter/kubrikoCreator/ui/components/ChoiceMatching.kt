@@ -9,11 +9,12 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.components
 
+import com.pandulapeter.kubrikoCreator.foundation.NameMatch
 import com.pandulapeter.kubrikoCreator.foundation.NameMatching
 
 /**
  * The [options] whose [titleOf] (or one of [alsoMatching]'s names) matches [query] ([NameMatching]), the closest matches
- * first, otherwise in their order.
+ * first ([NameMatch]'s order), otherwise in their order.
  */
 public fun <T> matchingOptions(
     query: String,
@@ -25,10 +26,10 @@ public fun <T> matchingOptions(
     return options
         .mapNotNull { option ->
             listOfNotNull(titleOf(option), alsoMatching(option))
-                .mapNotNull { NameMatching.match(it, query)?.quality }
+                .mapNotNull { NameMatching.match(it, query) }
                 .minOrNull()
-                ?.let { quality -> option to quality }
+                ?.let { match -> option to match }
         }
-        .sortedBy { (_, quality) -> quality }
+        .sortedBy { (_, match) -> match }
         .map { (option, _) -> option }
 }

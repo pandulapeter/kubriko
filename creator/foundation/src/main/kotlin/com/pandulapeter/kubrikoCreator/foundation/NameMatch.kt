@@ -10,14 +10,17 @@
 package com.pandulapeter.kubrikoCreator.foundation
 
 /**
- * How a name matched a query ([NameMatching]).
+ * How a name matched a query ([NameMatching]), ordered the closest first: by [quality], then by how few pieces the
+ * name's matched letters are in, then by how early they start.
  *
  * @param ranges The characters of the name that matched, in order, to highlight.
  */
 public data class NameMatch(
     val quality: Quality,
     val ranges: List<IntRange>,
-) {
+) : Comparable<NameMatch> {
+    override fun compareTo(other: NameMatch): Int = comparator.compare(this, other)
+
     /**
      * How close a match is, the closest first, which is how matches are ranked.
      */
@@ -36,5 +39,9 @@ public data class NameMatch(
 
         /** Its letters spread over the name, the first starting a word (`brk` in `Brick`). */
         SCATTERED,
+    }
+
+    private companion object {
+        val comparator = compareBy<NameMatch>({ it.quality }, { it.ranges.size }, { it.ranges.firstOrNull()?.first ?: 0 })
     }
 }
