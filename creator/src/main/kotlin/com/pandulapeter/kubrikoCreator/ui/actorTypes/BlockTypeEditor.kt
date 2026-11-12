@@ -124,6 +124,7 @@ internal fun BlockTypeEditor(
                         sprites = sprites,
                         propertyKeys = propertyKeys,
                         inheritedProperties = inheritance.properties,
+                        inheritedPropertyOwners = inheritance.propertyOwners,
                         actions = actions,
                         flashedProperty = highlight?.property?.let { property -> highlight.key to property },
                     )
@@ -266,6 +267,7 @@ private fun PropertiesColumn(
     sprites: SpriteChoices,
     propertyKeys: List<Long>,
     inheritedProperties: List<PropertyDefinition>,
+    inheritedPropertyOwners: Map<String, String>,
     actions: BlockTypeEditorActions,
     flashedProperty: Pair<Any, String>?,
     modifier: Modifier = Modifier,
@@ -296,7 +298,7 @@ private fun PropertiesColumn(
         onRenamed = actions::renameProperty,
         onRemoved = actions::removeProperty,
         flashedProperty = flashedProperty,
-        onFindUsages = findUsages?.let { find -> { name -> find(RelationSubject.Property(definition.name, name)) } },
+        onFindUsages = findUsages?.let { find -> { name -> find(RelationSubject.Property(inheritedPropertyOwners[name] ?: definition.name, name)) } },
     )
     if (definition is ManagerTypeDefinition) {
         item {

@@ -20,11 +20,15 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.requestFocus
+import androidx.compose.ui.test.rightClick
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -76,6 +80,32 @@ class PropertyListTest {
         typedField.performTextReplacement("B3")
         waitForIdle()
         assertEquals(listOf("B3", "C"), properties.map { (it as PropertyDefinition.Text).initialValue })
+    }
+
+    @Test
+    fun findUsagesIsOfferedForOwnAndInheritedPropertiesAlike() = uiTest {
+        val found = mutableListOf<String>()
+        showing {
+            LazyColumn {
+                propertyListItems(
+                    properties = listOf(PropertyDefinition.Number("speed")),
+                    propertyKeys = listOf(1L),
+                    emptyHint = Res.string.actor_type_properties_empty,
+                    onAdded = {},
+                    onChanged = { _, _ -> },
+                    onRenamed = { _, _ -> null },
+                    onRemoved = {},
+                    inheritedProperties = listOf(PropertyDefinition.Number("hp")),
+                    onFindUsages = { found += it },
+                )
+            }
+        }
+        onNodeWithText("hp (Number, from the parent)").performMouseInput { rightClick() }
+        onNodeWithText("Find usages").performClick()
+        assertEquals(listOf("hp"), found)
+        onNodeWithContentDescription("Number").performMouseInput { rightClick() }
+        onNodeWithText("Find usages").performClick()
+        assertEquals(listOf("hp", "speed"), found)
     }
 
     @Test

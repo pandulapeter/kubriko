@@ -34,6 +34,7 @@ class InheritanceTest {
         assertEquals(
             Inheritance(
                 properties = listOf(PropertyDefinition.Text("cry")),
+                propertyOwners = mapOf("cry" to "Enemy"),
                 events = listOf(EventDefinition(EventType.ADDED_TO_SCENE)),
                 parentChoices = listOf("Enemy"),
                 children = listOf("Vampire"),
@@ -41,6 +42,10 @@ class InheritanceTest {
             Inheritance.of(bat, types),
         )
     }
+
+    @Test
+    fun eachInheritedPropertyIsOwnedByTheNearestAncestorDeclaringIt() =
+        assertEquals(mapOf("hp" to "Bat", "cry" to "Enemy"), Inheritance.of(vampire, types).propertyOwners)
 
     @Test
     fun aTypeCanNotInheritFromItselfOrItsDescendants() {

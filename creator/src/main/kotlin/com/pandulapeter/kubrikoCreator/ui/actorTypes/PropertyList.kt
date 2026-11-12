@@ -84,7 +84,8 @@ import org.jetbrains.compose.resources.stringResource
  * @param onRenamed Called with a Property's current name and what it should become, for a new name, returning why the
  *   Property can't have it.
  * @param flashedProperty What makes a Property's row light up, and the name of that Property.
- * @param onFindUsages Lists what refers to the Property of the given name, or null where nothing can.
+ * @param onFindUsages Lists what refers to the Property of the given name, its own or inherited, or null where nothing
+ *   can.
  */
 internal fun LazyListScope.propertyListItems(
     properties: List<PropertyDefinition>,
@@ -115,11 +116,10 @@ internal fun LazyListScope.propertyListItems(
         }
     }
     itemsIndexed(inheritedProperties) { index, property ->
-        Text(
+        InheritedPropertyRow(
             modifier = Modifier.propertyItemPadding(isFirst = index == 0),
-            text = stringResource(Res.string.actor_type_inherited_property, property.name, stringResource(PropertyKind.of(property).title)),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            property = property,
+            onFindUsages = onFindUsages?.let { find -> { find(property.name) } },
         )
     }
     if (properties.isEmpty() && inheritedProperties.isEmpty()) {
@@ -148,6 +148,28 @@ internal fun LazyListScope.propertyListItems(
     }
     item {
         Spacer(modifier = Modifier.height(PROPERTY_LIST_VERTICAL_PADDING))
+    }
+}
+
+/**
+ * A Property the type gets from its parent: its name and kind, with Find usages in its right-click menu.
+ */
+@Composable
+private fun InheritedPropertyRow(
+    property: PropertyDefinition,
+    onFindUsages: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    val menu = rememberRightClickMenuState()
+    Box(
+        modifier = modifier.rightClickMenu(menu),
+    ) {
+        Text(
+            text = stringResource(Res.string.actor_type_inherited_property, property.name, stringResource(PropertyKind.of(property).title)),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        if (onFindUsages != null) RightClickMenu(menu, listOf(ContextAction(stringResource(Res.string.action_find_usages), Res.drawable.ic_search, onClick = onFindUsages)))
     }
 }
 
