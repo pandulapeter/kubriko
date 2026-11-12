@@ -49,6 +49,17 @@ class ConversationTextStoreTest {
     fun aFileThatCantBeReadHoldsNothing() {
         store.write("claude-acp", "a", messages)
         File(directory, "conversations").listFiles()!!.single().writeText("not json")
-        assertEquals(emptyList(), store.read("claude-acp", "a"))
+        assertEquals(emptyList(), ConversationTextStore(File(directory, "conversations")).read("claude-acp", "a"), "as read when Creator starts")
+    }
+
+    @Test
+    fun whatWasReadOrWrittenIsKeptInMemoryUntilItIsDeleted() {
+        var reads = 0
+        val counting = ConversationTextStore(File(directory, "counted")) { file -> reads++; file.readText() }
+        counting.write("claude-acp", "a", messages)
+        repeat(3) { assertEquals(messages, counting.read("claude-acp", "a")) }
+        assertEquals(0, reads, "what was written is read from memory")
+        counting.delete("claude-acp", "a")
+        assertEquals(emptyList(), counting.read("claude-acp", "a"))
     }
 }
