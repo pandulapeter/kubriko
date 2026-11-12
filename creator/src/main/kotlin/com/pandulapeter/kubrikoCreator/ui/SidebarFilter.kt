@@ -9,13 +9,22 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
+import androidx.compose.runtime.compositionLocalOf
 import com.pandulapeter.kubrikoCreator.actors.withParents
+import com.pandulapeter.kubrikoCreator.foundation.NameMatching
 
 /**
- * Whether [name] (a type, Scene, or file name; for a path, its last part counts as well as the whole) matches [query]: it
- * contains the trimmed query, ignoring case. An empty query matches everything.
+ * Whether [name] (a type, Scene, or file name) matches [query]: its last part, after a path's folders, matches as names
+ * do ([NameMatching], so `brk` finds `Brick`), or the whole contains the trimmed query, ignoring case. An empty query
+ * matches everything.
  */
-internal fun matchesSidebarFilter(name: String, query: String) = name.contains(query.trim(), ignoreCase = true)
+internal fun matchesSidebarFilter(name: String, query: String) =
+    NameMatching.matches(name.substringAfterLast('/'), query) || name.contains(query.trim(), ignoreCase = true)
+
+/**
+ * What the sidebar's filter field holds, which the rows highlight in their names.
+ */
+internal val LocalSidebarFilter = compositionLocalOf { "" }
 
 /**
  * This state narrowed to the items matching [query] by what [shownNameOf] makes of their names, with only the folders

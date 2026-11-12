@@ -96,7 +96,7 @@ internal fun WorkspaceScreen(
     onOpenSettings: () -> Unit,
     writersRoom: WritersRoomRequest? = null,
 ) {
-    val uiState = rememberWorkspaceUiState(controller)
+    val uiState = remember(controller) { WorkspaceUiState() }
     StartingTheWritersRoom(writersRoom, uiState::showAssistant, assistant::startWritersRoom)
     CompositionLocalProvider(
         LocalDescriptionWriter provides rememberDescriptionWriter(assistant, uiState::showAssistant),
@@ -132,8 +132,7 @@ private fun WorkspaceContent(
     val isAiEnabled = LocalIsAiEnabled.current
     val resources by controller.resources.collectAsState()
     val sessionState by controller.sessionState.collectAsState()
-    val blockTypesController = controller.blockTypes
-    val blockTypes = blockTypesController?.types?.collectAsState()?.value.orEmpty()
+    val blockTypes = controller.blockTypes?.types?.collectAsState()?.value.orEmpty()
     val selection by controller.selection.current.collectAsState()
     val selectedBlockTypeName = (selection as? WorkspaceSelection.BlockType)?.name
     val selectedBlockType = blockTypes.firstOrNull { it.name == selectedBlockTypeName }
@@ -147,7 +146,6 @@ private fun WorkspaceContent(
     val sidebarDragState = rememberSidebarDragState(controller.commands, controller.creation)
     val sceneNames = remember(resources) { resources[ResourceGroup.SCENES].orEmpty().map { SceneStore.nameOf(it.file) }.distinct().sorted() }
     val openSceneName = (selection as? WorkspaceSelection.Scene)?.name
-    val openPageName = (selection as? WorkspaceSelection.Page)?.name
     val markdownText = rememberOpenMarkdownText(controller.commands.context, controller.selection, selection)
     WorkspaceDialogsOf(controller = controller, uiState = uiState, projectUpgrade = projectUpgrade)
     FollowingAiSteps(controller = controller, followedAiStep = followedAiStep, selection = selection)
@@ -162,7 +160,7 @@ private fun WorkspaceContent(
                 .fillMaxSize()
                 .onSizeChanged { columnHeight = with(density) { it.height.toDp() } }
                 .historyShortcutTarget()
-                .onKeyEvent { event -> event.toHistoryStep()?.let { isUndo -> uiState.spriteEditor.step(isUndo, controller.commands) } != null },
+                .onKeyEvent { event -> event.openSearch(uiState) || event.toHistoryStep()?.let { isUndo -> uiState.spriteEditor.step(isUndo, controller.commands) } != null },
         ) {
             WorkspaceToolbarOf(
                 controller = controller,
@@ -185,7 +183,7 @@ private fun WorkspaceContent(
                     ProjectSidebar(
                         modifier = Modifier.sidePanel(sidebarWidth.widthIn(row)),
                         resources = resources,
-                        folderGroups = rememberFolderTreeGroupsOf(controller, blockTypes, selectedBlockTypeName, sceneNames, openSceneName, openPageName),
+                        folderGroups = rememberFolderTreeGroupsOf(controller, blockTypes, selectedBlockTypeName, sceneNames, openSceneName, (selection as? WorkspaceSelection.Page)?.name),
                         folderActions = rememberFolderTreeActions(controller.creation, controller.commands, controller.selection, uiState),
                         dragState = sidebarDragState,
                         documentActions = rememberDocumentActions(controller.creation, controller.commands, controller.selection, uiState),
@@ -197,6 +195,7 @@ private fun WorkspaceContent(
                         folderExpansion = controller.sidebarExpansion,
                         flashedName = shownAiStep?.step?.sidebarName(),
                         flashKey = shownAiStep?.flashKey,
+                        filterFocusRequests = uiState.sidebarFilterFocusRequests,
                     )
                     PanelSplitter(sidebarWidth, row)
                     WorkspaceCenterOf(
@@ -272,12 +271,6 @@ private fun WorkspaceToolbarOf(
     onOpenSettings = onOpenSettings,
     onCloseProject = onCloseProject,
 )
-
-/**
- * The workspace screen's own state for [controller]'s project, which a project opened next starts afresh.
- */
-@Composable
-private fun rememberWorkspaceUiState(controller: WorkspaceController) = remember(controller) { WorkspaceUiState() }
 
 /**
  * What the sidebar's groups with folders show for [controller]'s project, from its folders.

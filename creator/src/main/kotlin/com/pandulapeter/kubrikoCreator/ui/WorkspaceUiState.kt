@@ -74,6 +74,16 @@ internal class WorkspaceUiState {
         private set
 
     /**
+     * How many times the sidebar's filter field was asked to take the focus, each new request focusing it.
+     */
+    var sidebarFilterFocusRequests by mutableStateOf(0)
+        private set
+
+    fun focusSidebarFilter() {
+        sidebarFilterFocusRequests++
+    }
+
+    /**
      * Opens [panel], or closes it if it is open.
      *
      * @return Whether version control just opened, which refreshes its state.

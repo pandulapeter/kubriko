@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.context.HealthFinding
@@ -35,7 +36,9 @@ import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import com.pandulapeter.kubrikoCreator.ui.components.RowActionsButton
 import com.pandulapeter.kubrikoCreator.ui.components.WithTooltip
 import com.pandulapeter.kubrikoCreator.ui.components.flashBackground
+import com.pandulapeter.kubrikoCreator.ui.components.highlightedMatch
 import com.pandulapeter.kubrikoCreator.ui.components.hoverReveal
+import com.pandulapeter.kubrikoCreator.ui.components.matchHighlightStyle
 import com.pandulapeter.kubrikoCreator.ui.components.rememberHoverRevealState
 import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
 import com.pandulapeter.kubrikoCreator.ui.components.revealedWhen
@@ -49,7 +52,8 @@ import org.jetbrains.compose.resources.painterResource
 /**
  * One row of the sidebar: an icon and a name, indented by its [depth] in the folders it is in, or while [isTopLevel] (a
  * document beside the groups rather than in one), lined up with the group headers. The icon, and the row while it is
- * selected, take the [accent] of what the row is. Its [actions] are offered by a ⋮ button that shows while it is
+ * selected, take the [accent] of what the row is, and its name highlights what the sidebar's filter matches in it
+ * ([LocalSidebarFilter]). Its [actions] are offered by a ⋮ button that shows while it is
  * pointed at, and by its right-click menu.
  */
 @Composable
@@ -100,9 +104,10 @@ internal fun SidebarItem(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            val query = LocalSidebarFilter.current
             Text(
                 modifier = Modifier.weight(1f, fill = false),
-                text = text,
+                text = if (query.isBlank()) AnnotatedString(text) else highlightedMatch(text, query, matchHighlightStyle()),
                 style = MaterialTheme.typography.bodyMedium,
                 color = color,
                 maxLines = 1,

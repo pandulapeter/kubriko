@@ -25,6 +25,14 @@ class SidebarFilterTest {
     }
 
     @Test
+    fun aNameMatchesItsLettersInOrderButAPathOnlyWhatItContains() {
+        assertTrue(matchesSidebarFilter("Brick", "brk"))
+        assertTrue(matchesSidebarFilter("walls/Brick", "brk"))
+        assertTrue(matchesSidebarFilter("levels/cave", "ls/ca"))
+        assertFalse(matchesSidebarFilter("levels/cave", "lc"), "the letters of a path's folders aren't taken one by one")
+    }
+
+    @Test
     fun filteringKeepsOnlyTheMatchingItemsAndTheFoldersHoldingThem() {
         val state = FolderTreeGroupState(
             items = listOf("Bat" to "enemies/flying", "Ball" to "", "Brick" to "walls"),

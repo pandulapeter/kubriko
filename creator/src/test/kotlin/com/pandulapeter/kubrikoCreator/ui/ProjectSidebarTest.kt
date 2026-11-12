@@ -101,6 +101,29 @@ class ProjectSidebarTest {
     }
 
     @Test
+    fun theFilterFindsNamesByTheirLettersInOrderAndTakesTheFocusWhenAskedTo() = uiTest(width = 300, height = 600) {
+        var focusRequests by mutableStateOf(0)
+        showing {
+            ProjectSidebar(
+                modifier = Modifier.fillMaxSize(),
+                resources = resources,
+                folderGroups = folderGroups,
+                folderActions = folderActions,
+                documentActions = noDocumentActions,
+                dragState = SidebarDragState(),
+                filterFocusRequests = focusRequests,
+            )
+        }
+        onNode(hasSetTextAction() and isFocused()).assertDoesNotExist()
+        focusRequests++
+        onNode(hasSetTextAction() and isFocused()).assertExists()
+        onNode(hasSetTextAction()).performTextInput("bl")
+        onNodeWithText("Ball").assertExists()
+        listOf("Bat", "Intro", "Level", "Finale", "hero.png").forEach { onNodeWithText(it).assertDoesNotExist() }
+        saveSnapshot("sidebar-filter-letters-in-order")
+    }
+
+    @Test
     fun draggingAnItemOntoAFolderMovesItInAndOntoAnythingOutsideEveryFolderMovesItOut() = uiTest(width = 300, height = 600) {
         val moves = mutableListOf<Pair<String, String>>()
         val dragState = SidebarDragState().apply { onMoveToFolder = { _, name, folder -> moves += name to folder } }

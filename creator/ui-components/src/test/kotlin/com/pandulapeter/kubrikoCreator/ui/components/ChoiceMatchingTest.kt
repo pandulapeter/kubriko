@@ -33,6 +33,12 @@ class ChoiceMatchingTest {
     )
 
     @Test
+    fun lettersInOrderMatchAfterEveryCloserMatch() = assertEquals(
+        listOf("Brk", "BrokenWall", "Brick"),
+        matchingOptions("brk", listOf("BrokenWall", "Ball", "Brick", "Brk"), titleOf = { it }),
+    )
+
+    @Test
     fun aSecondNameMatchesToo() = assertEquals(
         listOf(2),
         matchingOptions("pause", listOf(1, 2), titleOf = { "Key $it" }, alsoMatching = { if (it == 2) "MediaPlayPause" else null }),

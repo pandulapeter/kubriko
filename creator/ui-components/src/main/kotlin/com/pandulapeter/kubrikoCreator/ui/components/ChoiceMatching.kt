@@ -9,9 +9,11 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.components
 
+import com.pandulapeter.kubrikoCreator.foundation.NameMatching
+
 /**
- * The [options] whose [titleOf] (or one of [alsoMatching]'s names) contains [query], with or without its spaces: exact
- * matches first, then those starting with it, otherwise in their order.
+ * The [options] whose [titleOf] (or one of [alsoMatching]'s names) matches [query] ([NameMatching]), the closest matches
+ * first, otherwise in their order.
  */
 public fun <T> matchingOptions(
     query: String,
@@ -19,17 +21,14 @@ public fun <T> matchingOptions(
     titleOf: (T) -> String,
     alsoMatching: (T) -> String? = { null },
 ): List<T> {
-    val trimmed = query.trim()
-    if (trimmed.isEmpty()) return options
-    val compact = trimmed.replace(" ", "")
-    fun names(option: T) = listOfNotNull(titleOf(option), alsoMatching(option))
+    if (query.isBlank()) return options
     return options
-        .filter { option -> names(option).any { it.contains(trimmed, ignoreCase = true) || it.contains(compact, ignoreCase = true) } }
-        .sortedBy { option ->
-            when {
-                names(option).any { it.equals(trimmed, ignoreCase = true) || it.equals(compact, ignoreCase = true) } -> 0
-                names(option).any { it.startsWith(trimmed, ignoreCase = true) || it.startsWith(compact, ignoreCase = true) } -> 1
-                else -> 2
-            }
+        .mapNotNull { option ->
+            listOfNotNull(titleOf(option), alsoMatching(option))
+                .mapNotNull { NameMatching.match(it, query)?.quality }
+                .minOrNull()
+                ?.let { quality -> option to quality }
         }
+        .sortedBy { (_, quality) -> quality }
+        .map { (option, _) -> option }
 }

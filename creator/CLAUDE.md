@@ -624,8 +624,10 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   their own: the one + is the New menu beside the filter field, offering every kind the project can make (a document
   always, at the project's top, so a project without bands or documents can still start one), which opens the band
   the new thing goes in and scrolls its name field into view (`revealItem`, since a lazy list knows only what it laid out).
-- A field above the sidebar's groups filters everything in it by name, showing the folders that hold matches opened; the folders
-  the user collapsed are left as they were and come back once the filter is cleared.
+- A field above the sidebar's groups (Cmd/Ctrl+F) filters everything in it by name, showing the folders that hold matches opened; the folders
+  the user collapsed are left as they were and come back once the filter is cleared. Every search of names matches as
+  `NameMatching` does (IDE-like: `brk` finds `Brick`), ranks by its `Quality`, and highlights its ranges, so the filter, the
+  choice buttons, and quick open never disagree about what matches.
 - Opening a closed folder, Kotlin container, group, or module opens it with every folder in it closed, so a deep tree opens
   a level at a time, and a row holding folders offers Expand all and Collapse all while it is pointed at. What is open is
   kept by key (`SidebarKeys`) over an outline of everything as if it were all open (`SidebarOutline`), so a folder keeps its

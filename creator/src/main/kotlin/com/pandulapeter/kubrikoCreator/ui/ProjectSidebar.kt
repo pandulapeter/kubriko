@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -31,6 +32,8 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -62,8 +65,8 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * The project's contents: its Actor types, Manager types, and Scenes as trees of folders, then its other files grouped
- * by what they are, and its documents by the folders they are in, below a field that narrows them all to those whose names contain what is typed (opening the folders
- * that hold them; Escape clears it). In a project of several Gradle modules, each module's are under a band of its own,
+ * by what they are, and its documents by the folders they are in, below a field that narrows them all to those whose names match what is typed ([matchesSidebarFilter],
+ * highlighted in them), opening the folders that hold them (Cmd/Ctrl+F focuses it, and Escape clears it). In a project of several Gradle modules, each module's are under a band of its own,
  * nested as the modules are ([sidebarModules]). Clicking a type edits it, and clicking a Scene opens it; clicking the selected one again, or empty
  * space, selects nothing. Opening a closed folder, group, or module shows the folders in it closed, and the buttons a
  * row holding folders shows while it is pointed at open or close every one of them.
@@ -80,6 +83,8 @@ import org.jetbrains.compose.resources.stringResource
  * @param selection What the center shows: a document or a sprite lights up its row.
  * @param spriteFolders The sprites' folders, which are Kubriko Creator's own ([SpriteFolderStore]).
  * @param folderExpansion Where what is open is kept for the next session, if anywhere, and what it follows.
+ * @param filterFocusRequests How many times the filter field was asked to take the focus (Cmd/Ctrl+F): each new one
+ *   focuses it.
  */
 @Composable
 internal fun ProjectSidebar(
@@ -97,6 +102,7 @@ internal fun ProjectSidebar(
     folderExpansion: SidebarFolderExpansion? = null,
     flashedName: String? = null,
     flashKey: Any? = null,
+    filterFocusRequests: Int = 0,
 ) = Column(
     modifier = modifier,
 ) {
@@ -128,6 +134,7 @@ internal fun ProjectSidebar(
     SidebarTopRow(
         query = query,
         onQueryChange = { query = it },
+        filterFocusRequests = filterFocusRequests,
         newItems = remember(modules) { sidebarNewItems(modules) },
         resourceActions = resourceActions,
         onNew = { item ->
@@ -139,64 +146,77 @@ internal fun ProjectSidebar(
             }
         },
     )
-    LazyColumn(
-        modifier = Modifier.weight(1f).pointerInput(folderActions) { detectTapGestures { folderActions.onSelectionCleared() } }.fileDropTarget(::resourceFilesAmong, resourceActions.onAdd),
-        state = listState,
-    ) {
-        // A first row that is always there, so the list keeps its top in place, not whatever row came first: module bands
-        // that appear once the project is read are inserted above that row, and would otherwise be scrolled out of view.
-        item(key = "sidebar-top") { Spacer(Modifier.height(1.dp)) }
-        newProjectDocumentRow(naming, documentActions, onNamingChange = { naming = it })
-        val openModules = HashSet<String>()
-        shownModules.forEach { module ->
-            if (module.parent != null && module.parent !in openModules) return@forEach
-            val moduleKey = SidebarKeys.module(module.path)
-            if (isGrouped) {
-                item(key = moduleKey) {
-                    SidebarModuleHeader(
-                        modifier = sidebarItemMotion().folderDropTarget(dragState, SidebarDragState.FolderKey(group = null, path = module.path)),
-                        path = module.path,
-                        depth = module.depth,
-                        isExpanded = tree.isExpanded(moduleKey),
-                        onToggle = { tree.toggle(moduleKey) },
-                        subfolderActions = tree.subfolderActions(moduleKey),
-                        actions = listOf(
-                            newDocumentAction {
-                                tree.expand(moduleKey)
-                                naming = SidebarNaming.NewDocument(module.path, "")
-                            },
-                        ),
+    CompositionLocalProvider(LocalSidebarFilter provides query) {
+        LazyColumn(
+            modifier = Modifier.weight(1f).pointerInput(folderActions) { detectTapGestures { folderActions.onSelectionCleared() } }.fileDropTarget(::resourceFilesAmong, resourceActions.onAdd),
+            state = listState,
+        ) {
+            // A first row that is always there, so the list keeps its top in place, not whatever row came first: module bands
+            // that appear once the project is read are inserted above that row, and would otherwise be scrolled out of view.
+            item(key = "sidebar-top") { Spacer(Modifier.height(1.dp)) }
+            newProjectDocumentRow(naming, documentActions, onNamingChange = { naming = it })
+            val openModules = HashSet<String>()
+            shownModules.forEach { module ->
+                if (module.parent != null && module.parent !in openModules) return@forEach
+                val moduleKey = SidebarKeys.module(module.path)
+                if (isGrouped) moduleHeaderRow(module, tree, dragState, onNamingChange = { naming = it })
+                if (!isGrouped || tree.isExpanded(moduleKey)) {
+                    openModules += module.path
+                    moduleSections(
+                        module = module,
+                        folderActions = folderActions,
+                        resourceActions = resourceActions,
+                        dragState = dragState,
+                        tree = tree,
+                        naming = naming,
+                        onNamingChange = { naming = it },
+                        rows = rows,
+                        flash = flash,
+                    )
+                    documentRows(
+                        module = module,
+                        actions = documentActions,
+                        dragState = dragState,
+                        tree = tree,
+                        naming = naming,
+                        onNamingChange = { naming = it },
+                        selectedDocument = (selection as? WorkspaceSelection.Document)?.path,
+                        onSelectionCleared = folderActions.onSelectionCleared,
+                        rows = rows,
+                        flash = flash,
                     )
                 }
             }
-            if (!isGrouped || tree.isExpanded(moduleKey)) {
-                openModules += module.path
-                moduleSections(
-                    module = module,
-                    folderActions = folderActions,
-                    resourceActions = resourceActions,
-                    dragState = dragState,
-                    tree = tree,
-                    naming = naming,
-                    onNamingChange = { naming = it },
-                    rows = rows,
-                    flash = flash,
-                )
-                documentRows(
-                    module = module,
-                    actions = documentActions,
-                    dragState = dragState,
-                    tree = tree,
-                    naming = naming,
-                    onNamingChange = { naming = it },
-                    selectedDocument = (selection as? WorkspaceSelection.Document)?.path,
-                    onSelectionCleared = folderActions.onSelectionCleared,
-                    rows = rows,
-                    flash = flash,
-                )
-            }
+            if (isFiltering && shownModules.isEmpty()) noneFoundRow()
         }
-        if (isFiltering && shownModules.isEmpty()) noneFoundRow()
+    }
+}
+
+/**
+ * The band of [module] in a project of several modules, which opens and closes what it holds and offers New document.
+ */
+private fun LazyListScope.moduleHeaderRow(
+    module: SidebarModule,
+    tree: SidebarTree,
+    dragState: SidebarDragState,
+    onNamingChange: (SidebarNaming?) -> Unit,
+) {
+    val moduleKey = SidebarKeys.module(module.path)
+    item(key = moduleKey) {
+        SidebarModuleHeader(
+            modifier = sidebarItemMotion().folderDropTarget(dragState, SidebarDragState.FolderKey(group = null, path = module.path)),
+            path = module.path,
+            depth = module.depth,
+            isExpanded = tree.isExpanded(moduleKey),
+            onToggle = { tree.toggle(moduleKey) },
+            subfolderActions = tree.subfolderActions(moduleKey),
+            actions = listOf(
+                newDocumentAction {
+                    tree.expand(moduleKey)
+                    onNamingChange(SidebarNaming.NewDocument(module.path, ""))
+                },
+            ),
+        )
     }
 }
 
@@ -262,6 +282,7 @@ private fun LazyListScope.moduleSections(
 private fun SidebarTopRow(
     query: String,
     onQueryChange: (String) -> Unit,
+    filterFocusRequests: Int,
     newItems: List<SidebarNewItem>,
     resourceActions: ResourceActions,
     onNew: (SidebarNewItem) -> Unit,
@@ -275,6 +296,7 @@ private fun SidebarTopRow(
         modifier = Modifier.weight(1f),
         query = query,
         onQueryChange = onQueryChange,
+        focusRequests = filterFocusRequests,
     )
     MenuIconButton(
         icon = Res.drawable.ic_add,
@@ -313,7 +335,19 @@ private fun SidebarTopRow(
 private fun SidebarFilterField(
     query: String,
     onQueryChange: (String) -> Unit,
+    focusRequests: Int,
     modifier: Modifier = Modifier,
+) {
+    val focusRequester = remember { FocusRequester() }
+    LaunchedEffect(focusRequests) { if (focusRequests > 0) focusRequester.requestFocus() }
+    SidebarFilterField(query, onQueryChange, modifier.focusRequester(focusRequester))
+}
+
+@Composable
+private fun SidebarFilterField(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    modifier: Modifier,
 ) = CompactTextField(
     modifier = modifier
         .onPreviewKeyEvent { event ->
