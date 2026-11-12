@@ -82,16 +82,6 @@ internal fun UsageResults(
     }
 }
 
-@Composable
-internal fun SearchMessage(
-    text: String,
-) = Text(
-    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-    text = text,
-    style = MaterialTheme.typography.bodySmall,
-    color = MaterialTheme.colorScheme.onSurfaceVariant,
-)
-
 /**
  * One usage: where it is, with the icon of that kind of place, and how it refers to what it is the usage of.
  */
