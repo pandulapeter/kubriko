@@ -239,7 +239,7 @@ public class AssistantController(
             onTurnEnded = { turn ->
                 val summary = turn.toolsId?.let(openProject::takeSummary)
                 val saved = SavedConversation(directory.absolutePath, agentId, turn.id, turn.title, clock(), turn.lastAnswer?.take(LastConversation.ANSWER_LENGTH), isWritersRoom, summary)
-                withContext(ioDispatcher) { storage.conversations?.save(saved.copy(planAwaitingApproval = turn.planAwaitingApproval)) }
+                withContext(ioDispatcher) { storage.conversations?.save(saved.copy(planAwaitingApproval = turn.planAwaitingApproval), turn.messages) }
             },
             onChangedFilesUnasked = {
                 settings.update { it.takeIf { agentIdentity in it.agentsChangingFilesUnasked } ?: it.withChangingFilesUnasked(agentIdentity) }

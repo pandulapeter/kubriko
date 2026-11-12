@@ -109,4 +109,30 @@ class SavedConversationStoreTest {
         var isLocked = true
         return { file -> if (isLocked) throw IOException("Locked.").also { isLocked = false } else file.readText() }
     }
+
+    @Test
+    fun everyAgentsConversationsAboutAProjectAreListedTogether() {
+        val store = SavedConversationStore(file)
+        store.save(saved("a", 1))
+        store.save(saved("b", 2, agentId = "antigravity-acp"))
+        store.save(saved("c", 3, project = File("/projects/other")))
+        assertEquals(listOf("b", "a"), store.of(breakout).map { it.id })
+    }
+
+    @Test
+    fun theMessagesAreKeptWithTheirConversationAndForgottenWithIt() {
+        val texts = ConversationTextStore(File(directory, "conversations"))
+        val store = SavedConversationStore(file, conversationsPerProject = 2, texts = texts)
+        val hello = listOf(KeptMessage(isFromUser = true, text = "Make the ball faster"), KeptMessage(isFromUser = false, text = "Done."))
+        store.save(saved("a", 1), hello)
+        store.save(saved("b", 2), hello)
+        assertEquals(hello, texts.read("claude-acp", "a"))
+        store.save(saved("c", 3), hello)
+        assertEquals(emptyList(), texts.read("claude-acp", "a"), "dropped beyond the limit, with its messages")
+        store.remove(breakout, "claude-acp", "b")
+        assertEquals(emptyList(), texts.read("claude-acp", "b"))
+        assertEquals(hello, texts.read("claude-acp", "c"))
+        store.save(saved("c", 4))
+        assertEquals(hello, texts.read("claude-acp", "c"), "a save without messages keeps the ones kept")
+    }
 }

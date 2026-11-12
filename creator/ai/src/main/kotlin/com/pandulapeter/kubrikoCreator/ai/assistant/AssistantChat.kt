@@ -292,6 +292,7 @@ public class AssistantChat(
                 lastAnswer = transcript.items.filterIsInstance<TranscriptItem.AgentMessage>().lastOrNull()?.text,
                 toolsId = _toolsId.value,
                 planAwaitingApproval = if (transcript.isPlanFromCreator && transcript.isPlanAwaitingApproval) transcript.plan.map { it.content } else emptyList(),
+                messages = KeptMessage.of(transcript.items),
             ),
         )
     }

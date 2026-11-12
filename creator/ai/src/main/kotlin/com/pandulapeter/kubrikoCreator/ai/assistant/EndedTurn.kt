@@ -19,6 +19,7 @@ package com.pandulapeter.kubrikoCreator.ai.assistant
  *   ([com.pandulapeter.kubrikoCreator.commands.ConversationSummaries]).
  * @param planAwaitingApproval The steps of the plan the agent laid out with Kubriko Creator's `set_plan` and waits to have
  *   approved, if it does, which a continued conversation offers again, since the agent's history doesn't hold it.
+ * @param messages What the user asked and the agent answered so far, kept for searching ([KeptMessage]).
  */
 public data class EndedTurn(
     val id: String,
@@ -26,4 +27,5 @@ public data class EndedTurn(
     val lastAnswer: String?,
     val toolsId: String?,
     val planAwaitingApproval: List<String> = emptyList(),
+    val messages: List<KeptMessage> = emptyList(),
 )
