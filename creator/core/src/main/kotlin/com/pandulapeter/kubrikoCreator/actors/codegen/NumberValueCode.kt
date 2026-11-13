@@ -24,12 +24,13 @@ import kotlin.math.roundToInt
 /**
  * The Kotlin expressions of the numbers Blocks take ([NumberValue]). Each is one operand that needs no parentheses around
  * it, so it can stand before `.sceneUnit` or beside an operator, and none allocates. Random numbers all come from the one
- * [ManagerTypeCodeGenerator.RANDOM_FIELD] of the wiring, which a test can seed, and edges from the edge getters of
- * [ScenesCodeGenerator.SCENES_NAME], which the edge Event reads too.
+ * [ManagerTypeCodeGenerator.RANDOM_FIELD] of the wiring, which a test can seed, and edges from the edge functions of
+ * [ScenesCodeGenerator.SCENES_NAME].
  */
 internal object NumberValueCode {
 
     private const val RANDOM = "${ManagerTypeCodeGenerator.WIRING_NAME}.${ManagerTypeCodeGenerator.RANDOM_FIELD}"
+    private const val SCENES = BlockCodeGenerator.SCENES_FIELD
 
     /**
      * [value] as a `Float`. A Property that doesn't exist (renamed, deleted, or not chosen yet) reads as 0, so that the
@@ -47,11 +48,9 @@ internal object NumberValueCode {
             }
         }
         is NumberValue.Property -> propertyOf(value, scope) ?: "0f"
-        is NumberValue.Edge -> edgeOf(value.edge, value.offset)
-        is NumberValue.BetweenEdges -> {
-            val from = edgeOf(value.from, value.fromOffset)
-            "($from + $RANDOM.nextFloat() * (${edgeOf(value.to, value.toOffset)} - $from))"
-        }
+        is NumberValue.Edge -> edgeOf(value.edge).let { edge -> if (value.offset == 0f) edge else "($edge ${if (value.offset < 0f) "-" else "+"} ${BlockCodeGenerator.floatLiteral(abs(value.offset))})" }
+        is NumberValue.BetweenEdges -> "$SCENES.randomBetweenEdges(${ScenesCodeGenerator.edgeConstantOf(value.from)}, ${BlockCodeGenerator.floatLiteral(value.fromOffset)}, " +
+            "${ScenesCodeGenerator.edgeConstantOf(value.to)}, ${BlockCodeGenerator.floatLiteral(value.toOffset)})"
     }
 
     /**
@@ -86,10 +85,7 @@ internal object NumberValueCode {
      */
     fun needsOf(values: List<NumberValue>) = if (values.any { it.readsEdges }) setOf(BlockNeed.SCENES) else emptySet()
 
-    private fun edgeOf(edge: SceneEdge, offset: Float): String {
-        val position = "${BlockCodeGenerator.SCENES_FIELD}.${ScenesCodeGenerator.edgeGetterOf(edge)}.raw"
-        return if (offset == 0f) position else "($position ${if (offset < 0f) "-" else "+"} ${BlockCodeGenerator.floatLiteral(abs(offset))})"
-    }
+    private fun edgeOf(edge: SceneEdge) = "$SCENES.edge(${ScenesCodeGenerator.edgeConstantOf(edge)})"
 
     /**
      * The whole numbers from [from] to [to], both included, or the one nearest to them if there is none between them. It

@@ -178,17 +178,9 @@ com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition.color: HexColor=
 com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition.position: com.pandulapeter.kubrikoCreator.actors.ScreenPosition=
 com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition.size: kotlin.Float=
 com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition.text: kotlin.String=
-com.pandulapeter.kubrikoCreator.actors.WholeNumberValue : betweenEdges
-com.pandulapeter.kubrikoCreator.actors.WholeNumberValue : edge
 com.pandulapeter.kubrikoCreator.actors.WholeNumberValue : number
 com.pandulapeter.kubrikoCreator.actors.WholeNumberValue : property
 com.pandulapeter.kubrikoCreator.actors.WholeNumberValue : random
-com.pandulapeter.kubrikoCreator.actors.WholeNumberValue:betweenEdges.from: com.pandulapeter.kubrikoCreator.actors.SceneEdge=
-com.pandulapeter.kubrikoCreator.actors.WholeNumberValue:betweenEdges.fromOffset: kotlin.Float=
-com.pandulapeter.kubrikoCreator.actors.WholeNumberValue:betweenEdges.to: com.pandulapeter.kubrikoCreator.actors.SceneEdge=
-com.pandulapeter.kubrikoCreator.actors.WholeNumberValue:betweenEdges.toOffset: kotlin.Float=
-com.pandulapeter.kubrikoCreator.actors.WholeNumberValue:edge.edge: com.pandulapeter.kubrikoCreator.actors.SceneEdge=
-com.pandulapeter.kubrikoCreator.actors.WholeNumberValue:edge.offset: kotlin.Float=
 com.pandulapeter.kubrikoCreator.actors.WholeNumberValue:property.manager: kotlin.String?=
 com.pandulapeter.kubrikoCreator.actors.WholeNumberValue:property.property: kotlin.String=
 com.pandulapeter.kubrikoCreator.actors.WholeNumberValue:random.from: kotlin.Float=

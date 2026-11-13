@@ -53,14 +53,17 @@ internal abstract class NumberValueFormat(
                 element(FIXED_NAME, PrimitiveSerialDescriptor("$serialName.$FIXED_NAME", if (isWhole) PrimitiveKind.INT else PrimitiveKind.FLOAT))
                 element(RANDOM_NAME, NumberValue.Random.serializer().descriptor)
                 element(PROPERTY_NAME, NumberValue.Property.serializer().descriptor)
-                element(EDGE_NAME, NumberValue.Edge.serializer().descriptor)
-                element(BETWEEN_EDGES_NAME, NumberValue.BetweenEdges.serializer().descriptor)
+                if (!isWhole) {
+                    element(EDGE_NAME, NumberValue.Edge.serializer().descriptor)
+                    element(BETWEEN_EDGES_NAME, NumberValue.BetweenEdges.serializer().descriptor)
+                }
             },
         )
     }
 
     override fun serialize(encoder: Encoder, value: NumberValue) {
         val json = (encoder as? JsonEncoder)?.json ?: throw SerializationException("A number value is only written as JSON.")
+        if (isWhole && value.readsEdges) throw SerializationException(NO_EDGES)
         encoder.encodeJsonElement(
             when (value) {
                 is NumberValue.Fixed -> when {
@@ -85,13 +88,13 @@ internal abstract class NumberValueFormat(
                 when (val type = (element[TYPE_KEY] as? JsonPrimitive)?.contentOrNull) {
                     RANDOM_NAME -> json.decodeFromJsonElement(NumberValue.Random.serializer(), fields)
                     PROPERTY_NAME -> json.decodeFromJsonElement(NumberValue.Property.serializer(), fields)
-                    EDGE_NAME -> json.decodeFromJsonElement(NumberValue.Edge.serializer(), fields)
-                    BETWEEN_EDGES_NAME -> json.decodeFromJsonElement(NumberValue.BetweenEdges.serializer(), fields)
-                    null -> throw SerializationException("A number value written as an object needs a type: $OBJECT_TYPES.")
-                    else -> throw SerializationException("There is no number value of the type '$type': it is a number, or an object of the type $OBJECT_TYPES.")
+                    EDGE_NAME -> if (isWhole) throw SerializationException(NO_EDGES) else json.decodeFromJsonElement(NumberValue.Edge.serializer(), fields)
+                    BETWEEN_EDGES_NAME -> if (isWhole) throw SerializationException(NO_EDGES) else json.decodeFromJsonElement(NumberValue.BetweenEdges.serializer(), fields)
+                    null -> throw SerializationException("A number value written as an object needs a type: $objectTypes.")
+                    else -> throw SerializationException("There is no number value of the type '$type': it is a number, or an object of the type $objectTypes.")
                 }
             }
-            else -> throw SerializationException("$element isn't a number value: it is a number, or an object of the type $OBJECT_TYPES.")
+            else -> throw SerializationException("$element isn't a number value: it is a number, or an object of the type $objectTypes.")
         }
     }
 
@@ -103,6 +106,8 @@ internal abstract class NumberValueFormat(
         return NumberValue.Fixed(number)
     }
 
+    private val objectTypes = if (isWhole) "$RANDOM_NAME or $PROPERTY_NAME" else "$RANDOM_NAME, $PROPERTY_NAME, $EDGE_NAME, or $BETWEEN_EDGES_NAME"
+
     private fun withType(type: String, fields: JsonElement) = JsonObject(mapOf(TYPE_KEY to JsonPrimitive(type)) + fields.jsonObject)
 
     private companion object {
@@ -112,7 +117,7 @@ internal abstract class NumberValueFormat(
         const val PROPERTY_NAME = "property"
         const val EDGE_NAME = "edge"
         const val BETWEEN_EDGES_NAME = "betweenEdges"
-        const val OBJECT_TYPES = "$RANDOM_NAME, $PROPERTY_NAME, $EDGE_NAME, or $BETWEEN_EDGES_NAME"
+        const val NO_EDGES = "A field of whole numbers counts rather than places, so it takes no edge: it is a number, or an object of the type $RANDOM_NAME or $PROPERTY_NAME."
     }
 }
 
@@ -123,6 +128,6 @@ internal object NumberValueSerializer : NumberValueFormat("com.pandulapeter.kubr
 
 /**
  * How a field that only takes whole numbers is written: its fixed numbers without a fraction, as the field was written
- * while it was an `Int`, and only whole numbers are read.
+ * while it was an `Int`, and only whole numbers are read. It counts rather than places, so it takes no edges.
  */
 internal object WholeNumberValueSerializer : NumberValueFormat("com.pandulapeter.kubrikoCreator.actors.WholeNumberValue", isWhole = true)

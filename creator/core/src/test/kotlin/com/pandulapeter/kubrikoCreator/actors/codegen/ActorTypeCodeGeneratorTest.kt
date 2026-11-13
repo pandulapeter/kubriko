@@ -205,10 +205,8 @@ class ActorTypeCodeGeneratorTest {
         assertContains(code, "        generatedScenes = kubriko.get()\n")
         assertContains(
             code,
-            "        val leftEdge = generatedScenes.leftEdge\n" +
-                "        val rightEdge = generatedScenes.rightEdge\n" +
-                "        val topEdge = generatedScenes.topEdge\n" +
-                "        val bottomEdge = generatedScenes.bottomEdge\n",
+            "        val sceneSettings = generatedScenes.settings\n" +
+                "        val leftEdge = if (sceneSettings == null) viewportManager.topLeft.value.x else sceneSettings.topLeft.x\n",
         )
         assertFalse("GeneratedScenes" in generate())
     }
@@ -722,7 +720,7 @@ class ActorTypeCodeGeneratorTest {
         assertContains(code, "    private lateinit var actorManager: ActorManager\n")
         assertFalse("viewportManager" in code)
         assertContains(generate(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.Kotlin("println()")))), "    private lateinit var viewportManager: ViewportManager\n")
-        assertFalse("viewportManager" in generate(EventDefinition(EventType.EDGE_TOUCHED)))
+        assertContains(generate(EventDefinition(EventType.EDGE_TOUCHED)), "    private lateinit var viewportManager: ViewportManager\n")
     }
 
     @Test

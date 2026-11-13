@@ -105,12 +105,12 @@ class NumberValueCodeTest {
 
     @Test
     fun anEdgeIsReadFromTheScenesWhenTheBlockRuns() {
-        assertEquals("generatedScenes.rightEdge.raw", NumberValueCode.float(NumberValue.Edge(SceneEdge.RIGHT), scope))
-        assertEquals("(generatedScenes.leftEdge.raw + 50f)", NumberValueCode.float(NumberValue.Edge(SceneEdge.LEFT, 50f), scope))
-        assertEquals("(generatedScenes.bottomEdge.raw - 2.5f)", NumberValueCode.float(NumberValue.Edge(SceneEdge.BOTTOM, -2.5f), scope))
-        assertEquals("generatedScenes.topEdge.raw.toInt().coerceAtLeast(1)", NumberValueCode.whole(NumberValue.Edge(SceneEdge.TOP), scope, minimum = 1))
+        assertEquals("generatedScenes.edge(GeneratedScenes.RIGHT)", NumberValueCode.float(NumberValue.Edge(SceneEdge.RIGHT), scope))
+        assertEquals("generatedScenes.edge(GeneratedScenes.LEFT).sceneUnit", NumberValueCode.sceneUnit(NumberValue.Edge(SceneEdge.LEFT), scope))
+        assertEquals("(generatedScenes.edge(GeneratedScenes.LEFT) + 50f)", NumberValueCode.float(NumberValue.Edge(SceneEdge.LEFT, 50f), scope))
+        assertEquals("(generatedScenes.edge(GeneratedScenes.BOTTOM) - 2.5f)", NumberValueCode.float(NumberValue.Edge(SceneEdge.BOTTOM, -2.5f), scope))
         assertEquals(
-            "((generatedScenes.topEdge.raw + 10f) + KubrikoWiring.random.nextFloat() * (generatedScenes.bottomEdge.raw - (generatedScenes.topEdge.raw + 10f)))",
+            "generatedScenes.randomBetweenEdges(GeneratedScenes.TOP, 10f, GeneratedScenes.BOTTOM, 0f)",
             NumberValueCode.float(NumberValue.BetweenEdges(SceneEdge.TOP, 10f, SceneEdge.BOTTOM), scope),
         )
     }
@@ -132,7 +132,7 @@ class NumberValueCodeTest {
         val scope = BlockScope.of(ActorTypeDefinition(name = "Ball"), listOf(ActorTypeDefinition(name = "Ball")))
         fun line(block: BlockDefinition.AddActor) = BlockCodeGenerator.blockCode(block, EventType.EVERY_FRAME, scope).lines.single()
         assertEquals(
-            "actorManager.add(Ball.metadata.instantiate(SceneOffset((generatedScenes.rightEdge.raw + 50f).sceneUnit, body.position.y + 10f.sceneUnit)).restore())",
+            "actorManager.add(Ball.metadata.instantiate(SceneOffset((generatedScenes.edge(GeneratedScenes.RIGHT) + 50f).sceneUnit, body.position.y + 10f.sceneUnit)).restore())",
             line(BlockDefinition.AddActor("Ball", x = NumberValue.Edge(SceneEdge.RIGHT, 50f), y = NumberValue.Fixed(10f))),
         )
         assertEquals(
@@ -140,7 +140,7 @@ class NumberValueCodeTest {
             line(BlockDefinition.AddActor("Ball", x = NumberValue.Fixed(5f), y = NumberValue.Fixed(10f))),
         )
         assertEquals(
-            "actorManager.add(Ball.metadata.instantiate(SceneOffset(5f.sceneUnit, generatedScenes.topEdge.raw.sceneUnit)).restore())",
+            "actorManager.add(Ball.metadata.instantiate(SceneOffset(5f.sceneUnit, generatedScenes.edge(GeneratedScenes.TOP).sceneUnit)).restore())",
             line(BlockDefinition.AddActor("Ball", x = NumberValue.Fixed(5f), y = NumberValue.Edge(SceneEdge.TOP), isRelative = false)),
         )
     }

@@ -89,4 +89,16 @@ class NumberValueSerializerTest {
         assertEquals(false, NumberValue.BetweenEdges(toOffset = Float.POSITIVE_INFINITY).isFinite)
         assertEquals(true, NumberValue.BetweenEdges(fromOffset = -1f).isFinite)
     }
+
+    @Test
+    fun aWholeFieldCountsSoItTakesNoEdges() {
+        val message = "A field of whole numbers counts rather than places, so it takes no edge: it is a number, or an object of the type random or property."
+        assertEquals(message, assertFailsWith<SerializationException> { json.decodeFromString(WholeNumberValueSerializer, """{"type":"edge","edge":"top"}""") }.message)
+        assertEquals(message, assertFailsWith<SerializationException> { json.decodeFromString(WholeNumberValueSerializer, """{"type":"betweenEdges"}""") }.message)
+        assertEquals(message, assertFailsWith<SerializationException> { json.encodeToString(WholeNumberValueSerializer, NumberValue.Edge()) }.message)
+        assertEquals(
+            "There is no number value of the type 'corner': it is a number, or an object of the type random or property.",
+            assertFailsWith<SerializationException> { json.decodeFromString(WholeNumberValueSerializer, """{"type":"corner"}""") }.message,
+        )
+    }
 }

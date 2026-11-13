@@ -25,20 +25,48 @@ public object ScenesCodeGenerator {
      */
     public const val SCENE_DIRECTORY: String = "files/scenes"
 
-    private const val LEFT_EDGE = "leftEdge"
-    private const val RIGHT_EDGE = "rightEdge"
-    private const val TOP_EDGE = "topEdge"
-    private const val BOTTOM_EDGE = "bottomEdge"
+    private const val LEFT = "LEFT"
+    private const val RIGHT = "RIGHT"
+    private const val TOP = "TOP"
+    private const val BOTTOM = "BOTTOM"
 
     /**
-     * The getter of the generated class saying where [edge] is, in scene units.
+     * The constant of the generated class naming [edge], which its edge functions take.
      */
-    internal fun edgeGetterOf(edge: SceneEdge) = when (edge) {
-        SceneEdge.LEFT -> LEFT_EDGE
-        SceneEdge.RIGHT -> RIGHT_EDGE
-        SceneEdge.TOP -> TOP_EDGE
-        SceneEdge.BOTTOM -> BOTTOM_EDGE
+    internal fun edgeConstantOf(edge: SceneEdge) = "$SCENES_NAME." + when (edge) {
+        SceneEdge.LEFT -> LEFT
+        SceneEdge.RIGHT -> RIGHT
+        SceneEdge.TOP -> TOP
+        SceneEdge.BOTTOM -> BOTTOM
     }
+
+    /**
+     * Where the edges are, read from the settings once per call, so a Scene that finishes loading meanwhile can't mix its
+     * bounds with the screen's.
+     */
+    private fun edgeMembers() = """
+            |
+            |    /**
+            |     * Where an edge of the shown Scene's bounds is, or of the screen's while it has none: [$LEFT], [$RIGHT], [$TOP], or [$BOTTOM].
+            |     */
+            |    fun edge(edge: Int): Float = edgeOf(settings, edge)
+            |
+            |    /**
+            |     * A random number between two edges, each plus its offset, of the same bounds even while a Scene is being loaded.
+            |     */
+            |    fun randomBetweenEdges(from: Int, fromOffset: Float, to: Int, toOffset: Float): Float {
+            |        val settings = settings
+            |        val start = edgeOf(settings, from) + fromOffset
+            |        return start + KubrikoWiring.random.nextFloat() * (edgeOf(settings, to) + toOffset - start)
+            |    }
+            |
+            |    private fun edgeOf(settings: ${SceneSettingsCodeGenerator.SETTINGS_NAME}?, edge: Int): Float = when (edge) {
+            |        $LEFT -> if (settings == null) viewportManager.topLeft.value.x.raw else settings.topLeft.x.raw
+            |        $RIGHT -> if (settings == null) viewportManager.bottomRight.value.x.raw else settings.bottomRight.x.raw
+            |        $TOP -> if (settings == null) viewportManager.topLeft.value.y.raw else settings.topLeft.y.raw
+            |        else -> if (settings == null) viewportManager.bottomRight.value.y.raw else settings.bottomRight.y.raw
+            |    }
+    """.trimMargin()
 
     internal fun generate(packageName: String) = GeneratedFile.withHeader("", buildString {
         appendLine("package $packageName.${ActorTypeCodeGenerator.GENERATED_PACKAGE}")
@@ -53,7 +81,6 @@ public object ScenesCodeGenerator {
             "com.pandulapeter.kubriko.sceneEditor.Editable",
             "com.pandulapeter.kubriko.sceneEditor.EditableMetadata",
             "com.pandulapeter.kubriko.serialization.SerializationManager",
-            "com.pandulapeter.kubriko.types.SceneUnit",
             "kotlin.concurrent.Volatile",
             "kotlinx.coroutines.CancellationException",
             "kotlinx.coroutines.Job",
@@ -91,26 +118,11 @@ public object ScenesCodeGenerator {
             |     */
             |    @Volatile
             |    var settings: ${SceneSettingsCodeGenerator.SETTINGS_NAME}? = null
-            |
-            |    /**
-            |     * The left edge of the shown Scene's bounds, or of the screen while it has none.
-            |     */
-            |    val $LEFT_EDGE: SceneUnit get() = settings.let { if (it == null) viewportManager.topLeft.value.x else it.topLeft.x }
-            |
-            |    /**
-            |     * The right edge of the shown Scene's bounds, or of the screen while it has none.
-            |     */
-            |    val $RIGHT_EDGE: SceneUnit get() = settings.let { if (it == null) viewportManager.bottomRight.value.x else it.bottomRight.x }
-            |
-            |    /**
-            |     * The top edge of the shown Scene's bounds, or of the screen while it has none.
-            |     */
-            |    val $TOP_EDGE: SceneUnit get() = settings.let { if (it == null) viewportManager.topLeft.value.y else it.topLeft.y }
-            |
-            |    /**
-            |     * The bottom edge of the shown Scene's bounds, or of the screen while it has none.
-            |     */
-            |    val $BOTTOM_EDGE: SceneUnit get() = settings.let { if (it == null) viewportManager.bottomRight.value.y else it.bottomRight.y }
+            """.trimMargin(),
+        )
+        appendLine(edgeMembers())
+        appendLine(
+            """
             |
             |    override fun onInitialize(kubriko: Kubriko) {
             |        if (!isInSceneEditor && firstScene != null) load(firstScene, isFirst = true)
@@ -152,6 +164,13 @@ public object ScenesCodeGenerator {
             |            }
             |            actorManager.add(actors)
             |        }
+            |    }
+            |
+            |    companion object {
+            |        const val $LEFT = 0
+            |        const val $RIGHT = 1
+            |        const val $TOP = 2
+            |        const val $BOTTOM = 3
             |    }
             |}
             """.trimMargin(),

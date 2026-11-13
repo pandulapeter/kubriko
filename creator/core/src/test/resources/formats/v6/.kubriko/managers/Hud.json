@@ -535,12 +535,30 @@
                     }
                 },
                 {
-                    "type": "repeat",
-                    "times": {
+                    "type": "changeNumber",
+                    "property": "score",
+                    "by": {
                         "type": "edge",
                         "edge": "top",
                         "offset": 0.0
                     }
+                },
+                {
+                    "type": "addActor",
+                    "actorType": "Ball",
+                    "x": {
+                        "type": "betweenEdges",
+                        "from": "right",
+                        "fromOffset": -5.0,
+                        "to": "left",
+                        "toOffset": 5.0
+                    },
+                    "y": {
+                        "type": "edge",
+                        "edge": "top",
+                        "offset": 1.0
+                    },
+                    "isRelative": true
                 },
                 {
                     "type": "if",
@@ -550,15 +568,12 @@
                         "comparison": "less",
                         "value": {
                             "type": "betweenEdges",
-                            "from": "left",
+                            "from": "top",
                             "fromOffset": 0.0,
-                            "to": "right",
+                            "to": "bottom",
                             "toOffset": 0.0
                         }
                     }
-                },
-                {
-                    "type": "end"
                 },
                 {
                     "type": "end"
@@ -1082,12 +1097,30 @@
                     }
                 },
                 {
-                    "type": "repeat",
-                    "times": {
+                    "type": "changeNumber",
+                    "property": "score",
+                    "by": {
                         "type": "edge",
                         "edge": "top",
                         "offset": 0.0
                     }
+                },
+                {
+                    "type": "addActor",
+                    "actorType": "Ball",
+                    "x": {
+                        "type": "betweenEdges",
+                        "from": "right",
+                        "fromOffset": -5.0,
+                        "to": "left",
+                        "toOffset": 5.0
+                    },
+                    "y": {
+                        "type": "edge",
+                        "edge": "top",
+                        "offset": 1.0
+                    },
+                    "isRelative": true
                 },
                 {
                     "type": "if",
@@ -1097,15 +1130,12 @@
                         "comparison": "less",
                         "value": {
                             "type": "betweenEdges",
-                            "from": "left",
+                            "from": "top",
                             "fromOffset": 0.0,
-                            "to": "right",
+                            "to": "bottom",
                             "toOffset": 0.0
                         }
                     }
-                },
-                {
-                    "type": "end"
                 },
                 {
                     "type": "end"
@@ -1629,12 +1659,30 @@
                     }
                 },
                 {
-                    "type": "repeat",
-                    "times": {
+                    "type": "changeNumber",
+                    "property": "score",
+                    "by": {
                         "type": "edge",
                         "edge": "top",
                         "offset": 0.0
                     }
+                },
+                {
+                    "type": "addActor",
+                    "actorType": "Ball",
+                    "x": {
+                        "type": "betweenEdges",
+                        "from": "right",
+                        "fromOffset": -5.0,
+                        "to": "left",
+                        "toOffset": 5.0
+                    },
+                    "y": {
+                        "type": "edge",
+                        "edge": "top",
+                        "offset": 1.0
+                    },
+                    "isRelative": true
                 },
                 {
                     "type": "if",
@@ -1644,15 +1692,12 @@
                         "comparison": "less",
                         "value": {
                             "type": "betweenEdges",
-                            "from": "left",
+                            "from": "top",
                             "fromOffset": 0.0,
-                            "to": "right",
+                            "to": "bottom",
                             "toOffset": 0.0
                         }
                     }
-                },
-                {
-                    "type": "end"
                 },
                 {
                     "type": "end"
@@ -2177,12 +2222,30 @@
                     }
                 },
                 {
-                    "type": "repeat",
-                    "times": {
+                    "type": "changeNumber",
+                    "property": "score",
+                    "by": {
                         "type": "edge",
                         "edge": "top",
                         "offset": 0.0
                     }
+                },
+                {
+                    "type": "addActor",
+                    "actorType": "Ball",
+                    "x": {
+                        "type": "betweenEdges",
+                        "from": "right",
+                        "fromOffset": -5.0,
+                        "to": "left",
+                        "toOffset": 5.0
+                    },
+                    "y": {
+                        "type": "edge",
+                        "edge": "top",
+                        "offset": 1.0
+                    },
+                    "isRelative": true
                 },
                 {
                     "type": "if",
@@ -2192,15 +2255,12 @@
                         "comparison": "less",
                         "value": {
                             "type": "betweenEdges",
-                            "from": "left",
+                            "from": "top",
                             "fromOffset": 0.0,
-                            "to": "right",
+                            "to": "bottom",
                             "toOffset": 0.0
                         }
                     }
-                },
-                {
-                    "type": "end"
                 },
                 {
                     "type": "end"
@@ -2725,12 +2785,30 @@
                     }
                 },
                 {
-                    "type": "repeat",
-                    "times": {
+                    "type": "changeNumber",
+                    "property": "score",
+                    "by": {
                         "type": "edge",
                         "edge": "top",
                         "offset": 0.0
                     }
+                },
+                {
+                    "type": "addActor",
+                    "actorType": "Ball",
+                    "x": {
+                        "type": "betweenEdges",
+                        "from": "right",
+                        "fromOffset": -5.0,
+                        "to": "left",
+                        "toOffset": 5.0
+                    },
+                    "y": {
+                        "type": "edge",
+                        "edge": "top",
+                        "offset": 1.0
+                    },
+                    "isRelative": true
                 },
                 {
                     "type": "if",
@@ -2740,15 +2818,12 @@
                         "comparison": "less",
                         "value": {
                             "type": "betweenEdges",
-                            "from": "left",
+                            "from": "top",
                             "fromOffset": 0.0,
-                            "to": "right",
+                            "to": "bottom",
                             "toOffset": 0.0
                         }
                     }
-                },
-                {
-                    "type": "end"
                 },
                 {
                     "type": "end"
@@ -3273,12 +3348,30 @@
                     }
                 },
                 {
-                    "type": "repeat",
-                    "times": {
+                    "type": "changeNumber",
+                    "property": "score",
+                    "by": {
                         "type": "edge",
                         "edge": "top",
                         "offset": 0.0
                     }
+                },
+                {
+                    "type": "addActor",
+                    "actorType": "Ball",
+                    "x": {
+                        "type": "betweenEdges",
+                        "from": "right",
+                        "fromOffset": -5.0,
+                        "to": "left",
+                        "toOffset": 5.0
+                    },
+                    "y": {
+                        "type": "edge",
+                        "edge": "top",
+                        "offset": 1.0
+                    },
+                    "isRelative": true
                 },
                 {
                     "type": "if",
@@ -3288,15 +3381,12 @@
                         "comparison": "less",
                         "value": {
                             "type": "betweenEdges",
-                            "from": "left",
+                            "from": "top",
                             "fromOffset": 0.0,
-                            "to": "right",
+                            "to": "bottom",
                             "toOffset": 0.0
                         }
                     }
-                },
-                {
-                    "type": "end"
                 },
                 {
                     "type": "end"
@@ -9973,12 +10063,30 @@
                     }
                 },
                 {
-                    "type": "repeat",
-                    "times": {
+                    "type": "changeNumber",
+                    "property": "score",
+                    "by": {
                         "type": "edge",
                         "edge": "top",
                         "offset": 0.0
                     }
+                },
+                {
+                    "type": "addActor",
+                    "actorType": "Ball",
+                    "x": {
+                        "type": "betweenEdges",
+                        "from": "right",
+                        "fromOffset": -5.0,
+                        "to": "left",
+                        "toOffset": 5.0
+                    },
+                    "y": {
+                        "type": "edge",
+                        "edge": "top",
+                        "offset": 1.0
+                    },
+                    "isRelative": true
                 },
                 {
                     "type": "if",
@@ -9988,15 +10096,12 @@
                         "comparison": "less",
                         "value": {
                             "type": "betweenEdges",
-                            "from": "left",
+                            "from": "top",
                             "fromOffset": 0.0,
-                            "to": "right",
+                            "to": "bottom",
                             "toOffset": 0.0
                         }
                     }
-                },
-                {
-                    "type": "end"
                 },
                 {
                     "type": "end"
@@ -10521,12 +10626,30 @@
                     }
                 },
                 {
-                    "type": "repeat",
-                    "times": {
+                    "type": "changeNumber",
+                    "property": "score",
+                    "by": {
                         "type": "edge",
                         "edge": "top",
                         "offset": 0.0
                     }
+                },
+                {
+                    "type": "addActor",
+                    "actorType": "Ball",
+                    "x": {
+                        "type": "betweenEdges",
+                        "from": "right",
+                        "fromOffset": -5.0,
+                        "to": "left",
+                        "toOffset": 5.0
+                    },
+                    "y": {
+                        "type": "edge",
+                        "edge": "top",
+                        "offset": 1.0
+                    },
+                    "isRelative": true
                 },
                 {
                     "type": "if",
@@ -10536,15 +10659,12 @@
                         "comparison": "less",
                         "value": {
                             "type": "betweenEdges",
-                            "from": "left",
+                            "from": "top",
                             "fromOffset": 0.0,
-                            "to": "right",
+                            "to": "bottom",
                             "toOffset": 0.0
                         }
                     }
-                },
-                {
-                    "type": "end"
                 },
                 {
                     "type": "end"
@@ -11063,12 +11183,30 @@
                     }
                 },
                 {
-                    "type": "repeat",
-                    "times": {
+                    "type": "changeNumber",
+                    "property": "score",
+                    "by": {
                         "type": "edge",
                         "edge": "top",
                         "offset": 0.0
                     }
+                },
+                {
+                    "type": "addActor",
+                    "actorType": "Ball",
+                    "x": {
+                        "type": "betweenEdges",
+                        "from": "right",
+                        "fromOffset": -5.0,
+                        "to": "left",
+                        "toOffset": 5.0
+                    },
+                    "y": {
+                        "type": "edge",
+                        "edge": "top",
+                        "offset": 1.0
+                    },
+                    "isRelative": true
                 },
                 {
                     "type": "if",
@@ -11078,15 +11216,12 @@
                         "comparison": "less",
                         "value": {
                             "type": "betweenEdges",
-                            "from": "left",
+                            "from": "top",
                             "fromOffset": 0.0,
-                            "to": "right",
+                            "to": "bottom",
                             "toOffset": 0.0
                         }
                     }
-                },
-                {
-                    "type": "end"
                 },
                 {
                     "type": "end"
@@ -11611,12 +11746,30 @@
                     }
                 },
                 {
-                    "type": "repeat",
-                    "times": {
+                    "type": "changeNumber",
+                    "property": "score",
+                    "by": {
                         "type": "edge",
                         "edge": "top",
                         "offset": 0.0
                     }
+                },
+                {
+                    "type": "addActor",
+                    "actorType": "Ball",
+                    "x": {
+                        "type": "betweenEdges",
+                        "from": "right",
+                        "fromOffset": -5.0,
+                        "to": "left",
+                        "toOffset": 5.0
+                    },
+                    "y": {
+                        "type": "edge",
+                        "edge": "top",
+                        "offset": 1.0
+                    },
+                    "isRelative": true
                 },
                 {
                     "type": "if",
@@ -11626,15 +11779,12 @@
                         "comparison": "less",
                         "value": {
                             "type": "betweenEdges",
-                            "from": "left",
+                            "from": "top",
                             "fromOffset": 0.0,
-                            "to": "right",
+                            "to": "bottom",
                             "toOffset": 0.0
                         }
                     }
-                },
-                {
-                    "type": "end"
                 },
                 {
                     "type": "end"
@@ -12153,12 +12303,30 @@
                     }
                 },
                 {
-                    "type": "repeat",
-                    "times": {
+                    "type": "changeNumber",
+                    "property": "score",
+                    "by": {
                         "type": "edge",
                         "edge": "top",
                         "offset": 0.0
                     }
+                },
+                {
+                    "type": "addActor",
+                    "actorType": "Ball",
+                    "x": {
+                        "type": "betweenEdges",
+                        "from": "right",
+                        "fromOffset": -5.0,
+                        "to": "left",
+                        "toOffset": 5.0
+                    },
+                    "y": {
+                        "type": "edge",
+                        "edge": "top",
+                        "offset": 1.0
+                    },
+                    "isRelative": true
                 },
                 {
                     "type": "if",
@@ -12168,15 +12336,12 @@
                         "comparison": "less",
                         "value": {
                             "type": "betweenEdges",
-                            "from": "left",
+                            "from": "top",
                             "fromOffset": 0.0,
-                            "to": "right",
+                            "to": "bottom",
                             "toOffset": 0.0
                         }
                     }
-                },
-                {
-                    "type": "end"
                 },
                 {
                     "type": "end"
@@ -12701,12 +12866,30 @@
                     }
                 },
                 {
-                    "type": "repeat",
-                    "times": {
+                    "type": "changeNumber",
+                    "property": "score",
+                    "by": {
                         "type": "edge",
                         "edge": "top",
                         "offset": 0.0
                     }
+                },
+                {
+                    "type": "addActor",
+                    "actorType": "Ball",
+                    "x": {
+                        "type": "betweenEdges",
+                        "from": "right",
+                        "fromOffset": -5.0,
+                        "to": "left",
+                        "toOffset": 5.0
+                    },
+                    "y": {
+                        "type": "edge",
+                        "edge": "top",
+                        "offset": 1.0
+                    },
+                    "isRelative": true
                 },
                 {
                     "type": "if",
@@ -12716,15 +12899,12 @@
                         "comparison": "less",
                         "value": {
                             "type": "betweenEdges",
-                            "from": "left",
+                            "from": "top",
                             "fromOffset": 0.0,
-                            "to": "right",
+                            "to": "bottom",
                             "toOffset": 0.0
                         }
                     }
-                },
-                {
-                    "type": "end"
                 },
                 {
                     "type": "end"
@@ -13249,12 +13429,30 @@
                     }
                 },
                 {
-                    "type": "repeat",
-                    "times": {
+                    "type": "changeNumber",
+                    "property": "score",
+                    "by": {
                         "type": "edge",
                         "edge": "top",
                         "offset": 0.0
                     }
+                },
+                {
+                    "type": "addActor",
+                    "actorType": "Ball",
+                    "x": {
+                        "type": "betweenEdges",
+                        "from": "right",
+                        "fromOffset": -5.0,
+                        "to": "left",
+                        "toOffset": 5.0
+                    },
+                    "y": {
+                        "type": "edge",
+                        "edge": "top",
+                        "offset": 1.0
+                    },
+                    "isRelative": true
                 },
                 {
                     "type": "if",
@@ -13264,15 +13462,12 @@
                         "comparison": "less",
                         "value": {
                             "type": "betweenEdges",
-                            "from": "left",
+                            "from": "top",
                             "fromOffset": 0.0,
-                            "to": "right",
+                            "to": "bottom",
                             "toOffset": 0.0
                         }
                     }
-                },
-                {
-                    "type": "end"
                 },
                 {
                     "type": "end"
@@ -13797,12 +13992,30 @@
                     }
                 },
                 {
-                    "type": "repeat",
-                    "times": {
+                    "type": "changeNumber",
+                    "property": "score",
+                    "by": {
                         "type": "edge",
                         "edge": "top",
                         "offset": 0.0
                     }
+                },
+                {
+                    "type": "addActor",
+                    "actorType": "Ball",
+                    "x": {
+                        "type": "betweenEdges",
+                        "from": "right",
+                        "fromOffset": -5.0,
+                        "to": "left",
+                        "toOffset": 5.0
+                    },
+                    "y": {
+                        "type": "edge",
+                        "edge": "top",
+                        "offset": 1.0
+                    },
+                    "isRelative": true
                 },
                 {
                     "type": "if",
@@ -13812,15 +14025,12 @@
                         "comparison": "less",
                         "value": {
                             "type": "betweenEdges",
-                            "from": "left",
+                            "from": "top",
                             "fromOffset": 0.0,
-                            "to": "right",
+                            "to": "bottom",
                             "toOffset": 0.0
                         }
                     }
-                },
-                {
-                    "type": "end"
                 },
                 {
                     "type": "end"

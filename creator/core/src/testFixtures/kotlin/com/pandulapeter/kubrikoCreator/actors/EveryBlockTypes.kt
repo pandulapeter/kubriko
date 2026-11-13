@@ -124,9 +124,9 @@ public object EveryBlockTypes {
         get() = listOf(
             BlockDefinition.AddActor("EveryBlock", x = NumberValue.Edge(SceneEdge.RIGHT, offset = 50f), y = NumberValue.BetweenEdges(SceneEdge.TOP, 10f, SceneEdge.BOTTOM, -10f), isRelative = false),
             BlockDefinition.JumpTo(x = NumberValue.Edge(SceneEdge.LEFT), y = NumberValue.Edge(SceneEdge.BOTTOM, offset = -2.5f)),
-            BlockDefinition.Repeat(times = NumberValue.Edge(SceneEdge.TOP)),
-            BlockDefinition.If(ConditionDefinition.Number("score", Comparison.LESS, NumberValue.BetweenEdges())),
-            BlockDefinition.End,
+            BlockDefinition.ChangeNumber(property = "score", by = NumberValue.Edge(SceneEdge.TOP)),
+            BlockDefinition.AddActor("Ball", x = NumberValue.BetweenEdges(SceneEdge.RIGHT, -5f, SceneEdge.LEFT, 5f), y = NumberValue.Edge(SceneEdge.TOP, 1f)),
+            BlockDefinition.If(ConditionDefinition.Number("score", Comparison.LESS, NumberValue.BetweenEdges(SceneEdge.TOP, to = SceneEdge.BOTTOM))),
             BlockDefinition.End,
         )
 

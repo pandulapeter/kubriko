@@ -13,7 +13,6 @@ import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
-import com.pandulapeter.kubrikoCreator.actors.SceneEdge
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.BOUNCE_OFF_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.NUMBER_TEXT_FUNCTION
@@ -185,7 +184,13 @@ internal object ActorClassCode {
      */
     fun StringBuilder.appendEdgeHandling(onTouched: StringBuilder.() -> Unit) {
         appendLine("        val box = body.axisAlignedBoundingBox")
-        SceneEdge.entries.map(ScenesCodeGenerator::edgeGetterOf).forEach { edge -> appendLine("        val $edge = $SCENES_FIELD.$edge") }
+        // The settings are read once, so a Scene that finishes loading meanwhile can't mix its bounds with the screen's,
+        // and not through a nullable SceneOffset, which would box every frame.
+        appendLine("        val sceneSettings = $SCENES_FIELD.settings")
+        appendLine("        val leftEdge = if (sceneSettings == null) viewportManager.topLeft.value.x else sceneSettings.topLeft.x")
+        appendLine("        val rightEdge = if (sceneSettings == null) viewportManager.bottomRight.value.x else sceneSettings.bottomRight.x")
+        appendLine("        val topEdge = if (sceneSettings == null) viewportManager.topLeft.value.y else sceneSettings.topLeft.y")
+        appendLine("        val bottomEdge = if (sceneSettings == null) viewportManager.bottomRight.value.y else sceneSettings.bottomRight.y")
         // Strict, so an Actor resting where the push below left it doesn't run the Event again every frame.
         appendLine("        val isTouchingLeftEdge = box.min.x < leftEdge")
         appendLine("        val isTouchingRightEdge = box.max.x > rightEdge")
