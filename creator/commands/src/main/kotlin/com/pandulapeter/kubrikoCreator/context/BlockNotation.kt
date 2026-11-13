@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.SceneEdge
+import com.pandulapeter.kubrikoCreator.actors.readsEdges
 
 /**
  * Events and Blocks written as the editor shows them, one short line each, for tool results that are cheaper to read than
@@ -69,7 +70,11 @@ internal object BlockNotation {
         is BlockDefinition.ChangeNumber -> "Change ${property(block.property, block.manager)} by ${value(block.by)}"
         is BlockDefinition.SetText -> "Set ${property(block.property, block.manager)} to ${text(block.value)}"
         is BlockDefinition.SetToggle -> "Turn ${property(block.property, block.manager)} ${if (block.value) "on" else "off"}"
-        is BlockDefinition.AddActor -> "Add an Actor of ${name(block.actorType)} at ${point(block.x, block.y)} " + if (block.isRelative) "from this Actor" else "from the center"
+        is BlockDefinition.AddActor -> "Add an Actor of ${name(block.actorType)} at ${point(block.x, block.y)} " + when {
+            !block.isRelative -> "from the center"
+            block.x.readsEdges || block.y.readsEdges -> "from this Actor (an edge is the Scene's own)"
+            else -> "from this Actor"
+        }
         is BlockDefinition.MoveTowardsNearest -> "Move towards the nearest ${name(block.actorType)} at speed ${value(block.speed)}"
         is BlockDefinition.StartTimer -> "Start Timer ${block.timer} for ${value(block.seconds)} s" + if (block.isRepeating) ", repeating" else ""
         is BlockDefinition.StopTimer -> "Stop Timer ${block.timer}"

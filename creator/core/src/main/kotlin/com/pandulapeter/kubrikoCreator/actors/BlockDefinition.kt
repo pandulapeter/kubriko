@@ -143,7 +143,7 @@ public sealed interface BlockDefinition {
         @SerialName("x") val x: NumberValue = NumberValue.Fixed(0f),
         @Description("The vertical position, positive downwards.")
         @SerialName("y") val y: NumberValue = NumberValue.Fixed(0f),
-        @Description("True to place it relative to this Actor, false to place it relative to the center of the Scene.")
+        @Description("True to place it relative to this Actor, false to place it relative to the center of the Scene. An edge value is the Scene's own either way.")
         @SerialName("isRelative") val isRelative: Boolean = true,
     ) : BlockDefinition
 
