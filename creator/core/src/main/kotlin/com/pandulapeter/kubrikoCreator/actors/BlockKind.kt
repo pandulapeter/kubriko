@@ -32,7 +32,7 @@ public enum class BlockKind(
     STOP({ BlockDefinition.Stop }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE),
     RUN_PARENT_EVENT({ BlockDefinition.RunParentEvent }, managerTypeProblem = PlacementProblem.BLOCK_RUN_PARENT_EVENT_IN_MANAGER_TYPE),
     JUMP_TO({ BlockDefinition.JumpTo() }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE),
-    BOUNCE_OFF_EDGE({ BlockDefinition.BounceOffEdge }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE, onlyIn = EventType.EDGE_TOUCHED, misplacedComment = "// Bounce off the edge only works in the Edge touched Event.", otherEventProblem = PlacementProblem.BLOCK_BOUNCE_OFF_EDGE_OUTSIDE_EDGE_TOUCHED),
+    BOUNCE_OFF_EDGE({ BlockDefinition.BounceOffEdge }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE, onlyIn = EventType.EDGE_TOUCHED, misplacedComment = "// Bounce off the edge only works in an edge Event.", otherEventProblem = PlacementProblem.BLOCK_BOUNCE_OFF_EDGE_OUTSIDE_EDGE_TOUCHED),
     REMOVE_SELF({ BlockDefinition.RemoveSelf }, managerTypeProblem = PlacementProblem.BLOCK_REMOVE_SELF_IN_MANAGER_TYPE),
     BOUNCE_OFF_OTHER({ BlockDefinition.BounceOffOther }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE, onlyIn = EventType.COLLISION, misplacedComment = "// Bounce off it only works in a collision Event.", otherEventProblem = PlacementProblem.BLOCK_BOUNCE_OFF_OTHER_OUTSIDE_COLLISION),
     REMOVE_OTHER({ BlockDefinition.RemoveOther }, managerTypeProblem = PlacementProblem.BLOCK_REMOVE_OTHER_IN_MANAGER_TYPE, onlyIn = EventType.COLLISION, misplacedComment = "// Remove the other Actor only works in a collision Event.", otherEventProblem = PlacementProblem.BLOCK_REMOVE_OTHER_OUTSIDE_COLLISION),

@@ -33,7 +33,7 @@ internal object BlockNotation {
         EventType.ADDED_TO_SCENE -> "When added to the Scene"
         EventType.EVERY_FRAME -> "Every frame"
         EventType.KEY_PRESSED -> "When ${event.key?.composeKeyName ?: NONE} is pressed"
-        EventType.EDGE_TOUCHED -> "When an edge of the screen is touched"
+        EventType.EDGE_TOUCHED -> "When it reaches an edge of the Scene"
         EventType.LEFT_SCENE -> "When it leaves the Scene"
         EventType.COLLISION -> "When it collides with ${event.otherActorType ?: NONE}"
         EventType.TIMER_FINISHED -> "When Timer ${event.timer ?: NONE} finishes"

@@ -42,7 +42,7 @@ class BlockKindTest {
     @Test
     fun theBlocksThatOnlyWorkInOneEventSayWhereAndWhy() {
         val expected = mapOf(
-            BlockKind.BOUNCE_OFF_EDGE to (EventType.EDGE_TOUCHED to "// Bounce off the edge only works in the Edge touched Event."),
+            BlockKind.BOUNCE_OFF_EDGE to (EventType.EDGE_TOUCHED to "// Bounce off the edge only works in an edge Event."),
             BlockKind.BOUNCE_OFF_OTHER to (EventType.COLLISION to "// Bounce off it only works in a collision Event."),
             BlockKind.REMOVE_OTHER to (EventType.COLLISION to "// Remove the other Actor only works in a collision Event."),
         )
