@@ -41,7 +41,7 @@ public data class ActorTypeDefinition(
     @SerialName("width") val width: Float = 80f,
     @Description("The height of a newly placed Actor, in scene units.")
     @SerialName("height") val height: Float = 80f,
-    @Description("Whether its Actors are pushed back inside the Scene's bounds whenever they reach past an edge, rather than moving on past it.")
+    @Description(STAYS_INSIDE_SCENE_DESCRIPTION)
     @SerialName("staysInsideScene") val staysInsideScene: Boolean = false,
     @Description("The values each of its Actors keeps, like a score, which Blocks can change.")
     @SerialName("properties") override val properties: List<PropertyDefinition> = emptyList(),
@@ -60,4 +60,12 @@ public data class ActorTypeDefinition(
     override fun withProperties(properties: List<PropertyDefinition>): ActorTypeDefinition = copy(properties = properties)
 
     override fun withEvents(events: List<EventDefinition>): ActorTypeDefinition = copy(events = events)
+
+    public companion object {
+
+        /**
+         * What [staysInsideScene] means, for every tool schema that sets it.
+         */
+        public const val STAYS_INSIDE_SCENE_DESCRIPTION: String = "Whether its Actors are pushed back inside the Scene's bounds whenever they reach past an edge, rather than moving on past it."
+    }
 }

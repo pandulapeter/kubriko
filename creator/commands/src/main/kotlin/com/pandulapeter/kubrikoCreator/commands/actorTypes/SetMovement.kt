@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
@@ -50,7 +51,7 @@ public object SetMovement : WriteCommand<SetMovement.Input> {
     public data class Input(
         @Description(Descriptions.ACTOR_TYPE_NAME)
         @SerialName("actorType") val actorType: String,
-        @Description("Whether its Actors are pushed back inside the Scene's bounds whenever they reach past an edge, rather than moving on past it.")
+        @Description(ActorTypeDefinition.STAYS_INSIDE_SCENE_DESCRIPTION)
         @SerialName("staysInsideScene") val staysInsideScene: Boolean? = null,
     )
 }
