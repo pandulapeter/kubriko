@@ -26,16 +26,15 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Go on with `01-blocks.md`, at Moving in a direction. Entering and leaving the Scene is done (2026-11-13), with the
-Staying inside the Scene item: the When it leaves the Scene Event (`EventType.LEFT_SCENE`) runs once an Actor is wholly
-outside after having been inside, never for one that stays inside; staying inside is the Actor type's `staysInsideScene`
-(`set_movement`, the type editor's Movement section), and the edge Event (now titled When it reaches an edge of the Scene)
-no longer pushes and runs only when an edge starts being reached past. Format version 7 (`SceneLeavingMigration`) turns
-staying inside on for every type with an edge Event and every member of a family with one, after freeing the names
-`SceneBoundsCode` keeps. It was reviewed with `/code-review` (b5fc49352..d3fe3646f), and every finding fixed: the
-migration's families, the starter's Ball, the edge Event on an Actor added past an edge, a staying Actor leaving, the
-fields and calls from one flag, the shared description, and the Event's title. The integration test built every
-template after the fixes.
+Go on with `01-blocks.md`, at Color and opacity. Moving in a direction is done (2026-11-13): the Move in a direction Block
+(`BlockDefinition.MoveInDirection`) sets the velocity from a direction in degrees (0 right, 90 down, clockwise) and a speed,
+either a number, a random number, or a Property's value (no edges: neither is a position, which validation and the field
+both keep, and Move towards the nearest's speed now too). It calls a generated `velocityInDirection` function, so the two
+numbers are read once each with no local in scope; format version 8 reserves that name (`ReservedPropertyMigration.DIRECTION`).
+Before it, Move towards the nearest started reading its speed before its own locals, so a speed Property named `actors` or
+`nearest` compiles (b9205158b). It was reviewed with `/code-review` before committing, and every finding fixed in the same
+commit (edges refused, the notation's title, one shared `UnitText`, one conversion to radians, the reserved name). The
+integration test built every template after the fixes.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
@@ -76,10 +75,12 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
   Event but doesn't stay inside, so in the replayed game it can slide off screen once stopped there. Record it again
   (`EvalSetLiveTest` with `KUBRIKO_CREATOR_EVAL_RECORD=true`) when a live run can be spent, and consider checking in
   its request that the Bat stays inside.
+- A played game moving Actors in a direction (the integration test compiles every kind of value, but nothing runs one);
+  an end-to-end scenario under Xvfb could add a Brick moving at 90 degrees and check by pixels that it moved down.
 - A played game with Actors leaving the Scene and staying inside it (the integration test compiles every combination, but
   nothing runs one); an end-to-end scenario under Xvfb could add a Brick moving left from past the right edge with a
   When it leaves the Scene → Remove this Actor, and check by pixels that it crosses and is gone.
-- The eval set has no request using `find_usages` or `search_project`, nor the new resource tools, `move_folder`, `set_sprite_sheet`, the animation Blocks, or the drawing tools yet; record one (`EvalSetLiveTest` with
+- The eval set has no request using `find_usages` or `search_project`, nor the new resource tools, `move_folder`, `set_sprite_sheet`, the animation Blocks, Move in a direction, or the drawing tools yet; record one (`EvalSetLiveTest` with
   `KUBRIKO_CREATOR_EVAL_RECORD=true`) once a live run can be spent on it.
 
 ## Before a release
