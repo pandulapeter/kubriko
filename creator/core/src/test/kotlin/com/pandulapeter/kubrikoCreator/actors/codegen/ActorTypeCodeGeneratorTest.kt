@@ -218,11 +218,11 @@ class ActorTypeCodeGeneratorTest {
     }
 
     @Test
-    fun anActorThatDoesNotStayInsideMovesOnAndRunsTheEdgeEventOnlyWhenItStartsReachingPastAnEdge() {
+    fun anActorThatDoesNotStayInsideMovesOnAndRunsTheEdgeEventOnlyWhenItStartsReachingPastAnEdgeNotWhereItWasAdded() {
         val code = generate(EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.Log("Edge"))))
         assertFalse("body.position += SceneOffset(" in code)
         assertFalse("SceneUnit" in code)
-        assertContains(code, "    private var wasTouchingLeftEdge = false\n")
+        assertContains(code, "    private var wasTouchingLeftEdge = true\n")
         assertContains(
             code,
             "        if ((isTouchingLeftEdge && !wasTouchingLeftEdge) || (isTouchingRightEdge && !wasTouchingRightEdge) || " +

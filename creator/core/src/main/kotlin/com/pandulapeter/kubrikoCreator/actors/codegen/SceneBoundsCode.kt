@@ -45,9 +45,10 @@ internal object SceneBoundsCode {
         if (firesEdgeEvent && containment != SceneContainment.ALL) {
             appendLine()
             appendLine("    /**")
-            appendLine("     * The edges it reached past on the last frame, so the edge Event runs only when it starts reaching past one.")
+            appendLine("     * The edges it reached past on the last frame, every one before the first, so the edge Event runs only when it starts")
+            appendLine("     * reaching past one, never for where it was added.")
             appendLine("     */")
-            WAS_TOUCHING_FIELDS.forEach { appendLine("    private var $it = false") }
+            WAS_TOUCHING_FIELDS.forEach { appendLine("    private var $it = true") }
         }
         if (firesLeftSceneEvent) {
             appendLine()
@@ -62,7 +63,7 @@ internal object SceneBoundsCode {
      * Pushes the Actor back inside per [containment], runs [edgeCall] (with `isTouchingLeftEdge` and the others in scope)
      * when it starts reaching past an edge, and [leftSceneCall] once it is wholly outside after having been inside.
      * An Actor that stays inside is pushed back every time, so for it the edge Event runs on every frame it reaches past
-     * an edge, as it always did.
+     * an edge, as it always did, its first one too.
      */
     fun StringBuilder.appendBoundsHandling(containment: SceneContainment, edgeCall: String?, leftSceneCall: String?) {
         val readsEdges = edgeCall != null || containment != SceneContainment.NONE
@@ -91,7 +92,8 @@ internal object SceneBoundsCode {
         }
         if (edgeCall != null && containment != SceneContainment.ALL) {
             val startsTouching = EDGES.zip(WAS_TOUCHING_FIELDS).joinToString(" || ") { (edge, was) -> "(isTouching${edge}Edge && !$was)" }
-            appendLine("        if ($startsTouching) $edgeCall")
+            val condition = if (containment == SceneContainment.SOME) "($STAYS_INSIDE_FIELD && ($isTouchingAny)) || $startsTouching" else startsTouching
+            appendLine("        if ($condition) $edgeCall")
             EDGES.zip(WAS_TOUCHING_FIELDS).forEach { (edge, was) ->
                 appendLine("        $was = isTouching${edge}Edge${if (containment == SceneContainment.SOME) " && !$STAYS_INSIDE_FIELD" else ""}")
             }

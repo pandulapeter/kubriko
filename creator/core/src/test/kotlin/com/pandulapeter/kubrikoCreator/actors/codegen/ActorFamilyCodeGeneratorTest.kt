@@ -168,6 +168,7 @@ class ActorFamilyCodeGeneratorTest {
         val types = listOf(withEdge, bat, wall)
         val code = ActorTypeCodeGenerator.generateActorType(withEdge, "com.example.game", types.map { it.name }, actorTypes = types)
         assertContains(code, "        wasTouchingLeftEdge = isTouchingLeftEdge && !staysInsideScene\n")
+        assertContains(code, "        if ((staysInsideScene && (isTouchingLeftEdge || isTouchingRightEdge || isTouchingTopEdge || isTouchingBottomEdge)) || (isTouchingLeftEdge && !wasTouchingLeftEdge) || ")
         assertContains(code, "    protected open fun onEdgeTouched(")
     }
 
