@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
+import com.pandulapeter.kubrikoCreator.actors.SceneEdge
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -42,6 +43,12 @@ class BlockNotationTest {
         )
         assertEquals("Repeat a random whole number from 1 to 3 times", BlockNotation.of(BlockDefinition.Repeat(NumberValue.Random(1f, 3f, isWhole = true))))
         assertEquals("If by chance ((none)%)", BlockNotation.of(BlockDefinition.If(ConditionDefinition.Chance(NumberValue.Property()))))
+        assertEquals(
+            "Add an Actor of Drifter at (the right edge + 50, a random number from the top edge - 0.5 to the bottom edge) from the center",
+            BlockNotation.of(
+                BlockDefinition.AddActor("Drifter", NumberValue.Edge(SceneEdge.RIGHT, 50f), NumberValue.BetweenEdges(SceneEdge.TOP, -0.5f, SceneEdge.BOTTOM), isRelative = false),
+            ),
+        )
     }
 
     @Test

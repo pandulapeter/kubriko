@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
+import com.pandulapeter.kubrikoCreator.actors.SceneEdge
 
 /**
  * Events and Blocks written as the editor shows them, one short line each, for tool results that are cheaper to read than
@@ -117,12 +118,21 @@ internal object BlockNotation {
     }
 
     /**
-     * A number a Block takes: `200`, `a random number from 1 to 5`, or `speed of Game`.
+     * A number a Block takes: `200`, `a random number from 1 to 5`, `speed of Game`, `the right edge + 50`, or
+     * `a random number from the top edge to the bottom edge`.
      */
     fun value(value: NumberValue) = when (value) {
         is NumberValue.Fixed -> number(value.value)
         is NumberValue.Random -> "a random ${if (value.isWhole) "whole " else ""}number from ${number(value.from)} to ${number(value.to)}"
         is NumberValue.Property -> property(value.property, value.manager)
+        is NumberValue.Edge -> edge(value.edge, value.offset)
+        is NumberValue.BetweenEdges -> "a random number from ${edge(value.from, value.fromOffset)} to ${edge(value.to, value.toOffset)}"
+    }
+
+    private fun edge(edge: SceneEdge, offset: Float) = "the ${edge.name.lowercase()} edge" + when {
+        offset > 0f -> " + ${number(offset)}"
+        offset < 0f -> " - ${number(-offset)}"
+        else -> ""
     }
 
     private fun point(x: NumberValue, y: NumberValue) = "(${value(x)}, ${value(y)})"

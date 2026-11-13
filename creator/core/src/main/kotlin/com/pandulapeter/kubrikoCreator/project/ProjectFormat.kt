@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.project
 
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
+import com.pandulapeter.kubrikoCreator.actors.store.EdgeValuesMigration
 import com.pandulapeter.kubrikoCreator.actors.store.KotlinBlockImportsMigration
 import com.pandulapeter.kubrikoCreator.actors.store.ManagerFieldMigration
 import com.pandulapeter.kubrikoCreator.actors.store.NumberValuesMigration
@@ -91,6 +92,7 @@ public class ProjectFormat(
             ReservedPropertyMigration.LOOK,
             ReservedPropertyMigration.ANIMATION,
             NumberValuesMigration,
+            EdgeValuesMigration,
         )
 
         /**

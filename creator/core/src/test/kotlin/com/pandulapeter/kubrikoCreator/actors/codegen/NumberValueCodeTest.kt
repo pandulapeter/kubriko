@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.actors.codegen
 
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
@@ -16,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.actors.SceneEdge
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -99,5 +101,47 @@ class NumberValueCodeTest {
             lines(BlockDefinition.StartTimer("timerOne", NumberValue.Property("speed"), isRepeating = true)),
         )
         assertEquals(listOf("timerOneRemainingInMilliseconds = 1500", "timerOnePeriodInMilliseconds = 0"), lines(BlockDefinition.StartTimer("timerOne", NumberValue.Fixed(1.5f))))
+    }
+
+    @Test
+    fun anEdgeIsReadFromTheScenesWhenTheBlockRuns() {
+        assertEquals("generatedScenes.rightEdge.raw", NumberValueCode.float(NumberValue.Edge(SceneEdge.RIGHT), scope))
+        assertEquals("(generatedScenes.leftEdge.raw + 50f)", NumberValueCode.float(NumberValue.Edge(SceneEdge.LEFT, 50f), scope))
+        assertEquals("(generatedScenes.bottomEdge.raw - 2.5f)", NumberValueCode.float(NumberValue.Edge(SceneEdge.BOTTOM, -2.5f), scope))
+        assertEquals("generatedScenes.topEdge.raw.toInt().coerceAtLeast(1)", NumberValueCode.whole(NumberValue.Edge(SceneEdge.TOP), scope, minimum = 1))
+        assertEquals(
+            "((generatedScenes.topEdge.raw + 10f) + KubrikoWiring.random.nextFloat() * (generatedScenes.bottomEdge.raw - (generatedScenes.topEdge.raw + 10f)))",
+            NumberValueCode.float(NumberValue.BetweenEdges(SceneEdge.TOP, 10f, SceneEdge.BOTTOM), scope),
+        )
+    }
+
+    @Test
+    fun aBlockReadingAnEdgeNeedsTheScenesInActorAndManagerTypes() {
+        val value = NumberValue.BetweenEdges()
+        assertEquals(setOf(BlockNeed.SCENES), NumberValueCode.needsOf(listOf(NumberValue.Fixed(1f), value)))
+        assertEquals(emptySet(), NumberValueCode.needsOf(listOf(NumberValue.Fixed(1f), NumberValue.Random())))
+        val managerScope = BlockScope("Game", BlockTypeKind.MANAGER, game.properties, managerTypes = listOf(game))
+        listOf(scope, managerScope).forEach { blockScope ->
+            val code = BlockCodeGenerator.blockCode(BlockDefinition.SetNumber("score", NumberValue.Edge(SceneEdge.TOP), manager = "Game"), EventType.EVERY_FRAME, blockScope)
+            assertEquals(true, BlockNeed.SCENES in code.needs, blockScope.typeName)
+        }
+    }
+
+    @Test
+    fun anActorAddedFromThisOneStillGoesToTheEdgeItself() {
+        val scope = BlockScope.of(ActorTypeDefinition(name = "Ball"), listOf(ActorTypeDefinition(name = "Ball")))
+        fun line(block: BlockDefinition.AddActor) = BlockCodeGenerator.blockCode(block, EventType.EVERY_FRAME, scope).lines.single()
+        assertEquals(
+            "actorManager.add(Ball.metadata.instantiate(SceneOffset((generatedScenes.rightEdge.raw + 50f).sceneUnit, body.position.y + 10f.sceneUnit)).restore())",
+            line(BlockDefinition.AddActor("Ball", x = NumberValue.Edge(SceneEdge.RIGHT, 50f), y = NumberValue.Fixed(10f))),
+        )
+        assertEquals(
+            "actorManager.add(Ball.metadata.instantiate(body.position + SceneOffset(5f.sceneUnit, 10f.sceneUnit)).restore())",
+            line(BlockDefinition.AddActor("Ball", x = NumberValue.Fixed(5f), y = NumberValue.Fixed(10f))),
+        )
+        assertEquals(
+            "actorManager.add(Ball.metadata.instantiate(SceneOffset(5f.sceneUnit, generatedScenes.topEdge.raw.sceneUnit)).restore())",
+            line(BlockDefinition.AddActor("Ball", x = NumberValue.Fixed(5f), y = NumberValue.Edge(SceneEdge.TOP), isRelative = false)),
+        )
     }
 }

@@ -22,17 +22,20 @@ internal enum class NumberValueKind {
     RANDOM,
     RANDOM_WHOLE,
     PROPERTY,
+    EDGE,
+    BETWEEN_EDGES,
     ;
 
     /**
-     * [value] turned into this kind, keeping what it can: a fixed number becomes a random one between 0 and it, and a
-     * random one becomes the number it starts from, rounded in a field that only takes whole numbers.
+     * [value] turned into this kind, keeping what it can: a fixed number becomes a random one between 0 and it, a random
+     * one becomes the number it starts from, rounded in a field that only takes whole numbers, an edge becomes one end of
+     * a random number between it and the edge across, and the end it starts from becomes an edge again.
      */
     fun of(value: NumberValue, isWholeField: Boolean = false): NumberValue = when (this) {
         FIXED -> when (value) {
             is NumberValue.Fixed -> value
             is NumberValue.Random -> NumberValue.Fixed(if (isWholeField) value.from.roundToInt().toFloat() else value.from)
-            is NumberValue.Property -> NumberValue.Fixed(0f)
+            is NumberValue.Property, is NumberValue.Edge, is NumberValue.BetweenEdges -> NumberValue.Fixed(0f)
         }
         RANDOM, RANDOM_WHOLE -> when (value) {
             is NumberValue.Fixed -> if (value.value == 0f) {
@@ -41,16 +44,27 @@ internal enum class NumberValueKind {
                 NumberValue.Random(from = min(0f, value.value), to = max(0f, value.value), isWhole = this == RANDOM_WHOLE)
             }
             is NumberValue.Random -> value.copy(isWhole = this == RANDOM_WHOLE)
-            is NumberValue.Property -> NumberValue.Random(isWhole = this == RANDOM_WHOLE)
+            is NumberValue.Property, is NumberValue.Edge, is NumberValue.BetweenEdges -> NumberValue.Random(isWhole = this == RANDOM_WHOLE)
         }
         PROPERTY -> value as? NumberValue.Property ?: NumberValue.Property()
+        EDGE -> when (value) {
+            is NumberValue.Edge -> value
+            is NumberValue.BetweenEdges -> NumberValue.Edge(value.from, value.fromOffset)
+            is NumberValue.Fixed, is NumberValue.Random, is NumberValue.Property -> NumberValue.Edge()
+        }
+        BETWEEN_EDGES -> when (value) {
+            is NumberValue.BetweenEdges -> value
+            is NumberValue.Edge -> NumberValue.BetweenEdges(from = value.edge, fromOffset = value.offset, to = value.edge.opposite)
+            is NumberValue.Fixed, is NumberValue.Random, is NumberValue.Property -> NumberValue.BetweenEdges()
+        }
     }
 
     companion object {
 
         /**
          * The kinds a field offers: one that only takes whole numbers draws whole numbers anyway, so it offers one random
-         * kind.
+         * kind, and counts things rather than placing them, so it offers no edges (one that already holds one still shows
+         * it).
          */
         fun offeredBy(isWholeField: Boolean) = if (isWholeField) listOf(FIXED, RANDOM, PROPERTY) else entries
 
@@ -58,6 +72,8 @@ internal enum class NumberValueKind {
             is NumberValue.Fixed -> FIXED
             is NumberValue.Random -> if (value.isWhole && !isWholeField) RANDOM_WHOLE else RANDOM
             is NumberValue.Property -> PROPERTY
+            is NumberValue.Edge -> EDGE
+            is NumberValue.BetweenEdges -> BETWEEN_EDGES
         }
     }
 }

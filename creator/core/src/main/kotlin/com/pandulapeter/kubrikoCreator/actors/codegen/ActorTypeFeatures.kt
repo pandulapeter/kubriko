@@ -71,7 +71,7 @@ internal class ActorTypeFeatures(
      * which GeneratedScenes knows, and key Events check whether the game is paused.
      */
     private val needs = blockCode.needs + buildSet {
-        if (edgeEvents.isNotEmpty()) addAll(listOf(BlockNeed.MOVEMENT, BlockNeed.VIEWPORT_MANAGER, BlockNeed.SCENES))
+        if (edgeEvents.isNotEmpty()) addAll(listOf(BlockNeed.MOVEMENT, BlockNeed.SCENES))
         if (timers.isNotEmpty() || everyFrameEvents.any { it.blocks.isNotEmpty() }) add(BlockNeed.MOVEMENT)
         if (keyEvents.isNotEmpty()) add(BlockNeed.STATE_MANAGER)
         if (isAnimated) add(BlockNeed.MOVEMENT)

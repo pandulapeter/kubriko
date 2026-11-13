@@ -23,25 +23,36 @@ import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyReference
+import com.pandulapeter.kubrikoCreator.actors.SceneEdge
+import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.MenuIconButton
 import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.ic_edge
 import kubriko.creator.generated.resources.ic_number
 import kubriko.creator.generated.resources.ic_property
 import kubriko.creator.generated.resources.ic_random
+import kubriko.creator.generated.resources.number_value_between_edges
+import kubriko.creator.generated.resources.number_value_edge
 import kubriko.creator.generated.resources.number_value_fixed
 import kubriko.creator.generated.resources.number_value_from
 import kubriko.creator.generated.resources.number_value_kind
+import kubriko.creator.generated.resources.number_value_offset
 import kubriko.creator.generated.resources.number_value_property
 import kubriko.creator.generated.resources.number_value_random
 import kubriko.creator.generated.resources.number_value_random_whole
 import kubriko.creator.generated.resources.number_value_to
+import kubriko.creator.generated.resources.scene_edge_bottom
+import kubriko.creator.generated.resources.scene_edge_left
+import kubriko.creator.generated.resources.scene_edge_right
+import kubriko.creator.generated.resources.scene_edge_top
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * A number a Block takes ([NumberValue]): a button showing its kind, which offers the others, then a number, the two a
- * random number is drawn between, or which of the number Properties in [scope] it reads.
+ * random number is drawn between, which of the number Properties in [scope] it reads, or an edge of the Scene (or two)
+ * with what is added to it.
  *
  * @param isWhole Whether the field only takes whole numbers.
  * @param accepts Which numbers the field takes; a number typed outside them isn't reported.
@@ -97,7 +108,42 @@ internal fun NumberValueField(
                 onValueChange(NumberValue.Property(property = it.name, manager = it.manager))
             }
         }
+        is NumberValue.Edge -> {
+            FieldName(label)
+            EdgeWithOffset(value.edge, value.offset, fieldWidth) { edge, offset -> onValueChange(NumberValue.Edge(edge, offset)) }
+        }
+        is NumberValue.BetweenEdges -> {
+            FieldName(label)
+            FieldName(Res.string.number_value_from)
+            EdgeWithOffset(value.from, value.fromOffset, fieldWidth) { edge, offset -> onValueChange(value.copy(from = edge, fromOffset = offset)) }
+            FieldName(Res.string.number_value_to)
+            EdgeWithOffset(value.to, value.toOffset, fieldWidth) { edge, offset -> onValueChange(value.copy(to = edge, toOffset = offset)) }
+        }
     }
+}
+
+/**
+ * Which edge of the Scene, and the offset added to where it is.
+ */
+@Composable
+private fun EdgeWithOffset(
+    edge: SceneEdge,
+    offset: Float,
+    fieldWidth: Dp,
+    onChange: (SceneEdge, Float) -> Unit,
+) {
+    MenuButton(
+        label = stringResource(edge.title),
+        options = SceneEdge.entries,
+        optionText = { stringResource(it.title) },
+        onSelected = { onChange(it, offset) },
+    )
+    NumberField(
+        modifier = Modifier.width(fieldWidth),
+        label = Res.string.number_value_offset,
+        value = offset,
+        onValueChange = { onChange(edge, it) },
+    )
 }
 
 @Composable
@@ -112,6 +158,7 @@ private val NumberValueKind.icon
         NumberValueKind.FIXED -> Res.drawable.ic_number
         NumberValueKind.RANDOM, NumberValueKind.RANDOM_WHOLE -> Res.drawable.ic_random
         NumberValueKind.PROPERTY -> Res.drawable.ic_property
+        NumberValueKind.EDGE, NumberValueKind.BETWEEN_EDGES -> Res.drawable.ic_edge
     }
 
 private val NumberValueKind.title
@@ -120,4 +167,14 @@ private val NumberValueKind.title
         NumberValueKind.RANDOM -> Res.string.number_value_random
         NumberValueKind.RANDOM_WHOLE -> Res.string.number_value_random_whole
         NumberValueKind.PROPERTY -> Res.string.number_value_property
+        NumberValueKind.EDGE -> Res.string.number_value_edge
+        NumberValueKind.BETWEEN_EDGES -> Res.string.number_value_between_edges
+    }
+
+private val SceneEdge.title
+    get() = when (this) {
+        SceneEdge.LEFT -> Res.string.scene_edge_left
+        SceneEdge.RIGHT -> Res.string.scene_edge_right
+        SceneEdge.TOP -> Res.string.scene_edge_top
+        SceneEdge.BOTTOM -> Res.string.scene_edge_bottom
     }

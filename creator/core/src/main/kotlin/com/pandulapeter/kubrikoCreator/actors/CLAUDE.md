@@ -22,11 +22,15 @@
   compiler then names every remaining place (references, validation, notation, the editor row, its icon), and
   `theIntegrationProjectUsesEveryBlockAndCondition` fails until `EveryBlockTypes` (whose generated code `GeneratedCodeGoldenTest`
   pins) uses it.
-- Every number a Block takes is a `NumberValue` (a number, a random number between two, or a number Property's value), one
+- Every number a Block takes is a `NumberValue` (a number, a random number between two, a number Property's value, an edge
+  of the Scene plus an offset, or a random number between two edges), one
   type every field shares rather than a random variant of each Block, so a new kind of number reaches every Block at once
   (`numberValues` reads them and `withNumberValues` replaces them, and `NumberValueFieldsTest` keeps the two agreeing). A fixed number stays a bare JSON number, so files only
   change where a value is something else. `NumberValueCode` makes each one operand that allocates nothing, and every random
   number comes from the one `KubrikoWiring.random`, so a test can seed the whole game.
+- Edges come from `GeneratedScenes`' edge getters (the Scene settings' bounds, or the screen's while there are none), which
+  the edge Event reads too, so the two never disagree; a getter rather than a nullable `SceneOffset`, which would box every
+  frame. An edge is the Scene's even in an Add an Actor placing from this Actor: only the other coordinate is relative.
 - Flow stays in each Event's flat Block list (if, else, repeat, and end mark sections), so every Block keeps its plain index
   (`BlockNesting` works out the depths).
 - It reads like the examples' hand-written code (`Dynamic`, `Collidable`, and Manager lookups only where needed) and behaves like

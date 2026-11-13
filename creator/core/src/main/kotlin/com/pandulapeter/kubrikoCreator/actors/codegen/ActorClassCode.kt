@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
+import com.pandulapeter.kubrikoCreator.actors.SceneEdge
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.BOUNCE_OFF_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.NUMBER_TEXT_FUNCTION
@@ -184,18 +185,16 @@ internal object ActorClassCode {
      */
     fun StringBuilder.appendEdgeHandling(onTouched: StringBuilder.() -> Unit) {
         appendLine("        val box = body.axisAlignedBoundingBox")
-        appendLine("        val sceneSettings = $SCENES_FIELD.settings")
-        appendLine("        val topLeft = sceneSettings?.topLeft ?: viewportManager.topLeft.value")
-        appendLine("        val bottomRight = sceneSettings?.bottomRight ?: viewportManager.bottomRight.value")
+        SceneEdge.entries.map(ScenesCodeGenerator::edgeGetterOf).forEach { edge -> appendLine("        val $edge = $SCENES_FIELD.$edge") }
         // Strict, so an Actor resting where the push below left it doesn't run the Event again every frame.
-        appendLine("        val isTouchingLeftEdge = box.min.x < topLeft.x")
-        appendLine("        val isTouchingRightEdge = box.max.x > bottomRight.x")
-        appendLine("        val isTouchingTopEdge = box.min.y < topLeft.y")
-        appendLine("        val isTouchingBottomEdge = box.max.y > bottomRight.y")
+        appendLine("        val isTouchingLeftEdge = box.min.x < leftEdge")
+        appendLine("        val isTouchingRightEdge = box.max.x > rightEdge")
+        appendLine("        val isTouchingTopEdge = box.min.y < topEdge")
+        appendLine("        val isTouchingBottomEdge = box.max.y > bottomEdge")
         appendLine("        if (isTouchingLeftEdge || isTouchingRightEdge || isTouchingTopEdge || isTouchingBottomEdge) {")
         appendLine("            body.position += SceneOffset(")
-        appendLine("                if (isTouchingLeftEdge) topLeft.x - box.min.x else if (isTouchingRightEdge) bottomRight.x - box.max.x else SceneUnit.Zero,")
-        appendLine("                if (isTouchingTopEdge) topLeft.y - box.min.y else if (isTouchingBottomEdge) bottomRight.y - box.max.y else SceneUnit.Zero,")
+        appendLine("                if (isTouchingLeftEdge) leftEdge - box.min.x else if (isTouchingRightEdge) rightEdge - box.max.x else SceneUnit.Zero,")
+        appendLine("                if (isTouchingTopEdge) topEdge - box.min.y else if (isTouchingBottomEdge) bottomEdge - box.max.y else SceneUnit.Zero,")
         appendLine("            )")
         onTouched()
         appendLine("        }")

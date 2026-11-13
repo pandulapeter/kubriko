@@ -14,8 +14,9 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * A number a Block takes: a fixed number, a random number between two, or the value of a number Property. Every number
- * field of every Block is one, so any of them can be any of these, worked out each time the Block runs.
+ * A number a Block takes: a fixed number, a random number between two, the value of a number Property, where an edge of
+ * the Scene is, or a random number between two edges. Every number field of every Block is one, so any of them can be any
+ * of these, worked out each time the Block runs.
  *
  * A fixed number is written as a bare JSON number, as every number field was before it could be anything else, and the
  * others as objects naming their kind in `type` ([NumberValueSerializer]).
@@ -50,12 +51,36 @@ public sealed interface NumberValue {
         @SerialName("manager") val manager: String? = null,
     ) : NumberValue
 
+    @Serializable
+    @SerialName("edge")
+    @Description("Where an edge of the Scene's bounds is (of the screen while the Scene has none, as the edge Event decides), plus offset, as it is when the Block runs; an Actor added from this one still goes to the edge itself.")
+    public data class Edge(
+        @Description("Which edge: left or right for a horizontal position, top or bottom for a vertical one.")
+        @SerialName("edge") val edge: SceneEdge = SceneEdge.LEFT,
+        @Description("Added to where the edge is: positive is right or down, negative left or up.")
+        @SerialName("offset") val offset: Float = 0f,
+    ) : NumberValue
+
+    @Serializable
+    @SerialName("betweenEdges")
+    @Description("A random number between two edges of the Scene's bounds (of the screen while the Scene has none), each plus its offset, drawn anew each time the Block runs.")
+    public data class BetweenEdges(
+        @Description("The edge one end is at.")
+        @SerialName("from") val from: SceneEdge = SceneEdge.LEFT,
+        @Description("Added to where the from edge is: positive is right or down, negative left or up.")
+        @SerialName("fromOffset") val fromOffset: Float = 0f,
+        @Description("The edge the other end is at.")
+        @SerialName("to") val to: SceneEdge = SceneEdge.RIGHT,
+        @Description("Added to where the to edge is: positive is right or down, negative left or up.")
+        @SerialName("toOffset") val toOffset: Float = 0f,
+    ) : NumberValue
+
     public companion object {
 
         /**
          * How a schema that doesn't list the kinds of numbers names them, after the field's own description.
          */
-        internal const val SUMMARY = "A number, or a random or property number value (get_block_catalog's numberValue describes them)."
+        internal const val SUMMARY = "A number, or a random, property, edge, or betweenEdges number value (get_block_catalog's numberValue describes them)."
     }
 }
 
@@ -73,4 +98,12 @@ public val NumberValue.isFinite: Boolean
         is NumberValue.Fixed -> value.isFinite()
         is NumberValue.Random -> from.isFinite() && to.isFinite()
         is NumberValue.Property -> true
+        is NumberValue.Edge -> offset.isFinite()
+        is NumberValue.BetweenEdges -> fromOffset.isFinite() && toOffset.isFinite()
     }
+
+/**
+ * Whether [this] value reads where the edges of the Scene are.
+ */
+public val NumberValue.readsEdges: Boolean
+    get() = this is NumberValue.Edge || this is NumberValue.BetweenEdges

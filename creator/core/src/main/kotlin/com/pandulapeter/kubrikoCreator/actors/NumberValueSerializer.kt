@@ -53,6 +53,8 @@ internal abstract class NumberValueFormat(
                 element(FIXED_NAME, PrimitiveSerialDescriptor("$serialName.$FIXED_NAME", if (isWhole) PrimitiveKind.INT else PrimitiveKind.FLOAT))
                 element(RANDOM_NAME, NumberValue.Random.serializer().descriptor)
                 element(PROPERTY_NAME, NumberValue.Property.serializer().descriptor)
+                element(EDGE_NAME, NumberValue.Edge.serializer().descriptor)
+                element(BETWEEN_EDGES_NAME, NumberValue.BetweenEdges.serializer().descriptor)
             },
         )
     }
@@ -68,6 +70,8 @@ internal abstract class NumberValueFormat(
                 }
                 is NumberValue.Random -> withType(RANDOM_NAME, json.encodeToJsonElement(NumberValue.Random.serializer(), value))
                 is NumberValue.Property -> withType(PROPERTY_NAME, json.encodeToJsonElement(NumberValue.Property.serializer(), value))
+                is NumberValue.Edge -> withType(EDGE_NAME, json.encodeToJsonElement(NumberValue.Edge.serializer(), value))
+                is NumberValue.BetweenEdges -> withType(BETWEEN_EDGES_NAME, json.encodeToJsonElement(NumberValue.BetweenEdges.serializer(), value))
             },
         )
     }
@@ -81,11 +85,13 @@ internal abstract class NumberValueFormat(
                 when (val type = (element[TYPE_KEY] as? JsonPrimitive)?.contentOrNull) {
                     RANDOM_NAME -> json.decodeFromJsonElement(NumberValue.Random.serializer(), fields)
                     PROPERTY_NAME -> json.decodeFromJsonElement(NumberValue.Property.serializer(), fields)
-                    null -> throw SerializationException("A number value written as an object needs a type: $RANDOM_NAME or $PROPERTY_NAME.")
-                    else -> throw SerializationException("There is no number value of the type '$type': it is a number, or an object of the type $RANDOM_NAME or $PROPERTY_NAME.")
+                    EDGE_NAME -> json.decodeFromJsonElement(NumberValue.Edge.serializer(), fields)
+                    BETWEEN_EDGES_NAME -> json.decodeFromJsonElement(NumberValue.BetweenEdges.serializer(), fields)
+                    null -> throw SerializationException("A number value written as an object needs a type: $OBJECT_TYPES.")
+                    else -> throw SerializationException("There is no number value of the type '$type': it is a number, or an object of the type $OBJECT_TYPES.")
                 }
             }
-            else -> throw SerializationException("$element isn't a number value: it is a number, or an object of the type $RANDOM_NAME or $PROPERTY_NAME.")
+            else -> throw SerializationException("$element isn't a number value: it is a number, or an object of the type $OBJECT_TYPES.")
         }
     }
 
@@ -104,6 +110,9 @@ internal abstract class NumberValueFormat(
         const val FIXED_NAME = "number"
         const val RANDOM_NAME = "random"
         const val PROPERTY_NAME = "property"
+        const val EDGE_NAME = "edge"
+        const val BETWEEN_EDGES_NAME = "betweenEdges"
+        const val OBJECT_TYPES = "$RANDOM_NAME, $PROPERTY_NAME, $EDGE_NAME, or $BETWEEN_EDGES_NAME"
     }
 }
 

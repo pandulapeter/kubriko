@@ -108,7 +108,7 @@ class ActorTypeCodeGeneratorTest {
             EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.BounceOffEdge)),
         )
         val onAdded = functionBody(code, "onAdded(kubriko: Kubriko)")
-        val lookup = onAdded.indexOf("viewportManager = kubriko.get()")
+        val lookup = onAdded.indexOf("generatedScenes = kubriko.get()")
         val call = onAdded.indexOf("        onAddedToScene(kubriko)")
         assertTrue(lookup >= 0 && lookup < call, onAdded)
         assertEquals("        velocity = SceneOffset(240f.sceneUnit, 180f.sceneUnit)", functionBody(code, "onAddedToScene(kubriko: Kubriko)"))
@@ -183,7 +183,7 @@ class ActorTypeCodeGeneratorTest {
         val code = generate(EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.BounceOffEdge)))
         assertFalse("constrainedWithin" in code)
         assertContains(code, "        val box = body.axisAlignedBoundingBox\n")
-        assertContains(code, "                if (isTouchingLeftEdge) topLeft.x - box.min.x else if (isTouchingRightEdge) bottomRight.x - box.max.x else SceneUnit.Zero,\n")
+        assertContains(code, "                if (isTouchingLeftEdge) leftEdge - box.min.x else if (isTouchingRightEdge) rightEdge - box.max.x else SceneUnit.Zero,\n")
         assertContains(code, "import com.pandulapeter.kubriko.types.SceneUnit")
         assertContains(code, "if (isTouchingRightEdge) velocity = SceneOffset(-velocity.x.raw.absoluteValue.sceneUnit, velocity.y)")
         assertContains(code, "import kotlin.math.absoluteValue")
@@ -192,10 +192,10 @@ class ActorTypeCodeGeneratorTest {
     @Test
     fun anActorRestingAtTheEdgeDoesNotTouchItAgain() {
         val code = generate(EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.Stop)))
-        assertContains(code, "val isTouchingLeftEdge = box.min.x < topLeft.x")
-        assertContains(code, "val isTouchingRightEdge = box.max.x > bottomRight.x")
-        assertContains(code, "val isTouchingTopEdge = box.min.y < topLeft.y")
-        assertContains(code, "val isTouchingBottomEdge = box.max.y > bottomRight.y")
+        assertContains(code, "val isTouchingLeftEdge = box.min.x < leftEdge")
+        assertContains(code, "val isTouchingRightEdge = box.max.x > rightEdge")
+        assertContains(code, "val isTouchingTopEdge = box.min.y < topEdge")
+        assertContains(code, "val isTouchingBottomEdge = box.max.y > bottomEdge")
     }
 
     @Test
@@ -205,9 +205,10 @@ class ActorTypeCodeGeneratorTest {
         assertContains(code, "        generatedScenes = kubriko.get()\n")
         assertContains(
             code,
-            "        val sceneSettings = generatedScenes.settings\n" +
-                "        val topLeft = sceneSettings?.topLeft ?: viewportManager.topLeft.value\n" +
-                "        val bottomRight = sceneSettings?.bottomRight ?: viewportManager.bottomRight.value\n",
+            "        val leftEdge = generatedScenes.leftEdge\n" +
+                "        val rightEdge = generatedScenes.rightEdge\n" +
+                "        val topEdge = generatedScenes.topEdge\n" +
+                "        val bottomEdge = generatedScenes.bottomEdge\n",
         )
         assertFalse("GeneratedScenes" in generate())
     }
@@ -720,7 +721,8 @@ class ActorTypeCodeGeneratorTest {
         val code = generate(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.RemoveSelf)))
         assertContains(code, "    private lateinit var actorManager: ActorManager\n")
         assertFalse("viewportManager" in code)
-        assertContains(generate(EventDefinition(EventType.EDGE_TOUCHED)), "    private lateinit var viewportManager: ViewportManager\n")
+        assertContains(generate(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.Kotlin("println()")))), "    private lateinit var viewportManager: ViewportManager\n")
+        assertFalse("viewportManager" in generate(EventDefinition(EventType.EDGE_TOUCHED)))
     }
 
     @Test

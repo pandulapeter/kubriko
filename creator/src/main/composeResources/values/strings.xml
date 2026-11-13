@@ -255,6 +255,13 @@
     <string name="number_value_property">A Property's value</string>
     <string name="number_value_from">From</string>
     <string name="number_value_to">To</string>
+    <string name="number_value_edge">An edge of the Scene</string>
+    <string name="number_value_between_edges">A random number between edges</string>
+    <string name="number_value_offset">Offset</string>
+    <string name="scene_edge_left">Left edge</string>
+    <string name="scene_edge_right">Right edge</string>
+    <string name="scene_edge_top">Top edge</string>
+    <string name="scene_edge_bottom">Bottom edge</string>
     <string name="block_parameter_by">By</string>
     <string name="block_parameter_text">Text</string>
     <string name="block_add_actor">Add an Actor</string>

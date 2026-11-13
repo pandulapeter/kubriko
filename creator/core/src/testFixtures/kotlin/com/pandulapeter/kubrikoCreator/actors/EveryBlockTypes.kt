@@ -93,7 +93,7 @@ public object EveryBlockTypes {
         BlockDefinition.StopMusic,
         BlockDefinition.SetFrame(frame = NumberValue.Fixed(2f)),
         BlockDefinition.SetAnimation(speed = NumberValue.Fixed(-0.5f), isLooping = false),
-    ) + numberValueBlocks
+    ) + numberValueBlocks + edgeValueBlocks
 
     /**
      * Blocks taking random numbers and Properties' values, which format version 5 added.
@@ -115,6 +115,19 @@ public object EveryBlockTypes {
         BlockDefinition.End,
         BlockDefinition.End,
         BlockDefinition.End,
+        )
+
+    /**
+     * Blocks taking where the Scene's edges are, which format version 6 added.
+     */
+    val edgeValueBlocks: List<BlockDefinition>
+        get() = listOf(
+            BlockDefinition.AddActor("EveryBlock", x = NumberValue.Edge(SceneEdge.RIGHT, offset = 50f), y = NumberValue.BetweenEdges(SceneEdge.TOP, 10f, SceneEdge.BOTTOM, -10f), isRelative = false),
+            BlockDefinition.JumpTo(x = NumberValue.Edge(SceneEdge.LEFT), y = NumberValue.Edge(SceneEdge.BOTTOM, offset = -2.5f)),
+            BlockDefinition.Repeat(times = NumberValue.Edge(SceneEdge.TOP)),
+            BlockDefinition.If(ConditionDefinition.Number("score", Comparison.LESS, NumberValue.BetweenEdges())),
+            BlockDefinition.End,
+            BlockDefinition.End,
         )
 
     /**

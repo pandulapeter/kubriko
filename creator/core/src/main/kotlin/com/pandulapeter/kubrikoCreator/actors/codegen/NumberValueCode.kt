@@ -11,7 +11,9 @@ package com.pandulapeter.kubrikoCreator.actors.codegen
 
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
+import com.pandulapeter.kubrikoCreator.actors.SceneEdge
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
+import com.pandulapeter.kubrikoCreator.actors.readsEdges
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -22,7 +24,8 @@ import kotlin.math.roundToInt
 /**
  * The Kotlin expressions of the numbers Blocks take ([NumberValue]). Each is one operand that needs no parentheses around
  * it, so it can stand before `.sceneUnit` or beside an operator, and none allocates. Random numbers all come from the one
- * [ManagerTypeCodeGenerator.RANDOM_FIELD] of the wiring, which a test can seed.
+ * [ManagerTypeCodeGenerator.RANDOM_FIELD] of the wiring, which a test can seed, and edges from the edge getters of
+ * [ScenesCodeGenerator.SCENES_NAME], which the edge Event reads too.
  */
 internal object NumberValueCode {
 
@@ -44,6 +47,11 @@ internal object NumberValueCode {
             }
         }
         is NumberValue.Property -> propertyOf(value, scope) ?: "0f"
+        is NumberValue.Edge -> edgeOf(value.edge, value.offset)
+        is NumberValue.BetweenEdges -> {
+            val from = edgeOf(value.from, value.fromOffset)
+            "($from + $RANDOM.nextFloat() * (${edgeOf(value.to, value.toOffset)} - $from))"
+        }
     }
 
     /**
@@ -58,6 +66,7 @@ internal object NumberValueCode {
             wholeRange(from, to).let { range -> if (range.first == range.last) range.first.toString() else wholeRandom(range) }
         }
         is NumberValue.Property -> propertyOf(value, scope)?.let { "$it.toInt().coerceAtLeast($minimum)" } ?: minimum.toString()
+        is NumberValue.Edge, is NumberValue.BetweenEdges -> "${float(value, scope)}.toInt().coerceAtLeast($minimum)"
     }
 
     /**
@@ -70,6 +79,16 @@ internal object NumberValueCode {
      */
     fun managersReadBy(values: List<NumberValue>, scope: BlockScope) = values.mapNotNullTo(HashSet()) { value ->
         value.propertyReference?.takeIf { scope.hasProperty(it) }?.manager?.takeUnless(scope::isOwn)
+    }
+
+    /**
+     * What the class has to declare for [values]: the Manager that knows where the edges are, if any of them reads one.
+     */
+    fun needsOf(values: List<NumberValue>) = if (values.any { it.readsEdges }) setOf(BlockNeed.SCENES) else emptySet()
+
+    private fun edgeOf(edge: SceneEdge, offset: Float): String {
+        val position = "${BlockCodeGenerator.SCENES_FIELD}.${ScenesCodeGenerator.edgeGetterOf(edge)}.raw"
+        return if (offset == 0f) position else "($position ${if (offset < 0f) "-" else "+"} ${BlockCodeGenerator.floatLiteral(abs(offset))})"
     }
 
     /**

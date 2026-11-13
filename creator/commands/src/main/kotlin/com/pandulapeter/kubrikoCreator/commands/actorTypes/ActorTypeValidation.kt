@@ -268,7 +268,7 @@ internal fun validateText(text: ScreenTextDefinition) = if (text.size.isFinite()
 
 /**
  * Whether every number [this] Block takes is finite and, where a field allows only some, within them. A Property's value
- * can't be checked before the game runs, so the generated code keeps it within them instead.
+ * or an edge can't be checked before the game runs, so the generated code keeps it within them instead.
  */
 private val BlockDefinition.areNumbersValid
     get() = numberValues.all { it.isFinite } && when (this) {
@@ -290,7 +290,7 @@ private val NumberValue.isWholeWhenFixed get() = this !is NumberValue.Fixed || v
 private fun NumberValue.isWithin(minimum: Float, maximum: Float = Float.POSITIVE_INFINITY) = when (this) {
     is NumberValue.Fixed -> value in minimum..maximum
     is NumberValue.Random -> from in minimum..maximum && to in minimum..maximum
-    is NumberValue.Property -> true
+    is NumberValue.Property, is NumberValue.Edge, is NumberValue.BetweenEdges -> true
 }
 
 /**

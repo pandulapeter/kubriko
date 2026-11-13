@@ -24,6 +24,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.actors.SceneEdge
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
@@ -90,6 +91,37 @@ class NumberValueFieldTest {
         onAllNodesWithContentDescription("Kind of number")[0].performClick()
         onNodeWithText("A random number").assertExists()
         onNodeWithText("A random whole number").assertDoesNotExist()
+        onNodeWithText("An edge of the Scene").assertDoesNotExist()
         saveSnapshot("number-value-whole-menu")
+    }
+
+    @Test
+    fun theKindMenuPlacesANumberAtAnEdgeAndThenBetweenTwo() = uiTest(width = 900, height = 360) {
+        var block by mutableStateOf<BlockDefinition>(BlockDefinition.AddActor("Ball", x = NumberValue.Fixed(10f), isRelative = false))
+        showing {
+            BlockRow(
+                block = block,
+                nesting = BlockNesting(0, BlockNesting.Role.PLAIN),
+                scope = scope,
+                index = 0,
+                dragState = BlockDragState(onDrop = { _, _ -> }),
+                onBlockChange = { block = it },
+                onRemove = {},
+            )
+        }
+        onAllNodesWithContentDescription("Kind of number")[0].performClick()
+        onNodeWithText("An edge of the Scene").performClick()
+        waitForIdle()
+        assertEquals(BlockDefinition.AddActor("Ball", x = NumberValue.Edge(), isRelative = false), block)
+        onNodeWithText("Left edge").performClick()
+        onNodeWithText("Right edge").performClick()
+        waitForIdle()
+        assertEquals(BlockDefinition.AddActor("Ball", x = NumberValue.Edge(SceneEdge.RIGHT), isRelative = false), block)
+        saveSnapshot("number-value-edge")
+        onAllNodesWithContentDescription("Kind of number")[0].performClick()
+        onNodeWithText("A random number between edges").performClick()
+        waitForIdle()
+        assertEquals(BlockDefinition.AddActor("Ball", x = NumberValue.BetweenEdges(SceneEdge.RIGHT, to = SceneEdge.LEFT), isRelative = false), block)
+        saveSnapshot("number-value-between-edges")
     }
 }

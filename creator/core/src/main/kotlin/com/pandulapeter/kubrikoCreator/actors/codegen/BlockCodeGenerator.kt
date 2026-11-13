@@ -29,6 +29,7 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyReference
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.numberValues
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
+import com.pandulapeter.kubrikoCreator.actors.readsEdges
 import kotlin.math.absoluteValue
 import kotlin.math.roundToLong
 
@@ -95,7 +96,10 @@ public object BlockCodeGenerator {
         return when {
             kind.needsActor && scope.kind != BlockTypeKind.ACTOR -> BlockCode(listOf("// This Block only works in an Actor type."))
             kind.onlyIn != null && kind.onlyIn != eventType -> BlockCode(listOfNotNull(kind.misplacedComment))
-            else -> emittedCode(block, scope).let { code -> code.copy(managers = code.managers + NumberValueCode.managersReadBy(block.numberValues, scope)) }
+            else -> emittedCode(block, scope).let { code ->
+                val numberValues = block.numberValues
+                code.copy(needs = code.needs + NumberValueCode.needsOf(numberValues), managers = code.managers + NumberValueCode.managersReadBy(numberValues, scope))
+            }
         }
     }
 
@@ -193,17 +197,28 @@ public object BlockCodeGenerator {
 
     private fun movementCode(line: String) = BlockCode(listOf(line), needs = setOf(BlockNeed.MOVEMENT), imports = setOf(SCENE_OFFSET_IMPORT))
 
+    /**
+     * An edge is where it is in the Scene even when the Actor is added from this one, so only the other coordinate is
+     * added to this Actor's.
+     */
     private fun addActorCode(block: BlockDefinition.AddActor, scope: BlockScope) = if (block.actorType in scope.actorTypeNames) {
-        val position = offsetCode(block.x, block.y, scope)
         val isActor = scope.kind == BlockTypeKind.ACTOR
+        val position = when {
+            !block.isRelative || !isActor -> offsetCode(block.x, block.y, scope)
+            !block.x.readsEdges && !block.y.readsEdges -> "body.position + ${offsetCode(block.x, block.y, scope)}"
+            else -> "SceneOffset(${relativeCoordinate(block.x, "x", scope)}, ${relativeCoordinate(block.y, "y", scope)})"
+        }
         BlockCode(
-            lines = listOf("actorManager.add(${block.actorType}.metadata.instantiate(${if (block.isRelative && isActor) "body.position + $position" else position}).restore())"),
+            lines = listOf("actorManager.add(${block.actorType}.metadata.instantiate($position).restore())"),
             needs = setOf(BlockNeed.ACTOR_MANAGER),
             imports = if (isActor) setOf(SCENE_OFFSET_IMPORT) else setOf(SCENE_OFFSET_IMPORT, SCENE_UNIT_EXTENSION_IMPORT),
         )
     } else {
         BlockCode(listOf("// Choose an Actor type for this Block."))
     }
+
+    private fun relativeCoordinate(value: NumberValue, axis: String, scope: BlockScope) =
+        if (value.readsEdges) NumberValueCode.sceneUnit(value, scope) else "body.position.$axis + ${NumberValueCode.sceneUnit(value, scope)}"
 
     private fun moveTowardsNearestCode(block: BlockDefinition.MoveTowardsNearest, scope: BlockScope): BlockCode {
         if (block.actorType !in scope.actorTypeNames) return BlockCode(listOf("// Choose an Actor type for this Block."))

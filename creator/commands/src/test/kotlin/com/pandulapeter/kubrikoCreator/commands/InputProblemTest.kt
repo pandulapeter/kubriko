@@ -40,8 +40,8 @@ class InputProblemTest {
     fun aNumberOfTheWrongKindSaysWhatANumberCanBe() {
         assertEquals("\"fast\" isn't a number.", problemOf("""{"actorType":"Ball","eventIndex":0,"block":{"type":"setVelocity","x":"fast"}}"""))
         assertEquals(
-            "There is no number value of the type 'edge': it is a number, or an object of the type random or property.",
-            problemOf("""{"actorType":"Ball","eventIndex":0,"block":{"type":"setVelocity","x":{"type":"edge"}}}"""),
+            "There is no number value of the type 'corner': it is a number, or an object of the type random, property, edge, or betweenEdges.",
+            problemOf("""{"actorType":"Ball","eventIndex":0,"block":{"type":"setVelocity","x":{"type":"corner"}}}"""),
         )
     }
 

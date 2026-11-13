@@ -43,6 +43,16 @@ class NumberValueSerializerTest {
         assertEquals("""{"type":"property","property":"score","manager":"Game"}""", json.encodeToString(NumberValueSerializer, property))
         assertEquals(property, json.decodeFromString(NumberValueSerializer, """{"type":"property","property":"score","manager":"Game"}"""))
         assertEquals(property, json.decodeFromString(WholeNumberValueSerializer, json.encodeToString(WholeNumberValueSerializer, property)))
+        val edge = NumberValue.Edge(SceneEdge.RIGHT, offset = 50f)
+        assertEquals("""{"type":"edge","edge":"right","offset":50.0}""", json.encodeToString(NumberValueSerializer, edge))
+        assertEquals(edge, json.decodeFromString(NumberValueSerializer, """{"type":"edge","edge":"right","offset":50}"""))
+        assertEquals(NumberValue.Edge(), json.decodeFromString(NumberValueSerializer, """{"type":"edge"}"""))
+        val betweenEdges = NumberValue.BetweenEdges(SceneEdge.TOP, 10f, SceneEdge.BOTTOM, -10f)
+        assertEquals(
+            """{"type":"betweenEdges","from":"top","fromOffset":10.0,"to":"bottom","toOffset":-10.0}""",
+            json.encodeToString(NumberValueSerializer, betweenEdges),
+        )
+        assertEquals(betweenEdges, json.decodeFromString(NumberValueSerializer, json.encodeToString(NumberValueSerializer, betweenEdges)))
     }
 
     @Test
@@ -52,9 +62,9 @@ class NumberValueSerializerTest {
             "null" to "null isn't a number.",
             "NaN" to "NaN isn't a number.",
             "Infinity" to "Infinity isn't a number.",
-            "[1]" to "[1] isn't a number value: it is a number, or an object of the type random or property.",
-            """{"from":1}""" to "A number value written as an object needs a type: random or property.",
-            """{"type":"edge"}""" to "There is no number value of the type 'edge': it is a number, or an object of the type random or property.",
+            "[1]" to "[1] isn't a number value: it is a number, or an object of the type random, property, edge, or betweenEdges.",
+            """{"from":1}""" to "A number value written as an object needs a type: random, property, edge, or betweenEdges.",
+            """{"type":"corner"}""" to "There is no number value of the type 'corner': it is a number, or an object of the type random, property, edge, or betweenEdges.",
         ).forEach { (text, message) ->
             assertEquals(message, assertFailsWith<SerializationException>(text) { json.decodeFromString(NumberValueSerializer, text) }.message)
         }
@@ -75,5 +85,8 @@ class NumberValueSerializerTest {
         val lenient = Json { allowSpecialFloatingPointValues = true }
         assertEquals("Infinity", lenient.encodeToString(NumberValueSerializer, NumberValue.Fixed(Float.POSITIVE_INFINITY)))
         assertEquals(NumberValue.Fixed(Float.NEGATIVE_INFINITY), lenient.decodeFromString(NumberValueSerializer, "-Infinity"))
+        assertEquals(false, NumberValue.Edge(offset = Float.NaN).isFinite)
+        assertEquals(false, NumberValue.BetweenEdges(toOffset = Float.POSITIVE_INFINITY).isFinite)
+        assertEquals(true, NumberValue.BetweenEdges(fromOffset = -1f).isFinite)
     }
 }

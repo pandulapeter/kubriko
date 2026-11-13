@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
+import com.pandulapeter.kubrikoCreator.actors.SceneEdge
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -39,5 +40,20 @@ class NumberValueKindTest {
         assertEquals(NumberValueKind.RANDOM_WHOLE, NumberValueKind.of(NumberValue.Random(isWhole = true), isWholeField = false))
         assertEquals(listOf(NumberValueKind.FIXED, NumberValueKind.RANDOM, NumberValueKind.PROPERTY), NumberValueKind.offeredBy(isWholeField = true))
         assertEquals(NumberValueKind.entries, NumberValueKind.offeredBy(isWholeField = false))
+    }
+
+    @Test
+    fun anEdgeBecomesOneEndOfARandomNumberBetweenItAndTheEdgeAcrossAndBack() {
+        assertEquals(NumberValue.Edge(), NumberValueKind.EDGE.of(NumberValue.Fixed(5f)))
+        assertEquals(
+            NumberValue.BetweenEdges(SceneEdge.TOP, 10f, SceneEdge.BOTTOM, 0f),
+            NumberValueKind.BETWEEN_EDGES.of(NumberValue.Edge(SceneEdge.TOP, 10f)),
+        )
+        assertEquals(NumberValue.Edge(SceneEdge.RIGHT, -4f), NumberValueKind.EDGE.of(NumberValue.BetweenEdges(SceneEdge.RIGHT, -4f, SceneEdge.LEFT)))
+        assertEquals(NumberValue.BetweenEdges(), NumberValueKind.BETWEEN_EDGES.of(NumberValue.Random()))
+        assertEquals(NumberValue.Fixed(0f), NumberValueKind.FIXED.of(NumberValue.Edge(SceneEdge.LEFT, 3f)))
+        assertEquals(NumberValue.Random(), NumberValueKind.RANDOM.of(NumberValue.BetweenEdges()))
+        assertEquals(NumberValueKind.EDGE, NumberValueKind.of(NumberValue.Edge(), isWholeField = true))
+        assertEquals(NumberValueKind.BETWEEN_EDGES, NumberValueKind.of(NumberValue.BetweenEdges(), isWholeField = false))
     }
 }

@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.actors.codegen
 
 import com.pandulapeter.kubrikoCreator.actors.GeneratedNames
+import com.pandulapeter.kubrikoCreator.actors.SceneEdge
 
 /**
  * The Manager that loads Scenes for the goToScene and restartScene Blocks, and the first Scene when the game starts.
@@ -24,6 +25,21 @@ public object ScenesCodeGenerator {
      */
     public const val SCENE_DIRECTORY: String = "files/scenes"
 
+    private const val LEFT_EDGE = "leftEdge"
+    private const val RIGHT_EDGE = "rightEdge"
+    private const val TOP_EDGE = "topEdge"
+    private const val BOTTOM_EDGE = "bottomEdge"
+
+    /**
+     * The getter of the generated class saying where [edge] is, in scene units.
+     */
+    internal fun edgeGetterOf(edge: SceneEdge) = when (edge) {
+        SceneEdge.LEFT -> LEFT_EDGE
+        SceneEdge.RIGHT -> RIGHT_EDGE
+        SceneEdge.TOP -> TOP_EDGE
+        SceneEdge.BOTTOM -> BOTTOM_EDGE
+    }
+
     internal fun generate(packageName: String) = GeneratedFile.withHeader("", buildString {
         appendLine("package $packageName.${ActorTypeCodeGenerator.GENERATED_PACKAGE}")
         appendLine()
@@ -33,9 +49,11 @@ public object ScenesCodeGenerator {
             "com.pandulapeter.kubriko.logger.Logger",
             "com.pandulapeter.kubriko.manager.ActorManager",
             "com.pandulapeter.kubriko.manager.Manager",
+            "com.pandulapeter.kubriko.manager.ViewportManager",
             "com.pandulapeter.kubriko.sceneEditor.Editable",
             "com.pandulapeter.kubriko.sceneEditor.EditableMetadata",
             "com.pandulapeter.kubriko.serialization.SerializationManager",
+            "com.pandulapeter.kubriko.types.SceneUnit",
             "kotlin.concurrent.Volatile",
             "kotlinx.coroutines.CancellationException",
             "kotlinx.coroutines.Job",
@@ -59,6 +77,7 @@ public object ScenesCodeGenerator {
             |) : Manager() {
             |    private val actorManager by manager<ActorManager>()
             |    private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
+            |    private val viewportManager by manager<ViewportManager>()
             |    private var loading: Job? = null
             |
             |    /**
@@ -72,6 +91,26 @@ public object ScenesCodeGenerator {
             |     */
             |    @Volatile
             |    var settings: ${SceneSettingsCodeGenerator.SETTINGS_NAME}? = null
+            |
+            |    /**
+            |     * The left edge of the shown Scene's bounds, or of the screen while it has none.
+            |     */
+            |    val $LEFT_EDGE: SceneUnit get() = settings.let { if (it == null) viewportManager.topLeft.value.x else it.topLeft.x }
+            |
+            |    /**
+            |     * The right edge of the shown Scene's bounds, or of the screen while it has none.
+            |     */
+            |    val $RIGHT_EDGE: SceneUnit get() = settings.let { if (it == null) viewportManager.bottomRight.value.x else it.bottomRight.x }
+            |
+            |    /**
+            |     * The top edge of the shown Scene's bounds, or of the screen while it has none.
+            |     */
+            |    val $TOP_EDGE: SceneUnit get() = settings.let { if (it == null) viewportManager.topLeft.value.y else it.topLeft.y }
+            |
+            |    /**
+            |     * The bottom edge of the shown Scene's bounds, or of the screen while it has none.
+            |     */
+            |    val $BOTTOM_EDGE: SceneUnit get() = settings.let { if (it == null) viewportManager.bottomRight.value.y else it.bottomRight.y }
             |
             |    override fun onInitialize(kubriko: Kubriko) {
             |        if (!isInSceneEditor && firstScene != null) load(firstScene, isFirst = true)
