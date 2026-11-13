@@ -20,10 +20,6 @@ for code (`AssistantSystemPrompt`). The first writers' room game (a side-scrolli
 needed twelve Kotlin Blocks, all for simple behavior. Each item replaces some of them, and the section is done when the eval set
 (`EvalSet`) builds the same game with no Kotlin Block left.
 
-- **The edges as values:** the number value type (`NumberValue`) also takes an edge of the Scene's bounds (or of the screen, when the Scene has none,
-  as the edge Event already decides) plus an offset, and a random number between two edges. "Add a Drifter at the right edge + 50, at
-  a random y between the top and bottom edges" then needs no hand-measured numbers, and stays right when the window or the Scene
-  changes size. Generated from the same bounds the edge Event reads, allocating nothing per frame.
 - **Entering and leaving the Scene:** "When it leaves the Scene", fired once when the Actor is wholly outside the bounds, so an enemy
   added past the right edge flies in and removes itself past the left one, with no Timer whose length has to match its speed. The
   edge Event stops pushing the Actor back inside: that becomes the "Staying inside the Scene" setting below, which loading turns on

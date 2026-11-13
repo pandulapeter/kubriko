@@ -26,18 +26,15 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Go on with `01-blocks.md`, at The edges as values. Random values are done (2026-11-12): every number a Block takes is a
-`NumberValue` (a number, a random number between two, or a number Property's value), format version 5, edited through
-`NumberValueField`'s kind menu, and drawn from `KubrikoWiring.random`. A deleted Property a value reads becomes its
-starting value (`VALUE_TO_NUMBER`, through the `READS_AS_NUMBER` relation). It was reviewed with `/code-review`
-(597d3f410..eaa68ff6b), and every finding fixed in a commit of its own: the one whole number a range holds, ranges kept
-inside `Int`, Kotlin's `Random` still imported for Kotlin that names it, Timer times that can't throw on NaN, whole
-fields kept whole when switching kinds, non-finite numbers refused, and Block numbers read without copying.
-
-Left as they are, on purpose: a wrong value in a number field is refused without its path (`"fast" isn't a number.`),
-since a custom serializer can't see where it is; the value says which field it was. A repeating Timer keeps the random
-or Property time it started with for every round (starting it again in its timerFinished Event draws a new one), and a
-random number that isn't whole stops just short of its end; both are said in the tools' descriptions.
+Go on with `01-blocks.md`, at Entering and leaving the Scene. The edges as values are done (2026-11-13): a number a
+Block takes can also be an edge of the Scene plus an offset (`NumberValue.Edge`) or a random number between two edges
+(`NumberValue.BetweenEdges`), format version 6, read through `GeneratedScenes.edge` and `randomBetweenEdges`. An x takes
+only horizontal edges and a y only vertical ones (`NUMBER_EDGE_ACROSS`), fields of whole numbers take none, and an edge
+stays the Scene's own in an Add an Actor placing from this Actor. The edge Event now reads its bounds without boxing a
+`SceneOffset` every frame. It was reviewed with `/code-review` (4e4aa3cc1..3a9f2f5c0), and every finding fixed: the edge
+Event no longer needs members a hand-changed `GeneratedScenes` lacks, a value reads the settings once, whole fields refuse
+edges, the axis rule, and the relative placement said in the notation. The integration test built every template after
+each change.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
@@ -71,8 +68,9 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
   (`WorkspaceScreenTest`), but no person has used them in the real app yet.
 - Searching conversations against a real agent: continuing a found conversation through `session/load` and scrolling to
   the message once its history arrives (`jumpIndexOf`) is tested with transcripts written by hand, not a replayed one.
-- The number value field in the real app (switching kinds, typing a range, choosing a Property), and a played game drawing
-  random numbers (the integration test compiles every kind, but nothing runs one).
+- The number value field in the real app (switching kinds, typing a range, choosing a Property or an edge), and a played
+  game drawing random numbers and placing an Actor at an edge (the integration test compiles every kind, but nothing runs
+  one); an end-to-end scenario under Xvfb could add a Brick at the right edge and check by pixels where it lands.
 - The eval set has no request using `find_usages` or `search_project`, nor the new resource tools, `move_folder`, `set_sprite_sheet`, the animation Blocks, or the drawing tools yet; record one (`EvalSetLiveTest` with
   `KUBRIKO_CREATOR_EVAL_RECORD=true`) once a live run can be spent on it.
 
