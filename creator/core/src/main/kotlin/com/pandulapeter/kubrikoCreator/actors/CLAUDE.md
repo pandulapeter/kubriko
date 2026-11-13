@@ -43,7 +43,8 @@
   the Actor, so a Brick can't score twice; Dynamic types are `isAlwaysActive`, since a Scene can be larger than the screen; edge
   Events use the bounding box, so pivots, rotation, and scale don't move the edges; collision branches put descendants first.
 - Staying inside the Scene is the Actor type's setting (`staysInsideScene`), not what the edge Event does (format version 7 turned
-  it on for every type with an edge Event, its own or inherited, so games kept behaving the same). The edge Event runs when an
+  it on for every type with an edge Event and every member of a family with one, which the base class pushed back, so games
+  kept behaving the same). The edge Event runs when an
   edge starts being reached past, so one that moves on doesn't run it every frame; one that stays inside is pushed back each
   time, so for it the Event runs on every frame it reaches past, as before. The leaving Event runs once the Actor is wholly
   outside after having been inside, so an enemy added off screen flies in first. In a family whose members differ in staying

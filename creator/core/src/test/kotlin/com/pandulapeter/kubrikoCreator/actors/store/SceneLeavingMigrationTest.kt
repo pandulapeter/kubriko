@@ -61,6 +61,17 @@ class SceneLeavingMigrationTest {
     }
 
     @Test
+    fun everyMemberOfAFamilyStaysInsideWhenAnyOfThemReactsToTheEdgeEventSinceTheirBaseClassPushedThemAllBack() {
+        store.save(ActorTypeDefinition(name = "Enemy"))
+        store.save(ActorTypeDefinition(name = "Bat", parent = "Enemy", events = listOf(EventDefinition(EventType.EDGE_TOUCHED))))
+        store.save(ActorTypeDefinition(name = "Ghost", parent = "Enemy"))
+        store.save(ActorTypeDefinition(name = "Wall"))
+        val types = migratedTypes()
+        listOf("Enemy", "Bat", "Ghost").forEach { assertEquals(true, (types.getValue(it) as ActorTypeDefinition).staysInsideScene, it) }
+        assertEquals(false, (types.getValue("Wall") as ActorTypeDefinition).staysInsideScene)
+    }
+
+    @Test
     fun thePropertiesNamedLikeWhatTheGeneratedClassesKeepAboutTheBoundsAreRenamed() {
         store.save(ActorTypeDefinition(name = "Ball", properties = listOf(PropertyDefinition.Toggle("wasInsideScene"), PropertyDefinition.Toggle("staysInsideScene"))))
         val ball = migratedTypes().getValue("Ball") as ActorTypeDefinition
