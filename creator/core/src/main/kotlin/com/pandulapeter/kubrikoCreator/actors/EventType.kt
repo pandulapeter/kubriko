@@ -45,7 +45,7 @@ public enum class EventType(public val misplacedProblem: PlacementProblem? = nul
     @SerialName("edgeTouched")
     EDGE_TOUCHED(PlacementProblem.EVENT_EDGE_TOUCHED_IN_MANAGER_TYPE),
 
-    @Description("Once, when the Actor, having been at least partly inside the Scene's bounds (the screen's, while it has none), is wholly outside them. An Actor added outside them fires it only after it came in. Only Actor types have it.")
+    @Description("Once, when the Actor, having been at least partly inside the Scene's bounds (the screen's, while it has none), is wholly outside them. An Actor added outside them fires it only after it came in, and one whose type stays inside the Scene never. Without bounds, moving the camera moves the screen's. Only Actor types have it.")
     @SerialName("leftScene")
     LEFT_SCENE(PlacementProblem.EVENT_LEFT_SCENE_IN_MANAGER_TYPE),
 

@@ -251,9 +251,10 @@ class ActorTypeCodeGeneratorTest {
     }
 
     @Test
-    fun whetherItIsInsideIsReadBeforeThePushMovesTheBox() {
+    fun anActorThatStaysInsideNeverLeavesTheScene() {
         val code = generate(EventDefinition(EventType.LEFT_SCENE, blocks = listOf(BlockDefinition.Log("Gone"))), staysInsideScene = true)
-        assertTrue(code.indexOf("val isInsideScene") < code.indexOf("body.position += SceneOffset("))
+        assertFalse("wasInsideScene" in code)
+        assertFalse("onLeftScene(deltaTimeInMilliseconds)\n" in code.substringBefore("private fun onLeftScene"))
     }
 
     @Test

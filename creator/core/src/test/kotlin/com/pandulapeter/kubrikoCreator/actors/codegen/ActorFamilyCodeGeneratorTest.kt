@@ -173,6 +173,18 @@ class ActorFamilyCodeGeneratorTest {
     }
 
     @Test
+    fun anActorOfAFamilyThatStaysInsideNeverLeavesTheSceneEvenWhenAFrameMovesItWhollyOutside() {
+        val leaving = enemy.copy(staysInsideScene = true, events = enemy.events + EventDefinition(EventType.LEFT_SCENE))
+        val types = listOf(leaving, bat, wall)
+        val code = ActorTypeCodeGenerator.generateActorType(leaving, "com.example.game", types.map { it.name }, actorTypes = types)
+        assertContains(code, "        val isInsideScene = staysInsideScene || (box.max.x > leftEdge && box.min.x < rightEdge && box.max.y > topEdge && box.min.y < bottomEdge)\n")
+        val allInside = types.map { it.copy(staysInsideScene = it.name != "Wall") }
+        val allInsideCode = ActorTypeCodeGenerator.generateActorType(allInside[0], "com.example.game", types.map { it.name }, actorTypes = allInside)
+        assertFalse("isInsideScene" in allInsideCode)
+        assertContains(allInsideCode, "    protected open fun onLeftScene(deltaTimeInMilliseconds: Int) {\n", message = "a child may still override it")
+    }
+
+    @Test
     fun aTypeWithoutAParentHasNoParentEventToRun() {
         val loner = ActorTypeDefinition(name = "Loner", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.RunParentEvent))))
         assertContains(ActorTypeCodeGenerator.generateActorType(loner, "com.example.game"), "// Only an Actor type with a parent runs its parent's Event.")

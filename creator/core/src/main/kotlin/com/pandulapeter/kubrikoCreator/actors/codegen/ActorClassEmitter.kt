@@ -221,8 +221,8 @@ internal class ActorClassEmitter(
             if (features.containment != SceneContainment.NONE) imports += listOf(SCENE_UNIT_IMPORT, SCENE_OFFSET_IMPORT)
             appendBoundsHandling(
                 containment = features.containment,
-                edgeCall = features.edgeEvents.firstNotNullOfOrNull(::callOf),
-                leftSceneCall = features.leftSceneEvents.firstNotNullOfOrNull(::callOf),
+                edgeCall = if (features.firesEdgeEvent) checkNotNull(features.edgeEvents.firstNotNullOfOrNull(::callOf)) else null,
+                leftSceneCall = if (features.firesLeftSceneEvent) checkNotNull(features.leftSceneEvents.firstNotNullOfOrNull(::callOf)) else null,
             )
         }
         if (features.isCollidable) {

@@ -61,7 +61,8 @@ internal object SceneBoundsCode {
 
     /**
      * Pushes the Actor back inside per [containment], runs [edgeCall] (with `isTouchingLeftEdge` and the others in scope)
-     * when it starts reaching past an edge, and [leftSceneCall] once it is wholly outside after having been inside.
+     * when it starts reaching past an edge, and [leftSceneCall] once it is wholly outside after having been inside, which
+     * an Actor that stays inside never is, even when a frame moves it wholly outside before it is pushed back.
      * An Actor that stays inside is pushed back every time, so for it the edge Event runs on every frame it reaches past
      * an edge, as it always did, its first one too.
      */
@@ -83,7 +84,10 @@ internal object SceneBoundsCode {
             appendLine("        val isTouchingBottomEdge = box.max.y > bottomEdge")
         }
         // Read before the push below, which moves the box.
-        if (leftSceneCall != null) appendLine("        val isInsideScene = box.max.x > leftEdge && box.min.x < rightEdge && box.max.y > topEdge && box.min.y < bottomEdge")
+        if (leftSceneCall != null) {
+            val overlaps = "box.max.x > leftEdge && box.min.x < rightEdge && box.max.y > topEdge && box.min.y < bottomEdge"
+            appendLine("        val isInsideScene = ${if (containment == SceneContainment.SOME) "$STAYS_INSIDE_FIELD || ($overlaps)" else overlaps}")
+        }
         val isTouchingAny = "isTouchingLeftEdge || isTouchingRightEdge || isTouchingTopEdge || isTouchingBottomEdge"
         when (containment) {
             SceneContainment.NONE -> Unit

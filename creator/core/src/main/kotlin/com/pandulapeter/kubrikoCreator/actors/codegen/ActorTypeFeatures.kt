@@ -65,9 +65,9 @@ internal class ActorTypeFeatures(
     val firesEdgeEvent = edgeEvents.any { isFamily || it.blocks.isNotEmpty() }
 
     /**
-     * Whether the leaving Event runs, as [firesEdgeEvent].
+     * Whether the leaving Event runs, as [firesEdgeEvent]: never when every Actor stays inside the Scene.
      */
-    val firesLeftSceneEvent = leftSceneEvents.any { isFamily || it.blocks.isNotEmpty() }
+    val firesLeftSceneEvent = containment != SceneContainment.ALL && leftSceneEvents.any { isFamily || it.blocks.isNotEmpty() }
 
     /**
      * Whether the Actors look at the Scene's bounds after they moved ([SceneBoundsCode]).
