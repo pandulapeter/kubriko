@@ -26,15 +26,16 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Go on with `01-blocks.md`, at Entering and leaving the Scene. The edges as values are done (2026-11-13): a number a
-Block takes can also be an edge of the Scene plus an offset (`NumberValue.Edge`) or a random number between two edges
-(`NumberValue.BetweenEdges`), format version 6, read through `GeneratedScenes.edge` and `randomBetweenEdges`. An x takes
-only horizontal edges and a y only vertical ones (`NUMBER_EDGE_ACROSS`), fields of whole numbers take none, and an edge
-stays the Scene's own in an Add an Actor placing from this Actor. The edge Event now reads its bounds without boxing a
-`SceneOffset` every frame. It was reviewed with `/code-review` (4e4aa3cc1..3a9f2f5c0), and every finding fixed: the edge
-Event no longer needs members a hand-changed `GeneratedScenes` lacks, a value reads the settings once, whole fields refuse
-edges, the axis rule, and the relative placement said in the notation. The integration test built every template after
-each change.
+Go on with `01-blocks.md`, at Moving in a direction. Entering and leaving the Scene is done (2026-11-13), with the
+Staying inside the Scene item: the When it leaves the Scene Event (`EventType.LEFT_SCENE`) runs once an Actor is wholly
+outside after having been inside, never for one that stays inside; staying inside is the Actor type's `staysInsideScene`
+(`set_movement`, the type editor's Movement section), and the edge Event (now titled When it reaches an edge of the Scene)
+no longer pushes and runs only when an edge starts being reached past. Format version 7 (`SceneLeavingMigration`) turns
+staying inside on for every type with an edge Event and every member of a family with one, after freeing the names
+`SceneBoundsCode` keeps. It was reviewed with `/code-review` (b5fc49352..d3fe3646f), and every finding fixed: the
+migration's families, the starter's Ball, the edge Event on an Actor added past an edge, a staying Actor leaving, the
+fields and calls from one flag, the shared description, and the Event's title. The integration test built every
+template after the fixes.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
@@ -71,6 +72,13 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
 - The number value field in the real app (switching kinds, typing a range, choosing a Property or an edge), and a played
   game drawing random numbers and placing an Actor at an edge (the integration test compiles every kind, but nothing runs
   one); an end-to-end scenario under Xvfb could add a Brick at the right edge and check by pixels where it lands.
+- The eval set's `bat.json` recording (`EvalRecordings`) was made before format 7: its Bat stops at an edge with an edge
+  Event but doesn't stay inside, so in the replayed game it can slide off screen once stopped there. Record it again
+  (`EvalSetLiveTest` with `KUBRIKO_CREATOR_EVAL_RECORD=true`) when a live run can be spent, and consider checking in
+  its request that the Bat stays inside.
+- A played game with Actors leaving the Scene and staying inside it (the integration test compiles every combination, but
+  nothing runs one); an end-to-end scenario under Xvfb could add a Brick moving left from past the right edge with a
+  When it leaves the Scene → Remove this Actor, and check by pixels that it crosses and is gone.
 - The eval set has no request using `find_usages` or `search_project`, nor the new resource tools, `move_folder`, `set_sprite_sheet`, the animation Blocks, or the drawing tools yet; record one (`EvalSetLiveTest` with
   `KUBRIKO_CREATOR_EVAL_RECORD=true`) once a live run can be spent on it.
 
