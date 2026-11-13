@@ -29,7 +29,7 @@ import kotlin.math.roundToInt
  */
 internal object NumberValueCode {
 
-    private const val RANDOM = "${ManagerTypeCodeGenerator.WIRING_NAME}.${ManagerTypeCodeGenerator.RANDOM_FIELD}"
+    const val RANDOM = "${ManagerTypeCodeGenerator.WIRING_NAME}.${ManagerTypeCodeGenerator.RANDOM_FIELD}"
     private const val SCENES = BlockCodeGenerator.SCENES_FIELD
 
     /**

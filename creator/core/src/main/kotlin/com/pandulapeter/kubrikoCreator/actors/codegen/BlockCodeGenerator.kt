@@ -46,6 +46,7 @@ public object BlockCodeGenerator {
     internal const val REMOVED_FIELD = "isRemoved"
     internal const val BOUNCE_OFF_FUNCTION = "bounceOff"
     internal const val DIRECTION_FUNCTION = "velocityInDirection"
+    internal const val OPACITY_FIELD = "opacity"
     internal const val ANIMATION_FIELD = "animation"
     internal const val ANIMATION_SPEED_FIELD = "animationSpeed"
     internal const val ANIMATION_LOOPING_FIELD = "isAnimationLooping"
@@ -167,6 +168,9 @@ public object BlockCodeGenerator {
         BlockDefinition.StopMusic -> BlockCode(listOf("$AUDIO_FIELD.stopMusic()"), needs = setOf(BlockNeed.AUDIO))
         is BlockDefinition.SetFrame -> animationCode(scope, BlockNeed.FRAME, "$SET_FRAME_FUNCTION(${NumberValueCode.whole(block.frame, scope)})")
         is BlockDefinition.SetAnimation -> animationCode(scope, BlockNeed.ANIMATION, "$ANIMATION_SPEED_FIELD = ${NumberValueCode.float(block.speed, scope)}", "$ANIMATION_LOOPING_FIELD = ${block.isLooping}")
+        is BlockDefinition.SetColor -> AppearanceCode.setColor(block)
+        is BlockDefinition.SetOpacity -> AppearanceCode.setOpacity(block, scope)
+        is BlockDefinition.ChangeOpacity -> AppearanceCode.changeOpacity(block, scope)
         is BlockDefinition.If -> conditionCode(block, scope).let { condition -> condition.copy(lines = listOf("if (${condition.lines.single()}) {")) }
         is BlockDefinition.Repeat -> BlockCode(listOf("repeat(${NumberValueCode.whole(block.times, scope)}) {"))
         BlockDefinition.Else, BlockDefinition.End -> BlockCode.NONE

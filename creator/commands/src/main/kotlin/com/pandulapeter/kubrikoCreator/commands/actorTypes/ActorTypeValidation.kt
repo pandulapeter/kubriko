@@ -46,6 +46,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.SimilarNames
+import com.pandulapeter.kubrikoCreator.foundation.ColorHex
 
 /**
  * The block-built types of the project, which every type command has validated to exist before it is applied.
@@ -172,6 +173,10 @@ private fun validateBlockValues(block: BlockDefinition, scope: BlockScope): Reje
     !block.areNumbersValid -> Rejection(CommandProblem.NUMBER_INVALID)
     !block.areEdgesAlongTheirAxes -> Rejection(CommandProblem.NUMBER_EDGE_ACROSS)
     block.edgelessNumberValues.any { it.readsEdges } -> Rejection(CommandProblem.NUMBER_EDGE_NOT_TAKEN)
+    block is BlockDefinition.SetOpacity && !block.percent.isWithin(0f, 100f) -> Rejection(CommandProblem.OPACITY_OUT_OF_RANGE)
+    block is BlockDefinition.SetColor && block.colors.size !in 1..BlockDefinition.SetColor.MAXIMUM_COLORS ->
+        Rejection(CommandProblem.COLORS_COUNT, BlockDefinition.SetColor.MAXIMUM_COLORS.toString())
+    block is BlockDefinition.SetColor && block.colors.any { !ColorHex.isOpaque(it) } -> Rejection(CommandProblem.COLORS_NOT_OPAQUE)
     ((block as? BlockDefinition.If)?.condition as? ConditionDefinition.KeyHeld)?.key?.isKnown == false -> unknownKey((block.condition as ConditionDefinition.KeyHeld).key)
     else -> block.timerName?.let(TimerNaming::validate)?.let(::Rejection) ?: validateBlockReferences(block, scope)
 }
@@ -285,7 +290,8 @@ private val BlockDefinition.areNumbersValid
         BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
         is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.StopTimer, BlockDefinition.Else, BlockDefinition.End,
         is BlockDefinition.Log, is BlockDefinition.Kotlin, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
-        is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic,
+        is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity,
+        is BlockDefinition.ChangeOpacity,
         -> true
     }
 
@@ -300,17 +306,20 @@ private val BlockDefinition.areEdgesAlongTheirAxes
         BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
         is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.StopTimer, BlockDefinition.Else, BlockDefinition.End,
         is BlockDefinition.Log, is BlockDefinition.Kotlin, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
-        is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic,
+        is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity,
+        is BlockDefinition.ChangeOpacity,
         -> numberValues.none { it is NumberValue.BetweenEdges && it.from.axis != it.to.axis }
     }
 
 /**
- * The numbers of [this] Block that are a direction or a speed, which an edge, a position, means nothing as.
+ * The numbers of [this] Block that are a direction, a speed, or an opacity, which an edge, a position, means nothing as.
  */
 private val BlockDefinition.edgelessNumberValues
     get() = when (this) {
         is BlockDefinition.MoveInDirection -> listOf(direction, speed)
         is BlockDefinition.MoveTowardsNearest -> listOf(speed)
+        is BlockDefinition.SetOpacity -> listOf(percent)
+        is BlockDefinition.ChangeOpacity -> listOf(by)
         else -> emptyList()
     }
 

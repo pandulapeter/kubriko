@@ -42,27 +42,33 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * A hex code field (`#RRGGBB`, or `#AARRGGBB` for a translucent color) with a swatch of the current color, which
  * opens the color picker.
+ *
+ * @param isAlphaEnabled False for a field that takes only opaque colors: its picker has no opacity, it marks an
+ *   `#AARRGGBB` code as an error rather than taking it, and it shows a translucent [color] as opaque.
  */
 @Composable
 public fun ColorField(
     color: Long,
     onColorChange: (Long) -> Unit,
     modifier: Modifier = Modifier,
+    isAlphaEnabled: Boolean = true,
 ): Unit = Row(
     modifier = modifier,
     horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalAlignment = Alignment.CenterVertically,
 ) {
-    var text by remember { mutableStateOf(ColorHex.format(color)) }
+    val shownColor = if (isAlphaEnabled) color else ColorHex.opaque(color)
+    fun parse(text: String) = ColorHex.parse(text)?.takeIf { isAlphaEnabled || ColorHex.isOpaque(it) }
+    var text by remember { mutableStateOf(ColorHex.format(shownColor)) }
     var isFocused by remember { mutableStateOf(false) }
     val sentColors = remember { SentValues<Long>() }
-    LaunchedEffect(color) {
-        if ((!sentColors.isEcho(color) || !isFocused) && ColorHex.parse(text) != color) text = ColorHex.format(color)
+    LaunchedEffect(shownColor) {
+        if ((!sentColors.isEcho(shownColor) || !isFocused) && parse(text) != shownColor) text = ColorHex.format(shownColor)
     }
     LaunchedEffect(isFocused) {
         if (!isFocused) {
             sentColors.clear()
-            if (ColorHex.parse(text) != color) text = ColorHex.format(color)
+            if (parse(text) != shownColor) text = ColorHex.format(shownColor)
         }
     }
     var isPickerOpen by remember { mutableStateOf(false) }
@@ -74,7 +80,7 @@ public fun ColorField(
                 .size(24.dp)
                 .clip(CircleShape)
                 .checkerboard()
-                .background(Color(color))
+                .background(Color(shownColor))
                 .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
                 .pointerHoverIcon(PointerIcon.Hand)
                 .clickable { isPickerOpen = true },
@@ -82,7 +88,8 @@ public fun ColorField(
     }
     if (isPickerOpen) {
         ColorPickerDialog(
-            initialColor = color,
+            initialColor = shownColor,
+            isAlphaEnabled = isAlphaEnabled,
             onColorSelected = {
                 isPickerOpen = false
                 text = ColorHex.format(it)
@@ -96,12 +103,12 @@ public fun ColorField(
         value = text,
         onValueChange = { newText ->
             text = newText
-            ColorHex.parse(newText)?.let {
+            parse(newText)?.let {
                 sentColors.add(it)
                 onColorChange(it)
             }
         },
         label = stringResource(Res.string.actor_type_color),
-        isError = ColorHex.parse(text) == null,
+        isError = parse(text) == null,
     )
 }

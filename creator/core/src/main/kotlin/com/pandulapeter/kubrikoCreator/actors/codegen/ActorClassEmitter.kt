@@ -38,6 +38,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.app
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.ABSOLUTE_VALUE_IMPORT
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.ANIMATION_LOOPING_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.ANIMATION_SPEED_FIELD
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.OPACITY_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.REMOVED_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.SCENE_OFFSET_IMPORT
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.SET_FRAME_FUNCTION
@@ -171,6 +172,11 @@ internal class ActorClassEmitter(
         }
         appendLine("    @set:Exposed(name = \"color\")")
         appendLine("    var color: Color = ${if (role == Role.STANDALONE) "state.color" else "color"}")
+        appendLine()
+        appendLine("    /**")
+        appendLine("     * How opaque the Actor is drawn, from 0 to 1, on top of its color's own opacity; set by the opacity Blocks.")
+        appendLine("     */")
+        appendLine("    var $OPACITY_FIELD = 1f")
     }
 
     private fun StringBuilder.appendProperties(properties: List<PropertyDefinition>) = when (role) {

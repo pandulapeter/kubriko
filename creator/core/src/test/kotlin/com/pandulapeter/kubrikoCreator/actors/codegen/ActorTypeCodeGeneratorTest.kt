@@ -106,7 +106,7 @@ class ActorTypeCodeGeneratorTest {
         listOf(ActorShape.CIRCLE to "EllipseLook", ActorShape.RECTANGLE to "RectangleLook").forEach { (shape, look) ->
             val code = generate(shape = shape)
             assertContains(code, "import com.pandulapeter.kubriko.actor.looks.$look\n")
-            assertContains(code, "    override val look = $look(color)\n        get() {\n            field.color = color\n            return field\n        }\n")
+            assertContains(code, "    override val look = $look(color)\n        get() {\n            field.color = if (opacity < 1f) color.copy(alpha = color.alpha * opacity) else color\n            return field\n        }\n")
             assertFalse("DrawScope" in code)
         }
     }
@@ -680,6 +680,31 @@ class ActorTypeCodeGeneratorTest {
         assertContains(code, "            if (nearest != null) velocity = (nearest.body.position - body.position).normalized() * speed\n")
         val towardsItsOwnType = BlockCodeGenerator.blockCode(BlockDefinition.MoveTowardsNearest("Player"), EventType.EVERY_FRAME, BlockScope("Player")).lines
         assertTrue(towardsItsOwnType.any { "if (candidate === this || candidate.isRemoved) continue" in it })
+    }
+
+    @Test
+    fun theColorBlockKeepsTheOpacityAndPicksOneOfSeveralColorsAtRandom() {
+        val scope = BlockScope("Spark")
+        fun lines(block: BlockDefinition) = BlockCodeGenerator.blockCode(block, EventType.ADDED_TO_SCENE, scope).lines
+        assertEquals(listOf("color = Color(0xFFE05050).copy(alpha = color.alpha)"), lines(BlockDefinition.SetColor()))
+        assertEquals(listOf("color = Color(0x80102030).copy(alpha = color.alpha)"), lines(BlockDefinition.SetColor(listOf(0x80102030))))
+        assertEquals(
+            listOf("color = when (KubrikoWiring.random.nextInt(3)) { 0 -> Color(0xFFFF0000); 1 -> Color(0xFF00FF00); else -> Color(0xFF0000FF) }.copy(alpha = color.alpha)"),
+            lines(BlockDefinition.SetColor(listOf(0xFFFF0000, 0xFF00FF00, 0xFF0000FF))),
+        )
+        assertEquals(listOf("// Choose a color for this Block."), lines(BlockDefinition.SetColor(emptyList())))
+    }
+
+    @Test
+    fun theOpacityBlocksSetAFloatOfItsOwnFromPercentKeptBetweenZeroAndOne() {
+        val scope = BlockScope("Spark", properties = listOf(PropertyDefinition.Number("fade")))
+        fun lines(block: BlockDefinition) = BlockCodeGenerator.blockCode(block, EventType.EVERY_FRAME, scope).lines
+        assertEquals(listOf("opacity = (50f / 100f).coerceIn(0f, 1f)"), lines(BlockDefinition.SetOpacity()))
+        assertEquals(listOf("opacity = (opacity + -10f / 100f).coerceIn(0f, 1f)"), lines(BlockDefinition.ChangeOpacity()))
+        assertEquals(listOf("opacity = (opacity + fade / 100f).coerceIn(0f, 1f)"), lines(BlockDefinition.ChangeOpacity(NumberValue.Property("fade"))))
+        val code = generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetOpacity(NumberValue.Fixed(0f)))))
+        assertContains(code, "        opacity = (0f / 100f).coerceIn(0f, 1f)\n")
+        assertContains(code, "    var opacity = 1f\n")
     }
 
     @Test

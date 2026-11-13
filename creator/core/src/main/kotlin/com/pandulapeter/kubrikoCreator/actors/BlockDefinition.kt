@@ -253,6 +253,39 @@ public sealed interface BlockDefinition {
     ) : BlockDefinition
 
     @Serializable
+    @SerialName("setColor")
+    @Description("Sets the color of the Actor, keeping its opacity: its shape is drawn in it, and its sprite tinted with it if the type tints its sprite. With several colors, one of them is picked at random each time the Block runs.")
+    public data class SetColor(
+        @Description("The colors, as #RRGGBB (opaque; the opacity Blocks set the opacity): one, or up to $MAXIMUM_COLORS to pick one of at random.")
+        @SerialName("colors") val colors: List<@Serializable(with = HexColorSerializer::class) Long> = listOf(DEFAULT_COLOR),
+    ) : BlockDefinition {
+
+        public companion object {
+            /** The most colors one Block picks from. */
+            public const val MAXIMUM_COLORS: Int = 8
+
+            /** The color a new Block sets. */
+            public const val DEFAULT_COLOR: Long = 0xFFE05050
+        }
+    }
+
+    @Serializable
+    @SerialName("setOpacity")
+    @Description("Sets the opacity of the Actor, which its shape or sprite is drawn with, tinted or not, on top of its color's own. Every Actor starts at 100.")
+    public data class SetOpacity(
+        @Description("The opacity, in percent: 100 is opaque, 0 invisible (an invisible Actor still collides). A number from 0 to 100; a random number or a Property's value is kept between them. Not an edge.")
+        @SerialName("percent") val percent: NumberValue = NumberValue.Fixed(50f),
+    ) : BlockDefinition
+
+    @Serializable
+    @SerialName("changeOpacity")
+    @Description("Adds to the opacity of the Actor in percent, or subtracts from it with a negative amount, kept between 0 and 100, so a few percent every frame fades it in or out.")
+    public data class ChangeOpacity(
+        @Description("The percent added, such as -10 to fade it a little. Not an edge.")
+        @SerialName("by") val by: NumberValue = NumberValue.Fixed(-10f),
+    ) : BlockDefinition
+
+    @Serializable
     @SerialName("if")
     @Description("Runs the Blocks after it, up to the matching else or end Block, only when its condition is true. An if Block without an end runs to the end of the Event.")
     public data class If(
@@ -289,7 +322,7 @@ public sealed interface BlockDefinition {
 
     @Serializable
     @SerialName("kotlin")
-    @Description("Kotlin statements inserted verbatim into the Event, in a scope of their own, for anything the other Blocks can't express. In scope: the type's Properties (number Properties are Floats), actorManager, and viewportManager, and in an Actor type also velocity (a SceneOffset in scene units per second), body (the BoxBody of the Actor), and color. Also deltaTimeInMilliseconds (an Int) in every-frame, edge-touched, and Timer Events, kubriko in added-to-the-Scene and game-started Events, and other (the Actor collided with) in collision Events. `return` ends this Event's Blocks, and those of the type's later Events of the same kind. Leading import lines become imports of the generated file. println doesn't reach the console; use the log Block (Logger.log reaches it only from the desktop).")
+    @Description("Kotlin statements inserted verbatim into the Event, in a scope of their own, for anything the other Blocks can't express. In scope: the type's Properties (number Properties are Floats), actorManager, and viewportManager, and in an Actor type also velocity (a SceneOffset in scene units per second), body (the BoxBody of the Actor), color, and opacity (a Float from 0 to 1). Also deltaTimeInMilliseconds (an Int) in every-frame, edge-touched, and Timer Events, kubriko in added-to-the-Scene and game-started Events, and other (the Actor collided with) in collision Events. `return` ends this Event's Blocks, and those of the type's later Events of the same kind. Leading import lines become imports of the generated file. println doesn't reach the console; use the log Block (Logger.log reaches it only from the desktop).")
     public data class Kotlin(
         @Description("The Kotlin statements.")
         @SerialName("code") val code: String = "",

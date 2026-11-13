@@ -20,8 +20,6 @@ for code (`AssistantSystemPrompt`). The first writers' room game (a side-scrolli
 needed twelve Kotlin Blocks, all for simple behavior. Each item replaces some of them, and the section is done when the eval set
 (`EvalSet`) builds the same game with no Kotlin Block left.
 
-- **Color and opacity:** a Block that sets the color, to one color or one picked at random from a few, and Blocks that set the
-  opacity or change it by an amount. They are properties of the type's batched look, like the size and scale Blocks below.
 - **Animating over time:** "Animate" takes the scale, opacity, color, or position from a start to an end over some seconds (with an
   easing), and can remove the Actor when it ends, so a growing, fading flash is one Block, with no Property counting frames and no
   Timer of the same length to keep in step. Generated as a small tween the every-frame update advances, allocating nothing per frame.

@@ -59,9 +59,11 @@ import kubriko.creator.generated.resources.audio_sounds_none_yet
 import kubriko.creator.generated.resources.block_else_stray
 import kubriko.creator.generated.resources.block_end_stray
 import kubriko.creator.generated.resources.block_music_choose
+import kubriko.creator.generated.resources.block_parameter_by
 import kubriko.creator.generated.resources.block_parameter_code
 import kubriko.creator.generated.resources.block_parameter_looping
 import kubriko.creator.generated.resources.block_parameter_message
+import kubriko.creator.generated.resources.block_parameter_opacity
 import kubriko.creator.generated.resources.block_parameter_relative
 import kubriko.creator.generated.resources.block_parameter_repeating
 import kubriko.creator.generated.resources.block_parameter_seconds
@@ -260,6 +262,9 @@ private fun InlineParameters(
     is BlockDefinition.AddToVelocity -> OffsetParameters(block.x, block.y, scope, isVelocity = true) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
     is BlockDefinition.JumpTo -> OffsetParameters(block.x, block.y, scope, isVelocity = false) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
     is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation -> AnimationBlockParameters(block, scope, onBlockChange)
+    is BlockDefinition.SetColor -> SetColorParameters(block, onBlockChange)
+    is BlockDefinition.SetOpacity -> OpacityParameters(Res.string.block_parameter_opacity, block.percent, scope, { onBlockChange(block.copy(percent = it)) }, accepts = { it in 0f..100f })
+    is BlockDefinition.ChangeOpacity -> OpacityParameters(Res.string.block_parameter_by, block.by, scope, { onBlockChange(block.copy(by = it)) })
     is BlockDefinition.Log -> BufferedTextField(
         modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
         value = block.message,
@@ -316,6 +321,7 @@ private val BlockKind.hasInlineParameters
         BlockKind.SET_VELOCITY, BlockKind.ADD_TO_VELOCITY, BlockKind.MOVE_IN_DIRECTION, BlockKind.JUMP_TO, BlockKind.SET_NUMBER, BlockKind.CHANGE_NUMBER,
         BlockKind.SET_TEXT, BlockKind.SET_TOGGLE, BlockKind.ADD_ACTOR, BlockKind.MOVE_TOWARDS_NEAREST, BlockKind.START_TIMER,
         BlockKind.STOP_TIMER, BlockKind.GO_TO_SCENE, BlockKind.PAUSE_GAME, BlockKind.PLAY_SOUND, BlockKind.PLAY_MUSIC,
-        BlockKind.IF, BlockKind.REPEAT, BlockKind.LOG, BlockKind.SET_FRAME, BlockKind.SET_ANIMATION,
+        BlockKind.IF, BlockKind.REPEAT, BlockKind.LOG, BlockKind.SET_FRAME, BlockKind.SET_ANIMATION, BlockKind.SET_COLOR,
+        BlockKind.SET_OPACITY, BlockKind.CHANGE_OPACITY,
         -> true
     }

@@ -25,6 +25,8 @@ import kubriko.creator.generated.resources.error_command_already_under_version_c
 import kubriko.creator.generated.resources.error_command_change_missing
 import kubriko.creator.generated.resources.error_command_changed_outside
 import kubriko.creator.generated.resources.error_command_changes_not_written
+import kubriko.creator.generated.resources.error_command_colors_count
+import kubriko.creator.generated.resources.error_command_colors_not_opaque
 import kubriko.creator.generated.resources.error_command_commit_conflicts
 import kubriko.creator.generated.resources.error_command_commit_message_empty
 import kubriko.creator.generated.resources.error_command_description_invalid
@@ -48,6 +50,7 @@ import kubriko.creator.generated.resources.error_command_nothing_to_commit
 import kubriko.creator.generated.resources.error_command_number_edge_across
 import kubriko.creator.generated.resources.error_command_number_edge_not_taken
 import kubriko.creator.generated.resources.error_command_number_invalid
+import kubriko.creator.generated.resources.error_command_opacity_out_of_range
 import kubriko.creator.generated.resources.error_command_page_image_not_viewable
 import kubriko.creator.generated.resources.error_command_page_image_source
 import kubriko.creator.generated.resources.error_command_page_image_unreadable
@@ -153,6 +156,9 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.NOTHING_TO_COMMIT -> Res.string.error_command_nothing_to_commit
     CommandProblem.NUMBER_EDGE_ACROSS -> Res.string.error_command_number_edge_across
     CommandProblem.NUMBER_EDGE_NOT_TAKEN -> Res.string.error_command_number_edge_not_taken
+    CommandProblem.OPACITY_OUT_OF_RANGE -> Res.string.error_command_opacity_out_of_range
+    CommandProblem.COLORS_COUNT -> Res.string.error_command_colors_count
+    CommandProblem.COLORS_NOT_OPAQUE -> Res.string.error_command_colors_not_opaque
     CommandProblem.NUMBER_INVALID -> Res.string.error_command_number_invalid
     CommandProblem.DOCUMENT_NOT_MOVED -> Res.string.error_command_document_not_moved
     CommandProblem.DOCUMENT_TAKEN -> Res.string.error_command_document_taken

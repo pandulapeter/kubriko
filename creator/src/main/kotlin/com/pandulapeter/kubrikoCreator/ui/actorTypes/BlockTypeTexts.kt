@@ -50,7 +50,9 @@ import kubriko.creator.generated.resources.ic_move_towards
 import kubriko.creator.generated.resources.ic_music
 import kubriko.creator.generated.resources.ic_music_off
 import kubriko.creator.generated.resources.ic_number
+import kubriko.creator.generated.resources.ic_opacity
 import kubriko.creator.generated.resources.ic_open_with
+import kubriko.creator.generated.resources.ic_palette
 import kubriko.creator.generated.resources.ic_pause
 import kubriko.creator.generated.resources.ic_play
 import kubriko.creator.generated.resources.ic_refresh
@@ -117,6 +119,8 @@ internal val BlockKind.icon: DrawableResource
         BlockKind.SET_VELOCITY -> Res.drawable.ic_velocity
         BlockKind.ADD_TO_VELOCITY -> Res.drawable.ic_trending_up
         BlockKind.MOVE_IN_DIRECTION -> Res.drawable.ic_direction
+        BlockKind.SET_COLOR -> Res.drawable.ic_palette
+        BlockKind.SET_OPACITY, BlockKind.CHANGE_OPACITY -> Res.drawable.ic_opacity
         BlockKind.STOP -> Res.drawable.ic_stop
         BlockKind.JUMP_TO -> Res.drawable.ic_open_with
         BlockKind.BOUNCE_OFF_EDGE -> Res.drawable.ic_bounce

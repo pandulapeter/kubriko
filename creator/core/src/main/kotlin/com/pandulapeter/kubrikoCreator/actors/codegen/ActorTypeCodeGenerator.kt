@@ -23,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.ANIMATION_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.ANIMATION_LOOPING_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.ANIMATION_SPEED_FIELD
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.OPACITY_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.SET_FRAME_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STEP_ANIMATION_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.colorLiteral
@@ -106,8 +107,8 @@ public object ActorTypeCodeGenerator {
 
     /**
      * The look of an Actor type's final class, which Kubriko draws together with the batched Actors around it: its shape
-     * in its color, or its sprite, tinted with its color if it [ActorTypeDefinition.tintsSprite], and showing the frame
-     * the animation is at if its [sheet] cuts it into frames. The look is brought up to date with the Actor whenever
+     * in its color, or its sprite, tinted with its color if it [ActorTypeDefinition.tintsSprite], either at the Actor's
+     * opacity, and showing the frame the animation is at if its [sheet] cuts it into frames. The look is brought up to date with the Actor whenever
      * Kubriko reads it, so a color changed by a Block or in the Scene editor shows on the next frame.
      *
      * @param isFamilyMember Whether the class is a member of a family, whose base class plays the frames through hooks
@@ -122,7 +123,7 @@ public object ActorTypeCodeGenerator {
         usesSetFrame: Boolean,
     ) {
         val isSprite = definition.sprite?.let(SpriteFiles::accessorOf) != null
-        val tint = if (definition.tintsSprite) "\n            field.tint = color" else ""
+        val tint = "\n            field.tint = " + if (definition.tintsSprite) colorWithOpacity("color") else "if ($OPACITY_FIELD < 1f) Color.White.copy(alpha = $OPACITY_FIELD) else Color.White"
         appendLine()
         when {
             !isSprite -> {
@@ -247,6 +248,11 @@ public object ActorTypeCodeGenerator {
         appendLine("}")
     })
 
+    /**
+     * [color] made as transparent as the Actor's opacity, which an opaque Actor reads unchanged.
+     */
+    private fun colorWithOpacity(color: String) = "if ($OPACITY_FIELD < 1f) $color.copy(alpha = $color.alpha * $OPACITY_FIELD) else $color"
+
     private fun lookClassOf(shape: ActorShape) = when (shape) {
         ActorShape.CIRCLE -> "EllipseLook"
         ActorShape.RECTANGLE -> "RectangleLook"
@@ -254,11 +260,11 @@ public object ActorTypeCodeGenerator {
 
     private fun shapeLook(shape: ActorShape) = """
         |    /**
-        |     * Its shape in its color.
+        |     * Its shape in its color, at its opacity.
         |     */
         |    override val look = ${lookClassOf(shape)}(color)
         |        get() {
-        |            field.color = color
+        |            field.color = ${colorWithOpacity("color")}
         |            return field
         |        }
     """.trimMargin()

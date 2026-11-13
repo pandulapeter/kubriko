@@ -93,7 +93,7 @@ public object EveryBlockTypes {
         BlockDefinition.StopMusic,
         BlockDefinition.SetFrame(frame = NumberValue.Fixed(2f)),
         BlockDefinition.SetAnimation(speed = NumberValue.Fixed(-0.5f), isLooping = false),
-    ) + numberValueBlocks + edgeValueBlocks + directionBlocks
+    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks
 
     /**
      * Blocks taking random numbers and Properties' values, which format version 5 added.
@@ -128,6 +128,19 @@ public object EveryBlockTypes {
             BlockDefinition.AddActor("Ball", x = NumberValue.BetweenEdges(SceneEdge.RIGHT, -5f, SceneEdge.LEFT, 5f), y = NumberValue.Edge(SceneEdge.TOP, 1f)),
             BlockDefinition.If(ConditionDefinition.Number("score", Comparison.LESS, NumberValue.BetweenEdges(SceneEdge.TOP, to = SceneEdge.BOTTOM))),
             BlockDefinition.End,
+        )
+
+    /**
+     * Blocks setting the color and the opacity, which format version 9 added.
+     */
+    val appearanceBlocks: List<BlockDefinition>
+        get() = listOf(
+            BlockDefinition.SetColor(),
+            BlockDefinition.SetColor(colors = listOf(0xFF20C060, 0xFFFFFFFF, 0xFF000000)),
+            BlockDefinition.SetOpacity(percent = NumberValue.Fixed(0f)),
+            BlockDefinition.SetOpacity(percent = NumberValue.Random(20f, 80f)),
+            BlockDefinition.ChangeOpacity(),
+            BlockDefinition.ChangeOpacity(by = NumberValue.Property("score", manager = "EveryManager")),
         )
 
     /**

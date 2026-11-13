@@ -11,7 +11,9 @@ package com.pandulapeter.kubrikoCreator.foundation
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class ColorHexTest {
 
@@ -42,5 +44,14 @@ class ColorHexTest {
     @Test
     fun anythingElseIsRejected() {
         listOf("", "#6060A", "#6060AAF", "#6060AAFFF", "#GGGGGG", "red").forEach { assertNull(ColorHex.parse(it), it) }
+    }
+
+    @Test
+    fun aColorIsOpaqueOnlyWithAFullAlphaAndIsMadeOpaqueKeepingItsHue() {
+        assertTrue(ColorHex.isOpaque(0xFF6060AA))
+        assertFalse(ColorHex.isOpaque(0xFE6060AA))
+        assertFalse(ColorHex.isOpaque(0x6060AA))
+        assertEquals(0xFF6060AA, ColorHex.opaque(0x806060AA))
+        assertEquals(0xFF6060AA, ColorHex.opaque(0xFF6060AA))
     }
 }

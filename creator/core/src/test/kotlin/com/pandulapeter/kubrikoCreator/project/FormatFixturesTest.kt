@@ -151,8 +151,10 @@ class FormatFixturesTest {
      * up to the current format doesn't make up.
      */
     private fun BlockTypeDefinition.asOf(version: Int): BlockTypeDefinition {
-        if (version >= 8) return this
-        val withoutDirections = withEvents(events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.directionBlocks)) })
+        if (version >= 9) return this
+        val withoutAppearance = withEvents(events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.appearanceBlocks)) })
+        if (version == 8) return withoutAppearance
+        val withoutDirections = withoutAppearance.withEvents(withoutAppearance.events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.directionBlocks)) })
         if (version == 7) return withoutDirections
         val withoutLeaving = withoutDirections.withEvents(withoutDirections.events.filterNot { it.type == EventType.LEFT_SCENE }).let { type ->
             if (type is ActorTypeDefinition) type.copy(staysInsideScene = true) else type

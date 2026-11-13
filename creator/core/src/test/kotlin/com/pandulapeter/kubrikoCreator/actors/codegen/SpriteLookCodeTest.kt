@@ -43,8 +43,8 @@ class SpriteLookCodeTest {
                 "    )\n",
         )
         assertContains(code, "        if (isRemoved) return\n        animation.stepForward(deltaTimeInMilliseconds, animationSpeed, isAnimationLooping)\n")
-        assertContains(code, "            animation.applyTo(field)\n            return field\n")
-        assertFalse("setRegion" in code || "fun setFrame" in code || "tint" in code)
+        assertContains(code, "            animation.applyTo(field)\n            field.tint = if (opacity < 1f) Color.White.copy(alpha = opacity) else Color.White\n            return field\n")
+        assertFalse("setRegion" in code || "fun setFrame" in code)
     }
 
     @Test
@@ -66,13 +66,20 @@ class SpriteLookCodeTest {
     }
 
     @Test
-    fun aTintedSpriteIsMultipliedByTheColorAndAShapeIsntTintedTwice() {
-        assertContains(generate(hero.copy(tintsSprite = true)), "            animation.applyTo(field)\n            field.tint = color\n")
+    fun aTintedSpriteIsMultipliedByTheColorEitherAtTheOpacityAndAShapeIsntTintedTwice() {
+        val tinted = "field.tint = if (opacity < 1f) color.copy(alpha = color.alpha * opacity) else color\n"
+        assertContains(generate(hero.copy(tintsSprite = true)), "            animation.applyTo(field)\n            $tinted")
         assertContains(
             generate(hero.copy(tintsSprite = true), spriteSheets = emptyMap()),
-            "            if (field.texture == null) field.setRegion(sprite?.let { spriteManager.getRegion(it) })\n            field.tint = color\n",
+            "            if (field.texture == null) field.setRegion(sprite?.let { spriteManager.getRegion(it) })\n            $tinted",
         )
-        assertFalse("tint" in generate(hero.copy(sprite = null, tintsSprite = true)))
+        assertContains(
+            generate(hero, spriteSheets = emptyMap()),
+            "            if (field.texture == null) field.setRegion(sprite?.let { spriteManager.getRegion(it) })\n            field.tint = if (opacity < 1f) Color.White.copy(alpha = opacity) else Color.White\n",
+        )
+        val shape = generate(hero.copy(sprite = null, tintsSprite = true))
+        assertFalse("tint" in shape)
+        assertContains(shape, "            field.color = if (opacity < 1f) color.copy(alpha = color.alpha * opacity) else color\n")
     }
 
     @Test

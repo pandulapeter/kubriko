@@ -45,6 +45,10 @@ class BlockNotationTest {
             "Move in a direction: a random number from 0 to 360 degrees at speed 120",
             BlockNotation.of(BlockDefinition.MoveInDirection(NumberValue.Random(0f, 360f), NumberValue.Fixed(120f))),
         )
+        assertEquals("Set the color to #E05050", BlockNotation.of(BlockDefinition.SetColor()))
+        assertEquals("Set the color to one of #20C060, #FFFFFF at random", BlockNotation.of(BlockDefinition.SetColor(listOf(0xFF20C060, 0xFFFFFFFF))))
+        assertEquals("Set the opacity to a random number from 20 to 80 percent", BlockNotation.of(BlockDefinition.SetOpacity(NumberValue.Random(20f, 80f))))
+        assertEquals("Change the opacity by -10 percent", BlockNotation.of(BlockDefinition.ChangeOpacity()))
         assertEquals("Repeat a random whole number from 1 to 3 times", BlockNotation.of(BlockDefinition.Repeat(NumberValue.Random(1f, 3f, isWhole = true))))
         assertEquals("If by chance ((none)%)", BlockNotation.of(BlockDefinition.If(ConditionDefinition.Chance(NumberValue.Property()))))
         assertEquals(

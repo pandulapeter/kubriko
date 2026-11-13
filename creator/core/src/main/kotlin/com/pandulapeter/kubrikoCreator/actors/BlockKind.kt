@@ -53,6 +53,9 @@ public enum class BlockKind(
     STOP_MUSIC({ BlockDefinition.StopMusic }),
     SET_FRAME({ BlockDefinition.SetFrame() }, managerTypeProblem = PlacementProblem.BLOCK_ANIMATION_IN_MANAGER_TYPE),
     SET_ANIMATION({ BlockDefinition.SetAnimation() }, managerTypeProblem = PlacementProblem.BLOCK_ANIMATION_IN_MANAGER_TYPE),
+    SET_COLOR({ BlockDefinition.SetColor() }, managerTypeProblem = PlacementProblem.BLOCK_APPEARANCE_IN_MANAGER_TYPE),
+    SET_OPACITY({ BlockDefinition.SetOpacity() }, managerTypeProblem = PlacementProblem.BLOCK_APPEARANCE_IN_MANAGER_TYPE),
+    CHANGE_OPACITY({ BlockDefinition.ChangeOpacity() }, managerTypeProblem = PlacementProblem.BLOCK_APPEARANCE_IN_MANAGER_TYPE),
     IF({ BlockDefinition.If() }),
     ELSE({ BlockDefinition.Else }),
     REPEAT({ BlockDefinition.Repeat() }),
@@ -107,6 +110,9 @@ public enum class BlockKind(
             BlockDefinition.StopMusic -> STOP_MUSIC
             is BlockDefinition.SetFrame -> SET_FRAME
             is BlockDefinition.SetAnimation -> SET_ANIMATION
+            is BlockDefinition.SetColor -> SET_COLOR
+            is BlockDefinition.SetOpacity -> SET_OPACITY
+            is BlockDefinition.ChangeOpacity -> CHANGE_OPACITY
             is BlockDefinition.If -> IF
             BlockDefinition.Else -> ELSE
             is BlockDefinition.Repeat -> REPEAT

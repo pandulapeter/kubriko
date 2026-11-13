@@ -96,6 +96,7 @@ public class ProjectFormat(
             EdgeValuesMigration,
             SceneLeavingMigration,
             ReservedPropertyMigration.DIRECTION,
+            ReservedPropertyMigration.OPACITY,
         )
 
         /**

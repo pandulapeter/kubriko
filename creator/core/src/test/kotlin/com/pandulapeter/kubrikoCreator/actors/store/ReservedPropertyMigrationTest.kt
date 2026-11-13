@@ -74,6 +74,21 @@ class ReservedPropertyMigrationTest {
     }
 
     @Test
+    fun formatVersionNineReservesTheOpacity() {
+        assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate("opacity", emptyList()))
+        assertNotNull(BlockTypeStore.open(root)).save(
+            ActorTypeDefinition(
+                name = "Ghost",
+                properties = listOf(PropertyDefinition.Number("opacity", 40f)),
+                events = everyFrame(BlockDefinition.SetOpacity(NumberValue.Property("opacity"))),
+            ),
+        )
+        val ghost = migratedTypes().getValue("Ghost") as ActorTypeDefinition
+        assertEquals(listOf(PropertyDefinition.Number("opacity2", 40f)), ghost.properties)
+        assertEquals(everyFrame(BlockDefinition.SetOpacity(NumberValue.Property("opacity2"))), ghost.events)
+    }
+
+    @Test
     fun formatVersionEightReservesTheFunctionMovingInADirection() {
         assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate("velocityInDirection", emptyList()))
         assertNotNull(BlockTypeStore.open(root)).save(

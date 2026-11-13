@@ -22,8 +22,18 @@ public object ColorHex {
      */
     public fun format(color: Long): String {
         val argb = color and 0xFFFFFFFFL
-        return "#" + if (argb ushr 24 == 0xFFL) (argb and 0xFFFFFF).toString(16).uppercase().padStart(6, '0') else argb.toString(16).uppercase().padStart(8, '0')
+        return "#" + if (isOpaque(argb)) (argb and 0xFFFFFF).toString(16).uppercase().padStart(6, '0') else argb.toString(16).uppercase().padStart(8, '0')
     }
+
+    /**
+     * Whether [color] (`0xAARRGGBB`) is wholly opaque.
+     */
+    public fun isOpaque(color: Long): Boolean = (color and 0xFFFFFFFFL) ushr 24 == 0xFFL
+
+    /**
+     * [color] (`0xAARRGGBB`) made wholly opaque.
+     */
+    public fun opaque(color: Long): Long = (color and 0xFFFFFFFFL) or 0xFF000000L
 
     /**
      * The color [text] names, opaque if it has six digits, or null if it isn't a color.

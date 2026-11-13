@@ -30,7 +30,7 @@
   number comes from the one `KubrikoWiring.random`, so a test can seed the whole game. A Block reads its numbers while none
   of its own locals is in scope (passing them to a member function, as Move in a direction does, or reading the one number
   first, as Move towards the nearest does), so a Property named like a local is still the Property; the function's name is
-  reserved (format version 8). A direction or a speed takes no edge, which is a position.
+  reserved (format version 8). A direction, a speed, or an opacity takes no edge, which is a position.
 - An edge is the Scene settings' bounds, or the screen's while there are none, as the edge Event decides. Values read it
   through `GeneratedScenes.edge` and `randomBetweenEdges`, which read the settings once per call, so a Scene that finishes
   loading meanwhile can't mix its bounds with the screen's; the edge Event takes one snapshot in the Actor's own code, so a
@@ -78,7 +78,11 @@
   its color, or its sprite) is a property whose getter brings it up to date with the Actor (the color, the sprite's region)
   whenever Kubriko reads it, so a color set by a Kotlin Block or the Scene editor shows without a hook in every setter, and a
   family's base class needn't know its children's looks. Every appearance feature (tinting a sprite, and those to come:
-  drawing order, layer, the visible toggle) is a property of the look; a type that draws with code of its own (a Kotlin Block
+  drawing order, layer, the visible toggle) is a property of the look; every Actor's `opacity` (a `Float`
+  the opacity Blocks set, reserved by format version 9 and never saved, so each Actor starts opaque) is applied on top of
+  its color by the look, to a sprite that isn't tinted too. It isn't the color's alpha, which Compose keeps in 1/255
+  steps, so a fade by small steps would be lost, and a translucent color on an untinted sprite would start to show in
+  existing games; Set the color keeps the color's alpha; a type that draws with code of its own (a Kotlin Block
   in a drawing Event) becomes a plain `Visible`, which ends the run it sits in. A circle fills a body that isn't square as an
   ellipse (`EllipseLook`), as an unevenly scaled one always looked, while its collision mask stays a circle as wide as the
   body, since Kubriko has no elliptic mask. `look` is a reserved Property name (format

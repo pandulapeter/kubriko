@@ -20,6 +20,7 @@ import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.SceneEdge
 import com.pandulapeter.kubrikoCreator.actors.readsEdges
+import com.pandulapeter.kubrikoCreator.foundation.ColorHex
 
 /**
  * Events and Blocks written as the editor shows them, one short line each, for tool results that are cheaper to read than
@@ -92,6 +93,13 @@ internal object BlockNotation {
         BlockDefinition.StopMusic -> "Stop the music"
         is BlockDefinition.SetFrame -> "Show frame ${value(block.frame)} of the sprite"
         is BlockDefinition.SetAnimation -> "Play the sprite's frames at speed ${value(block.speed)}" + if (block.isLooping) ", looping" else ", once"
+        is BlockDefinition.SetColor -> "Set the color to " + when (block.colors.size) {
+            0 -> NONE
+            1 -> ColorHex.format(block.colors.single())
+            else -> "one of ${block.colors.joinToString { ColorHex.format(it) }} at random"
+        }
+        is BlockDefinition.SetOpacity -> "Set the opacity to ${value(block.percent)} percent"
+        is BlockDefinition.ChangeOpacity -> "Change the opacity by ${value(block.by)} percent"
         is BlockDefinition.If -> "If ${of(block.condition)}"
         BlockDefinition.Else -> "Else"
         is BlockDefinition.Repeat -> "Repeat ${value(block.times)} times"

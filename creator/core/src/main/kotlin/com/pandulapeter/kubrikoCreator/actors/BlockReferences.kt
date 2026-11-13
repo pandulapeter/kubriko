@@ -29,6 +29,7 @@ public val BlockDefinition.propertyReference: PropertyReference?
         BlockDefinition.RemoveOther, is BlockDefinition.AddActor, is BlockDefinition.MoveTowardsNearest,
         is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene, BlockDefinition.RestartScene,
         is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation,
+        is BlockDefinition.SetColor, is BlockDefinition.SetOpacity, is BlockDefinition.ChangeOpacity,
         BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End, is BlockDefinition.Log, is BlockDefinition.Kotlin,
         -> null
     }
@@ -45,7 +46,7 @@ public val BlockDefinition.actorTypeReference: String?
         BlockDefinition.RemoveOther, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText,
         is BlockDefinition.SetToggle, is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene,
         BlockDefinition.RestartScene, is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic,
-        BlockDefinition.StopMusic, is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, is BlockDefinition.If, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
+        BlockDefinition.StopMusic, is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity, is BlockDefinition.ChangeOpacity, is BlockDefinition.If, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
         is BlockDefinition.Log, is BlockDefinition.Kotlin,
         -> null
     }?.ifEmpty { null }
@@ -61,7 +62,7 @@ internal fun BlockDefinition.withActorTypeRenamed(oldName: String, newName: Stri
     BlockDefinition.RemoveOther, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText,
     is BlockDefinition.SetToggle, is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene,
     BlockDefinition.RestartScene, is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic,
-    BlockDefinition.StopMusic, is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, is BlockDefinition.If, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
+    BlockDefinition.StopMusic, is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity, is BlockDefinition.ChangeOpacity, is BlockDefinition.If, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
     is BlockDefinition.Log, is BlockDefinition.Kotlin,
     -> this
 }
@@ -78,7 +79,7 @@ public val BlockDefinition.timerName: String?
         BlockDefinition.RemoveOther, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText,
         is BlockDefinition.SetToggle, is BlockDefinition.AddActor, is BlockDefinition.MoveTowardsNearest,
         is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame, is BlockDefinition.PlaySound,
-        is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, is BlockDefinition.If, BlockDefinition.Else,
+        is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity, is BlockDefinition.ChangeOpacity, is BlockDefinition.If, BlockDefinition.Else,
         is BlockDefinition.Repeat, BlockDefinition.End, is BlockDefinition.Log, is BlockDefinition.Kotlin,
         -> null
     }
@@ -94,7 +95,7 @@ public fun BlockDefinition.withTimerRenamed(oldName: String, newName: String): B
     BlockDefinition.RemoveOther, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText,
     is BlockDefinition.SetToggle, is BlockDefinition.AddActor, is BlockDefinition.MoveTowardsNearest, is BlockDefinition.GoToScene,
     BlockDefinition.RestartScene, is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic,
-    BlockDefinition.StopMusic, is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, is BlockDefinition.If, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
+    BlockDefinition.StopMusic, is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity, is BlockDefinition.ChangeOpacity, is BlockDefinition.If, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
     is BlockDefinition.Log, is BlockDefinition.Kotlin,
     -> this
 }
@@ -140,7 +141,7 @@ public fun BlockDefinition.withPropertyReference(manager: String?, name: String)
     is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
     BlockDefinition.RemoveOther, is BlockDefinition.AddActor, is BlockDefinition.MoveTowardsNearest, is BlockDefinition.StartTimer,
     is BlockDefinition.StopTimer, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
-    is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, BlockDefinition.Else,
+    is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity, is BlockDefinition.ChangeOpacity, BlockDefinition.Else,
     is BlockDefinition.Repeat, BlockDefinition.End, is BlockDefinition.Log, is BlockDefinition.Kotlin,
     -> this
 }
@@ -157,7 +158,7 @@ internal val BlockDefinition.audioFile
         BlockDefinition.RemoveOther, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText,
         is BlockDefinition.SetToggle, is BlockDefinition.AddActor, is BlockDefinition.MoveTowardsNearest,
         is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene, BlockDefinition.RestartScene,
-        is BlockDefinition.PauseGame, BlockDefinition.StopMusic, is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, is BlockDefinition.If, BlockDefinition.Else,
+        is BlockDefinition.PauseGame, BlockDefinition.StopMusic, is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity, is BlockDefinition.ChangeOpacity, is BlockDefinition.If, BlockDefinition.Else,
         is BlockDefinition.Repeat, BlockDefinition.End, is BlockDefinition.Log, is BlockDefinition.Kotlin,
         -> null
     }?.ifEmpty { null }
@@ -179,6 +180,8 @@ public val BlockDefinition.numberValues: List<NumberValue>
         is BlockDefinition.StartTimer -> listOf(seconds)
         is BlockDefinition.SetFrame -> listOf(frame)
         is BlockDefinition.SetAnimation -> listOf(speed)
+        is BlockDefinition.SetOpacity -> listOf(percent)
+        is BlockDefinition.ChangeOpacity -> listOf(by)
         is BlockDefinition.Repeat -> listOf(times)
         is BlockDefinition.If -> when (val condition = condition) {
             is ConditionDefinition.Number -> listOf(condition.value)
@@ -189,7 +192,7 @@ public val BlockDefinition.numberValues: List<NumberValue>
         BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf,
         BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther, is BlockDefinition.SetText, is BlockDefinition.SetToggle,
         is BlockDefinition.StopTimer, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
-        is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, BlockDefinition.Else,
+        is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, is BlockDefinition.SetColor, BlockDefinition.Else,
         BlockDefinition.End, is BlockDefinition.Log, is BlockDefinition.Kotlin,
         -> emptyList()
     }
@@ -209,12 +212,14 @@ public fun BlockDefinition.withNumberValues(transform: (NumberValue) -> NumberVa
     is BlockDefinition.StartTimer -> copy(seconds = transform(seconds))
     is BlockDefinition.SetFrame -> copy(frame = transform(frame))
     is BlockDefinition.SetAnimation -> copy(speed = transform(speed))
+    is BlockDefinition.SetOpacity -> copy(percent = transform(percent))
+    is BlockDefinition.ChangeOpacity -> copy(by = transform(by))
     is BlockDefinition.Repeat -> copy(times = transform(times))
     is BlockDefinition.If -> copy(condition = condition.withNumberValues(transform))
     BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf,
     BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther, is BlockDefinition.SetText, is BlockDefinition.SetToggle,
     is BlockDefinition.StopTimer, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
-    is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, BlockDefinition.Else,
+    is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, is BlockDefinition.SetColor, BlockDefinition.Else,
     BlockDefinition.End, is BlockDefinition.Log, is BlockDefinition.Kotlin,
     -> this
 }

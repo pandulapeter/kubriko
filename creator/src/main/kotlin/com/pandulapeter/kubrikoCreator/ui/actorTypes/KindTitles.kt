@@ -18,6 +18,7 @@ import kubriko.creator.generated.resources.block_add_to_velocity
 import kubriko.creator.generated.resources.block_bounce_off_edge
 import kubriko.creator.generated.resources.block_bounce_off_other
 import kubriko.creator.generated.resources.block_change_number
+import kubriko.creator.generated.resources.block_change_opacity
 import kubriko.creator.generated.resources.block_else
 import kubriko.creator.generated.resources.block_end
 import kubriko.creator.generated.resources.block_go_to_scene
@@ -36,8 +37,10 @@ import kubriko.creator.generated.resources.block_repeat
 import kubriko.creator.generated.resources.block_restart_scene
 import kubriko.creator.generated.resources.block_run_parent_event
 import kubriko.creator.generated.resources.block_set_animation
+import kubriko.creator.generated.resources.block_set_color
 import kubriko.creator.generated.resources.block_set_frame
 import kubriko.creator.generated.resources.block_set_number
+import kubriko.creator.generated.resources.block_set_opacity
 import kubriko.creator.generated.resources.block_set_text
 import kubriko.creator.generated.resources.block_set_toggle
 import kubriko.creator.generated.resources.block_set_velocity
@@ -62,6 +65,9 @@ internal val BlockKind.title: StringResource
         BlockKind.SET_VELOCITY -> Res.string.block_set_velocity
         BlockKind.ADD_TO_VELOCITY -> Res.string.block_add_to_velocity
         BlockKind.MOVE_IN_DIRECTION -> Res.string.block_move_in_direction
+        BlockKind.SET_COLOR -> Res.string.block_set_color
+        BlockKind.SET_OPACITY -> Res.string.block_set_opacity
+        BlockKind.CHANGE_OPACITY -> Res.string.block_change_opacity
         BlockKind.STOP -> Res.string.block_stop
         BlockKind.RUN_PARENT_EVENT -> Res.string.block_run_parent_event
         BlockKind.JUMP_TO -> Res.string.block_jump_to

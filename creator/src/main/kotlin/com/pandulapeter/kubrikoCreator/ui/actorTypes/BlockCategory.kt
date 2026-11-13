@@ -57,7 +57,7 @@ internal enum class BlockCategory(
             BlockKind.BOUNCE_OFF_OTHER,
         ),
     ),
-    ACTORS(Res.string.block_category_actors, Res.drawable.ic_actor_type, Accent.CAST, listOf(BlockKind.ADD_ACTOR, BlockKind.REMOVE_SELF, BlockKind.REMOVE_OTHER, BlockKind.SET_FRAME, BlockKind.SET_ANIMATION)),
+    ACTORS(Res.string.block_category_actors, Res.drawable.ic_actor_type, Accent.CAST, listOf(BlockKind.ADD_ACTOR, BlockKind.REMOVE_SELF, BlockKind.REMOVE_OTHER, BlockKind.SET_FRAME, BlockKind.SET_ANIMATION, BlockKind.SET_COLOR, BlockKind.SET_OPACITY, BlockKind.CHANGE_OPACITY)),
     PROPERTIES(Res.string.block_category_properties, Res.drawable.ic_property, Accent.PROPERTIES, listOf(BlockKind.SET_NUMBER, BlockKind.CHANGE_NUMBER, BlockKind.SET_TEXT, BlockKind.SET_TOGGLE)),
     FLOW(Res.string.block_category_flow, Res.drawable.ic_condition, Accent.FLOW, listOf(BlockKind.IF, BlockKind.ELSE, BlockKind.REPEAT, BlockKind.END, BlockKind.RUN_PARENT_EVENT)),
     TIMERS(Res.string.block_category_timers, Res.drawable.ic_timer, Accent.TIMERS, listOf(BlockKind.START_TIMER, BlockKind.STOP_TIMER)),

@@ -36,8 +36,8 @@ import java.io.File
  *
  * Format version 3 reserved `look`, the member generated Actor types are drawn through ([LOOK]), and format version 4
  * the members that play a sprite cut into frames ([ANIMATION]), whose version also added the animation Blocks and
- * tinting a sprite, and format version 8 the function the Move in a direction Block calls ([DIRECTION]), which that
- * version added.
+ * tinting a sprite, format version 8 the function the Move in a direction Block calls ([DIRECTION]), which that
+ * version added, and format version 9 the opacity every Actor is drawn with ([OPACITY]), with the color and opacity Blocks.
  */
 internal class ReservedPropertyMigration(private vararg val reservedNames: String) : FormatMigration {
 
@@ -126,5 +126,6 @@ internal class ReservedPropertyMigration(private vararg val reservedNames: Strin
         val LOOK = ReservedPropertyMigration("look")
         val ANIMATION = ReservedPropertyMigration("animation", "animationSpeed", "isAnimationLooping")
         val DIRECTION = ReservedPropertyMigration("velocityInDirection")
+        val OPACITY = ReservedPropertyMigration("opacity")
     }
 }
