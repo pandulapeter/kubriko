@@ -1,0 +1,190 @@
+com.pandulapeter.kubrikoCreator.actors.ActorShape = circle
+com.pandulapeter.kubrikoCreator.actors.ActorShape = rectangle
+com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition.color: HexColor=
+com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition.description: kotlin.String?=
+com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition.events: kotlin.collections.ArrayList<com.pandulapeter.kubrikoCreator.actors.EventDefinition>=
+com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition.height: kotlin.Float=
+com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition.name: kotlin.String
+com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition.parent: kotlin.String?=
+com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition.properties: kotlin.collections.ArrayList<com.pandulapeter.kubrikoCreator.actors.PropertyDefinition>=
+com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition.shape: com.pandulapeter.kubrikoCreator.actors.ActorShape=
+com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition.sprite: kotlin.String?=
+com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition.staysInsideScene: kotlin.Boolean=
+com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition.tintsSprite: kotlin.Boolean=
+com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition.width: kotlin.Float=
+com.pandulapeter.kubrikoCreator.actors.Axis = horizontal
+com.pandulapeter.kubrikoCreator.actors.Axis = vertical
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : addActor
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : addToVelocity
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : bounceOffEdge
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : bounceOffOther
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : changeNumber
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : else
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : end
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : goToScene
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : if
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : jumpTo
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : kotlin
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : log
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : moveTowardsNearest
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : pauseGame
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : playMusic
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : playSound
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : removeOther
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : removeSelf
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : repeat
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : restartScene
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : runParentEvent
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : setAnimation
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : setFrame
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : setNumber
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : setText
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : setToggle
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : setVelocity
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : startTimer
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : stop
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : stopMusic
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition : stopTimer
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:addActor.actorType: kotlin.String=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:addActor.isRelative: kotlin.Boolean=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:addActor.x: com.pandulapeter.kubrikoCreator.actors.NumberValue=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:addActor.y: com.pandulapeter.kubrikoCreator.actors.NumberValue=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:addToVelocity.x: com.pandulapeter.kubrikoCreator.actors.NumberValue=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:addToVelocity.y: com.pandulapeter.kubrikoCreator.actors.NumberValue=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:changeNumber.by: com.pandulapeter.kubrikoCreator.actors.NumberValue=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:changeNumber.manager: kotlin.String?=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:changeNumber.property: kotlin.String=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:goToScene.scene: kotlin.String=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:if.condition: com.pandulapeter.kubrikoCreator.actors.ConditionDefinition=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:jumpTo.x: com.pandulapeter.kubrikoCreator.actors.NumberValue=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:jumpTo.y: com.pandulapeter.kubrikoCreator.actors.NumberValue=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:kotlin.code: kotlin.String=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:log.message: kotlin.String=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:moveTowardsNearest.actorType: kotlin.String=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:moveTowardsNearest.speed: com.pandulapeter.kubrikoCreator.actors.NumberValue=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:pauseGame.action: com.pandulapeter.kubrikoCreator.actors.PauseAction=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:playMusic.isLooping: kotlin.Boolean=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:playMusic.music: kotlin.String=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:playSound.sound: kotlin.String=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:repeat.times: com.pandulapeter.kubrikoCreator.actors.WholeNumberValue=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:setAnimation.isLooping: kotlin.Boolean=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:setAnimation.speed: com.pandulapeter.kubrikoCreator.actors.NumberValue=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:setFrame.frame: com.pandulapeter.kubrikoCreator.actors.WholeNumberValue=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:setNumber.manager: kotlin.String?=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:setNumber.property: kotlin.String=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:setNumber.value: com.pandulapeter.kubrikoCreator.actors.NumberValue=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:setText.manager: kotlin.String?=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:setText.property: kotlin.String=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:setText.value: kotlin.String=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:setToggle.manager: kotlin.String?=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:setToggle.property: kotlin.String=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:setToggle.value: kotlin.Boolean=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:setVelocity.x: com.pandulapeter.kubrikoCreator.actors.NumberValue=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:setVelocity.y: com.pandulapeter.kubrikoCreator.actors.NumberValue=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:startTimer.isRepeating: kotlin.Boolean=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:startTimer.seconds: com.pandulapeter.kubrikoCreator.actors.NumberValue=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:startTimer.timer: TimerName=
+com.pandulapeter.kubrikoCreator.actors.BlockDefinition:stopTimer.timer: TimerName=
+com.pandulapeter.kubrikoCreator.actors.Comparison = equal
+com.pandulapeter.kubrikoCreator.actors.Comparison = greater
+com.pandulapeter.kubrikoCreator.actors.Comparison = greaterOrEqual
+com.pandulapeter.kubrikoCreator.actors.Comparison = less
+com.pandulapeter.kubrikoCreator.actors.Comparison = lessOrEqual
+com.pandulapeter.kubrikoCreator.actors.Comparison = notEqual
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition : chance
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition : keyHeld
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition : number
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition : paused
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition : text
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition : toggle
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition : velocity
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition:chance.percent: com.pandulapeter.kubrikoCreator.actors.NumberValue=
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition:keyHeld.isHeld: kotlin.Boolean=
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition:keyHeld.key: KeyChoice=
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition:number.comparison: com.pandulapeter.kubrikoCreator.actors.Comparison=
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition:number.manager: kotlin.String?=
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition:number.property: kotlin.String=
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition:number.value: com.pandulapeter.kubrikoCreator.actors.NumberValue=
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition:paused.isPaused: kotlin.Boolean=
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition:text.isEqual: kotlin.Boolean=
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition:text.manager: kotlin.String?=
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition:text.property: kotlin.String=
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition:text.value: kotlin.String=
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition:toggle.isOn: kotlin.Boolean=
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition:toggle.manager: kotlin.String?=
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition:toggle.property: kotlin.String=
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition:velocity.axis: com.pandulapeter.kubrikoCreator.actors.Axis=
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition:velocity.comparison: com.pandulapeter.kubrikoCreator.actors.Comparison=
+com.pandulapeter.kubrikoCreator.actors.ConditionDefinition:velocity.value: com.pandulapeter.kubrikoCreator.actors.NumberValue=
+com.pandulapeter.kubrikoCreator.actors.EventDefinition.blocks: kotlin.collections.ArrayList<com.pandulapeter.kubrikoCreator.actors.BlockDefinition>=
+com.pandulapeter.kubrikoCreator.actors.EventDefinition.key: KeyChoice?=
+com.pandulapeter.kubrikoCreator.actors.EventDefinition.otherActorType: kotlin.String?=
+com.pandulapeter.kubrikoCreator.actors.EventDefinition.timer: TimerName?=
+com.pandulapeter.kubrikoCreator.actors.EventDefinition.type: com.pandulapeter.kubrikoCreator.actors.EventType
+com.pandulapeter.kubrikoCreator.actors.EventType = addedToScene
+com.pandulapeter.kubrikoCreator.actors.EventType = collision
+com.pandulapeter.kubrikoCreator.actors.EventType = edgeTouched
+com.pandulapeter.kubrikoCreator.actors.EventType = everyFrame
+com.pandulapeter.kubrikoCreator.actors.EventType = gameStarted
+com.pandulapeter.kubrikoCreator.actors.EventType = keyPressed
+com.pandulapeter.kubrikoCreator.actors.EventType = leftScene
+com.pandulapeter.kubrikoCreator.actors.EventType = timerFinished
+com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition.description: kotlin.String?=
+com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition.events: kotlin.collections.ArrayList<com.pandulapeter.kubrikoCreator.actors.EventDefinition>=
+com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition.kotlinUi: kotlin.String?=
+com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition.name: kotlin.String
+com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition.properties: kotlin.collections.ArrayList<com.pandulapeter.kubrikoCreator.actors.PropertyDefinition>=
+com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition.texts: kotlin.collections.ArrayList<com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition>=
+com.pandulapeter.kubrikoCreator.actors.NumberValue : betweenEdges
+com.pandulapeter.kubrikoCreator.actors.NumberValue : edge
+com.pandulapeter.kubrikoCreator.actors.NumberValue : number
+com.pandulapeter.kubrikoCreator.actors.NumberValue : property
+com.pandulapeter.kubrikoCreator.actors.NumberValue : random
+com.pandulapeter.kubrikoCreator.actors.NumberValue:betweenEdges.from: com.pandulapeter.kubrikoCreator.actors.SceneEdge=
+com.pandulapeter.kubrikoCreator.actors.NumberValue:betweenEdges.fromOffset: kotlin.Float=
+com.pandulapeter.kubrikoCreator.actors.NumberValue:betweenEdges.to: com.pandulapeter.kubrikoCreator.actors.SceneEdge=
+com.pandulapeter.kubrikoCreator.actors.NumberValue:betweenEdges.toOffset: kotlin.Float=
+com.pandulapeter.kubrikoCreator.actors.NumberValue:edge.edge: com.pandulapeter.kubrikoCreator.actors.SceneEdge=
+com.pandulapeter.kubrikoCreator.actors.NumberValue:edge.offset: kotlin.Float=
+com.pandulapeter.kubrikoCreator.actors.NumberValue:property.manager: kotlin.String?=
+com.pandulapeter.kubrikoCreator.actors.NumberValue:property.property: kotlin.String=
+com.pandulapeter.kubrikoCreator.actors.NumberValue:random.from: kotlin.Float=
+com.pandulapeter.kubrikoCreator.actors.NumberValue:random.isWhole: kotlin.Boolean=
+com.pandulapeter.kubrikoCreator.actors.NumberValue:random.to: kotlin.Float=
+com.pandulapeter.kubrikoCreator.actors.PauseAction = pause
+com.pandulapeter.kubrikoCreator.actors.PauseAction = resume
+com.pandulapeter.kubrikoCreator.actors.PauseAction = toggle
+com.pandulapeter.kubrikoCreator.actors.PropertyDefinition : number
+com.pandulapeter.kubrikoCreator.actors.PropertyDefinition : text
+com.pandulapeter.kubrikoCreator.actors.PropertyDefinition : toggle
+com.pandulapeter.kubrikoCreator.actors.PropertyDefinition:number.initialValue: kotlin.Float=
+com.pandulapeter.kubrikoCreator.actors.PropertyDefinition:number.name: kotlin.String
+com.pandulapeter.kubrikoCreator.actors.PropertyDefinition:text.initialValue: kotlin.String=
+com.pandulapeter.kubrikoCreator.actors.PropertyDefinition:text.name: kotlin.String
+com.pandulapeter.kubrikoCreator.actors.PropertyDefinition:toggle.initialValue: kotlin.Boolean=
+com.pandulapeter.kubrikoCreator.actors.PropertyDefinition:toggle.name: kotlin.String
+com.pandulapeter.kubrikoCreator.actors.SceneEdge = bottom
+com.pandulapeter.kubrikoCreator.actors.SceneEdge = left
+com.pandulapeter.kubrikoCreator.actors.SceneEdge = right
+com.pandulapeter.kubrikoCreator.actors.SceneEdge = top
+com.pandulapeter.kubrikoCreator.actors.ScreenPosition = bottom
+com.pandulapeter.kubrikoCreator.actors.ScreenPosition = bottomLeft
+com.pandulapeter.kubrikoCreator.actors.ScreenPosition = bottomRight
+com.pandulapeter.kubrikoCreator.actors.ScreenPosition = center
+com.pandulapeter.kubrikoCreator.actors.ScreenPosition = left
+com.pandulapeter.kubrikoCreator.actors.ScreenPosition = right
+com.pandulapeter.kubrikoCreator.actors.ScreenPosition = top
+com.pandulapeter.kubrikoCreator.actors.ScreenPosition = topLeft
+com.pandulapeter.kubrikoCreator.actors.ScreenPosition = topRight
+com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition.color: HexColor=
+com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition.position: com.pandulapeter.kubrikoCreator.actors.ScreenPosition=
+com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition.size: kotlin.Float=
+com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition.text: kotlin.String=
+com.pandulapeter.kubrikoCreator.actors.WholeNumberValue : number
+com.pandulapeter.kubrikoCreator.actors.WholeNumberValue : property
+com.pandulapeter.kubrikoCreator.actors.WholeNumberValue : random
+com.pandulapeter.kubrikoCreator.actors.WholeNumberValue:property.manager: kotlin.String?=
+com.pandulapeter.kubrikoCreator.actors.WholeNumberValue:property.property: kotlin.String=
+com.pandulapeter.kubrikoCreator.actors.WholeNumberValue:random.from: kotlin.Float=
+com.pandulapeter.kubrikoCreator.actors.WholeNumberValue:random.isWhole: kotlin.Boolean=
+com.pandulapeter.kubrikoCreator.actors.WholeNumberValue:random.to: kotlin.Float=

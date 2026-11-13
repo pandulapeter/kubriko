@@ -15,6 +15,13 @@ package com.pandulapeter.kubrikoCreator.actors
 public object PropertyNaming {
 
     /**
+     * The names of what the generated Actor classes keep about the Scene's bounds, reserved since format version 7.
+     */
+    internal val SCENE_BOUNDS_NAMES = listOf(
+        "staysInsideScene", "wasInsideScene", "wasTouchingLeftEdge", "wasTouchingRightEdge", "wasTouchingTopEdge", "wasTouchingBottomEdge",
+    )
+
+    /**
      * Kotlin's keywords, and the names the generated classes (and the Kubriko traits and `Manager` they extend) already use.
      */
     private val reservedNames = KotlinIdentifiers.hardKeywords + setOf(
@@ -24,7 +31,7 @@ public object PropertyNaming {
         "box", "isRemoved", "sceneSettings", "sprite", "spriteManager",
         "isInSceneEditor", "isInitialized", "isLoggingEnabled", "scope",
         "look", "animation", "animationSpeed", "isAnimationLooping",
-    )
+    ) + SCENE_BOUNDS_NAMES
 
     /**
      * [base], or the first of base2, base3, … that can be a Property's name among [existingNames].

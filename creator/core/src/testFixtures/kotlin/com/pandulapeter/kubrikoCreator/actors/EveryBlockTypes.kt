@@ -156,14 +156,15 @@ public object EveryBlockTypes {
         shape = ActorShape.RECTANGLE,
         sprite = "drawable/every-block.png",
         tintsSprite = true,
+        staysInsideScene = true,
         properties = properties + PropertyDefinition.Number("every"),
         events = everyEvent(everyBlock),
     )
 
     /**
      * Three generations of Actor types: every Event in each (so every hook is overridden, running the parent's Event
-     * first), a new Property and a changed initial value in the child, collisions with the family by its parent, and
-     * a sprite in the grandchild.
+     * first), a new Property and a changed initial value in the child, collisions with the family by its parent, a
+     * sprite in the grandchild, and only the child staying inside the Scene.
      */
     val family = listOf(
         ActorTypeDefinition(
@@ -175,6 +176,7 @@ public object EveryBlockTypes {
             name = "EveryChild",
             parent = "EveryParent",
             shape = ActorShape.RECTANGLE,
+            staysInsideScene = true,
             properties = listOf(properties.first(), PropertyDefinition.Number("extra", initialValue = 2f)),
             events = everyEvent(listOf(BlockDefinition.RunParentEvent) + everyBlock + BlockDefinition.MoveTowardsNearest("EveryParent", speed = NumberValue.Fixed(10f))) +
                 EventDefinition(EventType.COLLISION, otherActorType = "EveryParent", blocks = listOf(BlockDefinition.RunParentEvent, BlockDefinition.RemoveOther)),

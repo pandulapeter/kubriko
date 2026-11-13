@@ -140,6 +140,13 @@ class ActorTypeCommandsTest {
     }
 
     @Test
+    fun movementChangesOnlyWhatIsGivenAndIsUndoneTheSameWay() = runTest {
+        val context = commandContext(ball)
+        assertEquals(ball.copy(staysInsideScene = true), context.assertRoundTrip(Invocation(SetMovement, SetMovement.Input("Ball", staysInsideScene = true))) { context.ball() })
+        assertEquals(Rejection(LookupProblem.ACTOR_TYPE_MISSING, "Ghost"), context.rejection(SetMovement, SetMovement.Input("Ghost", staysInsideScene = true)))
+    }
+
+    @Test
     fun appearanceChangesOnlyWhatIsGivenAndIsUndoneTheSameWay() = runTest {
         val context = commandContext(ball)
         val changed = context.assertRoundTrip(Invocation(SetAppearance, SetAppearance.Input("Ball", color = 0xFF112233, height = 12f))) { context.ball() }

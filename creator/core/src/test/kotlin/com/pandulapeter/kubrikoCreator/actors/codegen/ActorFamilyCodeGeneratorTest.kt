@@ -148,6 +148,30 @@ class ActorFamilyCodeGeneratorTest {
     }
 
     @Test
+    fun aFamilyWhoseMembersDifferInStayingInsideAsksEachActor() {
+        val types = listOf(enemy.copy(staysInsideScene = true), bat, wall)
+        val code = ActorTypeCodeGenerator.generateActorType(types[0], "com.example.game", types.map { it.name }, actorTypes = types)
+        assertContains(code, "    protected open val staysInsideScene = false\n")
+        assertContains(code, "        if (staysInsideScene && (isTouchingLeftEdge || isTouchingRightEdge || isTouchingTopEdge || isTouchingBottomEdge)) {\n")
+        assertContains(code, "), Editable<Enemy> {\n    override val staysInsideScene = true\n")
+        val batCode = ActorTypeCodeGenerator.generateActorType(bat, "com.example.game", types.map { it.name }, actorTypes = types)
+        assertFalse("staysInsideScene" in batCode)
+        val allInside = types.map { it.copy(staysInsideScene = it.name != "Wall") }
+        val allInsideCode = ActorTypeCodeGenerator.generateActorType(allInside[0], "com.example.game", types.map { it.name }, actorTypes = allInside)
+        assertFalse("staysInsideScene" in allInsideCode)
+        assertContains(allInsideCode, "        if (isTouchingLeftEdge || isTouchingRightEdge || isTouchingTopEdge || isTouchingBottomEdge) {\n")
+    }
+
+    @Test
+    fun aFamilyWhoseMembersDifferInStayingInsideForgetsTheEdgesItWasPushedBackFrom() {
+        val withEdge = enemy.copy(staysInsideScene = true, events = enemy.events + EventDefinition(EventType.EDGE_TOUCHED))
+        val types = listOf(withEdge, bat, wall)
+        val code = ActorTypeCodeGenerator.generateActorType(withEdge, "com.example.game", types.map { it.name }, actorTypes = types)
+        assertContains(code, "        wasTouchingLeftEdge = isTouchingLeftEdge && !staysInsideScene\n")
+        assertContains(code, "    protected open fun onEdgeTouched(")
+    }
+
+    @Test
     fun aTypeWithoutAParentHasNoParentEventToRun() {
         val loner = ActorTypeDefinition(name = "Loner", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.RunParentEvent))))
         assertContains(ActorTypeCodeGenerator.generateActorType(loner, "com.example.game"), "// Only an Actor type with a parent runs its parent's Event.")

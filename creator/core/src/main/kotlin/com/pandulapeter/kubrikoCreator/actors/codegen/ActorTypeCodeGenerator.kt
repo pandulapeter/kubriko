@@ -86,6 +86,7 @@ public object ActorTypeCodeGenerator {
             hasSprite = definition.sprite?.let(SpriteFiles::accessorOf) != null,
             isAnimated = scope.isAnimated,
             isCollidableAnyway = name in collidableActorTypeNames,
+            containment = SceneContainment.of(listOf(definition)),
             isFamily = role.isFamily,
         )
         val imports = mutableSetOf<String>()

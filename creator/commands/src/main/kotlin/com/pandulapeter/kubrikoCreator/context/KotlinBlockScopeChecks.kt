@@ -87,7 +87,7 @@ public object KotlinBlockScopeChecks {
         EventType.KEY_PRESSED -> setOf("key")
         EventType.COLLISION -> setOf("index", "collidables")
         EventType.EDGE_TOUCHED -> setOf("box", "sceneSettings", "topLeft", "bottomRight")
-        EventType.GAME_STARTED, EventType.ADDED_TO_SCENE, EventType.EVERY_FRAME, EventType.TIMER_FINISHED -> emptySet()
+        EventType.GAME_STARTED, EventType.ADDED_TO_SCENE, EventType.EVERY_FRAME, EventType.LEFT_SCENE, EventType.TIMER_FINISHED -> emptySet()
     }
 
     public const val RETURN: String = "return"

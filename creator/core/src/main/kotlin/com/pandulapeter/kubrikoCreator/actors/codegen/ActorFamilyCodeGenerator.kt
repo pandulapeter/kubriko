@@ -140,6 +140,7 @@ internal object ActorFamilyCodeGenerator {
         superProperties.forEach { appendLine("    ${it.name} = state.${it.name},") }
         if (features.isCollidable) appendLine("    collisionMask = ${collisionMaskOf(definition.shape)},")
         appendLine("), Editable<$name> {")
+        if (features.containment == SceneContainment.SOME && definition.staysInsideScene) appendLine("    override val ${SceneBoundsCode.STAYS_INSIDE_FIELD} = true")
         if (!hasChildren) {
             appendPropertyFields(newProperties, source = "state.")
             appendOverrides(definition, hookOf, imports, scopeOf)

@@ -41,6 +41,8 @@ public data class ActorTypeDefinition(
     @SerialName("width") val width: Float = 80f,
     @Description("The height of a newly placed Actor, in scene units.")
     @SerialName("height") val height: Float = 80f,
+    @Description("Whether its Actors are pushed back inside the Scene's bounds whenever they reach past an edge, rather than moving on past it.")
+    @SerialName("staysInsideScene") val staysInsideScene: Boolean = false,
     @Description("The values each of its Actors keeps, like a score, which Blocks can change.")
     @SerialName("properties") override val properties: List<PropertyDefinition> = emptyList(),
     @Description("The Events its Actors react to, in order. Each runs its Blocks in order.")

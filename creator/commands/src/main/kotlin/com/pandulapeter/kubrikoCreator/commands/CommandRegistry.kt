@@ -33,6 +33,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventTimer
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetMovement
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetParent
 import com.pandulapeter.kubrikoCreator.commands.folders.CreateFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.DeleteFolder
@@ -209,6 +210,7 @@ public class CommandRegistry(
                 RenameActorType,
                 DeleteActorType,
                 SetAppearance,
+                SetMovement,
                 SetParent,
                 SetDescription,
                 SetGameNotes,

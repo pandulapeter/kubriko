@@ -59,6 +59,7 @@ internal class GeneratedFamilies(
             hasSprite = members.any { it.sprite?.let(SpriteFiles::accessorOf) != null },
             isAnimated = isAnimated,
             isCollidableAnyway = members.any { it.name in collidableActorTypeNames },
+            containment = SceneContainment.of(members),
             isFamily = ActorClassEmitter.Role.FAMILY_ROOT.isFamily,
             eventScopes = members.map { it.events to scopes.getValue(it.name) },
         )

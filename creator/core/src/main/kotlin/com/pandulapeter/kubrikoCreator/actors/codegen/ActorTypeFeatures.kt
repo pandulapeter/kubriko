@@ -32,6 +32,7 @@ import com.pandulapeter.kubrikoCreator.actors.timerName
  * @param hasSprite Whether any of them is drawn as a sprite.
  * @param isAnimated Whether any of them is drawn as a sprite cut into frames, which update plays.
  * @param isCollidableAnyway Whether a collision Event of another Actor type involves them.
+ * @param containment Which of them stay inside the Scene's bounds.
  * @param isFamily Whether they are a family, whose base class runs the added-to-the-Scene hook even when its Event has
  * no Blocks, since a child may override it.
  * @param eventScopes The Events whose code the generated classes hold, each with the scope it is generated in: for a
@@ -44,18 +45,35 @@ internal class ActorTypeFeatures(
     hasSprite: Boolean,
     val isAnimated: Boolean,
     isCollidableAnyway: Boolean,
+    val containment: SceneContainment,
     isFamily: Boolean,
     eventScopes: List<Pair<List<EventDefinition>, BlockScope>> = listOf(events to scope),
 ) {
     private val knownActorTypeNames = scope.actorTypeNames
     val keyEvents = events.filter { it.type == EventType.KEY_PRESSED && isGenerated(it) }
     val edgeEvents = events.filter { it.type == EventType.EDGE_TOUCHED }
+    val leftSceneEvents = events.filter { it.type == EventType.LEFT_SCENE }
     val collisionEvents = events.filter { it.type == EventType.COLLISION && isGenerated(it) }
     val timerEvents = events.filter { it.type == EventType.TIMER_FINISHED && isGenerated(it) }
     val addedEvents = events.filter { it.type == EventType.ADDED_TO_SCENE }
     val everyFrameEvents = events.filter { it.type == EventType.EVERY_FRAME }
     val isCollidable = collisionEvents.isNotEmpty() || isCollidableAnyway
-    val generatedEvents = addedEvents + everyFrameEvents + edgeEvents + keyEvents + collisionEvents + timerEvents
+
+    /**
+     * Whether the edge Event runs: a family's base class runs it even without Blocks, since a child may override it.
+     */
+    val firesEdgeEvent = edgeEvents.any { isFamily || it.blocks.isNotEmpty() }
+
+    /**
+     * Whether the leaving Event runs, as [firesEdgeEvent].
+     */
+    val firesLeftSceneEvent = leftSceneEvents.any { isFamily || it.blocks.isNotEmpty() }
+
+    /**
+     * Whether the Actors look at the Scene's bounds after they moved ([SceneBoundsCode]).
+     */
+    val checksSceneBounds = firesEdgeEvent || firesLeftSceneEvent || containment != SceneContainment.NONE
+    val generatedEvents = addedEvents + everyFrameEvents + edgeEvents + leftSceneEvents + keyEvents + collisionEvents + timerEvents
     val timers = (timerEvents.mapNotNull { it.trigger.timer } + generatedEvents.flatMap { event -> event.blocks.mapNotNull { it.timerName } }).filter(TimerNaming::isValid).distinct().sorted()
     private val blockCode = eventScopes.fold(BlockCode.NONE) { code, (events, eventScope) ->
         events.filter(::isGenerated).fold(code) { eventsCode, event -> eventsCode + eventCode(event.blocks, event.type, eventScope) }
@@ -67,11 +85,11 @@ internal class ActorTypeFeatures(
     val codeImports = blockCode.imports
 
     /**
-     * What the class declares for the Blocks and the Events: edge Events move the Actor within the Scene settings' bounds,
-     * which GeneratedScenes knows, and key Events check whether the game is paused.
+     * What the class declares for the Blocks and the Events: the Scene's bounds, which GeneratedScenes knows, are looked
+     * at after every move, and key Events check whether the game is paused.
      */
     private val needs = blockCode.needs + buildSet {
-        if (edgeEvents.isNotEmpty()) addAll(listOf(BlockNeed.MOVEMENT, BlockNeed.VIEWPORT_MANAGER, BlockNeed.SCENES))
+        if (checksSceneBounds) addAll(listOf(BlockNeed.MOVEMENT, BlockNeed.VIEWPORT_MANAGER, BlockNeed.SCENES))
         if (timers.isNotEmpty() || everyFrameEvents.any { it.blocks.isNotEmpty() }) add(BlockNeed.MOVEMENT)
         if (keyEvents.isNotEmpty()) add(BlockNeed.STATE_MANAGER)
         if (isAnimated) add(BlockNeed.MOVEMENT)
@@ -112,7 +130,7 @@ internal class ActorTypeFeatures(
         EventType.KEY_PRESSED -> event.trigger.key?.isKnown == true
         EventType.COLLISION -> event.trigger.otherActorType in knownActorTypeNames
         EventType.TIMER_FINISHED -> event.trigger.timer?.let(TimerNaming::isValid) == true
-        EventType.ADDED_TO_SCENE, EventType.EVERY_FRAME, EventType.EDGE_TOUCHED -> true
+        EventType.ADDED_TO_SCENE, EventType.EVERY_FRAME, EventType.EDGE_TOUCHED, EventType.LEFT_SCENE -> true
         EventType.GAME_STARTED -> false
     }
 

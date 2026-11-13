@@ -41,9 +41,13 @@ public enum class EventType(public val misplacedProblem: PlacementProblem? = nul
     @SerialName("keyPressed")
     KEY_PRESSED,
 
-    @Description("When the Actor reaches an edge of the screen. It is kept inside the screen either way. Only Actor types have it.")
+    @Description("When the Actor starts reaching past an edge of the Scene (the screen's, while it has no bounds). Touching an edge doesn't stop the Actor: the Actor type's staysInsideScene does. Only Actor types have it.")
     @SerialName("edgeTouched")
     EDGE_TOUCHED(PlacementProblem.EVENT_EDGE_TOUCHED_IN_MANAGER_TYPE),
+
+    @Description("Once, when the Actor, having been at least partly inside the Scene's bounds (the screen's, while it has none), is wholly outside them. An Actor added outside them fires it only after it came in. Only Actor types have it.")
+    @SerialName("leftScene")
+    LEFT_SCENE(PlacementProblem.EVENT_LEFT_SCENE_IN_MANAGER_TYPE),
 
     @Description("On every frame the Actor overlaps an Actor of the Event's other Actor type, once per overlapping Actor. Only Actor types have it.")
     @SerialName("collision")
@@ -59,7 +63,7 @@ public enum class EventType(public val misplacedProblem: PlacementProblem? = nul
      */
     public fun isAvailableIn(kind: BlockTypeKind): Boolean = when (this) {
         GAME_STARTED -> kind == BlockTypeKind.MANAGER
-        ADDED_TO_SCENE, EDGE_TOUCHED, COLLISION -> kind == BlockTypeKind.ACTOR
+        ADDED_TO_SCENE, EDGE_TOUCHED, LEFT_SCENE, COLLISION -> kind == BlockTypeKind.ACTOR
         EVERY_FRAME, KEY_PRESSED, TIMER_FINISHED -> true
     }
 }

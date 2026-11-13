@@ -40,6 +40,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventTimer
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetMovement
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetParent
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.AddText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
@@ -77,6 +78,8 @@ internal class BlockTypeEditorActions(
     fun discardChangesMadeByHand() = dispatch(Invocation(DiscardChangesMadeByHand, DiscardChangesMadeByHand.Input(name)))
 
     fun setAppearance(input: SetAppearance.Input) = dispatch(Invocation(SetAppearance, input))
+
+    fun setMovement(input: SetMovement.Input) = dispatch(Invocation(SetMovement, input))
 
     fun setSpriteSheet(path: String, sheet: SpriteSheet?) = dispatch(Invocation(SetSpriteSheet, SetSpriteSheet.Input(path, sheet)))
 

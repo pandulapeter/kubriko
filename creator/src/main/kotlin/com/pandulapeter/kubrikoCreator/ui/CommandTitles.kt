@@ -34,6 +34,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventTimer
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetMovement
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetParent
 import com.pandulapeter.kubrikoCreator.commands.folders.CreateFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.DeleteFolder
@@ -234,6 +235,7 @@ import kubriko.creator.generated.resources.command_set_event_other_actor_type
 import kubriko.creator.generated.resources.command_set_event_timer
 import kubriko.creator.generated.resources.command_set_game_notes
 import kubriko.creator.generated.resources.command_set_kotlin_ui
+import kubriko.creator.generated.resources.command_set_movement
 import kubriko.creator.generated.resources.command_set_palette
 import kubriko.creator.generated.resources.command_set_parent
 import kubriko.creator.generated.resources.command_set_plan
@@ -295,6 +297,7 @@ private val commandTitles = mapOf(
     RenameTimer.name to Res.string.command_rename_timer,
     DeleteTimer.name to Res.string.command_delete_timer,
     SetAppearance.name to Res.string.command_set_appearance,
+    SetMovement.name to Res.string.command_set_movement,
     SetEventKey.name to Res.string.command_set_event_key,
     SetEventOtherActorType.name to Res.string.command_set_event_other_actor_type,
     SetEventTimer.name to Res.string.command_set_event_timer,

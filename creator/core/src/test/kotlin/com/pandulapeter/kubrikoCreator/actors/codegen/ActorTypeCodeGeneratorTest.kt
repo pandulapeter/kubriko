@@ -38,8 +38,18 @@ class ActorTypeCodeGeneratorTest {
         shape: ActorShape = ActorShape.CIRCLE,
         isCollidable: Boolean = false,
         sprite: String? = null,
+        staysInsideScene: Boolean = false,
     ) = ActorTypeCodeGenerator.generateActorType(
-        ActorTypeDefinition(name = "Player", shape = shape, sprite = sprite, color = 0xFF5AB06A, width = 60f, height = 30f, events = events.toList()),
+        ActorTypeDefinition(
+            name = "Player",
+            shape = shape,
+            sprite = sprite,
+            color = 0xFF5AB06A,
+            width = 60f,
+            height = 30f,
+            staysInsideScene = staysInsideScene,
+            events = events.toList(),
+        ),
         packageName,
         collidableActorTypeNames = if (isCollidable) setOf("Player") else emptySet(),
     )
@@ -178,15 +188,72 @@ class ActorTypeCodeGeneratorTest {
     }
 
     @Test
-    fun edgeHandlingIsOnlyGeneratedWhenAnEdgeEventExists() {
-        assertFalse("isTouchingLeftEdge" in generate())
-        val code = generate(EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.BounceOffEdge)))
-        assertFalse("constrainedWithin" in code)
-        assertContains(code, "        val box = body.axisAlignedBoundingBox\n")
-        assertContains(code, "                if (isTouchingLeftEdge) leftEdge - box.min.x else if (isTouchingRightEdge) rightEdge - box.max.x else SceneUnit.Zero,\n")
+    fun theBoundsAreOnlyLookedAtForAnEdgeOrLeavingEventWithBlocksOrForStayingInside() {
+        assertFalse("axisAlignedBoundingBox" in generate())
+        assertFalse("axisAlignedBoundingBox" in generate(EventDefinition(EventType.EDGE_TOUCHED), EventDefinition(EventType.LEFT_SCENE)))
+        assertContains(generate(staysInsideScene = true), "        val box = body.axisAlignedBoundingBox\n")
+        assertContains(generate(EventDefinition(EventType.LEFT_SCENE, blocks = listOf(BlockDefinition.RemoveSelf))), "        val box = body.axisAlignedBoundingBox\n")
+    }
+
+    @Test
+    fun anActorThatStaysInsideIsPushedBackAndRunsTheEdgeEventOnEveryFrameItReachesPastAnEdge() {
+        val code = generate(EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.BounceOffEdge)), staysInsideScene = true)
+        assertContains(
+            code,
+            "        if (isTouchingLeftEdge || isTouchingRightEdge || isTouchingTopEdge || isTouchingBottomEdge) {\n" +
+                "            body.position += SceneOffset(\n" +
+                "                if (isTouchingLeftEdge) leftEdge - box.min.x else if (isTouchingRightEdge) rightEdge - box.max.x else SceneUnit.Zero,\n",
+        )
+        assertContains(
+            code,
+            "            )\n            onEdgeTouched(deltaTimeInMilliseconds, isTouchingLeftEdge, isTouchingRightEdge, isTouchingTopEdge, isTouchingBottomEdge)\n        }\n",
+        )
+        assertFalse("wasTouching" in code)
         assertContains(code, "import com.pandulapeter.kubriko.types.SceneUnit")
         assertContains(code, "if (isTouchingRightEdge) velocity = SceneOffset(-velocity.x.raw.absoluteValue.sceneUnit, velocity.y)")
         assertContains(code, "import kotlin.math.absoluteValue")
+        val pushedOnly = generate(staysInsideScene = true)
+        assertContains(pushedOnly, "            body.position += SceneOffset(\n")
+        assertFalse("onEdgeTouched" in pushedOnly)
+    }
+
+    @Test
+    fun anActorThatDoesNotStayInsideMovesOnAndRunsTheEdgeEventOnlyWhenItStartsReachingPastAnEdge() {
+        val code = generate(EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.Log("Edge"))))
+        assertFalse("body.position += SceneOffset(" in code)
+        assertFalse("SceneUnit" in code)
+        assertContains(code, "    private var wasTouchingLeftEdge = false\n")
+        assertContains(
+            code,
+            "        if ((isTouchingLeftEdge && !wasTouchingLeftEdge) || (isTouchingRightEdge && !wasTouchingRightEdge) || " +
+                "(isTouchingTopEdge && !wasTouchingTopEdge) || (isTouchingBottomEdge && !wasTouchingBottomEdge)) onEdgeTouched(",
+        )
+        assertContains(code, "        wasTouchingBottomEdge = isTouchingBottomEdge\n")
+    }
+
+    @Test
+    fun theLeavingEventRunsOnceWhenTheActorIsWhollyOutsideAfterHavingBeenInside() {
+        val code = generate(EventDefinition(EventType.LEFT_SCENE, blocks = listOf(BlockDefinition.RemoveSelf)))
+        assertContains(code, "    private var wasInsideScene = false\n")
+        assertFalse("isTouchingLeftEdge" in code)
+        assertContains(
+            code,
+            "        val isInsideScene = box.max.x > leftEdge && box.min.x < rightEdge && box.max.y > topEdge && box.min.y < bottomEdge\n" +
+                "        if (isInsideScene) {\n" +
+                "            wasInsideScene = true\n" +
+                "        } else if (wasInsideScene) {\n" +
+                "            wasInsideScene = false\n" +
+                "            if (!isRemoved) onLeftScene(deltaTimeInMilliseconds)\n" +
+                "        }\n",
+        )
+        assertContains(code, "    private fun onLeftScene(deltaTimeInMilliseconds: Int) {\n")
+        assertContains(code, ": Batched, Dynamic, Editable<Player>")
+    }
+
+    @Test
+    fun whetherItIsInsideIsReadBeforeThePushMovesTheBox() {
+        val code = generate(EventDefinition(EventType.LEFT_SCENE, blocks = listOf(BlockDefinition.Log("Gone"))), staysInsideScene = true)
+        assertTrue(code.indexOf("val isInsideScene") < code.indexOf("body.position += SceneOffset("))
     }
 
     @Test
@@ -706,12 +773,14 @@ class ActorTypeCodeGeneratorTest {
         assertFalse("onAdded" in generate())
         listOf(
             EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Log("Hi"))),
-            EventDefinition(EventType.EDGE_TOUCHED),
+            EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.Log("Edge"))),
+            EventDefinition(EventType.LEFT_SCENE, blocks = listOf(BlockDefinition.Log("Gone"))),
             EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.A, blocks = listOf(BlockDefinition.JumpTo())),
             EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.A, blocks = listOf(BlockDefinition.StartTimer())),
             EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.Kotlin("println()"))),
             EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.If(ConditionDefinition.Velocity()))),
         ).forEach { event -> assertContains(generate(event), ": Batched, Dynamic, Editable<Player>", message = event.toString()) }
+        assertContains(generate(staysInsideScene = true), ": Batched, Dynamic, Editable<Player>")
     }
 
     @Test
@@ -720,7 +789,7 @@ class ActorTypeCodeGeneratorTest {
         assertContains(code, "    private lateinit var actorManager: ActorManager\n")
         assertFalse("viewportManager" in code)
         assertContains(generate(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.Kotlin("println()")))), "    private lateinit var viewportManager: ViewportManager\n")
-        assertContains(generate(EventDefinition(EventType.EDGE_TOUCHED)), "    private lateinit var viewportManager: ViewportManager\n")
+        assertContains(generate(staysInsideScene = true), "    private lateinit var viewportManager: ViewportManager\n")
     }
 
     @Test

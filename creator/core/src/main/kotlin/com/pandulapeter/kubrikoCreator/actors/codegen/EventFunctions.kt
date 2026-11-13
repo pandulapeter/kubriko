@@ -48,6 +48,7 @@ internal object EventFunctions {
         EventType.GAME_STARTED -> Function("$GAME_STARTED($KUBRIKO_PARAMETER)", "$GAME_STARTED(kubriko)", setOf(KUBRIKO_IMPORT))
         EventType.EVERY_FRAME -> Function("$EVERY_FRAME($DELTA_TIME_PARAMETER)", "$EVERY_FRAME($DELTA_TIME)")
         EventType.EDGE_TOUCHED -> Function("$EDGE($DELTA_TIME_PARAMETER, $EDGE_PARAMETERS)", "$EDGE($DELTA_TIME, $EDGE_ARGUMENTS)")
+        EventType.LEFT_SCENE -> Function("$LEFT_SCENE($DELTA_TIME_PARAMETER)", "$LEFT_SCENE($DELTA_TIME)")
         EventType.KEY_PRESSED -> event.trigger.key?.takeIf { it.isKnown }?.let { Function("${key(it)}()", "${key(it)}()") }
         EventType.COLLISION -> event.trigger.otherActorType?.takeIf { it in scope.actorTypeNames }?.let { other ->
             Function("${collision(other)}(other: ${scope.classOf(other)})", "${collision(other)}(other)")
@@ -77,6 +78,7 @@ internal object EventFunctions {
     const val GAME_STARTED = "onGameStarted"
     const val EVERY_FRAME = "onEveryFrame"
     const val EDGE = "onEdgeTouched"
+    const val LEFT_SCENE = "onLeftScene"
     private const val DELTA_TIME = "deltaTimeInMilliseconds"
     private const val DELTA_TIME_PARAMETER = "$DELTA_TIME: Int"
     private const val KUBRIKO_PARAMETER = "kubriko: Kubriko"

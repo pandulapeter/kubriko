@@ -285,6 +285,11 @@ private fun PropertiesColumn(
                     onSheetChange = actions::setSpriteSheet,
                 )
                 HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
+                MovementColumn(
+                    definition = definition,
+                    onChange = actions::setMovement,
+                )
+                HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
             }
         }
     }

@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.CreatorProjectSettings
 import com.pandulapeter.kubrikoCreator.actors.DefinitionPaths
+import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.EveryBlockTypes
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
@@ -150,8 +151,12 @@ class FormatFixturesTest {
      * up to the current format doesn't make up.
      */
     private fun BlockTypeDefinition.asOf(version: Int): BlockTypeDefinition {
-        if (version >= 6) return this
-        val withoutEdges = withEvents(events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.edgeValueBlocks)) })
+        if (version >= 7) return this
+        val withoutLeaving = withEvents(events.filterNot { it.type == EventType.LEFT_SCENE }).let { type ->
+            if (type is ActorTypeDefinition) type.copy(staysInsideScene = true) else type
+        }
+        if (version == 6) return withoutLeaving
+        val withoutEdges = withoutLeaving.withEvents(withoutLeaving.events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.edgeValueBlocks)) })
         if (version == 5) return withoutEdges
         val withFixedNumbers = withoutEdges.withEvents(withoutEdges.events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.numberValueBlocks)) })
         if (version == 4) return withFixedNumbers

@@ -42,6 +42,13 @@
   one; the remove Blocks set `isRemoved` at once, which `update`, collisions, and moveTowardsNearest skip until Kubriko removes
   the Actor, so a Brick can't score twice; Dynamic types are `isAlwaysActive`, since a Scene can be larger than the screen; edge
   Events use the bounding box, so pivots, rotation, and scale don't move the edges; collision branches put descendants first.
+- Staying inside the Scene is the Actor type's setting (`staysInsideScene`), not what the edge Event does (format version 7 turned
+  it on for every type with an edge Event, its own or inherited, so games kept behaving the same). The edge Event runs when an
+  edge starts being reached past, so one that moves on doesn't run it every frame; one that stays inside is pushed back each
+  time, so for it the Event runs on every frame it reaches past, as before. The leaving Event runs once the Actor is wholly
+  outside after having been inside, so an enemy added off screen flies in first. In a family whose members differ in staying
+  inside, the base class asks each Actor through an `open val` (`SceneContainment.SOME`). What the classes keep about the bounds
+  (`SceneBoundsCode`) are reserved Property names.
 - Timers are two `Long` fields each, counted down in `update`, rather than Kubriko's `Timer`, whose duration is fixed, so starting
   one never allocates; no Property may end like those fields. Manager Properties are Compose state (`mutableFloatStateOf` for
   numbers, so nothing boxes).

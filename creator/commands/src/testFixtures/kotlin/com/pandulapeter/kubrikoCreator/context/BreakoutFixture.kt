@@ -35,6 +35,7 @@ public object BreakoutFixture {
         width = 20f,
         height = 20f,
         color = 0xFFFFFFFF,
+        staysInsideScene = true,
         properties = listOf(PropertyDefinition.Number("speed", 300f)),
         events = listOf(
             EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.SetVelocity(NumberValue.Fixed(200f), NumberValue.Fixed(-300f)))),
@@ -66,6 +67,7 @@ public object BreakoutFixture {
         shape = ActorShape.RECTANGLE,
         width = 120f,
         height = 20f,
+        staysInsideScene = true,
         events = listOf(
             EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.LEFT, blocks = listOf(BlockDefinition.SetVelocity(NumberValue.Fixed(-400f), NumberValue.Fixed(0f)))),
             EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.of("DirectionRight"), blocks = listOf(BlockDefinition.SetVelocity(NumberValue.Fixed(400f), NumberValue.Fixed(0f)))),

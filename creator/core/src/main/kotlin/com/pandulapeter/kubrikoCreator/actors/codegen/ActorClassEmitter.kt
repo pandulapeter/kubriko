@@ -22,7 +22,6 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendAlway
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendBodyCenter
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendBounceOffFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendCollisionMaskUpdate
-import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendEdgeHandling
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendNumberTextFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendPropertyFields
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendRemovedField
@@ -44,6 +43,8 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.SET_FRA
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STATE_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STEP_ANIMATION_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.EventFunctions.appendFunction
+import com.pandulapeter.kubrikoCreator.actors.codegen.SceneBoundsCode.appendBoundsFields
+import com.pandulapeter.kubrikoCreator.actors.codegen.SceneBoundsCode.appendBoundsHandling
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 
 /**
@@ -111,6 +112,7 @@ internal class ActorClassEmitter(
         features.lookups.forEach { appendLine("    $visibility lateinit var $it") }
         imports += features.lookupImports
         appendTimerFields(features.timers, visibility)
+        appendBoundsFields(features.containment, features.firesEdgeEvent, features.firesLeftSceneEvent, isFamilyRoot = role == Role.FAMILY_ROOT)
         if (features.isAnimated) appendAnimationMembers()
         appendOnAdded()
         appendUpdate()
@@ -215,11 +217,13 @@ internal class ActorClassEmitter(
         }
         features.everyFrameEvents.firstNotNullOfOrNull(::callOf)?.let { appendLine("        $it") }
         appendLine(MOVEMENT_LINE)
-        if (features.edgeEvents.isNotEmpty()) {
-            imports += listOf(SCENE_UNIT_IMPORT, SCENE_OFFSET_IMPORT)
-            appendEdgeHandling {
-                features.edgeEvents.firstNotNullOfOrNull(::callOf)?.let { appendLine("            $it") }
-            }
+        if (features.checksSceneBounds) {
+            if (features.containment != SceneContainment.NONE) imports += listOf(SCENE_UNIT_IMPORT, SCENE_OFFSET_IMPORT)
+            appendBoundsHandling(
+                containment = features.containment,
+                edgeCall = features.edgeEvents.firstNotNullOfOrNull(::callOf),
+                leftSceneCall = features.leftSceneEvents.firstNotNullOfOrNull(::callOf),
+            )
         }
         if (features.isCollidable) {
             if (features.shapes.size > 1) imports += features.shapes.map { MASK_IMPORT_PREFIX + maskClassOf(it) }

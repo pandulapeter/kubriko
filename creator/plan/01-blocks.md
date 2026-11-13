@@ -20,11 +20,6 @@ for code (`AssistantSystemPrompt`). The first writers' room game (a side-scrolli
 needed twelve Kotlin Blocks, all for simple behavior. Each item replaces some of them, and the section is done when the eval set
 (`EvalSet`) builds the same game with no Kotlin Block left.
 
-- **Entering and leaving the Scene:** "When it leaves the Scene", fired once when the Actor is wholly outside the bounds, so an enemy
-  added past the right edge flies in and removes itself past the left one, with no Timer whose length has to match its speed. The
-  edge Event stops pushing the Actor back inside: that becomes the "Staying inside the Scene" setting below, which loading turns on
-  for every Actor type with an edge Event so existing games behave the same, and the edge Event's Palette description says plainly
-  that touching an edge does not stop the Actor. The eval set's shooter adds its enemies off screen, so the gate covers this case.
 - **Moving in a direction:** set the velocity by an angle and a speed, either of them random, so debris can fly out in every direction
   at different speeds.
 - **Color and opacity:** a Block that sets the color, to one color or one picked at random from a few, and Blocks that set the
@@ -32,7 +27,6 @@ needed twelve Kotlin Blocks, all for simple behavior. Each item replaces some of
 - **Animating over time:** "Animate" takes the scale, opacity, color, or position from a start to an end over some seconds (with an
   easing), and can remove the Actor when it ends, so a growing, fading flash is one Block, with no Property counting frames and no
   Timer of the same length to keep in step. Generated as a small tween the every-frame update advances, allocating nothing per frame.
-- **Staying inside the Scene:** a Block, or a setting in the Actor type's movement, that keeps an Actor inside the Scene's bounds.
 - **Steering with keys:** "Move with keys" (the arrow keys or WASD, four or eight directions, a speed), in place of a Stop and an If
   section per key.
 

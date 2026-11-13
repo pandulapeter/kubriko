@@ -17,7 +17,6 @@ import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.BOUNCE_OFF_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.NUMBER_TEXT_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.REMOVED_FIELD
-import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.SCENES_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.stringLiteral
 
 /**
@@ -175,34 +174,6 @@ internal object ActorClassCode {
         appendLine("            velocity = SceneOffset(velocity.x, if (offset.y > SceneUnit.Zero) velocity.y.raw.absoluteValue.sceneUnit else -velocity.y.raw.absoluteValue.sceneUnit)")
         appendLine("        }")
         appendLine("    }")
-    }
-
-    /**
-     * Keeps the Actor's bounding box inside the Scene's bounds (or the screen's), and runs [onTouched] when it touched
-     * one of their edges, with `isTouchingLeftEdge` and the others in scope. The bounding box, rather than the body's
-     * size around its position, so that a pivot that isn't in the middle, a rotation, or a scale don't move the edges.
-     */
-    fun StringBuilder.appendEdgeHandling(onTouched: StringBuilder.() -> Unit) {
-        appendLine("        val box = body.axisAlignedBoundingBox")
-        // The settings are read once, so a Scene that finishes loading meanwhile can't mix its bounds with the screen's,
-        // and not through a nullable SceneOffset, which would box every frame.
-        appendLine("        val sceneSettings = $SCENES_FIELD.settings")
-        appendLine("        val leftEdge = if (sceneSettings == null) viewportManager.topLeft.value.x else sceneSettings.topLeft.x")
-        appendLine("        val rightEdge = if (sceneSettings == null) viewportManager.bottomRight.value.x else sceneSettings.bottomRight.x")
-        appendLine("        val topEdge = if (sceneSettings == null) viewportManager.topLeft.value.y else sceneSettings.topLeft.y")
-        appendLine("        val bottomEdge = if (sceneSettings == null) viewportManager.bottomRight.value.y else sceneSettings.bottomRight.y")
-        // Strict, so an Actor resting where the push below left it doesn't run the Event again every frame.
-        appendLine("        val isTouchingLeftEdge = box.min.x < leftEdge")
-        appendLine("        val isTouchingRightEdge = box.max.x > rightEdge")
-        appendLine("        val isTouchingTopEdge = box.min.y < topEdge")
-        appendLine("        val isTouchingBottomEdge = box.max.y > bottomEdge")
-        appendLine("        if (isTouchingLeftEdge || isTouchingRightEdge || isTouchingTopEdge || isTouchingBottomEdge) {")
-        appendLine("            body.position += SceneOffset(")
-        appendLine("                if (isTouchingLeftEdge) leftEdge - box.min.x else if (isTouchingRightEdge) rightEdge - box.max.x else SceneUnit.Zero,")
-        appendLine("                if (isTouchingTopEdge) topEdge - box.min.y else if (isTouchingBottomEdge) bottomEdge - box.max.y else SceneUnit.Zero,")
-        appendLine("            )")
-        onTouched()
-        appendLine("        }")
     }
 
     /**

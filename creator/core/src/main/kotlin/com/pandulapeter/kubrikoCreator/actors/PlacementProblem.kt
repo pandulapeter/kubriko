@@ -19,6 +19,7 @@ public enum class PlacementProblem(override val english: String) : DomainText {
     EVENT_GAME_STARTED_IN_ACTOR_TYPE("Only a Manager type can have a When the game starts (gameStarted) Event, since an Actor type's Actors come into Scenes after the game started. Use When added to the Scene (addedToScene) instead."),
     EVENT_ADDED_TO_SCENE_IN_MANAGER_TYPE("A Manager type is never added to a Scene, so it can't have a When added to the Scene (addedToScene) Event. Use When the game starts (gameStarted) instead."),
     EVENT_EDGE_TOUCHED_IN_MANAGER_TYPE("A Manager type isn't in a Scene, so it can't have a When an edge of the screen is touched (edgeTouched) Event."),
+    EVENT_LEFT_SCENE_IN_MANAGER_TYPE("A Manager type isn't in a Scene, so it can't have a When it leaves the Scene (leftScene) Event."),
     EVENT_COLLISION_IN_MANAGER_TYPE("A Manager type isn't in a Scene, so it can't have a When it collides with (collision) Event."),
     BLOCK_BOUNCE_OFF_EDGE_OUTSIDE_EDGE_TOUCHED("Bounce off the edge (bounceOffEdge) works only in a When an edge of the screen is touched (edgeTouched) Event, the only one that knows which edge was touched."),
     BLOCK_BOUNCE_OFF_OTHER_OUTSIDE_COLLISION("Bounce off it (bounceOffOther) works only in a When it collides with (collision) Event, the only one that knows what was hit."),

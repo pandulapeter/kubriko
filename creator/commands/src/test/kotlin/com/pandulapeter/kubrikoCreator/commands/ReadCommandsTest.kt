@@ -135,6 +135,11 @@ class ReadCommandsTest {
             Json.parseToJsonElement("""{"name":"Ball","appearance":"circle, 80×80, #112233","events":["0 When an edge of the screen is touched (1 Block)"]}"""),
             executor.read("read_actor_type", buildJsonObject { put("actorType", "Ball"); put("detail", "outline") }),
         )
+        executor.call("set_movement", buildJsonObject { put("actorType", "Ball"); put("staysInsideScene", true) })
+        assertEquals(
+            JsonPrimitive("circle, 80×80, #112233, stays inside the Scene"),
+            executor.read("read_actor_type", buildJsonObject { put("actorType", "Ball"); put("detail", "outline") }).jsonObject.getValue("appearance"),
+        )
         val definition = executor.read("read_actor_type", buildJsonObject { put("actorType", "Ball"); put("detail", "json") }).jsonObject
         assertEquals("#112233", definition.getValue("color").jsonPrimitive.content)
         assertEquals("bounceOffEdge", definition.getValue("events").jsonArray[0].jsonObject.getValue("blocks").jsonArray[0].jsonObject.getValue("type").jsonPrimitive.content)

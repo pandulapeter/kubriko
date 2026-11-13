@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.store.ManagerFieldMigration
 import com.pandulapeter.kubrikoCreator.actors.store.NumberValuesMigration
 import com.pandulapeter.kubrikoCreator.actors.store.ProjectSettingsReader
 import com.pandulapeter.kubrikoCreator.actors.store.ReservedPropertyMigration
+import com.pandulapeter.kubrikoCreator.actors.store.SceneLeavingMigration
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -93,6 +94,7 @@ public class ProjectFormat(
             ReservedPropertyMigration.ANIMATION,
             NumberValuesMigration,
             EdgeValuesMigration,
+            SceneLeavingMigration,
         )
 
         /**

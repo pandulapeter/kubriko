@@ -30,6 +30,7 @@ internal object TypeNotation {
         append(", ")
         append(ColorHex.format(type.color))
         type.sprite?.let { append(", sprite ").append(it) }
+        if (type.staysInsideScene) append(", stays inside the Scene")
     }
 
     fun of(property: PropertyDefinition) = when (property) {
