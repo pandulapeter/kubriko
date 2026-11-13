@@ -22,6 +22,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendAlway
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendBodyCenter
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendBounceOffFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendCollisionMaskUpdate
+import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendDirectionFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendNumberTextFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendPropertyFields
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendRemovedField
@@ -124,6 +125,10 @@ internal class ActorClassEmitter(
         if (features.usesBounceOff) {
             imports += BOUNCE_OFF_IMPORTS
             appendBounceOffFunction(visibility)
+        }
+        if (features.usesDirection) {
+            imports += DIRECTION_IMPORTS
+            appendDirectionFunction(visibility)
         }
         if (role == Role.STANDALONE) appendLook(definition, imports, sheet, isFamilyMember = false, usesSetFrame = features.usesSetFrame)
         if (features.usesNumberText) appendNumberTextFunction(visibility)
@@ -329,6 +334,12 @@ internal class ActorClassEmitter(
             SCENE_UNIT_IMPORT,
             "com.pandulapeter.kubriko.actor.traits.Visible",
             "com.pandulapeter.kubriko.helpers.extensions.sceneUnit",
+        )
+        val DIRECTION_IMPORTS = listOf(
+            SCENE_OFFSET_IMPORT,
+            "com.pandulapeter.kubriko.helpers.extensions.sceneUnit",
+            "kotlin.math.cos",
+            "kotlin.math.sin",
         )
     }
 }

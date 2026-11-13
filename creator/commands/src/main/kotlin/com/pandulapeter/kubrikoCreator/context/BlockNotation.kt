@@ -60,6 +60,7 @@ internal object BlockNotation {
     fun of(block: BlockDefinition): String = when (block) {
         is BlockDefinition.SetVelocity -> "Set velocity to ${point(block.x, block.y)}"
         is BlockDefinition.AddToVelocity -> "Add ${point(block.x, block.y)} to velocity"
+        is BlockDefinition.MoveInDirection -> "Move in a direction: ${value(block.direction)} degrees at speed ${value(block.speed)}"
         BlockDefinition.Stop -> "Stop"
         BlockDefinition.RunParentEvent -> "Run the parent's Event"
         is BlockDefinition.JumpTo -> "Jump to position ${point(block.x, block.y)}"

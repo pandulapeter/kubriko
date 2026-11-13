@@ -190,6 +190,7 @@ private fun InlineParameters(
             )
         }
     }
+    is BlockDefinition.MoveInDirection -> MoveInDirectionParameters(block, scope, onBlockChange)
     is BlockDefinition.MoveTowardsNearest -> FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -201,12 +202,9 @@ private fun InlineParameters(
             value = block.speed,
             scope = scope,
             onValueChange = { onBlockChange(block.copy(speed = it)) },
+            offersEdges = false,
         )
-        Text(
-            text = stringResource(Res.string.block_velocity_unit),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        UnitText(Res.string.block_velocity_unit)
     }
     is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText, is BlockDefinition.SetToggle -> PropertyBlockParameters(block, scope, onBlockChange)
     is BlockDefinition.StartTimer -> FlowRow(
@@ -299,13 +297,7 @@ private fun OffsetParameters(
         axis = Axis.VERTICAL,
         onValueChange = { onChange(x, it) },
     )
-    if (isVelocity) {
-        Text(
-            text = stringResource(Res.string.block_velocity_unit),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
+    if (isVelocity) UnitText(Res.string.block_velocity_unit)
 }
 
 /**
@@ -321,7 +313,7 @@ private val BlockKind.hasInlineParameters
         BlockKind.STOP, BlockKind.RUN_PARENT_EVENT, BlockKind.BOUNCE_OFF_EDGE, BlockKind.REMOVE_SELF, BlockKind.BOUNCE_OFF_OTHER,
         BlockKind.REMOVE_OTHER, BlockKind.ELSE, BlockKind.END, BlockKind.KOTLIN, BlockKind.RESTART_SCENE, BlockKind.STOP_MUSIC,
         -> false
-        BlockKind.SET_VELOCITY, BlockKind.ADD_TO_VELOCITY, BlockKind.JUMP_TO, BlockKind.SET_NUMBER, BlockKind.CHANGE_NUMBER,
+        BlockKind.SET_VELOCITY, BlockKind.ADD_TO_VELOCITY, BlockKind.MOVE_IN_DIRECTION, BlockKind.JUMP_TO, BlockKind.SET_NUMBER, BlockKind.CHANGE_NUMBER,
         BlockKind.SET_TEXT, BlockKind.SET_TOGGLE, BlockKind.ADD_ACTOR, BlockKind.MOVE_TOWARDS_NEAREST, BlockKind.START_TIMER,
         BlockKind.STOP_TIMER, BlockKind.GO_TO_SCENE, BlockKind.PAUSE_GAME, BlockKind.PLAY_SOUND, BlockKind.PLAY_MUSIC,
         BlockKind.IF, BlockKind.REPEAT, BlockKind.LOG, BlockKind.SET_FRAME, BlockKind.SET_ANIMATION,

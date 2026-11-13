@@ -39,6 +39,7 @@ import kubriko.creator.generated.resources.ic_collision
 import kubriko.creator.generated.resources.ic_condition
 import kubriko.creator.generated.resources.ic_console
 import kubriko.creator.generated.resources.ic_delete
+import kubriko.creator.generated.resources.ic_direction
 import kubriko.creator.generated.resources.ic_edge
 import kubriko.creator.generated.resources.ic_end
 import kubriko.creator.generated.resources.ic_keyboard
@@ -115,6 +116,7 @@ internal val BlockKind.icon: DrawableResource
     get() = when (this) {
         BlockKind.SET_VELOCITY -> Res.drawable.ic_velocity
         BlockKind.ADD_TO_VELOCITY -> Res.drawable.ic_trending_up
+        BlockKind.MOVE_IN_DIRECTION -> Res.drawable.ic_direction
         BlockKind.STOP -> Res.drawable.ic_stop
         BlockKind.JUMP_TO -> Res.drawable.ic_open_with
         BlockKind.BOUNCE_OFF_EDGE -> Res.drawable.ic_bounce

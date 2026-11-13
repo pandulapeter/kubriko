@@ -46,6 +46,16 @@ public sealed interface BlockDefinition {
     ) : BlockDefinition
 
     @Serializable
+    @SerialName("moveInDirection")
+    @Description("Sets the velocity of the Actor to a speed in a direction. Either can be random, so debris can fly out in every direction at different speeds.")
+    public data class MoveInDirection(
+        @Description("The direction, in degrees: 0 is right, 90 is down, 180 is left, and 270 is up (clockwise, like rotation in the Scene). Not an edge.")
+        @SerialName("direction") val direction: NumberValue = NumberValue.Fixed(0f),
+        @Description("The speed, in scene units per second. Not an edge.")
+        @SerialName("speed") val speed: NumberValue = NumberValue.Fixed(200f),
+    ) : BlockDefinition
+
+    @Serializable
     @SerialName("runParentEvent")
     @Description("Runs the Blocks of the parent Actor type's Event that this Event replaces (GameMaker's event_inherited), here. Only in an Actor type with a parent.")
     public data object RunParentEvent : BlockDefinition
@@ -153,7 +163,7 @@ public sealed interface BlockDefinition {
     public data class MoveTowardsNearest(
         @Description("The name of the Actor type.")
         @SerialName("actorType") val actorType: String = "",
-        @Description("The speed, in scene units per second.")
+        @Description("The speed, in scene units per second. Not an edge.")
         @SerialName("speed") val speed: NumberValue = NumberValue.Fixed(200f),
     ) : BlockDefinition
 

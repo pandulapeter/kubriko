@@ -93,7 +93,7 @@ public object EveryBlockTypes {
         BlockDefinition.StopMusic,
         BlockDefinition.SetFrame(frame = NumberValue.Fixed(2f)),
         BlockDefinition.SetAnimation(speed = NumberValue.Fixed(-0.5f), isLooping = false),
-    ) + numberValueBlocks + edgeValueBlocks
+    ) + numberValueBlocks + edgeValueBlocks + directionBlocks
 
     /**
      * Blocks taking random numbers and Properties' values, which format version 5 added.
@@ -128,6 +128,16 @@ public object EveryBlockTypes {
             BlockDefinition.AddActor("Ball", x = NumberValue.BetweenEdges(SceneEdge.RIGHT, -5f, SceneEdge.LEFT, 5f), y = NumberValue.Edge(SceneEdge.TOP, 1f)),
             BlockDefinition.If(ConditionDefinition.Number("score", Comparison.LESS, NumberValue.BetweenEdges(SceneEdge.TOP, to = SceneEdge.BOTTOM))),
             BlockDefinition.End,
+        )
+
+    /**
+     * Blocks moving in a direction, which format version 8 added.
+     */
+    val directionBlocks: List<BlockDefinition>
+        get() = listOf(
+            BlockDefinition.MoveInDirection(direction = NumberValue.Fixed(-45f), speed = NumberValue.Fixed(120f)),
+            BlockDefinition.MoveInDirection(direction = NumberValue.Random(0f, 360f), speed = NumberValue.Random(100f, 300f)),
+            BlockDefinition.MoveInDirection(direction = NumberValue.Property("score"), speed = NumberValue.Property("score", manager = "EveryManager")),
         )
 
     /**

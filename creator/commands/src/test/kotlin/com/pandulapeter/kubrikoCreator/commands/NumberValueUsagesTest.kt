@@ -100,6 +100,19 @@ class NumberValueUsagesTest {
     }
 
     @Test
+    fun aDirectionOrASpeedTakesNoEdge() = runTest {
+        val context = commandContext(enemy)
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Enemy", 0, BlockDefinition.MoveInDirection(NumberValue.Random(0f, 360f), NumberValue.Property("hp")))))
+        listOf(
+            BlockDefinition.MoveInDirection(direction = NumberValue.Edge(SceneEdge.RIGHT)),
+            BlockDefinition.MoveInDirection(speed = NumberValue.BetweenEdges(SceneEdge.TOP, to = SceneEdge.BOTTOM)),
+            BlockDefinition.MoveTowardsNearest("Enemy", NumberValue.Edge(SceneEdge.LEFT)),
+        ).forEach { block ->
+            assertEquals(Rejection(CommandProblem.NUMBER_EDGE_NOT_TAKEN), context.rejection(AddBlock, AddBlock.Input("Enemy", 0, block)), block.toString())
+        }
+    }
+
+    @Test
     fun aPropertyReadAsANumberIsAUsageThatBecomesItsStartingValue() = runTest {
         val context = commandContext(enemy)
         val usages = context.usagesOf(RelationSubject.Property("Enemy", "speed"))

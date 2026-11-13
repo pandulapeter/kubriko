@@ -41,6 +41,10 @@ class BlockNotationTest {
             "Set velocity to (a random number from -50 to 50, speed of Game)",
             BlockNotation.of(BlockDefinition.SetVelocity(NumberValue.Random(-50f, 50f), NumberValue.Property("speed", manager = "Game"))),
         )
+        assertEquals(
+            "Move in a direction: a random number from 0 to 360 degrees at speed 120",
+            BlockNotation.of(BlockDefinition.MoveInDirection(NumberValue.Random(0f, 360f), NumberValue.Fixed(120f))),
+        )
         assertEquals("Repeat a random whole number from 1 to 3 times", BlockNotation.of(BlockDefinition.Repeat(NumberValue.Random(1f, 3f, isWhole = true))))
         assertEquals("If by chance ((none)%)", BlockNotation.of(BlockDefinition.If(ConditionDefinition.Chance(NumberValue.Property()))))
         assertEquals(

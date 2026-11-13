@@ -30,7 +30,7 @@ public object PropertyNaming {
         "shouldClip", "state", "stateManager", "topLeft", "velocity", "viewportManager",
         "box", "isRemoved", "sceneSettings", "sprite", "spriteManager",
         "isInSceneEditor", "isInitialized", "isLoggingEnabled", "scope",
-        "look", "animation", "animationSpeed", "isAnimationLooping",
+        "look", "animation", "animationSpeed", "isAnimationLooping", "velocityInDirection",
     ) + SCENE_BOUNDS_NAMES
 
     /**

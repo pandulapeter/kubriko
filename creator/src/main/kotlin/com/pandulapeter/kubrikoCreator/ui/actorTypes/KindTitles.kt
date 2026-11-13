@@ -25,6 +25,7 @@ import kubriko.creator.generated.resources.block_if
 import kubriko.creator.generated.resources.block_jump_to
 import kubriko.creator.generated.resources.block_kotlin
 import kubriko.creator.generated.resources.block_log
+import kubriko.creator.generated.resources.block_move_in_direction
 import kubriko.creator.generated.resources.block_move_towards_nearest
 import kubriko.creator.generated.resources.block_pause_game
 import kubriko.creator.generated.resources.block_play_music
@@ -60,6 +61,7 @@ internal val BlockKind.title: StringResource
     get() = when (this) {
         BlockKind.SET_VELOCITY -> Res.string.block_set_velocity
         BlockKind.ADD_TO_VELOCITY -> Res.string.block_add_to_velocity
+        BlockKind.MOVE_IN_DIRECTION -> Res.string.block_move_in_direction
         BlockKind.STOP -> Res.string.block_stop
         BlockKind.RUN_PARENT_EVENT -> Res.string.block_run_parent_event
         BlockKind.JUMP_TO -> Res.string.block_jump_to

@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.BOUNCE_OFF_FUNCTION
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.DIRECTION_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.NUMBER_TEXT_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.REMOVED_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.stringLiteral
@@ -101,6 +102,23 @@ internal object ActorClassCode {
         onFinished()
         appendLine("            }")
         appendLine("        }")
+    }
+
+    /**
+     * The velocity of a speed in a direction, for the Move in a direction Block. A function rather than lines of the
+     * Block, so the direction and the speed are each read once, with no local of the Block in scope.
+     *
+     * @param visibility `private` for a type of its own, `protected` for a family's base class.
+     */
+    fun StringBuilder.appendDirectionFunction(visibility: String) {
+        appendLine()
+        appendLine("    /**")
+        appendLine("     * The velocity of [speed] towards [directionInDegrees], clockwise from the right (a degree is 0.017453292 radians).")
+        appendLine("     */")
+        appendLine("    $visibility fun $DIRECTION_FUNCTION(directionInDegrees: Float, speed: Float): SceneOffset {")
+        appendLine("        val radians = directionInDegrees * 0.017453292f")
+        appendLine("        return SceneOffset((cos(radians) * speed).sceneUnit, (sin(radians) * speed).sceneUnit)")
+        appendLine("    }")
     }
 
     /**

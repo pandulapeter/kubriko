@@ -46,6 +46,7 @@ import kubriko.creator.generated.resources.error_command_not_a_change
 import kubriko.creator.generated.resources.error_command_not_changed_by_hand
 import kubriko.creator.generated.resources.error_command_nothing_to_commit
 import kubriko.creator.generated.resources.error_command_number_edge_across
+import kubriko.creator.generated.resources.error_command_number_edge_not_taken
 import kubriko.creator.generated.resources.error_command_number_invalid
 import kubriko.creator.generated.resources.error_command_page_image_not_viewable
 import kubriko.creator.generated.resources.error_command_page_image_source
@@ -151,6 +152,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.NOT_CHANGED_BY_HAND -> Res.string.error_command_not_changed_by_hand
     CommandProblem.NOTHING_TO_COMMIT -> Res.string.error_command_nothing_to_commit
     CommandProblem.NUMBER_EDGE_ACROSS -> Res.string.error_command_number_edge_across
+    CommandProblem.NUMBER_EDGE_NOT_TAKEN -> Res.string.error_command_number_edge_not_taken
     CommandProblem.NUMBER_INVALID -> Res.string.error_command_number_invalid
     CommandProblem.DOCUMENT_NOT_MOVED -> Res.string.error_command_document_not_moved
     CommandProblem.DOCUMENT_TAKEN -> Res.string.error_command_document_taken

@@ -683,6 +683,25 @@ class ActorTypeCodeGeneratorTest {
     }
 
     @Test
+    fun movingInADirectionReadsTheDirectionAndTheSpeedOnceEachThroughAFunctionDeclaredOnlyWhenUsed() {
+        assertFalse("velocityInDirection" in generate())
+        val scope = BlockScope("Debris", properties = listOf(PropertyDefinition.Number("speed")))
+        val lines = BlockCodeGenerator.blockCode(BlockDefinition.MoveInDirection(NumberValue.Random(0f, 360f), NumberValue.Property("speed")), EventType.ADDED_TO_SCENE, scope).lines
+        assertEquals(listOf("velocity = velocityInDirection((KubrikoWiring.random.nextFloat() * 360f + 0f), speed)"), lines)
+        val code = generate(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.MoveInDirection(NumberValue.Fixed(90f), NumberValue.Fixed(50f)))))
+        assertContains(code, "        velocity = velocityInDirection(90f, 50f)\n")
+        assertContains(
+            code,
+            "    private fun velocityInDirection(directionInDegrees: Float, speed: Float): SceneOffset {\n" +
+                "        val radians = directionInDegrees * 0.017453292f\n" +
+                "        return SceneOffset((cos(radians) * speed).sceneUnit, (sin(radians) * speed).sceneUnit)\n" +
+                "    }\n",
+        )
+        listOf("cos", "sin").forEach { assertContains(code, "import kotlin.math.$it\n") }
+        assertContains(code, "Dynamic")
+    }
+
+    @Test
     fun aSpeedPropertyNamedLikeALocalOfMovingTowardsTheNearestIsReadBeforeTheLocalsExist() {
         val scope = BlockScope("Player", actorTypeNames = listOf("Player", "Coin"), properties = listOf(PropertyDefinition.Number("nearest")))
         val lines = BlockCodeGenerator.blockCode(BlockDefinition.MoveTowardsNearest("Coin", NumberValue.Property("nearest")), EventType.EVERY_FRAME, scope).lines

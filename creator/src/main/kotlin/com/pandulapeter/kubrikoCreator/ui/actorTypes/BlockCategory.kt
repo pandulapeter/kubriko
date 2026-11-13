@@ -49,6 +49,7 @@ internal enum class BlockCategory(
         listOf(
             BlockKind.SET_VELOCITY,
             BlockKind.ADD_TO_VELOCITY,
+            BlockKind.MOVE_IN_DIRECTION,
             BlockKind.STOP,
             BlockKind.JUMP_TO,
             BlockKind.MOVE_TOWARDS_NEAREST,

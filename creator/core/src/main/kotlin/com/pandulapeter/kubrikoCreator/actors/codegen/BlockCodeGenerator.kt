@@ -45,6 +45,7 @@ public object BlockCodeGenerator {
     internal const val STATE_MANAGER_FIELD = "stateManager"
     internal const val REMOVED_FIELD = "isRemoved"
     internal const val BOUNCE_OFF_FUNCTION = "bounceOff"
+    internal const val DIRECTION_FUNCTION = "velocityInDirection"
     internal const val ANIMATION_FIELD = "animation"
     internal const val ANIMATION_SPEED_FIELD = "animationSpeed"
     internal const val ANIMATION_LOOPING_FIELD = "isAnimationLooping"
@@ -109,6 +110,10 @@ public object BlockCodeGenerator {
     ): BlockCode = when (block) {
         is BlockDefinition.SetVelocity -> movementCode("velocity = ${offsetCode(block.x, block.y, scope)}")
         is BlockDefinition.AddToVelocity -> movementCode("velocity += ${offsetCode(block.x, block.y, scope)}")
+        is BlockDefinition.MoveInDirection -> BlockCode(
+            lines = listOf("velocity = $DIRECTION_FUNCTION(${NumberValueCode.float(block.direction, scope)}, ${NumberValueCode.float(block.speed, scope)})"),
+            needs = setOf(BlockNeed.MOVEMENT, BlockNeed.DIRECTION),
+        )
         BlockDefinition.Stop -> movementCode("velocity = SceneOffset.Zero")
         BlockDefinition.RunParentEvent -> BlockCode(listOf(scope.parentEventCall ?: "// Only an Actor type with a parent runs its parent's Event."))
         is BlockDefinition.JumpTo -> movementCode("body.position = ${offsetCode(block.x, block.y, scope)}")

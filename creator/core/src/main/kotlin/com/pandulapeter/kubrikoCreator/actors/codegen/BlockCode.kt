@@ -60,6 +60,9 @@ internal enum class BlockNeed {
     /** The function that bounces the Actor off another one. */
     BOUNCE_OFF,
 
+    /** The function that turns a direction and a speed into a velocity. */
+    DIRECTION,
+
     /** What plays the frames of the Actor's sprite, which [ActorTypeFeatures.isAnimated] declares. */
     ANIMATION,
 

@@ -27,7 +27,10 @@
   type every field shares rather than a random variant of each Block, so a new kind of number reaches every Block at once
   (`numberValues` reads them and `withNumberValues` replaces them, and `NumberValueFieldsTest` keeps the two agreeing). A fixed number stays a bare JSON number, so files only
   change where a value is something else. `NumberValueCode` makes each one operand that allocates nothing, and every random
-  number comes from the one `KubrikoWiring.random`, so a test can seed the whole game.
+  number comes from the one `KubrikoWiring.random`, so a test can seed the whole game. A Block reads its numbers while none
+  of its own locals is in scope (passing them to a member function, as Move in a direction does, or reading the one number
+  first, as Move towards the nearest does), so a Property named like a local is still the Property; the function's name is
+  reserved (format version 8). A direction or a speed takes no edge, which is a position.
 - An edge is the Scene settings' bounds, or the screen's while there are none, as the edge Event decides. Values read it
   through `GeneratedScenes.edge` and `randomBetweenEdges`, which read the settings once per call, so a Scene that finishes
   loading meanwhile can't mix its bounds with the screen's; the edge Event takes one snapshot in the Actor's own code, so a

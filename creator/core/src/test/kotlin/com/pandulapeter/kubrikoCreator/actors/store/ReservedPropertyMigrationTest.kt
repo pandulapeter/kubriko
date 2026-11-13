@@ -74,6 +74,21 @@ class ReservedPropertyMigrationTest {
     }
 
     @Test
+    fun formatVersionEightReservesTheFunctionMovingInADirection() {
+        assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate("velocityInDirection", emptyList()))
+        assertNotNull(BlockTypeStore.open(root)).save(
+            ActorTypeDefinition(
+                name = "Debris",
+                properties = listOf(PropertyDefinition.Number("velocityInDirection", 90f)),
+                events = everyFrame(BlockDefinition.MoveInDirection(direction = NumberValue.Property("velocityInDirection"))),
+            ),
+        )
+        val debris = migratedTypes().getValue("Debris") as ActorTypeDefinition
+        assertEquals(listOf(PropertyDefinition.Number("velocityInDirection2", 90f)), debris.properties)
+        assertEquals(everyFrame(BlockDefinition.MoveInDirection(direction = NumberValue.Property("velocityInDirection2"))), debris.events)
+    }
+
+    @Test
     fun anActorFamilysLookIsRenamedWhereItIsDeclaredUsedAndKeptInScenes() {
         val store = assertNotNull(BlockTypeStore.open(root))
         store.save(

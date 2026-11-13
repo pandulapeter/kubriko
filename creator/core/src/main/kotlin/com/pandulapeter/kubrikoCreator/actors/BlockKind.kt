@@ -29,6 +29,7 @@ public enum class BlockKind(
 
     SET_VELOCITY({ BlockDefinition.SetVelocity(x = NumberValue.Fixed(200f)) }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE),
     ADD_TO_VELOCITY({ BlockDefinition.AddToVelocity(x = NumberValue.Fixed(50f)) }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE),
+    MOVE_IN_DIRECTION({ BlockDefinition.MoveInDirection() }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE),
     STOP({ BlockDefinition.Stop }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE),
     RUN_PARENT_EVENT({ BlockDefinition.RunParentEvent }, managerTypeProblem = PlacementProblem.BLOCK_RUN_PARENT_EVENT_IN_MANAGER_TYPE),
     JUMP_TO({ BlockDefinition.JumpTo() }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE),
@@ -82,6 +83,7 @@ public enum class BlockKind(
         public fun of(block: BlockDefinition): BlockKind = when (block) {
             is BlockDefinition.SetVelocity -> SET_VELOCITY
             is BlockDefinition.AddToVelocity -> ADD_TO_VELOCITY
+            is BlockDefinition.MoveInDirection -> MOVE_IN_DIRECTION
             BlockDefinition.Stop -> STOP
             BlockDefinition.RunParentEvent -> RUN_PARENT_EVENT
             is BlockDefinition.JumpTo -> JUMP_TO

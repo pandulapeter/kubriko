@@ -95,6 +95,7 @@ public class ProjectFormat(
             NumberValuesMigration,
             EdgeValuesMigration,
             SceneLeavingMigration,
+            ReservedPropertyMigration.DIRECTION,
         )
 
         /**

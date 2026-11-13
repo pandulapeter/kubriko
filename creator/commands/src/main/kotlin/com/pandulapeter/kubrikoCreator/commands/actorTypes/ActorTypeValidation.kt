@@ -38,6 +38,7 @@ import com.pandulapeter.kubrikoCreator.actors.isFinite
 import com.pandulapeter.kubrikoCreator.actors.numberPropertyReferences
 import com.pandulapeter.kubrikoCreator.actors.numberValues
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
+import com.pandulapeter.kubrikoCreator.actors.readsEdges
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypes
 import com.pandulapeter.kubrikoCreator.actors.timerName
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
@@ -170,6 +171,7 @@ private fun validateBlockValues(block: BlockDefinition, scope: BlockScope): Reje
     block is BlockDefinition.If && !ConditionKind.of(block.condition).isAvailableIn(scope.kind) -> Rejection(PlacementProblem.CONDITION_NOT_ALLOWED)
     !block.areNumbersValid -> Rejection(CommandProblem.NUMBER_INVALID)
     !block.areEdgesAlongTheirAxes -> Rejection(CommandProblem.NUMBER_EDGE_ACROSS)
+    block.edgelessNumberValues.any { it.readsEdges } -> Rejection(CommandProblem.NUMBER_EDGE_NOT_TAKEN)
     ((block as? BlockDefinition.If)?.condition as? ConditionDefinition.KeyHeld)?.key?.isKnown == false -> unknownKey((block.condition as ConditionDefinition.KeyHeld).key)
     else -> block.timerName?.let(TimerNaming::validate)?.let(::Rejection) ?: validateBlockReferences(block, scope)
 }
@@ -278,7 +280,7 @@ private val BlockDefinition.areNumbersValid
         is BlockDefinition.Repeat -> times.isWithin(minimum = 0f) && times.isWholeWhenFixed
         is BlockDefinition.StartTimer -> seconds.isWithin(minimum = 0f)
         is BlockDefinition.SetFrame -> frame.isWithin(minimum = 0f) && frame.isWholeWhenFixed
-        is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.JumpTo, is BlockDefinition.AddActor,
+        is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.JumpTo, is BlockDefinition.AddActor,
         is BlockDefinition.MoveTowardsNearest, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetAnimation,
         BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
         is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.StopTimer, BlockDefinition.Else, BlockDefinition.End,
@@ -293,13 +295,23 @@ private val BlockDefinition.areEdgesAlongTheirAxes
         is BlockDefinition.AddToVelocity -> areEdgesAlong(x, y)
         is BlockDefinition.JumpTo -> areEdgesAlong(x, y)
         is BlockDefinition.AddActor -> areEdgesAlong(x, y)
-        is BlockDefinition.MoveTowardsNearest, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetAnimation,
+        is BlockDefinition.MoveInDirection, is BlockDefinition.MoveTowardsNearest, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetAnimation,
         is BlockDefinition.If, is BlockDefinition.Repeat, is BlockDefinition.StartTimer, is BlockDefinition.SetFrame,
         BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
         is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.StopTimer, BlockDefinition.Else, BlockDefinition.End,
         is BlockDefinition.Log, is BlockDefinition.Kotlin, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
         is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic,
         -> numberValues.none { it is NumberValue.BetweenEdges && it.from.axis != it.to.axis }
+    }
+
+/**
+ * The numbers of [this] Block that are a direction or a speed, which an edge, a position, means nothing as.
+ */
+private val BlockDefinition.edgelessNumberValues
+    get() = when (this) {
+        is BlockDefinition.MoveInDirection -> listOf(direction, speed)
+        is BlockDefinition.MoveTowardsNearest -> listOf(speed)
+        else -> emptyList()
     }
 
 private val NumberValue.isWholeWhenFixed get() = this !is NumberValue.Fixed || value == value.toLong().toFloat()

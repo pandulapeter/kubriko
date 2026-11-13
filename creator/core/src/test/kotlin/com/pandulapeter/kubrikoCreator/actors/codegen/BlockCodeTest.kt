@@ -24,6 +24,7 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.ACTOR_MANAGER
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.AUDIO
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.BOUNCE_OFF
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.DIRECTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.KEYBOARD_INPUT_MANAGER
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.MOVEMENT
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.NUMBER_TEXT
@@ -57,6 +58,7 @@ class BlockCodeTest {
         val defaults = mapOf(
             BlockKind.SET_VELOCITY to Expected(setOf(MOVEMENT), setOf(sceneOffset)),
             BlockKind.ADD_TO_VELOCITY to Expected(setOf(MOVEMENT), setOf(sceneOffset)),
+            BlockKind.MOVE_IN_DIRECTION to Expected(setOf(MOVEMENT, DIRECTION)),
             BlockKind.STOP to Expected(setOf(MOVEMENT), setOf(sceneOffset)),
             BlockKind.RUN_PARENT_EVENT to Expected(),
             BlockKind.JUMP_TO to Expected(setOf(MOVEMENT), setOf(sceneOffset)),

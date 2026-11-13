@@ -84,7 +84,7 @@ internal class ProjectRelations(
                 val kind = if (block is BlockDefinition.If) RelationKind.READS else RelationKind.CHANGES
                 add(Relation(place, kind, propertyOf(typeName, reference.manager, reference.name)))
             }
-            is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
+            is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
             is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
             BlockDefinition.RemoveOther, is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, BlockDefinition.RestartScene,
             is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic,

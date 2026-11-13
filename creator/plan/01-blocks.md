@@ -20,8 +20,6 @@ for code (`AssistantSystemPrompt`). The first writers' room game (a side-scrolli
 needed twelve Kotlin Blocks, all for simple behavior. Each item replaces some of them, and the section is done when the eval set
 (`EvalSet`) builds the same game with no Kotlin Block left.
 
-- **Moving in a direction:** set the velocity by an angle and a speed, either of them random, so debris can fly out in every direction
-  at different speeds.
 - **Color and opacity:** a Block that sets the color, to one color or one picked at random from a few, and Blocks that set the
   opacity or change it by an amount. They are properties of the type's batched look, like the size and scale Blocks below.
 - **Animating over time:** "Animate" takes the scale, opacity, color, or position from a start to an end over some seconds (with an
