@@ -435,7 +435,7 @@
     <string name="sprite_sheet_frame_count">Frames</string>
     <string name="sprite_sheet_frames_per_row">Frames in a row</string>
     <string name="sprite_sheet_frames_per_second">Frames per second</string>
-    <string name="sprite_sheet_origin_middle">Turns around the middle of a frame</string>
+    <string name="sprite_sheet_origin_middle">Origin in the middle of a frame</string>
     <string name="sprite_sheet_origin_x">Origin across</string>
     <string name="sprite_sheet_origin_y">Origin down</string>
     <string name="sprite_sheet_show_whole">Show the whole image</string>
