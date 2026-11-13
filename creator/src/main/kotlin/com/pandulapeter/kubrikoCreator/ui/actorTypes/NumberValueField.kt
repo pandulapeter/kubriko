@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.actors.Axis
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
@@ -55,6 +56,7 @@ import org.jetbrains.compose.resources.stringResource
  * with what is added to it.
  *
  * @param isWhole Whether the field only takes whole numbers.
+ * @param axis Which axis the field is a position (or a velocity) on, if it is one: only that axis's edges are offered.
  * @param accepts Which numbers the field takes; a number typed outside them isn't reported.
  */
 @Composable
@@ -64,6 +66,7 @@ internal fun NumberValueField(
     scope: BlockScope,
     onValueChange: (NumberValue) -> Unit,
     isWhole: Boolean = false,
+    axis: Axis? = null,
     accepts: (Float) -> Boolean = { true },
     fieldWidth: Dp = 96.dp,
 ) = Row(
@@ -78,7 +81,7 @@ internal fun NumberValueField(
         options = NumberValueKind.offeredBy(isWhole),
         optionText = { stringResource(it.title) },
         optionIcon = { it.icon },
-        onSelected = { if (it != kind) onValueChange(it.of(value, isWhole)) },
+        onSelected = { if (it != kind) onValueChange(it.of(value, isWhole, axis)) },
     )
     when (value) {
         is NumberValue.Fixed -> NumberField(
@@ -110,31 +113,34 @@ internal fun NumberValueField(
         }
         is NumberValue.Edge -> {
             FieldName(label)
-            EdgeWithOffset(value.edge, value.offset, fieldWidth) { edge, offset -> onValueChange(NumberValue.Edge(edge, offset)) }
+            EdgeWithOffset(value.edge, value.offset, axis, fieldWidth) { edge, offset -> onValueChange(NumberValue.Edge(edge, offset)) }
         }
         is NumberValue.BetweenEdges -> {
             FieldName(label)
             FieldName(Res.string.number_value_from)
-            EdgeWithOffset(value.from, value.fromOffset, fieldWidth) { edge, offset -> onValueChange(value.copy(from = edge, fromOffset = offset)) }
+            EdgeWithOffset(value.from, value.fromOffset, axis, fieldWidth) { edge, offset ->
+                onValueChange(value.copy(from = edge, fromOffset = offset, to = if (edge.axis == value.to.axis) value.to else edge.opposite))
+            }
             FieldName(Res.string.number_value_to)
-            EdgeWithOffset(value.to, value.toOffset, fieldWidth) { edge, offset -> onValueChange(value.copy(to = edge, toOffset = offset)) }
+            EdgeWithOffset(value.to, value.toOffset, axis ?: value.from.axis, fieldWidth) { edge, offset -> onValueChange(value.copy(to = edge, toOffset = offset)) }
         }
     }
 }
 
 /**
- * Which edge of the Scene, and the offset added to where it is.
+ * Which edge of the Scene, of [axis] when it is known, and the offset added to where it is.
  */
 @Composable
 private fun EdgeWithOffset(
     edge: SceneEdge,
     offset: Float,
+    axis: Axis?,
     fieldWidth: Dp,
     onChange: (SceneEdge, Float) -> Unit,
 ) {
     MenuButton(
         label = stringResource(edge.title),
-        options = SceneEdge.entries,
+        options = SceneEdge.entries.filter { axis == null || it.axis == axis },
         optionText = { stringResource(it.title) },
         onSelected = { onChange(it, offset) },
     )

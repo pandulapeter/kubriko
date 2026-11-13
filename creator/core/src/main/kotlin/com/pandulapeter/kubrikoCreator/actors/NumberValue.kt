@@ -55,7 +55,7 @@ public sealed interface NumberValue {
     @SerialName("edge")
     @Description("Where an edge of the Scene's bounds is (of the screen while the Scene has none, as the edge Event decides), plus offset, as it is when the Block runs; an Actor added from this one still goes to the edge itself.")
     public data class Edge(
-        @Description("Which edge: left or right for a horizontal position, top or bottom for a vertical one.")
+        @Description("Which edge: left or right for an x, top or bottom for a y.")
         @SerialName("edge") val edge: SceneEdge = SceneEdge.LEFT,
         @Description("Added to where the edge is: positive is right or down, negative left or up.")
         @SerialName("offset") val offset: Float = 0f,
@@ -65,11 +65,11 @@ public sealed interface NumberValue {
     @SerialName("betweenEdges")
     @Description("A random number between two edges of the Scene's bounds (of the screen while the Scene has none), each plus its offset, drawn anew each time the Block runs.")
     public data class BetweenEdges(
-        @Description("The edge one end is at.")
+        @Description("The edge one end is at: left or right for an x, top or bottom for a y, as the to edge.")
         @SerialName("from") val from: SceneEdge = SceneEdge.LEFT,
         @Description("Added to where the from edge is: positive is right or down, negative left or up.")
         @SerialName("fromOffset") val fromOffset: Float = 0f,
-        @Description("The edge the other end is at.")
+        @Description("The edge the other end is at, on the same axis as the from edge.")
         @SerialName("to") val to: SceneEdge = SceneEdge.RIGHT,
         @Description("Added to where the to edge is: positive is right or down, negative left or up.")
         @SerialName("toOffset") val toOffset: Float = 0f,
@@ -107,3 +107,17 @@ public val NumberValue.isFinite: Boolean
  */
 public val NumberValue.readsEdges: Boolean
     get() = this is NumberValue.Edge || this is NumberValue.BetweenEdges
+
+/**
+ * Whether [this] value reads an edge that isn't a position on [axis], as the top edge in an x position.
+ */
+public fun NumberValue.readsEdgeAcross(axis: Axis): Boolean = when (this) {
+    is NumberValue.Edge -> edge.axis != axis
+    is NumberValue.BetweenEdges -> from.axis != axis || to.axis != axis
+    is NumberValue.Fixed, is NumberValue.Random, is NumberValue.Property -> false
+}
+
+/**
+ * Whether the x and y of a position or a velocity read only edges of their own axes.
+ */
+public fun areEdgesAlong(x: NumberValue, y: NumberValue): Boolean = !x.readsEdgeAcross(Axis.HORIZONTAL) && !y.readsEdgeAcross(Axis.VERTICAL)

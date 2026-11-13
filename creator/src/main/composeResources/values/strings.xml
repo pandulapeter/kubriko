@@ -641,6 +641,7 @@
     <string name="error_blocks_nothing_to_replace">Give Blocks to add, a count (0 or more) of Blocks to remove, or both.</string>
     <string name="error_command_index_invalid">%1$s isn't a valid index there. Use one from 0 to %2$s.</string>
     <string name="error_command_size_invalid">The width and height have to be positive numbers.</string>
+    <string name="error_command_number_edge_across">An x takes only the left and right edges, and a y only the top and bottom ones; a random number is drawn between two edges of the same axis.</string>
     <string name="error_command_number_invalid">Every number has to be finite.</string>
     <string name="error_placement_key_not_allowed">Only a When a key is pressed Event has a key.</string>
     <string name="error_placement_other_actor_type_not_allowed">Only a When it collides with Event has another Actor type.</string>

@@ -28,9 +28,13 @@
   (`numberValues` reads them and `withNumberValues` replaces them, and `NumberValueFieldsTest` keeps the two agreeing). A fixed number stays a bare JSON number, so files only
   change where a value is something else. `NumberValueCode` makes each one operand that allocates nothing, and every random
   number comes from the one `KubrikoWiring.random`, so a test can seed the whole game.
-- Edges come from `GeneratedScenes`' edge getters (the Scene settings' bounds, or the screen's while there are none), which
-  the edge Event reads too, so the two never disagree; a getter rather than a nullable `SceneOffset`, which would box every
-  frame. An edge is the Scene's even in an Add an Actor placing from this Actor: only the other coordinate is relative.
+- An edge is the Scene settings' bounds, or the screen's while there are none, as the edge Event decides. Values read it
+  through `GeneratedScenes.edge` and `randomBetweenEdges`, which read the settings once per call, so a Scene that finishes
+  loading meanwhile can't mix its bounds with the screen's; the edge Event takes one snapshot in the Actor's own code, so a
+  `GeneratedScenes` changed by hand (which Creator stops updating) still compiles for games that use no edge values. Neither
+  goes through a nullable `SceneOffset`, which would box every frame. An x takes only horizontal edges and a y only vertical
+  ones, and fields of whole numbers take none (they count rather than place). An edge is the Scene's even in an Add an Actor
+  placing from this Actor: only the other coordinate is relative.
 - Flow stays in each Event's flat Block list (if, else, repeat, and end mark sections), so every Block keeps its plain index
   (`BlockNesting` works out the depths).
 - It reads like the examples' hand-written code (`Dynamic`, `Collidable`, and Manager lookups only where needed) and behaves like

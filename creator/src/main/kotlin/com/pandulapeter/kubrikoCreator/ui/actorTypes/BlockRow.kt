@@ -30,6 +30,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.actors.Axis
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.BlockNesting
@@ -288,12 +289,14 @@ private fun OffsetParameters(
         label = Res.string.block_parameter_x,
         value = x,
         scope = scope,
+        axis = Axis.HORIZONTAL,
         onValueChange = { onChange(it, y) },
     )
     NumberValueField(
         label = Res.string.block_parameter_y,
         value = y,
         scope = scope,
+        axis = Axis.VERTICAL,
         onValueChange = { onChange(x, it) },
     )
     if (isVelocity) {

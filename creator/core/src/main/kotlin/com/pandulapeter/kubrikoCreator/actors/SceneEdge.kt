@@ -31,6 +31,15 @@ public enum class SceneEdge {
     ;
 
     /**
+     * The axis this edge is a position on: left and right are horizontal positions, top and bottom vertical ones.
+     */
+    public val axis: Axis
+        get() = when (this) {
+            LEFT, RIGHT -> Axis.HORIZONTAL
+            TOP, BOTTOM -> Axis.VERTICAL
+        }
+
+    /**
      * The edge across from this one.
      */
     public val opposite: SceneEdge
@@ -40,4 +49,12 @@ public enum class SceneEdge {
             TOP -> BOTTOM
             BOTTOM -> TOP
         }
+
+    public companion object {
+
+        /**
+         * The edge a value of [axis] starts at: the left one or the top one.
+         */
+        public fun firstOf(axis: Axis): SceneEdge = if (axis == Axis.HORIZONTAL) LEFT else TOP
+    }
 }

@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
+import com.pandulapeter.kubrikoCreator.actors.Axis
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.SceneEdge
 import kotlin.test.Test
@@ -55,5 +56,12 @@ class NumberValueKindTest {
         assertEquals(NumberValue.Random(), NumberValueKind.RANDOM.of(NumberValue.BetweenEdges()))
         assertEquals(NumberValueKind.EDGE, NumberValueKind.of(NumberValue.Edge(), isWholeField = true))
         assertEquals(NumberValueKind.BETWEEN_EDGES, NumberValueKind.of(NumberValue.BetweenEdges(), isWholeField = false))
+    }
+
+    @Test
+    fun aNewEdgeStartsOnTheAxisOfItsField() {
+        assertEquals(NumberValue.Edge(SceneEdge.TOP), NumberValueKind.EDGE.of(NumberValue.Fixed(1f), axis = Axis.VERTICAL))
+        assertEquals(NumberValue.Edge(SceneEdge.LEFT), NumberValueKind.EDGE.of(NumberValue.Fixed(1f), axis = Axis.HORIZONTAL))
+        assertEquals(NumberValue.BetweenEdges(SceneEdge.TOP, to = SceneEdge.BOTTOM), NumberValueKind.BETWEEN_EDGES.of(NumberValue.Random(), axis = Axis.VERTICAL))
     }
 }

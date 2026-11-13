@@ -9,7 +9,9 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
+import com.pandulapeter.kubrikoCreator.actors.Axis
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
+import com.pandulapeter.kubrikoCreator.actors.SceneEdge
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -29,9 +31,10 @@ internal enum class NumberValueKind {
     /**
      * [value] turned into this kind, keeping what it can: a fixed number becomes a random one between 0 and it, a random
      * one becomes the number it starts from, rounded in a field that only takes whole numbers, an edge becomes one end of
-     * a random number between it and the edge across, and the end it starts from becomes an edge again.
+     * a random number between it and the edge across, and the end it starts from becomes an edge again. A new edge starts
+     * at the left or top edge, whichever [axis] the field is a position on (the left one when it is neither).
      */
-    fun of(value: NumberValue, isWholeField: Boolean = false): NumberValue = when (this) {
+    fun of(value: NumberValue, isWholeField: Boolean = false, axis: Axis? = null): NumberValue = when (this) {
         FIXED -> when (value) {
             is NumberValue.Fixed -> value
             is NumberValue.Random -> NumberValue.Fixed(if (isWholeField) value.from.roundToInt().toFloat() else value.from)
@@ -50,12 +53,12 @@ internal enum class NumberValueKind {
         EDGE -> when (value) {
             is NumberValue.Edge -> value
             is NumberValue.BetweenEdges -> NumberValue.Edge(value.from, value.fromOffset)
-            is NumberValue.Fixed, is NumberValue.Random, is NumberValue.Property -> NumberValue.Edge()
+            is NumberValue.Fixed, is NumberValue.Random, is NumberValue.Property -> NumberValue.Edge(SceneEdge.firstOf(axis ?: Axis.HORIZONTAL))
         }
         BETWEEN_EDGES -> when (value) {
             is NumberValue.BetweenEdges -> value
             is NumberValue.Edge -> NumberValue.BetweenEdges(from = value.edge, fromOffset = value.offset, to = value.edge.opposite)
-            is NumberValue.Fixed, is NumberValue.Random, is NumberValue.Property -> NumberValue.BetweenEdges()
+            is NumberValue.Fixed, is NumberValue.Random, is NumberValue.Property -> SceneEdge.firstOf(axis ?: Axis.HORIZONTAL).let { NumberValue.BetweenEdges(from = it, to = it.opposite) }
         }
     }
 

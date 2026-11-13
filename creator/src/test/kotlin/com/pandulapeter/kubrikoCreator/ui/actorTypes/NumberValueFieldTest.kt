@@ -117,11 +117,24 @@ class NumberValueFieldTest {
         onNodeWithText("Right edge").performClick()
         waitForIdle()
         assertEquals(BlockDefinition.AddActor("Ball", x = NumberValue.Edge(SceneEdge.RIGHT), isRelative = false), block)
+        onAllNodesWithContentDescription("Kind of number")[1].performClick()
+        onNodeWithText("An edge of the Scene").performClick()
+        waitForIdle()
+        assertEquals(NumberValue.Edge(SceneEdge.TOP), (block as BlockDefinition.AddActor).y)
+        onNodeWithText("Top edge").performClick()
+        onNodeWithText("Bottom edge").assertExists()
+        onNodeWithText("Left edge").assertDoesNotExist()
+        onNodeWithText("Bottom edge").performClick()
+        waitForIdle()
+        assertEquals(BlockDefinition.AddActor("Ball", x = NumberValue.Edge(SceneEdge.RIGHT), y = NumberValue.Edge(SceneEdge.BOTTOM), isRelative = false), block)
         saveSnapshot("number-value-edge")
         onAllNodesWithContentDescription("Kind of number")[0].performClick()
         onNodeWithText("A random number between edges").performClick()
         waitForIdle()
-        assertEquals(BlockDefinition.AddActor("Ball", x = NumberValue.BetweenEdges(SceneEdge.RIGHT, to = SceneEdge.LEFT), isRelative = false), block)
+        assertEquals(
+            BlockDefinition.AddActor("Ball", x = NumberValue.BetweenEdges(SceneEdge.RIGHT, to = SceneEdge.LEFT), y = NumberValue.Edge(SceneEdge.BOTTOM), isRelative = false),
+            block,
+        )
         saveSnapshot("number-value-between-edges")
     }
 }

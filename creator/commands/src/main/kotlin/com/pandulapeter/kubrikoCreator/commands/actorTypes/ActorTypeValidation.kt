@@ -33,6 +33,7 @@ import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.actorTypeReference
+import com.pandulapeter.kubrikoCreator.actors.areEdgesAlong
 import com.pandulapeter.kubrikoCreator.actors.isFinite
 import com.pandulapeter.kubrikoCreator.actors.numberPropertyReferences
 import com.pandulapeter.kubrikoCreator.actors.numberValues
@@ -168,6 +169,7 @@ internal fun validateBlock(block: BlockDefinition, eventType: EventType, scope: 
 private fun validateBlockValues(block: BlockDefinition, scope: BlockScope): Rejection? = when {
     block is BlockDefinition.If && !ConditionKind.of(block.condition).isAvailableIn(scope.kind) -> Rejection(PlacementProblem.CONDITION_NOT_ALLOWED)
     !block.areNumbersValid -> Rejection(CommandProblem.NUMBER_INVALID)
+    !block.areEdgesAlongTheirAxes -> Rejection(CommandProblem.NUMBER_EDGE_ACROSS)
     ((block as? BlockDefinition.If)?.condition as? ConditionDefinition.KeyHeld)?.key?.isKnown == false -> unknownKey((block.condition as ConditionDefinition.KeyHeld).key)
     else -> block.timerName?.let(TimerNaming::validate)?.let(::Rejection) ?: validateBlockReferences(block, scope)
 }
@@ -283,6 +285,21 @@ private val BlockDefinition.areNumbersValid
         is BlockDefinition.Log, is BlockDefinition.Kotlin, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
         is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic,
         -> true
+    }
+
+private val BlockDefinition.areEdgesAlongTheirAxes
+    get() = when (this) {
+        is BlockDefinition.SetVelocity -> areEdgesAlong(x, y)
+        is BlockDefinition.AddToVelocity -> areEdgesAlong(x, y)
+        is BlockDefinition.JumpTo -> areEdgesAlong(x, y)
+        is BlockDefinition.AddActor -> areEdgesAlong(x, y)
+        is BlockDefinition.MoveTowardsNearest, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetAnimation,
+        is BlockDefinition.If, is BlockDefinition.Repeat, is BlockDefinition.StartTimer, is BlockDefinition.SetFrame,
+        BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
+        is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.StopTimer, BlockDefinition.Else, BlockDefinition.End,
+        is BlockDefinition.Log, is BlockDefinition.Kotlin, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
+        is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic,
+        -> numberValues.none { it is NumberValue.BetweenEdges && it.from.axis != it.to.axis }
     }
 
 private val NumberValue.isWholeWhenFixed get() = this !is NumberValue.Fixed || value == value.toLong().toFloat()

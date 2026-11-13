@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.actors.SceneEdge
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveProperty
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
@@ -81,6 +82,21 @@ class NumberValueUsagesTest {
         assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Enemy", 0, BlockDefinition.SetVelocity(x = NumberValue.Random(0f, Float.NaN)))))
         assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Enemy", 0, BlockDefinition.Repeat(NumberValue.Fixed(2.5f)))))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Enemy", 0, BlockDefinition.Repeat(NumberValue.Random(0.5f, 2.5f)))))
+    }
+
+    @Test
+    fun anXTakesOnlyHorizontalEdgesAndAYOnlyVerticalOnes() = runTest {
+        val context = commandContext(enemy)
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Enemy", 0, BlockDefinition.AddActor("Enemy", NumberValue.Edge(SceneEdge.RIGHT, 50f), NumberValue.BetweenEdges(SceneEdge.TOP, to = SceneEdge.BOTTOM)))))
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Enemy", 0, BlockDefinition.SetNumber("hp", NumberValue.BetweenEdges(SceneEdge.BOTTOM, to = SceneEdge.TOP)))))
+        listOf(
+            BlockDefinition.JumpTo(x = NumberValue.Edge(SceneEdge.TOP)),
+            BlockDefinition.AddActor("Enemy", y = NumberValue.BetweenEdges(SceneEdge.LEFT, to = SceneEdge.RIGHT)),
+            BlockDefinition.SetVelocity(y = NumberValue.Edge(SceneEdge.LEFT)),
+            BlockDefinition.SetNumber("hp", NumberValue.BetweenEdges(SceneEdge.LEFT, to = SceneEdge.BOTTOM)),
+        ).forEach { block ->
+            assertEquals(Rejection(CommandProblem.NUMBER_EDGE_ACROSS), context.rejection(AddBlock, AddBlock.Input("Enemy", 0, block)), block.toString())
+        }
     }
 
     @Test

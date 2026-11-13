@@ -45,6 +45,7 @@ public enum class CommandProblem(override val english: String) : DomainText {
     NOT_A_CHANGE("%1\$s changes nothing, so there is nothing to check."),
     NOT_CHANGED_BY_HAND("The generated code of %1\$s wasn't changed by hand."),
     NOTHING_TO_COMMIT("There are no changes to commit."),
+    NUMBER_EDGE_ACROSS("An x takes only the left and right edges, and a y only the top and bottom ones; a random number is drawn between two edges of the same axis."),
     NUMBER_INVALID("Every number has to be finite."),
     PAGE_INVALID("The offset can't be negative, and the count has to be at least 1."),
     PARENT_CYCLE("%1\$s already inherits from %2\$s, so it can't be its parent."),
