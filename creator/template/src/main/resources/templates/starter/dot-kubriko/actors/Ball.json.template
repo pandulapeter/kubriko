@@ -4,6 +4,7 @@
     "color": "#6060AA",
     "width": 80.0,
     "height": 80.0,
+    "staysInsideScene": true,
     "events": [
         {
             "type": "addedToScene",

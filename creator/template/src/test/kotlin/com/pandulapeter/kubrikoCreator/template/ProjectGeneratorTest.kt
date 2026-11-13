@@ -9,6 +9,10 @@
  */
 package com.pandulapeter.kubrikoCreator.template
 
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.git.JGitRepository
 import com.pandulapeter.kubrikoCreator.project.GameIdentity
@@ -249,6 +253,14 @@ class ProjectGeneratorTest {
         assertEquals(ProjectFormatStatus.Writable, ProjectFormat(directory, creatorVersion = "1.0.0").prepare())
         assertTrue("\"formatVersion\": ${ProjectFormat.CURRENT_VERSION}," in File(directory, ".kubriko/project.json").readText())
         assertTrue("\"templateVersion\": ${ProjectUpgrader.CURRENT_VERSION}," in File(directory, ".kubriko/project.json").readText())
+    }
+
+    @Test
+    fun theStartersBallBouncesInsideTheScene() {
+        val directory = ProjectGenerator(configuration, wrapperInstaller = { _, _ -> }).create(request)
+        val ball = assertNotNull(BlockTypeStore.open(directory)).load().types.single { it.name == "Ball" } as ActorTypeDefinition
+        assertTrue(ball.staysInsideScene)
+        assertTrue(ball.events.any { event -> event.type == EventType.EDGE_TOUCHED && BlockDefinition.BounceOffEdge in event.blocks })
     }
 
     @Test
