@@ -676,9 +676,17 @@ class ActorTypeCodeGeneratorTest {
         assertContains(code, "import com.pandulapeter.kubriko.helpers.extensions.normalized\n")
         assertContains(code, "            for (index in actors.indices) {\n                val candidate = actors[index] as? Coin ?: continue\n                if (candidate.isRemoved) continue\n")
         assertContains(code, "                val distanceSquared = offset.x.raw * offset.x.raw + offset.y.raw * offset.y.raw\n                if (distanceSquared < nearestDistanceSquared) {\n")
-        assertContains(code, "            if (nearest != null) velocity = (nearest.body.position - body.position).normalized() * 150f\n")
+        assertContains(code, "        run {\n            val speed = 150f\n            val actors = actorManager.allActors.value\n")
+        assertContains(code, "            if (nearest != null) velocity = (nearest.body.position - body.position).normalized() * speed\n")
         val towardsItsOwnType = BlockCodeGenerator.blockCode(BlockDefinition.MoveTowardsNearest("Player"), EventType.EVERY_FRAME, BlockScope("Player")).lines
         assertTrue(towardsItsOwnType.any { "if (candidate === this || candidate.isRemoved) continue" in it })
+    }
+
+    @Test
+    fun aSpeedPropertyNamedLikeALocalOfMovingTowardsTheNearestIsReadBeforeTheLocalsExist() {
+        val scope = BlockScope("Player", actorTypeNames = listOf("Player", "Coin"), properties = listOf(PropertyDefinition.Number("nearest")))
+        val lines = BlockCodeGenerator.blockCode(BlockDefinition.MoveTowardsNearest("Coin", NumberValue.Property("nearest")), EventType.EVERY_FRAME, scope).lines
+        assertEquals(listOf("run {", "    val speed = nearest", "    val actors = actorManager.allActors.value"), lines.take(3))
     }
 
     @Test

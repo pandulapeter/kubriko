@@ -220,6 +220,10 @@ public object BlockCodeGenerator {
     private fun relativeCoordinate(value: NumberValue, axis: String, scope: BlockScope) =
         if (value.readsEdges) NumberValueCode.sceneUnit(value, scope) else "body.position.$axis + ${NumberValueCode.sceneUnit(value, scope)}"
 
+    /**
+     * The speed is read first, while no local of the Block is in scope yet, so a Property named like one of them is
+     * still the Property.
+     */
     private fun moveTowardsNearestCode(block: BlockDefinition.MoveTowardsNearest, scope: BlockScope): BlockCode {
         if (block.actorType !in scope.actorTypeNames) return BlockCode(listOf("// Choose an Actor type for this Block."))
         val actorClass = scope.classOf(block.actorType)
@@ -227,6 +231,7 @@ public object BlockCodeGenerator {
         return BlockCode(
             lines = listOf(
                 "run {",
+                "    val speed = ${NumberValueCode.float(block.speed, scope)}",
                 "    val actors = actorManager.allActors.value",
                 "    var nearest: $actorClass? = null",
                 "    var nearestDistanceSquared = Float.MAX_VALUE",
@@ -240,7 +245,7 @@ public object BlockCodeGenerator {
                 "            nearestDistanceSquared = distanceSquared",
                 "        }",
                 "    }",
-                "    if (nearest != null) velocity = (nearest.body.position - body.position).normalized() * ${NumberValueCode.float(block.speed, scope)}",
+                "    if (nearest != null) velocity = (nearest.body.position - body.position).normalized() * speed",
                 "}",
             ),
             needs = setOf(BlockNeed.MOVEMENT, BlockNeed.ACTOR_MANAGER),
