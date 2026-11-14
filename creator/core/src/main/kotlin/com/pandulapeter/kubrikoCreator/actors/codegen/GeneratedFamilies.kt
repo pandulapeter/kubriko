@@ -42,7 +42,13 @@ internal class GeneratedFamilies(
     /**
      * Every Manager type's actorAdded and actorRemoved Events, which every Actor type's features read.
      */
-    val watches by lazy(LazyThreadSafetyMode.NONE) { actorTypes.map { it.name }.let { names -> managerTypes.flatMap { ActorWatch.of(it, names) } } }
+    val watches by lazy(LazyThreadSafetyMode.NONE) { managerTypes.flatMap { ActorWatch.of(it, actorTypeNames) } }
+
+    /**
+     * The Actor types the actorCount conditions count, which `GeneratedScenes` keeps the counts of.
+     */
+    val countedTypes by lazy(LazyThreadSafetyMode.NONE) { ActorCountCode.countedTypesOf(types, actorTypeNames) }
+    private val actorTypeNames by lazy(LazyThreadSafetyMode.NONE) { actorTypes.map { it.name } }
 
     /**
      * The family [name] belongs to.
@@ -67,6 +73,7 @@ internal class GeneratedFamilies(
             containment = SceneContainment.of(members),
             isFamily = ActorClassEmitter.Role.FAMILY_ROOT.isFamily,
             projectWatches = watches,
+            projectCountedTypes = countedTypes,
             eventScopes = members.map { it.events to scopes.getValue(it.name) },
         )
         return GeneratedFamily(root, rootScope, features, scopes)

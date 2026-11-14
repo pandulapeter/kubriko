@@ -42,8 +42,8 @@ import java.io.File
  * version added, format version 9 the opacity every Actor is drawn with ([OPACITY]), with the color and opacity Blocks,
  * format version 10 the members that play the Animate Blocks' animations ([ANIMATE]), with the Animate Block, format
  * version 11 the function the Move with keys Block calls ([STEERING]), which that version added, and format version 12
- * the function the actorCount condition calls and the counters of the actorAdded and actorRemoved Events
- * ([ACTOR_WATCHING]), which that version added; the counters only in Manager types, the only ones that declare them.
+ * the members that count Actors for the actorCount condition and tell Manager types about them for the actorAdded and
+ * actorRemoved Events ([ACTOR_WATCHING]), which that version added, each only in the kind of type that declares it.
  */
 internal class ReservedPropertyMigration(private vararg val reservedNames: String) : FormatMigration {
 
@@ -137,6 +137,6 @@ internal class ReservedPropertyMigration(private vararg val reservedNames: Strin
         val OPACITY = ReservedPropertyMigration("opacity")
         val ANIMATE = ReservedPropertyMigration(*AnimationNaming.reservedNames.toTypedArray())
         val STEERING = ReservedPropertyMigration("velocityFromKeys")
-        val ACTOR_WATCHING = ReservedPropertyMigration("countActors", "actorsAdded", "actorsRemoved", "kotlin", "sceneChangesWhenAdded")
+        val ACTOR_WATCHING = ReservedPropertyMigration("actorsAdded", "actorsRemoved", "kotlin", "sceneChangesWhenAdded", "actorCountGuard")
     }
 }

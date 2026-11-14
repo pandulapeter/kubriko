@@ -37,6 +37,8 @@ import com.pandulapeter.kubrikoCreator.actors.timerName
  * @param containment Which of them stay inside the Scene's bounds.
  * @param isFamily Whether they are a family, whose base class runs the added-to-the-Scene hook even when its Event has
  * no Blocks, since a child may override it.
+ * @param projectCountedTypes The Actor types the project's actorCount conditions count ([ActorCountCode]), of which the
+ *   classes count their own Actors.
  * @param projectWatches Every Manager type's actorAdded and actorRemoved Events of the project ([ActorWatch]), worked out
  *   once per regeneration, of which the classes tell those about their own Actors.
  * @param eventScopes The Events whose code the generated classes hold, each with the scope it is generated in: for a
@@ -52,6 +54,7 @@ internal class ActorTypeFeatures(
     val containment: SceneContainment,
     isFamily: Boolean,
     projectWatches: List<ActorWatch> = emptyList(),
+    projectCountedTypes: List<String> = emptyList(),
     eventScopes: List<Pair<List<EventDefinition>, BlockScope>> = listOf(events to scope),
 ) {
     private val knownActorTypeNames = scope.actorTypeNames
@@ -92,7 +95,13 @@ internal class ActorTypeFeatures(
     /**
      * The Manager types' actorAdded and actorRemoved Events about these Actors, which they tell those Managers about.
      */
-    val watches = eventScopes.mapTo(HashSet()) { (_, eventScope) -> eventScope.typeName }.let { members -> projectWatches.filter { it.actorType in members } }
+    private val members = eventScopes.mapTo(HashSet()) { (_, eventScope) -> eventScope.typeName }
+    val watches = projectWatches.filter { it.actorType in members }
+
+    /**
+     * The counted Actor types these Actors are counted among.
+     */
+    val countedTypes = projectCountedTypes.filter { it in members }
 
     /**
      * What the class declares for the Blocks and the Events: the Scene's bounds, which GeneratedScenes knows, are looked
@@ -104,14 +113,13 @@ internal class ActorTypeFeatures(
         if (timers.isNotEmpty() || everyFrameEvents.any { it.blocks.isNotEmpty() }) add(BlockNeed.MOVEMENT)
         if (keyEvents.isNotEmpty()) add(BlockNeed.STATE_MANAGER)
         if (isAnimated) add(BlockNeed.MOVEMENT)
-        if (watches.any { !it.isAdded }) add(BlockNeed.SCENES)
+        if (watches.any { !it.isAdded } || countedTypes.isNotEmpty()) add(BlockNeed.SCENES)
     }
     val isDynamic = BlockNeed.MOVEMENT in needs
     val usesBounceOff = BlockNeed.BOUNCE_OFF in needs
     val usesDirection = BlockNeed.DIRECTION in needs
     val usesSteering = BlockNeed.STEERING in needs
     val usesNumberText = BlockNeed.NUMBER_TEXT in needs
-    val countsActors = BlockNeed.ACTOR_COUNT in needs
 
     /**
      * The values the Animate Blocks animate, each of which the class plays ([AnimateCode]).
@@ -141,7 +149,7 @@ internal class ActorTypeFeatures(
      * Whether the Actors override onAdded, to look the Managers up, to tell them they were added, or to run their
      * added-to-the-Scene Events.
      */
-    val overridesOnAdded = lookups.isNotEmpty() || watches.any { it.isAdded } || if (isFamily) addedEvents.isNotEmpty() else addedEvents.any { it.blocks.isNotEmpty() }
+    val overridesOnAdded = lookups.isNotEmpty() || watches.any { it.isAdded } || countedTypes.isNotEmpty() || if (isFamily) addedEvents.isNotEmpty() else addedEvents.any { it.blocks.isNotEmpty() }
 
     /**
      * Whether the code of [event] is generated: Events with what doesn't exist (a key, the other Actor type, or a Timer
@@ -158,7 +166,7 @@ internal class ActorTypeFeatures(
             BlockNeed.STATE_MANAGER -> "$STATE_MANAGER_FIELD: StateManager"
             BlockNeed.SCENES -> "$SCENES_FIELD: ${ScenesCodeGenerator.SCENES_NAME}"
             BlockNeed.AUDIO -> "$AUDIO_FIELD: ${AudioCodeGenerator.AUDIO_NAME}"
-            BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.ACTOR_COUNT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.STEERING, BlockNeed.ANIMATION, BlockNeed.FRAME,
+            BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.STEERING, BlockNeed.ANIMATION, BlockNeed.FRAME,
             BlockNeed.SCALE_TWEEN, BlockNeed.OPACITY_TWEEN, BlockNeed.COLOR_TWEEN, BlockNeed.POSITION_TWEEN,
             -> null
         }
@@ -168,7 +176,7 @@ internal class ActorTypeFeatures(
             BlockNeed.VIEWPORT_MANAGER -> "com.pandulapeter.kubriko.manager.ViewportManager"
             BlockNeed.KEYBOARD_INPUT_MANAGER -> "com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager"
             BlockNeed.STATE_MANAGER -> STATE_MANAGER_IMPORT
-            BlockNeed.SCENES, BlockNeed.AUDIO, BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.ACTOR_COUNT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.STEERING, BlockNeed.ANIMATION, BlockNeed.FRAME,
+            BlockNeed.SCENES, BlockNeed.AUDIO, BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.STEERING, BlockNeed.ANIMATION, BlockNeed.FRAME,
             BlockNeed.SCALE_TWEEN, BlockNeed.OPACITY_TWEEN, BlockNeed.COLOR_TWEEN, BlockNeed.POSITION_TWEEN,
             -> null
         }

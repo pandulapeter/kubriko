@@ -90,6 +90,7 @@ public object ActorTypeCodeGenerator {
             containment = SceneContainment.of(listOf(definition)),
             isFamily = role.isFamily,
             projectWatches = families.watches,
+            projectCountedTypes = families.countedTypes,
         )
         val imports = mutableSetOf<String>()
         val code = buildString {

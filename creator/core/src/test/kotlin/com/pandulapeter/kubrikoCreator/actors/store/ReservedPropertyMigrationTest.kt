@@ -204,27 +204,27 @@ class ReservedPropertyMigrationTest {
     }
 
     @Test
-    fun formatVersionTwelveReservesTheCounterNamesInManagerTypesAndTheCountingFunctionEverywhere() {
+    fun formatVersionTwelveReservesTheCountingMembersEachInTheKindOfTypeThatDeclaresThem() {
         val store = assertNotNull(BlockTypeStore.open(root))
         val game = ManagerTypeDefinition(
             "Game",
-            properties = listOf(PropertyDefinition.Number("actorsAdded"), PropertyDefinition.Toggle("kotlin"), PropertyDefinition.Number("countActors")),
+            properties = listOf(PropertyDefinition.Number("actorsAdded"), PropertyDefinition.Toggle("kotlin"), PropertyDefinition.Number("actorCountGuard")),
         )
         store.save(game)
         val ball = ActorTypeDefinition(
             name = "Ball",
-            properties = listOf(PropertyDefinition.Number("actorsRemoved"), PropertyDefinition.Number("countActors")),
-            events = everyFrame(BlockDefinition.ChangeNumber(manager = "Game", property = "actorsAdded"), BlockDefinition.ChangeNumber(property = "countActors")),
+            properties = listOf(PropertyDefinition.Number("actorsRemoved"), PropertyDefinition.Number("actorCountGuard")),
+            events = everyFrame(BlockDefinition.ChangeNumber(manager = "Game", property = "actorsAdded"), BlockDefinition.ChangeNumber(property = "actorCountGuard")),
         )
         store.save(ball)
         val types = migratedTypes()
         assertEquals(
-            listOf(PropertyDefinition.Number("actorsAdded2"), PropertyDefinition.Toggle("kotlin2"), PropertyDefinition.Number("countActors2")),
+            listOf(PropertyDefinition.Number("actorsAdded2"), PropertyDefinition.Toggle("kotlin2"), PropertyDefinition.Number("actorCountGuard")),
             (types.getValue("Game") as ManagerTypeDefinition).properties,
         )
         val migratedBall = types.getValue("Ball") as ActorTypeDefinition
-        assertEquals(listOf(PropertyDefinition.Number("actorsRemoved"), PropertyDefinition.Number("countActors2")), migratedBall.properties)
-        assertEquals(everyFrame(BlockDefinition.ChangeNumber(manager = "Game", property = "actorsAdded2"), BlockDefinition.ChangeNumber(property = "countActors2")), migratedBall.events)
+        assertEquals(listOf(PropertyDefinition.Number("actorsRemoved"), PropertyDefinition.Number("actorCountGuard2")), migratedBall.properties)
+        assertEquals(everyFrame(BlockDefinition.ChangeNumber(manager = "Game", property = "actorsAdded2"), BlockDefinition.ChangeNumber(property = "actorCountGuard2")), migratedBall.events)
         assertEquals(null, PropertyNaming.validate("kotlin", emptyList(), BlockTypeKind.ACTOR))
         assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate("sceneChangesWhenAdded", emptyList(), BlockTypeKind.ACTOR))
         assertEquals(null, PropertyNaming.validate("sceneChangesWhenAdded", emptyList(), BlockTypeKind.MANAGER))

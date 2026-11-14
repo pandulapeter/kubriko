@@ -71,10 +71,13 @@
   while paused or in the Scene editor). Removed means removed in any way while its Scene plays, never by a Scene change's
   `removeAll`, which would end every level with "all Bricks are gone": `GeneratedScenes` counts its Scene changes, and an
   Actor compares the count with the one it saw when it was added (`sceneChangesWhenAdded`), since its `onRemoved` comes
-  long after the change was asked for. Added includes the Actors a Scene starts with, as GameMaker's create event does. The actorCount condition walks `allActors` through an inline `countActors`, leaving out
-  `isRemoved` Actors; Kubriko calls `onRemoved` after it publishes the list, so in an actorRemoved Event the last Brick
-  counts 0, while in an actorAdded Event the Actor may not be counted yet. The atomics are named in full, which is why
-  `kotlin` is a reserved Property name of Manager types (format version 12, with the counters and `countActors`).
+  long after the change was asked for. Added includes the Actors a Scene starts with, as GameMaker's create event does. The actorCount condition reads a count `GeneratedScenes` keeps per counted Actor type
+  (`ActorCountCode`), so it costs the same however many Actors check it: an Actor adds itself in `onAdded` and takes
+  itself away once a Block marks it removed (the `isRemoved` setter) or Kubriko removes it, whichever is first, through a
+  guard (`ActorCountGuard`), since the two run on different threads. So in an actorRemoved Event the last Brick counts
+  0, and in an actorAdded Event the Actor is counted. The atomics are named in full (importing them would make their
+  names reserved type names), which is why `kotlin` is a reserved Property name of Manager types; format version 12
+  reserves it with the Managers' counters, `sceneChangesWhenAdded`, and `actorCountGuard`.
 - What isn't generated needs no plugin: `GeneratedCode` decides which Events and Blocks get code, and both generators,
   `PluginUse`, and `PluginManagers` ask it, so a Block left as a comment (or in an Event left out) adds no plugin.
 - Property names the format raises reserved only for what generated Actor classes declare (`look`, the animation's and

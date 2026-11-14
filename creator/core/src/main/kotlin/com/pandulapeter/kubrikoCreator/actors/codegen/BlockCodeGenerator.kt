@@ -40,11 +40,6 @@ public object BlockCodeGenerator {
 
     internal const val INDENT = "    "
     internal const val NUMBER_TEXT_FUNCTION = "asText"
-
-    /**
-     * The function the conditions counting Actors call ([ActorClassCode.appendCountActorsFunction]).
-     */
-    internal const val COUNT_ACTORS_FUNCTION = "countActors"
     internal const val SCENES_FIELD = "generatedScenes"
     internal const val AUDIO_FIELD = "generatedAudio"
     internal const val STATE_MANAGER_FIELD = "stateManager"
@@ -376,11 +371,8 @@ public object BlockCodeGenerator {
             )
             is ConditionDefinition.ActorCount -> if (condition.actorType in scope.actorTypeNames) {
                 BlockCode(
-                    lines = listOf(
-                        "$COUNT_ACTORS_FUNCTION { actor -> actor is ${scope.classOf(condition.actorType)} && !actor.$REMOVED_FIELD }.toFloat() " +
-                            "${condition.comparison.operator} ${NumberValueCode.float(condition.value, scope)}",
-                    ),
-                    needs = setOf(BlockNeed.ACTOR_MANAGER, BlockNeed.ACTOR_COUNT),
+                    lines = listOf("${ActorCountCode.countOf(condition.actorType)}.toFloat() ${condition.comparison.operator} ${NumberValueCode.float(condition.value, scope)}"),
+                    needs = setOf(BlockNeed.SCENES),
                 )
             } else {
                 BlockCode(listOf("false"))

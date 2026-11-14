@@ -29,7 +29,7 @@ public object PropertyNaming {
         "drawingOrder", "generatedAudio", "generatedScenes", "halfSize", "index", "isAlwaysActive", "keyboardInputManager", "isVisible", "key", "kubriko", "layerIndex", "metadata", "other",
         "shouldClip", "state", "stateManager", "topLeft", "velocity", "viewportManager",
         "box", "isRemoved", "sceneSettings", "sprite", "spriteManager",
-        "isInSceneEditor", "isInitialized", "isLoggingEnabled", "scope", "countActors",
+        "isInSceneEditor", "isInitialized", "isLoggingEnabled", "scope",
     ) + SCENE_BOUNDS_NAMES
 
     /**
@@ -38,7 +38,7 @@ public object PropertyNaming {
      */
     private val actorMemberNames = setOf(
         "look", "animation", "animationSpeed", "isAnimationLooping", "velocityInDirection", "opacity", "velocityFromKeys",
-        "sceneChangesWhenAdded",
+        "sceneChangesWhenAdded", "actorCountGuard",
     ) + AnimationNaming.reservedNames
 
     /**

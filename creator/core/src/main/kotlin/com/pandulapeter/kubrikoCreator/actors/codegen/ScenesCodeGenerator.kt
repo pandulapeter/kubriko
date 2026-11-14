@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.actors.codegen
 
 import com.pandulapeter.kubrikoCreator.actors.GeneratedNames
 import com.pandulapeter.kubrikoCreator.actors.SceneEdge
+import com.pandulapeter.kubrikoCreator.actors.codegen.ActorCountCode.appendScenesMembers
 
 /**
  * The Manager that loads Scenes for the goToScene and restartScene Blocks, and the first Scene when the game starts.
@@ -73,7 +74,10 @@ public object ScenesCodeGenerator {
             |    }
     """.trimMargin()
 
-    internal fun generate(packageName: String) = GeneratedFile.withHeader("", buildString {
+    /**
+     * @param countedTypes The Actor types the actorCount conditions count ([ActorCountCode]), whose counts it keeps.
+     */
+    internal fun generate(packageName: String, countedTypes: List<String> = emptyList()) = GeneratedFile.withHeader("", buildString {
         appendLine("package $packageName.${ActorTypeCodeGenerator.GENERATED_PACKAGE}")
         appendLine()
         listOf(
@@ -102,7 +106,7 @@ public object ScenesCodeGenerator {
             | * @param isInSceneEditor True in the Scene editor, which loads its Scenes itself.
             | * @param managerActors The Managers that are Actors too, which every Scene keeps.
             | */
-            |class $SCENES_NAME(
+            |${if (countedTypes.isEmpty()) "" else ActorCountCode.OPT_IN + "\n"}class $SCENES_NAME(
             |    private val firstScene: String? = null,
             |    val isInSceneEditor: Boolean = false,
             |    private val managerActors: List<Actor> = emptyList(),
@@ -134,6 +138,7 @@ public object ScenesCodeGenerator {
             """.trimMargin(),
         )
         appendLine(edgeMembers())
+        if (countedTypes.isNotEmpty()) appendScenesMembers(countedTypes)
         appendLine(
             """
             |
@@ -185,9 +190,10 @@ public object ScenesCodeGenerator {
             |        const val $RIGHT = 1
             |        const val $TOP = 2
             |        const val $BOTTOM = 3
-            |    }
-            |}
             """.trimMargin(),
         )
+        ActorCountCode.constantsOf(countedTypes).forEach(::appendLine)
+        appendLine("    }")
+        appendLine("}")
     })
 }

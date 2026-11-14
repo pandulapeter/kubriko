@@ -21,7 +21,6 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
-import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendCountActorsFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendNumberTextFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendTimerCountdown
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendTimerFields
@@ -175,7 +174,6 @@ public object ManagerTypeCodeGenerator {
             append(functionsCode)
             if (texts.isNotEmpty() || kotlinUi != null) appendComposable(definition.texts, texts.map { it.code }, kotlinUi)
             if (BlockNeed.NUMBER_TEXT in needs) appendNumberTextFunction("private")
-            if (BlockNeed.ACTOR_COUNT in needs) appendCountActorsFunction("private")
             appendLine("}")
         })
     }
@@ -329,7 +327,7 @@ public object ManagerTypeCodeGenerator {
         BlockNeed.STATE_MANAGER -> "$STATE_MANAGER_FIELD by manager<StateManager>()"
         BlockNeed.SCENES -> "$SCENES_FIELD by manager<${ScenesCodeGenerator.SCENES_NAME}>()"
         BlockNeed.AUDIO -> "$AUDIO_FIELD by manager<${AudioCodeGenerator.AUDIO_NAME}>()"
-        BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.ACTOR_COUNT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.STEERING, BlockNeed.ANIMATION, BlockNeed.FRAME,
+        BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.STEERING, BlockNeed.ANIMATION, BlockNeed.FRAME,
         BlockNeed.SCALE_TWEEN, BlockNeed.OPACITY_TWEEN, BlockNeed.COLOR_TWEEN, BlockNeed.POSITION_TWEEN,
         -> null
     }
@@ -339,7 +337,6 @@ public object ManagerTypeCodeGenerator {
         BlockNeed.VIEWPORT_MANAGER -> listOf("com.pandulapeter.kubriko.manager.ViewportManager")
         BlockNeed.KEYBOARD_INPUT_MANAGER -> listOf("androidx.compose.ui.input.key.Key", "com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager")
         BlockNeed.STATE_MANAGER -> listOf(STATE_MANAGER_IMPORT)
-        BlockNeed.ACTOR_COUNT -> listOf("com.pandulapeter.kubriko.actor.Actor")
         BlockNeed.MOVEMENT, BlockNeed.SCENES, BlockNeed.AUDIO, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.STEERING, BlockNeed.ANIMATION, BlockNeed.FRAME,
         BlockNeed.SCALE_TWEEN, BlockNeed.OPACITY_TWEEN, BlockNeed.COLOR_TWEEN, BlockNeed.POSITION_TWEEN,
         -> emptyList()

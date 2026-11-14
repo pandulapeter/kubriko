@@ -119,29 +119,4 @@ class ActorWatchCodeTest {
         assertContains(code, "    override fun onRemoved() {\n        if (sceneChangesWhenAdded != generatedScenes.sceneChanges) return\n        if (this is Alien) gameManager.notifyAlienRemoved()\n    }\n")
         assertFalse("notifyEnemy" in code)
     }
-
-    @Test
-    fun countingWalksTheActorsByIndexAndChecksTheirClass() {
-        val scope = BlockScope("Game", com.pandulapeter.kubrikoCreator.actors.BlockTypeKind.MANAGER, actorTypeNames = listOf("Brick", "Enemy"), baseClassNames = setOf("Enemy"))
-        fun condition(condition: ConditionDefinition) = BlockCodeGenerator.blockCode(BlockDefinition.If(condition), EventType.EVERY_FRAME, scope)
-        assertEquals("if (countActors { actor -> actor is Brick && !actor.isRemoved }.toFloat() == 0f) {", condition(ConditionDefinition.ActorCount("Brick")).lines.single())
-        assertEquals(
-            "if (countActors { actor -> actor is EnemyBase && !actor.isRemoved }.toFloat() >= 2f) {",
-            condition(ConditionDefinition.ActorCount("Enemy", Comparison.GREATER_OR_EQUAL, NumberValue.Fixed(2f))).lines.single(),
-        )
-        assertEquals("if (false) {", condition(ConditionDefinition.ActorCount("Missing")).lines.single())
-        assertEquals("if (false) {", condition(ConditionDefinition.ActorCount()).lines.single())
-        val code = manager(game.copy(events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.If(ConditionDefinition.ActorCount("Brick")), BlockDefinition.End)))))
-        assertContains(
-            code,
-            "    private inline fun countActors(isCounted: (Actor) -> Boolean): Int {\n" +
-                "        val actors = actorManager.allActors.value\n" +
-                "        var count = 0\n" +
-                "        for (index in actors.indices) if (isCounted(actors[index])) count++\n" +
-                "        return count\n" +
-                "    }\n",
-        )
-        assertContains(code, "import com.pandulapeter.kubriko.actor.Actor\n")
-        assertContains(code, "private val actorManager by manager<ActorManager>()")
-    }
 }

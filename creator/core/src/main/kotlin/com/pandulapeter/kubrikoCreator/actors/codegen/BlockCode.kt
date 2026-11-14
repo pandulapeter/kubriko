@@ -57,9 +57,6 @@ internal enum class BlockNeed {
     /** The function that turns a number into text without its ".0". */
     NUMBER_TEXT,
 
-    /** The function that counts the Actors in the Scene a condition asks about. */
-    ACTOR_COUNT,
-
     /** The function that bounces the Actor off another one. */
     BOUNCE_OFF,
 

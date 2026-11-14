@@ -15,7 +15,6 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.BOUNCE_OFF_FUNCTION
-import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.COUNT_ACTORS_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.DIRECTION_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.NUMBER_TEXT_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.REMOVED_FIELD
@@ -149,20 +148,6 @@ internal object ActorClassCode {
     fun StringBuilder.appendNumberTextFunction(visibility: String) {
         appendLine()
         appendLine("    $visibility fun Float.$NUMBER_TEXT_FUNCTION() = if (this % 1f == 0f) toLong().toString() else toString()")
-    }
-
-    /**
-     * Counts the Actors in the Scene that [COUNT_ACTORS_FUNCTION]'s argument accepts. It is inline, so the check each
-     * condition passes it allocates nothing, and it walks the list by index, which allocates no iterator.
-     */
-    fun StringBuilder.appendCountActorsFunction(visibility: String) {
-        appendLine()
-        appendLine("    $visibility inline fun $COUNT_ACTORS_FUNCTION(isCounted: (Actor) -> Boolean): Int {")
-        appendLine("        val actors = actorManager.allActors.value")
-        appendLine("        var count = 0")
-        appendLine("        for (index in actors.indices) if (isCounted(actors[index])) count++")
-        appendLine("        return count")
-        appendLine("    }")
     }
 
     /**

@@ -22,7 +22,6 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendAlway
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendBodyCenter
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendBounceOffFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendCollisionMaskUpdate
-import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendCountActorsFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendDirectionFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendNumberTextFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendPropertyFields
@@ -34,6 +33,10 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendVeloc
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.collisionTargetOrder
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.maskClassOf
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.maskTypeOf
+import com.pandulapeter.kubrikoCreator.actors.codegen.ActorCountCode.appendGuardField
+import com.pandulapeter.kubrikoCreator.actors.codegen.ActorCountCode.appendRemovedFieldSetter
+import com.pandulapeter.kubrikoCreator.actors.codegen.ActorCountCode.appendStart
+import com.pandulapeter.kubrikoCreator.actors.codegen.ActorCountCode.appendStopFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.STEP_ANIMATION_LINE
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.appendLook
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.appendSavedState
@@ -115,11 +118,13 @@ internal class ActorClassEmitter(
             appendAlwaysActive()
         }
         appendRemovedField()
+        if (features.countedTypes.isNotEmpty()) appendRemovedFieldSetter()
         appendProperties(properties)
         appendCollisionMembers(definition.shape)
         features.lookups.forEach { appendLine("    $visibility lateinit var $it") }
         imports += features.lookupImports
         if (features.watches.any { !it.isAdded }) appendSceneChangesField()
+        if (features.countedTypes.isNotEmpty()) appendGuardField()
         appendTimerFields(features.timers, visibility)
         appendBoundsFields(features.containment, features.firesEdgeEvent, features.firesLeftSceneEvent, isFamilyRoot = role == Role.FAMILY_ROOT)
         if (features.isAnimated) appendAnimationMembers()
@@ -150,10 +155,7 @@ internal class ActorClassEmitter(
         }
         if (role == Role.STANDALONE) appendLook(definition, imports, sheet, isFamilyMember = false, usesSetFrame = features.usesSetFrame)
         if (features.usesNumberText) appendNumberTextFunction(visibility)
-        if (features.countsActors) {
-            imports += ACTOR_IMPORT
-            appendCountActorsFunction(visibility)
-        }
+        if (features.countedTypes.isNotEmpty()) appendStopFunction(definition.name, features.countedTypes, scope)
         if (role == Role.STANDALONE) appendSavedState(definition, properties, packageName, imports)
         appendLine("}")
     }
@@ -233,22 +235,27 @@ internal class ActorClassEmitter(
         appendLine("    override fun onAdded(kubriko: Kubriko) {")
         features.lookups.forEach { appendLine("        ${it.substringBefore(':')} = kubriko.get()") }
         if (features.watches.any { !it.isAdded }) appendLine("        $SCENE_CHANGES_WHEN_ADDED_FIELD = $SCENES_FIELD.${ScenesCodeGenerator.SCENE_CHANGES_FIELD}")
+        if (features.countedTypes.isNotEmpty()) appendStart(name, features.countedTypes, scope)
         appendNotifications(name, features.watches.filter { it.isAdded })
         features.addedEvents.firstNotNullOfOrNull(::callOf)?.let { appendLine("        $it") }
         appendLine("    }")
     }
 
     /**
-     * Tells the Managers whose actorRemoved Events are about these Actors that one was removed, however it was, unless it
-     * left with its Scene, which [ScenesCodeGenerator.SCENE_CHANGES_FIELD] tells.
+     * Stops counting the Actor ([ActorCountCode]), and tells the Managers whose actorRemoved Events are about these Actors
+     * that one was removed, however it was, unless it left with its Scene, which [ScenesCodeGenerator.SCENE_CHANGES_FIELD]
+     * tells.
      */
     private fun StringBuilder.appendOnRemoved(name: String) {
         val watches = features.watches.filterNot { it.isAdded }
-        if (watches.isEmpty()) return
+        if (watches.isEmpty() && features.countedTypes.isEmpty()) return
         appendLine()
         appendLine("    override fun onRemoved() {")
-        appendLine("        if ($SCENE_CHANGES_WHEN_ADDED_FIELD != $SCENES_FIELD.${ScenesCodeGenerator.SCENE_CHANGES_FIELD}) return")
-        appendNotifications(name, watches)
+        if (features.countedTypes.isNotEmpty()) appendLine("        ${ActorCountCode.STOP_CALL}")
+        if (watches.isNotEmpty()) {
+            appendLine("        if ($SCENE_CHANGES_WHEN_ADDED_FIELD != $SCENES_FIELD.${ScenesCodeGenerator.SCENE_CHANGES_FIELD}) return")
+            appendNotifications(name, watches)
+        }
         appendLine("    }")
     }
 
@@ -383,7 +390,6 @@ internal class ActorClassEmitter(
         const val COLLIDABLE_IMPORT = "com.pandulapeter.kubriko.collision.Collidable"
         const val SCENE_UNIT_IMPORT = "com.pandulapeter.kubriko.types.SceneUnit"
         const val KEY_IMPORT = "androidx.compose.ui.input.key.Key"
-        const val ACTOR_IMPORT = "com.pandulapeter.kubriko.actor.Actor"
         const val SCENE_CHANGES_WHEN_ADDED_FIELD = "sceneChangesWhenAdded"
         val TRAIT_IMPORTS = mapOf(
             "Batched" to "com.pandulapeter.kubriko.actor.traits.Batched",
