@@ -34,6 +34,7 @@ internal class KeyboardInputManagerImpl(
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
     private var activeKeysCache = mutableSetOf<Key>()
+    private val heldKeyCodes = HeldKeyCodes()
     /**
      * Keys pressed since the previous tick. Discrete onKeyPressed/onKeyReleased callbacks fire off-tick
      * and are never lost, but a key tapped and released entirely between two ticks (common at low frame
@@ -71,7 +72,7 @@ internal class KeyboardInputManagerImpl(
         }
     }
 
-    override fun isKeyPressed(key: Key) = activeKeysCache.contains(key)
+    override fun isKeyPressed(key: Key) = key in heldKeyCodes
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
         val hasLatchedKeys = keysPressedSinceLastSnapshot.isNotEmpty()
@@ -114,6 +115,7 @@ internal class KeyboardInputManagerImpl(
         if (!activeKeysCache.contains(key) && stateManager.isFocused.value) {
             keyboardInputAwareActors.value.forEach { it.onKeyPressed(key) }
             activeKeysCache.add(key)
+            heldKeyCodes.add(key)
             keysPressedSinceLastSnapshot.add(key)
             isActiveKeysDirty = true
         }
@@ -123,6 +125,7 @@ internal class KeyboardInputManagerImpl(
         if (activeKeysCache.contains(key)) {
             keyboardInputAwareActors.value.forEach { it.onKeyReleased(key) }
             activeKeysCache.remove(key)
+            heldKeyCodes.remove(key)
             isActiveKeysDirty = true
         }
     }
@@ -130,6 +133,7 @@ internal class KeyboardInputManagerImpl(
     private fun releaseAllActiveKeys() {
         activeKeysCache.forEach { key -> keyboardInputAwareActors.value.forEach { it.onKeyReleased(key) } }
         activeKeysCache.clear()
+        heldKeyCodes.clear()
         isActiveKeysDirty = true
     }
 }

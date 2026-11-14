@@ -12,6 +12,7 @@ package com.pandulapeter.kubriko.keyboardInput
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.testFixtures.ManualKubriko
+import com.pandulapeter.kubriko.testFixtures.measureAllocatedBytesPerRun
 import com.pandulapeter.kubriko.testFixtures.newManualKubriko
 import kotlinx.collections.immutable.ImmutableSet
 import kotlin.test.Test
@@ -24,6 +25,33 @@ import kotlin.test.assertTrue
  * and there is no public way to drive `StateManager.isFocused` from a test.
  */
 class KeyboardInputManagerTest {
+
+    @Test
+    fun checkingWhetherAKeyIsHeldAllocatesNothing() = withKeyboard { _, manager, _ ->
+        manager.onKeyPressed(Key.DirectionLeft)
+        manager.onKeyPressed(Key.W)
+        var heldCount = 0
+        val allocated = measureAllocatedBytesPerRun {
+            if (manager.isKeyPressed(Key.DirectionLeft)) heldCount++
+            if (manager.isKeyPressed(Key.DirectionRight)) heldCount++
+            if (manager.isKeyPressed(Key.W)) heldCount++
+            if (manager.isKeyPressed(Key.S)) heldCount++
+        }
+        assertTrue(heldCount > 0)
+        assertTrue(allocated < 1.0, "Checking four keys allocated $allocated bytes.")
+    }
+
+    @Test
+    fun aKeyIsHeldFromItsPressUntilItsRelease() = withKeyboard { _, manager, _ ->
+        manager.onKeyPressed(Key.A)
+        manager.onKeyPressed(Key.D)
+        assertTrue(manager.isKeyPressed(Key.A) && manager.isKeyPressed(Key.D))
+        manager.onKeyReleased(Key.A)
+        assertFalse(manager.isKeyPressed(Key.A))
+        assertTrue(manager.isKeyPressed(Key.D))
+        manager.onKeyReleased(Key.D)
+        assertFalse(manager.isKeyPressed(Key.D))
+    }
 
     @Test
     fun keyTappedBetweenTwoTicksIsReportedForExactlyOneTick() = withKeyboard { kubriko, manager, actor ->
