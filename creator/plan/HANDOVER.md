@@ -18,7 +18,8 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 - Ask before every push (`git log origin/main..HEAD` shows what would go).
 - `library.version` is 0.8.1, unreleased (0.8.0 is on Maven Central). It holds library changes Creator uses: `Logger.log` building
   its list once, the `SpriteManager.newInstance(imageLoader, …)` overload, and session protocol 4 (`PressKeySteps`, `CaptureActors`),
-  which `press_keys` steps and `take_screenshot`'s `actorType` use.
+  which `press_keys` steps and `take_screenshot`'s `actorType` use. It also has `KeyboardInputManager.isKeyPressed` no
+  longer boxing the `Key` (75aa099c6), which Move with keys calls every frame.
 - `README.md` → Roadmap is in dependency order as of 2026-11-09: every file depends only on the ones before it, so work goes
   file by file from `01`. Leftovers that waited on later work were moved into the file they wait for, and what waits on something
   outside this repository is under its file's Waiting on others (ACP protocol 2, the Kotlin SDK's `systemPrompt`, Codex's quota
@@ -26,19 +27,19 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Go on with `01-blocks.md`, at Steering with keys. Animating over time is done (2026-11-14): the Animate Block
-(`BlockDefinition.Animate`, in the Actors category) takes the scale, opacity, color, or position (`AnimatedValue`) from a
-start to an end over some seconds with an easing (`AnimationEasing`), and can remove the Actor when it ends. `AnimateCode`
-generates a few plain fields per animated value, a start function per value, and a step in `update` before the Events
-(names in `AnimationNaming`, reserved by format version 10 together with `com`, since `Scale` is named in full rather than
-imported). The position moves by what its easing added since the last frame, so it adds up with the velocity. The system
-prompt's budget went from 40,000 to 42,000 characters for the new Block's catalog entry. `/code-review` ran on the item, and
-its findings were fixed in a commit of their own (e88f69514). The first commit's way of following the scale with box
-collision masks, building a new mask, left the collision plugin's spatial grid holding the old mask and allocated every
-frame, so it was taken back out: a rectangle's mask keeps its size, and the Size and scale item in `01-blocks.md` now holds
-the library change (a `BoxCollisionMask` whose size changes in place). The review also fixed a negative scale (now
-refused) and the Block's description, which had said the animation wins over other Blocks; Blocks in Events win. The
-integration test built every template after the fixes.
+Go on with `01-blocks.md`, at More for Manager types (Reacting to Actors). Simple behavior's last buildable item, Steering
+with keys, is done (2026-11-14): Move with keys (`BlockDefinition.MoveWithKeys`, `SteeringKeys`) sets the velocity every
+frame from the arrow keys, WASD, or both, in four or eight directions, through `velocityFromKeys` (reserved by format
+version 11), with the call checking only the Block's own keys. It works only in Every frame Events, and its speed is never
+random. What is left of that section, the shooter without Kotlin, needs a live eval run, which spends a real agent's
+requests, so it waits until one can be spent (it is the section's done check, not something to build).
+
+`/code-review` ran on it and every finding was fixed in commits of their own: the keyboard plugin's boxing (above);
+and a random speed refused, the keys checked at the call, plugins decided by one rule for what code is generated
+(`GeneratedCode`, which the generators, `PluginUse`, and `PluginManagers` share), and Property names only Actor classes
+use (`look`, `opacity`, the Animate and movement members, `com`) free in Manager types, so migrations no longer rename
+them there (098e4ebb4). The system prompt stays under 42,000 characters by shorter Block descriptions; the tool budgets
+went to 24,250 and 4,175 tokens for the new Block's name. The integration test built every template after the fixes.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
@@ -79,6 +80,9 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
   Event but doesn't stay inside, so in the replayed game it can slide off screen once stopped there. Record it again
   (`EvalSetLiveTest` with `KUBRIKO_CREATOR_EVAL_RECORD=true`) when a live run can be spent, and consider checking in
   its request that the Bat stays inside.
+- A played game steered with Move with keys (the integration test compiles it, but nothing presses a key in one); an
+  end-to-end scenario under Xvfb could give the Breakout paddle a Move with keys and check by pixels, with `press_keys`
+  steps, that holding the right arrow moves it right and releasing it stops it.
 - A played game running Animate Blocks (the integration test compiles every value and easing, but nothing runs one); an
   end-to-end scenario under Xvfb could add a Brick that animates its opacity from 100 to 0 over a second, removing it at the
   end, and check by pixels that it fades and is gone.
@@ -91,7 +95,7 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
 - A played game with Actors leaving the Scene and staying inside it (the integration test compiles every combination, but
   nothing runs one); an end-to-end scenario under Xvfb could add a Brick moving left from past the right edge with a
   When it leaves the Scene → Remove this Actor, and check by pixels that it crosses and is gone.
-- The eval set has no request using `find_usages` or `search_project`, nor the new resource tools, `move_folder`, `set_sprite_sheet`, the animation Blocks, Move in a direction, the color and opacity Blocks, Animate, or the drawing
+- The eval set has no request using `find_usages` or `search_project`, nor the new resource tools, `move_folder`, `set_sprite_sheet`, the animation Blocks, Move in a direction, the color and opacity Blocks, Animate, Move with keys, or the drawing
   tools yet; record one (`EvalSetLiveTest` with
   `KUBRIKO_CREATOR_EVAL_RECORD=true`) once a live run can be spent on it.
 
