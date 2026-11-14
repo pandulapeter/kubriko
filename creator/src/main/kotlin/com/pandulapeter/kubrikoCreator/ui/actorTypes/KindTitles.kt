@@ -29,6 +29,7 @@ import kubriko.creator.generated.resources.block_kotlin
 import kubriko.creator.generated.resources.block_log
 import kubriko.creator.generated.resources.block_move_in_direction
 import kubriko.creator.generated.resources.block_move_towards_nearest
+import kubriko.creator.generated.resources.block_move_with_keys
 import kubriko.creator.generated.resources.block_pause_game
 import kubriko.creator.generated.resources.block_play_music
 import kubriko.creator.generated.resources.block_play_sound
@@ -66,6 +67,7 @@ internal val BlockKind.title: StringResource
         BlockKind.SET_VELOCITY -> Res.string.block_set_velocity
         BlockKind.ADD_TO_VELOCITY -> Res.string.block_add_to_velocity
         BlockKind.MOVE_IN_DIRECTION -> Res.string.block_move_in_direction
+        BlockKind.MOVE_WITH_KEYS -> Res.string.block_move_with_keys
         BlockKind.SET_COLOR -> Res.string.block_set_color
         BlockKind.SET_OPACITY -> Res.string.block_set_opacity
         BlockKind.CHANGE_OPACITY -> Res.string.block_change_opacity

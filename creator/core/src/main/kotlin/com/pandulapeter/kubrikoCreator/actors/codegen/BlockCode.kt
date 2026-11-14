@@ -63,6 +63,9 @@ internal enum class BlockNeed {
     /** The function that turns a direction and a speed into a velocity. */
     DIRECTION,
 
+    /** The function that turns the arrow keys or WASD held into a velocity. */
+    STEERING,
+
     /** What plays the frames of the Actor's sprite, which [ActorTypeFeatures.isAnimated] declares. */
     ANIMATION,
 

@@ -75,6 +75,21 @@ class ReservedPropertyMigrationTest {
     }
 
     @Test
+    fun formatVersionElevenReservesTheFunctionMovingWithKeys() {
+        assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate("velocityFromKeys", emptyList()))
+        assertNotNull(BlockTypeStore.open(root)).save(
+            ActorTypeDefinition(
+                name = "Hero",
+                properties = listOf(PropertyDefinition.Number("velocityFromKeys", 150f)),
+                events = everyFrame(BlockDefinition.MoveWithKeys(speed = NumberValue.Property("velocityFromKeys"))),
+            ),
+        )
+        val hero = migratedTypes().getValue("Hero") as ActorTypeDefinition
+        assertEquals(listOf(PropertyDefinition.Number("velocityFromKeys2", 150f)), hero.properties)
+        assertEquals(everyFrame(BlockDefinition.MoveWithKeys(speed = NumberValue.Property("velocityFromKeys2"))), hero.events)
+    }
+
+    @Test
     fun formatVersionTenReservesWhatPlaysTheAnimateBlocks() {
         listOf("scaleTweenFrom", "opacityTweenDuration", "colorTweenRemovesActor", "positionTweenEasing", "startColorTween", "tweenProgress", "com").forEach { name ->
             assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate(name, emptyList()), name)

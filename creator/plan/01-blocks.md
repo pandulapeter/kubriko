@@ -20,8 +20,10 @@ for code (`AssistantSystemPrompt`). The first writers' room game (a side-scrolli
 needed twelve Kotlin Blocks, all for simple behavior. Each item replaces some of them, and the section is done when the eval set
 (`EvalSet`) builds the same game with no Kotlin Block left.
 
-- **Steering with keys:** "Move with keys" (the arrow keys or WASD, four or eight directions, a speed), in place of a Stop and an If
-  section per key.
+- **The shooter without Kotlin:** add the writers' room shooter to the eval set and record it (`EvalSetLiveTest` with
+  `KUBRIKO_CREATOR_EVAL_RECORD=true`, which spends a real agent's requests) once a live run can be spent; whatever it still
+  writes a Kotlin Block for becomes an item here.
+
 
 ## More for Manager types
 

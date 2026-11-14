@@ -42,6 +42,7 @@ import kubriko.creator.generated.resources.project_settings_aspect_ratio_stretch
 import kubriko.creator.generated.resources.project_settings_use_collision
 import kubriko.creator.generated.resources.project_settings_use_key_held
 import kubriko.creator.generated.resources.project_settings_use_key_pressed
+import kubriko.creator.generated.resources.project_settings_use_moves_with_keys
 import kubriko.creator.generated.resources.project_settings_use_plays_music
 import kubriko.creator.generated.resources.project_settings_use_plays_sound
 import kubriko.creator.generated.resources.project_settings_use_scene_music
@@ -96,6 +97,7 @@ internal val PluginUse.text: StringResource
         PluginReason.COLLISION_EVENT -> Res.string.project_settings_use_collision
         PluginReason.KEY_PRESSED_EVENT -> Res.string.project_settings_use_key_pressed
         PluginReason.KEY_HELD_CONDITION -> Res.string.project_settings_use_key_held
+        PluginReason.MOVES_WITH_KEYS -> Res.string.project_settings_use_moves_with_keys
         PluginReason.PLAYS_SOUND -> Res.string.project_settings_use_plays_sound
         PluginReason.PLAYS_MUSIC -> Res.string.project_settings_use_plays_music
         PluginReason.STOPS_MUSIC -> Res.string.project_settings_use_stops_music

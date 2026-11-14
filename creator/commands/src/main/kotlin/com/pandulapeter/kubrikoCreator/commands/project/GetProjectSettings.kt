@@ -108,6 +108,7 @@ public object GetProjectSettings : ReadCommand<NoInput> {
         PluginReason.COLLISION_EVENT -> "${use.owner}: collision with ${use.subject}"
         PluginReason.KEY_PRESSED_EVENT -> "${use.owner}: key pressed ${use.subject}"
         PluginReason.KEY_HELD_CONDITION -> "${use.owner}: if key held ${use.subject}"
+        PluginReason.MOVES_WITH_KEYS -> "${use.owner}: moves with keys"
         PluginReason.PLAYS_SOUND -> "${use.owner}: plays ${use.subject}"
         PluginReason.PLAYS_MUSIC -> "${use.owner}: plays music ${use.subject}"
         PluginReason.STOPS_MUSIC -> "${use.owner}: stops the music"

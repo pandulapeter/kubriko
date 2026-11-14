@@ -36,6 +36,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.POSITION_TWEEN
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.SCALE_TWEEN
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.SCENES
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.STATE_MANAGER
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.STEERING
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.VIEWPORT_MANAGER
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -65,6 +66,7 @@ class BlockCodeTest {
             BlockKind.SET_VELOCITY to Expected(setOf(MOVEMENT), setOf(sceneOffset)),
             BlockKind.ADD_TO_VELOCITY to Expected(setOf(MOVEMENT), setOf(sceneOffset)),
             BlockKind.MOVE_IN_DIRECTION to Expected(setOf(MOVEMENT, DIRECTION)),
+            BlockKind.MOVE_WITH_KEYS to Expected(setOf(MOVEMENT, KEYBOARD_INPUT_MANAGER, STEERING)),
             BlockKind.STOP to Expected(setOf(MOVEMENT), setOf(sceneOffset)),
             BlockKind.RUN_PARENT_EVENT to Expected(),
             BlockKind.JUMP_TO to Expected(setOf(MOVEMENT), setOf(sceneOffset)),

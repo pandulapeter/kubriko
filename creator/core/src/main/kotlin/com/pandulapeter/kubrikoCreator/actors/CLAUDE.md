@@ -30,7 +30,7 @@
   number comes from the one `KubrikoWiring.random`, so a test can seed the whole game. A Block reads its numbers while none
   of its own locals is in scope (passing them to a member function, as Move in a direction does, or reading the one number
   first, as Move towards the nearest does), so a Property named like a local is still the Property; the function's name is
-  reserved (format version 8). A direction, a speed, an opacity, a scale, or a time takes no edge, which is a position.
+  reserved (format version 8, and Move with keys' by format version 11). A direction, a speed, an opacity, a scale, or a time takes no edge, which is a position.
 - An edge is the Scene settings' bounds, or the screen's while there are none, as the edge Event decides. Values read it
   through `GeneratedScenes.edge` and `randomBetweenEdges`, which read the settings once per call, so a Scene that finishes
   loading meanwhile can't mix its bounds with the screen's; the edge Event takes one snapshot in the Actor's own code, so a
@@ -61,6 +61,9 @@
   yet, such as `Scale`, is named in full rather than imported, which is why `com` is a reserved Property name: reserving
   a type name would need a migration that renames Actor types. A box collision mask keeps the size it was built with
   (a new mask would leave the collision plugin's spatial grid with the old one), so a scale animation doesn't reach it.
+- Move with keys sets the velocity from the keys held, so it works only every frame (`onlyIn`): anywhere else it would
+  move the Actor only on the frame it ran. A Block whose code isn't generated where it sits gives the game no plugin
+  (`PluginUse` asks `BlockKind.isAvailableIn`), so a misplaced one doesn't add the keyboard.
 - Timers are two `Long` fields each, counted down in `update`, rather than Kubriko's `Timer`, whose duration is fixed, so starting
   one never allocates; no Property may end like those fields. Manager Properties are Compose state (`mutableFloatStateOf` for
   numbers, so nothing boxes).

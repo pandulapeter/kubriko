@@ -26,6 +26,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendDirec
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendNumberTextFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendPropertyFields
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendRemovedField
+import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendSteeringFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendTimerCountdown
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendTimerFields
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendVelocityField
@@ -134,6 +135,10 @@ internal class ActorClassEmitter(
         if (features.usesDirection) {
             imports += DIRECTION_IMPORTS
             appendDirectionFunction(visibility)
+        }
+        if (features.usesSteering) {
+            imports += STEERING_IMPORTS
+            appendSteeringFunction(visibility)
         }
         if (features.animatedTargets.isNotEmpty()) {
             imports += AnimateCode.importsOf(features.animatedTargets)
@@ -348,6 +353,11 @@ internal class ActorClassEmitter(
             SCENE_OFFSET_IMPORT,
             SCENE_UNIT_IMPORT,
             "com.pandulapeter.kubriko.actor.traits.Visible",
+            "com.pandulapeter.kubriko.helpers.extensions.sceneUnit",
+        )
+        val STEERING_IMPORTS = listOf(
+            KEY_IMPORT,
+            SCENE_OFFSET_IMPORT,
             "com.pandulapeter.kubriko.helpers.extensions.sceneUnit",
         )
         val DIRECTION_IMPORTS = listOf(

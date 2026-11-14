@@ -46,6 +46,7 @@ public object BlockCodeGenerator {
     internal const val REMOVED_FIELD = "isRemoved"
     internal const val BOUNCE_OFF_FUNCTION = "bounceOff"
     internal const val DIRECTION_FUNCTION = "velocityInDirection"
+    internal const val STEERING_FUNCTION = "velocityFromKeys"
     internal const val OPACITY_FIELD = "opacity"
     internal const val ANIMATION_FIELD = "animation"
     internal const val ANIMATION_SPEED_FIELD = "animationSpeed"
@@ -114,6 +115,13 @@ public object BlockCodeGenerator {
         is BlockDefinition.MoveInDirection -> BlockCode(
             lines = listOf("velocity = $DIRECTION_FUNCTION(${NumberValueCode.float(block.direction, scope)}, ${NumberValueCode.float(block.speed, scope)})"),
             needs = setOf(BlockNeed.MOVEMENT, BlockNeed.DIRECTION),
+        )
+        is BlockDefinition.MoveWithKeys -> BlockCode(
+            lines = listOf(
+                "velocity = $STEERING_FUNCTION(speed = ${NumberValueCode.float(block.speed, scope)}, usesArrows = ${block.keys.usesArrows}, " +
+                    "usesWasd = ${block.keys.usesWasd}, movesDiagonally = ${block.movesDiagonally})",
+            ),
+            needs = setOf(BlockNeed.MOVEMENT, BlockNeed.KEYBOARD_INPUT_MANAGER, BlockNeed.STEERING),
         )
         BlockDefinition.Stop -> movementCode("velocity = SceneOffset.Zero")
         BlockDefinition.RunParentEvent -> BlockCode(listOf(scope.parentEventCall ?: "// Only an Actor type with a parent runs its parent's Event."))

@@ -56,6 +56,18 @@ public sealed interface BlockDefinition {
     ) : BlockDefinition
 
     @Serializable
+    @SerialName("moveWithKeys")
+    @Description("Sets the velocity from the arrow keys or WASD held; with none held, it stops. Only in everyFrame Events.")
+    public data class MoveWithKeys(
+        @Description("Which keys steer it.")
+        @SerialName("keys") val keys: SteeringKeys = SteeringKeys.ARROWS,
+        @Description("True for eight directions, false for four (left and right win).")
+        @SerialName("movesDiagonally") val movesDiagonally: Boolean = true,
+        @Description("The speed, in scene units per second. Not an edge.")
+        @SerialName("speed") val speed: NumberValue = NumberValue.Fixed(200f),
+    ) : BlockDefinition
+
+    @Serializable
     @SerialName("runParentEvent")
     @Description("Runs the Blocks of the parent Actor type's Event that this Event replaces (GameMaker's event_inherited), here. Only in an Actor type with a parent.")
     public data object RunParentEvent : BlockDefinition
@@ -287,15 +299,15 @@ public sealed interface BlockDefinition {
 
     @Serializable
     @SerialName("animate")
-    @Description("Takes the Actor's scale, opacity, color, or position from a start to an end over some seconds, and can remove the Actor at the end: a growing, fading flash is two of them. Each value has one animation at a time, which another animate Block of it starts over. It sets the value every frame before the Events run, so a Block that sets the same value in an Event wins for that frame. A rectangle's collision mask keeps its size while its scale is animated.")
+    @Description("Takes the Actor's scale, opacity, color, or position from a start to an end over some seconds, and can remove the Actor at the end. Each value has one animation at a time, which another animate Block of it starts over. It sets the value before the Events run, so Blocks in Events win. A rectangle's collision mask keeps its size.")
     public data class Animate(
         @Description("What it changes.")
         @SerialName("value") val value: AnimatedValue = AnimatedValue.Scale(),
         @Description("How long it takes, in seconds. Not an edge.")
         @SerialName("seconds") val seconds: NumberValue = NumberValue.Fixed(0.5f),
-        @Description("Evenly, or starting slowly, ending slowly, or both.")
+        @Description("How it speeds up and slows down.")
         @SerialName("easing") val easing: AnimationEasing = AnimationEasing.EASE_OUT,
-        @Description("True to remove the Actor when it ends.")
+        @Description("Removes the Actor at the end.")
         @SerialName("removesActor") val removesActor: Boolean = false,
     ) : BlockDefinition
 

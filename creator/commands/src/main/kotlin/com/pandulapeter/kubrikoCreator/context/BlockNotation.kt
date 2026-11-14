@@ -21,6 +21,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.SceneEdge
+import com.pandulapeter.kubrikoCreator.actors.SteeringKeys
 import com.pandulapeter.kubrikoCreator.actors.readsEdges
 import com.pandulapeter.kubrikoCreator.foundation.ColorHex
 
@@ -64,6 +65,11 @@ internal object BlockNotation {
         is BlockDefinition.SetVelocity -> "Set velocity to ${point(block.x, block.y)}"
         is BlockDefinition.AddToVelocity -> "Add ${point(block.x, block.y)} to velocity"
         is BlockDefinition.MoveInDirection -> "Move in a direction: ${value(block.direction)} degrees at speed ${value(block.speed)}"
+        is BlockDefinition.MoveWithKeys -> "Move with " + when (block.keys) {
+            SteeringKeys.ARROWS -> "the arrow keys"
+            SteeringKeys.WASD -> "WASD"
+            SteeringKeys.ARROWS_AND_WASD -> "the arrow keys or WASD"
+        } + " at speed ${value(block.speed)}, " + if (block.movesDiagonally) "in eight directions" else "in four directions"
         BlockDefinition.Stop -> "Stop"
         BlockDefinition.RunParentEvent -> "Run the parent's Event"
         is BlockDefinition.JumpTo -> "Jump to position ${point(block.x, block.y)}"

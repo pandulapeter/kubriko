@@ -293,7 +293,7 @@ private val BlockDefinition.areNumbersValid
         is BlockDefinition.StartTimer -> seconds.isWithin(minimum = 0f)
         is BlockDefinition.Animate -> seconds.isWithin(minimum = 0f)
         is BlockDefinition.SetFrame -> frame.isWithin(minimum = 0f) && frame.isWholeWhenFixed
-        is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.JumpTo, is BlockDefinition.AddActor,
+        is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, is BlockDefinition.JumpTo, is BlockDefinition.AddActor,
         is BlockDefinition.MoveTowardsNearest, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetAnimation,
         BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
         is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.StopTimer, BlockDefinition.Else, BlockDefinition.End,
@@ -310,7 +310,7 @@ private val BlockDefinition.areEdgesAlongTheirAxes
         is BlockDefinition.JumpTo -> areEdgesAlong(x, y)
         is BlockDefinition.AddActor -> areEdgesAlong(x, y)
         is BlockDefinition.Animate -> (value as? AnimatedValue.Position)?.let { areEdgesAlong(it.x, it.y) } ?: true
-        is BlockDefinition.MoveInDirection, is BlockDefinition.MoveTowardsNearest, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetAnimation,
+        is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, is BlockDefinition.MoveTowardsNearest, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetAnimation,
         is BlockDefinition.If, is BlockDefinition.Repeat, is BlockDefinition.StartTimer, is BlockDefinition.SetFrame,
         BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
         is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.StopTimer, BlockDefinition.Else, BlockDefinition.End,
@@ -328,6 +328,7 @@ private val BlockDefinition.edgelessNumberValues
     get() = when (this) {
         is BlockDefinition.MoveInDirection -> listOf(direction, speed)
         is BlockDefinition.MoveTowardsNearest -> listOf(speed)
+        is BlockDefinition.MoveWithKeys -> listOf(speed)
         is BlockDefinition.SetOpacity -> listOf(percent)
         is BlockDefinition.ChangeOpacity -> listOf(by)
         is BlockDefinition.Animate -> if (value is AnimatedValue.Position) listOf(seconds) else value.numberValues + seconds

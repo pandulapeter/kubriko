@@ -35,7 +35,13 @@ class BlockKindTest {
     }
 
     @Test
-    fun everyOtherBlockIsOfferedInEveryEvent() = (BlockKind.entries - BlockKind.BOUNCE_OFF_EDGE - BlockKind.BOUNCE_OFF_OTHER - BlockKind.REMOVE_OTHER).forEach { kind ->
+    fun movingWithKeysIsOnlyOfferedEveryFrame() {
+        assertTrue(BlockKind.MOVE_WITH_KEYS.isAvailableIn(EventType.EVERY_FRAME, BlockTypeKind.ACTOR))
+        (EventType.entries - EventType.EVERY_FRAME).forEach { assertFalse(BlockKind.MOVE_WITH_KEYS.isAvailableIn(it, BlockTypeKind.ACTOR), it.name) }
+    }
+
+    @Test
+    fun everyOtherBlockIsOfferedInEveryEvent() = (BlockKind.entries - BlockKind.BOUNCE_OFF_EDGE - BlockKind.BOUNCE_OFF_OTHER - BlockKind.REMOVE_OTHER - BlockKind.MOVE_WITH_KEYS).forEach { kind ->
         EventType.entries.forEach { assertTrue(kind.isAvailableIn(it, BlockTypeKind.ACTOR), "${kind.name} in ${it.name}") }
     }
 
@@ -45,6 +51,7 @@ class BlockKindTest {
             BlockKind.BOUNCE_OFF_EDGE to (EventType.EDGE_TOUCHED to "// Bounce off the edge only works in an edge Event."),
             BlockKind.BOUNCE_OFF_OTHER to (EventType.COLLISION to "// Bounce off it only works in a collision Event."),
             BlockKind.REMOVE_OTHER to (EventType.COLLISION to "// Remove the other Actor only works in a collision Event."),
+            BlockKind.MOVE_WITH_KEYS to (EventType.EVERY_FRAME to "// Move with keys only works in an every frame Event."),
         )
         BlockKind.entries.forEach { kind ->
             assertEquals(expected[kind]?.first, kind.onlyIn, kind.name)

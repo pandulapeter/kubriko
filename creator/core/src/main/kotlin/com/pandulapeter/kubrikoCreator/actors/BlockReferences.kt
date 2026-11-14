@@ -24,7 +24,7 @@ public val BlockDefinition.propertyReference: PropertyReference?
             is ConditionDefinition.Toggle -> PropertyReference(condition.property, PropertyKind.TOGGLE, condition.manager)
             is ConditionDefinition.KeyHeld, is ConditionDefinition.Velocity, is ConditionDefinition.Chance, is ConditionDefinition.Paused -> null
         }
-        is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
+        is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
         is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
         BlockDefinition.RemoveOther, is BlockDefinition.AddActor, is BlockDefinition.MoveTowardsNearest,
         is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene, BlockDefinition.RestartScene,
@@ -41,7 +41,7 @@ public val BlockDefinition.actorTypeReference: String?
     get() = when (this) {
         is BlockDefinition.AddActor -> actorType
         is BlockDefinition.MoveTowardsNearest -> actorType
-        is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
+        is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
         is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
         BlockDefinition.RemoveOther, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText,
         is BlockDefinition.SetToggle, is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene,
@@ -57,7 +57,7 @@ public val BlockDefinition.actorTypeReference: String?
 internal fun BlockDefinition.withActorTypeRenamed(oldName: String, newName: String) = when (this) {
     is BlockDefinition.AddActor -> if (actorType == oldName) copy(actorType = newName) else this
     is BlockDefinition.MoveTowardsNearest -> if (actorType == oldName) copy(actorType = newName) else this
-    is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
+    is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
     is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
     BlockDefinition.RemoveOther, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText,
     is BlockDefinition.SetToggle, is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene,
@@ -74,7 +74,7 @@ public val BlockDefinition.timerName: String?
     get() = when (this) {
         is BlockDefinition.StartTimer -> timer
         is BlockDefinition.StopTimer -> timer
-        is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
+        is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
         is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
         BlockDefinition.RemoveOther, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText,
         is BlockDefinition.SetToggle, is BlockDefinition.AddActor, is BlockDefinition.MoveTowardsNearest,
@@ -90,7 +90,7 @@ public val BlockDefinition.timerName: String?
 public fun BlockDefinition.withTimerRenamed(oldName: String, newName: String): BlockDefinition = when (this) {
     is BlockDefinition.StartTimer -> if (timer == oldName) copy(timer = newName) else this
     is BlockDefinition.StopTimer -> if (timer == oldName) copy(timer = newName) else this
-    is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
+    is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
     is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
     BlockDefinition.RemoveOther, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText,
     is BlockDefinition.SetToggle, is BlockDefinition.AddActor, is BlockDefinition.MoveTowardsNearest, is BlockDefinition.GoToScene,
@@ -137,7 +137,7 @@ public fun BlockDefinition.withPropertyReference(manager: String?, name: String)
         is ConditionDefinition.Toggle -> copy(condition = condition.copy(manager = manager, property = name))
         is ConditionDefinition.KeyHeld, is ConditionDefinition.Velocity, is ConditionDefinition.Chance, is ConditionDefinition.Paused -> this
     }
-    is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
+    is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
     is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
     BlockDefinition.RemoveOther, is BlockDefinition.AddActor, is BlockDefinition.MoveTowardsNearest, is BlockDefinition.StartTimer,
     is BlockDefinition.StopTimer, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
@@ -153,7 +153,7 @@ internal val BlockDefinition.audioFile
     get() = when (this) {
         is BlockDefinition.PlaySound -> sound
         is BlockDefinition.PlayMusic -> music
-        is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
+        is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
         is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
         BlockDefinition.RemoveOther, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText,
         is BlockDefinition.SetToggle, is BlockDefinition.AddActor, is BlockDefinition.MoveTowardsNearest,
@@ -172,6 +172,7 @@ public val BlockDefinition.numberValues: List<NumberValue>
         is BlockDefinition.SetVelocity -> listOf(x, y)
         is BlockDefinition.AddToVelocity -> listOf(x, y)
         is BlockDefinition.MoveInDirection -> listOf(direction, speed)
+        is BlockDefinition.MoveWithKeys -> listOf(speed)
         is BlockDefinition.JumpTo -> listOf(x, y)
         is BlockDefinition.SetNumber -> listOf(value)
         is BlockDefinition.ChangeNumber -> listOf(by)
@@ -205,6 +206,7 @@ public fun BlockDefinition.withNumberValues(transform: (NumberValue) -> NumberVa
     is BlockDefinition.SetVelocity -> copy(x = transform(x), y = transform(y))
     is BlockDefinition.AddToVelocity -> copy(x = transform(x), y = transform(y))
     is BlockDefinition.MoveInDirection -> copy(direction = transform(direction), speed = transform(speed))
+    is BlockDefinition.MoveWithKeys -> copy(speed = transform(speed))
     is BlockDefinition.JumpTo -> copy(x = transform(x), y = transform(y))
     is BlockDefinition.SetNumber -> copy(value = transform(value))
     is BlockDefinition.ChangeNumber -> copy(by = transform(by))

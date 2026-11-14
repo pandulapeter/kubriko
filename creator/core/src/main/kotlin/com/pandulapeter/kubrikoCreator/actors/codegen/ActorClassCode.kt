@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.BOUNCE_
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.DIRECTION_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.NUMBER_TEXT_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.REMOVED_FIELD
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STEERING_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.stringLiteral
 
 /**
@@ -118,6 +119,32 @@ internal object ActorClassCode {
         appendLine("    $visibility fun $DIRECTION_FUNCTION(directionInDegrees: Float, speed: Float): SceneOffset {")
         appendLine("        val radians = directionInDegrees * 0.017453292f")
         appendLine("        return SceneOffset((cos(radians) * speed).sceneUnit, (sin(radians) * speed).sceneUnit)")
+        appendLine("    }")
+    }
+
+    /**
+     * The velocity of the Move with keys Block: a function rather than lines of the Block, so the speed is read once,
+     * with no local of the Block in scope. Opposite keys cancel out, and a diagonal is as fast as a straight line.
+     *
+     * @param visibility `private` for a type of its own, `protected` for a family's base class.
+     */
+    fun StringBuilder.appendSteeringFunction(visibility: String) {
+        fun held(arrow: String, letter: String) = "usesArrows && keyboardInputManager.isKeyPressed(Key.$arrow) || usesWasd && keyboardInputManager.isKeyPressed(Key.$letter)"
+        appendLine()
+        appendLine("    /**")
+        appendLine("     * The velocity of [speed] towards the arrow keys ([usesArrows]) and WASD keys ([usesWasd]) held: opposite keys cancel")
+        appendLine("     * out, a diagonal is as fast as a straight line (0.70710677 is the square root of a half), and without")
+        appendLine("     * [movesDiagonally] left and right win over up and down.")
+        appendLine("     */")
+        appendLine("    $visibility fun $STEERING_FUNCTION(speed: Float, usesArrows: Boolean, usesWasd: Boolean, movesDiagonally: Boolean): SceneOffset {")
+        appendLine("        val isLeftHeld = ${held("DirectionLeft", "A")}")
+        appendLine("        val isRightHeld = ${held("DirectionRight", "D")}")
+        appendLine("        val isUpHeld = ${held("DirectionUp", "W")}")
+        appendLine("        val isDownHeld = ${held("DirectionDown", "S")}")
+        appendLine("        val x = (if (isRightHeld) 1f else 0f) - (if (isLeftHeld) 1f else 0f)")
+        appendLine("        val y = if (x != 0f && !movesDiagonally) 0f else (if (isDownHeld) 1f else 0f) - (if (isUpHeld) 1f else 0f)")
+        appendLine("        val step = if (x != 0f && y != 0f) speed * 0.70710677f else speed")
+        appendLine("        return SceneOffset((x * step).sceneUnit, (y * step).sceneUnit)")
         appendLine("    }")
     }
 

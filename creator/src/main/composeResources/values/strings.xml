@@ -237,6 +237,11 @@
     <string name="block_add_to_velocity">Add to velocity</string>
     <string name="block_move_in_direction">Move in a direction</string>
     <string name="block_parameter_direction">Direction</string>
+    <string name="block_move_with_keys">Move with keys</string>
+    <string name="block_move_with_keys_arrows">The arrow keys</string>
+    <string name="block_move_with_keys_wasd">WASD</string>
+    <string name="block_move_with_keys_arrows_and_wasd">The arrow keys or WASD</string>
+    <string name="block_move_with_keys_diagonally">Diagonally too</string>
     <string name="block_direction_unit">degrees, clockwise from the right</string>
     <string name="block_set_color">Set the color</string>
     <string name="block_set_opacity">Set the opacity</string>
@@ -708,6 +713,7 @@
     <string name="error_placement_block_bounce_off_other_outside_collision">Bounce off it works only in a When it collides with Event, the only one that knows what was hit.</string>
     <string name="error_placement_block_remove_other_outside_collision">Remove the other Actor works only in a When it collides with Event, the only one that knows the other Actor.</string>
     <string name="error_placement_block_remove_other_in_manager_type">A Manager type isn't in a Scene, so it can't have a Remove the other Actor Block.</string>
+    <string name="error_placement_block_move_with_keys_outside_every_frame">Move with keys works only in an Every frame Event, which checks the keys held on every frame.</string>
     <string name="error_placement_block_movement_in_manager_type">A Manager type isn't in a Scene, so it has nothing for the Movement Blocks to move. They belong in an Actor type.</string>
     <string name="error_placement_block_remove_self_in_manager_type">A Manager type isn't in a Scene, so it can't have a Remove this Actor Block.</string>
     <string name="error_placement_block_appearance_in_manager_type">A Manager type isn't in a Scene and isn't drawn, so it can't have the Set the color, Set the opacity, or Change the opacity Blocks. They belong in an Actor type.</string>
@@ -1413,6 +1419,7 @@
     <string name="project_settings_use_collision">%1$s collides with %2$s</string>
     <string name="project_settings_use_key_pressed">%1$s reacts to %2$s being pressed</string>
     <string name="project_settings_use_key_held">%1$s checks whether %2$s is held</string>
+    <string name="project_settings_use_moves_with_keys">%1$s moves with keys</string>
     <string name="project_settings_use_plays_sound">%1$s plays %2$s</string>
     <string name="project_settings_use_plays_music">%1$s plays the music %2$s</string>
     <string name="project_settings_use_stops_music">%1$s stops the music</string>

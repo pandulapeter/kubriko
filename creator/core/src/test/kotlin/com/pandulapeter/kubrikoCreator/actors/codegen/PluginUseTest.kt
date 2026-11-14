@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.EveryBlockTypes
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.SteeringKeys
 import com.pandulapeter.kubrikoCreator.project.KubrikoArtifact
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -64,6 +65,20 @@ class PluginUseTest {
             events = listOf(EventDefinition(EventType.KEY_PRESSED), EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.PlaySound()))),
         )
         assertEquals(emptyList(), PluginUse.of(listOf(paddle)))
+    }
+
+    @Test
+    fun movingWithKeysUsesTheKeyboardOnlyWhereItsCodeIsGenerated() {
+        val hero = ActorTypeDefinition(
+            name = "Hero",
+            events = listOf(
+                EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.MoveWithKeys())),
+                EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.MoveWithKeys(), BlockDefinition.MoveWithKeys(keys = SteeringKeys.WASD))),
+            ),
+        )
+        val game = ManagerTypeDefinition(name = "Game", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.MoveWithKeys()))))
+        assertEquals(listOf(PluginUse(KubrikoArtifact.KEYBOARD_INPUT, PluginReason.MOVES_WITH_KEYS, "Hero")), PluginUse.of(listOf(hero, game)))
+        assertEquals(emptyList(), PluginUse.of(listOf(hero.copy(events = hero.events.take(1)), game)))
     }
 
     @Test

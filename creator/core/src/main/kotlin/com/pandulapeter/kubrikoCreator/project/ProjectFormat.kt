@@ -98,6 +98,7 @@ public class ProjectFormat(
             ReservedPropertyMigration.DIRECTION,
             ReservedPropertyMigration.OPACITY,
             ReservedPropertyMigration.ANIMATE,
+            ReservedPropertyMigration.STEERING,
         )
 
         /**

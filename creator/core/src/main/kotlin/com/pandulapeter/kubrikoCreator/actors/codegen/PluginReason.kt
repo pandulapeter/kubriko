@@ -29,6 +29,11 @@ public enum class PluginReason {
     KEY_HELD_CONDITION,
 
     /**
+     * A Move with keys Block.
+     */
+    MOVES_WITH_KEYS,
+
+    /**
      * A Block playing a sound.
      */
     PLAYS_SOUND,

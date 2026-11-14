@@ -120,6 +120,7 @@ internal val BlockKind.icon: DrawableResource
         BlockKind.SET_VELOCITY -> Res.drawable.ic_velocity
         BlockKind.ADD_TO_VELOCITY -> Res.drawable.ic_trending_up
         BlockKind.MOVE_IN_DIRECTION -> Res.drawable.ic_direction
+        BlockKind.MOVE_WITH_KEYS -> Res.drawable.ic_keyboard
         BlockKind.SET_COLOR -> Res.drawable.ic_palette
         BlockKind.SET_OPACITY, BlockKind.CHANGE_OPACITY -> Res.drawable.ic_opacity
         BlockKind.ANIMATE -> Res.drawable.ic_animation

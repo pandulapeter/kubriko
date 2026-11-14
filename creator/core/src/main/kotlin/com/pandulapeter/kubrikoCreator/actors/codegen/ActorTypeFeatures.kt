@@ -98,6 +98,7 @@ internal class ActorTypeFeatures(
     val isDynamic = BlockNeed.MOVEMENT in needs
     val usesBounceOff = BlockNeed.BOUNCE_OFF in needs
     val usesDirection = BlockNeed.DIRECTION in needs
+    val usesSteering = BlockNeed.STEERING in needs
     val usesNumberText = BlockNeed.NUMBER_TEXT in needs
 
     /**
@@ -150,7 +151,7 @@ internal class ActorTypeFeatures(
             BlockNeed.STATE_MANAGER -> "$STATE_MANAGER_FIELD: StateManager"
             BlockNeed.SCENES -> "$SCENES_FIELD: ${ScenesCodeGenerator.SCENES_NAME}"
             BlockNeed.AUDIO -> "$AUDIO_FIELD: ${AudioCodeGenerator.AUDIO_NAME}"
-            BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.ANIMATION, BlockNeed.FRAME,
+            BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.STEERING, BlockNeed.ANIMATION, BlockNeed.FRAME,
             BlockNeed.SCALE_TWEEN, BlockNeed.OPACITY_TWEEN, BlockNeed.COLOR_TWEEN, BlockNeed.POSITION_TWEEN,
             -> null
         }
@@ -160,7 +161,7 @@ internal class ActorTypeFeatures(
             BlockNeed.VIEWPORT_MANAGER -> "com.pandulapeter.kubriko.manager.ViewportManager"
             BlockNeed.KEYBOARD_INPUT_MANAGER -> "com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager"
             BlockNeed.STATE_MANAGER -> STATE_MANAGER_IMPORT
-            BlockNeed.SCENES, BlockNeed.AUDIO, BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.ANIMATION, BlockNeed.FRAME,
+            BlockNeed.SCENES, BlockNeed.AUDIO, BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.STEERING, BlockNeed.ANIMATION, BlockNeed.FRAME,
             BlockNeed.SCALE_TWEEN, BlockNeed.OPACITY_TWEEN, BlockNeed.COLOR_TWEEN, BlockNeed.POSITION_TWEEN,
             -> null
         }

@@ -1,0 +1,4 @@
+[
+{"typeId":"EveryBlock","state":"{\"body\":{\"position\":{\"x\":10.0,\"y\":-20.5},\"size\":{\"width\":64.0,\"height\":32.0}}}","id":"a1b2c3"},
+{"typeId":"wall","state":"{\"body\":{\"position\":{\"x\":0.0,\"y\":100.0}},\"isSolid\":true}","id":"i1"}
+]

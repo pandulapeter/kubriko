@@ -93,7 +93,7 @@ public object EveryBlockTypes {
         BlockDefinition.StopMusic,
         BlockDefinition.SetFrame(frame = NumberValue.Fixed(2f)),
         BlockDefinition.SetAnimation(speed = NumberValue.Fixed(-0.5f), isLooping = false),
-    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks
+    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks + steeringBlocks
 
     /**
      * Blocks taking random numbers and Properties' values, which format version 5 added.
@@ -141,6 +141,16 @@ public object EveryBlockTypes {
             BlockDefinition.SetOpacity(percent = NumberValue.Random(20f, 80f)),
             BlockDefinition.ChangeOpacity(),
             BlockDefinition.ChangeOpacity(by = NumberValue.Property("score", manager = "EveryManager")),
+        )
+
+    /**
+     * Move with keys Blocks, with every kind of keys, which format version 11 added.
+     */
+    val steeringBlocks: List<BlockDefinition>
+        get() = listOf(
+            BlockDefinition.MoveWithKeys(),
+            BlockDefinition.MoveWithKeys(keys = SteeringKeys.WASD, movesDiagonally = false, speed = NumberValue.Property("score")),
+            BlockDefinition.MoveWithKeys(keys = SteeringKeys.ARROWS_AND_WASD, speed = NumberValue.Random(100f, 150f)),
         )
 
     /**

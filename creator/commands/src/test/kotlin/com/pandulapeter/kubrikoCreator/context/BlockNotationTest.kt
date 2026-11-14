@@ -20,6 +20,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.SceneEdge
+import com.pandulapeter.kubrikoCreator.actors.SteeringKeys
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -52,6 +53,12 @@ class BlockNotationTest {
         assertEquals("Set the opacity to a random number from 20 to 80 percent", BlockNotation.of(BlockDefinition.SetOpacity(NumberValue.Random(20f, 80f))))
         assertEquals("Change the opacity by -10 percent", BlockNotation.of(BlockDefinition.ChangeOpacity()))
         assertEquals("Animate the scale from 1 to 2 in 0.5 s, ending slowly", BlockNotation.of(BlockDefinition.Animate()))
+        assertEquals("Move with the arrow keys at speed 200, in eight directions", BlockNotation.of(BlockDefinition.MoveWithKeys()))
+        assertEquals(
+            "Move with WASD at speed speed, in four directions",
+            BlockNotation.of(BlockDefinition.MoveWithKeys(SteeringKeys.WASD, movesDiagonally = false, speed = NumberValue.Property("speed"))),
+        )
+        assertEquals("Move with the arrow keys or WASD at speed 80, in eight directions", BlockNotation.of(BlockDefinition.MoveWithKeys(SteeringKeys.ARROWS_AND_WASD, speed = NumberValue.Fixed(80f))))
         assertEquals(
             "Animate the opacity from 100 to 0 percent in a random number from 1 to 2 s, evenly, then remove this Actor",
             BlockNotation.of(BlockDefinition.Animate(AnimatedValue.Opacity(), NumberValue.Random(1f, 2f), AnimationEasing.LINEAR, removesActor = true)),

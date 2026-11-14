@@ -39,7 +39,8 @@ import java.io.File
  * the members that play a sprite cut into frames ([ANIMATION]), whose version also added the animation Blocks and
  * tinting a sprite, format version 8 the function the Move in a direction Block calls ([DIRECTION]), which that
  * version added, format version 9 the opacity every Actor is drawn with ([OPACITY]), with the color and opacity Blocks,
- * and format version 10 the members that play the Animate Blocks' animations ([ANIMATE]), with the Animate Block.
+ * format version 10 the members that play the Animate Blocks' animations ([ANIMATE]), with the Animate Block, and format
+ * version 11 the function the Move with keys Block calls ([STEERING]), which that version added.
  */
 internal class ReservedPropertyMigration(private vararg val reservedNames: String) : FormatMigration {
 
@@ -130,5 +131,6 @@ internal class ReservedPropertyMigration(private vararg val reservedNames: Strin
         val DIRECTION = ReservedPropertyMigration("velocityInDirection")
         val OPACITY = ReservedPropertyMigration("opacity")
         val ANIMATE = ReservedPropertyMigration(*AnimationNaming.reservedNames.toTypedArray())
+        val STEERING = ReservedPropertyMigration("velocityFromKeys")
     }
 }

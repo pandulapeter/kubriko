@@ -65,13 +65,13 @@ public sealed interface AnimatedValue {
 
     @Serializable
     @SerialName("position")
-    @Description("The position, from where it is when the Block runs; it adds up with the velocity.")
+    @Description("The position, from where it is; it adds up with the velocity.")
     public data class Position(
-        @Description("Where it ends, or how far it moves if isRelative.")
+        @Description("Where it ends, or how far it moves.")
         @SerialName("x") val x: NumberValue = NumberValue.Fixed(0f),
-        @Description("Where it ends, or how far it moves (down) if isRelative.")
+        @Description("Where it ends, or how far it moves down.")
         @SerialName("y") val y: NumberValue = NumberValue.Fixed(-100f),
-        @Description("True to move by x and y, false to move to them in the Scene. An edge is the Scene's either way.")
+        @Description("True to move by x and y, false to move to them. An edge is the Scene's either way.")
         @SerialName("isRelative") val isRelative: Boolean = true,
     ) : AnimatedValue {
         override val target: AnimationTarget get() = AnimationTarget.POSITION
