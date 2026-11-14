@@ -20,7 +20,7 @@ class KotlinIdentifiersTest {
 
     @Test
     fun hardKeywordsAreNoPropertyOrTimerName() {
-        assertNotNull(PropertyNaming.validate("typealias", emptyList()))
+        assertNotNull(PropertyNaming.validate("typealias", emptyList(), BlockTypeKind.ACTOR))
         assertFalse(TimerNaming.isValid("typealias"))
     }
 

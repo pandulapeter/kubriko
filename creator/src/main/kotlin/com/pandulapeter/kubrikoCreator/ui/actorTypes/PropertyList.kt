@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyNaming
@@ -90,6 +91,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun LazyListScope.propertyListItems(
     properties: List<PropertyDefinition>,
     propertyKeys: List<Long>,
+    typeKind: BlockTypeKind,
     emptyHint: StringResource,
     onAdded: (PropertyDefinition) -> Unit,
     onChanged: (name: String, PropertyDefinition) -> Unit,
@@ -111,7 +113,7 @@ internal fun LazyListScope.propertyListItems(
                 options = PropertyKind.entries,
                 optionText = { stringResource(it.title) },
                 optionIcon = { it.icon },
-                onSelected = { kind -> onAdded(kind.create(PropertyNaming.freeName(kind.defaultName, (properties + inheritedProperties).map { it.name }))) },
+                onSelected = { kind -> onAdded(kind.create(PropertyNaming.freeName(kind.defaultName, (properties + inheritedProperties).map { it.name }, typeKind))) },
             )
         }
     }
@@ -140,6 +142,7 @@ internal fun LazyListScope.propertyListItems(
                 .propertyItemPadding(isFirst = index == 0 && inheritedProperties.isEmpty()),
             property = property,
             otherNames = names - property.name,
+            typeKind = typeKind,
             onChange = { onChanged(property.name, it) },
             onRename = { onRenamed(property.name, property.withName(it)) },
             onRemove = { onRemoved(property.name) },
@@ -186,6 +189,7 @@ private val PROPERTY_SPACING = 10.dp
 private fun PropertyRow(
     property: PropertyDefinition,
     otherNames: List<String>,
+    typeKind: BlockTypeKind,
     onChange: (PropertyDefinition) -> Unit,
     onRename: (String) -> Rejection?,
     onRemove: () -> Unit,
@@ -213,6 +217,7 @@ private fun PropertyRow(
                 modifier = Modifier.weight(1f),
                 name = property.name,
                 otherNames = otherNames,
+                typeKind = typeKind,
                 onRename = onRename,
                 rejection = renameRejection,
                 onRejectionChange = { renameRejection = it },
@@ -268,6 +273,7 @@ private fun PropertyRow(
 private fun PropertyNameField(
     name: String,
     otherNames: List<String>,
+    typeKind: BlockTypeKind,
     onRename: (String) -> Rejection?,
     rejection: Rejection?,
     onRejectionChange: (Rejection?) -> Unit,
@@ -280,7 +286,7 @@ private fun PropertyNameField(
         onRejectionChange(null)
     }
     val finish by rememberUpdatedState { isLeaving: Boolean ->
-        val newName = renamedPropertyName(text, name, otherNames)
+        val newName = renamedPropertyName(text, name, otherNames, typeKind)
         when {
             newName == null -> restore()
             newName == renamedTo -> Unit
@@ -307,7 +313,7 @@ private fun PropertyNameField(
             onRejectionChange(null)
         },
         label = stringResource(Res.string.property_name),
-        isError = rejection != null || PropertyNaming.validate(text, otherNames) != null,
+        isError = rejection != null || PropertyNaming.validate(text, otherNames, typeKind) != null,
     )
 }
 
@@ -315,5 +321,5 @@ private fun PropertyNameField(
  * What a Property called [name] is renamed to once [text] is done being typed: [text], if it differs and is a name the
  * Property can have beside [otherNames], or null.
  */
-internal fun renamedPropertyName(text: String, name: String, otherNames: List<String>): String? =
-    text.takeIf { it != name && PropertyNaming.validate(it, otherNames) == null }
+internal fun renamedPropertyName(text: String, name: String, otherNames: List<String>, typeKind: BlockTypeKind): String? =
+    text.takeIf { it != name && PropertyNaming.validate(it, otherNames, typeKind) == null }

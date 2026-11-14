@@ -56,6 +56,7 @@ internal fun MoveWithKeysParameters(
         scope = scope,
         onValueChange = { onBlockChange(block.copy(speed = it)) },
         offersEdges = false,
+        offersRandom = false,
     )
     UnitText(Res.string.block_velocity_unit)
     LabeledSwitch(

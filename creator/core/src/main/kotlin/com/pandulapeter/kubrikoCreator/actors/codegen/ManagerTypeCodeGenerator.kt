@@ -80,9 +80,9 @@ public object ManagerTypeCodeGenerator {
     ): String {
         val name = definition.name
         val scope = BlockScope(name, BlockTypeKind.MANAGER, definition.properties, knownActorTypeNames, managerTypes)
-        val events = definition.events.filter { it.type.isAvailableIn(BlockTypeKind.MANAGER) }
-        val keyEvents = events.filter { it.type == EventType.KEY_PRESSED && it.key?.isKnown == true }
-        val timerEvents = events.filter { it.type == EventType.TIMER_FINISHED && it.timer?.let(TimerNaming::isValid) == true }
+        val events = definition.events.filter { GeneratedCode.isGenerated(it, BlockTypeKind.MANAGER, knownActorTypeNames) }
+        val keyEvents = events.filter { it.type == EventType.KEY_PRESSED }
+        val timerEvents = events.filter { it.type == EventType.TIMER_FINISHED }
         val startEvents = events.filter { it.type == EventType.GAME_STARTED }
         val frameEvents = events.filter { it.type == EventType.EVERY_FRAME }
         val generatedEvents = startEvents + frameEvents + keyEvents + timerEvents

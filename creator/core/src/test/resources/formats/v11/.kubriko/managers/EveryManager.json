@@ -765,12 +765,7 @@
                     "type": "moveWithKeys",
                     "keys": "arrowsAndWasd",
                     "movesDiagonally": true,
-                    "speed": {
-                        "type": "random",
-                        "from": 100.0,
-                        "to": 150.0,
-                        "isWhole": false
-                    }
+                    "speed": 80.0
                 }
             ]
         },
@@ -1520,12 +1515,7 @@
                     "type": "moveWithKeys",
                     "keys": "arrowsAndWasd",
                     "movesDiagonally": true,
-                    "speed": {
-                        "type": "random",
-                        "from": 100.0,
-                        "to": 150.0,
-                        "isWhole": false
-                    }
+                    "speed": 80.0
                 }
             ]
         },
@@ -2275,12 +2265,7 @@
                     "type": "moveWithKeys",
                     "keys": "arrowsAndWasd",
                     "movesDiagonally": true,
-                    "speed": {
-                        "type": "random",
-                        "from": 100.0,
-                        "to": 150.0,
-                        "isWhole": false
-                    }
+                    "speed": 80.0
                 }
             ]
         },
@@ -3031,12 +3016,7 @@
                     "type": "moveWithKeys",
                     "keys": "arrowsAndWasd",
                     "movesDiagonally": true,
-                    "speed": {
-                        "type": "random",
-                        "from": 100.0,
-                        "to": 150.0,
-                        "isWhole": false
-                    }
+                    "speed": 80.0
                 }
             ]
         },
@@ -3787,12 +3767,7 @@
                     "type": "moveWithKeys",
                     "keys": "arrowsAndWasd",
                     "movesDiagonally": true,
-                    "speed": {
-                        "type": "random",
-                        "from": 100.0,
-                        "to": 150.0,
-                        "isWhole": false
-                    }
+                    "speed": 80.0
                 }
             ]
         },
@@ -4543,12 +4518,7 @@
                     "type": "moveWithKeys",
                     "keys": "arrowsAndWasd",
                     "movesDiagonally": true,
-                    "speed": {
-                        "type": "random",
-                        "from": 100.0,
-                        "to": 150.0,
-                        "isWhole": false
-                    }
+                    "speed": 80.0
                 }
             ]
         },
@@ -11451,12 +11421,7 @@
                     "type": "moveWithKeys",
                     "keys": "arrowsAndWasd",
                     "movesDiagonally": true,
-                    "speed": {
-                        "type": "random",
-                        "from": 100.0,
-                        "to": 150.0,
-                        "isWhole": false
-                    }
+                    "speed": 80.0
                 }
             ]
         },
@@ -12206,12 +12171,7 @@
                     "type": "moveWithKeys",
                     "keys": "arrowsAndWasd",
                     "movesDiagonally": true,
-                    "speed": {
-                        "type": "random",
-                        "from": 100.0,
-                        "to": 150.0,
-                        "isWhole": false
-                    }
+                    "speed": 80.0
                 }
             ]
         },
@@ -12962,12 +12922,7 @@
                     "type": "moveWithKeys",
                     "keys": "arrowsAndWasd",
                     "movesDiagonally": true,
-                    "speed": {
-                        "type": "random",
-                        "from": 100.0,
-                        "to": 150.0,
-                        "isWhole": false
-                    }
+                    "speed": 80.0
                 },
                 {
                     "type": "setVelocity",
@@ -13712,12 +13667,7 @@
                     "type": "moveWithKeys",
                     "keys": "arrowsAndWasd",
                     "movesDiagonally": true,
-                    "speed": {
-                        "type": "random",
-                        "from": 100.0,
-                        "to": 150.0,
-                        "isWhole": false
-                    }
+                    "speed": 80.0
                 }
             ]
         },
@@ -14468,12 +14418,7 @@
                     "type": "moveWithKeys",
                     "keys": "arrowsAndWasd",
                     "movesDiagonally": true,
-                    "speed": {
-                        "type": "random",
-                        "from": 100.0,
-                        "to": 150.0,
-                        "isWhole": false
-                    }
+                    "speed": 80.0
                 },
                 {
                     "type": "setVelocity",
@@ -15218,12 +15163,7 @@
                     "type": "moveWithKeys",
                     "keys": "arrowsAndWasd",
                     "movesDiagonally": true,
-                    "speed": {
-                        "type": "random",
-                        "from": 100.0,
-                        "to": 150.0,
-                        "isWhole": false
-                    }
+                    "speed": 80.0
                 }
             ]
         },
@@ -15974,12 +15914,7 @@
                     "type": "moveWithKeys",
                     "keys": "arrowsAndWasd",
                     "movesDiagonally": true,
-                    "speed": {
-                        "type": "random",
-                        "from": 100.0,
-                        "to": 150.0,
-                        "isWhole": false
-                    }
+                    "speed": 80.0
                 }
             ]
         },
@@ -16730,12 +16665,7 @@
                     "type": "moveWithKeys",
                     "keys": "arrowsAndWasd",
                     "movesDiagonally": true,
-                    "speed": {
-                        "type": "random",
-                        "from": 100.0,
-                        "to": 150.0,
-                        "isWhole": false
-                    }
+                    "speed": 80.0
                 }
             ]
         },
@@ -17486,12 +17416,7 @@
                     "type": "moveWithKeys",
                     "keys": "arrowsAndWasd",
                     "movesDiagonally": true,
-                    "speed": {
-                        "type": "random",
-                        "from": 100.0,
-                        "to": 150.0,
-                        "isWhole": false
-                    }
+                    "speed": 80.0
                 }
             ]
         }

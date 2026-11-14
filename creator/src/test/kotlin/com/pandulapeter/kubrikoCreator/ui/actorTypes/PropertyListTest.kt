@@ -29,6 +29,7 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.test.rightClick
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -59,6 +60,7 @@ class PropertyListTest {
                 propertyListItems(
                     properties = properties,
                     propertyKeys = keys,
+                    typeKind = BlockTypeKind.ACTOR,
                     emptyHint = Res.string.actor_type_properties_empty,
                     onAdded = {},
                     onChanged = { name, property -> properties = properties.map { if (it.name == name) property else it } },
@@ -90,6 +92,7 @@ class PropertyListTest {
                 propertyListItems(
                     properties = listOf(PropertyDefinition.Number("speed")),
                     propertyKeys = listOf(1L),
+                    typeKind = BlockTypeKind.ACTOR,
                     emptyHint = Res.string.actor_type_properties_empty,
                     onAdded = {},
                     onChanged = { _, _ -> },
@@ -121,6 +124,7 @@ class PropertyListTest {
                     propertyListItems(
                         properties = properties,
                         propertyKeys = keys,
+                        typeKind = BlockTypeKind.ACTOR,
                         emptyHint = Res.string.actor_type_properties_empty,
                         onAdded = {},
                         onChanged = { _, _ -> },
@@ -190,9 +194,9 @@ class PropertyListTest {
 
     @Test
     fun aNameIsRenamedToOnlyWhenItIsNewAndValid() {
-        assertEquals("pace", renamedPropertyName("pace", "speed", listOf("cry")))
-        assertEquals(null, renamedPropertyName("speed", "speed", listOf("cry")))
-        assertEquals(null, renamedPropertyName("cry", "speed", listOf("cry")))
-        assertEquals(null, renamedPropertyName("", "speed", listOf("cry")))
+        assertEquals("pace", renamedPropertyName("pace", "speed", listOf("cry"), BlockTypeKind.ACTOR))
+        assertEquals(null, renamedPropertyName("speed", "speed", listOf("cry"), BlockTypeKind.ACTOR))
+        assertEquals(null, renamedPropertyName("cry", "speed", listOf("cry"), BlockTypeKind.ACTOR))
+        assertEquals(null, renamedPropertyName("", "speed", listOf("cry"), BlockTypeKind.ACTOR))
     }
 }

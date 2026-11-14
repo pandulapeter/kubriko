@@ -150,7 +150,7 @@ public object EveryBlockTypes {
         get() = listOf(
             BlockDefinition.MoveWithKeys(),
             BlockDefinition.MoveWithKeys(keys = SteeringKeys.WASD, movesDiagonally = false, speed = NumberValue.Property("score")),
-            BlockDefinition.MoveWithKeys(keys = SteeringKeys.ARROWS_AND_WASD, speed = NumberValue.Random(100f, 150f)),
+            BlockDefinition.MoveWithKeys(keys = SteeringKeys.ARROWS_AND_WASD, speed = NumberValue.Fixed(80f)),
         )
 
     /**

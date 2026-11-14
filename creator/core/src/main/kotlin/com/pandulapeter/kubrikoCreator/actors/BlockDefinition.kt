@@ -63,7 +63,7 @@ public sealed interface BlockDefinition {
         @SerialName("keys") val keys: SteeringKeys = SteeringKeys.ARROWS,
         @Description("True for eight directions, false for four (left and right win).")
         @SerialName("movesDiagonally") val movesDiagonally: Boolean = true,
-        @Description("The speed, in scene units per second. Not an edge.")
+        @Description("In scene units per second. Not an edge nor random.")
         @SerialName("speed") val speed: NumberValue = NumberValue.Fixed(200f),
     ) : BlockDefinition
 
@@ -299,7 +299,7 @@ public sealed interface BlockDefinition {
 
     @Serializable
     @SerialName("animate")
-    @Description("Takes the Actor's scale, opacity, color, or position from a start to an end over some seconds, and can remove the Actor at the end. Each value has one animation at a time, which another animate Block of it starts over. It sets the value before the Events run, so Blocks in Events win. A rectangle's collision mask keeps its size.")
+    @Description("Takes the Actor's scale, opacity, color, or position from a start to an end over some seconds, and can remove the Actor at the end. One animation per value: another animate Block of it starts over. It sets the value every frame before the Events run, so Blocks in Events win. A rectangle's collision mask keeps its size when scaled.")
     public data class Animate(
         @Description("What it changes.")
         @SerialName("value") val value: AnimatedValue = AnimatedValue.Scale(),

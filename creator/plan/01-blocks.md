@@ -24,7 +24,6 @@ needed twelve Kotlin Blocks, all for simple behavior. Each item replaces some of
   `KUBRIKO_CREATOR_EVAL_RECORD=true`, which spends a real agent's requests) once a live run can be spent; whatever it still
   writes a Kotlin Block for becomes an item here.
 
-
 ## More for Manager types
 
 - **Reacting to Actors:** an Actor of a type added or removed, for "all Bricks are gone", and counting the Actors of a type.

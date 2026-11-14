@@ -61,9 +61,15 @@
   yet, such as `Scale`, is named in full rather than imported, which is why `com` is a reserved Property name: reserving
   a type name would need a migration that renames Actor types. A box collision mask keeps the size it was built with
   (a new mask would leave the collision plugin's spatial grid with the old one), so a scale animation doesn't reach it.
-- Move with keys sets the velocity from the keys held, so it works only every frame (`onlyIn`): anywhere else it would
-  move the Actor only on the frame it ran. A Block whose code isn't generated where it sits gives the game no plugin
-  (`PluginUse` asks `BlockKind.isAvailableIn`), so a misplaced one doesn't add the keyboard.
+- Move with keys sets the velocity from the keys held, so it works only every frame (`onlyIn`), and its speed is never
+  random, which would change on every frame. Its WASD are the letter keys as Compose names them: on the desktop and
+  Android that follows the keyboard layout (on AZERTY, W and A steer where those letters are printed, away from the usual cluster), while the web
+  (`KeyboardEvent.code`) and iOS (`GCKeyboard`) read the physical keys, so the keyboard plugin decides, not the Block.
+- What isn't generated needs no plugin: `GeneratedCode` decides which Events and Blocks get code, and both generators,
+  `PluginUse`, and `PluginManagers` ask it, so a Block left as a comment (or in an Event left out) adds no plugin.
+- Property names the format raises reserved only for what generated Actor classes declare (`look`, the animation's and
+  the Animate Block's members, `opacity`, and the movement functions) are free in Manager types
+  (`PropertyNaming.validate` takes the kind), so their migrations rename only Actor types' Properties.
 - Timers are two `Long` fields each, counted down in `update`, rather than Kubriko's `Timer`, whose duration is fixed, so starting
   one never allocates; no Property may end like those fields. Manager Properties are Compose state (`mutableFloatStateOf` for
   numbers, so nothing boxes).

@@ -116,13 +116,7 @@ public object BlockCodeGenerator {
             lines = listOf("velocity = $DIRECTION_FUNCTION(${NumberValueCode.float(block.direction, scope)}, ${NumberValueCode.float(block.speed, scope)})"),
             needs = setOf(BlockNeed.MOVEMENT, BlockNeed.DIRECTION),
         )
-        is BlockDefinition.MoveWithKeys -> BlockCode(
-            lines = listOf(
-                "velocity = $STEERING_FUNCTION(speed = ${NumberValueCode.float(block.speed, scope)}, usesArrows = ${block.keys.usesArrows}, " +
-                    "usesWasd = ${block.keys.usesWasd}, movesDiagonally = ${block.movesDiagonally})",
-            ),
-            needs = setOf(BlockNeed.MOVEMENT, BlockNeed.KEYBOARD_INPUT_MANAGER, BlockNeed.STEERING),
-        )
+        is BlockDefinition.MoveWithKeys -> moveWithKeysCode(block, scope)
         BlockDefinition.Stop -> movementCode("velocity = SceneOffset.Zero")
         BlockDefinition.RunParentEvent -> BlockCode(listOf(scope.parentEventCall ?: "// Only an Actor type with a parent runs its parent's Event."))
         is BlockDefinition.JumpTo -> movementCode("body.position = ${offsetCode(block.x, block.y, scope)}")
@@ -239,6 +233,29 @@ public object BlockCodeGenerator {
 
     private fun relativeCoordinate(value: NumberValue, axis: String, scope: BlockScope) =
         if (value.readsEdges) NumberValueCode.sceneUnit(value, scope) else "body.position.$axis + ${NumberValueCode.sceneUnit(value, scope)}"
+
+    /**
+     * Which keys are held is read at the call, so only the Block's own keys are checked, and the speed is an argument,
+     * read with no local of the Block in scope.
+     */
+    private fun moveWithKeysCode(block: BlockDefinition.MoveWithKeys, scope: BlockScope): BlockCode {
+        fun held(arrow: String, letter: String) = listOfNotNull(arrow.takeIf { block.keys.usesArrows }, letter.takeIf { block.keys.usesWasd })
+            .joinToString(" || ") { "keyboardInputManager.isKeyPressed(Key.$it)" }
+        return BlockCode(
+            lines = listOf(
+                "velocity = $STEERING_FUNCTION(",
+                "${INDENT}speed = ${NumberValueCode.float(block.speed, scope)},",
+                "${INDENT}isLeftHeld = ${held("DirectionLeft", "A")},",
+                "${INDENT}isRightHeld = ${held("DirectionRight", "D")},",
+                "${INDENT}isUpHeld = ${held("DirectionUp", "W")},",
+                "${INDENT}isDownHeld = ${held("DirectionDown", "S")},",
+                "${INDENT}movesDiagonally = ${block.movesDiagonally},",
+                ")",
+            ),
+            needs = setOf(BlockNeed.MOVEMENT, BlockNeed.KEYBOARD_INPUT_MANAGER, BlockNeed.STEERING),
+            imports = setOf(KEY_IMPORT),
+        )
+    }
 
     /**
      * The speed is read first, while no local of the Block is in scope yet, so a Property named like one of them is

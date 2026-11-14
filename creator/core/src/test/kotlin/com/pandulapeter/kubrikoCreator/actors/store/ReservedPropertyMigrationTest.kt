@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.actors.store
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AnimatedValue
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
@@ -50,13 +51,13 @@ class ReservedPropertyMigrationTest {
 
     @Test
     fun lookCanNoLongerBeAPropertysName() {
-        assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate("look", emptyList()))
+        assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate("look", emptyList(), BlockTypeKind.ACTOR))
     }
 
     @Test
     fun formatVersionFourReservesWhatPlaysASpritesFrames() {
         listOf("animation", "animationSpeed", "isAnimationLooping").forEach { name ->
-            assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate(name, emptyList()), name)
+            assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate(name, emptyList(), BlockTypeKind.ACTOR), name)
         }
         assertNotNull(BlockTypeStore.open(root)).save(
             ActorTypeDefinition(
@@ -76,7 +77,7 @@ class ReservedPropertyMigrationTest {
 
     @Test
     fun formatVersionElevenReservesTheFunctionMovingWithKeys() {
-        assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate("velocityFromKeys", emptyList()))
+        assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate("velocityFromKeys", emptyList(), BlockTypeKind.ACTOR))
         assertNotNull(BlockTypeStore.open(root)).save(
             ActorTypeDefinition(
                 name = "Hero",
@@ -92,7 +93,7 @@ class ReservedPropertyMigrationTest {
     @Test
     fun formatVersionTenReservesWhatPlaysTheAnimateBlocks() {
         listOf("scaleTweenFrom", "opacityTweenDuration", "colorTweenRemovesActor", "positionTweenEasing", "startColorTween", "tweenProgress", "com").forEach { name ->
-            assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate(name, emptyList()), name)
+            assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate(name, emptyList(), BlockTypeKind.ACTOR), name)
         }
         assertNotNull(BlockTypeStore.open(root)).save(
             ActorTypeDefinition(
@@ -112,7 +113,7 @@ class ReservedPropertyMigrationTest {
 
     @Test
     fun formatVersionNineReservesTheOpacity() {
-        assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate("opacity", emptyList()))
+        assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate("opacity", emptyList(), BlockTypeKind.ACTOR))
         assertNotNull(BlockTypeStore.open(root)).save(
             ActorTypeDefinition(
                 name = "Ghost",
@@ -127,7 +128,7 @@ class ReservedPropertyMigrationTest {
 
     @Test
     fun formatVersionEightReservesTheFunctionMovingInADirection() {
-        assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate("velocityInDirection", emptyList()))
+        assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate("velocityInDirection", emptyList(), BlockTypeKind.ACTOR))
         assertNotNull(BlockTypeStore.open(root)).save(
             ActorTypeDefinition(
                 name = "Debris",
@@ -185,21 +186,21 @@ class ReservedPropertyMigrationTest {
     }
 
     @Test
-    fun aManagerTypesLookIsRenamedInEveryTypeThatUsesIt() {
+    fun aManagerTypeKeepsTheNamesOnlyActorTypesReserve() {
         val store = assertNotNull(BlockTypeStore.open(root))
-        store.save(ManagerTypeDefinition("Game", properties = listOf(PropertyDefinition.Number("look"))))
-        store.save(
-            ActorTypeDefinition(
-                name = "Ball",
-                events = everyFrame(BlockDefinition.SetNumber(manager = "Game", property = "look", value = NumberValue.Fixed(1f)), BlockDefinition.Kotlin("gameManager.look += 1f")),
-            ),
+        val game = ManagerTypeDefinition("Game", properties = listOf(PropertyDefinition.Number("look"), PropertyDefinition.Number("velocityFromKeys")))
+        store.save(game)
+        val ball = ActorTypeDefinition(
+            name = "Ball",
+            events = everyFrame(BlockDefinition.SetNumber(manager = "Game", property = "look", value = NumberValue.Fixed(1f)), BlockDefinition.Kotlin("gameManager.look += 1f")),
         )
+        store.save(ball)
         val types = migratedTypes()
-        assertEquals(listOf(PropertyDefinition.Number("look2")), (types.getValue("Game") as ManagerTypeDefinition).properties)
-        assertEquals(
-            everyFrame(BlockDefinition.SetNumber(manager = "Game", property = "look2", value = NumberValue.Fixed(1f)), BlockDefinition.Kotlin("gameManager.look2 += 1f")),
-            (types.getValue("Ball") as ActorTypeDefinition).events,
-        )
+        assertEquals(game.properties, (types.getValue("Game") as ManagerTypeDefinition).properties)
+        assertEquals(ball.events, (types.getValue("Ball") as ActorTypeDefinition).events)
+        assertEquals(null, PropertyNaming.validate("look", emptyList(), BlockTypeKind.MANAGER))
+        assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate("look", emptyList(), BlockTypeKind.ACTOR))
+        assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate("velocity", emptyList(), BlockTypeKind.MANAGER))
     }
 
     @Test

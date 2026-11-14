@@ -61,7 +61,10 @@ internal data class PluginManagers(
                     .flatMap { listOf(definition.name) + family.familyOf(it.otherActorType!!) }
             }
             val pluginsInUse = PluginUse.of(definitions).mapTo(HashSet()) { it.artifact }
-            val blocks = definitions.flatMap { definition -> definition.events.flatMap { it.blocks } }
+            val blocks = definitions.flatMap { definition ->
+                definition.events.filter { GeneratedCode.isGenerated(it, definition.kind, actorTypeNames) }
+                    .flatMap { event -> event.blocks.filter { GeneratedCode.isGenerated(it, event.type, definition.kind) } }
+            }
             return PluginManagers(
                 collidableActorTypeNames = collidableActorTypeNames,
                 usesKeyboard = KubrikoArtifact.KEYBOARD_INPUT in pluginsInUse,

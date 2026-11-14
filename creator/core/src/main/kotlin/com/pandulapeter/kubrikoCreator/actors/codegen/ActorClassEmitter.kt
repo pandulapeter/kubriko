@@ -356,7 +356,6 @@ internal class ActorClassEmitter(
             "com.pandulapeter.kubriko.helpers.extensions.sceneUnit",
         )
         val STEERING_IMPORTS = listOf(
-            KEY_IMPORT,
             SCENE_OFFSET_IMPORT,
             "com.pandulapeter.kubriko.helpers.extensions.sceneUnit",
         )

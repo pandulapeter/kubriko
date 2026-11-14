@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
@@ -52,7 +53,7 @@ public object EditProperty : WriteCommand<EditProperty.Input> {
             if (PropertyKind.of(definition.properties.first { it.name == input.property }) != PropertyKind.of(input.newProperty)) {
                 Rejection(CommandProblem.PROPERTY_KIND_CHANGED)
             } else {
-                validateProperty(input.newProperty, definition.properties, replacedName = input.property)
+                validateProperty(input.newProperty, definition.properties, definition.kind, replacedName = input.property)
                     ?: if (definition is ActorTypeDefinition && input.newProperty.name != input.property) context.validateFamilyRename(definition.name, input.property, input.newProperty.name) else null
             }
         }
@@ -67,7 +68,7 @@ public object EditProperty : WriteCommand<EditProperty.Input> {
         if (declarer != null && declarer != actorType) return Rejection(CommandProblem.PROPERTY_INHERITED, oldName, declarer)
         return family.familyOf(actorType).firstNotNullOfOrNull { member ->
             val names = (family.propertiesOf(member) + requireActorType(member).properties).map { it.name }.filter { it != oldName }
-            PropertyNaming.validate(newName, names)?.let(::Rejection)
+            PropertyNaming.validate(newName, names, BlockTypeKind.ACTOR)?.let(::Rejection)
         }
     }
 

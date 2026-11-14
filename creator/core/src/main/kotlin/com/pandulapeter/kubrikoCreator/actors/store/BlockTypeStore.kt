@@ -127,7 +127,7 @@ public class BlockTypeStore private constructor(
      */
     private fun invalidPropertyNameOf(definition: BlockTypeDefinition): String? {
         val names = definition.properties.map { it.name }
-        return names.firstOrNull { name -> PropertyNaming.validate(name, names - name) != null }
+        return names.firstOrNull { name -> PropertyNaming.validate(name, names - name, definition.kind) != null }
     }
 
     private fun decode(kind: BlockTypeKind, text: String): BlockTypeDefinition = when (kind) {

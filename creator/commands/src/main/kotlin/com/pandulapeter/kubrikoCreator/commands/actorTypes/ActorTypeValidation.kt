@@ -180,6 +180,7 @@ private fun validateBlockValues(block: BlockDefinition, scope: BlockScope): Reje
     block is BlockDefinition.SetColor && block.colors.any { !ColorHex.isOpaque(it) } -> Rejection(CommandProblem.COLORS_NOT_OPAQUE)
     block is BlockDefinition.Animate && block.value is AnimatedValue.Opacity && !block.value.numberValues.all { it.isWithin(0f, 100f) } ->
         Rejection(CommandProblem.OPACITY_OUT_OF_RANGE)
+    block is BlockDefinition.MoveWithKeys && block.speed is NumberValue.Random -> Rejection(CommandProblem.SPEED_RANDOM_EVERY_FRAME)
     block is BlockDefinition.Animate && block.value is AnimatedValue.Scale && !block.value.numberValues.all { it.isWithin(minimum = 0f) } ->
         Rejection(CommandProblem.SCALE_NEGATIVE)
     ((block as? BlockDefinition.Animate)?.value as? AnimatedValue.Color)?.let { ColorHex.isOpaque(it.from) && ColorHex.isOpaque(it.to) } == false ->
@@ -226,10 +227,10 @@ internal fun unknownKey(key: KeyChoice) =
     SimilarNames.rejection(LookupProblem.GAME_KEY_UNKNOWN, LookupProblem.GAME_KEY_UNKNOWN_SIMILAR, key.composeKeyName, KeyChoice.all.map { it.composeKeyName }, key.composeKeyName)
 
 /**
- * Why [property] can't be one of [properties] (which it replaces, if [replacedName] names one of them).
+ * Why [property] can't be one of [properties] of a type of [kind] (which it replaces, if [replacedName] names one of them).
  */
-internal fun validateProperty(property: PropertyDefinition, properties: List<PropertyDefinition>, replacedName: String? = null): Rejection? =
-    PropertyNaming.validate(property.name, properties.map { it.name }.filter { it != replacedName })?.let(::Rejection)
+internal fun validateProperty(property: PropertyDefinition, properties: List<PropertyDefinition>, kind: BlockTypeKind, replacedName: String? = null): Rejection? =
+    PropertyNaming.validate(property.name, properties.map { it.name }.filter { it != replacedName }, kind)?.let(::Rejection)
         ?: if (property is PropertyDefinition.Number && !property.initialValue.isFinite()) Rejection(CommandProblem.NUMBER_INVALID) else null
 
 /**
@@ -243,7 +244,7 @@ internal fun CommandContext.validateContents(definition: BlockTypeDefinition): R
     return actorType?.let { validateSize(it.width, it.height) }
         ?: actorType?.parent?.let { parent -> validateNewParent(definition.name, parent, actorType.properties) }
         ?: actorType?.sprite?.ifEmpty { null }?.let { validateSprite(it) }
-        ?: definition.properties.indices.firstNotNullOfOrNull { index -> validateProperty(definition.properties[index], definition.properties.take(index)) }
+        ?: definition.properties.indices.firstNotNullOfOrNull { index -> validateProperty(definition.properties[index], definition.properties.take(index), definition.kind) }
         ?: definition.events.firstNotNullOfOrNull { validateEvent(it, scope) }
         ?: (definition as? ManagerTypeDefinition)?.texts?.firstNotNullOfOrNull { validateText(it) }
 }

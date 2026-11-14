@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.AnimationNaming
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyNaming
 import com.pandulapeter.kubrikoCreator.actors.withManagerPropertyRenamed
@@ -71,8 +72,9 @@ internal class ReservedPropertyMigration(private vararg val reservedNames: Strin
             if (changed != current(type)) renamedTypes[type.name] = changed
         }
         val newNamesByType = HashMap<String, String>()
-        types.filterIsInstance<ManagerTypeDefinition>().filter { it.declares(reservedName) }.forEach { manager ->
-            val newName = PropertyNaming.freeName(reservedName, manager.properties.map { it.name } - reservedName)
+        val isReservedInManagerTypes = PropertyNaming.validate(reservedName, emptyList(), BlockTypeKind.MANAGER) != null
+        types.filterIsInstance<ManagerTypeDefinition>().filter { isReservedInManagerTypes && it.declares(reservedName) }.forEach { manager ->
+            val newName = PropertyNaming.freeName(reservedName, manager.properties.map { it.name } - reservedName, BlockTypeKind.MANAGER)
             put(manager, current(manager).withPropertyReplaced(reservedName, manager.propertyCalled(reservedName).withName(newName)))
             types.forEach { type -> put(type, current(type).withManagerPropertyRenamed(manager.name, reservedName, newName)) }
         }
@@ -82,7 +84,7 @@ internal class ReservedPropertyMigration(private vararg val reservedNames: Strin
         actorTypes.map { family.rootOf(it.name) }.distinct().forEach { root ->
             val members = family.familyOf(root).mapNotNull(byName::get)
             if (members.none { it.declares(reservedName) }) return@forEach
-            val newName = PropertyNaming.freeName(reservedName, members.flatMap { member -> member.properties.map { it.name } } - reservedName)
+            val newName = PropertyNaming.freeName(reservedName, members.flatMap { member -> member.properties.map { it.name } } - reservedName, BlockTypeKind.ACTOR)
             val users = members.filter { member -> family.propertiesOf(member.name).any { it.name == reservedName } }
             users.forEach { member ->
                 put(

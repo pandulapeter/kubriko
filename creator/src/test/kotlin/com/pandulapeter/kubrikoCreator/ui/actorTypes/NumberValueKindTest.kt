@@ -45,6 +45,7 @@ class NumberValueKindTest {
             listOf(NumberValueKind.FIXED, NumberValueKind.RANDOM, NumberValueKind.RANDOM_WHOLE, NumberValueKind.PROPERTY),
             NumberValueKind.offeredBy(isWholeField = false, offersEdges = false),
         )
+        assertEquals(listOf(NumberValueKind.FIXED, NumberValueKind.PROPERTY), NumberValueKind.offeredBy(isWholeField = false, offersEdges = false, offersRandom = false))
     }
 
     @Test

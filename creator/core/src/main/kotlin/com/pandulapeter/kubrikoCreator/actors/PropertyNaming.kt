@@ -30,28 +30,35 @@ public object PropertyNaming {
         "shouldClip", "state", "stateManager", "topLeft", "velocity", "viewportManager",
         "box", "isRemoved", "sceneSettings", "sprite", "spriteManager",
         "isInSceneEditor", "isInitialized", "isLoggingEnabled", "scope",
-        "look", "animation", "animationSpeed", "isAnimationLooping", "velocityInDirection", "opacity", "velocityFromKeys",
-    ) + SCENE_BOUNDS_NAMES + AnimationNaming.reservedNames
+    ) + SCENE_BOUNDS_NAMES
 
     /**
-     * [base], or the first of base2, base3, … that can be a Property's name among [existingNames].
+     * The names only the generated Actor classes use, which the format raises that added them reserved: a Manager type's
+     * Property may have them.
      */
-    public fun freeName(base: String, existingNames: Collection<String>): String = generateSequence(1) { it + 1 }
-        .map { if (it == 1) base else "$base$it" }
-        .first { validate(it, existingNames) == null }
+    private val actorMemberNames = setOf(
+        "look", "animation", "animationSpeed", "isAnimationLooping", "velocityInDirection", "opacity", "velocityFromKeys",
+    ) + AnimationNaming.reservedNames
 
     /**
-     * Why [name] can't be the name of a Property among [existingNames], or null if it can. Names that differ only in
+     * [base], or the first of base2, base3, … that can be the name of a Property of a type of [kind] among [existingNames].
+     */
+    public fun freeName(base: String, existingNames: Collection<String>, kind: BlockTypeKind): String = generateSequence(1) { it + 1 }
+        .map { if (it == 1) base else "$base$it" }
+        .first { validate(it, existingNames, kind) == null }
+
+    /**
+     * Why [name] can't be the name of a Property of a type of [kind] among [existingNames], or null if it can. Names that differ only in
      * case are taken too, like those of Actor types.
      */
-    public fun validate(name: String, existingNames: Collection<String>): NameProblem? = when (NameFlaw.of(name, isFirstAllowed = { it in 'a'..'z' }, isAllowed = NameFlaw::isLetterOrDigitAToZ)) {
+    public fun validate(name: String, existingNames: Collection<String>, kind: BlockTypeKind): NameProblem? = when (NameFlaw.of(name, isFirstAllowed = { it in 'a'..'z' }, isAllowed = NameFlaw::isLetterOrDigitAToZ)) {
         NameFlaw.EMPTY -> NameProblem.NAME_EMPTY
         NameFlaw.LETTER_BEYOND_A_TO_Z -> NameProblem.NAME_LETTER_BEYOND_A_TO_Z
         NameFlaw.FIRST_CHARACTER -> NameProblem.PROPERTY_FIRST_CHARACTER
         NameFlaw.CHARACTER -> NameProblem.PROPERTY_CHARACTERS
         null -> when {
             name in KotlinIdentifiers.hardKeywords -> NameProblem.NAME_KEYWORD
-            name in reservedNames || name.startsWith("isTouching") || name.startsWith("textStyle") || TimerNaming.fieldSuffixes.any(name::endsWith) ||
+            name in reservedNames || (kind == BlockTypeKind.ACTOR && name in actorMemberNames) || name.startsWith("isTouching") || name.startsWith("textStyle") || TimerNaming.fieldSuffixes.any(name::endsWith) ||
                 name.endsWith(BlockScope.MANAGER_FIELD_SUFFIX) -> NameProblem.PROPERTY_RESERVED
             existingNames.any { it.equals(name, ignoreCase = true) } -> NameProblem.PROPERTY_TAKEN
             else -> null

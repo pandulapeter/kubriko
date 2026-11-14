@@ -17,34 +17,34 @@ class PropertyNamingTest {
 
     @Test
     fun namesAreKotlinPropertyNames() {
-        assertNull(PropertyNaming.validate("score", emptyList()))
-        assertNull(PropertyNaming.validate("livesLeft2", emptyList()))
-        assertEquals(NameProblem.NAME_EMPTY, PropertyNaming.validate("", emptyList()))
-        listOf("Score", "2lives", "_score").forEach { assertEquals(NameProblem.PROPERTY_FIRST_CHARACTER, PropertyNaming.validate(it, emptyList()), it) }
-        listOf("high score", "score!", "lives_left", "lives٣").forEach { assertEquals(NameProblem.PROPERTY_CHARACTERS, PropertyNaming.validate(it, emptyList()), it) }
-        listOf("életerő", "pontszám").forEach { assertEquals(NameProblem.NAME_LETTER_BEYOND_A_TO_Z, PropertyNaming.validate(it, emptyList()), it) }
+        assertNull(PropertyNaming.validate("score", emptyList(), BlockTypeKind.ACTOR))
+        assertNull(PropertyNaming.validate("livesLeft2", emptyList(), BlockTypeKind.ACTOR))
+        assertEquals(NameProblem.NAME_EMPTY, PropertyNaming.validate("", emptyList(), BlockTypeKind.ACTOR))
+        listOf("Score", "2lives", "_score").forEach { assertEquals(NameProblem.PROPERTY_FIRST_CHARACTER, PropertyNaming.validate(it, emptyList(), BlockTypeKind.ACTOR), it) }
+        listOf("high score", "score!", "lives_left", "lives٣").forEach { assertEquals(NameProblem.PROPERTY_CHARACTERS, PropertyNaming.validate(it, emptyList(), BlockTypeKind.ACTOR), it) }
+        listOf("életerő", "pontszám").forEach { assertEquals(NameProblem.NAME_LETTER_BEYOND_A_TO_Z, PropertyNaming.validate(it, emptyList(), BlockTypeKind.ACTOR), it) }
     }
 
     @Test
     fun kotlinsWordsAreToldApartFromTheGeneratedCodesNames() {
-        listOf("class", "when", "fun", "val").forEach { assertEquals(NameProblem.NAME_KEYWORD, PropertyNaming.validate(it, emptyList()), it) }
+        listOf("class", "when", "fun", "val").forEach { assertEquals(NameProblem.NAME_KEYWORD, PropertyNaming.validate(it, emptyList(), BlockTypeKind.ACTOR), it) }
     }
 
     @Test
     fun namesTheGeneratedCodeUsesAreReserved() = listOf("velocity", "body", "color", "other", "key", "isTouchingLeftEdge", "timer3RemainingInMilliseconds", "spawnPeriodInMilliseconds", "stateManager", "generatedScenes", "keyboardInputManager", "bodyCenter", "isRemoved", "box", "sprite", "isInSceneEditor", "scope", "textStyle1", "scoreManager", "levelManager").forEach {
-        assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate(it, emptyList()), it)
+        assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate(it, emptyList(), BlockTypeKind.ACTOR), it)
     }
 
     @Test
     fun namesAreUniqueRegardlessOfCase() {
-        assertEquals(NameProblem.PROPERTY_TAKEN, PropertyNaming.validate("score", listOf("lives", "score")))
-        assertEquals(NameProblem.PROPERTY_TAKEN, PropertyNaming.validate("highScore", listOf("highscore")))
+        assertEquals(NameProblem.PROPERTY_TAKEN, PropertyNaming.validate("score", listOf("lives", "score"), BlockTypeKind.ACTOR))
+        assertEquals(NameProblem.PROPERTY_TAKEN, PropertyNaming.validate("highScore", listOf("highscore"), BlockTypeKind.ACTOR))
     }
 
     @Test
     fun newPropertiesGetTheFirstFreeName() {
-        assertEquals("value", PropertyNaming.freeName("value", emptyList()))
-        assertEquals("value3", PropertyNaming.freeName("value", listOf("value", "Value2")))
-        assertEquals("velocity2", PropertyNaming.freeName("velocity", emptyList()))
+        assertEquals("value", PropertyNaming.freeName("value", emptyList(), BlockTypeKind.ACTOR))
+        assertEquals("value3", PropertyNaming.freeName("value", listOf("value", "Value2"), BlockTypeKind.ACTOR))
+        assertEquals("velocity2", PropertyNaming.freeName("velocity", emptyList(), BlockTypeKind.ACTOR))
     }
 }

@@ -296,6 +296,7 @@ private fun PropertiesColumn(
     propertyListItems(
         properties = definition.properties,
         propertyKeys = propertyKeys,
+        typeKind = definition.kind,
         inheritedProperties = inheritedProperties,
         emptyHint = if (definition is ManagerTypeDefinition) Res.string.manager_type_properties_empty else Res.string.actor_type_properties_empty,
         onAdded = actions::addProperty,

@@ -67,13 +67,14 @@ internal enum class NumberValueKind {
         /**
          * The kinds a field offers: one that only takes whole numbers draws whole numbers anyway, so it offers one random
          * kind, and counts things rather than placing them, so it offers no edges, and neither does one that is no
-         * position (a direction or a speed); one that already holds an edge still shows it.
+         * position (a direction or a speed); one that already holds an edge still shows it. One read on every frame (the
+         * speed of Move with keys) offers no random kind, since it would change on every frame.
          */
-        fun offeredBy(isWholeField: Boolean, offersEdges: Boolean = true) = when {
+        fun offeredBy(isWholeField: Boolean, offersEdges: Boolean = true, offersRandom: Boolean = true) = when {
             isWholeField -> listOf(FIXED, RANDOM, PROPERTY)
             offersEdges -> entries
             else -> listOf(FIXED, RANDOM, RANDOM_WHOLE, PROPERTY)
-        }
+        }.filter { offersRandom || (it != RANDOM && it != RANDOM_WHOLE) }
 
         fun of(value: NumberValue, isWholeField: Boolean) = when (value) {
             is NumberValue.Fixed -> FIXED

@@ -66,7 +66,7 @@ class BlockCodeTest {
             BlockKind.SET_VELOCITY to Expected(setOf(MOVEMENT), setOf(sceneOffset)),
             BlockKind.ADD_TO_VELOCITY to Expected(setOf(MOVEMENT), setOf(sceneOffset)),
             BlockKind.MOVE_IN_DIRECTION to Expected(setOf(MOVEMENT, DIRECTION)),
-            BlockKind.MOVE_WITH_KEYS to Expected(setOf(MOVEMENT, KEYBOARD_INPUT_MANAGER, STEERING)),
+            BlockKind.MOVE_WITH_KEYS to Expected(setOf(MOVEMENT, KEYBOARD_INPUT_MANAGER, STEERING), setOf("androidx.compose.ui.input.key.Key")),
             BlockKind.STOP to Expected(setOf(MOVEMENT), setOf(sceneOffset)),
             BlockKind.RUN_PARENT_EVENT to Expected(),
             BlockKind.JUMP_TO to Expected(setOf(MOVEMENT), setOf(sceneOffset)),

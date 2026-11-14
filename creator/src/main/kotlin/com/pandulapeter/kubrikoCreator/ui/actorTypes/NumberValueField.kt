@@ -58,6 +58,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param isWhole Whether the field only takes whole numbers.
  * @param axis Which axis the field is a position (or a velocity) on, if it is one: only that axis's edges are offered.
  * @param offersEdges False for a field that is no position (a direction or a speed), which offers no edges.
+ * @param offersRandom False for a field read on every frame, where a random number would change on every frame.
  * @param accepts Which numbers the field takes; a number typed outside them isn't reported.
  */
 @Composable
@@ -69,6 +70,7 @@ internal fun NumberValueField(
     isWhole: Boolean = false,
     axis: Axis? = null,
     offersEdges: Boolean = true,
+    offersRandom: Boolean = true,
     accepts: (Float) -> Boolean = { true },
     fieldWidth: Dp = 96.dp,
 ) = Row(
@@ -80,7 +82,7 @@ internal fun NumberValueField(
     MenuIconButton(
         icon = kind.icon,
         label = Res.string.number_value_kind,
-        options = NumberValueKind.offeredBy(isWhole, offersEdges),
+        options = NumberValueKind.offeredBy(isWhole, offersEdges, offersRandom),
         optionText = { stringResource(it.title) },
         optionIcon = { it.icon },
         onSelected = { if (it != kind) onValueChange(it.of(value, isWhole, axis)) },

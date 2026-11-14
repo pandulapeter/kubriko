@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.actors.store
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
@@ -81,7 +82,7 @@ class SceneLeavingMigrationTest {
     @Test
     fun whatTheGeneratedClassesKeepAboutTheBoundsCanBeNoPropertysName() {
         (SceneBoundsCode.WAS_TOUCHING_FIELDS + SceneBoundsCode.WAS_INSIDE_FIELD + SceneBoundsCode.STAYS_INSIDE_FIELD).forEach { name ->
-            assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate(name, emptyList()), name)
+            assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate(name, emptyList(), BlockTypeKind.ACTOR), name)
         }
     }
 }

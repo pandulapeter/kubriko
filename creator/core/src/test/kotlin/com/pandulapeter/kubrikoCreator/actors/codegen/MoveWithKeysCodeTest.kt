@@ -34,15 +34,27 @@ class MoveWithKeysCodeTest {
     )
 
     @Test
-    fun theKeysAndDiagonalsArePassedToOneFunctionThatReadsTheSpeedOnce() {
-        assertEquals(listOf("velocity = velocityFromKeys(speed = 200f, usesArrows = true, usesWasd = false, movesDiagonally = true)"), lines(BlockDefinition.MoveWithKeys()))
+    fun theCallChecksOnlyTheBlocksOwnKeysAndPassesTheSpeedAsAnArgument() {
         assertEquals(
-            listOf("velocity = velocityFromKeys(speed = speed, usesArrows = false, usesWasd = true, movesDiagonally = false)"),
-            lines(BlockDefinition.MoveWithKeys(SteeringKeys.WASD, movesDiagonally = false, speed = NumberValue.Property("speed"))),
+            listOf(
+                "velocity = velocityFromKeys(",
+                "    speed = 200f,",
+                "    isLeftHeld = keyboardInputManager.isKeyPressed(Key.DirectionLeft),",
+                "    isRightHeld = keyboardInputManager.isKeyPressed(Key.DirectionRight),",
+                "    isUpHeld = keyboardInputManager.isKeyPressed(Key.DirectionUp),",
+                "    isDownHeld = keyboardInputManager.isKeyPressed(Key.DirectionDown),",
+                "    movesDiagonally = true,",
+                ")",
+            ),
+            lines(BlockDefinition.MoveWithKeys()),
         )
+        val wasd = lines(BlockDefinition.MoveWithKeys(SteeringKeys.WASD, movesDiagonally = false, speed = NumberValue.Property("speed")))
+        assertEquals("    speed = speed,", wasd[1])
+        assertEquals("    isLeftHeld = keyboardInputManager.isKeyPressed(Key.A),", wasd[2])
+        assertEquals("    movesDiagonally = false,", wasd[6])
         assertEquals(
-            listOf("velocity = velocityFromKeys(speed = 80f, usesArrows = true, usesWasd = true, movesDiagonally = true)"),
-            lines(BlockDefinition.MoveWithKeys(SteeringKeys.ARROWS_AND_WASD, speed = NumberValue.Fixed(80f))),
+            "    isUpHeld = keyboardInputManager.isKeyPressed(Key.DirectionUp) || keyboardInputManager.isKeyPressed(Key.W),",
+            lines(BlockDefinition.MoveWithKeys(SteeringKeys.ARROWS_AND_WASD))[4],
         )
         assertEquals(listOf("// Move with keys only works in an every frame Event."), lines(BlockDefinition.MoveWithKeys(), EventType.KEY_PRESSED))
     }
@@ -53,11 +65,7 @@ class MoveWithKeysCodeTest {
         val code = generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.MoveWithKeys())))
         assertContains(
             code,
-            "    private fun velocityFromKeys(speed: Float, usesArrows: Boolean, usesWasd: Boolean, movesDiagonally: Boolean): SceneOffset {\n" +
-                "        val isLeftHeld = usesArrows && keyboardInputManager.isKeyPressed(Key.DirectionLeft) || usesWasd && keyboardInputManager.isKeyPressed(Key.A)\n" +
-                "        val isRightHeld = usesArrows && keyboardInputManager.isKeyPressed(Key.DirectionRight) || usesWasd && keyboardInputManager.isKeyPressed(Key.D)\n" +
-                "        val isUpHeld = usesArrows && keyboardInputManager.isKeyPressed(Key.DirectionUp) || usesWasd && keyboardInputManager.isKeyPressed(Key.W)\n" +
-                "        val isDownHeld = usesArrows && keyboardInputManager.isKeyPressed(Key.DirectionDown) || usesWasd && keyboardInputManager.isKeyPressed(Key.S)\n" +
+            "    private fun velocityFromKeys(speed: Float, isLeftHeld: Boolean, isRightHeld: Boolean, isUpHeld: Boolean, isDownHeld: Boolean, movesDiagonally: Boolean): SceneOffset {\n" +
                 "        val x = (if (isRightHeld) 1f else 0f) - (if (isLeftHeld) 1f else 0f)\n" +
                 "        val y = if (x != 0f && !movesDiagonally) 0f else (if (isDownHeld) 1f else 0f) - (if (isUpHeld) 1f else 0f)\n" +
                 "        val step = if (x != 0f && y != 0f) speed * 0.70710677f else speed\n" +

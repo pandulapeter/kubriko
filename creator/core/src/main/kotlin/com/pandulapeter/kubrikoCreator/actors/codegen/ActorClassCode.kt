@@ -129,18 +129,12 @@ internal object ActorClassCode {
      * @param visibility `private` for a type of its own, `protected` for a family's base class.
      */
     fun StringBuilder.appendSteeringFunction(visibility: String) {
-        fun held(arrow: String, letter: String) = "usesArrows && keyboardInputManager.isKeyPressed(Key.$arrow) || usesWasd && keyboardInputManager.isKeyPressed(Key.$letter)"
         appendLine()
         appendLine("    /**")
-        appendLine("     * The velocity of [speed] towards the arrow keys ([usesArrows]) and WASD keys ([usesWasd]) held: opposite keys cancel")
-        appendLine("     * out, a diagonal is as fast as a straight line (0.70710677 is the square root of a half), and without")
-        appendLine("     * [movesDiagonally] left and right win over up and down.")
+        appendLine("     * The velocity of [speed] towards the keys held: opposite keys cancel out, a diagonal is as fast as a straight")
+        appendLine("     * line (0.70710677 is the square root of a half), and without [movesDiagonally] left and right win over up and down.")
         appendLine("     */")
-        appendLine("    $visibility fun $STEERING_FUNCTION(speed: Float, usesArrows: Boolean, usesWasd: Boolean, movesDiagonally: Boolean): SceneOffset {")
-        appendLine("        val isLeftHeld = ${held("DirectionLeft", "A")}")
-        appendLine("        val isRightHeld = ${held("DirectionRight", "D")}")
-        appendLine("        val isUpHeld = ${held("DirectionUp", "W")}")
-        appendLine("        val isDownHeld = ${held("DirectionDown", "S")}")
+        appendLine("    $visibility fun $STEERING_FUNCTION(speed: Float, isLeftHeld: Boolean, isRightHeld: Boolean, isUpHeld: Boolean, isDownHeld: Boolean, movesDiagonally: Boolean): SceneOffset {")
         appendLine("        val x = (if (isRightHeld) 1f else 0f) - (if (isLeftHeld) 1f else 0f)")
         appendLine("        val y = if (x != 0f && !movesDiagonally) 0f else (if (isDownHeld) 1f else 0f) - (if (isUpHeld) 1f else 0f)")
         appendLine("        val step = if (x != 0f && y != 0f) speed * 0.70710677f else speed")

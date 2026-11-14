@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.actors.codegen
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.AnimationTarget
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
@@ -134,13 +135,7 @@ internal class ActorTypeFeatures(
      * Whether the code of [event] is generated: Events with what doesn't exist (a key, the other Actor type, or a Timer
      * name) are left out, so that the generated code always compiles.
      */
-    private fun isGenerated(event: EventDefinition) = when (event.type) {
-        EventType.KEY_PRESSED -> event.trigger.key?.isKnown == true
-        EventType.COLLISION -> event.trigger.otherActorType in knownActorTypeNames
-        EventType.TIMER_FINISHED -> event.trigger.timer?.let(TimerNaming::isValid) == true
-        EventType.ADDED_TO_SCENE, EventType.EVERY_FRAME, EventType.EDGE_TOUCHED, EventType.LEFT_SCENE -> true
-        EventType.GAME_STARTED -> false
-    }
+    private fun isGenerated(event: EventDefinition) = GeneratedCode.isGenerated(event, BlockTypeKind.ACTOR, knownActorTypeNames)
 
     private companion object {
 

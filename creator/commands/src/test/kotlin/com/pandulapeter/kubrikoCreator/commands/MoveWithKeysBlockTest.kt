@@ -44,9 +44,10 @@ class MoveWithKeysBlockTest {
         listOf(
             BlockDefinition.MoveWithKeys(),
             BlockDefinition.MoveWithKeys(SteeringKeys.WASD, movesDiagonally = false, speed = NumberValue.Property("speed")),
-            BlockDefinition.MoveWithKeys(SteeringKeys.ARROWS_AND_WASD, speed = NumberValue.Random(100f, 200f)),
+            BlockDefinition.MoveWithKeys(SteeringKeys.ARROWS_AND_WASD, speed = NumberValue.Fixed(80f)),
         ).forEach { assertNull(context.rejection(it), it.toString()) }
         assertEquals(Rejection(CommandProblem.NUMBER_EDGE_NOT_TAKEN), context.rejection(BlockDefinition.MoveWithKeys(speed = NumberValue.Edge(SceneEdge.RIGHT))))
+        assertEquals(Rejection(CommandProblem.SPEED_RANDOM_EVERY_FRAME), context.rejection(BlockDefinition.MoveWithKeys(speed = NumberValue.Random(100f, 200f))))
         assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(BlockDefinition.MoveWithKeys(speed = NumberValue.Fixed(Float.NaN))))
     }
 

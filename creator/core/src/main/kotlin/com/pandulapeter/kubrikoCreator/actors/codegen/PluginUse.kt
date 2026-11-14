@@ -11,7 +11,6 @@ package com.pandulapeter.kubrikoCreator.actors.codegen
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
-import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
@@ -41,7 +40,7 @@ public data class PluginUse(
             val actorTypeNames = definitions.filterIsInstance<ActorTypeDefinition>().mapTo(HashSet()) { it.name }
             val uses = LinkedHashSet<PluginUse>()
             definitions.forEach { definition ->
-                definition.events.forEach { event ->
+                definition.events.filter { GeneratedCode.isGenerated(it, definition.kind, actorTypeNames) }.forEach { event ->
                     when {
                         event.type == EventType.COLLISION && event.otherActorType in actorTypeNames && definition is ActorTypeDefinition ->
                             uses += PluginUse(KubrikoArtifact.COLLISION, PluginReason.COLLISION_EVENT, definition.name, event.otherActorType)
@@ -49,7 +48,7 @@ public data class PluginUse(
                             uses += PluginUse(KubrikoArtifact.KEYBOARD_INPUT, PluginReason.KEY_PRESSED_EVENT, definition.name, event.key.composeKeyName)
                     }
                     event.blocks.forEach { block ->
-                        if (BlockKind.of(block).isAvailableIn(event.type, definition.kind)) useOf(block, definition.name)?.let(uses::add)
+                        if (GeneratedCode.isGenerated(block, event.type, definition.kind)) useOf(block, definition.name)?.let(uses::add)
                     }
                 }
                 if (definition is ActorTypeDefinition) {
@@ -63,7 +62,7 @@ public data class PluginUse(
         }
 
         private fun useOf(block: BlockDefinition, owner: String) = when {
-            block is BlockDefinition.If && block.condition is ConditionDefinition.KeyHeld ->
+            block is BlockDefinition.If && (block.condition as? ConditionDefinition.KeyHeld)?.key?.isKnown == true ->
                 PluginUse(KubrikoArtifact.KEYBOARD_INPUT, PluginReason.KEY_HELD_CONDITION, owner, (block.condition as ConditionDefinition.KeyHeld).key.composeKeyName)
             block is BlockDefinition.PlaySound && block.audioFile != null -> PluginUse(KubrikoArtifact.AUDIO_PLAYBACK, PluginReason.PLAYS_SOUND, owner, block.audioFile)
             block is BlockDefinition.PlayMusic && block.audioFile != null -> PluginUse(KubrikoArtifact.AUDIO_PLAYBACK, PluginReason.PLAYS_MUSIC, owner, block.audioFile)
