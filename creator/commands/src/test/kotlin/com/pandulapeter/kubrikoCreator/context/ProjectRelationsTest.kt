@@ -71,6 +71,18 @@ class ProjectRelationsTest {
     }
 
     @Test
+    fun anOtherActorTypeLeftOnAnEventThatDoesNotUseItRefersToNothing() {
+        val hud = ManagerTypeDefinition(
+            name = "Hud",
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, otherActorType = "Brick"), EventDefinition(EventType.ACTOR_REMOVED, otherActorType = "Brick")),
+        )
+        assertEquals(
+            listOf("Hud#1 reacts to Brick"),
+            ProjectRelations(types = listOf(brick, block, hud), scenes = emptyMap()).from(RelationSubject.Type("Hud")).map { it.toString() },
+        )
+    }
+
+    @Test
     fun whatRefersToATypeIncludesItsPropertiesAndTheScenesPlacingIt() {
         assertEquals(
             listOf("Game text 0 reads Game.score", "Ball#1.1 changes Game.score", "Ball#1.2 reads Game.score", "Ball#1.5 reads Game.score"),

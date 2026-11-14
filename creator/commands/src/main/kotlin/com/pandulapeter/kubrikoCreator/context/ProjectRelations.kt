@@ -65,7 +65,8 @@ internal class ProjectRelations(
     private fun MutableList<Relation>.addRelationsOf(type: BlockTypeDefinition) {
         if (type is ActorTypeDefinition) type.parent?.let { add(Relation(RelationPlace.Type(type.name), RelationKind.INHERITS_FROM, RelationSubject.Type(it))) }
         type.events.forEachIndexed { eventIndex, event ->
-            event.otherActorType?.let {
+            // The trigger leaves out a field the Event's type doesn't use, which a file edited by hand may still have.
+            event.trigger.otherActorType?.let {
                 val kind = if (event.type == EventType.COLLISION) RelationKind.COLLIDES_WITH else RelationKind.REACTS_TO
                 add(Relation(RelationPlace.Type(type.name, eventIndex), kind, RelationSubject.Type(it)))
             }
