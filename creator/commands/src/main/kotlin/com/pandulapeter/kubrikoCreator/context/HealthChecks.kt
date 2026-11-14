@@ -61,11 +61,16 @@ internal object HealthChecks {
                     if (event.type == EventType.TIMER_FINISHED && timer != null && timer !in started) {
                         add(HealthFinding(HealthFinding.Kind.TIMER_NEVER_STARTED, RelationSubject.Type(type.name), timer))
                     }
-                    val other = event.otherActorType
-                    if (event.type == EventType.COLLISION && other != null && other in actorTypeNames && !isPresent(other)) {
-                        add(HealthFinding(HealthFinding.Kind.COLLISION_WITH_ABSENT_TYPE, RelationSubject.Type(type.name), other))
+                    val other = event.trigger.otherActorType
+                    if (other != null && other in actorTypeNames && !isPresent(other)) {
+                        val kind = if (event.type == EventType.COLLISION) HealthFinding.Kind.COLLISION_WITH_ABSENT_TYPE else HealthFinding.Kind.REACTION_TO_ABSENT_TYPE
+                        add(HealthFinding(kind, RelationSubject.Type(type.name), other))
                     }
                 }
+                relations.from(RelationSubject.Type(type.name)).filter { it.kind == RelationKind.COUNTS }.mapNotNull { (it.subject as? RelationSubject.Type)?.name }
+                    .distinct()
+                    .filter { it in actorTypeNames && !isPresent(it) }
+                    .forEach { add(HealthFinding(HealthFinding.Kind.COUNT_OF_ABSENT_TYPE, RelationSubject.Type(type.name), it)) }
             }
             addAll(KotlinBlockScopeChecks.of(types, family))
             addAll(MissingReferenceChecks.of(types, relations, sceneNames, audioFiles, sceneMusic))

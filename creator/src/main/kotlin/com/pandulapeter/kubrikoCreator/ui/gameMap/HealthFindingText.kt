@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_property_of_manager
 import kubriko.creator.generated.resources.health_collision_with_absent_type
+import kubriko.creator.generated.resources.health_count_of_absent_type
 import kubriko.creator.generated.resources.health_first_scene_missing
 import kubriko.creator.generated.resources.health_kotlin_block_removed_local
 import kubriko.creator.generated.resources.health_kotlin_block_return
@@ -24,6 +25,7 @@ import kubriko.creator.generated.resources.health_page_image_missing
 import kubriko.creator.generated.resources.health_page_no_summary
 import kubriko.creator.generated.resources.health_page_no_title
 import kubriko.creator.generated.resources.health_planned_may_be_built
+import kubriko.creator.generated.resources.health_reaction_to_absent_type
 import kubriko.creator.generated.resources.health_reference_missing
 import kubriko.creator.generated.resources.health_timer_never_started
 import kubriko.creator.generated.resources.health_unmentioned
@@ -58,6 +60,8 @@ internal fun HealthFinding.text(): String {
         HealthFinding.Kind.UNREAD_PROPERTY -> stringResource(Res.string.health_unread_property, subjectText)
         HealthFinding.Kind.TIMER_NEVER_STARTED -> stringResource(Res.string.health_timer_never_started, subjectText, detail.orEmpty())
         HealthFinding.Kind.COLLISION_WITH_ABSENT_TYPE -> stringResource(Res.string.health_collision_with_absent_type, subjectText, detail.orEmpty())
+        HealthFinding.Kind.REACTION_TO_ABSENT_TYPE -> stringResource(Res.string.health_reaction_to_absent_type, subjectText, detail.orEmpty())
+        HealthFinding.Kind.COUNT_OF_ABSENT_TYPE -> stringResource(Res.string.health_count_of_absent_type, subjectText, detail.orEmpty())
         HealthFinding.Kind.UNUSED_PAGE_IMAGE -> stringResource(Res.string.health_unused_page_image, subjectText)
         HealthFinding.Kind.PAGE_IMAGE_MISSING -> stringResource(Res.string.health_page_image_missing, subjectText, usage.orEmpty())
         HealthFinding.Kind.UNMENTIONED -> stringResource(Res.string.health_unmentioned, subjectText)

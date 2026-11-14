@@ -12,6 +12,8 @@ package com.pandulapeter.kubrikoCreator.context
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.Comparison
+import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
@@ -63,6 +65,33 @@ class HealthChecksTest {
         ),
         HealthChecks.of(types, ProjectRelations(types, scenes), scenes.keys).sortedBy { it.kind.ordinal },
     )
+
+    @Test
+    fun reactingToAndCountingAnActorTypeThatIsNeverThereIsReported() {
+        val referee = ManagerTypeDefinition(
+            name = "Referee",
+            events = listOf(
+                EventDefinition(EventType.ACTOR_REMOVED, otherActorType = "Ghost"),
+                EventDefinition(EventType.ACTOR_ADDED, otherActorType = "Brick"),
+                EventDefinition(
+                    EventType.EVERY_FRAME,
+                    blocks = listOf(
+                        BlockDefinition.If(ConditionDefinition.ActorCount("Ghost")),
+                        BlockDefinition.If(ConditionDefinition.ActorCount("Ghost", Comparison.GREATER)),
+                        BlockDefinition.If(ConditionDefinition.ActorCount("Brick")),
+                    ),
+                ),
+            ),
+        )
+        val withReferee = types + referee
+        assertEquals(
+            listOf(
+                HealthFinding(HealthFinding.Kind.REACTION_TO_ABSENT_TYPE, RelationSubject.Type("Referee"), "Ghost"),
+                HealthFinding(HealthFinding.Kind.COUNT_OF_ABSENT_TYPE, RelationSubject.Type("Referee"), "Ghost"),
+            ),
+            HealthChecks.of(withReferee, ProjectRelations(withReferee, scenes), scenes.keys).filter { it.subject == RelationSubject.Type("Referee") }.sortedBy { it.kind.ordinal },
+        )
+    }
 
     @Test
     fun whatNamesSomethingThatNoLongerExistsIsReportedWhereItIs() {

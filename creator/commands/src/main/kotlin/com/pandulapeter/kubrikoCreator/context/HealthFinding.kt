@@ -58,6 +58,16 @@ public data class HealthFinding(
         COLLISION_WITH_ABSENT_TYPE,
 
         /**
+         * An actorAdded or actorRemoved Event about an Actor type that is never there, so it never fires.
+         */
+        REACTION_TO_ABSENT_TYPE,
+
+        /**
+         * An If Block counting the Actors of an Actor type that is never there, so the count is always 0.
+         */
+        COUNT_OF_ABSENT_TYPE,
+
+        /**
          * A Kotlin Block that uses `return` or a local its Event no longer has, now that each kind of Event runs in a
          * function of its own ([KotlinBlockScopeChecks]).
          */
@@ -116,6 +126,8 @@ public data class HealthFinding(
         Kind.UNREAD_PROPERTY -> "$subject: nothing reads it (no condition, Log Block, text, or Kotlin names it)."
         Kind.TIMER_NEVER_STARTED -> "$subject: the timerFinished Event of $detail never fires, since no startTimer Block of its family starts it."
         Kind.COLLISION_WITH_ABSENT_TYPE -> "$subject: the collision Event with $detail never fires, since no Scene places $detail and no Block adds it."
+        Kind.REACTION_TO_ABSENT_TYPE -> "$subject: the actorAdded and actorRemoved Events about $detail never fire, since no Scene places $detail and no Block adds it."
+        Kind.COUNT_OF_ABSENT_TYPE -> "$subject: counting the Actors of $detail always gives 0, since no Scene places $detail and no Block adds it."
         Kind.REFERENCE_MISSING -> "$detail: names $usage, which no longer exists."
         Kind.UNUSED_PAGE_IMAGE -> "$subject: no page or document shows it."
         Kind.PAGE_IMAGE_MISSING -> "$subject: shows $usage, which is gone."
