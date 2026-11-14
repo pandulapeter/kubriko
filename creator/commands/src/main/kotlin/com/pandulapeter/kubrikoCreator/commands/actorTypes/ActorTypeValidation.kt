@@ -322,8 +322,8 @@ private val BlockDefinition.areEdgesAlongTheirAxes
     }
 
 /**
- * The numbers of [this] Block that are a direction, a speed, an opacity, a scale, or a time, which an edge, a position,
- * means nothing as.
+ * The numbers of [this] Block that are a direction, a speed, an opacity, a scale, a time, or what a count is compared
+ * with, which an edge, a position, means nothing as.
  */
 private val BlockDefinition.edgelessNumberValues
     get() = when (this) {
@@ -333,6 +333,7 @@ private val BlockDefinition.edgelessNumberValues
         is BlockDefinition.SetOpacity -> listOf(percent)
         is BlockDefinition.ChangeOpacity -> listOf(by)
         is BlockDefinition.Animate -> if (value is AnimatedValue.Position) listOf(seconds) else value.numberValues + seconds
+        is BlockDefinition.If -> listOfNotNull((condition as? ConditionDefinition.ActorCount)?.value)
         else -> emptyList()
     }
 

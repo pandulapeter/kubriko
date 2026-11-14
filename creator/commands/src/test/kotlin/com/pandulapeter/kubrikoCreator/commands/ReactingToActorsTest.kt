@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
+import com.pandulapeter.kubrikoCreator.actors.SceneEdge
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddEvent
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
@@ -77,6 +78,10 @@ class ReactingToActorsTest {
         assertNull(AddBlock.validate(context, AddBlock.Input("Brick", 0, counting)))
         assertNull(AddBlock.validate(context, AddBlock.Input("Brick", 0, BlockDefinition.If(ConditionDefinition.ActorCount()))))
         assertNotNull(AddBlock.validate(context, AddBlock.Input("Game", 0, BlockDefinition.If(ConditionDefinition.ActorCount("Paddle")))))
+        assertEquals(
+            Rejection(CommandProblem.NUMBER_EDGE_NOT_TAKEN),
+            AddBlock.validate(context, AddBlock.Input("Game", 0, BlockDefinition.If(ConditionDefinition.ActorCount("Ball", value = NumberValue.Edge(SceneEdge.LEFT))))),
+        )
     }
 
     @Test

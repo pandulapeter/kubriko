@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
@@ -54,5 +55,8 @@ class ActorCountConditionTest {
         waitForIdle()
         assertEquals(BlockDefinition.If(ConditionDefinition.ActorCount("Brick")), block)
         saveSnapshot("actor-count-condition")
+        onNodeWithContentDescription("Kind of number").performClick()
+        onNodeWithText("A random number").assertExists()
+        onNodeWithText("An edge of the Scene").assertDoesNotExist()
     }
 }

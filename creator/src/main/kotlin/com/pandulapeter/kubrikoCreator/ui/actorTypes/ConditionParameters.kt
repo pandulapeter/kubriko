@@ -128,6 +128,7 @@ internal fun ConditionParameters(
                 value = condition.value,
                 scope = scope,
                 onValueChange = { onConditionChange(condition.copy(value = it)) },
+                offersEdges = false,
                 fieldWidth = 88.dp,
             )
         }
