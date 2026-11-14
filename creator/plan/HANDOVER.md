@@ -27,19 +27,21 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Go on with `01-blocks.md`, at More for Manager types (Reacting to Actors). Simple behavior's last buildable item, Steering
-with keys, is done (2026-11-14): Move with keys (`BlockDefinition.MoveWithKeys`, `SteeringKeys`) sets the velocity every
-frame from the arrow keys, WASD, or both, in four or eight directions, through `velocityFromKeys` (reserved by format
-version 11), with the call checking only the Block's own keys. It works only in Every frame Events, and its speed is never
-random. What is left of that section, the shooter without Kotlin, needs a live eval run, which spends a real agent's
-requests, so it waits until one can be spent (it is the section's done check, not something to build).
+Go on with `01-blocks.md`, at More for Manager types (More text). Reacting to Actors is done (2026-11-14), in format
+version 12: a Manager type's When an Actor is added and When an Actor is removed Events (`EventType.ACTOR_ADDED`,
+`ACTOR_REMOVED`, naming the type in `otherActorType`), and the If condition counting the Actors of a type
+(`ConditionDefinition.ActorCount`), for "all Bricks are gone". The Actors tell the Managers through atomic counters
+(`ActorWatch`, `ActorWatchCode`) that the Manager's next frame turns into Events, a removal counts unless the Actor left
+with its Scene (`GeneratedScenes.sceneChanges`), and the counts live in `GeneratedScenes`, kept by the Actors themselves
+(`ActorCountCode`). The Simple behavior section's shooter without Kotlin still waits for a live eval run.
 
-`/code-review` ran on it and every finding was fixed in commits of their own: the keyboard plugin's boxing (above);
-and a random speed refused, the keys checked at the call, plugins decided by one rule for what code is generated
-(`GeneratedCode`, which the generators, `PluginUse`, and `PluginManagers` share), and Property names only Actor classes
-use (`look`, `opacity`, the Animate and movement members, `com`) free in Manager types, so migrations no longer rename
-them there (098e4ebb4). The system prompt stays under 42,000 characters by shorter Block descriptions; the tool budgets
-went to 24,250 and 4,175 tokens for the new Block's name. The integration test built every template after the fixes.
+`/code-review` ran on it and every finding was fixed in commits of their own (acce098b0..dee3f078a): an Actor type left
+on an Event that doesn't use one no longer makes deleting that type delete the Event; a count takes no Scene edge; the
+health checks hint at reacting to or counting a type that is never in a Scene; the watches are worked out once per
+regeneration; removals of any kind but a Scene change are heard, not only a Block's; and the count is O(1) instead of a
+walk of every Actor per check. The event-to-block lists of `get_block_catalog` were halved (a Block names `allowedIn` only
+when it isn't allowed everywhere), which kept the system prompt under 42,000 characters without raising any budget. The
+integration test built every template after the fixes.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
@@ -83,6 +85,11 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
 - A played game steered with Move with keys (the integration test compiles it, but nothing presses a key in one); an
   end-to-end scenario under Xvfb could give the Breakout paddle a Move with keys and check by pixels, with `press_keys`
   steps, that holding the right arrow moves it right and releasing it stops it.
+- A played game reacting to Actors: a Manager's When an Actor of Brick is removed with If the number of Actors of Brick
+  is 0 → Go to a Scene (the integration test compiles every case, but nothing runs one); an end-to-end scenario under
+  Xvfb could give the Breakout fixture that Manager and a Scene to win in, play it with `press_keys` until the ball clears
+  the last Brick (or remove the Bricks from a shortened level), and check by pixels that the win Scene shows, and that
+  restarting a level doesn't count its Bricks as removed.
 - A played game running Animate Blocks (the integration test compiles every value and easing, but nothing runs one); an
   end-to-end scenario under Xvfb could add a Brick that animates its opacity from 100 to 0 over a second, removing it at the
   end, and check by pixels that it fades and is gone.
@@ -95,7 +102,7 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
 - A played game with Actors leaving the Scene and staying inside it (the integration test compiles every combination, but
   nothing runs one); an end-to-end scenario under Xvfb could add a Brick moving left from past the right edge with a
   When it leaves the Scene → Remove this Actor, and check by pixels that it crosses and is gone.
-- The eval set has no request using `find_usages` or `search_project`, nor the new resource tools, `move_folder`, `set_sprite_sheet`, the animation Blocks, Move in a direction, the color and opacity Blocks, Animate, Move with keys, or the drawing
+- The eval set has no request using `find_usages` or `search_project`, nor the new resource tools, `move_folder`, `set_sprite_sheet`, the animation Blocks, Move in a direction, the color and opacity Blocks, Animate, Move with keys, the Manager Events about Actors and the count of Actors, or the drawing
   tools yet; record one (`EvalSetLiveTest` with
   `KUBRIKO_CREATOR_EVAL_RECORD=true`) once a live run can be spent on it.
 
