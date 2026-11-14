@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.actors.codegen
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.AnimatedValue
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
@@ -21,13 +22,18 @@ import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.actors.SceneEdge
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.ACTOR_MANAGER
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.AUDIO
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.BOUNCE_OFF
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.COLOR_TWEEN
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.DIRECTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.KEYBOARD_INPUT_MANAGER
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.MOVEMENT
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.NUMBER_TEXT
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.OPACITY_TWEEN
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.POSITION_TWEEN
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.SCALE_TWEEN
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.SCENES
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.STATE_MANAGER
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.VIEWPORT_MANAGER
@@ -85,6 +91,7 @@ class BlockCodeTest {
             BlockKind.SET_COLOR to Expected(),
             BlockKind.SET_OPACITY to Expected(),
             BlockKind.CHANGE_OPACITY to Expected(),
+            BlockKind.ANIMATE to Expected(setOf(MOVEMENT, ACTOR_MANAGER, SCALE_TWEEN)),
             BlockKind.IF to Expected(),
             BlockKind.ELSE to Expected(),
             BlockKind.REPEAT to Expected(),
@@ -122,6 +129,11 @@ class BlockCodeTest {
             BlockDefinition.SetVelocity(x = NumberValue.Property("missing", manager = "Game")) to Expected(setOf(MOVEMENT), setOf(sceneOffset)),
             BlockDefinition.SetVelocity(x = NumberValue.Property("speed")) to Expected(setOf(MOVEMENT), setOf(sceneOffset)),
             BlockDefinition.StartTimer(seconds = NumberValue.Random()) to Expected(),
+            BlockDefinition.Animate(AnimatedValue.Opacity()) to Expected(setOf(MOVEMENT, ACTOR_MANAGER, OPACITY_TWEEN)),
+            BlockDefinition.Animate(AnimatedValue.Color()) to Expected(setOf(MOVEMENT, ACTOR_MANAGER, COLOR_TWEEN)),
+            BlockDefinition.Animate(AnimatedValue.Position()) to Expected(setOf(MOVEMENT, ACTOR_MANAGER, POSITION_TWEEN), setOf(sceneOffset)),
+            BlockDefinition.Animate(AnimatedValue.Position(x = NumberValue.Edge(SceneEdge.LEFT))) to Expected(setOf(MOVEMENT, ACTOR_MANAGER, POSITION_TWEEN, SCENES), setOf(sceneOffset)),
+            BlockDefinition.Animate(seconds = NumberValue.Property("score", manager = "Game")) to Expected(setOf(MOVEMENT, ACTOR_MANAGER, SCALE_TWEEN), managers = setOf("Game")),
             BlockDefinition.If(ConditionDefinition.Paused()) to Expected(setOf(STATE_MANAGER)),
             BlockDefinition.Log("{speed}") to Expected(setOf(NUMBER_TEXT), setOf(logger)),
             BlockDefinition.Log("{Game.score}") to Expected(setOf(NUMBER_TEXT), setOf(logger), setOf("Game")),

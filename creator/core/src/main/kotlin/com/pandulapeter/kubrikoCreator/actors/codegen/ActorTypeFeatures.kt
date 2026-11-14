@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.actors.codegen
 
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
+import com.pandulapeter.kubrikoCreator.actors.AnimationTarget
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
@@ -95,9 +96,20 @@ internal class ActorTypeFeatures(
         if (isAnimated) add(BlockNeed.MOVEMENT)
     }
     val isDynamic = BlockNeed.MOVEMENT in needs
+
+    /**
+     * Whether a box collision mask is built again when the Actor's size or scale changes, since its size is fixed: only
+     * a Dynamic Actor's update can change them.
+     */
+    val rebuildsBoxCollisionMask = isCollidable && isDynamic && ActorShape.RECTANGLE in shapes
     val usesBounceOff = BlockNeed.BOUNCE_OFF in needs
     val usesDirection = BlockNeed.DIRECTION in needs
     val usesNumberText = BlockNeed.NUMBER_TEXT in needs
+
+    /**
+     * The values the Animate Blocks animate, each of which the class plays ([AnimateCode]).
+     */
+    val animatedTargets = AnimationTarget.entries.filter { AnimateCode.needOf(it) in needs }
 
     /**
      * Whether a Block shows a frame of the sprite, through a function only a type of its own declares when it is used;
@@ -144,7 +156,9 @@ internal class ActorTypeFeatures(
             BlockNeed.STATE_MANAGER -> "$STATE_MANAGER_FIELD: StateManager"
             BlockNeed.SCENES -> "$SCENES_FIELD: ${ScenesCodeGenerator.SCENES_NAME}"
             BlockNeed.AUDIO -> "$AUDIO_FIELD: ${AudioCodeGenerator.AUDIO_NAME}"
-            BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.ANIMATION, BlockNeed.FRAME -> null
+            BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.ANIMATION, BlockNeed.FRAME,
+            BlockNeed.SCALE_TWEEN, BlockNeed.OPACITY_TWEEN, BlockNeed.COLOR_TWEEN, BlockNeed.POSITION_TWEEN,
+            -> null
         }
 
         fun importOf(need: BlockNeed) = when (need) {
@@ -152,7 +166,9 @@ internal class ActorTypeFeatures(
             BlockNeed.VIEWPORT_MANAGER -> "com.pandulapeter.kubriko.manager.ViewportManager"
             BlockNeed.KEYBOARD_INPUT_MANAGER -> "com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager"
             BlockNeed.STATE_MANAGER -> STATE_MANAGER_IMPORT
-            BlockNeed.SCENES, BlockNeed.AUDIO, BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.ANIMATION, BlockNeed.FRAME -> null
+            BlockNeed.SCENES, BlockNeed.AUDIO, BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.ANIMATION, BlockNeed.FRAME,
+            BlockNeed.SCALE_TWEEN, BlockNeed.OPACITY_TWEEN, BlockNeed.COLOR_TWEEN, BlockNeed.POSITION_TWEEN,
+            -> null
         }
     }
 }

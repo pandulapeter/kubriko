@@ -89,7 +89,7 @@ internal class ProjectRelations(
             BlockDefinition.RemoveOther, is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, BlockDefinition.RestartScene,
             is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic,
             is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity,
-            is BlockDefinition.ChangeOpacity, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
+            is BlockDefinition.ChangeOpacity, is BlockDefinition.Animate, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
             -> Unit
         }
         block.numberPropertyReferences.forEach { reference ->

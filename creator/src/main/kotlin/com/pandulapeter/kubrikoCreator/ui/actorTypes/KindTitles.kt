@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_add_actor
 import kubriko.creator.generated.resources.block_add_to_velocity
+import kubriko.creator.generated.resources.block_animate
 import kubriko.creator.generated.resources.block_bounce_off_edge
 import kubriko.creator.generated.resources.block_bounce_off_other
 import kubriko.creator.generated.resources.block_change_number
@@ -68,6 +69,7 @@ internal val BlockKind.title: StringResource
         BlockKind.SET_COLOR -> Res.string.block_set_color
         BlockKind.SET_OPACITY -> Res.string.block_set_opacity
         BlockKind.CHANGE_OPACITY -> Res.string.block_change_opacity
+        BlockKind.ANIMATE -> Res.string.block_animate
         BlockKind.STOP -> Res.string.block_stop
         BlockKind.RUN_PARENT_EVENT -> Res.string.block_run_parent_event
         BlockKind.JUMP_TO -> Res.string.block_jump_to

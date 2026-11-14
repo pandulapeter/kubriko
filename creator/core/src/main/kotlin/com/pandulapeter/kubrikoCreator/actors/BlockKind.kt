@@ -56,6 +56,7 @@ public enum class BlockKind(
     SET_COLOR({ BlockDefinition.SetColor() }, managerTypeProblem = PlacementProblem.BLOCK_APPEARANCE_IN_MANAGER_TYPE),
     SET_OPACITY({ BlockDefinition.SetOpacity() }, managerTypeProblem = PlacementProblem.BLOCK_APPEARANCE_IN_MANAGER_TYPE),
     CHANGE_OPACITY({ BlockDefinition.ChangeOpacity() }, managerTypeProblem = PlacementProblem.BLOCK_APPEARANCE_IN_MANAGER_TYPE),
+    ANIMATE({ BlockDefinition.Animate() }, managerTypeProblem = PlacementProblem.BLOCK_ANIMATE_IN_MANAGER_TYPE),
     IF({ BlockDefinition.If() }),
     ELSE({ BlockDefinition.Else }),
     REPEAT({ BlockDefinition.Repeat() }),
@@ -113,6 +114,7 @@ public enum class BlockKind(
             is BlockDefinition.SetColor -> SET_COLOR
             is BlockDefinition.SetOpacity -> SET_OPACITY
             is BlockDefinition.ChangeOpacity -> CHANGE_OPACITY
+            is BlockDefinition.Animate -> ANIMATE
             is BlockDefinition.If -> IF
             BlockDefinition.Else -> ELSE
             is BlockDefinition.Repeat -> REPEAT

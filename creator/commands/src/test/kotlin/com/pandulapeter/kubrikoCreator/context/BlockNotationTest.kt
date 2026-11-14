@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.context
 
+import com.pandulapeter.kubrikoCreator.actors.AnimatedValue
+import com.pandulapeter.kubrikoCreator.actors.AnimationEasing
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.Comparison
@@ -49,6 +51,17 @@ class BlockNotationTest {
         assertEquals("Set the color to one of #20C060, #FFFFFF at random", BlockNotation.of(BlockDefinition.SetColor(listOf(0xFF20C060, 0xFFFFFFFF))))
         assertEquals("Set the opacity to a random number from 20 to 80 percent", BlockNotation.of(BlockDefinition.SetOpacity(NumberValue.Random(20f, 80f))))
         assertEquals("Change the opacity by -10 percent", BlockNotation.of(BlockDefinition.ChangeOpacity()))
+        assertEquals("Animate the scale from 1 to 2 in 0.5 s, ending slowly", BlockNotation.of(BlockDefinition.Animate()))
+        assertEquals(
+            "Animate the opacity from 100 to 0 percent in a random number from 1 to 2 s, evenly, then remove this Actor",
+            BlockNotation.of(BlockDefinition.Animate(AnimatedValue.Opacity(), NumberValue.Random(1f, 2f), AnimationEasing.LINEAR, removesActor = true)),
+        )
+        assertEquals("Animate the color from #FFFFFF to #102030 in 0.5 s, starting slowly", BlockNotation.of(BlockDefinition.Animate(AnimatedValue.Color(to = 0xFF102030), easing = AnimationEasing.EASE_IN)))
+        assertEquals("Animate the position by (0, -100) in 0.5 s, starting and ending slowly", BlockNotation.of(BlockDefinition.Animate(AnimatedValue.Position(), easing = AnimationEasing.EASE_IN_OUT)))
+        assertEquals(
+            "Animate the position to (the left edge, 5) in 0.5 s, ending slowly",
+            BlockNotation.of(BlockDefinition.Animate(AnimatedValue.Position(NumberValue.Edge(SceneEdge.LEFT), NumberValue.Fixed(5f), isRelative = false))),
+        )
         assertEquals("Repeat a random whole number from 1 to 3 times", BlockNotation.of(BlockDefinition.Repeat(NumberValue.Random(1f, 3f, isWhole = true))))
         assertEquals("If by chance ((none)%)", BlockNotation.of(BlockDefinition.If(ConditionDefinition.Chance(NumberValue.Property()))))
         assertEquals(

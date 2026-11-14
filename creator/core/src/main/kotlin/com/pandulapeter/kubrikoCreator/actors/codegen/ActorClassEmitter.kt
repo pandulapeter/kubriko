@@ -21,6 +21,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.REMOVED_GUA
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendAlwaysActive
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendBodyCenter
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendBounceOffFunction
+import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendCollisionMaskSizeField
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendCollisionMaskUpdate
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendDirectionFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendNumberTextFunction
@@ -35,6 +36,9 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.maskTypeOf
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.STEP_ANIMATION_LINE
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.appendLook
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.appendSavedState
+import com.pandulapeter.kubrikoCreator.actors.codegen.AnimateCode.appendFields
+import com.pandulapeter.kubrikoCreator.actors.codegen.AnimateCode.appendFunctions
+import com.pandulapeter.kubrikoCreator.actors.codegen.AnimateCode.appendSteps
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.ABSOLUTE_VALUE_IMPORT
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.ANIMATION_LOOPING_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.ANIMATION_SPEED_FIELD
@@ -116,6 +120,7 @@ internal class ActorClassEmitter(
         appendTimerFields(features.timers, visibility)
         appendBoundsFields(features.containment, features.firesEdgeEvent, features.firesLeftSceneEvent, isFamilyRoot = role == Role.FAMILY_ROOT)
         if (features.isAnimated) appendAnimationMembers()
+        appendFields(features.animatedTargets, visibility)
         appendOnAdded()
         appendUpdate()
         appendKeyDispatch()
@@ -130,6 +135,10 @@ internal class ActorClassEmitter(
         if (features.usesDirection) {
             imports += DIRECTION_IMPORTS
             appendDirectionFunction(visibility)
+        }
+        if (features.animatedTargets.isNotEmpty()) {
+            imports += AnimateCode.importsOf(features.animatedTargets)
+            appendFunctions(features.animatedTargets, visibility)
         }
         if (role == Role.STANDALONE) appendLook(definition, imports, sheet, isFamilyMember = false, usesSetFrame = features.usesSetFrame)
         if (features.usesNumberText) appendNumberTextFunction(visibility)
@@ -165,7 +174,7 @@ internal class ActorClassEmitter(
                 properties.forEach { appendLine("    ${it.name}: ${PropertyKind.of(it).kotlinType},") }
                 if (features.isCollidable) {
                     imports += MASK_IMPORT_PREFIX + maskTypeOf(features.shapes)
-                    appendLine("    final override val collisionMask: ${maskTypeOf(features.shapes)},")
+                    appendLine(if (features.rebuildsBoxCollisionMask) "    collisionMask: ${maskTypeOf(features.shapes)}," else "    final override val collisionMask: ${maskTypeOf(features.shapes)},")
                 }
                 appendLine(") : ${traits.joinToString()} {")
             }
@@ -193,10 +202,17 @@ internal class ActorClassEmitter(
             Role.STANDALONE -> if (features.isCollidable) {
                 imports += MASK_IMPORT_PREFIX + maskClassOf(shape)
                 appendBodyCenter()
-                appendLine(collisionMask(shape))
+                appendLine(collisionMask(shape, isRebuilt = features.rebuildsBoxCollisionMask))
             }
-            Role.FAMILY_ROOT -> if (features.isCollidable && features.isDynamic) appendBodyCenter()
+            Role.FAMILY_ROOT -> if (features.isCollidable && features.isDynamic) {
+                appendBodyCenter()
+                if (features.rebuildsBoxCollisionMask) {
+                    appendLine()
+                    appendLine("    final override var collisionMask: ${maskTypeOf(features.shapes)} = collisionMask")
+                }
+            }
         }
+        if (features.rebuildsBoxCollisionMask) appendCollisionMaskSizeField()
         if (features.collisionEvents.isNotEmpty()) {
             imports += listOf("kotlin.reflect.KClass", COLLIDABLE_IMPORT)
             val targets = features.collisionEvents.mapNotNull { it.trigger.otherActorType }.distinct().sorted()
@@ -221,6 +237,7 @@ internal class ActorClassEmitter(
         appendLine("    override fun update(deltaTimeInMilliseconds: Int) {")
         appendLine(REMOVED_GUARD)
         if (features.isAnimated) appendLine(if (role == Role.STANDALONE) "        $STEP_ANIMATION_LINE" else "        $STEP_ANIMATION_FUNCTION(deltaTimeInMilliseconds)")
+        appendSteps(features.animatedTargets)
         features.timers.forEach { timer ->
             appendTimerCountdown(timer) {
                 features.timerEvents.filter { it.trigger.timer == timer }.firstNotNullOfOrNull(::callOf)?.let { appendLine("                $it") }
@@ -238,7 +255,8 @@ internal class ActorClassEmitter(
         }
         if (features.isCollidable) {
             if (features.shapes.size > 1) imports += features.shapes.map { MASK_IMPORT_PREFIX + maskClassOf(it) }
-            appendCollisionMaskUpdate(features.shapes)
+            if (features.rebuildsBoxCollisionMask) imports += MASK_IMPORT_PREFIX + maskClassOf(ActorShape.RECTANGLE)
+            appendCollisionMaskUpdate(features.shapes, isBoxRebuilt = features.rebuildsBoxCollisionMask)
         }
         appendLine("    }")
     }
@@ -305,7 +323,7 @@ internal class ActorClassEmitter(
         appendLine("    }")
     }
 
-    private fun collisionMask(shape: ActorShape) = when (shape) {
+    private fun collisionMask(shape: ActorShape, isRebuilt: Boolean) = when (shape) {
         ActorShape.CIRCLE -> """
             |    override val collisionMask = CircleCollisionMask(
             |        initialPosition = bodyCenter,
@@ -313,7 +331,7 @@ internal class ActorClassEmitter(
             |    )
         """.trimMargin()
         ActorShape.RECTANGLE -> """
-            |    override val collisionMask = BoxCollisionMask(
+            |    override ${if (isRebuilt) "var" else "val"} collisionMask = BoxCollisionMask(
             |        initialPosition = bodyCenter,
             |        initialSize = body.size * body.scale,
             |        initialRotation = body.rotation,

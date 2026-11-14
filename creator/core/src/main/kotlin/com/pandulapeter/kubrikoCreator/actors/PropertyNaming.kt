@@ -22,6 +22,11 @@ public object PropertyNaming {
     )
 
     /**
+     * What a generated Actor class keeps the size its box collision mask was built for in, reserved since format version 10.
+     */
+    public const val COLLISION_MASK_SIZE_NAME: String = "collisionMaskSize"
+
+    /**
      * Kotlin's keywords, and the names the generated classes (and the Kubriko traits and `Manager` they extend) already use.
      */
     private val reservedNames = KotlinIdentifiers.hardKeywords + setOf(
@@ -31,7 +36,8 @@ public object PropertyNaming {
         "box", "isRemoved", "sceneSettings", "sprite", "spriteManager",
         "isInSceneEditor", "isInitialized", "isLoggingEnabled", "scope",
         "look", "animation", "animationSpeed", "isAnimationLooping", "velocityInDirection", "opacity",
-    ) + SCENE_BOUNDS_NAMES
+        COLLISION_MASK_SIZE_NAME,
+    ) + SCENE_BOUNDS_NAMES + AnimationNaming.reservedNames
 
     /**
      * [base], or the first of base2, base3, … that can be a Property's name among [existingNames].

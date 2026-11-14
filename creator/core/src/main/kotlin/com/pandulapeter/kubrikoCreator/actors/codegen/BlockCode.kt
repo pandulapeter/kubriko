@@ -68,4 +68,16 @@ internal enum class BlockNeed {
 
     /** The function that shows a frame of the Actor's sprite. */
     FRAME,
+
+    /** What plays the Animate Blocks of the scale ([AnimateCode]). */
+    SCALE_TWEEN,
+
+    /** What plays the Animate Blocks of the opacity ([AnimateCode]). */
+    OPACITY_TWEEN,
+
+    /** What plays the Animate Blocks of the color ([AnimateCode]). */
+    COLOR_TWEEN,
+
+    /** What plays the Animate Blocks of the position ([AnimateCode]). */
+    POSITION_TWEEN,
 }

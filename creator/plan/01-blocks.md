@@ -20,9 +20,6 @@ for code (`AssistantSystemPrompt`). The first writers' room game (a side-scrolli
 needed twelve Kotlin Blocks, all for simple behavior. Each item replaces some of them, and the section is done when the eval set
 (`EvalSet`) builds the same game with no Kotlin Block left.
 
-- **Animating over time:** "Animate" takes the scale, opacity, color, or position from a start to an end over some seconds (with an
-  easing), and can remove the Actor when it ends, so a growing, fading flash is one Block, with no Property counting frames and no
-  Timer of the same length to keep in step. Generated as a small tween the every-frame update advances, allocating nothing per frame.
 - **Steering with keys:** "Move with keys" (the arrow keys or WASD, four or eight directions, a speed), in place of a Stop and an If
   section per key.
 
@@ -42,8 +39,7 @@ needed twelve Kotlin Blocks, all for simple behavior. Each item replaces some of
 - **Scene settings in the game:** an option that fits the game's view to the Scene's bounds (through
   `ViewportManager.setAspectRatioMode`); the Scene editor's inspector already edits the settings.
 - **Camera:** follow an Actor, shake, zoom.
-- **Size and scale Blocks:** a box collision mask keeps the size it was built with, so the generated code builds a new mask when the
-  size changes.
+- **Size and scale Blocks:** setting and changing them (a Dynamic type's box collision mask already follows them).
 - **More Events:** removed from the Scene, and key released and held.
   Pointer and gamepad Events come with their Traits (`02-reuse-and-traits.md`).
 - **More drag and drop:** dragging a Block into another Event.

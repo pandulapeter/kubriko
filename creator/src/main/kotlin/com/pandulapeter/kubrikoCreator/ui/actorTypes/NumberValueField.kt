@@ -186,3 +186,8 @@ private val SceneEdge.title
         SceneEdge.TOP -> Res.string.scene_edge_top
         SceneEdge.BOTTOM -> Res.string.scene_edge_bottom
     }
+
+/**
+ * How wide a field of seconds is, so its longer label leaves room for a fraction such as 0.5.
+ */
+internal val SECONDS_FIELD_WIDTH = 112.dp

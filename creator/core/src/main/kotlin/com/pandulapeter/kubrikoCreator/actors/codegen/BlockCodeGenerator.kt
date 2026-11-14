@@ -171,6 +171,7 @@ public object BlockCodeGenerator {
         is BlockDefinition.SetColor -> AppearanceCode.setColor(block)
         is BlockDefinition.SetOpacity -> AppearanceCode.setOpacity(block, scope)
         is BlockDefinition.ChangeOpacity -> AppearanceCode.changeOpacity(block, scope)
+        is BlockDefinition.Animate -> AnimateCode.animate(block, scope)
         is BlockDefinition.If -> conditionCode(block, scope).let { condition -> condition.copy(lines = listOf("if (${condition.lines.single()}) {")) }
         is BlockDefinition.Repeat -> BlockCode(listOf("repeat(${NumberValueCode.whole(block.times, scope)}) {"))
         BlockDefinition.Else, BlockDefinition.End -> BlockCode.NONE
@@ -206,17 +207,9 @@ public object BlockCodeGenerator {
 
     private fun movementCode(line: String) = BlockCode(listOf(line), needs = setOf(BlockNeed.MOVEMENT), imports = setOf(SCENE_OFFSET_IMPORT))
 
-    /**
-     * An edge is where it is in the Scene even when the Actor is added from this one, so only the other coordinate is
-     * added to this Actor's.
-     */
     private fun addActorCode(block: BlockDefinition.AddActor, scope: BlockScope) = if (block.actorType in scope.actorTypeNames) {
         val isActor = scope.kind == BlockTypeKind.ACTOR
-        val position = when {
-            !block.isRelative || !isActor -> offsetCode(block.x, block.y, scope)
-            !block.x.readsEdges && !block.y.readsEdges -> "body.position + ${offsetCode(block.x, block.y, scope)}"
-            else -> "SceneOffset(${relativeCoordinate(block.x, "x", scope)}, ${relativeCoordinate(block.y, "y", scope)})"
-        }
+        val position = if (isActor) placementCode(block.x, block.y, block.isRelative, scope) else offsetCode(block.x, block.y, scope)
         BlockCode(
             lines = listOf("actorManager.add(${block.actorType}.metadata.instantiate($position).restore())"),
             needs = setOf(BlockNeed.ACTOR_MANAGER),
@@ -224,6 +217,16 @@ public object BlockCodeGenerator {
         )
     } else {
         BlockCode(listOf("// Choose an Actor type for this Block."))
+    }
+
+    /**
+     * A position in the Scene, or, if [isRelative], from this Actor's. An edge is where it is in the Scene either way, so
+     * only the other coordinate is added to this Actor's.
+     */
+    internal fun placementCode(x: NumberValue, y: NumberValue, isRelative: Boolean, scope: BlockScope) = when {
+        !isRelative -> offsetCode(x, y, scope)
+        !x.readsEdges && !y.readsEdges -> "body.position + ${offsetCode(x, y, scope)}"
+        else -> "SceneOffset(${relativeCoordinate(x, "x", scope)}, ${relativeCoordinate(y, "y", scope)})"
     }
 
     private fun relativeCoordinate(value: NumberValue, axis: String, scope: BlockScope) =

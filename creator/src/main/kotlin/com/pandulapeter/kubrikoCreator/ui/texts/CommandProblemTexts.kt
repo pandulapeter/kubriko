@@ -22,6 +22,7 @@ import kubriko.creator.generated.resources.error_command_actor_id_taken
 import kubriko.creator.generated.resources.error_command_actor_type_has_children
 import kubriko.creator.generated.resources.error_command_actors_empty
 import kubriko.creator.generated.resources.error_command_already_under_version_control
+import kubriko.creator.generated.resources.error_command_animated_color_not_opaque
 import kubriko.creator.generated.resources.error_command_change_missing
 import kubriko.creator.generated.resources.error_command_changed_outside
 import kubriko.creator.generated.resources.error_command_changes_not_written
@@ -157,6 +158,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.NUMBER_EDGE_ACROSS -> Res.string.error_command_number_edge_across
     CommandProblem.NUMBER_EDGE_NOT_TAKEN -> Res.string.error_command_number_edge_not_taken
     CommandProblem.OPACITY_OUT_OF_RANGE -> Res.string.error_command_opacity_out_of_range
+    CommandProblem.ANIMATED_COLOR_NOT_OPAQUE -> Res.string.error_command_animated_color_not_opaque
     CommandProblem.COLORS_COUNT -> Res.string.error_command_colors_count
     CommandProblem.COLORS_NOT_OPAQUE -> Res.string.error_command_colors_not_opaque
     CommandProblem.NUMBER_INVALID -> Res.string.error_command_number_invalid

@@ -221,6 +221,7 @@ private fun InlineParameters(
             scope = scope,
             onValueChange = { onBlockChange(block.copy(seconds = it)) },
             accepts = { it >= 0f },
+            fieldWidth = SECONDS_FIELD_WIDTH,
         )
         LabeledSwitch(
             label = stringResource(Res.string.block_parameter_repeating),
@@ -265,6 +266,7 @@ private fun InlineParameters(
     is BlockDefinition.SetColor -> SetColorParameters(block, onBlockChange)
     is BlockDefinition.SetOpacity -> OpacityParameters(Res.string.block_parameter_opacity, block.percent, scope, { onBlockChange(block.copy(percent = it)) }, accepts = { it in 0f..100f })
     is BlockDefinition.ChangeOpacity -> OpacityParameters(Res.string.block_parameter_by, block.by, scope, { onBlockChange(block.copy(by = it)) })
+    is BlockDefinition.Animate -> AnimateParameters(block, scope, onBlockChange)
     is BlockDefinition.Log -> BufferedTextField(
         modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
         value = block.message,
@@ -273,36 +275,6 @@ private fun InlineParameters(
     )
     BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
     BlockDefinition.Else, BlockDefinition.End, is BlockDefinition.Kotlin, BlockDefinition.RestartScene, BlockDefinition.StopMusic -> Unit
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun OffsetParameters(
-    x: NumberValue,
-    y: NumberValue,
-    scope: BlockScope,
-    isVelocity: Boolean,
-    onChange: (x: NumberValue, y: NumberValue) -> Unit,
-) = FlowRow(
-    horizontalArrangement = Arrangement.spacedBy(8.dp),
-    verticalArrangement = Arrangement.spacedBy(4.dp),
-    itemVerticalAlignment = Alignment.CenterVertically,
-) {
-    NumberValueField(
-        label = Res.string.block_parameter_x,
-        value = x,
-        scope = scope,
-        axis = Axis.HORIZONTAL,
-        onValueChange = { onChange(it, y) },
-    )
-    NumberValueField(
-        label = Res.string.block_parameter_y,
-        value = y,
-        scope = scope,
-        axis = Axis.VERTICAL,
-        onValueChange = { onChange(x, it) },
-    )
-    if (isVelocity) UnitText(Res.string.block_velocity_unit)
 }
 
 /**
@@ -322,6 +294,6 @@ private val BlockKind.hasInlineParameters
         BlockKind.SET_TEXT, BlockKind.SET_TOGGLE, BlockKind.ADD_ACTOR, BlockKind.MOVE_TOWARDS_NEAREST, BlockKind.START_TIMER,
         BlockKind.STOP_TIMER, BlockKind.GO_TO_SCENE, BlockKind.PAUSE_GAME, BlockKind.PLAY_SOUND, BlockKind.PLAY_MUSIC,
         BlockKind.IF, BlockKind.REPEAT, BlockKind.LOG, BlockKind.SET_FRAME, BlockKind.SET_ANIMATION, BlockKind.SET_COLOR,
-        BlockKind.SET_OPACITY, BlockKind.CHANGE_OPACITY,
+        BlockKind.SET_OPACITY, BlockKind.CHANGE_OPACITY, BlockKind.ANIMATE,
         -> true
     }

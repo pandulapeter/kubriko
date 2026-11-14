@@ -71,8 +71,8 @@ class ClaudeAgentTest {
 
     private companion object {
         /**
-         * About 10,000 tokens, which the system prompt costs on every request that misses the prompt cache.
+         * About 10,500 tokens, which the system prompt costs on every request that misses the prompt cache.
          */
-        const val SYSTEM_PROMPT_BUDGET_IN_CHARACTERS = 40_000
+        const val SYSTEM_PROMPT_BUDGET_IN_CHARACTERS = 42_000
     }
 }

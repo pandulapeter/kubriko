@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
+import com.pandulapeter.kubrikoCreator.actors.PropertyNaming
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.BOUNCE_OFF_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.DIRECTION_FUNCTION
@@ -139,21 +140,47 @@ internal object ActorClassCode {
     }
 
     /**
+     * The size the box collision mask was built for, which it can't change, so it is built again when the body's differs.
+     */
+    fun StringBuilder.appendCollisionMaskSizeField() {
+        appendLine()
+        appendLine("    private var $COLLISION_MASK_SIZE = body.size * body.scale")
+    }
+
+    /**
      * Brings the collision mask in line with the body: its position, and for Actors that may change their rotation
-     * or size in Kotlin Blocks, the box's rotation or the circle's radius (both cheap when they didn't change).
+     * or size, the box's rotation or the circle's radius (both cheap when they didn't change). A box can't change its
+     * size, so when [isBoxRebuilt] it is built again, only on the frames the body's size or scale changes.
      *
      * @param shapes The shapes the Actors may have: one for a type of its own, any of them for a family's base class.
      */
-    fun StringBuilder.appendCollisionMaskUpdate(shapes: Set<ActorShape>) {
+    fun StringBuilder.appendCollisionMaskUpdate(shapes: Set<ActorShape>, isBoxRebuilt: Boolean) {
         appendLine("        collisionMask.position = bodyCenter")
         if (shapes.size == 1) {
-            appendLine("        ${maskUpdate(shapes.single(), "collisionMask")}")
+            if (shapes.single() == ActorShape.RECTANGLE && isBoxRebuilt) appendBoxRebuild("        ", "collisionMask") else appendLine("        ${maskUpdate(shapes.single(), "collisionMask")}")
         } else {
             appendLine("        when (val mask = collisionMask) {")
-            shapes.sorted().forEach { shape -> appendLine("            is ${maskClassOf(shape)} -> ${maskUpdate(shape, "mask")}") }
+            shapes.sorted().forEach { shape ->
+                if (shape == ActorShape.RECTANGLE && isBoxRebuilt) {
+                    appendLine("            is ${maskClassOf(shape)} -> {")
+                    appendBoxRebuild("                ", "mask")
+                    appendLine("            }")
+                } else {
+                    appendLine("            is ${maskClassOf(shape)} -> ${maskUpdate(shape, "mask")}")
+                }
+            }
             appendLine("            else -> Unit")
             appendLine("        }")
         }
+    }
+
+    private fun StringBuilder.appendBoxRebuild(indent: String, mask: String) {
+        appendLine("${indent}if ($COLLISION_MASK_SIZE != body.size * body.scale) {")
+        appendLine("$indent    $COLLISION_MASK_SIZE = body.size * body.scale")
+        appendLine("$indent    collisionMask = BoxCollisionMask(initialPosition = bodyCenter, initialSize = $COLLISION_MASK_SIZE, initialRotation = body.rotation)")
+        appendLine("$indent} else {")
+        appendLine("$indent    ${maskUpdate(ActorShape.RECTANGLE, mask)}")
+        appendLine("$indent}")
     }
 
     private fun maskUpdate(shape: ActorShape, mask: String) = when (shape) {
@@ -173,6 +200,8 @@ internal object ActorClassCode {
     fun maskTypeOf(shapes: Set<ActorShape>) = shapes.singleOrNull()?.let(::maskClassOf) ?: COLLISION_MASK
 
     const val COLLISION_MASK = "CollisionMask"
+
+    private const val COLLISION_MASK_SIZE = PropertyNaming.COLLISION_MASK_SIZE_NAME
 
     /**
      * Turns the velocity away from the other Actor, on the axis they overlap less on, for the Bounce off it Block.

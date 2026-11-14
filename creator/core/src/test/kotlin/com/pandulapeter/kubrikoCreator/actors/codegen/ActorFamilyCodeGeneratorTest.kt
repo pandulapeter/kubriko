@@ -52,7 +52,8 @@ class ActorFamilyCodeGeneratorTest {
     @Test
     fun theTopmostTypeOfAFamilyGetsABaseClassWithItsEventsAsHooks() {
         val code = generate(enemy)
-        assertContains(code, "abstract class EnemyBase(\n    final override val body: BoxBody,\n    color: Color,\n    hp: Float,\n    final override val collisionMask: CollisionMask,\n) : Batched, Dynamic, CollisionDetector {")
+        assertContains(code, "abstract class EnemyBase(\n    final override val body: BoxBody,\n    color: Color,\n    hp: Float,\n    collisionMask: CollisionMask,\n) : Batched, Dynamic, CollisionDetector {")
+        assertContains(code, "    final override var collisionMask: CollisionMask = collisionMask\n\n    private var collisionMaskSize = body.size * body.scale\n")
         assertContains(code, "    override fun update(deltaTimeInMilliseconds: Int) {\n        if (isRemoved) return\n        onEveryFrame(deltaTimeInMilliseconds)\n")
         assertContains(code, "                is Wall -> if (!other.isRemoved) onCollisionWithWall(other)\n")
         assertContains(code, "    protected open fun onEveryFrame(deltaTimeInMilliseconds: Int) {\n        hp += -1f\n    }\n")
@@ -124,7 +125,14 @@ class ActorFamilyCodeGeneratorTest {
     @Test
     fun theBaseClassOfAFamilyOfShapesUpdatesWhicheverMaskItsActorHas() {
         val code = generate(enemy)
-        assertContains(code, "        when (val mask = collisionMask) {\n            is CircleCollisionMask -> mask.radius = body.size.width * body.scale.horizontal / 2\n            is BoxCollisionMask -> mask.rotation = body.rotation\n            else -> Unit\n        }\n")
+        assertContains(code, "        when (val mask = collisionMask) {\n            is CircleCollisionMask -> mask.radius = body.size.width * body.scale.horizontal / 2\n            is BoxCollisionMask -> {\n" +
+                "                if (collisionMaskSize != body.size * body.scale) {\n" +
+                "                    collisionMaskSize = body.size * body.scale\n" +
+                "                    collisionMask = BoxCollisionMask(initialPosition = bodyCenter, initialSize = collisionMaskSize, initialRotation = body.rotation)\n" +
+                "                } else {\n" +
+                "                    mask.rotation = body.rotation\n" +
+                "                }\n" +
+                "            }\n            else -> Unit\n        }\n")
         assertContains(code, "    override val isAlwaysActive = true\n")
         assertContains(code, "    var isRemoved = false\n")
     }
@@ -142,8 +150,9 @@ class ActorFamilyCodeGeneratorTest {
             collidableActorTypeNames = PluginManagers.of(types).collidableActorTypeNames,
             actorTypes = types,
         )
-        assertContains(code, "    final override val collisionMask: BoxCollisionMask,\n")
-        assertContains(code, "        collisionMask.rotation = body.rotation\n")
+        assertContains(code, "    collisionMask: BoxCollisionMask,\n")
+        assertContains(code, "    final override var collisionMask: BoxCollisionMask = collisionMask\n")
+        assertContains(code, "        } else {\n            collisionMask.rotation = body.rotation\n        }\n")
         assertFalse("import com.pandulapeter.kubriko.collision.mask.CollisionMask\n" in code, code)
     }
 

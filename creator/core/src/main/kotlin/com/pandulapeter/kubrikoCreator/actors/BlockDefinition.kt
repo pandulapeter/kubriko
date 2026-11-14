@@ -286,6 +286,20 @@ public sealed interface BlockDefinition {
     ) : BlockDefinition
 
     @Serializable
+    @SerialName("animate")
+    @Description("Takes the Actor's scale, opacity, color, or position from a start to an end over some seconds, and can remove the Actor at the end: a growing, fading flash is two of them. Each value has one animation at a time, which another animate Block of it starts over; while it runs, it overrides what other Blocks set.")
+    public data class Animate(
+        @Description("What it changes.")
+        @SerialName("value") val value: AnimatedValue = AnimatedValue.Scale(),
+        @Description("How long it takes, in seconds. Not an edge.")
+        @SerialName("seconds") val seconds: NumberValue = NumberValue.Fixed(0.5f),
+        @Description("Evenly, or starting slowly, ending slowly, or both.")
+        @SerialName("easing") val easing: AnimationEasing = AnimationEasing.EASE_OUT,
+        @Description("True to remove the Actor when it ends.")
+        @SerialName("removesActor") val removesActor: Boolean = false,
+    ) : BlockDefinition
+
+    @Serializable
     @SerialName("if")
     @Description("Runs the Blocks after it, up to the matching else or end Block, only when its condition is true. An if Block without an end runs to the end of the Event.")
     public data class If(

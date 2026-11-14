@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
+import com.pandulapeter.kubrikoCreator.actors.AnimatedValue
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
@@ -177,6 +178,10 @@ private fun validateBlockValues(block: BlockDefinition, scope: BlockScope): Reje
     block is BlockDefinition.SetColor && block.colors.size !in 1..BlockDefinition.SetColor.MAXIMUM_COLORS ->
         Rejection(CommandProblem.COLORS_COUNT, BlockDefinition.SetColor.MAXIMUM_COLORS.toString())
     block is BlockDefinition.SetColor && block.colors.any { !ColorHex.isOpaque(it) } -> Rejection(CommandProblem.COLORS_NOT_OPAQUE)
+    block is BlockDefinition.Animate && block.value is AnimatedValue.Opacity && !block.value.numberValues.all { it.isWithin(0f, 100f) } ->
+        Rejection(CommandProblem.OPACITY_OUT_OF_RANGE)
+    ((block as? BlockDefinition.Animate)?.value as? AnimatedValue.Color)?.let { ColorHex.isOpaque(it.from) && ColorHex.isOpaque(it.to) } == false ->
+        Rejection(CommandProblem.ANIMATED_COLOR_NOT_OPAQUE)
     ((block as? BlockDefinition.If)?.condition as? ConditionDefinition.KeyHeld)?.key?.isKnown == false -> unknownKey((block.condition as ConditionDefinition.KeyHeld).key)
     else -> block.timerName?.let(TimerNaming::validate)?.let(::Rejection) ?: validateBlockReferences(block, scope)
 }
@@ -284,6 +289,7 @@ private val BlockDefinition.areNumbersValid
         is BlockDefinition.If -> (condition as? ConditionDefinition.Chance)?.percent?.isWithin(0f, 100f) ?: true
         is BlockDefinition.Repeat -> times.isWithin(minimum = 0f) && times.isWholeWhenFixed
         is BlockDefinition.StartTimer -> seconds.isWithin(minimum = 0f)
+        is BlockDefinition.Animate -> seconds.isWithin(minimum = 0f)
         is BlockDefinition.SetFrame -> frame.isWithin(minimum = 0f) && frame.isWholeWhenFixed
         is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.JumpTo, is BlockDefinition.AddActor,
         is BlockDefinition.MoveTowardsNearest, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetAnimation,
@@ -301,6 +307,7 @@ private val BlockDefinition.areEdgesAlongTheirAxes
         is BlockDefinition.AddToVelocity -> areEdgesAlong(x, y)
         is BlockDefinition.JumpTo -> areEdgesAlong(x, y)
         is BlockDefinition.AddActor -> areEdgesAlong(x, y)
+        is BlockDefinition.Animate -> (value as? AnimatedValue.Position)?.let { areEdgesAlong(it.x, it.y) } ?: true
         is BlockDefinition.MoveInDirection, is BlockDefinition.MoveTowardsNearest, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetAnimation,
         is BlockDefinition.If, is BlockDefinition.Repeat, is BlockDefinition.StartTimer, is BlockDefinition.SetFrame,
         BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
@@ -312,7 +319,8 @@ private val BlockDefinition.areEdgesAlongTheirAxes
     }
 
 /**
- * The numbers of [this] Block that are a direction, a speed, or an opacity, which an edge, a position, means nothing as.
+ * The numbers of [this] Block that are a direction, a speed, an opacity, a scale, or a time, which an edge, a position,
+ * means nothing as.
  */
 private val BlockDefinition.edgelessNumberValues
     get() = when (this) {
@@ -320,6 +328,7 @@ private val BlockDefinition.edgelessNumberValues
         is BlockDefinition.MoveTowardsNearest -> listOf(speed)
         is BlockDefinition.SetOpacity -> listOf(percent)
         is BlockDefinition.ChangeOpacity -> listOf(by)
+        is BlockDefinition.Animate -> if (value is AnimatedValue.Position) listOf(seconds) else value.numberValues + seconds
         else -> emptyList()
     }
 

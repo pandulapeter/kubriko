@@ -30,7 +30,7 @@
   number comes from the one `KubrikoWiring.random`, so a test can seed the whole game. A Block reads its numbers while none
   of its own locals is in scope (passing them to a member function, as Move in a direction does, or reading the one number
   first, as Move towards the nearest does), so a Property named like a local is still the Property; the function's name is
-  reserved (format version 8). A direction, a speed, or an opacity takes no edge, which is a position.
+  reserved (format version 8). A direction, a speed, an opacity, a scale, or a time takes no edge, which is a position.
 - An edge is the Scene settings' bounds, or the screen's while there are none, as the edge Event decides. Values read it
   through `GeneratedScenes.edge` and `randomBetweenEdges`, which read the settings once per call, so a Scene that finishes
   loading meanwhile can't mix its bounds with the screen's; the edge Event takes one snapshot in the Actor's own code, so a
@@ -53,6 +53,13 @@
   so an enemy added off screen flies in first, and never for one that stays inside, even when a frame moves it wholly
   outside before the push. In a family whose members differ in staying inside, the base class asks each Actor through an
   `open val` (`SceneContainment.SOME`). What the classes keep about the bounds (`SceneBoundsCode`) are reserved Property names.
+- An Animate Block's value (scale, opacity, color, or position) is a few plain fields per value the type animates, started
+  through a function (`AnimateCode`, names in `AnimationNaming`, reserved by format version 10), and stepped in `update` before
+  the Events, so one an Event starts shows its start on that frame. Each value has one animation at a time, which the next
+  Block of it starts over. The position moves by what its easing added since the frame before, so it adds up with the
+  velocity instead of fighting it. `Scale` is named in full rather than imported, since an Actor type may be called that,
+  which is why `com` is a reserved Property name. A box collision mask can't change its size, so a Dynamic type's is
+  built again on the frames its body's size or scale changed (`collisionMaskSize`, reserved by format version 10).
 - Timers are two `Long` fields each, counted down in `update`, rather than Kubriko's `Timer`, whose duration is fixed, so starting
   one never allocates; no Property may end like those fields. Manager Properties are Compose state (`mutableFloatStateOf` for
   numbers, so nothing boxes).

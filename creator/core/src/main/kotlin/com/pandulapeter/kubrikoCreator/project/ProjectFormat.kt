@@ -97,6 +97,7 @@ public class ProjectFormat(
             SceneLeavingMigration,
             ReservedPropertyMigration.DIRECTION,
             ReservedPropertyMigration.OPACITY,
+            ReservedPropertyMigration.ANIMATE,
         )
 
         /**

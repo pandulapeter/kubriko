@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.actors.store
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.AnimatedValue
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
@@ -71,6 +72,27 @@ class ReservedPropertyMigrationTest {
         assertEquals(listOf(PropertyDefinition.Number("animationSpeed2", 2f), PropertyDefinition.Toggle("isAnimationLooping2")), hero.properties)
         assertEquals(everyFrame(BlockDefinition.Kotlin("animationSpeed2 += 1f")), hero.events)
         assertEquals("""{"animationSpeed2":3.0,"isAnimationLooping2":true}""", SceneDocument.parse(sceneFile.readText()).single().state)
+    }
+
+    @Test
+    fun formatVersionTenReservesWhatPlaysTheAnimateBlocksAndTheBoxMasksSize() {
+        listOf("scaleTweenFrom", "opacityTweenDuration", "colorTweenRemovesActor", "positionTweenEasing", "startColorTween", "tweenProgress", "collisionMaskSize", "com").forEach { name ->
+            assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate(name, emptyList()), name)
+        }
+        assertNotNull(BlockTypeStore.open(root)).save(
+            ActorTypeDefinition(
+                name = "Spark",
+                properties = listOf(PropertyDefinition.Number("scaleTweenTo", 3f), PropertyDefinition.Toggle("com")),
+                events = everyFrame(BlockDefinition.Animate(AnimatedValue.Scale(to = NumberValue.Property("scaleTweenTo")))),
+            ),
+        )
+        sceneFile.apply { parentFile.mkdirs() }.writeText(
+            SceneDocument.format(listOf(SceneActorEntry(typeId = "Spark", state = """{"scaleTweenTo":4.0,"com":true}""", id = "s"))),
+        )
+        val spark = migratedTypes().getValue("Spark") as ActorTypeDefinition
+        assertEquals(listOf(PropertyDefinition.Number("scaleTweenTo2", 3f), PropertyDefinition.Toggle("com2")), spark.properties)
+        assertEquals(everyFrame(BlockDefinition.Animate(AnimatedValue.Scale(to = NumberValue.Property("scaleTweenTo2")))), spark.events)
+        assertEquals("""{"scaleTweenTo2":4.0,"com2":true}""", SceneDocument.parse(sceneFile.readText()).single().state)
     }
 
     @Test

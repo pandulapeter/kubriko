@@ -93,7 +93,7 @@ public object EveryBlockTypes {
         BlockDefinition.StopMusic,
         BlockDefinition.SetFrame(frame = NumberValue.Fixed(2f)),
         BlockDefinition.SetAnimation(speed = NumberValue.Fixed(-0.5f), isLooping = false),
-    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks
+    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks
 
     /**
      * Blocks taking random numbers and Properties' values, which format version 5 added.
@@ -141,6 +141,24 @@ public object EveryBlockTypes {
             BlockDefinition.SetOpacity(percent = NumberValue.Random(20f, 80f)),
             BlockDefinition.ChangeOpacity(),
             BlockDefinition.ChangeOpacity(by = NumberValue.Property("score", manager = "EveryManager")),
+        )
+
+    /**
+     * Animate Blocks, of every value and easing, which format version 10 added.
+     */
+    val animateBlocks: List<BlockDefinition>
+        get() = listOf(
+            BlockDefinition.Animate(),
+            BlockDefinition.Animate(
+                value = AnimatedValue.Scale(from = NumberValue.Random(0.5f, 1f), to = NumberValue.Property("score")),
+                seconds = NumberValue.Property("score", manager = "EveryManager"),
+                easing = AnimationEasing.LINEAR,
+                removesActor = true,
+            ),
+            BlockDefinition.Animate(value = AnimatedValue.Opacity(), seconds = NumberValue.Random(1f, 2f), easing = AnimationEasing.EASE_IN, removesActor = true),
+            BlockDefinition.Animate(value = AnimatedValue.Color(from = 0xFF20C060, to = 0xFF000000), seconds = NumberValue.Fixed(0f), easing = AnimationEasing.EASE_IN_OUT),
+            BlockDefinition.Animate(value = AnimatedValue.Position(x = NumberValue.Fixed(40f), y = NumberValue.Edge(SceneEdge.TOP))),
+            BlockDefinition.Animate(value = AnimatedValue.Position(x = NumberValue.Edge(SceneEdge.LEFT), y = NumberValue.Property("score"), isRelative = false), seconds = NumberValue.Fixed(2f)),
         )
 
     /**

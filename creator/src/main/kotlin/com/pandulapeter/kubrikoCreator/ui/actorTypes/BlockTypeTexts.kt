@@ -33,6 +33,7 @@ import kubriko.creator.generated.resources.event_timer_finished
 import kubriko.creator.generated.resources.ic_actor_type
 import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_add_actor
+import kubriko.creator.generated.resources.ic_animation
 import kubriko.creator.generated.resources.ic_bounce
 import kubriko.creator.generated.resources.ic_code
 import kubriko.creator.generated.resources.ic_collision
@@ -121,6 +122,7 @@ internal val BlockKind.icon: DrawableResource
         BlockKind.MOVE_IN_DIRECTION -> Res.drawable.ic_direction
         BlockKind.SET_COLOR -> Res.drawable.ic_palette
         BlockKind.SET_OPACITY, BlockKind.CHANGE_OPACITY -> Res.drawable.ic_opacity
+        BlockKind.ANIMATE -> Res.drawable.ic_animation
         BlockKind.STOP -> Res.drawable.ic_stop
         BlockKind.JUMP_TO -> Res.drawable.ic_open_with
         BlockKind.BOUNCE_OFF_EDGE -> Res.drawable.ic_bounce

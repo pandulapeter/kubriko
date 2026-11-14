@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.context
 
+import com.pandulapeter.kubrikoCreator.actors.AnimatedValue
+import com.pandulapeter.kubrikoCreator.actors.AnimationEasing
 import com.pandulapeter.kubrikoCreator.actors.Axis
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockNesting
@@ -100,12 +102,31 @@ internal object BlockNotation {
         }
         is BlockDefinition.SetOpacity -> "Set the opacity to ${value(block.percent)} percent"
         is BlockDefinition.ChangeOpacity -> "Change the opacity by ${value(block.by)} percent"
+        is BlockDefinition.Animate -> "Animate ${of(block.value)} in ${value(block.seconds)} s, ${of(block.easing)}" + if (block.removesActor) ", then remove this Actor" else ""
         is BlockDefinition.If -> "If ${of(block.condition)}"
         BlockDefinition.Else -> "Else"
         is BlockDefinition.Repeat -> "Repeat ${value(block.times)} times"
         BlockDefinition.End -> "End"
         is BlockDefinition.Log -> "Write to the console ${text(block.message)}"
         is BlockDefinition.Kotlin -> "Run Kotlin code ${text(block.code)}"
+    }
+
+    private fun of(animated: AnimatedValue) = when (animated) {
+        is AnimatedValue.Scale -> "the scale from ${value(animated.from)} to ${value(animated.to)}"
+        is AnimatedValue.Opacity -> "the opacity from ${value(animated.from)} to ${value(animated.to)} percent"
+        is AnimatedValue.Color -> "the color from ${ColorHex.format(animated.from)} to ${ColorHex.format(animated.to)}"
+        is AnimatedValue.Position -> "the position " + when {
+            !animated.isRelative -> "to ${point(animated.x, animated.y)}"
+            animated.x.readsEdges || animated.y.readsEdges -> "by ${point(animated.x, animated.y)} (an edge is the Scene's own)"
+            else -> "by ${point(animated.x, animated.y)}"
+        }
+    }
+
+    private fun of(easing: AnimationEasing) = when (easing) {
+        AnimationEasing.LINEAR -> "evenly"
+        AnimationEasing.EASE_IN -> "starting slowly"
+        AnimationEasing.EASE_OUT -> "ending slowly"
+        AnimationEasing.EASE_IN_OUT -> "starting and ending slowly"
     }
 
     fun of(condition: ConditionDefinition): String = when (condition) {

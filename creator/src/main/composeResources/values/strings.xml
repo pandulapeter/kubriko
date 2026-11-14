@@ -245,6 +245,18 @@
     <string name="block_opacity_unit">percent</string>
     <string name="block_color_add">Add a color, so one is picked at random</string>
     <string name="block_color_remove">Remove this color</string>
+    <string name="block_animate">Animate</string>
+    <string name="block_animate_target_scale">The scale</string>
+    <string name="block_animate_target_opacity">The opacity</string>
+    <string name="block_animate_target_color">The color</string>
+    <string name="block_animate_target_position">The position</string>
+    <string name="block_animate_easing_linear">Evenly</string>
+    <string name="block_animate_easing_ease_in">Starting slowly</string>
+    <string name="block_animate_easing_ease_out">Ending slowly</string>
+    <string name="block_animate_easing_ease_in_out">Starting and ending slowly</string>
+    <string name="block_animate_removes_actor">Remove the Actor when it ends</string>
+    <string name="block_parameter_start">Start</string>
+    <string name="block_parameter_end">End</string>
     <string name="block_run_parent_event">Run the parent's Event</string>
     <string name="block_stop">Stop</string>
     <string name="block_jump_to">Jump to position</string>
@@ -657,8 +669,9 @@
     <string name="error_blocks_nothing_to_replace">Give Blocks to add, a count (0 or more) of Blocks to remove, or both.</string>
     <string name="error_command_index_invalid">%1$s isn't a valid index there. Use one from 0 to %2$s.</string>
     <string name="error_command_size_invalid">The width and height have to be positive numbers.</string>
-    <string name="error_command_number_edge_not_taken">A direction, a speed, or an opacity can't be an edge of the Scene, which is a position. Use a number, a random number, or a Property's value.</string>
+    <string name="error_command_number_edge_not_taken">A direction, a speed, an opacity, a scale, or a time can't be an edge of the Scene, which is a position. Use a number, a random number, or a Property's value.</string>
     <string name="error_command_opacity_out_of_range">An opacity is from 0 (invisible) to 100 percent (opaque), and so is each end of a random one.</string>
+    <string name="error_command_animated_color_not_opaque">Animate takes opaque colors (#RRGGBB) and keeps the Actor's opacity. Animate the opacity with an Animate Block of its own.</string>
     <string name="error_command_colors_count">Set the color takes one color, or up to %1$s to pick one of at random.</string>
     <string name="error_command_colors_not_opaque">Set the color takes opaque colors (#RRGGBB) and keeps the Actor's opacity. Set the opacity with Set the opacity or Change the opacity.</string>
     <string name="error_command_number_edge_across">An x takes only the left and right edges, and a y only the top and bottom ones; a random number is drawn between two edges of the same axis.</string>
@@ -697,6 +710,7 @@
     <string name="error_placement_block_movement_in_manager_type">A Manager type isn't in a Scene, so it has nothing for the Movement Blocks to move. They belong in an Actor type.</string>
     <string name="error_placement_block_remove_self_in_manager_type">A Manager type isn't in a Scene, so it can't have a Remove this Actor Block.</string>
     <string name="error_placement_block_appearance_in_manager_type">A Manager type isn't in a Scene and isn't drawn, so it can't have the Set the color, Set the opacity, or Change the opacity Blocks. They belong in an Actor type.</string>
+    <string name="error_placement_block_animate_in_manager_type">A Manager type isn't in a Scene and isn't drawn, so it can't have an Animate Block. It belongs in an Actor type.</string>
     <string name="error_placement_block_animation_in_manager_type">A Manager type isn't in a Scene and has no sprite, so it can't have the Set the frame or Set the animation Blocks. They belong in an Actor type drawn as a sprite cut into frames.</string>
     <string name="error_placement_block_run_parent_event_in_manager_type">Only Actor types have parents, so a Manager type can't have a Run the parent's Event Block.</string>
     <string name="error_command_not_changed_by_hand">The generated code of %1$s wasn't changed by hand.</string>
