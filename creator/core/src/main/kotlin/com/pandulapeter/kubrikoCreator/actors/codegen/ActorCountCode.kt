@@ -101,7 +101,7 @@ internal object ActorCountCode {
     fun constantsOf(countedTypes: List<String>) = countedTypes.mapIndexed { index, type -> "        const val ${constantOf(type)} = $index" }
 
     /**
-     * The guard of an Actor counted among [countedTypes].
+     * The guard of a counted Actor.
      */
     fun StringBuilder.appendGuardField() {
         appendLine()
@@ -133,6 +133,9 @@ internal object ActorCountCode {
      */
     const val STOP_CALL = "$STOP_FUNCTION()"
 
+    /**
+     * The function that stops counting the Actor among each of [countedTypes] it belongs to, once.
+     */
     fun StringBuilder.appendStopFunction(name: String, countedTypes: List<String>, scope: BlockScope) {
         appendLine()
         appendLine("    private fun $STOP_FUNCTION() {")
