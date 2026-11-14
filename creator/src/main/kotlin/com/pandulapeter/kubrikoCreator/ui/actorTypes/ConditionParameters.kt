@@ -116,6 +116,21 @@ internal fun ConditionParameters(
                 fieldWidth = 88.dp,
             )
         }
+        is ConditionDefinition.ActorCount -> {
+            ActorTypeChoice(
+                actorType = condition.actorType,
+                actorTypeNames = scope.actorTypeNames,
+                onSelected = { onConditionChange(condition.copy(actorType = it)) },
+            )
+            ComparisonChoice(condition.comparison) { onConditionChange(condition.copy(comparison = it)) }
+            NumberValueField(
+                label = Res.string.block_parameter_value,
+                value = condition.value,
+                scope = scope,
+                onValueChange = { onConditionChange(condition.copy(value = it)) },
+                fieldWidth = 88.dp,
+            )
+        }
         is ConditionDefinition.Chance -> NumberValueField(
             label = Res.string.condition_percent,
             value = condition.percent,

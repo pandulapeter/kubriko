@@ -21,6 +21,7 @@ public enum class ConditionKind(
     TOGGLE({ ConditionDefinition.Toggle() }),
     KEY_HELD({ ConditionDefinition.KeyHeld() }),
     VELOCITY({ ConditionDefinition.Velocity() }, needsActor = true),
+    ACTOR_COUNT({ ConditionDefinition.ActorCount() }),
     CHANCE({ ConditionDefinition.Chance() }),
     PAUSED({ ConditionDefinition.Paused() });
 
@@ -34,6 +35,7 @@ public enum class ConditionKind(
             is ConditionDefinition.Toggle -> TOGGLE
             is ConditionDefinition.KeyHeld -> KEY_HELD
             is ConditionDefinition.Velocity -> VELOCITY
+            is ConditionDefinition.ActorCount -> ACTOR_COUNT
             is ConditionDefinition.Chance -> CHANCE
             is ConditionDefinition.Paused -> PAUSED
         }

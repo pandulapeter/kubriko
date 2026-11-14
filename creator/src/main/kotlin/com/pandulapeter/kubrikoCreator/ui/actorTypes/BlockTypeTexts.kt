@@ -22,6 +22,8 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_pause_action_pause
 import kubriko.creator.generated.resources.block_pause_action_resume
 import kubriko.creator.generated.resources.block_pause_action_toggle
+import kubriko.creator.generated.resources.event_actor_added
+import kubriko.creator.generated.resources.event_actor_removed
 import kubriko.creator.generated.resources.event_added_to_scene
 import kubriko.creator.generated.resources.event_collision
 import kubriko.creator.generated.resources.event_edge_touched
@@ -101,6 +103,8 @@ internal val EventType.title: StringResource
         EventType.LEFT_SCENE -> Res.string.event_left_scene
         EventType.COLLISION -> Res.string.event_collision
         EventType.TIMER_FINISHED -> Res.string.event_timer_finished
+        EventType.ACTOR_ADDED -> Res.string.event_actor_added
+        EventType.ACTOR_REMOVED -> Res.string.event_actor_removed
     }
 
 internal val EventType.icon: DrawableResource
@@ -113,6 +117,8 @@ internal val EventType.icon: DrawableResource
         EventType.LEFT_SCENE -> Res.drawable.ic_leave
         EventType.COLLISION -> Res.drawable.ic_collision
         EventType.TIMER_FINISHED -> Res.drawable.ic_timer
+        EventType.ACTOR_ADDED -> Res.drawable.ic_add_actor
+        EventType.ACTOR_REMOVED -> Res.drawable.ic_remove_other
     }
 
 internal val BlockKind.icon: DrawableResource

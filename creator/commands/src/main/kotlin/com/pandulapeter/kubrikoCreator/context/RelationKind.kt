@@ -17,6 +17,16 @@ public enum class RelationKind(
 ) {
     INHERITS_FROM("inherits from"),
     COLLIDES_WITH("collides with"),
+
+    /**
+     * A Manager type's actorAdded or actorRemoved Event, about the Actors of a type.
+     */
+    REACTS_TO("reacts to"),
+
+    /**
+     * An If Block counting the Actors of a type (the actorCount condition).
+     */
+    COUNTS("counts"),
     ADDS("adds"),
     MOVES_TOWARDS("moves towards"),
     GOES_TO("goes to"),

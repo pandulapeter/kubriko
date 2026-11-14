@@ -21,9 +21,13 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
+import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendCountActorsFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendNumberTextFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendTimerCountdown
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendTimerFields
+import com.pandulapeter.kubrikoCreator.actors.codegen.ActorWatchCode.appendCounterFields
+import com.pandulapeter.kubrikoCreator.actors.codegen.ActorWatchCode.appendEventCalls
+import com.pandulapeter.kubrikoCreator.actors.codegen.ActorWatchCode.appendNotifyFunctions
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.AUDIO_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.SCENES_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STATE_MANAGER_FIELD
@@ -71,27 +75,31 @@ public object ManagerTypeCodeGenerator {
     /**
      * @param knownActorTypeNames Every Actor type of the project, which the Blocks may add.
      * @param managerTypes Every Manager type of the project, whose Properties the Blocks may use.
+     * @param baseClassNames The Actor types with children, whose Actors the Blocks count through their base class.
      */
     internal fun generateManagerType(
         definition: ManagerTypeDefinition,
         packageName: String,
         knownActorTypeNames: List<String> = emptyList(),
         managerTypes: List<ManagerTypeDefinition> = listOf(definition),
+        baseClassNames: Set<String> = emptySet(),
     ): String {
         val name = definition.name
-        val scope = BlockScope(name, BlockTypeKind.MANAGER, definition.properties, knownActorTypeNames, managerTypes)
+        val scope = BlockScope(name, BlockTypeKind.MANAGER, definition.properties, knownActorTypeNames, managerTypes, baseClassNames = baseClassNames)
         val events = definition.events.filter { GeneratedCode.isGenerated(it, BlockTypeKind.MANAGER, knownActorTypeNames) }
         val keyEvents = events.filter { it.type == EventType.KEY_PRESSED }
         val timerEvents = events.filter { it.type == EventType.TIMER_FINISHED }
         val startEvents = events.filter { it.type == EventType.GAME_STARTED }
         val frameEvents = events.filter { it.type == EventType.EVERY_FRAME }
-        val generatedEvents = startEvents + frameEvents + keyEvents + timerEvents
+        val actorEvents = events.filter { it.type == EventType.ACTOR_ADDED || it.type == EventType.ACTOR_REMOVED }
+        val watches = ActorWatch.of(definition, knownActorTypeNames)
+        val generatedEvents = startEvents + frameEvents + keyEvents + timerEvents + actorEvents
         val timers = (timerEvents.mapNotNull { it.timer } + generatedEvents.flatMap { event -> event.blocks.mapNotNull { it.timerName } }).filter(TimerNaming::isValid).distinct().sorted()
         val blockCode = generatedEvents.fold(BlockCode.NONE) { code, event -> code + eventCode(event.blocks, event.type, scope) }
         val texts = definition.texts.map { templateLiteral(it.text, scope) }
         val kotlinUi = KotlinUi.of(definition.kotlinUi)
         val usedManagers = (blockCode.managers + texts.flatMap { it.managers } + scope.managersNamedIn(kotlinUi)).distinct().sorted()
-        val runsEveryFrame = timers.isNotEmpty() || frameEvents.any { it.blocks.isNotEmpty() }
+        val runsEveryFrame = timers.isNotEmpty() || frameEvents.any { it.blocks.isNotEmpty() } || watches.isNotEmpty()
         // Key Events add the Manager to the Scene as an Actor, and onUpdate returns early while the game is paused.
         val needs = blockCode.needs + buildSet {
             if (keyEvents.isNotEmpty() || kotlinUi?.names(ACTOR_MANAGER_FIELD) == true) add(BlockNeed.ACTOR_MANAGER)
@@ -129,6 +137,7 @@ public object ManagerTypeCodeGenerator {
             appendLine("/**")
             appendLine(" * @param isInSceneEditor True in the Scene editor, where its Events don't run, but Actors placed there can still use it.")
             appendLine(" */")
+            if (watches.isNotEmpty()) appendLine(ActorWatchCode.OPT_IN)
             appendLine("class $name(")
             appendLine("    private val isInSceneEditor: Boolean = false,")
             appendLine(") : Manager()${if (keyEvents.isNotEmpty()) ", KeyboardInputAware" else ""} {")
@@ -139,6 +148,7 @@ public object ManagerTypeCodeGenerator {
             BlockNeed.entries.filter { it in needs }.forEach { need -> fieldOf(need)?.let { appendLine("    private val $it") } }
             usedManagers.forEach { appendLine("    private val ${scope.managerField(it)} by manager<$it>()") }
             appendTimerFields(timers, "private")
+            if (watches.isNotEmpty()) appendCounterFields(watches)
             if (keyEvents.isNotEmpty() || startEvents.any { it.blocks.isNotEmpty() }) {
                 appendLine()
                 appendLine("    override fun onInitialize(kubriko: Kubriko) {")
@@ -152,6 +162,7 @@ public object ManagerTypeCodeGenerator {
                 appendLine()
                 appendLine("    override fun onUpdate(deltaTimeInMilliseconds: Int) {")
                 appendLine("        if (isInSceneEditor || !$STATE_MANAGER_FIELD.isRunning.value) return")
+                appendEventCalls(watches) { watch -> callOf(actorEvents.filter { it.trigger.otherActorType == watch.actorType && (it.type == EventType.ACTOR_ADDED) == watch.isAdded }) }
                 timers.forEach { timer ->
                     appendTimerCountdown(timer) { callOf(timerEvents.filter { it.trigger.timer == timer })?.let { appendLine("                $it") } }
                 }
@@ -160,9 +171,11 @@ public object ManagerTypeCodeGenerator {
             }
             // Unlike an Actor's, these run while the game is paused, so that a key can resume it.
             if (keyEvents.isNotEmpty()) appendKeyDispatch(keyEvents.groupBy { it.trigger.key!! }.toSortedMap().mapValues { (_, events) -> callOf(events) })
+            appendNotifyFunctions(watches)
             append(functionsCode)
             if (texts.isNotEmpty() || kotlinUi != null) appendComposable(definition.texts, texts.map { it.code }, kotlinUi)
             if (BlockNeed.NUMBER_TEXT in needs) appendNumberTextFunction("private")
+            if (BlockNeed.ACTOR_COUNT in needs) appendCountActorsFunction("private")
             appendLine("}")
         })
     }
@@ -316,7 +329,7 @@ public object ManagerTypeCodeGenerator {
         BlockNeed.STATE_MANAGER -> "$STATE_MANAGER_FIELD by manager<StateManager>()"
         BlockNeed.SCENES -> "$SCENES_FIELD by manager<${ScenesCodeGenerator.SCENES_NAME}>()"
         BlockNeed.AUDIO -> "$AUDIO_FIELD by manager<${AudioCodeGenerator.AUDIO_NAME}>()"
-        BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.STEERING, BlockNeed.ANIMATION, BlockNeed.FRAME,
+        BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.ACTOR_COUNT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.STEERING, BlockNeed.ANIMATION, BlockNeed.FRAME,
         BlockNeed.SCALE_TWEEN, BlockNeed.OPACITY_TWEEN, BlockNeed.COLOR_TWEEN, BlockNeed.POSITION_TWEEN,
         -> null
     }
@@ -326,6 +339,7 @@ public object ManagerTypeCodeGenerator {
         BlockNeed.VIEWPORT_MANAGER -> listOf("com.pandulapeter.kubriko.manager.ViewportManager")
         BlockNeed.KEYBOARD_INPUT_MANAGER -> listOf("androidx.compose.ui.input.key.Key", "com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager")
         BlockNeed.STATE_MANAGER -> listOf(STATE_MANAGER_IMPORT)
+        BlockNeed.ACTOR_COUNT -> listOf("com.pandulapeter.kubriko.actor.Actor")
         BlockNeed.MOVEMENT, BlockNeed.SCENES, BlockNeed.AUDIO, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.STEERING, BlockNeed.ANIMATION, BlockNeed.FRAME,
         BlockNeed.SCALE_TWEEN, BlockNeed.OPACITY_TWEEN, BlockNeed.COLOR_TWEEN, BlockNeed.POSITION_TWEEN,
         -> emptyList()

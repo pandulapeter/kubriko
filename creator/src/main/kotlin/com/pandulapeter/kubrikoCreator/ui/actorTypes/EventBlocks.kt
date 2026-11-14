@@ -116,7 +116,7 @@ internal fun EventBlocks(
                     onDelete = { onTimerDelete(timer) },
                 )
             }
-            EventType.COLLISION -> ActorTypeChoice(
+            EventType.COLLISION, EventType.ACTOR_ADDED, EventType.ACTOR_REMOVED -> ActorTypeChoice(
                 actorType = event.otherActorType.orEmpty(),
                 actorTypeNames = scope.actorTypeNames,
                 onSelected = onOtherActorTypeChange,

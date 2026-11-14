@@ -112,10 +112,11 @@ class ReadCommandsTest {
     @Test
     fun theBlockCatalogSaysWhichEventsAllowWhichBlocks() = runTest {
         val catalog = executor().read("get_block_catalog").jsonObject
-        val edge = catalog.getValue("events").jsonArray.map { it.jsonObject }.single { it.getValue("type").jsonPrimitive.content == "edgeTouched" }
-        assertTrue("bounceOffEdge" in edge.getValue("blocks").jsonArray.map { it.jsonPrimitive.content })
-        val removeOther = catalog.getValue("blocks").jsonArray.map { it.jsonObject }.single { it.getValue("type").jsonPrimitive.content == "removeOther" }
+        val blocks = catalog.getValue("blocks").jsonArray.map { it.jsonObject }.associateBy { it.getValue("type").jsonPrimitive.content }
+        val removeOther = blocks.getValue("removeOther")
         assertEquals(listOf("collision"), removeOther.getValue("allowedIn").jsonArray.map { it.jsonPrimitive.content })
+        assertEquals(listOf("edgeTouched"), blocks.getValue("bounceOffEdge").getValue("allowedIn").jsonArray.map { it.jsonPrimitive.content })
+        assertTrue("allowedIn" !in blocks.getValue("setNumber"), "A Block working in every Event names none.")
         assertTrue("description" in removeOther.getValue("schema").jsonObject)
         assertEquals(EventType.entries.size, catalog.getValue("events").jsonArray.size)
     }

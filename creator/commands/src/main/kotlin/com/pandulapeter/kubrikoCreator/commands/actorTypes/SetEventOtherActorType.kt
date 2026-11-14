@@ -29,18 +29,18 @@ import kotlinx.serialization.Serializable
 @OptIn(EditorMutation::class)
 public object SetEventOtherActorType : WriteCommand<SetEventOtherActorType.Input> {
     override val name: String = "set_event_other_actor_type"
-    override val description: String = "Sets the Actor type a collision Event of a block-built Actor type reacts to overlapping."
+    override val description: String = "Sets the Actor type a collision, actorAdded, or actorRemoved Event reacts to."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.BlockType(input.actorType, eventIndex = input.eventIndex)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex) ?: when {
-        context.requireType(input.actorType).events[input.eventIndex].type != EventType.COLLISION -> Rejection(PlacementProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED)
+        !context.requireType(input.actorType).events[input.eventIndex].type.takesActorType -> Rejection(PlacementProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED)
         else -> input.otherActorType?.let(context::validateActorType)
     }
 
     override fun validateRestoring(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex)
-        ?: if (context.requireType(input.actorType).events[input.eventIndex].type != EventType.COLLISION) Rejection(PlacementProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED) else null
+        ?: if (!context.requireType(input.actorType).events[input.eventIndex].type.takesActorType) Rejection(PlacementProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED) else null
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val definition = context.requireType(input.actorType)

@@ -151,8 +151,13 @@ class FormatFixturesTest {
      * up to the current format doesn't make up.
      */
     private fun BlockTypeDefinition.asOf(version: Int): BlockTypeDefinition {
-        if (version >= 11) return this
-        val withoutSteering = withEvents(events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.steeringBlocks)) })
+        if (version >= 12) return this
+        val withoutActorWatching = withEvents(
+            events.filterNot { it.type == EventType.ACTOR_ADDED || it.type == EventType.ACTOR_REMOVED }
+                .map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.actorCountBlocks)) },
+        )
+        if (version == 11) return withoutActorWatching
+        val withoutSteering = withoutActorWatching.withEvents(withoutActorWatching.events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.steeringBlocks)) })
         if (version == 10) return withoutSteering
         val withoutAnimate = withoutSteering.withEvents(withoutSteering.events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.animateBlocks)) })
         if (version == 9) return withoutAnimate

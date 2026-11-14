@@ -41,6 +41,8 @@ internal object BlockNotation {
         EventType.LEFT_SCENE -> "When it leaves the Scene"
         EventType.COLLISION -> "When it collides with ${event.otherActorType ?: NONE}"
         EventType.TIMER_FINISHED -> "When Timer ${event.timer ?: NONE} finishes"
+        EventType.ACTOR_ADDED -> "When an Actor of ${event.otherActorType ?: NONE} is added"
+        EventType.ACTOR_REMOVED -> "When an Actor of ${event.otherActorType ?: NONE} is removed by a Block"
     }
 
     /**
@@ -141,6 +143,7 @@ internal object BlockNotation {
         is ConditionDefinition.Toggle -> "${property(condition.property, condition.manager)} ${if (condition.isOn) "is on" else "is off"}"
         is ConditionDefinition.KeyHeld -> "${condition.key.composeKeyName} ${if (condition.isHeld) "is held" else "isn't held"}"
         is ConditionDefinition.Velocity -> "the ${if (condition.axis == Axis.HORIZONTAL) "horizontal" else "vertical"} velocity ${of(condition.comparison)} ${value(condition.value)}"
+        is ConditionDefinition.ActorCount -> "the number of Actors of ${condition.actorType.ifEmpty { NONE }} ${of(condition.comparison)} ${value(condition.value)}"
         is ConditionDefinition.Chance -> "by chance (${value(condition.percent)}%)"
         is ConditionDefinition.Paused -> if (condition.isPaused) "the game is paused" else "the game isn't paused"
     }

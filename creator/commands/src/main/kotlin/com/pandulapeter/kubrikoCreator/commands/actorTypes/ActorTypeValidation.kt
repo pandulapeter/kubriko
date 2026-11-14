@@ -142,8 +142,8 @@ internal fun CommandContext.validateProperty(typeName: String, propertyName: Str
 internal fun validateSize(width: Float, height: Float) = if (width.isFinite() && height.isFinite() && width > 0f && height > 0f) null else Rejection(CommandProblem.SIZE_INVALID)
 
 /**
- * Why [event] can't be part of the type [scope] is about. Its collision Event may only refer to the Actor types of the
- * scope.
+ * Why [event] can't be part of the type [scope] is about. The Actor type its Event reacts to may only be one of the
+ * scope's.
  */
 internal fun validateEvent(event: EventDefinition, scope: BlockScope): Rejection? {
     val key = event.key
@@ -153,7 +153,7 @@ internal fun validateEvent(event: EventDefinition, scope: BlockScope): Rejection
     return when {
         key != null && event.type != EventType.KEY_PRESSED -> Rejection(PlacementProblem.KEY_NOT_ALLOWED)
         key?.isKnown == false -> unknownKey(key)
-        otherActorType != null && event.type != EventType.COLLISION -> Rejection(PlacementProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED)
+        otherActorType != null && !event.type.takesActorType -> Rejection(PlacementProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED)
         timer != null && event.type != EventType.TIMER_FINISHED -> Rejection(PlacementProblem.TIMER_NOT_ALLOWED)
         else -> timer?.let(TimerNaming::validate)?.let(::Rejection) ?: when {
             otherActorType != null && otherActorType !in scope.actorTypeNames -> missingActorType(otherActorType, scope)

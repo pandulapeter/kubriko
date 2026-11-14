@@ -32,7 +32,7 @@ import kotlinx.serialization.json.putJsonArray
 public object GetBlockCatalog : ReadCommand<NoInput> {
     override val name: String = "get_block_catalog"
     override val description: String = "Lists every Event an Actor type or Manager type can react to and every Block an Event can run: what each one does, " +
-        "which Events allow which Blocks (in an Actor type; a Manager type has no Blocks that need an Actor), the properties of each Block, " +
+        "which Events allow which Blocks (a Block without allowedIn works in all; a Manager type has no Blocks that need an Actor), the properties of each Block, " +
         "and what any number of a Block can be besides a number (numberValue)."
     override val inputSerializer: KSerializer<NoInput> = NoInput.serializer()
     override val readsProject: Boolean = false
@@ -51,7 +51,6 @@ public object GetBlockCatalog : ReadCommand<NoInput> {
                         put("description", eventDescriptor.getElementAnnotations(eventType.ordinal).filterIsInstance<Description>().single().text)
                         put("inActorTypes", eventType.isAvailableIn(BlockTypeKind.ACTOR))
                         put("inManagerTypes", eventType.isAvailableIn(BlockTypeKind.MANAGER))
-                        putJsonArray("blocks") { BlockKind.entries.filter { it.isAvailableIn(eventType, BlockTypeKind.ACTOR) }.forEach { add(it.serialName) } }
                     })
                 }
             }
@@ -60,7 +59,9 @@ public object GetBlockCatalog : ReadCommand<NoInput> {
                 BlockKind.entries.forEach { kind ->
                     add(buildJsonObject {
                         put("type", kind.serialName)
-                        putJsonArray("allowedIn") { EventType.entries.filter { kind.isAvailableIn(it, BlockTypeKind.ACTOR) }.forEach { add(it.serialName) } }
+                        val allowedIn = EventType.entries.filter { kind.isAvailableIn(it, BlockTypeKind.ACTOR) }
+                        // Most Blocks work in every Event, so only the others say where, which keeps the catalog in the system prompt small.
+                        if (allowedIn.size < EventType.entries.size) putJsonArray("allowedIn") { allowedIn.forEach { add(it.serialName) } }
                         put("needsActor", kind.needsActor)
                         put("schema", JsonSchema.of(blockDescriptors.getValue(kind.serialName)))
                     })

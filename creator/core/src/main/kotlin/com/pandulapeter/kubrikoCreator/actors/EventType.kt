@@ -55,14 +55,29 @@ public enum class EventType(public val misplacedProblem: PlacementProblem? = nul
 
     @Description("When the Event's Timer, started by a startTimer Block, finishes (each time, if it repeats).")
     @SerialName("timerFinished")
-    TIMER_FINISHED;
+    TIMER_FINISHED,
+
+    @Description("On the frame after an Actor of the Event's other Actor type (or of a type inheriting from it) joins the Scene, once per Actor: placed in a Scene that starts, or added by a Block. Only Manager types have it.")
+    @SerialName("actorAdded")
+    ACTOR_ADDED(PlacementProblem.EVENT_ACTOR_ADDED_IN_ACTOR_TYPE),
+
+    @Description("On the frame after a Block removes an Actor of the Event's other Actor type (or of a type inheriting from it), once per Actor; never for the Actors a Scene change takes away. Only Manager types have it.")
+    @SerialName("actorRemoved")
+    ACTOR_REMOVED(PlacementProblem.EVENT_ACTOR_REMOVED_IN_ACTOR_TYPE);
+
+    /**
+     * Whether the Event reacts to Actors of another Actor type, which it names in `otherActorType`.
+     */
+    public val takesActorType: Boolean
+        get() = this == COLLISION || this == ACTOR_ADDED || this == ACTOR_REMOVED
 
     /**
      * Whether a type of [kind] can react to this Event. Managers aren't in the Scene, so they have no position, edges, or
-     * collisions, and they start with the game.
+     * collisions, and they start with the game and outlive every Scene, so they are the ones to hear about Actors coming
+     * and going.
      */
     public fun isAvailableIn(kind: BlockTypeKind): Boolean = when (this) {
-        GAME_STARTED -> kind == BlockTypeKind.MANAGER
+        GAME_STARTED, ACTOR_ADDED, ACTOR_REMOVED -> kind == BlockTypeKind.MANAGER
         ADDED_TO_SCENE, EDGE_TOUCHED, LEFT_SCENE, COLLISION -> kind == BlockTypeKind.ACTOR
         EVERY_FRAME, KEY_PRESSED, TIMER_FINISHED -> true
     }

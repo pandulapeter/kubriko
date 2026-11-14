@@ -204,6 +204,31 @@ class ReservedPropertyMigrationTest {
     }
 
     @Test
+    fun formatVersionTwelveReservesTheCounterNamesInManagerTypesAndTheCountingFunctionEverywhere() {
+        val store = assertNotNull(BlockTypeStore.open(root))
+        val game = ManagerTypeDefinition(
+            "Game",
+            properties = listOf(PropertyDefinition.Number("actorsAdded"), PropertyDefinition.Toggle("kotlin"), PropertyDefinition.Number("countActors")),
+        )
+        store.save(game)
+        val ball = ActorTypeDefinition(
+            name = "Ball",
+            properties = listOf(PropertyDefinition.Number("actorsRemoved"), PropertyDefinition.Number("countActors")),
+            events = everyFrame(BlockDefinition.ChangeNumber(manager = "Game", property = "actorsAdded"), BlockDefinition.ChangeNumber(property = "countActors")),
+        )
+        store.save(ball)
+        val types = migratedTypes()
+        assertEquals(
+            listOf(PropertyDefinition.Number("actorsAdded2"), PropertyDefinition.Toggle("kotlin2"), PropertyDefinition.Number("countActors2")),
+            (types.getValue("Game") as ManagerTypeDefinition).properties,
+        )
+        val migratedBall = types.getValue("Ball") as ActorTypeDefinition
+        assertEquals(listOf(PropertyDefinition.Number("actorsRemoved"), PropertyDefinition.Number("countActors2")), migratedBall.properties)
+        assertEquals(everyFrame(BlockDefinition.ChangeNumber(manager = "Game", property = "actorsAdded2"), BlockDefinition.ChangeNumber(property = "countActors2")), migratedBall.events)
+        assertEquals(null, PropertyNaming.validate("kotlin", emptyList(), BlockTypeKind.ACTOR))
+    }
+
+    @Test
     fun aProjectWithoutALookPropertyIsLeftAsItWas() {
         val store = assertNotNull(BlockTypeStore.open(root))
         store.save(ActorTypeDefinition(name = "Ball", properties = listOf(PropertyDefinition.Number("speed"))))

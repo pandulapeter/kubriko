@@ -29,7 +29,7 @@ public object PropertyNaming {
         "drawingOrder", "generatedAudio", "generatedScenes", "halfSize", "index", "isAlwaysActive", "keyboardInputManager", "isVisible", "key", "kubriko", "layerIndex", "metadata", "other",
         "shouldClip", "state", "stateManager", "topLeft", "velocity", "viewportManager",
         "box", "isRemoved", "sceneSettings", "sprite", "spriteManager",
-        "isInSceneEditor", "isInitialized", "isLoggingEnabled", "scope",
+        "isInSceneEditor", "isInitialized", "isLoggingEnabled", "scope", "countActors",
     ) + SCENE_BOUNDS_NAMES
 
     /**
@@ -39,6 +39,13 @@ public object PropertyNaming {
     private val actorMemberNames = setOf(
         "look", "animation", "animationSpeed", "isAnimationLooping", "velocityInDirection", "opacity", "velocityFromKeys",
     ) + AnimationNaming.reservedNames
+
+    /**
+     * The names only the generated Manager classes use (the counters of the actorAdded and actorRemoved Events, and the
+     * package their class is named in full from), which the format raise that added them reserved: an Actor type's
+     * Property may have them.
+     */
+    private val managerMemberNames = setOf("actorsAdded", "actorsRemoved", "kotlin")
 
     /**
      * [base], or the first of base2, base3, … that can be the name of a Property of a type of [kind] among [existingNames].
@@ -58,7 +65,7 @@ public object PropertyNaming {
         NameFlaw.CHARACTER -> NameProblem.PROPERTY_CHARACTERS
         null -> when {
             name in KotlinIdentifiers.hardKeywords -> NameProblem.NAME_KEYWORD
-            name in reservedNames || (kind == BlockTypeKind.ACTOR && name in actorMemberNames) || name.startsWith("isTouching") || name.startsWith("textStyle") || TimerNaming.fieldSuffixes.any(name::endsWith) ||
+            name in reservedNames || (kind == BlockTypeKind.ACTOR && name in actorMemberNames) || (kind == BlockTypeKind.MANAGER && name in managerMemberNames) || name.startsWith("isTouching") || name.startsWith("textStyle") || TimerNaming.fieldSuffixes.any(name::endsWith) ||
                 name.endsWith(BlockScope.MANAGER_FIELD_SUFFIX) -> NameProblem.PROPERTY_RESERVED
             existingNames.any { it.equals(name, ignoreCase = true) } -> NameProblem.PROPERTY_TAKEN
             else -> null

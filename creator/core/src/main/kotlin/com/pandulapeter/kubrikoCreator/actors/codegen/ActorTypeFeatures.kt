@@ -101,6 +101,7 @@ internal class ActorTypeFeatures(
     val usesDirection = BlockNeed.DIRECTION in needs
     val usesSteering = BlockNeed.STEERING in needs
     val usesNumberText = BlockNeed.NUMBER_TEXT in needs
+    val countsActors = BlockNeed.ACTOR_COUNT in needs
 
     /**
      * The values the Animate Blocks animate, each of which the class plays ([AnimateCode]).
@@ -112,6 +113,12 @@ internal class ActorTypeFeatures(
      * a family's base class always declares it for its members to override.
      */
     val usesSetFrame = BlockNeed.FRAME in needs
+    /**
+     * The Manager types' actorAdded and actorRemoved Events about these Actors, which they tell those Managers about.
+     */
+    val watches = eventScopes.map { (_, eventScope) -> eventScope.typeName }.toSet().let { members ->
+        scope.managerTypes.flatMap { ActorWatch.of(it, knownActorTypeNames) }.filter { it.actorType in members }
+    }
     private val lookupNeeds = BlockNeed.entries.filter { it in needs && lookupOf(it) != null }
 
     /**
@@ -119,7 +126,7 @@ internal class ActorTypeFeatures(
      */
     val lookups = lookupNeeds.mapNotNull(::lookupOf) +
         listOfNotNull("$SPRITE_MANAGER_FIELD: SpriteManager".takeIf { hasSprite }) +
-        blockCode.managers.sorted().map { "${scope.managerField(it)}: $it" }
+        (blockCode.managers + watches.map { it.manager }).distinct().sorted().map { "${scope.managerField(it)}: $it" }
 
     /**
      * What the [lookups] import.
@@ -127,9 +134,10 @@ internal class ActorTypeFeatures(
     val lookupImports = lookupNeeds.mapNotNull(::importOf) + listOfNotNull("com.pandulapeter.kubriko.sprites.SpriteManager".takeIf { hasSprite })
 
     /**
-     * Whether the Actors override onAdded, to look the Managers up or to run their added-to-the-Scene Events.
+     * Whether the Actors override onAdded, to look the Managers up, to tell them they were added, or to run their
+     * added-to-the-Scene Events.
      */
-    val overridesOnAdded = lookups.isNotEmpty() || if (isFamily) addedEvents.isNotEmpty() else addedEvents.any { it.blocks.isNotEmpty() }
+    val overridesOnAdded = lookups.isNotEmpty() || watches.any { it.isAdded } || if (isFamily) addedEvents.isNotEmpty() else addedEvents.any { it.blocks.isNotEmpty() }
 
     /**
      * Whether the code of [event] is generated: Events with what doesn't exist (a key, the other Actor type, or a Timer
@@ -146,7 +154,7 @@ internal class ActorTypeFeatures(
             BlockNeed.STATE_MANAGER -> "$STATE_MANAGER_FIELD: StateManager"
             BlockNeed.SCENES -> "$SCENES_FIELD: ${ScenesCodeGenerator.SCENES_NAME}"
             BlockNeed.AUDIO -> "$AUDIO_FIELD: ${AudioCodeGenerator.AUDIO_NAME}"
-            BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.STEERING, BlockNeed.ANIMATION, BlockNeed.FRAME,
+            BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.ACTOR_COUNT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.STEERING, BlockNeed.ANIMATION, BlockNeed.FRAME,
             BlockNeed.SCALE_TWEEN, BlockNeed.OPACITY_TWEEN, BlockNeed.COLOR_TWEEN, BlockNeed.POSITION_TWEEN,
             -> null
         }
@@ -156,7 +164,7 @@ internal class ActorTypeFeatures(
             BlockNeed.VIEWPORT_MANAGER -> "com.pandulapeter.kubriko.manager.ViewportManager"
             BlockNeed.KEYBOARD_INPUT_MANAGER -> "com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager"
             BlockNeed.STATE_MANAGER -> STATE_MANAGER_IMPORT
-            BlockNeed.SCENES, BlockNeed.AUDIO, BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.STEERING, BlockNeed.ANIMATION, BlockNeed.FRAME,
+            BlockNeed.SCENES, BlockNeed.AUDIO, BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.ACTOR_COUNT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.STEERING, BlockNeed.ANIMATION, BlockNeed.FRAME,
             BlockNeed.SCALE_TWEEN, BlockNeed.OPACITY_TWEEN, BlockNeed.COLOR_TWEEN, BlockNeed.POSITION_TWEEN,
             -> null
         }

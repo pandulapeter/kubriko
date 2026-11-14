@@ -65,6 +65,15 @@
   random, which would change on every frame. Its WASD are the letter keys as Compose names them: on the desktop and
   Android that follows the keyboard layout (on AZERTY, W and A steer where those letters are printed, away from the usual cluster), while the web
   (`KeyboardEvent.code`) and iOS (`GCKeyboard`) read the physical keys, so the keyboard plugin decides, not the Block.
+- A Manager type's actorAdded and actorRemoved Events are told by the Actors (`ActorWatch`, which both generators read,
+  so they agree): `onAdded` and `onRemoved` call the Manager's notify function, which only counts in an atomic array,
+  since Kubriko calls them on a thread of its own, and the Manager's `onUpdate` runs the Event once per count (so never
+  while paused or in the Scene editor). Removed means removed by a Block (`isRemoved`), never a Scene change's
+  `removeAll`, which would end every level with "all Bricks are gone"; added includes the Actors a Scene starts with, as
+  GameMaker's create event does. The actorCount condition walks `allActors` through an inline `countActors`, leaving out
+  `isRemoved` Actors; Kubriko calls `onRemoved` after it publishes the list, so in an actorRemoved Event the last Brick
+  counts 0, while in an actorAdded Event the Actor may not be counted yet. The atomics are named in full, which is why
+  `kotlin` is a reserved Property name of Manager types (format version 12, with the counters and `countActors`).
 - What isn't generated needs no plugin: `GeneratedCode` decides which Events and Blocks get code, and both generators,
   `PluginUse`, and `PluginManagers` ask it, so a Block left as a comment (or in an Event left out) adds no plugin.
 - Property names the format raises reserved only for what generated Actor classes declare (`look`, the animation's and

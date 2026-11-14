@@ -64,7 +64,7 @@ public object AddEvent : WriteCommand<AddEvent.Input> {
         @SerialName("type") val type: EventType,
         @Description("The key a keyPressed Event reacts to, " + KeyChoice.DESCRIPTION + " Spacebar unless another one is given. Only keyPressed Events have one.")
         @SerialName("key") val key: KeyChoice? = null,
-        @Description("The Actor type a collision Event reacts to overlapping. Only collision Events have one.")
+        @Description("The Actor type a collision, actorAdded, or actorRemoved Event reacts to. Only those have one.")
         @SerialName("otherActorType") val otherActorType: String? = null,
         @Description("The name of the Timer a timerFinished Event reacts to, like spawnEnemy: a letter, then letters and digits, starting lowercase; timer unless another one is given. Only timerFinished Events have one.")
         @SerialName("timer") val timer: String? = null,

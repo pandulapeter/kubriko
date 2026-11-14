@@ -23,6 +23,8 @@ import kubriko.creator.generated.resources.error_placement_block_remove_other_ou
 import kubriko.creator.generated.resources.error_placement_block_remove_self_in_manager_type
 import kubriko.creator.generated.resources.error_placement_block_run_parent_event_in_manager_type
 import kubriko.creator.generated.resources.error_placement_condition_not_allowed
+import kubriko.creator.generated.resources.error_placement_event_actor_added_in_actor_type
+import kubriko.creator.generated.resources.error_placement_event_actor_removed_in_actor_type
 import kubriko.creator.generated.resources.error_placement_event_added_to_scene_in_manager_type
 import kubriko.creator.generated.resources.error_placement_event_collision_in_manager_type
 import kubriko.creator.generated.resources.error_placement_event_edge_touched_in_manager_type
@@ -51,6 +53,8 @@ internal fun PlacementProblem.toResource(): StringResource = when (this) {
     PlacementProblem.EVENT_EDGE_TOUCHED_IN_MANAGER_TYPE -> Res.string.error_placement_event_edge_touched_in_manager_type
     PlacementProblem.EVENT_LEFT_SCENE_IN_MANAGER_TYPE -> Res.string.error_placement_event_left_scene_in_manager_type
     PlacementProblem.EVENT_COLLISION_IN_MANAGER_TYPE -> Res.string.error_placement_event_collision_in_manager_type
+    PlacementProblem.EVENT_ACTOR_ADDED_IN_ACTOR_TYPE -> Res.string.error_placement_event_actor_added_in_actor_type
+    PlacementProblem.EVENT_ACTOR_REMOVED_IN_ACTOR_TYPE -> Res.string.error_placement_event_actor_removed_in_actor_type
     PlacementProblem.BLOCK_BOUNCE_OFF_EDGE_OUTSIDE_EDGE_TOUCHED -> Res.string.error_placement_block_bounce_off_edge_outside_edge_touched
     PlacementProblem.BLOCK_BOUNCE_OFF_OTHER_OUTSIDE_COLLISION -> Res.string.error_placement_block_bounce_off_other_outside_collision
     PlacementProblem.BLOCK_REMOVE_OTHER_OUTSIDE_COLLISION -> Res.string.error_placement_block_remove_other_outside_collision

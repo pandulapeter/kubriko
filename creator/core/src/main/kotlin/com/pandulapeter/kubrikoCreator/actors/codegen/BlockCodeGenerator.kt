@@ -40,6 +40,11 @@ public object BlockCodeGenerator {
 
     internal const val INDENT = "    "
     internal const val NUMBER_TEXT_FUNCTION = "asText"
+
+    /**
+     * The function the conditions counting Actors call ([ActorClassCode.appendCountActorsFunction]).
+     */
+    internal const val COUNT_ACTORS_FUNCTION = "countActors"
     internal const val SCENES_FIELD = "generatedScenes"
     internal const val AUDIO_FIELD = "generatedAudio"
     internal const val STATE_MANAGER_FIELD = "stateManager"
@@ -342,7 +347,8 @@ public object BlockCodeGenerator {
 
     /**
      * The condition of [block] as a Kotlin expression (the only line of the result), or `false` if it needs a Property
-     * that doesn't exist (of that kind), or an Actor in a Manager type, so that the generated code always compiles.
+     * that doesn't exist (of that kind), an Actor type that doesn't, or an Actor in a Manager type, so that the generated
+     * code always compiles.
      */
     private fun conditionCode(block: BlockDefinition.If, scope: BlockScope): BlockCode {
         val condition = block.condition
@@ -368,6 +374,17 @@ public object BlockCodeGenerator {
                 lines = listOf("velocity.${if (condition.axis == Axis.HORIZONTAL) "x" else "y"} ${condition.comparison.operator} ${NumberValueCode.sceneUnit(condition.value, scope)}"),
                 needs = setOf(BlockNeed.MOVEMENT),
             )
+            is ConditionDefinition.ActorCount -> if (condition.actorType in scope.actorTypeNames) {
+                BlockCode(
+                    lines = listOf(
+                        "$COUNT_ACTORS_FUNCTION { actor -> actor is ${scope.classOf(condition.actorType)} && !actor.$REMOVED_FIELD }.toFloat() " +
+                            "${condition.comparison.operator} ${NumberValueCode.float(condition.value, scope)}",
+                    ),
+                    needs = setOf(BlockNeed.ACTOR_MANAGER, BlockNeed.ACTOR_COUNT),
+                )
+            } else {
+                BlockCode(listOf("false"))
+            }
             is ConditionDefinition.Chance -> BlockCode(listOf("${ManagerTypeCodeGenerator.WIRING_NAME}.${ManagerTypeCodeGenerator.RANDOM_FIELD}.nextFloat() * 100f < ${NumberValueCode.float(condition.percent, scope)}"))
             is ConditionDefinition.Paused -> BlockCode(listOf((if (condition.isPaused) "!" else "") + "$STATE_MANAGER_FIELD.isRunning.value"), needs = setOf(BlockNeed.STATE_MANAGER))
         }

@@ -13,8 +13,10 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
+import com.pandulapeter.kubrikoCreator.actors.actorTypeReference
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.numberPropertyReferences
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
@@ -63,7 +65,10 @@ internal class ProjectRelations(
     private fun MutableList<Relation>.addRelationsOf(type: BlockTypeDefinition) {
         if (type is ActorTypeDefinition) type.parent?.let { add(Relation(RelationPlace.Type(type.name), RelationKind.INHERITS_FROM, RelationSubject.Type(it))) }
         type.events.forEachIndexed { eventIndex, event ->
-            event.otherActorType?.let { add(Relation(RelationPlace.Type(type.name, eventIndex), RelationKind.COLLIDES_WITH, RelationSubject.Type(it))) }
+            event.otherActorType?.let {
+                val kind = if (event.type == EventType.COLLISION) RelationKind.COLLIDES_WITH else RelationKind.REACTS_TO
+                add(Relation(RelationPlace.Type(type.name, eventIndex), kind, RelationSubject.Type(it)))
+            }
             event.blocks.forEachIndexed { blockIndex, block -> addRelationsOf(type.name, RelationPlace.Type(type.name, eventIndex, blockIndex), block) }
         }
         if (type is ManagerTypeDefinition) {
@@ -76,13 +81,16 @@ internal class ProjectRelations(
         when (block) {
             is BlockDefinition.AddActor -> block.actorType.ifEmpty { null }?.let { add(Relation(place, RelationKind.ADDS, RelationSubject.Type(it))) }
             is BlockDefinition.MoveTowardsNearest -> block.actorType.ifEmpty { null }?.let { add(Relation(place, RelationKind.MOVES_TOWARDS, RelationSubject.Type(it))) }
+            is BlockDefinition.If -> {
+                block.propertyReference?.takeIf { it.name.isNotEmpty() }?.let { add(Relation(place, RelationKind.READS, propertyOf(typeName, it.manager, it.name))) }
+                block.actorTypeReference?.let { add(Relation(place, RelationKind.COUNTS, RelationSubject.Type(it))) }
+            }
             is BlockDefinition.GoToScene -> block.scene.ifEmpty { null }?.let { add(Relation(place, RelationKind.GOES_TO, RelationSubject.Scene(it))) }
             is BlockDefinition.Log -> addPlaceholders(typeName, place, block.message)
             is BlockDefinition.Kotlin -> addKotlinNames(place, block.code)
-            is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.If,
+            is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText, is BlockDefinition.SetToggle,
             -> block.propertyReference?.takeIf { it.name.isNotEmpty() }?.let { reference ->
-                val kind = if (block is BlockDefinition.If) RelationKind.READS else RelationKind.CHANGES
-                add(Relation(place, kind, propertyOf(typeName, reference.manager, reference.name)))
+                add(Relation(place, RelationKind.CHANGES, propertyOf(typeName, reference.manager, reference.name)))
             }
             is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
             is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,

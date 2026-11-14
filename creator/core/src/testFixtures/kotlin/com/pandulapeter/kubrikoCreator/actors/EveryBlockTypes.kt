@@ -93,7 +93,7 @@ public object EveryBlockTypes {
         BlockDefinition.StopMusic,
         BlockDefinition.SetFrame(frame = NumberValue.Fixed(2f)),
         BlockDefinition.SetAnimation(speed = NumberValue.Fixed(-0.5f), isLooping = false),
-    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks + steeringBlocks
+    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks + steeringBlocks + actorCountBlocks
 
     /**
      * Blocks taking random numbers and Properties' values, which format version 5 added.
@@ -154,6 +154,24 @@ public object EveryBlockTypes {
         )
 
     /**
+     * If Blocks counting the Actors of a type: one without children, a family's topmost type, one in the middle of it,
+     * and types that don't exist, which format version 12 added.
+     */
+    val actorCountBlocks: List<BlockDefinition>
+        get() = listOf(
+            BlockDefinition.If(ConditionDefinition.ActorCount("EveryBlock")),
+            BlockDefinition.If(ConditionDefinition.ActorCount("EveryParent", Comparison.GREATER, NumberValue.Property("score"))),
+            BlockDefinition.If(ConditionDefinition.ActorCount("EveryChild", Comparison.LESS_OR_EQUAL, NumberValue.Random(1f, 3f, isWhole = true))),
+            BlockDefinition.If(ConditionDefinition.ActorCount("Missing", Comparison.NOT_EQUAL)),
+            BlockDefinition.If(ConditionDefinition.ActorCount()),
+            BlockDefinition.End,
+            BlockDefinition.End,
+            BlockDefinition.End,
+            BlockDefinition.End,
+            BlockDefinition.End,
+        )
+
+    /**
      * Animate Blocks, of every value and easing, which format version 10 added.
      */
     val animateBlocks: List<BlockDefinition>
@@ -198,6 +216,10 @@ public object EveryBlockTypes {
             }
             EventType.COLLISION -> listOf("EveryBlock", "Ball").map { EventDefinition(type = type, otherActorType = it, blocks = blocks + blocks) }
             EventType.TIMER_FINISHED -> listOf("timer1", "spawnEnemy", "timer1").map { EventDefinition(type = type, timer = it, blocks = blocks) }
+            // A type without children, a family's topmost type, one inside it, and one that doesn't exist; and one with no Blocks.
+            EventType.ACTOR_ADDED -> listOf("EveryBlock", "EveryParent", "EveryChild", "Missing").map { EventDefinition(type = type, otherActorType = it, blocks = blocks) } +
+                EventDefinition(type = type, otherActorType = "EveryGrandchild")
+            EventType.ACTOR_REMOVED -> listOf("EveryChild", "EveryBlock", "EveryChild").map { EventDefinition(type = type, otherActorType = it, blocks = blocks) }
             else -> listOf(EventDefinition(type = type, blocks = blocks))
         }
     }

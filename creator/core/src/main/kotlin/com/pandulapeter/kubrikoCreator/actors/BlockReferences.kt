@@ -22,7 +22,7 @@ public val BlockDefinition.propertyReference: PropertyReference?
             is ConditionDefinition.Number -> PropertyReference(condition.property, PropertyKind.NUMBER, condition.manager)
             is ConditionDefinition.Text -> PropertyReference(condition.property, PropertyKind.TEXT, condition.manager)
             is ConditionDefinition.Toggle -> PropertyReference(condition.property, PropertyKind.TOGGLE, condition.manager)
-            is ConditionDefinition.KeyHeld, is ConditionDefinition.Velocity, is ConditionDefinition.Chance, is ConditionDefinition.Paused -> null
+            is ConditionDefinition.KeyHeld, is ConditionDefinition.Velocity, is ConditionDefinition.ActorCount, is ConditionDefinition.Chance, is ConditionDefinition.Paused -> null
         }
         is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
         is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
@@ -35,34 +35,36 @@ public val BlockDefinition.propertyReference: PropertyReference?
     }
 
 /**
- * The Actor type [this] Block adds or moves towards, if it is one of those and one is chosen.
+ * The Actor type [this] Block adds, moves towards, or counts, if it is one of those and one is chosen.
  */
 public val BlockDefinition.actorTypeReference: String?
     get() = when (this) {
         is BlockDefinition.AddActor -> actorType
         is BlockDefinition.MoveTowardsNearest -> actorType
+        is BlockDefinition.If -> (condition as? ConditionDefinition.ActorCount)?.actorType
         is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
         is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
         BlockDefinition.RemoveOther, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText,
         is BlockDefinition.SetToggle, is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene,
         BlockDefinition.RestartScene, is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic,
-        BlockDefinition.StopMusic, is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity, is BlockDefinition.ChangeOpacity, is BlockDefinition.Animate, is BlockDefinition.If, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
+        BlockDefinition.StopMusic, is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity, is BlockDefinition.ChangeOpacity, is BlockDefinition.Animate, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
         is BlockDefinition.Log, is BlockDefinition.Kotlin,
         -> null
     }?.ifEmpty { null }
 
 /**
- * [this] Block with the Actor type it adds or moves towards renamed from [oldName] to [newName], if it is that one.
+ * [this] Block with the Actor type it adds, moves towards, or counts renamed from [oldName] to [newName], if it is that one.
  */
 internal fun BlockDefinition.withActorTypeRenamed(oldName: String, newName: String) = when (this) {
     is BlockDefinition.AddActor -> if (actorType == oldName) copy(actorType = newName) else this
     is BlockDefinition.MoveTowardsNearest -> if (actorType == oldName) copy(actorType = newName) else this
+    is BlockDefinition.If -> (condition as? ConditionDefinition.ActorCount)?.takeIf { it.actorType == oldName }?.let { copy(condition = it.copy(actorType = newName)) } ?: this
     is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
     is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
     BlockDefinition.RemoveOther, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText,
     is BlockDefinition.SetToggle, is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene,
     BlockDefinition.RestartScene, is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic,
-    BlockDefinition.StopMusic, is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity, is BlockDefinition.ChangeOpacity, is BlockDefinition.Animate, is BlockDefinition.If, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
+    BlockDefinition.StopMusic, is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity, is BlockDefinition.ChangeOpacity, is BlockDefinition.Animate, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
     is BlockDefinition.Log, is BlockDefinition.Kotlin,
     -> this
 }
@@ -135,7 +137,7 @@ public fun BlockDefinition.withPropertyReference(manager: String?, name: String)
         is ConditionDefinition.Number -> copy(condition = condition.copy(manager = manager, property = name))
         is ConditionDefinition.Text -> copy(condition = condition.copy(manager = manager, property = name))
         is ConditionDefinition.Toggle -> copy(condition = condition.copy(manager = manager, property = name))
-        is ConditionDefinition.KeyHeld, is ConditionDefinition.Velocity, is ConditionDefinition.Chance, is ConditionDefinition.Paused -> this
+        is ConditionDefinition.KeyHeld, is ConditionDefinition.Velocity, is ConditionDefinition.ActorCount, is ConditionDefinition.Chance, is ConditionDefinition.Paused -> this
     }
     is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
     is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
@@ -188,6 +190,7 @@ public val BlockDefinition.numberValues: List<NumberValue>
         is BlockDefinition.If -> when (val condition = condition) {
             is ConditionDefinition.Number -> listOf(condition.value)
             is ConditionDefinition.Velocity -> listOf(condition.value)
+            is ConditionDefinition.ActorCount -> listOf(condition.value)
             is ConditionDefinition.Chance -> listOf(condition.percent)
             is ConditionDefinition.Text, is ConditionDefinition.Toggle, is ConditionDefinition.KeyHeld, is ConditionDefinition.Paused -> emptyList()
         }
@@ -231,6 +234,7 @@ public fun BlockDefinition.withNumberValues(transform: (NumberValue) -> NumberVa
 private fun ConditionDefinition.withNumberValues(transform: (NumberValue) -> NumberValue) = when (this) {
     is ConditionDefinition.Number -> copy(value = transform(value))
     is ConditionDefinition.Velocity -> copy(value = transform(value))
+    is ConditionDefinition.ActorCount -> copy(value = transform(value))
     is ConditionDefinition.Chance -> copy(percent = transform(percent))
     is ConditionDefinition.Text, is ConditionDefinition.Toggle, is ConditionDefinition.KeyHeld, is ConditionDefinition.Paused -> this
 }

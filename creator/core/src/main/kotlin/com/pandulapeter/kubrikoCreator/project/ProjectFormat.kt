@@ -99,6 +99,7 @@ public class ProjectFormat(
             ReservedPropertyMigration.OPACITY,
             ReservedPropertyMigration.ANIMATE,
             ReservedPropertyMigration.STEERING,
+            ReservedPropertyMigration.ACTOR_WATCHING,
         )
 
         /**

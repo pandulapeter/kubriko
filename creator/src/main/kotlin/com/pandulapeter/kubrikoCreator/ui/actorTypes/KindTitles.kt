@@ -50,6 +50,7 @@ import kubriko.creator.generated.resources.block_start_timer
 import kubriko.creator.generated.resources.block_stop
 import kubriko.creator.generated.resources.block_stop_music
 import kubriko.creator.generated.resources.block_stop_timer
+import kubriko.creator.generated.resources.condition_actor_count
 import kubriko.creator.generated.resources.condition_chance
 import kubriko.creator.generated.resources.condition_key_held
 import kubriko.creator.generated.resources.condition_number
@@ -110,6 +111,7 @@ internal val ConditionKind.title: StringResource
         ConditionKind.TOGGLE -> Res.string.condition_toggle
         ConditionKind.KEY_HELD -> Res.string.condition_key_held
         ConditionKind.VELOCITY -> Res.string.condition_velocity
+        ConditionKind.ACTOR_COUNT -> Res.string.condition_actor_count
         ConditionKind.CHANCE -> Res.string.condition_chance
         ConditionKind.PAUSED -> Res.string.condition_paused
     }

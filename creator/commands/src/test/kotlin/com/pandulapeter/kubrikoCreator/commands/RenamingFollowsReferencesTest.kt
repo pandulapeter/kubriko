@@ -48,6 +48,8 @@ class RenamingFollowsReferencesTest {
         RelationKind.MOVES_TOWARDS,
         RelationKind.NAMES_IN_KOTLIN,
         RelationKind.COLLIDES_WITH,
+        RelationKind.REACTS_TO,
+        RelationKind.COUNTS,
         RelationKind.PLACES,
         RelationKind.INHERITS_FROM,
         RelationKind.MENTIONS,
@@ -97,7 +99,13 @@ class RenamingFollowsReferencesTest {
                 EventDefinition(EventType.COLLISION, otherActorType = "Brick"),
             ),
         )
-        val context = commandContext(ball, brick, bigBrick)
+        val game = ManagerTypeDefinition(
+            name = "Game",
+            events = listOf(
+                EventDefinition(EventType.ACTOR_REMOVED, otherActorType = "Brick", blocks = listOf(BlockDefinition.If(ConditionDefinition.ActorCount("Brick")), BlockDefinition.End)),
+            ),
+        )
+        val context = commandContext(ball, brick, bigBrick, game)
         context.writeFile("src/commonMain/composeResources/files/scenes/level.json", """[{"typeId":"Brick","state":"{}"}]""")
         context.scenes.refresh()
         context.writeFile("src/commonMain/kotlin/Game.kt", "val first = Brick()")

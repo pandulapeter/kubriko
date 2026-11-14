@@ -40,8 +40,10 @@ import java.io.File
  * the members that play a sprite cut into frames ([ANIMATION]), whose version also added the animation Blocks and
  * tinting a sprite, format version 8 the function the Move in a direction Block calls ([DIRECTION]), which that
  * version added, format version 9 the opacity every Actor is drawn with ([OPACITY]), with the color and opacity Blocks,
- * format version 10 the members that play the Animate Blocks' animations ([ANIMATE]), with the Animate Block, and format
- * version 11 the function the Move with keys Block calls ([STEERING]), which that version added.
+ * format version 10 the members that play the Animate Blocks' animations ([ANIMATE]), with the Animate Block, format
+ * version 11 the function the Move with keys Block calls ([STEERING]), which that version added, and format version 12
+ * the function the actorCount condition calls and the counters of the actorAdded and actorRemoved Events
+ * ([ACTOR_WATCHING]), which that version added; the counters only in Manager types, the only ones that declare them.
  */
 internal class ReservedPropertyMigration(private vararg val reservedNames: String) : FormatMigration {
 
@@ -78,6 +80,7 @@ internal class ReservedPropertyMigration(private vararg val reservedNames: Strin
             put(manager, current(manager).withPropertyReplaced(reservedName, manager.propertyCalled(reservedName).withName(newName)))
             types.forEach { type -> put(type, current(type).withManagerPropertyRenamed(manager.name, reservedName, newName)) }
         }
+        if (PropertyNaming.validate(reservedName, emptyList(), BlockTypeKind.ACTOR) == null) return newNamesByType
         val actorTypes = types.filterIsInstance<ActorTypeDefinition>()
         val family = ActorTypeFamily(actorTypes)
         val byName = actorTypes.associateBy { it.name }
@@ -134,5 +137,6 @@ internal class ReservedPropertyMigration(private vararg val reservedNames: Strin
         val OPACITY = ReservedPropertyMigration("opacity")
         val ANIMATE = ReservedPropertyMigration(*AnimationNaming.reservedNames.toTypedArray())
         val STEERING = ReservedPropertyMigration("velocityFromKeys")
+        val ACTOR_WATCHING = ReservedPropertyMigration("countActors", "actorsAdded", "actorsRemoved", "kotlin")
     }
 }

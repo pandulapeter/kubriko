@@ -102,7 +102,8 @@ internal class ProjectReferences(
         fun usage(effect: UsageEffect, blocksInside: Int = 0) = Usage(place, relation.kind, relation.subject, effect, relation.count, blocksInside)
         return when (relation.kind) {
             RelationKind.INHERITS_FROM -> usage(UsageEffect.PREVENTS_DELETING)
-            RelationKind.COLLIDES_WITH -> usage(UsageEffect.EVENT_REMOVED)
+            RelationKind.COLLIDES_WITH, RelationKind.REACTS_TO -> usage(UsageEffect.EVENT_REMOVED)
+            RelationKind.COUNTS -> usage(UsageEffect.SECTION_REMOVED, sectionOf(relation.place as RelationPlace.Type).count() - 1)
             RelationKind.PLACES -> usage(UsageEffect.ACTORS_REMOVED)
             RelationKind.NAMES_IN_KOTLIN -> usage(UsageEffect.KOTLIN_TO_CHANGE)
             RelationKind.ADDS, RelationKind.MOVES_TOWARDS, RelationKind.GOES_TO, RelationKind.CHANGES -> usage(UsageEffect.BLOCK_REMOVED)

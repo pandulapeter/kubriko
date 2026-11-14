@@ -26,7 +26,6 @@ needed twelve Kotlin Blocks, all for simple behavior. Each item replaces some of
 
 ## More for Manager types
 
-- **Reacting to Actors:** an Actor of a type added or removed, for "all Bricks are gone", and counting the Actors of a type.
 - **More text:** showing a text only while a toggle Property is on, and fonts.
 - **Managers in the Scene editor:** their Properties shown and set per Scene (a library change, released before Creator relies on
   it).

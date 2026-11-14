@@ -22,6 +22,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendAlway
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendBodyCenter
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendBounceOffFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendCollisionMaskUpdate
+import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendCountActorsFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendDirectionFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendNumberTextFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendPropertyFields
@@ -121,7 +122,8 @@ internal class ActorClassEmitter(
         appendBoundsFields(features.containment, features.firesEdgeEvent, features.firesLeftSceneEvent, isFamilyRoot = role == Role.FAMILY_ROOT)
         if (features.isAnimated) appendAnimationMembers()
         appendFields(features.animatedTargets, visibility)
-        appendOnAdded()
+        appendOnAdded(definition.name)
+        appendOnRemoved(definition.name)
         appendUpdate()
         appendKeyDispatch()
         appendCollisionDispatch()
@@ -146,6 +148,10 @@ internal class ActorClassEmitter(
         }
         if (role == Role.STANDALONE) appendLook(definition, imports, sheet, isFamilyMember = false, usesSetFrame = features.usesSetFrame)
         if (features.usesNumberText) appendNumberTextFunction(visibility)
+        if (features.countsActors) {
+            imports += ACTOR_IMPORT
+            appendCountActorsFunction(visibility)
+        }
         if (role == Role.STANDALONE) appendSavedState(definition, properties, packageName, imports)
         appendLine("}")
     }
@@ -217,15 +223,41 @@ internal class ActorClassEmitter(
         }
     }
 
-    private fun StringBuilder.appendOnAdded() {
+    private fun StringBuilder.appendOnAdded(name: String) {
         if (!features.overridesOnAdded) return
         imports += "com.pandulapeter.kubriko.Kubriko"
         if (features.lookups.isNotEmpty()) imports += "com.pandulapeter.kubriko.helpers.extensions.get"
         appendLine()
         appendLine("    override fun onAdded(kubriko: Kubriko) {")
         features.lookups.forEach { appendLine("        ${it.substringBefore(':')} = kubriko.get()") }
+        appendNotifications(name, features.watches.filter { it.isAdded })
         features.addedEvents.firstNotNullOfOrNull(::callOf)?.let { appendLine("        $it") }
         appendLine("    }")
+    }
+
+    /**
+     * Tells the Managers whose actorRemoved Events are about these Actors that one was removed, only when a Block removed
+     * it ([REMOVED_FIELD]): not the Actors a Scene change takes away.
+     */
+    private fun StringBuilder.appendOnRemoved(name: String) {
+        val watches = features.watches.filterNot { it.isAdded }
+        if (watches.isEmpty()) return
+        appendLine()
+        appendLine("    override fun onRemoved() {")
+        appendLine("        if (!$REMOVED_FIELD) return")
+        appendNotifications(name, watches)
+        appendLine("    }")
+    }
+
+    /**
+     * The calls of [watches]' notify functions, each only for the Actors of its Actor type (and its descendants) when
+     * the class is a family's base class, whose other members it isn't about.
+     */
+    private fun StringBuilder.appendNotifications(name: String, watches: List<ActorWatch>) {
+        watches.forEach { watch ->
+            val call = "${scope.managerField(watch.manager)}.${watch.notifyFunction}()"
+            appendLine(if (watch.actorType == name) "        $call" else "        if (this is ${scope.classOf(watch.actorType)}) $call")
+        }
     }
 
     private fun StringBuilder.appendUpdate() {
@@ -340,6 +372,7 @@ internal class ActorClassEmitter(
         const val COLLIDABLE_IMPORT = "com.pandulapeter.kubriko.collision.Collidable"
         const val SCENE_UNIT_IMPORT = "com.pandulapeter.kubriko.types.SceneUnit"
         const val KEY_IMPORT = "androidx.compose.ui.input.key.Key"
+        const val ACTOR_IMPORT = "com.pandulapeter.kubriko.actor.Actor"
         val TRAIT_IMPORTS = mapOf(
             "Batched" to "com.pandulapeter.kubriko.actor.traits.Batched",
             "Dynamic" to "com.pandulapeter.kubriko.actor.traits.Dynamic",

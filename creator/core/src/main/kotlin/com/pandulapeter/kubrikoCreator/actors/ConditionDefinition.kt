@@ -83,6 +83,18 @@ public sealed interface ConditionDefinition {
     ) : ConditionDefinition
 
     @Serializable
+    @SerialName("actorCount")
+    @Description("Compares how many Actors of an Actor type (types inheriting from it included) are in the Scene with a value, leaving out those a Block removed this frame; for \"all Bricks are gone\", compare with 0 in an actorRemoved Event.")
+    public data class ActorCount(
+        @Description("The name of the Actor type whose Actors are counted.")
+        @SerialName("actorType") val actorType: String = "",
+        @Description("How the count is compared with the value.")
+        @SerialName("comparison") val comparison: Comparison = Comparison.EQUAL,
+        @Description("The value.")
+        @SerialName("value") val value: NumberValue = NumberValue.Fixed(0f),
+    ) : ConditionDefinition
+
+    @Serializable
     @SerialName("chance")
     @Description("True by chance, each time it is checked.")
     public data class Chance(

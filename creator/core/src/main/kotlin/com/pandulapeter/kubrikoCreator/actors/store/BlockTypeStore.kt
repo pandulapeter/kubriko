@@ -241,7 +241,7 @@ public class BlockTypeStore private constructor(
                         spriteSheets = generation.spriteSheets,
                         families = families,
                     )
-                    is ManagerTypeDefinition -> ManagerTypeCodeGenerator.generateManagerType(definition, settings.packageName, actorTypeNames, managerTypes)
+                    is ManagerTypeDefinition -> ManagerTypeCodeGenerator.generateManagerType(definition, settings.packageName, actorTypeNames, managerTypes, family.namesWithChildren)
                 },
             )
         }

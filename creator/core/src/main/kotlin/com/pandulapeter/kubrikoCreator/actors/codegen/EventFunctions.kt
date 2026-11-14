@@ -54,6 +54,8 @@ internal object EventFunctions {
             Function("${collision(other)}(other: ${scope.classOf(other)})", "${collision(other)}(other)")
         }
         EventType.TIMER_FINISHED -> event.trigger.timer?.takeIf(TimerNaming::isValid)?.let { Function("${timer(it)}($DELTA_TIME_PARAMETER)", "${timer(it)}($DELTA_TIME)") }
+        EventType.ACTOR_ADDED -> event.trigger.otherActorType?.takeIf { it in scope.actorTypeNames }?.let { Function("${actorAdded(it)}()", "${actorAdded(it)}()") }
+        EventType.ACTOR_REMOVED -> event.trigger.otherActorType?.takeIf { it in scope.actorTypeNames }?.let { Function("${actorRemoved(it)}()", "${actorRemoved(it)}()") }
     }
 
     /**
@@ -91,4 +93,8 @@ internal object EventFunctions {
     fun collision(other: String) = "onCollisionWith$other"
 
     fun timer(timer: String) = TimerNaming.hookName(timer)
+
+    fun actorAdded(actorType: String) = "on${actorType}Added"
+
+    fun actorRemoved(actorType: String) = "on${actorType}Removed"
 }

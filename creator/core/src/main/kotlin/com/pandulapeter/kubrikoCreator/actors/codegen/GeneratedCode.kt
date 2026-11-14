@@ -28,7 +28,7 @@ internal object GeneratedCode {
      */
     fun isGenerated(event: EventDefinition, kind: BlockTypeKind, actorTypeNames: Collection<String>) = event.type.isAvailableIn(kind) && when (event.type) {
         EventType.KEY_PRESSED -> event.trigger.key?.isKnown == true
-        EventType.COLLISION -> event.trigger.otherActorType in actorTypeNames
+        EventType.COLLISION, EventType.ACTOR_ADDED, EventType.ACTOR_REMOVED -> event.trigger.otherActorType in actorTypeNames
         EventType.TIMER_FINISHED -> event.trigger.timer?.let(TimerNaming::isValid) == true
         EventType.ADDED_TO_SCENE, EventType.EVERY_FRAME, EventType.EDGE_TOUCHED, EventType.LEFT_SCENE, EventType.GAME_STARTED -> true
     }
