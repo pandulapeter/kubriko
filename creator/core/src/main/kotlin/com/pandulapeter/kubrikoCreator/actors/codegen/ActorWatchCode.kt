@@ -18,8 +18,8 @@ package com.pandulapeter.kubrikoCreator.actors.codegen
  */
 internal object ActorWatchCode {
 
-    const val ADDED_FIELD = "actorsAdded"
-    const val REMOVED_FIELD = "actorsRemoved"
+    private const val ADDED_COUNTERS_FIELD = "actorsAdded"
+    private const val REMOVED_COUNTERS_FIELD = "actorsRemoved"
     private const val ATOMICS = "kotlin.concurrent.atomics"
     const val OPT_IN = "@OptIn($ATOMICS.ExperimentalAtomicApi::class)"
 
@@ -34,19 +34,15 @@ internal object ActorWatchCode {
         appendLine("     * How many Actors were ${listOfNotNull("added".takeIf { added.isNotEmpty() }, "removed by a Block".takeIf { removed.isNotEmpty() }).joinToString(", and ")} since its last frame, for each Actor type")
         appendLine("     * its Events react to, counted on the thread Kubriko adds and removes them on.")
         appendLine("     */")
-        if (added.isNotEmpty()) appendLine("    private val $ADDED_FIELD = $ATOMICS.AtomicIntArray(${added.size})")
-        if (removed.isNotEmpty()) appendLine("    private val $REMOVED_FIELD = $ATOMICS.AtomicIntArray(${removed.size})")
+        if (added.isNotEmpty()) appendLine("    private val $ADDED_COUNTERS_FIELD = $ATOMICS.AtomicIntArray(${added.size})")
+        if (removed.isNotEmpty()) appendLine("    private val $REMOVED_COUNTERS_FIELD = $ATOMICS.AtomicIntArray(${removed.size})")
     }
 
     /**
-     * The lines of the Manager's `onUpdate` running the Events once per Actor counted since its last frame, through
-     * [callOf], which names the function of an Event.
+     * The lines of the Manager's `onUpdate` running the Events once per Actor counted since its last frame.
      */
-    fun StringBuilder.appendEventCalls(watches: List<ActorWatch>, callOf: (ActorWatch) -> String?) {
-        watches.forEach { watch ->
-            val call = callOf(watch) ?: return@forEach
-            appendLine("        repeat(${fieldOf(watch)}.exchangeAt(${indexOf(watch, watches)}, 0)) { $call }")
-        }
+    fun StringBuilder.appendEventCalls(watches: List<ActorWatch>) {
+        watches.forEach { watch -> appendLine("        repeat(${fieldOf(watch)}.exchangeAt(${watch.index}, 0)) { ${watch.eventCall} }") }
     }
 
     /**
@@ -60,12 +56,10 @@ internal object ActorWatchCode {
             appendLine("     * Called by ${watch.actorType} Actors ${if (watch.isAdded) "once they are added to the Scene" else "once a Block removed them"}, so that the Event runs on the next frame.")
             appendLine("     */")
             appendLine("    fun ${watch.notifyFunction}() {")
-            appendLine("        if (!isInSceneEditor) ${fieldOf(watch)}.fetchAndAddAt(${indexOf(watch, watches)}, 1)")
+            appendLine("        if (!isInSceneEditor) ${fieldOf(watch)}.fetchAndAddAt(${watch.index}, 1)")
             appendLine("    }")
         }
     }
 
-    private fun fieldOf(watch: ActorWatch) = if (watch.isAdded) ADDED_FIELD else REMOVED_FIELD
-
-    private fun indexOf(watch: ActorWatch, watches: List<ActorWatch>) = watches.filter { it.isAdded == watch.isAdded }.indexOf(watch)
+    private fun fieldOf(watch: ActorWatch) = if (watch.isAdded) ADDED_COUNTERS_FIELD else REMOVED_COUNTERS_FIELD
 }

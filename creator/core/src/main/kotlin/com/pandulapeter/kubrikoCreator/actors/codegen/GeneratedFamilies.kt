@@ -40,6 +40,11 @@ internal class GeneratedFamilies(
     private val generated = HashMap<String, GeneratedFamily>()
 
     /**
+     * Every Manager type's actorAdded and actorRemoved Events, which every Actor type's features read.
+     */
+    val watches by lazy(LazyThreadSafetyMode.NONE) { actorTypes.map { it.name }.let { names -> managerTypes.flatMap { ActorWatch.of(it, names) } } }
+
+    /**
      * The family [name] belongs to.
      */
     fun of(name: String): GeneratedFamily {
@@ -61,6 +66,7 @@ internal class GeneratedFamilies(
             isCollidableAnyway = members.any { it.name in collidableActorTypeNames },
             containment = SceneContainment.of(members),
             isFamily = ActorClassEmitter.Role.FAMILY_ROOT.isFamily,
+            projectWatches = watches,
             eventScopes = members.map { it.events to scopes.getValue(it.name) },
         )
         return GeneratedFamily(root, rootScope, features, scopes)

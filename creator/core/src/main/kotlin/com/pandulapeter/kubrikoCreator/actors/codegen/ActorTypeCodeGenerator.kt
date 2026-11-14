@@ -89,6 +89,7 @@ public object ActorTypeCodeGenerator {
             isCollidableAnyway = name in collidableActorTypeNames,
             containment = SceneContainment.of(listOf(definition)),
             isFamily = role.isFamily,
+            projectWatches = families.watches,
         )
         val imports = mutableSetOf<String>()
         val code = buildString {

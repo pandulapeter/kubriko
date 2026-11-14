@@ -162,7 +162,7 @@ public object ManagerTypeCodeGenerator {
                 appendLine()
                 appendLine("    override fun onUpdate(deltaTimeInMilliseconds: Int) {")
                 appendLine("        if (isInSceneEditor || !$STATE_MANAGER_FIELD.isRunning.value) return")
-                appendEventCalls(watches) { watch -> callOf(actorEvents.filter { it.trigger.otherActorType == watch.actorType && (it.type == EventType.ACTOR_ADDED) == watch.isAdded }) }
+                appendEventCalls(watches)
                 timers.forEach { timer ->
                     appendTimerCountdown(timer) { callOf(timerEvents.filter { it.trigger.timer == timer })?.let { appendLine("                $it") } }
                 }

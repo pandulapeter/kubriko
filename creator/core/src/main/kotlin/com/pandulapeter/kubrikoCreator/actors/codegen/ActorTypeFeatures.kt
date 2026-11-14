@@ -37,6 +37,8 @@ import com.pandulapeter.kubrikoCreator.actors.timerName
  * @param containment Which of them stay inside the Scene's bounds.
  * @param isFamily Whether they are a family, whose base class runs the added-to-the-Scene hook even when its Event has
  * no Blocks, since a child may override it.
+ * @param projectWatches Every Manager type's actorAdded and actorRemoved Events of the project ([ActorWatch]), worked out
+ *   once per regeneration, of which the classes tell those about their own Actors.
  * @param eventScopes The Events whose code the generated classes hold, each with the scope it is generated in: for a
  * family, every Actor type's own Events in its own scope, so that the base class declares what any of them needs.
  */
@@ -49,6 +51,7 @@ internal class ActorTypeFeatures(
     isCollidableAnyway: Boolean,
     val containment: SceneContainment,
     isFamily: Boolean,
+    projectWatches: List<ActorWatch> = emptyList(),
     eventScopes: List<Pair<List<EventDefinition>, BlockScope>> = listOf(events to scope),
 ) {
     private val knownActorTypeNames = scope.actorTypeNames
@@ -116,9 +119,7 @@ internal class ActorTypeFeatures(
     /**
      * The Manager types' actorAdded and actorRemoved Events about these Actors, which they tell those Managers about.
      */
-    val watches = eventScopes.map { (_, eventScope) -> eventScope.typeName }.toSet().let { members ->
-        scope.managerTypes.flatMap { ActorWatch.of(it, knownActorTypeNames) }.filter { it.actorType in members }
-    }
+    val watches = eventScopes.mapTo(HashSet()) { (_, eventScope) -> eventScope.typeName }.let { members -> projectWatches.filter { it.actorType in members } }
     private val lookupNeeds = BlockNeed.entries.filter { it in needs && lookupOf(it) != null }
 
     /**

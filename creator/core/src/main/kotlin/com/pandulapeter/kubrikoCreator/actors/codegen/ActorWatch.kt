@@ -18,13 +18,21 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
  * actorAdded or actorRemoved Events. The Actors tell the Manager through [notifyFunction] from `onAdded` and `onRemoved`,
  * which Kubriko calls on a thread of its own, so the Manager only counts them there and runs the Events on its next frame.
  * Both classes are generated from the same list ([of]), so a Manager counts exactly what its Actors tell it.
+ *
+ * @param index Where the Manager keeps its count among those of the same kind (added or removed).
  */
 internal data class ActorWatch(
     val manager: String,
     val actorType: String,
     val isAdded: Boolean,
+    val index: Int = 0,
 ) {
     val notifyFunction get() = "notify$actorType${if (isAdded) "Added" else "Removed"}"
+
+    /**
+     * How the Manager runs the Events this is about, in the function [EventFunctions] names for them.
+     */
+    val eventCall get() = (if (isAdded) EventFunctions.actorAdded(actorType) else EventFunctions.actorRemoved(actorType)) + "()"
 
     companion object {
 
@@ -37,5 +45,6 @@ internal data class ActorWatch(
             .map { ActorWatch(manager.name, checkNotNull(it.trigger.otherActorType), it.type == EventType.ACTOR_ADDED) }
             .distinct()
             .sortedWith(compareBy({ !it.isAdded }, { it.actorType }))
+            .let { watches -> watches.map { watch -> watch.copy(index = watches.filter { it.isAdded == watch.isAdded }.indexOf(watch)) } }
     }
 }

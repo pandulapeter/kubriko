@@ -63,7 +63,7 @@ class ActorWatchCodeTest {
     @Test
     fun aManagerWatchesOnlyTheKnownTypesWhoseEventsHaveBlocks() {
         assertEquals(
-            listOf(ActorWatch("Game", "Brick", isAdded = true), ActorWatch("Game", "Alien", isAdded = false), ActorWatch("Game", "Brick", isAdded = false)),
+            listOf(ActorWatch("Game", "Brick", isAdded = true), ActorWatch("Game", "Alien", isAdded = false), ActorWatch("Game", "Brick", isAdded = false, index = 1)),
             ActorWatch.of(game, actorTypes.map { it.name }),
         )
         assertEquals("notifyBrickRemoved", ActorWatch("Game", "Brick", isAdded = false).notifyFunction)
