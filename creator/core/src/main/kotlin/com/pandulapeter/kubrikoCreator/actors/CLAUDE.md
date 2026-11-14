@@ -57,9 +57,10 @@
   through a function (`AnimateCode`, names in `AnimationNaming`, reserved by format version 10), and stepped in `update` before
   the Events, so one an Event starts shows its start on that frame. Each value has one animation at a time, which the next
   Block of it starts over. The position moves by what its easing added since the frame before, so it adds up with the
-  velocity instead of fighting it. `Scale` is named in full rather than imported, since an Actor type may be called that,
-  which is why `com` is a reserved Property name. A box collision mask can't change its size, so a Dynamic type's is
-  built again on the frames its body's size or scale changed (`collisionMaskSize`, reserved by format version 10).
+  velocity instead of fighting it. A Kubriko class an Actor type may be named after that `BlockTypeNaming` doesn't reserve
+  yet, such as `Scale`, is named in full rather than imported, which is why `com` is a reserved Property name: reserving
+  a type name would need a migration that renames Actor types. A box collision mask keeps the size it was built with
+  (a new mask would leave the collision plugin's spatial grid with the old one), so a scale animation doesn't reach it.
 - Timers are two `Long` fields each, counted down in `update`, rather than Kubriko's `Timer`, whose duration is fixed, so starting
   one never allocates; no Property may end like those fields. Manager Properties are Compose state (`mutableFloatStateOf` for
   numbers, so nothing boxes).

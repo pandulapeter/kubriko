@@ -44,7 +44,7 @@ class AnimateBlockTest {
         val context = commandContext(flash)
         listOf(
             BlockDefinition.Animate(),
-            BlockDefinition.Animate(AnimatedValue.Scale(NumberValue.Fixed(-1f), NumberValue.Property("grow")), NumberValue.Random(0f, 2f), AnimationEasing.LINEAR, removesActor = true),
+            BlockDefinition.Animate(AnimatedValue.Scale(NumberValue.Fixed(0f), NumberValue.Property("grow")), NumberValue.Random(0f, 2f), AnimationEasing.LINEAR, removesActor = true),
             BlockDefinition.Animate(AnimatedValue.Opacity(NumberValue.Random(0f, 100f), NumberValue.Property("grow")), NumberValue.Fixed(0f)),
             BlockDefinition.Animate(AnimatedValue.Color(0xFF000000, 0xFFFFFFFF), easing = AnimationEasing.EASE_IN_OUT),
             BlockDefinition.Animate(AnimatedValue.Position(NumberValue.Edge(SceneEdge.RIGHT, -20f), NumberValue.BetweenEdges(SceneEdge.TOP, to = SceneEdge.BOTTOM), isRelative = false)),
@@ -62,6 +62,15 @@ class AnimateBlockTest {
             BlockDefinition.Animate(AnimatedValue.Color(from = 0x80FFFFFF)),
             BlockDefinition.Animate(AnimatedValue.Color(to = 0x00000000)),
         ).forEach { assertEquals(Rejection(CommandProblem.ANIMATED_COLOR_NOT_OPAQUE), context.rejection(it), it.toString()) }
+    }
+
+    @Test
+    fun aScaleIsNeverNegative() = runTest {
+        val context = commandContext(flash)
+        listOf(
+            BlockDefinition.Animate(AnimatedValue.Scale(from = NumberValue.Fixed(-1f))),
+            BlockDefinition.Animate(AnimatedValue.Scale(to = NumberValue.Random(-0.5f, 2f))),
+        ).forEach { assertEquals(Rejection(CommandProblem.SCALE_NEGATIVE), context.rejection(it), it.toString()) }
     }
 
     @Test

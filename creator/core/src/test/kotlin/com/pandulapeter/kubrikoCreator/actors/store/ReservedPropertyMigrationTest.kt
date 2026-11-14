@@ -75,8 +75,8 @@ class ReservedPropertyMigrationTest {
     }
 
     @Test
-    fun formatVersionTenReservesWhatPlaysTheAnimateBlocksAndTheBoxMasksSize() {
-        listOf("scaleTweenFrom", "opacityTweenDuration", "colorTweenRemovesActor", "positionTweenEasing", "startColorTween", "tweenProgress", "collisionMaskSize", "com").forEach { name ->
+    fun formatVersionTenReservesWhatPlaysTheAnimateBlocks() {
+        listOf("scaleTweenFrom", "opacityTweenDuration", "colorTweenRemovesActor", "positionTweenEasing", "startColorTween", "tweenProgress", "com").forEach { name ->
             assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate(name, emptyList()), name)
         }
         assertNotNull(BlockTypeStore.open(root)).save(

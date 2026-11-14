@@ -27,7 +27,7 @@ public sealed interface AnimatedValue {
 
     @Serializable
     @SerialName("scale")
-    @Description("The scale, both ways: 1 is its own size.")
+    @Description("The scale, both ways: 1 is its own size, 0 or more.")
     public data class Scale(
         @Description("Not an edge.")
         @SerialName("from") val from: NumberValue = NumberValue.Fixed(1f),

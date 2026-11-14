@@ -180,6 +180,8 @@ private fun validateBlockValues(block: BlockDefinition, scope: BlockScope): Reje
     block is BlockDefinition.SetColor && block.colors.any { !ColorHex.isOpaque(it) } -> Rejection(CommandProblem.COLORS_NOT_OPAQUE)
     block is BlockDefinition.Animate && block.value is AnimatedValue.Opacity && !block.value.numberValues.all { it.isWithin(0f, 100f) } ->
         Rejection(CommandProblem.OPACITY_OUT_OF_RANGE)
+    block is BlockDefinition.Animate && block.value is AnimatedValue.Scale && !block.value.numberValues.all { it.isWithin(minimum = 0f) } ->
+        Rejection(CommandProblem.SCALE_NEGATIVE)
     ((block as? BlockDefinition.Animate)?.value as? AnimatedValue.Color)?.let { ColorHex.isOpaque(it.from) && ColorHex.isOpaque(it.to) } == false ->
         Rejection(CommandProblem.ANIMATED_COLOR_NOT_OPAQUE)
     ((block as? BlockDefinition.If)?.condition as? ConditionDefinition.KeyHeld)?.key?.isKnown == false -> unknownKey((block.condition as ConditionDefinition.KeyHeld).key)

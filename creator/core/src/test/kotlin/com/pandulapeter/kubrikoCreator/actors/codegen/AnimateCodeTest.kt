@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.actors.codegen
 
-import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AnimatedValue
 import com.pandulapeter.kubrikoCreator.actors.AnimationEasing
@@ -27,7 +26,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
- * The code of the Animate Block, of what plays its animations, and of a box collision mask that follows the size.
+ * The code of the Animate Block and of what plays its animations.
  */
 class AnimateCodeTest {
 
@@ -35,10 +34,9 @@ class AnimateCodeTest {
 
     private fun lines(block: BlockDefinition) = BlockCodeGenerator.blockCode(block, EventType.ADDED_TO_SCENE, scope).lines
 
-    private fun generate(vararg blocks: BlockDefinition, shape: ActorShape = ActorShape.CIRCLE, isCollidable: Boolean = false) = ActorTypeCodeGenerator.generateActorType(
+    private fun generate(vararg blocks: BlockDefinition) = ActorTypeCodeGenerator.generateActorType(
         ActorTypeDefinition(
             name = "Flash",
-            shape = shape,
             properties = listOf(PropertyDefinition.Number("grow")),
             events = listOf(
                 EventDefinition(EventType.ADDED_TO_SCENE, blocks = blocks.toList()),
@@ -46,7 +44,6 @@ class AnimateCodeTest {
             ),
         ),
         "com.example.game",
-        collidableActorTypeNames = if (isCollidable) setOf("Flash") else emptySet(),
     )
 
     @Test
@@ -117,8 +114,8 @@ class AnimateCodeTest {
         assertContains(
             code,
             "    private fun startScaleTween(from: Float, to: Float, seconds: Float, easing: Int, removesActor: Boolean) {\n" +
-                "        scaleTweenFrom = from\n" +
-                "        scaleTweenTo = to\n" +
+                "        scaleTweenFrom = from.coerceAtLeast(0f)\n" +
+                "        scaleTweenTo = to.coerceAtLeast(0f)\n" +
                 "        scaleTweenElapsed = 0\n" +
                 "        scaleTweenDuration = (seconds * 1000f + 0.5f).toInt().coerceIn(1, Int.MAX_VALUE / 2)\n" +
                 "        scaleTweenEasing = easing\n" +
@@ -144,36 +141,5 @@ class AnimateCodeTest {
         )
         assertContains(code, "        positionTweenFrom = body.position\n        positionTweenTo = to\n")
         assertContains(code, "import com.pandulapeter.kubriko.types.SceneOffset\n")
-    }
-
-    @Test
-    fun aDynamicBoxCollisionMaskIsBuiltAgainOnlyWhenTheSizeOrScaleChanged() {
-        val code = generate(BlockDefinition.Animate(), shape = ActorShape.RECTANGLE, isCollidable = true)
-        assertContains(code, "    override var collisionMask = BoxCollisionMask(\n")
-        assertContains(code, "    private var collisionMaskSize = body.size * body.scale\n")
-        assertContains(
-            code,
-            "        collisionMask.position = bodyCenter\n" +
-                "        if (collisionMaskSize != body.size * body.scale) {\n" +
-                "            collisionMaskSize = body.size * body.scale\n" +
-                "            collisionMask = BoxCollisionMask(initialPosition = bodyCenter, initialSize = collisionMaskSize, initialRotation = body.rotation)\n" +
-                "        } else {\n" +
-                "            collisionMask.rotation = body.rotation\n" +
-                "        }\n",
-        )
-        val circle = generate(BlockDefinition.Animate(), isCollidable = true)
-        assertFalse("collisionMaskSize" in circle, circle)
-        assertContains(circle, "    override val collisionMask = CircleCollisionMask(\n")
-    }
-
-    @Test
-    fun aBoxThatNeverUpdatesKeepsItsMask() {
-        val code = ActorTypeCodeGenerator.generateActorType(
-            ActorTypeDefinition(name = "Wall", shape = ActorShape.RECTANGLE),
-            "com.example.game",
-            collidableActorTypeNames = setOf("Wall"),
-        )
-        assertContains(code, "    override val collisionMask = BoxCollisionMask(\n")
-        assertFalse("collisionMaskSize" in code, code)
     }
 }

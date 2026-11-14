@@ -39,7 +39,9 @@ needed twelve Kotlin Blocks, all for simple behavior. Each item replaces some of
 - **Scene settings in the game:** an option that fits the game's view to the Scene's bounds (through
   `ViewportManager.setAspectRatioMode`); the Scene editor's inspector already edits the settings.
 - **Camera:** follow an Actor, shake, zoom.
-- **Size and scale Blocks:** setting and changing them (a Dynamic type's box collision mask already follows them).
+- **Size and scale Blocks:** a box collision mask keeps the size it was built with, and building a new one would leave the
+  collision plugin's spatial grid with the old mask, so `BoxCollisionMask` gets a size it changes in place (a library change,
+  released before Creator relies on it), which the generated update then follows, for these Blocks and for Animate's scale.
 - **More Events:** removed from the Scene, and key released and held.
   Pointer and gamepad Events come with their Traits (`02-reuse-and-traits.md`).
 - **More drag and drop:** dragging a Block into another Event.

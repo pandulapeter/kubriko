@@ -84,6 +84,7 @@ import kubriko.creator.generated.resources.error_command_resource_source_extensi
 import kubriko.creator.generated.resources.error_command_resource_source_unreadable
 import kubriko.creator.generated.resources.error_command_resource_taken
 import kubriko.creator.generated.resources.error_command_resource_unchanged
+import kubriko.creator.generated.resources.error_command_scale_negative
 import kubriko.creator.generated.resources.error_command_scene_actor_not_block_built
 import kubriko.creator.generated.resources.error_command_scene_actor_without_position
 import kubriko.creator.generated.resources.error_command_scene_content_invalid
@@ -159,6 +160,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.NUMBER_EDGE_NOT_TAKEN -> Res.string.error_command_number_edge_not_taken
     CommandProblem.OPACITY_OUT_OF_RANGE -> Res.string.error_command_opacity_out_of_range
     CommandProblem.ANIMATED_COLOR_NOT_OPAQUE -> Res.string.error_command_animated_color_not_opaque
+    CommandProblem.SCALE_NEGATIVE -> Res.string.error_command_scale_negative
     CommandProblem.COLORS_COUNT -> Res.string.error_command_colors_count
     CommandProblem.COLORS_NOT_OPAQUE -> Res.string.error_command_colors_not_opaque
     CommandProblem.NUMBER_INVALID -> Res.string.error_command_number_invalid

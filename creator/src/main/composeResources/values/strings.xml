@@ -672,6 +672,7 @@
     <string name="error_command_number_edge_not_taken">A direction, a speed, an opacity, a scale, or a time can't be an edge of the Scene, which is a position. Use a number, a random number, or a Property's value.</string>
     <string name="error_command_opacity_out_of_range">An opacity is from 0 (invisible) to 100 percent (opaque), and so is each end of a random one.</string>
     <string name="error_command_animated_color_not_opaque">Animate takes opaque colors (#RRGGBB) and keeps the Actor's opacity. Animate the opacity with an Animate Block of its own.</string>
+    <string name="error_command_scale_negative">A scale is 0 or more (1 is the Actor's own size), and so is each end of a random one.</string>
     <string name="error_command_colors_count">Set the color takes one color, or up to %1$s to pick one of at random.</string>
     <string name="error_command_colors_not_opaque">Set the color takes opaque colors (#RRGGBB) and keeps the Actor's opacity. Set the opacity with Set the opacity or Change the opacity.</string>
     <string name="error_command_number_edge_across">An x takes only the left and right edges, and a y only the top and bottom ones; a random number is drawn between two edges of the same axis.</string>

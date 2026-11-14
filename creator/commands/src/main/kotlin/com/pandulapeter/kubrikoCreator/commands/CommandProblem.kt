@@ -48,6 +48,7 @@ public enum class CommandProblem(override val english: String) : DomainText {
     COLORS_COUNT("Set the color (setColor) takes one color, or up to %1\$s to pick one of at random."),
     COLORS_NOT_OPAQUE("Set the color (setColor) takes opaque colors (#RRGGBB) and keeps the Actor's opacity. Set the opacity with Set the opacity (setOpacity) or Change the opacity (changeOpacity)."),
     ANIMATED_COLOR_NOT_OPAQUE("Animate (animate) takes opaque colors (#RRGGBB) and keeps the Actor's opacity. Animate the opacity with an Animate Block of its own."),
+    SCALE_NEGATIVE("A scale is 0 or more (1 is the Actor's own size), and so is each end of a random one."),
     OPACITY_OUT_OF_RANGE("An opacity is from 0 (invisible) to 100 percent (opaque), and so is each end of a random one."),
     NUMBER_EDGE_NOT_TAKEN("A direction, a speed, an opacity, a scale, or a time can't be an edge of the Scene, which is a position. Use a number, a random number, or a Property's value."),
     NUMBER_EDGE_ACROSS("An x takes only the left and right edges, and a y only the top and bottom ones; a random number is drawn between two edges of the same axis."),

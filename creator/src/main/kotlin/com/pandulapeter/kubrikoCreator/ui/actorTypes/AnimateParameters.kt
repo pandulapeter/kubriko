@@ -95,7 +95,7 @@ private fun AnimatedValueParameters(
     scope: BlockScope,
     onValueChange: (AnimatedValue) -> Unit,
 ) = when (value) {
-    is AnimatedValue.Scale -> EndsParameters(value.from, value.to, scope, accepts = { true }) { from, to -> onValueChange(value.copy(from = from, to = to)) }
+    is AnimatedValue.Scale -> EndsParameters(value.from, value.to, scope, accepts = { it >= 0f }) { from, to -> onValueChange(value.copy(from = from, to = to)) }
     is AnimatedValue.Opacity -> {
         EndsParameters(value.from, value.to, scope, accepts = { it in 0f..100f }) { from, to -> onValueChange(value.copy(from = from, to = to)) }
         UnitText(Res.string.block_opacity_unit)

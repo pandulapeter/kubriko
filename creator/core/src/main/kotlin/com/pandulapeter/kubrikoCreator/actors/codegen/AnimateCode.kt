@@ -181,7 +181,11 @@ internal object AnimateCode {
             appendLine("        $to = to")
         } else {
             appendLine("    $visibility fun ${AnimationNaming.startFunction(target)}(from: $type, to: $type, seconds: Float, easing: Int, removesActor: Boolean) {")
-            val bounded = if (target == AnimationTarget.OPACITY) ".coerceIn(0f, 1f)" else ""
+            val bounded = when (target) {
+                AnimationTarget.OPACITY -> ".coerceIn(0f, 1f)"
+                AnimationTarget.SCALE -> ".coerceAtLeast(0f)"
+                AnimationTarget.COLOR, AnimationTarget.POSITION -> ""
+            }
             appendLine("        $from = from$bounded")
             appendLine("        $to = to$bounded")
         }

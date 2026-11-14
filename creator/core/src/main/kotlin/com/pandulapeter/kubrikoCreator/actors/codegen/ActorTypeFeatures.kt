@@ -96,12 +96,6 @@ internal class ActorTypeFeatures(
         if (isAnimated) add(BlockNeed.MOVEMENT)
     }
     val isDynamic = BlockNeed.MOVEMENT in needs
-
-    /**
-     * Whether a box collision mask is built again when the Actor's size or scale changes, since its size is fixed: only
-     * a Dynamic Actor's update can change them.
-     */
-    val rebuildsBoxCollisionMask = isCollidable && isDynamic && ActorShape.RECTANGLE in shapes
     val usesBounceOff = BlockNeed.BOUNCE_OFF in needs
     val usesDirection = BlockNeed.DIRECTION in needs
     val usesNumberText = BlockNeed.NUMBER_TEXT in needs
