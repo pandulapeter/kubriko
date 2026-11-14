@@ -31,7 +31,7 @@ internal object ActorWatchCode {
         val removed = watches.filterNot { it.isAdded }
         appendLine()
         appendLine("    /**")
-        appendLine("     * How many Actors were ${listOfNotNull("added".takeIf { added.isNotEmpty() }, "removed by a Block".takeIf { removed.isNotEmpty() }).joinToString(", and ")} since its last frame, for each Actor type")
+        appendLine("     * How many Actors were ${listOfNotNull("added".takeIf { added.isNotEmpty() }, "removed".takeIf { removed.isNotEmpty() }).joinToString(" and ")} since its last frame, for each Actor type")
         appendLine("     * its Events react to, counted on the thread Kubriko adds and removes them on.")
         appendLine("     */")
         if (added.isNotEmpty()) appendLine("    private val $ADDED_COUNTERS_FIELD = $ATOMICS.AtomicIntArray(${added.size})")
@@ -53,7 +53,7 @@ internal object ActorWatchCode {
         watches.forEach { watch ->
             appendLine()
             appendLine("    /**")
-            appendLine("     * Called by ${watch.actorType} Actors ${if (watch.isAdded) "once they are added to the Scene" else "once a Block removed them"}, so that the Event runs on the next frame.")
+            appendLine("     * Called by ${watch.actorType} Actors ${if (watch.isAdded) "once they are added to the Scene" else "once they are removed while their Scene plays"}, so that the Event runs on the next frame.")
             appendLine("     */")
             appendLine("    fun ${watch.notifyFunction}() {")
             appendLine("        if (!isInSceneEditor) ${fieldOf(watch)}.fetchAndAddAt(${watch.index}, 1)")

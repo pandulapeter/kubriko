@@ -137,6 +137,6 @@ internal class ReservedPropertyMigration(private vararg val reservedNames: Strin
         val OPACITY = ReservedPropertyMigration("opacity")
         val ANIMATE = ReservedPropertyMigration(*AnimationNaming.reservedNames.toTypedArray())
         val STEERING = ReservedPropertyMigration("velocityFromKeys")
-        val ACTOR_WATCHING = ReservedPropertyMigration("countActors", "actorsAdded", "actorsRemoved", "kotlin")
+        val ACTOR_WATCHING = ReservedPropertyMigration("countActors", "actorsAdded", "actorsRemoved", "kotlin", "sceneChangesWhenAdded")
     }
 }

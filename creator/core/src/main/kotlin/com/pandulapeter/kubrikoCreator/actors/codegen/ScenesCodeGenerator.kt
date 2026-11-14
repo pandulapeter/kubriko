@@ -25,6 +25,11 @@ public object ScenesCodeGenerator {
      */
     public const val SCENE_DIRECTORY: String = "files/scenes"
 
+    /**
+     * The field of the generated class counting Scene changes, which Actors compare with what it was when they were added.
+     */
+    internal const val SCENE_CHANGES_FIELD = "sceneChanges"
+
     private const val LEFT = "LEFT"
     private const val RIGHT = "RIGHT"
     private const val TOP = "TOP"
@@ -118,6 +123,14 @@ public object ScenesCodeGenerator {
             |     */
             |    @Volatile
             |    var settings: ${SceneSettingsCodeGenerator.SETTINGS_NAME}? = null
+            |
+            |    /**
+            |     * How many times every Actor was removed for another Scene: an Actor that saw fewer when it was added leaves with
+            |     * its Scene, rather than being removed while the Scene plays.
+            |     */
+            |    @Volatile
+            |    var $SCENE_CHANGES_FIELD = 0
+            |        private set
             """.trimMargin(),
         )
         appendLine(edgeMembers())
@@ -159,6 +172,7 @@ public object ScenesCodeGenerator {
             |            }
             |            // The first Scene keeps what the Managers added when the game started.
             |            if (!isFirst) {
+            |                $SCENE_CHANGES_FIELD++
             |                actorManager.removeAll()
             |                actorManager.add(managerActors)
             |            }

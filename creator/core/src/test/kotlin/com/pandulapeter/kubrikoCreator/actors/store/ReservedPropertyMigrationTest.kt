@@ -226,6 +226,8 @@ class ReservedPropertyMigrationTest {
         assertEquals(listOf(PropertyDefinition.Number("actorsRemoved"), PropertyDefinition.Number("countActors2")), migratedBall.properties)
         assertEquals(everyFrame(BlockDefinition.ChangeNumber(manager = "Game", property = "actorsAdded2"), BlockDefinition.ChangeNumber(property = "countActors2")), migratedBall.events)
         assertEquals(null, PropertyNaming.validate("kotlin", emptyList(), BlockTypeKind.ACTOR))
+        assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate("sceneChangesWhenAdded", emptyList(), BlockTypeKind.ACTOR))
+        assertEquals(null, PropertyNaming.validate("sceneChangesWhenAdded", emptyList(), BlockTypeKind.MANAGER))
     }
 
     @Test

@@ -90,14 +90,21 @@ internal class ActorTypeFeatures(
     val codeImports = blockCode.imports
 
     /**
+     * The Manager types' actorAdded and actorRemoved Events about these Actors, which they tell those Managers about.
+     */
+    val watches = eventScopes.mapTo(HashSet()) { (_, eventScope) -> eventScope.typeName }.let { members -> projectWatches.filter { it.actorType in members } }
+
+    /**
      * What the class declares for the Blocks and the Events: the Scene's bounds, which GeneratedScenes knows, are looked
-     * at after every move, and key Events check whether the game is paused.
+     * at after every move, key Events check whether the game is paused, and an Actor a Manager hears about the removal of
+     * asks GeneratedScenes whether it left with its Scene.
      */
     private val needs = blockCode.needs + buildSet {
         if (checksSceneBounds) addAll(listOf(BlockNeed.MOVEMENT, BlockNeed.VIEWPORT_MANAGER, BlockNeed.SCENES))
         if (timers.isNotEmpty() || everyFrameEvents.any { it.blocks.isNotEmpty() }) add(BlockNeed.MOVEMENT)
         if (keyEvents.isNotEmpty()) add(BlockNeed.STATE_MANAGER)
         if (isAnimated) add(BlockNeed.MOVEMENT)
+        if (watches.any { !it.isAdded }) add(BlockNeed.SCENES)
     }
     val isDynamic = BlockNeed.MOVEMENT in needs
     val usesBounceOff = BlockNeed.BOUNCE_OFF in needs
@@ -116,10 +123,6 @@ internal class ActorTypeFeatures(
      * a family's base class always declares it for its members to override.
      */
     val usesSetFrame = BlockNeed.FRAME in needs
-    /**
-     * The Manager types' actorAdded and actorRemoved Events about these Actors, which they tell those Managers about.
-     */
-    val watches = eventScopes.mapTo(HashSet()) { (_, eventScope) -> eventScope.typeName }.let { members -> projectWatches.filter { it.actorType in members } }
     private val lookupNeeds = BlockNeed.entries.filter { it in needs && lookupOf(it) != null }
 
     /**

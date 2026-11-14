@@ -68,9 +68,10 @@
 - A Manager type's actorAdded and actorRemoved Events are told by the Actors (`ActorWatch`, which both generators read,
   so they agree): `onAdded` and `onRemoved` call the Manager's notify function, which only counts in an atomic array,
   since Kubriko calls them on a thread of its own, and the Manager's `onUpdate` runs the Event once per count (so never
-  while paused or in the Scene editor). Removed means removed by a Block (`isRemoved`), never a Scene change's
-  `removeAll`, which would end every level with "all Bricks are gone"; added includes the Actors a Scene starts with, as
-  GameMaker's create event does. The actorCount condition walks `allActors` through an inline `countActors`, leaving out
+  while paused or in the Scene editor). Removed means removed in any way while its Scene plays, never by a Scene change's
+  `removeAll`, which would end every level with "all Bricks are gone": `GeneratedScenes` counts its Scene changes, and an
+  Actor compares the count with the one it saw when it was added (`sceneChangesWhenAdded`), since its `onRemoved` comes
+  long after the change was asked for. Added includes the Actors a Scene starts with, as GameMaker's create event does. The actorCount condition walks `allActors` through an inline `countActors`, leaving out
   `isRemoved` Actors; Kubriko calls `onRemoved` after it publishes the list, so in an actorRemoved Event the last Brick
   counts 0, while in an actorAdded Event the Actor may not be counted yet. The atomics are named in full, which is why
   `kotlin` is a reserved Property name of Manager types (format version 12, with the counters and `countActors`).

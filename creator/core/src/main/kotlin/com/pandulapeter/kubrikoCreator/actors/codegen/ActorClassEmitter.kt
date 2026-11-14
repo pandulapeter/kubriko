@@ -45,6 +45,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.ANIMATI
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.ANIMATION_SPEED_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.OPACITY_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.REMOVED_FIELD
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.SCENES_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.SCENE_OFFSET_IMPORT
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.SET_FRAME_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STATE_MANAGER_FIELD
@@ -118,6 +119,7 @@ internal class ActorClassEmitter(
         appendCollisionMembers(definition.shape)
         features.lookups.forEach { appendLine("    $visibility lateinit var $it") }
         imports += features.lookupImports
+        if (features.watches.any { !it.isAdded }) appendSceneChangesField()
         appendTimerFields(features.timers, visibility)
         appendBoundsFields(features.containment, features.firesEdgeEvent, features.firesLeftSceneEvent, isFamilyRoot = role == Role.FAMILY_ROOT)
         if (features.isAnimated) appendAnimationMembers()
@@ -230,21 +232,22 @@ internal class ActorClassEmitter(
         appendLine()
         appendLine("    override fun onAdded(kubriko: Kubriko) {")
         features.lookups.forEach { appendLine("        ${it.substringBefore(':')} = kubriko.get()") }
+        if (features.watches.any { !it.isAdded }) appendLine("        $SCENE_CHANGES_WHEN_ADDED_FIELD = $SCENES_FIELD.${ScenesCodeGenerator.SCENE_CHANGES_FIELD}")
         appendNotifications(name, features.watches.filter { it.isAdded })
         features.addedEvents.firstNotNullOfOrNull(::callOf)?.let { appendLine("        $it") }
         appendLine("    }")
     }
 
     /**
-     * Tells the Managers whose actorRemoved Events are about these Actors that one was removed, only when a Block removed
-     * it ([REMOVED_FIELD]): not the Actors a Scene change takes away.
+     * Tells the Managers whose actorRemoved Events are about these Actors that one was removed, however it was, unless it
+     * left with its Scene, which [ScenesCodeGenerator.SCENE_CHANGES_FIELD] tells.
      */
     private fun StringBuilder.appendOnRemoved(name: String) {
         val watches = features.watches.filterNot { it.isAdded }
         if (watches.isEmpty()) return
         appendLine()
         appendLine("    override fun onRemoved() {")
-        appendLine("        if (!$REMOVED_FIELD) return")
+        appendLine("        if ($SCENE_CHANGES_WHEN_ADDED_FIELD != $SCENES_FIELD.${ScenesCodeGenerator.SCENE_CHANGES_FIELD}) return")
         appendNotifications(name, watches)
         appendLine("    }")
     }
@@ -258,6 +261,14 @@ internal class ActorClassEmitter(
             val call = "${scope.managerField(watch.manager)}.${watch.notifyFunction}()"
             appendLine(if (watch.actorType == name) "        $call" else "        if (this is ${scope.classOf(watch.actorType)}) $call")
         }
+    }
+
+    private fun StringBuilder.appendSceneChangesField() {
+        appendLine()
+        appendLine("    /**")
+        appendLine("     * How many times the Scene had changed when the Actor was added, which tells whether it leaves with its Scene.")
+        appendLine("     */")
+        appendLine("    private var $SCENE_CHANGES_WHEN_ADDED_FIELD = 0")
     }
 
     private fun StringBuilder.appendUpdate() {
@@ -373,6 +384,7 @@ internal class ActorClassEmitter(
         const val SCENE_UNIT_IMPORT = "com.pandulapeter.kubriko.types.SceneUnit"
         const val KEY_IMPORT = "androidx.compose.ui.input.key.Key"
         const val ACTOR_IMPORT = "com.pandulapeter.kubriko.actor.Actor"
+        const val SCENE_CHANGES_WHEN_ADDED_FIELD = "sceneChangesWhenAdded"
         val TRAIT_IMPORTS = mapOf(
             "Batched" to "com.pandulapeter.kubriko.actor.traits.Batched",
             "Dynamic" to "com.pandulapeter.kubriko.actor.traits.Dynamic",

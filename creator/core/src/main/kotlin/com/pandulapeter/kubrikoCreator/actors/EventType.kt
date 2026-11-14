@@ -61,7 +61,7 @@ public enum class EventType(public val misplacedProblem: PlacementProblem? = nul
     @SerialName("actorAdded")
     ACTOR_ADDED(PlacementProblem.EVENT_ACTOR_ADDED_IN_ACTOR_TYPE),
 
-    @Description("On the frame after a Block removes an Actor of the Event's other Actor type (or of a type inheriting from it), once per Actor; never for the Actors a Scene change takes away. Only Manager types have it.")
+    @Description("On the frame after an Actor of the Event's other Actor type (or of a type inheriting from it) is removed, once per Actor; never for the Actors a Scene change takes away. Only Manager types have it.")
     @SerialName("actorRemoved")
     ACTOR_REMOVED(PlacementProblem.EVENT_ACTOR_REMOVED_IN_ACTOR_TYPE);
 

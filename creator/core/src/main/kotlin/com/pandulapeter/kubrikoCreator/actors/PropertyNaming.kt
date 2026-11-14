@@ -38,6 +38,7 @@ public object PropertyNaming {
      */
     private val actorMemberNames = setOf(
         "look", "animation", "animationSpeed", "isAnimationLooping", "velocityInDirection", "opacity", "velocityFromKeys",
+        "sceneChangesWhenAdded",
     ) + AnimationNaming.reservedNames
 
     /**

@@ -108,7 +108,7 @@ class ReactingToActorsTest {
 
     @Test
     fun theAiReadsThemInWords() {
-        assertEquals("When an Actor of Brick is removed by a Block", BlockNotation.of(game.events.first()))
+        assertEquals("When an Actor of Brick is removed", BlockNotation.of(game.events.first()))
         assertEquals("When an Actor of (none) is added", BlockNotation.of(EventDefinition(EventType.ACTOR_ADDED)))
         assertEquals("the number of Actors of Brick is 0", BlockNotation.of(ConditionDefinition.ActorCount("Brick")))
     }

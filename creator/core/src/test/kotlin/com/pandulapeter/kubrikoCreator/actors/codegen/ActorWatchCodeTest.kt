@@ -97,17 +97,26 @@ class ActorWatchCodeTest {
     }
 
     @Test
-    fun anActorTellsTheManagerWhenItIsAddedAndWhenABlockRemovedIt() {
+    fun anActorTellsTheManagerWhenItIsAddedAndRemovedUnlessItLeavesWithItsScene() {
         val code = actor(brick)
-        assertContains(code, "    override fun onAdded(kubriko: Kubriko) {\n        gameManager = kubriko.get()\n        gameManager.notifyBrickAdded()\n    }\n")
-        assertContains(code, "    override fun onRemoved() {\n        if (!isRemoved) return\n        gameManager.notifyBrickRemoved()\n    }\n")
+        assertContains(code, "    private var sceneChangesWhenAdded = 0\n")
+        assertContains(
+            code,
+            "    override fun onAdded(kubriko: Kubriko) {\n" +
+                "        generatedScenes = kubriko.get()\n" +
+                "        gameManager = kubriko.get()\n" +
+                "        sceneChangesWhenAdded = generatedScenes.sceneChanges\n" +
+                "        gameManager.notifyBrickAdded()\n" +
+                "    }\n",
+        )
+        assertContains(code, "    override fun onRemoved() {\n        if (sceneChangesWhenAdded != generatedScenes.sceneChanges) return\n        gameManager.notifyBrickRemoved()\n    }\n")
         assertFalse("onRemoved" in actor(brick, managers = emptyList()))
     }
 
     @Test
     fun aFamilysBaseClassTellsOnlyAboutTheMembersTheEventIsAbout() {
         val code = actor(parent)
-        assertContains(code, "    override fun onRemoved() {\n        if (!isRemoved) return\n        if (this is Alien) gameManager.notifyAlienRemoved()\n    }\n")
+        assertContains(code, "    override fun onRemoved() {\n        if (sceneChangesWhenAdded != generatedScenes.sceneChanges) return\n        if (this is Alien) gameManager.notifyAlienRemoved()\n    }\n")
         assertFalse("notifyEnemy" in code)
     }
 

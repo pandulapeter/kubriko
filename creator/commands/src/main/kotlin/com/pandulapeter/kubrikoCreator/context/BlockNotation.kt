@@ -42,7 +42,7 @@ internal object BlockNotation {
         EventType.COLLISION -> "When it collides with ${event.otherActorType ?: NONE}"
         EventType.TIMER_FINISHED -> "When Timer ${event.timer ?: NONE} finishes"
         EventType.ACTOR_ADDED -> "When an Actor of ${event.otherActorType ?: NONE} is added"
-        EventType.ACTOR_REMOVED -> "When an Actor of ${event.otherActorType ?: NONE} is removed by a Block"
+        EventType.ACTOR_REMOVED -> "When an Actor of ${event.otherActorType ?: NONE} is removed"
     }
 
     /**
