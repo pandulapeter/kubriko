@@ -34,8 +34,8 @@ waits for happens.
 1. [Blocks, Actor types, and Manager types](01-blocks.md) - Blocks for the simple behavior a first game still needs Kotlin for, the
    rest of the Block set, UI elements, the Scene editor's handles and snapping, Convert to code, and the Paddle game template.
 2. [Reuse, Traits, and bigger games](02-reuse-and-traits.md) - parent types, custom Blocks (the user's and the AI's own,
-   with parameters, results, and Kotlin bodies, shared between projects), Traits, what bigger games need, and the
-   platformer and top-down templates.
+   with parameters, results, and Kotlin bodies, shared between projects), custom Events sent between types, Traits, what bigger
+   games need, and the platformer and top-down templates.
 3. [Version control](03-git.md) - change markers, restoring, checkpoints, nested repositories, branches, remotes, cloning, and
    conflicts.
 4. [Debugger](04-debugger.md) - pausing, stepping, and slowing the game for the user and the AI, the debug agent and its panels, other
@@ -90,6 +90,7 @@ project file, are in `../CLAUDE.md`.
 | Event | A Trait callback (`update`, `onCollisionDetected`, …) | Event |
 | Block | One generated statement inside an Event | Action |
 | Custom Block | A generated Kotlin function: Blocks (or a Kotlin body) with parameters and a result | Script |
+| Custom Event | A generated function that calls every type's handler for it, with parameters | User event |
 | Kotlin Block | A verbatim Kotlin snippet | "Execute code" |
 | Manager type | A class extending `Manager`: game-wide state and logic | Global variables, or a controller object |
 | Property | An `@Exposed` property (or a Manager's `var`) | Variable |

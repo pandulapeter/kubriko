@@ -15,7 +15,7 @@ Every addition lands with its command, AI tool, generator tests, and a case in t
 `01-blocks.md`.
 
 **Order:** custom Blocks (on types and in the project, then parameters, results, and local values, then Kotlin bodies, then
-sharing between projects), then Traits, then the rest. Each is generated into ordinary Kotlin, as now: no runtime interpreter. Both
+sharing between projects), then custom Events (which take custom Blocks' parameters), then Traits, then the rest. Each is generated into ordinary Kotlin, as now: no runtime interpreter. Both
 build on how code is generated (`:creator:core`'s `actors.codegen`): a Block is one descriptor (`BlockKind`), its code a structured
 `BlockCode` that names its imports and features, one emitter writes every Actor class, standalone or in a family
 (`ActorClassEmitter`), and each kind of Event is a function of its own (`EventFunctions`). A custom Block is then one more member the
@@ -100,6 +100,60 @@ never depends on anything outside its folder and builds in IntelliJ as before. O
 (no type, Manager, sound, sprite, or Scene of its own, which become parameters first) can be added, and each copy remembers the
 version it came from, so a newer one in the library is offered as a diff, never applied silently. A shared collection beyond the
 user's own (bundled with Creator, or from others) waits for demand (`11-later.md`).
+
+## Custom Events
+
+The user's own Events, like GameMaker's User Events but named and with parameters: an Actor or a Manager *sends* one ("Send
+PlayerDied", "Send Hurt to the other Actor with damage 3"), and every type with a "When PlayerDied is sent" Event reacts to it. Custom
+Blocks are calls to one known place; a custom Event decouples the sender from who reacts, so a pickup needn't know that the HUD, the
+music, and three enemy types care, and adding a fourth listener changes nothing in the sender. Generated into ordinary Kotlin
+calls, with no interpreter, no event bus, and no allocation per send.
+
+- **Where one lives:** `.kubriko/events/<Name>.json` (Creator-owned, committed), project-wide, with a name, a description, and a
+  folder, like a type. Its name is a type name (`BlockTypeNaming`), since it shares the generated package.
+- **Parameters:** the same parameter model and kinds as custom Blocks (number, text, toggle, key, color, sound, sprite, Actor type,
+  and Scene, each with a default), shared code rather than a copy, so a kind added to one reaches both. In the receiving Event they
+  are values its Blocks take, as a custom Block's are. A number argument takes the shared value type (`NumberValue`). Generated as
+  primitive parameters, so nothing boxes.
+- **The sender:** an Event optionally says it is sent by an Actor; then its receiving Events reach the sender as `other`, as a
+  collision Event does ("Move towards the sender", "Remove the sender"), and a Manager type can't send it (a `PlacementProblem`).
+- **Receiving:** a new `EventType.CUSTOM` whose `EventDefinition` names the custom Event (one more field, like `timer`), on any
+  Actor or Manager type, any number of types. In a family it is one more `open` hook on the base class, inherited and overridden like
+  the others.
+- **The Send Block** names the custom Event, its arguments, and its receivers:
+  - **Everyone:** every Manager type with the Event, then every Actor of every type that has it, the way a broadcast in GameMaker
+    reaches every instance.
+  - **Actors of a type** (children included), the **other** Actor in a collision or custom Event, or **this** Actor.
+  - Each Actor receives it at most once per send; Actors marked removed (`isRemoved`) are skipped, as `update` skips them.
+- **Generated code:** a `GeneratedEvents.kt` with one function per custom Event and receiver set that calls each Manager type's
+  handler directly (through its field, `BlockScope.managerField`) and walks `allActors` with type checks for the Actor types that have
+  it, in one fixed order (Managers in registration order, then Actors in the Scene's order), so a send costs one pass and no
+  allocation. A per-type instance list waits for the benchmarks, as for moveTowardsNearest (`11-later.md`).
+- **When it runs:** a send from the frame runs its receivers at once, before the Block after Send, as GameMaker's `event_perform`
+  does, so "Send Hurt, then if hp is 0" sees the damage. A send from an Event that runs off the tick (Added to the Scene runs on
+  Kubriko's own thread; find out which others do, key presses for each `TickSource` among them, and pin the answer in a test) is
+  queued and runs at the start of the next frame, as `ActorWatch` does with its counts: a generated queue per custom Event of
+  primitive arrays, guarded for the two threads, grown only while it fills and reused after that. The Block's card says "next frame"
+  where that applies, so the difference is never hidden. Manager types' handlers don't run in the Scene editor, as their other
+  Events don't.
+- **Loops:** a custom Event that sends itself, directly or through other custom Events or custom Blocks, is rejected when it's made,
+  as a custom Block reaching itself is, so a beginner never meets a stack overflow. Sends from Blocks queued for the next frame
+  don't count, since they can't recurse.
+- **Renames and references:** a renamed custom Event or parameter changes every Send and receiving Event (`KotlinIdentifiers`); find
+  usages (`ProjectReferences`) lists senders and receivers apart; quick open (`QuickOpenItems`) offers each; a Send or receiving Event
+  of a deleted one shows on its card and in the health checks, as a missing choice does; deleting one that is still used says
+  where and offers to delete the receiving Events too, in one undo step. An Event with no receivers is a health-check warning, not an
+  error, since a sender may come before its listeners.
+- **The editor:** a Custom Events section in the project sidebar next to the types, a master-detail dialog for the name,
+  description, parameters, and sender setting, and from each one its senders and receivers. The Palette offers Send under its own
+  category, and "Add an Event" lists the project's custom Events after the built-in ones.
+- **The AI:** commands (`:creator:commands`, each with its tool, validation, and inverse) to create, edit, and delete custom Events
+  and their parameters; `get_block_catalog` and the digest list them with their senders and receivers. The system prompt adds a rung
+  to the ladder: when a third type needs to react to something another type does, send a custom Event rather than calling each one.
+- **Tested:** generator tests for every receiver choice, the sender as `other`, families, every parameter kind, the frame and
+  next-frame paths (with two threads), and loop rejection; `EveryBlockTypes` sends and receives one; `GeneratedCodeGoldenTest` pins
+  the code; the allocation rules hold for a send in `update`; `EvalSet` gains a request that should end in a custom Event ("when
+  the player dies, stop the music, shake the camera, and make every enemy run away").
 
 ## Kubriko Traits
 
