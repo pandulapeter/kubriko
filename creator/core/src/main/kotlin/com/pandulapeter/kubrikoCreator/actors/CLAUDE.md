@@ -148,8 +148,10 @@
   ignores a request for the Scene it is already loading, so goToScene every frame doesn't restart the load forever.
 - The camera Blocks reach `GeneratedScenes` too (`CameraCode`), rather than a Manager of their own, so they reserve no new
   names. Blocks run on the game's thread and, in an added Event, on Kubriko's, where a removed Actor also stops the camera
-  following it, so the camera's state changes only under one short lock. A following Actor passes the Scene it was added
-  in, so an old Scene's Actor still updating after a new Scene was asked for can't take the camera back. A shake holds
+  following it, so the camera's state changes only under one short lock. An Actor with camera Blocks is a
+  `GeneratedScenes.CameraFollower`, passing itself, whose Scene stamp only it writes and sets to `NOT_IN_SCENE` before it
+  lets the camera go, so neither an old Scene's Actor still updating nor a removed one moves the camera again; a new
+  Scene is counted under the same lock, which stops the following and the shake. A shake holds
   still while the game isn't running while following goes on (Actors may be told to keep updating then), a shake shakes around wherever something else moved the camera, and the zoom is the viewport's own,
   kept across Scenes until another Zoom the camera Block or a Scene fitting the view, which shows its whole bounds. `GeneratedScenes` keeps the view's aspect ratio from before a
   Scene fitted it (`fitsView`), which a Scene that doesn't fit the view gives back; a Scene's settings may be added before

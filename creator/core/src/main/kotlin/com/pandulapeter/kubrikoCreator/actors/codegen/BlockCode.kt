@@ -73,10 +73,10 @@ internal enum class BlockNeed {
     FRAME,
 
     /**
-     * The Scene the Actor was added in, which the camera follows it only in, and stopping the camera following it once it
-     * is removed ([CameraCode]).
+     * What an Actor using the camera Blocks tells `GeneratedScenes` ([CameraCode]): the Scene it was added in, which it
+     * moves the camera only while it is shown, and once it is removed, which stops the camera following it.
      */
-    CAMERA_FOLLOW,
+    CAMERA,
 
     /** What plays the Animate Blocks of the scale ([AnimateCode]). */
     SCALE_TWEEN,

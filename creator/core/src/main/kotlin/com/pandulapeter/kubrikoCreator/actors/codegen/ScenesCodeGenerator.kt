@@ -227,7 +227,7 @@ public object ScenesCodeGenerator {
             |            }
             |            // The first Scene keeps what the Managers added when the game started.
             |            if (!isFirst) {
-            |                $SCENE_CHANGES_FIELD++
+            |                ${CameraCode.START_SCENE_FUNCTION}()
             |                actorManager.removeAll()
             |                actorManager.add(managerActors)
             |            }
@@ -240,6 +240,7 @@ public object ScenesCodeGenerator {
             |        const val $RIGHT = 1
             |        const val $TOP = 2
             |        const val $BOTTOM = 3
+            |        const val ${CameraCode.NOT_IN_SCENE} = -1
             """.trimMargin(),
         )
         ActorCountCode.constantsOf(countedTypes).forEach(::appendLine)

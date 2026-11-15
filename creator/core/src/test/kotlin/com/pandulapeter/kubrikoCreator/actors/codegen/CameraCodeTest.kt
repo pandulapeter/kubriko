@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertFalse
@@ -28,12 +29,34 @@ class CameraCodeTest {
     )
 
     @Test
-    fun theCameraFollowsOnlyAnActorOfTheSceneShownAndStopsOnceItIsRemoved() {
+    fun onlyTheActorsOfTheSceneShownMoveTheCameraAndARemovedOneIsLetGoFor() {
+        assertContains(hero, "class Hero private constructor(state: State) : Batched, Dynamic, Editable<Hero>, GeneratedScenes.CameraFollower {\n")
+        assertContains(hero, "    @kotlin.concurrent.Volatile\n    final override var sceneChangesWhenAdded = 0\n        private set\n")
         assertContains(hero, "        sceneChangesWhenAdded = generatedScenes.sceneChanges\n")
-        assertContains(hero, "generatedScenes.followWithCamera(this, sceneChangesWhenAdded)\n")
-        assertContains(hero, "    override fun onRemoved() {\n        generatedScenes.unfollowWithCamera(this)\n    }\n")
-        assertContains(scenes, "        withCameraLock { if (sceneChangesWhenAdded == sceneChanges) cameraTarget = actor }\n")
-        assertContains(scenes, "        if (cameraTarget === actor) cameraTarget = null\n")
+        assertContains(hero, "generatedScenes.followWithCamera(this)\n")
+        assertContains(hero, "    override fun onRemoved() {\n        sceneChangesWhenAdded = GeneratedScenes.NOT_IN_SCENE\n        generatedScenes.unfollowWithCamera(this)\n    }\n")
+        assertContains(scenes, "        if (isInSceneEditor || cameraTarget === actor) return\n        withCameraLock { if (isOfSceneShown(actor)) cameraTarget = actor }\n")
+        assertContains(scenes, "caller == null || caller.sceneChangesWhenAdded == sceneChanges\n")
+    }
+
+    @Test
+    fun aNewSceneStopsTheFollowingAndTheShakeUnderTheLock() {
+        assertContains(scenes, "    private fun startScene() = withCameraLock {\n        sceneChanges++\n        cameraTarget = null\n        shakeRemainingInMilliseconds = 0f\n")
+        assertContains(scenes, "            if (!isFirst) {\n                startScene()\n")
+    }
+
+    @Test
+    fun anActorsCameraBlocksPassTheActorAndAManagersDont() {
+        val manager = ManagerTypeCodeGenerator.generateManagerType(
+            ManagerTypeDefinition(name = "Game", events = listOf(EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.ZoomCamera())))),
+            "com.example.game",
+        )
+        assertContains(manager, "generatedScenes.zoomCamera(1f)\n")
+        val zooming = ActorTypeCodeGenerator.generateActorType(
+            ActorTypeDefinition(name = "Lens", events = listOf(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.ZoomCamera())))),
+            "com.example.game",
+        )
+        assertContains(zooming, "generatedScenes.zoomCamera(1f, this)\n")
     }
 
     @Test
@@ -50,7 +73,7 @@ class CameraCodeTest {
 
     @Test
     fun theZoomIsTheViewportsOwnAndLastsAcrossScenes() {
-        assertContains(scenes, "        if (!isInSceneEditor && scaleFactor > 0f) viewportManager.setScaleFactor(scaleFactor)\n")
+        assertContains(scenes, "        withCameraLock { if (isOfSceneShown(caller)) viewportManager.setScaleFactor(scaleFactor) }\n")
         assertFalse("BeforeZoom" in scenes)
     }
 

@@ -25,11 +25,29 @@ internal object CameraCode {
     const val MOVE_FUNCTION = "moveCamera"
     const val SHAKE_FUNCTION = "shakeCamera"
     const val ZOOM_FUNCTION = "zoomCamera"
+    const val START_SCENE_FUNCTION = "startScene"
+    const val FOLLOWER_INTERFACE = "CameraFollower"
+
+    /**
+     * What an Actor's [ScenesCodeGenerator.SCENE_CHANGES_WHEN_ADDED_FIELD] becomes once it is removed.
+     */
+    const val NOT_IN_SCENE = "NOT_IN_SCENE"
+    private const val SCENE_CHANGES_FIELD = ScenesCodeGenerator.SCENE_CHANGES_FIELD
 
     fun members() = """
             |
+            |    /**
+            |     * An Actor that uses the camera Blocks: [sceneChangesWhenAdded] is what [sceneChanges] was when it was added, or
+            |     * [$NOT_IN_SCENE] once it is removed, so that only the Actors of the Scene shown move the camera.
+            |     */
+            |    interface $FOLLOWER_INTERFACE : com.pandulapeter.kubriko.actor.traits.Positionable {
+            |        val sceneChangesWhenAdded: Int
+            |    }
+            |
             |    private val cameraLock = ${AtomicsCode.PACKAGE}.AtomicInt(0)
-            |    private var cameraTarget: com.pandulapeter.kubriko.actor.traits.Positionable? = null
+            |
+            |    @Volatile
+            |    private var cameraTarget: $FOLLOWER_INTERFACE? = null
             |    private var shakeStrength = 0f
             |    private var shakeDurationInMilliseconds = 0f
             |    private var shakeRemainingInMilliseconds = 0f
@@ -45,6 +63,9 @@ internal object CameraCode {
             |    private var shakenCameraX = Float.NaN
             |    private var shakenCameraY = Float.NaN
             |
+            |    /**
+            |     * Held only for a few field writes and a camera update, none of which waits, so spinning costs less than a lock.
+            |     */
             |    private inline fun <T> withCameraLock(action: () -> T): T {
             |        while (!cameraLock.compareAndSet(0, 1)) Unit
             |        try {
@@ -55,27 +76,44 @@ internal object CameraCode {
             |    }
             |
             |    /**
-            |     * Makes the camera follow [actor] if it belongs to the Scene shown ([sceneChangesWhenAdded] is [sceneChanges]),
-            |     * until it moves to a position, follows another Actor, or [actor] is removed.
+            |     * Whether a camera Block of [caller] (null for a Manager's) may move the camera: [caller] belongs to the Scene shown.
             |     */
-            |    fun $FOLLOW_FUNCTION(actor: com.pandulapeter.kubriko.actor.traits.Positionable, sceneChangesWhenAdded: Int) {
-            |        if (isInSceneEditor) return
-            |        withCameraLock { if (sceneChangesWhenAdded == sceneChanges) cameraTarget = actor }
+            |    private fun isOfSceneShown(caller: $FOLLOWER_INTERFACE?) = caller == null || caller.sceneChangesWhenAdded == $SCENE_CHANGES_FIELD
+            |
+            |    /**
+            |     * Counts a new Scene, which stops the camera following the last one's Actors and shaking, so that the new Scene's
+            |     * settings place it.
+            |     */
+            |    private fun $START_SCENE_FUNCTION() = withCameraLock {
+            |        $SCENE_CHANGES_FIELD++
+            |        cameraTarget = null
+            |        shakeRemainingInMilliseconds = 0f
+            |        shakenCameraX = Float.NaN
+            |        shakenCameraY = Float.NaN
+            |    }
+            |
+            |    /**
+            |     * Makes the camera follow [actor] until it moves to a position, follows another Actor, or [actor] is removed.
+            |     */
+            |    fun $FOLLOW_FUNCTION(actor: $FOLLOWER_INTERFACE) {
+            |        if (isInSceneEditor || cameraTarget === actor) return
+            |        withCameraLock { if (isOfSceneShown(actor)) cameraTarget = actor }
             |    }
             |
             |    /**
             |     * Stops the camera following [actor], which was removed, if it follows it.
             |     */
-            |    fun $UNFOLLOW_FUNCTION(actor: com.pandulapeter.kubriko.actor.traits.Positionable) = withCameraLock {
+            |    fun $UNFOLLOW_FUNCTION(actor: $FOLLOWER_INTERFACE) = withCameraLock {
             |        if (cameraTarget === actor) cameraTarget = null
             |    }
             |
             |    /**
             |     * Moves the camera to [x], [y] at once, and stops it following an Actor; a position that isn't a number is left out.
             |     */
-            |    fun $MOVE_FUNCTION(x: Float, y: Float) {
+            |    fun $MOVE_FUNCTION(x: Float, y: Float, caller: $FOLLOWER_INTERFACE? = null) {
             |        if (isInSceneEditor || !x.isFinite() || !y.isFinite()) return
             |        withCameraLock {
+            |            if (!isOfSceneShown(caller)) return@withCameraLock
             |            cameraTarget = null
             |            if (shakenCameraX.isNaN()) {
             |                viewportManager.setCameraPosition(SceneOffset(x.sceneUnit, y.sceneUnit))
@@ -91,9 +129,10 @@ internal object CameraCode {
             |     * Shakes the camera at most [strength] far, less and less for [durationInMilliseconds], starting over if it shakes;
             |     * no strength or no time stops the shake.
             |     */
-            |    fun $SHAKE_FUNCTION(strength: Float, durationInMilliseconds: Float) {
+            |    fun $SHAKE_FUNCTION(strength: Float, durationInMilliseconds: Float, caller: $FOLLOWER_INTERFACE? = null) {
             |        if (isInSceneEditor || strength.isNaN() || durationInMilliseconds.isNaN()) return
             |        withCameraLock {
+            |            if (!isOfSceneShown(caller)) return@withCameraLock
             |            if (strength <= 0f || durationInMilliseconds <= 0f) {
             |                shakeRemainingInMilliseconds = 0f
             |                return@withCameraLock
@@ -112,8 +151,9 @@ internal object CameraCode {
             |    /**
             |     * Zooms the camera to [scaleFactor] (1 for the Scene's size) until another zoom.
             |     */
-            |    fun $ZOOM_FUNCTION(scaleFactor: Float) {
-            |        if (!isInSceneEditor && scaleFactor > 0f) viewportManager.setScaleFactor(scaleFactor)
+            |    fun $ZOOM_FUNCTION(scaleFactor: Float, caller: $FOLLOWER_INTERFACE? = null) {
+            |        if (isInSceneEditor || !(scaleFactor > 0f)) return
+            |        withCameraLock { if (isOfSceneShown(caller)) viewportManager.setScaleFactor(scaleFactor) }
             |    }
             |
             |    override fun onUpdate(deltaTimeInMilliseconds: Int) {

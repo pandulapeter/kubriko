@@ -172,8 +172,9 @@ internal class ActorClassEmitter(
             if (features.collisionEvents.isNotEmpty()) "CollisionDetector" else "Collidable".takeIf { features.isCollidable },
             "Editable<${definition.name}>".takeIf { role == Role.STANDALONE },
             "KeyboardInputAware".takeIf { features.keys.isKeyboardInputAware },
+            CAMERA_FOLLOWER.takeIf { features.usesCamera },
         )
-        traits.forEach { trait -> imports += TRAIT_IMPORTS.getValue(trait.substringBefore('<')) }
+        traits.filter { it != CAMERA_FOLLOWER }.forEach { trait -> imports += TRAIT_IMPORTS.getValue(trait.substringBefore('<')) }
         imports += "androidx.compose.ui.graphics.Color"
         imports += "com.pandulapeter.kubriko.sceneEditor.Exposed"
         when (role) {
@@ -253,13 +254,19 @@ internal class ActorClassEmitter(
      */
     private fun StringBuilder.appendOnRemoved(name: String) {
         val watches = features.watches.filterNot { it.isAdded }
-        if (watches.isEmpty() && features.countedTypes.isEmpty() && !features.followsWithCamera) return
+        if (watches.isEmpty() && features.countedTypes.isEmpty() && !features.usesCamera) return
         appendLine()
         appendLine("    override fun onRemoved() {")
         if (features.countedTypes.isNotEmpty()) appendLine("        ${ActorCountCode.STOP_CALL}")
-        if (features.followsWithCamera) appendLine("        $SCENES_FIELD.${CameraCode.UNFOLLOW_FUNCTION}(this)")
+        val leftWithScene = "$SCENE_CHANGES_WHEN_ADDED_FIELD != $SCENES_FIELD.${ScenesCodeGenerator.SCENE_CHANGES_FIELD}"
+        if (features.usesCamera) {
+            // Marked before the camera lets go of it, so that a Block of it still running can't make the camera follow it again.
+            if (watches.isNotEmpty()) appendLine("        val hasLeftWithScene = $leftWithScene")
+            appendLine("        $SCENE_CHANGES_WHEN_ADDED_FIELD = ${ScenesCodeGenerator.SCENES_NAME}.${CameraCode.NOT_IN_SCENE}")
+            appendLine("        $SCENES_FIELD.${CameraCode.UNFOLLOW_FUNCTION}(this)")
+        }
         if (watches.isNotEmpty()) {
-            appendLine("        if ($SCENE_CHANGES_WHEN_ADDED_FIELD != $SCENES_FIELD.${ScenesCodeGenerator.SCENE_CHANGES_FIELD}) return")
+            appendLine("        if (${if (features.usesCamera) "hasLeftWithScene" else leftWithScene}) return")
             appendNotifications(name, watches)
         }
         appendLine("    }")
@@ -296,7 +303,13 @@ internal class ActorClassEmitter(
         appendLine("    /**")
         appendLine("     * How many times the Scene had changed when the Actor was added, which tells whether it belongs to the Scene shown.")
         appendLine("     */")
-        appendLine("    $visibility var $SCENE_CHANGES_WHEN_ADDED_FIELD = 0")
+        if (features.usesCamera) {
+            appendLine("    @kotlin.concurrent.Volatile")
+            appendLine("    final override var $SCENE_CHANGES_WHEN_ADDED_FIELD = 0")
+            appendLine("        private set")
+        } else {
+            appendLine("    private var $SCENE_CHANGES_WHEN_ADDED_FIELD = 0")
+        }
     }
 
     private fun StringBuilder.appendUpdate() {
@@ -412,6 +425,7 @@ internal class ActorClassEmitter(
         const val COLLIDABLE_IMPORT = "com.pandulapeter.kubriko.collision.Collidable"
         const val SCENE_UNIT_IMPORT = "com.pandulapeter.kubriko.types.SceneUnit"
         const val KEY_IMPORT = "androidx.compose.ui.input.key.Key"
+        const val CAMERA_FOLLOWER = "${ScenesCodeGenerator.SCENES_NAME}.${CameraCode.FOLLOWER_INTERFACE}"
         val TRAIT_IMPORTS = mapOf(
             "Batched" to "com.pandulapeter.kubriko.actor.traits.Batched",
             "Dynamic" to "com.pandulapeter.kubriko.actor.traits.Dynamic",

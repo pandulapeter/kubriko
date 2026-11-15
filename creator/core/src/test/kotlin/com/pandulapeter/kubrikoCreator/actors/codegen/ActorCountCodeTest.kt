@@ -87,7 +87,7 @@ class ActorCountCodeTest {
         assertContains(code, "        const val ACTORS_BIG_ALIEN = 0\n        const val ACTORS_BRICK = 1\n    }\n}\n")
         val uncounted = ScenesCodeGenerator.generate("com.example.game")
         assertFalse("actorCounts" in uncounted)
-        assertContains(uncounted, "        const val BOTTOM = 3\n    }\n}\n")
+        assertContains(uncounted, "        const val BOTTOM = 3\n        const val NOT_IN_SCENE = -1\n    }\n}\n")
     }
 
     @Test
