@@ -130,7 +130,6 @@ internal fun SceneEditorPane(
 ) {
     val selection = rememberSceneSelection(state, broughtBack, highlight)
     val managerTypeNames = remember(managerTypes) { managerTypes.mapTo(HashSet()) { it.name } }
-    val valueTakingManagerTypes = remember(managerTypes) { managerTypes.filter { it.properties.isNotEmpty() } }
     val flash = rememberSceneFlash(highlight)
     val view = rememberSceneView(state, onViewFailed) ?: return@Column ProgressScreen(stringResource(Res.string.scene_preparing, state.scene.name))
     SelectingRestoredActor(selection, view)
@@ -218,7 +217,7 @@ internal fun SceneEditorPane(
                 sceneName = state.sceneName,
                 selectedId = selection.selectedId,
                 actorTypes = actorTypes,
-                managerTypes = valueTakingManagerTypes,
+                managerTypes = managerTypes,
                 music = music,
                 onOpenSceneSettings = { isSettingsShown = true },
                 onCommand = onCommand,

@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
@@ -55,7 +56,8 @@ import org.jetbrains.compose.resources.stringResource
  * Scene settings.
  *
  * @param actorTypes The project's block-built Actor types, whose Properties and colors their Actors show.
- * @param managerTypes The project's block-built Manager types with Properties, which the Scene can give values to.
+ * @param managerTypes The project's block-built Manager types, those with Properties of which the Scene can give values
+ *   to (an entry of one without, left after its Properties were removed, can still be removed).
  * @param music The project's music files, for the Scene settings.
  */
 @Composable
@@ -77,8 +79,9 @@ internal fun SceneInspector(
     view.loadRevision.collectAsState().value
     val entry = selectedId?.let(view::entryOf)
     val actor = selectedId?.let(view::actorOf)
-    val sceneValues = view.entries.filter { candidate -> managerTypes.any { it.name == candidate.typeId } }
-        .associate { it.typeId to ManagerSceneValues.valuesOf(it.state) }
+    val entries = view.entries
+    val sceneValues = remember(entries, managerTypes) { ManagerSceneValues.valuesByManagerType(entries, managerTypes.mapTo(HashSet()) { it.name }) }
+    val valueTakingManagerTypes = remember(managerTypes) { managerTypes.filter { it.properties.isNotEmpty() } }
     val selectedManager = entry?.let { selected -> managerTypes.firstOrNull { it.name == selected.typeId } }
     when {
         selectedId == null || entry == null -> {
@@ -94,7 +97,7 @@ internal fun SceneInspector(
             ) {
                 Text(stringResource(Res.string.scene_settings_title))
             }
-            if (managerTypes.isNotEmpty()) SceneValues(managerTypes, sceneValues, sceneName, onCommand)
+            if (valueTakingManagerTypes.isNotEmpty()) SceneValues(valueTakingManagerTypes, sceneValues, sceneName, onCommand)
         }
         selectedManager != null -> {
             PanelHeader(icon = Res.drawable.ic_manager_type, title = stringResource(Res.string.scene_values_actor, selectedManager.name), accent = Accent.CREW) {

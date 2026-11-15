@@ -26,6 +26,14 @@ public object ManagerSceneValues {
     public fun indexIn(actors: List<SceneActorEntry>, managerType: String): Int = actors.indexOfFirst { it.typeId == managerType }
 
     /**
+     * What [actors] give each of [managerTypes], by Manager type and then by Property name, from the entry [indexIn]
+     * finds for it (the first, should a Scene changed by hand have several).
+     */
+    public fun valuesByManagerType(actors: List<SceneActorEntry>, managerTypes: Set<String>): Map<String, Map<String, JsonPrimitive>> = buildMap {
+        actors.forEach { actor -> if (actor.typeId in managerTypes && actor.typeId !in this) put(actor.typeId, valuesOf(actor.state)) }
+    }
+
+    /**
      * The values [state] sets, by Property name; empty if it can't be read.
      */
     public fun valuesOf(state: String): Map<String, JsonPrimitive> = SceneDocument.stateObject(state)?.mapNotNull { (name, value) -> (value as? JsonPrimitive)?.let { name to it } }?.toMap().orEmpty()
