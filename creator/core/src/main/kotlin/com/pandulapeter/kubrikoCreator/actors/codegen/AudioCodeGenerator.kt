@@ -100,14 +100,15 @@ internal object AudioCodeGenerator {
             |
             |    /**
             |     * Plays the music at [path] (from `composeResources`) instead of the music playing now, or goes on with it if it
-            |     * is the same, at [volume] (from 0 to 1), which it sets only when it changes, so that a Block playing it every
-            |     * frame allocates nothing.
+            |     * is the same, at [volume] (from 0 to 1, as every platform's player takes it, NaN silent), which it sets only
+            |     * when it changes, so that a Block playing it every frame allocates nothing.
             |     */
             |    fun playMusic(path: String, isLooping: Boolean = true, volume: Float = 1f) {
             |        if (isInSceneEditor || path.isEmpty()) return
-            |        if (path != music || volume != musicVolume) {
-            |            musicVolume = volume
-            |            musicManager.setVolume(uriOf(path), volume, volume)
+            |        val playableVolume = if (volume.isNaN()) 0f else volume.coerceIn(0f, 1f)
+            |        if (path != music || playableVolume != musicVolume) {
+            |            musicVolume = playableVolume
+            |            musicManager.setVolume(uriOf(path), playableVolume, playableVolume)
             |        }
             |        if (path != music) music?.let { musicManager.stop(uriOf(it)) }
             |        music = path

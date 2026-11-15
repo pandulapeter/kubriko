@@ -44,7 +44,8 @@ class AudioCodeGeneratorTest {
     @Test
     fun musicStartsOnTheNextFrameAndAgainWhenTheGameIsFocused() {
         assertContains(code, "        if (path != music) music?.let { musicManager.stop(uriOf(it)) }\n")
-        assertContains(code, "        if (path != music || volume != musicVolume) {\n            musicVolume = volume\n            musicManager.setVolume(uriOf(path), volume, volume)\n        }\n")
+        assertContains(code, "        val playableVolume = if (volume.isNaN()) 0f else volume.coerceIn(0f, 1f)\n")
+        assertContains(code, "        if (path != music || playableVolume != musicVolume) {\n            musicVolume = playableVolume\n            musicManager.setVolume(uriOf(path), playableVolume, playableVolume)\n        }\n")
         assertContains(code, "kubriko.get<StateManager>().isFocused.filter { it }.onEach { isMusicPending = music != null }.launchIn(scope)\n")
         assertContains(code, "            music?.let { musicManager.play(uriOf(it), shouldLoop = isMusicLooping) }\n")
     }
