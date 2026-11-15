@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
+import com.pandulapeter.kubrikoCreator.actors.NumberLimits
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_percent_unit
@@ -24,7 +25,7 @@ import org.jetbrains.compose.resources.StringResource
 /**
  * A percent a Block takes (an opacity, a change of one, a volume, or a zoom), which takes no edge.
  *
- * @param accepts Which numbers the field takes: from 0 to 100, any change of one, or a zoom of at least 1.
+ * @param limits Which numbers the field takes: from 0 to 100, any change of one, or a zoom of at least 1.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -33,7 +34,7 @@ internal fun PercentField(
     value: NumberValue,
     scope: BlockScope,
     onValueChange: (NumberValue) -> Unit,
-    accepts: (Float) -> Boolean = { true },
+    limits: NumberLimits = NumberLimits.ANY,
 ) = FlowRow(
     horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -45,7 +46,7 @@ internal fun PercentField(
         scope = scope,
         onValueChange = onValueChange,
         offersEdges = false,
-        accepts = accepts,
+        limits = limits,
     )
     UnitText(Res.string.block_percent_unit)
 }

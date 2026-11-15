@@ -20,6 +20,7 @@ import com.pandulapeter.kubrikoCreator.actors.AnimationEasing
 import com.pandulapeter.kubrikoCreator.actors.AnimationTarget
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
+import com.pandulapeter.kubrikoCreator.actors.NumberLimits
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
@@ -69,7 +70,7 @@ internal fun AnimateParameters(
         scope = scope,
         onValueChange = { onBlockChange(block.copy(seconds = it)) },
         offersEdges = false,
-        accepts = { it >= 0f },
+        limits = NumberLimits.NON_NEGATIVE,
     )
     MenuButton(
         label = stringResource(block.easing.title),
@@ -93,9 +94,9 @@ private fun AnimatedValueParameters(
     scope: BlockScope,
     onValueChange: (AnimatedValue) -> Unit,
 ) = when (value) {
-    is AnimatedValue.Scale -> EndsParameters(value.from, value.to, scope, accepts = { it >= 0f }) { from, to -> onValueChange(value.copy(from = from, to = to)) }
+    is AnimatedValue.Scale -> EndsParameters(value.from, value.to, scope, limits = NumberLimits.NON_NEGATIVE) { from, to -> onValueChange(value.copy(from = from, to = to)) }
     is AnimatedValue.Opacity -> {
-        EndsParameters(value.from, value.to, scope, accepts = { it in 0f..100f }) { from, to -> onValueChange(value.copy(from = from, to = to)) }
+        EndsParameters(value.from, value.to, scope, limits = NumberLimits.PERCENT) { from, to -> onValueChange(value.copy(from = from, to = to)) }
         UnitText(Res.string.block_percent_unit)
     }
     is AnimatedValue.Color -> {
@@ -119,7 +120,7 @@ private fun EndsParameters(
     from: NumberValue,
     to: NumberValue,
     scope: BlockScope,
-    accepts: (Float) -> Boolean,
+    limits: NumberLimits,
     onChange: (from: NumberValue, to: NumberValue) -> Unit,
 ) {
     NumberValueField(
@@ -128,7 +129,7 @@ private fun EndsParameters(
         scope = scope,
         onValueChange = { onChange(it, to) },
         offersEdges = false,
-        accepts = accepts,
+        limits = limits,
     )
     NumberValueField(
         label = Res.string.block_parameter_end,
@@ -136,7 +137,7 @@ private fun EndsParameters(
         scope = scope,
         onValueChange = { onChange(from, it) },
         offersEdges = false,
-        accepts = accepts,
+        limits = limits,
     )
 }
 

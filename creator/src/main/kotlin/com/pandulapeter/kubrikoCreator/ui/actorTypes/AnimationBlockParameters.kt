@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
+import com.pandulapeter.kubrikoCreator.actors.NumberLimits
 import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_parameter_frame
@@ -45,7 +46,7 @@ internal fun AnimationBlockParameters(
             scope = scope,
             onValueChange = { onBlockChange(block.copy(frame = it)) },
             isWhole = true,
-            accepts = { it >= 0f },
+            limits = NumberLimits.NON_NEGATIVE,
         )
         is BlockDefinition.SetAnimation -> {
             NumberValueField(

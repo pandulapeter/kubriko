@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
+import com.pandulapeter.kubrikoCreator.actors.NumberLimits
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_milliseconds_unit
 import kubriko.creator.generated.resources.block_parameter_duration
@@ -43,7 +44,7 @@ internal fun ShakeCameraParameters(
         scope = scope,
         onValueChange = { onBlockChange(block.copy(strength = it)) },
         offersEdges = false,
-        accepts = { it >= 0f },
+        limits = NumberLimits.NON_NEGATIVE,
     )
     UnitText(Res.string.block_units_unit)
     NumberValueField(
@@ -52,7 +53,7 @@ internal fun ShakeCameraParameters(
         scope = scope,
         onValueChange = { onBlockChange(block.copy(durationInMilliseconds = it)) },
         offersEdges = false,
-        accepts = { it >= 0f },
+        limits = NumberLimits.NON_NEGATIVE,
     )
     UnitText(Res.string.block_milliseconds_unit)
 }

@@ -23,10 +23,9 @@ import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.ConditionKind
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
-import com.pandulapeter.kubrikoCreator.actors.FULL_VOLUME
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
-import com.pandulapeter.kubrikoCreator.actors.MINIMUM_ZOOM
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.NumberLimits
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
@@ -181,18 +180,18 @@ private fun validateBlockValues(block: BlockDefinition, scope: BlockScope): Reje
     !block.areNumbersValid -> Rejection(CommandProblem.NUMBER_INVALID)
     !block.areEdgesAlongTheirAxes -> Rejection(CommandProblem.NUMBER_EDGE_ACROSS)
     block.edgelessNumberValues.any { it.readsEdges } -> Rejection(CommandProblem.NUMBER_EDGE_NOT_TAKEN)
-    block is BlockDefinition.SetOpacity && !block.percent.isWithin(0f, 100f) -> Rejection(CommandProblem.OPACITY_OUT_OF_RANGE)
-    block is BlockDefinition.PlaySound && !block.volume.isWithin(0f, FULL_VOLUME) -> Rejection(CommandProblem.VOLUME_OUT_OF_RANGE)
-    block is BlockDefinition.PlayMusic && !block.volume.isWithin(0f, FULL_VOLUME) -> Rejection(CommandProblem.VOLUME_OUT_OF_RANGE)
-    block is BlockDefinition.ZoomCamera && !block.zoom.isWithin(minimum = MINIMUM_ZOOM) -> Rejection(CommandProblem.ZOOM_OUT_OF_RANGE)
-    block is BlockDefinition.ShakeCamera && !(block.strength.isWithin(minimum = 0f) && block.durationInMilliseconds.isWithin(minimum = 0f)) -> Rejection(CommandProblem.SHAKE_NEGATIVE)
+    block is BlockDefinition.SetOpacity && !NumberLimits.PERCENT.accept(block.percent) -> Rejection(CommandProblem.OPACITY_OUT_OF_RANGE)
+    block is BlockDefinition.PlaySound && !NumberLimits.VOLUME.accept(block.volume) -> Rejection(CommandProblem.VOLUME_OUT_OF_RANGE)
+    block is BlockDefinition.PlayMusic && !NumberLimits.VOLUME.accept(block.volume) -> Rejection(CommandProblem.VOLUME_OUT_OF_RANGE)
+    block is BlockDefinition.ZoomCamera && !NumberLimits.ZOOM.accept(block.zoom) -> Rejection(CommandProblem.ZOOM_OUT_OF_RANGE)
+    block is BlockDefinition.ShakeCamera && !(NumberLimits.NON_NEGATIVE.accept(block.strength) && NumberLimits.NON_NEGATIVE.accept(block.durationInMilliseconds)) -> Rejection(CommandProblem.SHAKE_NEGATIVE)
     block is BlockDefinition.SetColor && block.colors.size !in 1..BlockDefinition.SetColor.MAXIMUM_COLORS ->
         Rejection(CommandProblem.COLORS_COUNT, BlockDefinition.SetColor.MAXIMUM_COLORS.toString())
     block is BlockDefinition.SetColor && block.colors.any { it.fixedArgb?.let(ColorHex::isOpaque) == false } -> Rejection(CommandProblem.COLORS_NOT_OPAQUE)
-    block is BlockDefinition.Animate && block.value is AnimatedValue.Opacity && !block.value.numberValues.all { it.isWithin(0f, 100f) } ->
+    block is BlockDefinition.Animate && block.value is AnimatedValue.Opacity && !block.value.numberValues.all(NumberLimits.PERCENT::accept) ->
         Rejection(CommandProblem.OPACITY_OUT_OF_RANGE)
     block is BlockDefinition.MoveWithKeys && block.speed is NumberValue.Random -> Rejection(CommandProblem.SPEED_RANDOM_EVERY_FRAME)
-    block is BlockDefinition.Animate && block.value is AnimatedValue.Scale && !block.value.numberValues.all { it.isWithin(minimum = 0f) } ->
+    block is BlockDefinition.Animate && block.value is AnimatedValue.Scale && !block.value.numberValues.all(NumberLimits.NON_NEGATIVE::accept) ->
         Rejection(CommandProblem.SCALE_NEGATIVE)
     ((block as? BlockDefinition.Animate)?.value as? AnimatedValue.Color)?.let { listOf(it.from, it.to).all { color -> color.fixedArgb?.let(ColorHex::isOpaque) != false } } == false ->
         Rejection(CommandProblem.ANIMATED_COLOR_NOT_OPAQUE)
@@ -368,11 +367,11 @@ internal fun CommandContext.validateText(managerType: String, text: ScreenTextDe
  */
 private val BlockDefinition.areNumbersValid
     get() = numberValues.all { it.isFinite } && when (this) {
-        is BlockDefinition.If -> condition.leaves.all { (it as? ConditionDefinition.Chance)?.percent?.isWithin(0f, 100f) ?: true }
-        is BlockDefinition.Repeat -> times.isWithin(minimum = 0f) && times.isWholeWhenFixed
-        is BlockDefinition.StartTimer -> seconds.isWithin(minimum = 0f)
-        is BlockDefinition.Animate -> seconds.isWithin(minimum = 0f)
-        is BlockDefinition.SetFrame -> frame.isWithin(minimum = 0f) && frame.isWholeWhenFixed
+        is BlockDefinition.If -> condition.leaves.all { (it as? ConditionDefinition.Chance)?.percent?.let(NumberLimits.PERCENT::accept) ?: true }
+        is BlockDefinition.Repeat -> NumberLimits.NON_NEGATIVE.accept(times) && times.isWholeWhenFixed
+        is BlockDefinition.StartTimer -> NumberLimits.NON_NEGATIVE.accept(seconds)
+        is BlockDefinition.Animate -> NumberLimits.NON_NEGATIVE.accept(seconds)
+        is BlockDefinition.SetFrame -> NumberLimits.NON_NEGATIVE.accept(frame) && frame.isWholeWhenFixed
         is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, is BlockDefinition.JumpTo, is BlockDefinition.AddActor,
         is BlockDefinition.MoveTowardsNearest, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetAnimation,
         BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
@@ -422,12 +421,6 @@ private val BlockDefinition.edgelessNumberValues
     }
 
 private val NumberValue.isWholeWhenFixed get() = this !is NumberValue.Fixed || value == value.toLong().toFloat()
-
-private fun NumberValue.isWithin(minimum: Float, maximum: Float = Float.POSITIVE_INFINITY) = when (this) {
-    is NumberValue.Fixed -> value in minimum..maximum
-    is NumberValue.Random -> from in minimum..maximum && to in minimum..maximum
-    is NumberValue.Property, is NumberValue.Edge, is NumberValue.BetweenEdges -> true
-}
 
 /**
  * Why the Actor type [actorType] can't have [property]: one of its ancestors or descendants has a Property of that name

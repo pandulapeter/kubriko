@@ -10,10 +10,12 @@
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import com.pandulapeter.kubrikoCreator.actors.Axis
+import com.pandulapeter.kubrikoCreator.actors.NumberLimits
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.SceneEdge
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class NumberValueKindTest {
 
@@ -26,6 +28,21 @@ class NumberValueKindTest {
         assertEquals(NumberValue.Fixed(1.5f), NumberValueKind.FIXED.of(NumberValue.Random(1.5f, 4f)))
         assertEquals(NumberValue.Fixed(2f), NumberValueKind.FIXED.of(NumberValue.Random(1.5f, 4f), isWholeField = true))
         assertEquals(NumberValue.Random(3f, 9f, isWhole = true), NumberValueKind.RANDOM_WHOLE.of(NumberValue.Random(3f, 9f)))
+    }
+
+    @Test
+    fun aNewKindStartsWithinTheLimitsOfItsField() {
+        val zoom = NumberLimits.ZOOM
+        assertEquals(NumberValue.Random(1f, 100f), NumberValueKind.RANDOM.of(NumberValue.Fixed(100f), limits = zoom))
+        assertEquals(NumberValue.Random(1f, 2f), NumberValueKind.RANDOM.of(NumberValue.Property("zoom"), limits = zoom))
+        assertEquals(NumberValue.Random(1f, 2f, isWhole = true), NumberValueKind.RANDOM_WHOLE.of(NumberValue.Fixed(0f), limits = zoom))
+        assertEquals(NumberValue.Fixed(1f), NumberValueKind.FIXED.of(NumberValue.Property("zoom"), limits = zoom))
+        assertEquals(NumberValue.Fixed(1f), NumberValueKind.FIXED.of(NumberValue.Random(0f, 5f), limits = zoom))
+        listOf(NumberValue.Fixed(100f), NumberValue.Fixed(1f), NumberValue.Random(1f, 2f), NumberValue.Property("zoom")).forEach { value ->
+            NumberValueKind.offeredBy(isWholeField = false, offersEdges = false).forEach { kind ->
+                assertTrue(zoom.accept(kind.of(value, limits = zoom)), "$kind of $value")
+            }
+        }
     }
 
     @Test

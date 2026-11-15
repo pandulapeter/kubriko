@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.Axis
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
+import com.pandulapeter.kubrikoCreator.actors.NumberLimits
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyReference
@@ -57,7 +58,8 @@ import org.jetbrains.compose.resources.stringResource
  * @param axis Which axis the field is a position (or a velocity) on, if it is one: only that axis's edges are offered.
  * @param offersEdges False for a field that is no position (a direction or a speed), which offers no edges.
  * @param offersRandom False for a field read on every frame, where a random number would change on every frame.
- * @param accepts Which numbers the field takes; a number typed outside them isn't reported.
+ * @param limits Which numbers the field takes; a number typed outside them isn't reported, and a kind chosen for it starts
+ *   within them.
  * @param numberWidth How wide each number is, its field growing by its label's width.
  */
 @Composable
@@ -70,13 +72,13 @@ internal fun NumberValueField(
     axis: Axis? = null,
     offersEdges: Boolean = true,
     offersRandom: Boolean = true,
-    accepts: (Float) -> Boolean = { true },
+    limits: NumberLimits = NumberLimits.ANY,
     numberWidth: Dp = NUMBER_WIDTH,
 ) = Row(
     horizontalArrangement = Arrangement.spacedBy(4.dp),
     verticalAlignment = Alignment.CenterVertically,
 ) {
-    fun isAccepted(number: Float) = accepts(number) && (!isWhole || number == number.toLong().toFloat())
+    fun isAccepted(number: Float) = number in limits && (!isWhole || number == number.toLong().toFloat())
     val kind = NumberValueKind.of(value, isWhole)
     MenuIconButton(
         icon = kind.icon,
@@ -84,7 +86,7 @@ internal fun NumberValueField(
         options = NumberValueKind.offeredBy(isWhole, offersEdges, offersRandom),
         optionText = { stringResource(it.title) },
         optionIcon = { it.icon },
-        onSelected = { if (it != kind) onValueChange(it.of(value, isWhole, axis)) },
+        onSelected = { if (it != kind) onValueChange(it.of(value, isWhole, axis, limits)) },
     )
     when (value) {
         is NumberValue.Fixed -> NumberField(

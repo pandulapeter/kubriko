@@ -36,8 +36,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.BlockNesting
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
-import com.pandulapeter.kubrikoCreator.actors.FULL_VOLUME
-import com.pandulapeter.kubrikoCreator.actors.MINIMUM_ZOOM
+import com.pandulapeter.kubrikoCreator.actors.NumberLimits
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
@@ -222,7 +221,7 @@ private fun InlineParameters(
             value = block.seconds,
             scope = scope,
             onValueChange = { onBlockChange(block.copy(seconds = it)) },
-            accepts = { it >= 0f },
+            limits = NumberLimits.NON_NEGATIVE,
         )
         LabeledSwitch(
             label = stringResource(Res.string.block_parameter_repeating),
@@ -238,7 +237,7 @@ private fun InlineParameters(
         itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         SoundValueField(block.sound, scope) { onBlockChange(block.copy(sound = it)) }
-        PercentField(Res.string.block_parameter_volume, block.volume, scope, { onBlockChange(block.copy(volume = it)) }, accepts = { it in 0f..FULL_VOLUME })
+        PercentField(Res.string.block_parameter_volume, block.volume, scope, { onBlockChange(block.copy(volume = it)) }, limits = NumberLimits.VOLUME)
     }
     is BlockDefinition.PlayMusic -> FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -251,7 +250,7 @@ private fun InlineParameters(
             checked = block.isLooping,
             onCheckedChange = { onBlockChange(block.copy(isLooping = it)) },
         )
-        PercentField(Res.string.block_parameter_volume, block.volume, scope, { onBlockChange(block.copy(volume = it)) }, accepts = { it in 0f..FULL_VOLUME })
+        PercentField(Res.string.block_parameter_volume, block.volume, scope, { onBlockChange(block.copy(volume = it)) }, limits = NumberLimits.VOLUME)
     }
     is BlockDefinition.PauseGame -> MenuButton(
         label = stringResource(block.action.title),
@@ -266,19 +265,19 @@ private fun InlineParameters(
         scope = scope,
         onValueChange = { onBlockChange(block.copy(times = it)) },
         isWhole = true,
-        accepts = { it >= 0f },
+        limits = NumberLimits.NON_NEGATIVE,
     )
     is BlockDefinition.SetVelocity -> OffsetParameters(block.x, block.y, scope, isVelocity = true) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
     is BlockDefinition.AddToVelocity -> OffsetParameters(block.x, block.y, scope, isVelocity = true) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
     is BlockDefinition.JumpTo -> OffsetParameters(block.x, block.y, scope, isVelocity = false) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
     is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation -> AnimationBlockParameters(block, scope, onBlockChange)
     is BlockDefinition.SetColor -> SetColorParameters(block, scope, onBlockChange)
-    is BlockDefinition.SetOpacity -> PercentField(Res.string.block_parameter_opacity, block.percent, scope, { onBlockChange(block.copy(percent = it)) }, accepts = { it in 0f..100f })
+    is BlockDefinition.SetOpacity -> PercentField(Res.string.block_parameter_opacity, block.percent, scope, { onBlockChange(block.copy(percent = it)) }, limits = NumberLimits.PERCENT)
     is BlockDefinition.ChangeOpacity -> PercentField(Res.string.block_parameter_by, block.by, scope, { onBlockChange(block.copy(by = it)) })
     is BlockDefinition.Animate -> AnimateParameters(block, scope, onBlockChange)
     is BlockDefinition.MoveCamera -> OffsetParameters(block.x, block.y, scope, isVelocity = false) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
     is BlockDefinition.ShakeCamera -> ShakeCameraParameters(block, scope, onBlockChange)
-    is BlockDefinition.ZoomCamera -> PercentField(Res.string.block_parameter_zoom, block.zoom, scope, { onBlockChange(block.copy(zoom = it)) }, accepts = { it >= MINIMUM_ZOOM })
+    is BlockDefinition.ZoomCamera -> PercentField(Res.string.block_parameter_zoom, block.zoom, scope, { onBlockChange(block.copy(zoom = it)) }, limits = NumberLimits.ZOOM)
     is BlockDefinition.Log -> BufferedTextField(
         modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
         value = block.message,

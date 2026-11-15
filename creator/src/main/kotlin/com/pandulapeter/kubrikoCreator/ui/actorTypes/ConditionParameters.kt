@@ -20,6 +20,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.Comparison
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.ConditionKind
+import com.pandulapeter.kubrikoCreator.actors.NumberLimits
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyReference
 import com.pandulapeter.kubrikoCreator.actors.ToggleValue
@@ -155,7 +156,7 @@ internal fun ConditionParameters(
             value = condition.percent,
             scope = scope,
             onValueChange = { onConditionChange(condition.copy(percent = it)) },
-            accepts = { it in 0f..100f },
+            limits = NumberLimits.PERCENT,
         )
         is ConditionDefinition.Combined -> CombinedConditionParameters(condition, scope, isForText, onConditionChange)
         is ConditionDefinition.Paused -> YesNoChoice(condition.isPaused, Res.string.condition_is_paused, Res.string.condition_is_not_paused) { onConditionChange(condition.copy(isPaused = it)) }

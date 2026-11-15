@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import com.pandulapeter.kubrikoCreator.actors.Axis
+import com.pandulapeter.kubrikoCreator.actors.NumberLimits
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.SceneEdge
 import kotlin.math.max
@@ -29,25 +30,36 @@ internal enum class NumberValueKind {
     ;
 
     /**
-     * [value] turned into this kind, keeping what it can: a fixed number becomes a random one between 0 and it, a random
-     * one becomes the number it starts from, rounded in a field that only takes whole numbers, an edge becomes one end of
-     * a random number between it and the edge across, and the end it starts from becomes an edge again. A new edge starts
-     * at the left or top edge, whichever [axis] the field is a position on (the left one when it is neither).
+     * [value] turned into this kind, keeping what it can, within the [limits] of the field: a fixed number becomes a
+     * random one between 0 and it, a random one becomes the number it starts from, rounded in a field that only takes
+     * whole numbers, an edge becomes one end of a random number between it and the edge across, and the end it starts
+     * from becomes an edge again. What has no number to keep starts from 0, or the closest number the field takes (a
+     * random one from there up to 1 more). A new edge starts at the left or top edge, whichever [axis] the field is a
+     * position on (the left one when it is neither).
      */
-    fun of(value: NumberValue, isWholeField: Boolean = false, axis: Axis? = null): NumberValue = when (this) {
+    fun of(
+        value: NumberValue,
+        isWholeField: Boolean = false,
+        axis: Axis? = null,
+        limits: NumberLimits = NumberLimits.ANY,
+    ): NumberValue = when (this) {
         FIXED -> when (value) {
             is NumberValue.Fixed -> value
-            is NumberValue.Random -> NumberValue.Fixed(if (isWholeField) value.from.roundToInt().toFloat() else value.from)
-            is NumberValue.Property, is NumberValue.Edge, is NumberValue.BetweenEdges -> NumberValue.Fixed(0f)
+            is NumberValue.Random -> NumberValue.Fixed(limits.clamp(if (isWholeField) value.from.roundToInt().toFloat() else value.from))
+            is NumberValue.Property, is NumberValue.Edge, is NumberValue.BetweenEdges -> NumberValue.Fixed(limits.clamp(0f))
         }
         RANDOM, RANDOM_WHOLE -> when (value) {
             is NumberValue.Fixed -> if (value.value == 0f) {
-                NumberValue.Random(from = 0f, to = 1f, isWhole = this == RANDOM_WHOLE)
+                limits.newRandom(isWhole = this == RANDOM_WHOLE)
             } else {
-                NumberValue.Random(from = min(0f, value.value), to = max(0f, value.value), isWhole = this == RANDOM_WHOLE)
+                NumberValue.Random(
+                    from = limits.clamp(min(0f, value.value)),
+                    to = limits.clamp(max(0f, value.value)),
+                    isWhole = this == RANDOM_WHOLE,
+                )
             }
             is NumberValue.Random -> value.copy(isWhole = this == RANDOM_WHOLE)
-            is NumberValue.Property, is NumberValue.Edge, is NumberValue.BetweenEdges -> NumberValue.Random(isWhole = this == RANDOM_WHOLE)
+            is NumberValue.Property, is NumberValue.Edge, is NumberValue.BetweenEdges -> limits.newRandom(isWhole = this == RANDOM_WHOLE)
         }
         PROPERTY -> value as? NumberValue.Property ?: NumberValue.Property()
         EDGE -> when (value) {
@@ -85,3 +97,5 @@ internal enum class NumberValueKind {
         }
     }
 }
+
+private fun NumberLimits.newRandom(isWhole: Boolean) = clamp(0f).let { from -> NumberValue.Random(from = from, to = clamp(from + 1f), isWhole = isWhole) }
