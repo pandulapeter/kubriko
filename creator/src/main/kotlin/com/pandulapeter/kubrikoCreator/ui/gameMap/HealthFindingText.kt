@@ -17,6 +17,7 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_property_of_manager
 import kubriko.creator.generated.resources.health_collision_with_absent_type
 import kubriko.creator.generated.resources.health_count_of_absent_type
+import kubriko.creator.generated.resources.health_distance_to_absent_type
 import kubriko.creator.generated.resources.health_first_scene_missing
 import kubriko.creator.generated.resources.health_kotlin_block_removed_local
 import kubriko.creator.generated.resources.health_kotlin_block_return
@@ -63,6 +64,7 @@ internal fun HealthFinding.text(): String {
         HealthFinding.Kind.COLLISION_WITH_ABSENT_TYPE -> stringResource(Res.string.health_collision_with_absent_type, subjectText, detail.orEmpty())
         HealthFinding.Kind.REACTION_TO_ABSENT_TYPE -> stringResource(Res.string.health_reaction_to_absent_type, subjectText, detail.orEmpty())
         HealthFinding.Kind.COUNT_OF_ABSENT_TYPE -> stringResource(Res.string.health_count_of_absent_type, subjectText, detail.orEmpty())
+        HealthFinding.Kind.DISTANCE_TO_ABSENT_TYPE -> stringResource(Res.string.health_distance_to_absent_type, subjectText, detail.orEmpty())
         HealthFinding.Kind.TEXT_NEVER_SHOWN -> stringResource(Res.string.health_text_never_shown, subjectText, detail.orEmpty())
         HealthFinding.Kind.UNUSED_PAGE_IMAGE -> stringResource(Res.string.health_unused_page_image, subjectText)
         HealthFinding.Kind.PAGE_IMAGE_MISSING -> stringResource(Res.string.health_page_image_missing, subjectText, usage.orEmpty())

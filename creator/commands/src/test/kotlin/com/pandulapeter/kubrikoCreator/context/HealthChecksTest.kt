@@ -85,13 +85,21 @@ class HealthChecksTest {
                 ),
             ),
         )
-        val withReferee = types + referee
+        val ghostHunter = ActorTypeDefinition(
+            name = "GhostHunter",
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.If(ConditionDefinition.Distance(ActorTypeValue.Fixed("Ghost"))), BlockDefinition.End))),
+        )
+        val withReferee = types + referee + ghostHunter
         assertEquals(
             listOf(
                 HealthFinding(HealthFinding.Kind.REACTION_TO_ABSENT_TYPE, RelationSubject.Type("Referee"), "Ghost"),
                 HealthFinding(HealthFinding.Kind.COUNT_OF_ABSENT_TYPE, RelationSubject.Type("Referee"), "Ghost"),
             ),
             HealthChecks.of(withReferee, ProjectRelations(withReferee, scenes), scenes.keys).filter { it.subject == RelationSubject.Type("Referee") }.sortedBy { it.kind.ordinal },
+        )
+        assertEquals(
+            listOf(HealthFinding(HealthFinding.Kind.DISTANCE_TO_ABSENT_TYPE, RelationSubject.Type("GhostHunter"), "Ghost")),
+            HealthChecks.of(withReferee, ProjectRelations(withReferee, scenes), scenes.keys).filter { it.kind == HealthFinding.Kind.DISTANCE_TO_ABSENT_TYPE },
         )
     }
 

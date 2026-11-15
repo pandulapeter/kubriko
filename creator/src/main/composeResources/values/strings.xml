@@ -1190,6 +1190,7 @@
     <string name="health_collision_with_absent_type">%1$s: %2$s is never in a Scene, so their collision Event never runs.</string>
     <string name="health_reaction_to_absent_type">%1$s: %2$s is never in a Scene, so the Events about its Actors coming and going never run.</string>
     <string name="health_count_of_absent_type">%1$s: %2$s is never in a Scene, so counting its Actors always gives 0.</string>
+    <string name="health_distance_to_absent_type">%1$s: %2$s is never in a Scene, so its nearest Actor is always endlessly far.</string>
     <string name="health_text_never_shown">%1$s: text %2$s never shows, since the condition it is shown while has no Property chosen.</string>
     <string name="health_reference_missing">%1$s: names %2$s, which no longer exists.</string>
     <string name="health_kotlin_block_return">%1$s: return in this Kotlin Block now ends only its Event, not the rest of the frame.</string>

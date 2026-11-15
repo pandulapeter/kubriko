@@ -69,10 +69,12 @@ internal object HealthChecks {
                         add(HealthFinding(kind, RelationSubject.Type(type.name), other))
                     }
                 }
-                relations.from(RelationSubject.Type(type.name)).filter { it.kind == RelationKind.COUNTS }.mapNotNull { (it.subject as? RelationSubject.Type)?.name }
-                    .distinct()
-                    .filter { it in actorTypeNames && !isPresent(it) }
-                    .forEach { add(HealthFinding(HealthFinding.Kind.COUNT_OF_ABSENT_TYPE, RelationSubject.Type(type.name), it)) }
+                listOf(RelationKind.COUNTS to HealthFinding.Kind.COUNT_OF_ABSENT_TYPE, RelationKind.MEASURES to HealthFinding.Kind.DISTANCE_TO_ABSENT_TYPE).forEach { (relationKind, findingKind) ->
+                    relations.from(RelationSubject.Type(type.name)).filter { it.kind == relationKind }.mapNotNull { (it.subject as? RelationSubject.Type)?.name }
+                        .distinct()
+                        .filter { it in actorTypeNames && !isPresent(it) }
+                        .forEach { add(HealthFinding(findingKind, RelationSubject.Type(type.name), it)) }
+                }
                 (type as? ManagerTypeDefinition)?.texts?.forEachIndexed { index, text ->
                     if (text.shownWhen?.let(::isNeverTrue) == true) add(HealthFinding(HealthFinding.Kind.TEXT_NEVER_SHOWN, RelationSubject.Type(type.name), (index + 1).toString()))
                 }

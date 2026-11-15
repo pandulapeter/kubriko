@@ -68,6 +68,12 @@ public data class HealthFinding(
         COUNT_OF_ABSENT_TYPE,
 
         /**
+         * An If Block measuring the distance to the nearest Actor of an Actor type that is never there, so it is always
+         * endlessly far.
+         */
+        DISTANCE_TO_ABSENT_TYPE,
+
+        /**
          * A Manager type's text, the one at [detail] counting from 1, shown only while a condition whose Property isn't
          * chosen yet, so it never shows.
          */
@@ -134,6 +140,7 @@ public data class HealthFinding(
         Kind.COLLISION_WITH_ABSENT_TYPE -> "$subject: the collision Event with $detail never fires, since no Scene places $detail and no Block adds it."
         Kind.REACTION_TO_ABSENT_TYPE -> "$subject: the actorAdded and actorRemoved Events about $detail never fire, since no Scene places $detail and no Block adds it."
         Kind.COUNT_OF_ABSENT_TYPE -> "$subject: counting the Actors of $detail always gives 0, since no Scene places $detail and no Block adds it."
+        Kind.DISTANCE_TO_ABSENT_TYPE -> "$subject: the nearest Actor of $detail is always endlessly far, since no Scene places $detail and no Block adds it."
         Kind.TEXT_NEVER_SHOWN -> "$subject: text $detail never shows, since the condition it is shown while has no Property chosen."
         Kind.REFERENCE_MISSING -> "$detail: names $usage, which no longer exists."
         Kind.UNUSED_PAGE_IMAGE -> "$subject: no page or document shows it."
