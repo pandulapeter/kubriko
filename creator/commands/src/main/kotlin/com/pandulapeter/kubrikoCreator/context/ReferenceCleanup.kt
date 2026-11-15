@@ -23,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.actors.TextValue
 import com.pandulapeter.kubrikoCreator.actors.ToggleValue
 import com.pandulapeter.kubrikoCreator.actors.ValueTransform
 import com.pandulapeter.kubrikoCreator.actors.actorTypeReference
+import com.pandulapeter.kubrikoCreator.actors.measuredActorTypes
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.withValues
 import com.pandulapeter.kubrikoCreator.actors.without
@@ -235,7 +236,7 @@ internal class ReferenceCleanup(
 
 /**
  * [condition] of the type [typeName] without the conditions that check what is deleted ([ConditionDefinition.without]): a
- * Property of [properties] or of a Manager type of [types], or the count of an Actor type of [types].
+ * Property of [properties] or of a Manager type of [types], or the count of, or the distance to, an Actor type of [types].
  */
 internal fun ProjectRelations.conditionWithout(
     condition: ConditionDefinition,
@@ -245,5 +246,5 @@ internal fun ProjectRelations.conditionWithout(
 ) = condition.without { part ->
     val reference = part.propertyReference
     (reference != null && (reference.manager in types || propertyOf(typeName, reference.manager, reference.name) in properties)) || part.actorTypeReference in types ||
-        ((part as? ConditionDefinition.Distance)?.actorType as? ActorTypeValue.Fixed)?.name in types
+        part.measuredActorTypes.any { it in types }
 }
