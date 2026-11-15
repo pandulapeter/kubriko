@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.actor.looks
 
+import androidx.compose.ui.graphics.FilterQuality
 import com.pandulapeter.kubriko.helpers.TriangleBatch
 import com.pandulapeter.kubriko.helpers.transformVertices
 import kotlin.math.PI
@@ -33,6 +34,9 @@ internal object LookEmitter {
 
     /** How far, in screen pixels, an ellipse's segments may stray from its true outline. */
     private const val ELLIPSE_TOLERANCE_IN_PIXELS = 0.25f
+
+    /** How far a nearest-sampled region's right and bottom texture coordinates are pulled in, in texels. */
+    private const val NEAREST_FAR_EDGE_INSET = 1f / 256f
 
     /** Caps how far a corner's fringe reaches along its bisector, so a sliver of a corner cannot shoot off. */
     private const val MINIMUM_HALF_ANGLE_COSINE = 0.25f
@@ -100,8 +104,11 @@ internal object LookEmitter {
         }
         val left = look.srcOffset.x.toFloat()
         val top = look.srcOffset.y.toFloat()
-        val right = left + regionWidth
-        val bottom = top + regionHeight
+        // Nearest sampling at exactly the region's far edge (the fringe outside the outline lies on it) picks the texel
+        // past it, a neighbouring frame of a sheet; pulled in by a sliver, it picks the region's own last texel.
+        val farEdgeInset = if (look.filterQuality == FilterQuality.None) NEAREST_FAR_EDGE_INSET else 0f
+        val right = left + regionWidth - farEdgeInset
+        val bottom = top + regionHeight - farEdgeInset
         ringU[0] = left; ringV[0] = top
         ringU[1] = right; ringV[1] = top
         ringU[2] = right; ringV[2] = bottom
