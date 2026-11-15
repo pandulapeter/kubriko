@@ -309,7 +309,7 @@ internal class ActorClassEmitter(
             }
         }
         features.everyFrameEvents.firstNotNullOfOrNull(::callOf)?.let { appendLine("        $it") }
-        if (features.keys.held.isNotEmpty()) imports += KEY_IMPORT
+        if (features.keys.holdsKeys) imports += KEY_IMPORT
         appendHeldKeyCalls(features.keys.held, ::callOf, indent = "        ")
         appendLine(MOVEMENT_LINE)
         if (features.checksSceneBounds) {

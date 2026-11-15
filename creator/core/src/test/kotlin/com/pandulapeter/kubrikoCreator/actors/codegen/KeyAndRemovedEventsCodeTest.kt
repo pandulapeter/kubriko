@@ -59,6 +59,13 @@ class KeyAndRemovedEventsCodeTest {
     }
 
     @Test
+    fun aHeldKeyWithoutBlocksImportsNothing() {
+        val code = actor(EventDefinition(EventType.KEY_HELD, key = KeyChoice.A), EventDefinition(EventType.EVERY_FRAME, blocks = log))
+        assertFalse("import androidx.compose.ui.input.key.Key\n" in code)
+        assertFalse("whileKeyHeldA" in code)
+    }
+
+    @Test
     fun theRemovedEventRunsOnceWhenABlockFirstMarksTheActorRemoved() {
         val code = actor(EventDefinition(EventType.REMOVED_FROM_SCENE, blocks = log))
         assertContains(code, "    var isRemoved = false\n        set(value) {\n            val wasRemoved = field\n            field = value\n            if (value && !wasRemoved) onRemovedFromScene()\n        }\n")
