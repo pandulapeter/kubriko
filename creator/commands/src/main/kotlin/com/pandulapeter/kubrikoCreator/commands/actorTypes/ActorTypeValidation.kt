@@ -156,7 +156,7 @@ internal fun validateEvent(event: EventDefinition, scope: BlockScope): Rejection
     val otherActorType = event.otherActorType
     event.type.problemIn(scope.kind)?.let { return Rejection(it) }
     return when {
-        key != null && event.type != EventType.KEY_PRESSED -> Rejection(PlacementProblem.KEY_NOT_ALLOWED)
+        key != null && !event.type.takesKey -> Rejection(PlacementProblem.KEY_NOT_ALLOWED)
         key?.isKnown == false -> unknownKey(key)
         otherActorType != null && !event.type.takesActorType -> Rejection(PlacementProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED)
         timer != null && event.type != EventType.TIMER_FINISHED -> Rejection(PlacementProblem.TIMER_NOT_ALLOWED)

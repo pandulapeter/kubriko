@@ -273,6 +273,12 @@ public object EveryBlockTypes {
      */
     val everyManagerBlock = everyBlock.filterNot { it is BlockDefinition.Kotlin && "velocity" in it.code }
 
+    /**
+     * The Blocks of the Events format version 17 added, besides the key held Event of Spacebar, which has every Block.
+     */
+    val moreEventBlocks: List<BlockDefinition>
+        get() = listOf(BlockDefinition.Log("Again"), BlockDefinition.AddActor(ActorTypeValue.Fixed("EveryBlock")))
+
     fun everyEvent(blocks: List<BlockDefinition>) = EventType.entries.flatMap { type ->
         when (type) {
             EventType.KEY_PRESSED -> KeyChoice.all.mapIndexed { index, key ->
@@ -283,6 +289,10 @@ public object EveryBlockTypes {
                     blocks = if (index < 3) blocks else listOf(BlockDefinition.If(ConditionDefinition.KeyHeld(key)), BlockDefinition.Log("Held"), BlockDefinition.End),
                 )
             }
+            // Format version 17's: every Block while a key is held, and a few where they are released and as the Actor goes.
+            EventType.KEY_HELD -> listOf(EventDefinition(type = type, key = KeyChoice.SPACE, blocks = blocks), EventDefinition(type = type, key = KeyChoice.A, blocks = moreEventBlocks))
+            EventType.KEY_RELEASED -> listOf(KeyChoice.SPACE, KeyChoice.A).map { EventDefinition(type = type, key = it, blocks = moreEventBlocks) }
+            EventType.REMOVED_FROM_SCENE -> listOf(EventDefinition(type = type, blocks = moreEventBlocks + BlockDefinition.RemoveSelf))
             EventType.COLLISION -> listOf("EveryBlock", "Ball").map { EventDefinition(type = type, otherActorType = it, blocks = blocks + blocks) }
             EventType.TIMER_FINISHED -> listOf("timer1", "spawnEnemy", "timer1").map { EventDefinition(type = type, timer = it, blocks = blocks) }
             // A type without children, a family's topmost type, one inside it, and one that doesn't exist; and one with no Blocks.

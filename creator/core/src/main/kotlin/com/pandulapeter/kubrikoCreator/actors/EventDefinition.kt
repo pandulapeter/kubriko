@@ -16,7 +16,7 @@ import kotlinx.serialization.Serializable
 /**
  * One Event of an Actor type and the Blocks that run when it happens.
  *
- * @param key The key of a [EventType.KEY_PRESSED] Event; null for every other type.
+ * @param key The key of an Event that reacts to one ([EventType.takesKey]); null for every other type.
  * @param otherActorType The Actor type a [EventType.COLLISION], [EventType.ACTOR_ADDED], or [EventType.ACTOR_REMOVED]
  *   Event reacts to ([EventType.takesActorType]); null for every other type, and until one is chosen.
  * @param timer The name of the Timer a [EventType.TIMER_FINISHED] Event reacts to ([TimerNaming]); null for every other type.
@@ -26,7 +26,7 @@ import kotlinx.serialization.Serializable
 public data class EventDefinition(
     @Description("When the Event happens.")
     @SerialName("type") val type: EventType,
-    @Description("The key a keyPressed Event reacts to, " + KeyChoice.DESCRIPTION + " Only keyPressed Events have one.")
+    @Description("The key a keyPressed, keyReleased, or keyHeld Event reacts to, " + KeyChoice.DESCRIPTION + " Only those have one.")
     @SerialName("key") val key: KeyChoice? = null,
     @Description("The Actor type a collision, actorAdded, or actorRemoved Event reacts to. Only those have one.")
     @SerialName("otherActorType") val otherActorType: String? = null,
@@ -42,7 +42,7 @@ public data class EventDefinition(
     public val trigger: EventTrigger
         get() = EventTrigger(
             type = type,
-            key = key.takeIf { type == EventType.KEY_PRESSED },
+            key = key.takeIf { type.takesKey },
             otherActorType = otherActorType.takeIf { type.takesActorType },
             timer = timer.takeIf { type == EventType.TIMER_FINISHED },
         )

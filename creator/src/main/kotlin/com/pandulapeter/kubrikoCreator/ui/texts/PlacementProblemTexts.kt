@@ -36,6 +36,7 @@ import kubriko.creator.generated.resources.error_placement_event_collision_in_ma
 import kubriko.creator.generated.resources.error_placement_event_edge_touched_in_manager_type
 import kubriko.creator.generated.resources.error_placement_event_game_started_in_actor_type
 import kubriko.creator.generated.resources.error_placement_event_left_scene_in_manager_type
+import kubriko.creator.generated.resources.error_placement_event_removed_from_scene_in_manager_type
 import kubriko.creator.generated.resources.error_placement_key_not_allowed
 import kubriko.creator.generated.resources.error_placement_number_property_missing
 import kubriko.creator.generated.resources.error_placement_number_property_missing_similar
@@ -58,6 +59,7 @@ internal fun PlacementProblem.toResource(): StringResource = when (this) {
     PlacementProblem.EVENT_ADDED_TO_SCENE_IN_MANAGER_TYPE -> Res.string.error_placement_event_added_to_scene_in_manager_type
     PlacementProblem.EVENT_EDGE_TOUCHED_IN_MANAGER_TYPE -> Res.string.error_placement_event_edge_touched_in_manager_type
     PlacementProblem.EVENT_LEFT_SCENE_IN_MANAGER_TYPE -> Res.string.error_placement_event_left_scene_in_manager_type
+    PlacementProblem.EVENT_REMOVED_FROM_SCENE_IN_MANAGER_TYPE -> Res.string.error_placement_event_removed_from_scene_in_manager_type
     PlacementProblem.EVENT_COLLISION_IN_MANAGER_TYPE -> Res.string.error_placement_event_collision_in_manager_type
     PlacementProblem.EVENT_ACTOR_ADDED_IN_ACTOR_TYPE -> Res.string.error_placement_event_actor_added_in_actor_type
     PlacementProblem.EVENT_ACTOR_REMOVED_IN_ACTOR_TYPE -> Res.string.error_placement_event_actor_removed_in_actor_type

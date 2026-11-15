@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.store.CombinedConditionsMigration
 import com.pandulapeter.kubrikoCreator.actors.store.EdgeValuesMigration
 import com.pandulapeter.kubrikoCreator.actors.store.KotlinBlockImportsMigration
 import com.pandulapeter.kubrikoCreator.actors.store.ManagerFieldMigration
+import com.pandulapeter.kubrikoCreator.actors.store.MoreEventsMigration
 import com.pandulapeter.kubrikoCreator.actors.store.NumberValuesMigration
 import com.pandulapeter.kubrikoCreator.actors.store.ProjectSettingsReader
 import com.pandulapeter.kubrikoCreator.actors.store.ReservedPropertyMigration
@@ -108,6 +109,7 @@ public class ProjectFormat(
             ColorPropertiesMigration,
             ActorTypeReferencesMigration,
             CombinedConditionsMigration,
+            MoreEventsMigration,
         )
 
         /**

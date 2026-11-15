@@ -88,7 +88,7 @@ public object KotlinBlockScopeChecks {
         EventType.COLLISION -> setOf("index", "collidables")
         EventType.EDGE_TOUCHED -> setOf("box", "sceneSettings", "topLeft", "bottomRight")
         EventType.GAME_STARTED, EventType.ADDED_TO_SCENE, EventType.EVERY_FRAME, EventType.LEFT_SCENE, EventType.TIMER_FINISHED,
-        EventType.ACTOR_ADDED, EventType.ACTOR_REMOVED,
+        EventType.ACTOR_ADDED, EventType.ACTOR_REMOVED, EventType.KEY_RELEASED, EventType.KEY_HELD, EventType.REMOVED_FROM_SCENE,
         -> emptySet()
     }
 

@@ -31,7 +31,7 @@ import kotlinx.serialization.Serializable
 @OptIn(EditorMutation::class)
 public object AddEvent : WriteCommand<AddEvent.Input> {
     override val name: String = "add_event"
-    override val description: String = "Adds an Event to a block-built Actor type or Manager type, optionally with its Blocks. A keyPressed Event reacts to the space key unless another key is given."
+    override val description: String = "Adds an Event to a block-built Actor type or Manager type, optionally with its Blocks. A key Event reacts to the space key unless another key is given."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.BlockType(input.actorType, eventIndex = input.index ?: context.blockTypes?.get(input.actorType)?.events?.lastIndex)
@@ -50,7 +50,7 @@ public object AddEvent : WriteCommand<AddEvent.Input> {
 
     private val Input.event get() = EventDefinition(
         type = type,
-        key = key ?: KeyChoice.SPACE.takeIf { type == EventType.KEY_PRESSED },
+        key = key ?: KeyChoice.SPACE.takeIf { type.takesKey },
         otherActorType = otherActorType,
         timer = timer ?: TimerNaming.DEFAULT_NAME.takeIf { type == EventType.TIMER_FINISHED },
         blocks = blocks,
@@ -62,7 +62,7 @@ public object AddEvent : WriteCommand<AddEvent.Input> {
         @SerialName("actorType") val actorType: String,
         @Description("When the Event happens.")
         @SerialName("type") val type: EventType,
-        @Description("The key a keyPressed Event reacts to, " + KeyChoice.DESCRIPTION + " Spacebar unless another one is given. Only keyPressed Events have one.")
+        @Description("The key a key Event (keyPressed, keyReleased, keyHeld) reacts to, " + KeyChoice.DESCRIPTION + " Spacebar unless another one is given.")
         @SerialName("key") val key: KeyChoice? = null,
         @Description("The Actor type a collision, actorAdded, or actorRemoved Event reacts to. Only those have one.")
         @SerialName("otherActorType") val otherActorType: String? = null,

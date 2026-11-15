@@ -213,7 +213,7 @@ private fun InheritedEventItem(
  */
 @Composable
 internal fun EventDefinition.detail(): String? = when (type) {
-    EventType.KEY_PRESSED -> key?.text()
+    EventType.KEY_PRESSED, EventType.KEY_RELEASED, EventType.KEY_HELD -> key?.text()
     EventType.COLLISION, EventType.ACTOR_ADDED, EventType.ACTOR_REMOVED -> otherActorType ?: stringResource(Res.string.event_collision_choose)
     EventType.TIMER_FINISHED -> timer
     else -> null

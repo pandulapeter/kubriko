@@ -100,6 +100,12 @@
   section, unless the condition is an or still meaning something without it, which drops only that part
   (`ConditionDefinition.without`). The font classes are named in full rather than imported, like `Scale`, since reserving
   their names would need a migration renaming types.
+- Keys reach a type in two ways (`KeyEventCode`): Kubriko tells a `KeyboardInputAware` about each key pressed and let go,
+  which the pressed and released Events dispatch by key, while a held key is asked about in `update` (or a Manager's
+  `onUpdate`), so a type with only held keys needs no Trait and, like every frame, never runs while paused. The removed
+  Event runs from the setter of `isRemoved`, the first time a Block sets it, on that Block's thread and before Kubriko
+  removes the Actor, so its Blocks can still use where it is; a Scene change's `removeAll` sets nothing, so it never runs
+  for that.
 - What isn't generated needs no plugin: `GeneratedCode` decides which Events and Blocks get code, and both generators,
   `PluginUse`, and `PluginManagers` ask it, so a Block left as a comment (or in an Event left out) adds no plugin.
 - Property names the format raises reserved only for what generated Actor classes declare (`look`, the animation's and

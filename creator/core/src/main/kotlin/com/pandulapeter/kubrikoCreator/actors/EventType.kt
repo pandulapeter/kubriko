@@ -41,6 +41,14 @@ public enum class EventType(public val misplacedProblem: PlacementProblem? = nul
     @SerialName("keyPressed")
     KEY_PRESSED,
 
+    @Description("When the player lets go of the Event's key. In an Actor type, not while the game is paused.")
+    @SerialName("keyReleased")
+    KEY_RELEASED,
+
+    @Description("On every frame the player holds the Event's key down (in an Actor type, before the Actor moves), while the game isn't paused.")
+    @SerialName("keyHeld")
+    KEY_HELD,
+
     @Description("When the Actor starts reaching past an edge of the Scene (the screen's, while it has no bounds). Touching an edge doesn't stop the Actor: the Actor type's staysInsideScene does. Only Actor types have it.")
     @SerialName("edgeTouched")
     EDGE_TOUCHED(PlacementProblem.EVENT_EDGE_TOUCHED_IN_MANAGER_TYPE),
@@ -48,6 +56,10 @@ public enum class EventType(public val misplacedProblem: PlacementProblem? = nul
     @Description("Once, when the Actor, having been at least partly inside the Scene's bounds (the screen's, while it has none), is wholly outside them. An Actor added outside them fires it only after it came in, and one whose type stays inside the Scene never. Without bounds, moving the camera moves the screen's. Only Actor types have it.")
     @SerialName("leftScene")
     LEFT_SCENE(PlacementProblem.EVENT_LEFT_SCENE_IN_MANAGER_TYPE),
+
+    @Description("Once, when a Block removes the Actor (one of its own Blocks, another Actor's remove the other Block, or an Animate Block removing it at the end), right before it goes, so its Blocks can still use where it is. Never for the Actors a Scene change takes away. Only Actor types have it.")
+    @SerialName("removedFromScene")
+    REMOVED_FROM_SCENE(PlacementProblem.EVENT_REMOVED_FROM_SCENE_IN_MANAGER_TYPE),
 
     @Description("On every frame the Actor overlaps an Actor of the Event's other Actor type, once per overlapping Actor. Only Actor types have it.")
     @SerialName("collision")
@@ -66,6 +78,12 @@ public enum class EventType(public val misplacedProblem: PlacementProblem? = nul
     ACTOR_REMOVED(PlacementProblem.EVENT_ACTOR_REMOVED_IN_ACTOR_TYPE);
 
     /**
+     * Whether the Event reacts to a key, which it names in `key`.
+     */
+    public val takesKey: Boolean
+        get() = this == KEY_PRESSED || this == KEY_RELEASED || this == KEY_HELD
+
+    /**
      * Whether the Event reacts to Actors of another Actor type, which it names in `otherActorType`.
      */
     public val takesActorType: Boolean
@@ -78,7 +96,7 @@ public enum class EventType(public val misplacedProblem: PlacementProblem? = nul
      */
     public fun isAvailableIn(kind: BlockTypeKind): Boolean = when (this) {
         GAME_STARTED, ACTOR_ADDED, ACTOR_REMOVED -> kind == BlockTypeKind.MANAGER
-        ADDED_TO_SCENE, EDGE_TOUCHED, LEFT_SCENE, COLLISION -> kind == BlockTypeKind.ACTOR
-        EVERY_FRAME, KEY_PRESSED, TIMER_FINISHED -> true
+        ADDED_TO_SCENE, EDGE_TOUCHED, LEFT_SCENE, REMOVED_FROM_SCENE, COLLISION -> kind == BlockTypeKind.ACTOR
+        EVERY_FRAME, KEY_PRESSED, KEY_RELEASED, KEY_HELD, TIMER_FINISHED -> true
     }
 }

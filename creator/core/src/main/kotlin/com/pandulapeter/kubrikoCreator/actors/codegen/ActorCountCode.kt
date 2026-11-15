@@ -109,16 +109,6 @@ internal object ActorCountCode {
     }
 
     /**
-     * The field marking the Actor removed, which stops counting it at once rather than once Kubriko removes it.
-     */
-    fun StringBuilder.appendRemovedFieldSetter() {
-        appendLine("        set(value) {")
-        appendLine("            field = value")
-        appendLine("            if (value) $STOP_FUNCTION()")
-        appendLine("        }")
-    }
-
-    /**
      * The lines of `onAdded` that start counting the Actor among each of [countedTypes] it belongs to: each only for the
      * Actors of its Actor type (and its descendants) in a family's base class, named [name].
      */

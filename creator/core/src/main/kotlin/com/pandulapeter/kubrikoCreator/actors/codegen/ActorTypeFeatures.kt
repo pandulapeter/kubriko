@@ -59,6 +59,9 @@ internal class ActorTypeFeatures(
 ) {
     private val knownActorTypeNames = scope.actorTypeNames
     val keyEvents = events.filter { it.type == EventType.KEY_PRESSED && isGenerated(it) }
+    val keyReleasedEvents = events.filter { it.type == EventType.KEY_RELEASED && isGenerated(it) }
+    val keyHeldEvents = events.filter { it.type == EventType.KEY_HELD && isGenerated(it) }
+    val removedEvents = events.filter { it.type == EventType.REMOVED_FROM_SCENE }
     val edgeEvents = events.filter { it.type == EventType.EDGE_TOUCHED }
     val leftSceneEvents = events.filter { it.type == EventType.LEFT_SCENE }
     val collisionEvents = events.filter { it.type == EventType.COLLISION && isGenerated(it) }
@@ -81,7 +84,18 @@ internal class ActorTypeFeatures(
      * Whether the Actors look at the Scene's bounds after they moved ([SceneBoundsCode]).
      */
     val checksSceneBounds = firesEdgeEvent || firesLeftSceneEvent || containment != SceneContainment.NONE
-    val generatedEvents = addedEvents + everyFrameEvents + edgeEvents + leftSceneEvents + keyEvents + collisionEvents + timerEvents
+
+    /**
+     * Whether the Blocks removing an Actor run its removed Event, as [firesEdgeEvent].
+     */
+    val firesRemovedEvent = removedEvents.any { isFamily || it.blocks.isNotEmpty() }
+
+    /**
+     * Whether Kubriko tells the Actors about keys pressed and let go, which the held keys don't need: update asks for them.
+     */
+    val isKeyboardInputAware = keyEvents.isNotEmpty() || keyReleasedEvents.isNotEmpty()
+    private val holdsKeys = keyHeldEvents.any { it.blocks.isNotEmpty() }
+    val generatedEvents = addedEvents + everyFrameEvents + keyHeldEvents + edgeEvents + leftSceneEvents + removedEvents + keyEvents + keyReleasedEvents + collisionEvents + timerEvents
     val timers = (timerEvents.mapNotNull { it.trigger.timer } + generatedEvents.flatMap { event -> event.blocks.mapNotNull { it.timerName } }).filter(TimerNaming::isValid).distinct().sorted()
     private val blockCode = eventScopes.fold(BlockCode.NONE) { code, (events, eventScope) ->
         events.filter(::isGenerated).fold(code) { eventsCode, event -> eventsCode + eventCode(event.blocks, event.type, eventScope) }
@@ -105,13 +119,14 @@ internal class ActorTypeFeatures(
 
     /**
      * What the class declares for the Blocks and the Events: the Scene's bounds, which GeneratedScenes knows, are looked
-     * at after every move, key Events check whether the game is paused, and an Actor a Manager hears about the removal of
+     * at after every move, key Events check whether the game is paused, held keys are asked about every frame, and an Actor a Manager hears about the removal of
      * asks GeneratedScenes whether it left with its Scene.
      */
     private val needs = blockCode.needs + buildSet {
         if (checksSceneBounds) addAll(listOf(BlockNeed.MOVEMENT, BlockNeed.VIEWPORT_MANAGER, BlockNeed.SCENES))
-        if (timers.isNotEmpty() || everyFrameEvents.any { it.blocks.isNotEmpty() }) add(BlockNeed.MOVEMENT)
-        if (keyEvents.isNotEmpty()) add(BlockNeed.STATE_MANAGER)
+        if (timers.isNotEmpty() || everyFrameEvents.any { it.blocks.isNotEmpty() } || holdsKeys) add(BlockNeed.MOVEMENT)
+        if (holdsKeys) add(BlockNeed.KEYBOARD_INPUT_MANAGER)
+        if (isKeyboardInputAware) add(BlockNeed.STATE_MANAGER)
         if (isAnimated) add(BlockNeed.MOVEMENT)
         if (watches.any { !it.isAdded } || countedTypes.isNotEmpty()) add(BlockNeed.SCENES)
     }

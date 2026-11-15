@@ -117,7 +117,7 @@ public sealed interface ConditionDefinition {
 
     @Serializable
     @SerialName("paused")
-    @Description("Checks whether the game is paused by a pause Block. Most useful in a Manager type's key pressed Events, which still run while it is.")
+    @Description("Checks whether the game is paused by a pause Block. Most useful in a Manager type's key pressed and released Events, which still run while it is.")
     public data class Paused(
         @Description("True to check that the game is paused, false to check that it isn't.")
         @SerialName("isPaused") val isPaused: Boolean = true,

@@ -24,7 +24,7 @@ import com.pandulapeter.kubrikoCreator.project.KubrikoArtifact
  *
  * @param collidableActorTypeNames The Actor types that take part in a collision Event, on either side of it: only these
  *   get a collision mask.
- * @param usesKeyboard Whether any type has a key pressed Event or checks whether a key is held.
+ * @param usesKeyboard Whether any type has an Event reacting to a key or checks whether a key is held.
  * @param usesAudio Whether any type plays a sound or music, or stops the music, or any Scene has music.
  * @param sounds The sound files the Blocks play, by their path from `composeResources`.
  * @param music The music files the Blocks and the Scenes play, by their path from `composeResources`.

@@ -48,7 +48,7 @@ class PluginUseTest {
                 PluginUse(KubrikoArtifact.COLLISION, PluginReason.COLLISION_EVENT, "Ball", "Paddle"),
                 PluginUse(KubrikoArtifact.AUDIO_PLAYBACK, PluginReason.PLAYS_SOUND, "Ball", "files/sounds/hit.wav"),
                 PluginUse(KubrikoArtifact.SPRITES, PluginReason.SPRITE, "Ball", "drawable/ball.png"),
-                PluginUse(KubrikoArtifact.KEYBOARD_INPUT, PluginReason.KEY_PRESSED_EVENT, "Game", "Spacebar"),
+                PluginUse(KubrikoArtifact.KEYBOARD_INPUT, PluginReason.KEY_EVENT, "Game", "Spacebar"),
                 PluginUse(KubrikoArtifact.AUDIO_PLAYBACK, PluginReason.STOPS_MUSIC, "Game"),
                 PluginUse(KubrikoArtifact.KEYBOARD_INPUT, PluginReason.KEY_HELD_CONDITION, "Game", "A"),
                 PluginUse(KubrikoArtifact.AUDIO_PLAYBACK, PluginReason.PLAYS_MUSIC, "Game", "files/music/theme.mp3"),

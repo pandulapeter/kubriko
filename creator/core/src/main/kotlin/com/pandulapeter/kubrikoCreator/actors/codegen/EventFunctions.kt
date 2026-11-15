@@ -19,7 +19,8 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.eventCo
 
 /**
  * The functions the generated classes run their Events in: one per kind of Event (and key, other Actor type, or Timer),
- * which `onAdded`, `update`, `onKeyPressed`, `onCollisionDetected`, and a Manager's `onInitialize` and `onUpdate` only
+ * which `onAdded`, `update`, `onKeyPressed`, `onKeyReleased`, `onCollisionDetected`, the removed field's setter, and a
+ * Manager's `onInitialize` and `onUpdate` only
  * call, so those stay small however many Blocks the Events have. A standalone Actor type's and a Manager type's are
  * private, a family's are the hooks its Actor types override.
  *
@@ -49,7 +50,8 @@ internal object EventFunctions {
         EventType.EVERY_FRAME -> Function("$EVERY_FRAME($DELTA_TIME_PARAMETER)", "$EVERY_FRAME($DELTA_TIME)")
         EventType.EDGE_TOUCHED -> Function("$EDGE($DELTA_TIME_PARAMETER, $EDGE_PARAMETERS)", "$EDGE($DELTA_TIME, $EDGE_ARGUMENTS)")
         EventType.LEFT_SCENE -> Function("$LEFT_SCENE($DELTA_TIME_PARAMETER)", "$LEFT_SCENE($DELTA_TIME)")
-        EventType.KEY_PRESSED -> event.trigger.key?.takeIf { it.isKnown }?.let { Function("${key(it)}()", "${key(it)}()") }
+        EventType.REMOVED_FROM_SCENE -> Function("$REMOVED_FROM_SCENE()", "$REMOVED_FROM_SCENE()")
+        EventType.KEY_PRESSED, EventType.KEY_RELEASED, EventType.KEY_HELD -> event.trigger.key?.takeIf { it.isKnown }?.let { Function("${key(event.type, it)}()", "${key(event.type, it)}()") }
         EventType.COLLISION -> event.trigger.otherActorType?.takeIf { it in scope.actorTypeNames }?.let { other ->
             Function("${collision(other)}(other: ${scope.classOf(other)})", "${collision(other)}(other)")
         }
@@ -81,6 +83,7 @@ internal object EventFunctions {
     const val EVERY_FRAME = "onEveryFrame"
     const val EDGE = "onEdgeTouched"
     const val LEFT_SCENE = "onLeftScene"
+    const val REMOVED_FROM_SCENE = "onRemovedFromScene"
     private const val DELTA_TIME = "deltaTimeInMilliseconds"
     private const val DELTA_TIME_PARAMETER = "$DELTA_TIME: Int"
     private const val KUBRIKO_PARAMETER = "kubriko: Kubriko"
@@ -88,7 +91,18 @@ internal object EventFunctions {
     private const val EDGE_ARGUMENTS = "isTouchingLeftEdge, isTouchingRightEdge, isTouchingTopEdge, isTouchingBottomEdge"
     private const val EDGE_PARAMETERS = "isTouchingLeftEdge: Boolean, isTouchingRightEdge: Boolean, isTouchingTopEdge: Boolean, isTouchingBottomEdge: Boolean"
 
-    fun key(key: KeyChoice) = "onKeyPressed${key.composeKeyName}"
+    /**
+     * The function of the Events of [type] that react to [key].
+     */
+    fun key(type: EventType, key: KeyChoice): String {
+        val prefix = when (type) {
+            EventType.KEY_PRESSED -> "onKeyPressed"
+            EventType.KEY_RELEASED -> "onKeyReleased"
+            EventType.KEY_HELD -> "whileKeyHeld"
+            else -> throw IllegalArgumentException("A $type Event takes no key.")
+        }
+        return prefix + key.composeKeyName
+    }
 
     fun collision(other: String) = "onCollisionWith$other"
 

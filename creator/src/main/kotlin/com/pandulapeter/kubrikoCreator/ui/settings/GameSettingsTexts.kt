@@ -40,8 +40,8 @@ import kubriko.creator.generated.resources.project_settings_aspect_ratio_fixed_d
 import kubriko.creator.generated.resources.project_settings_aspect_ratio_stretched
 import kubriko.creator.generated.resources.project_settings_aspect_ratio_stretched_description
 import kubriko.creator.generated.resources.project_settings_use_collision
+import kubriko.creator.generated.resources.project_settings_use_key
 import kubriko.creator.generated.resources.project_settings_use_key_held
-import kubriko.creator.generated.resources.project_settings_use_key_pressed
 import kubriko.creator.generated.resources.project_settings_use_moves_with_keys
 import kubriko.creator.generated.resources.project_settings_use_plays_music
 import kubriko.creator.generated.resources.project_settings_use_plays_sound
@@ -95,7 +95,7 @@ internal val AspectRatio.description: StringResource
 internal val PluginUse.text: StringResource
     get() = when (reason) {
         PluginReason.COLLISION_EVENT -> Res.string.project_settings_use_collision
-        PluginReason.KEY_PRESSED_EVENT -> Res.string.project_settings_use_key_pressed
+        PluginReason.KEY_EVENT -> Res.string.project_settings_use_key
         PluginReason.KEY_HELD_CONDITION -> Res.string.project_settings_use_key_held
         PluginReason.MOVES_WITH_KEYS -> Res.string.project_settings_use_moves_with_keys
         PluginReason.PLAYS_SOUND -> Res.string.project_settings_use_plays_sound

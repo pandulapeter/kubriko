@@ -103,7 +103,7 @@ internal fun EventBlocks(
             style = MaterialTheme.typography.titleSmall,
         )
         when (event.type) {
-            EventType.KEY_PRESSED -> KeyChoiceButton(
+            EventType.KEY_PRESSED, EventType.KEY_RELEASED, EventType.KEY_HELD -> KeyChoiceButton(
                 key = event.key ?: KeyChoice.SPACE,
                 onSelected = onKeyChange,
             )

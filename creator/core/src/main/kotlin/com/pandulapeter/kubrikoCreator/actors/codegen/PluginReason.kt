@@ -19,9 +19,9 @@ public enum class PluginReason {
     COLLISION_EVENT,
 
     /**
-     * A key pressed Event.
+     * An Event reacting to a key: pressed, released, or held.
      */
-    KEY_PRESSED_EVENT,
+    KEY_EVENT,
 
     /**
      * An if Block checking whether a key is held.

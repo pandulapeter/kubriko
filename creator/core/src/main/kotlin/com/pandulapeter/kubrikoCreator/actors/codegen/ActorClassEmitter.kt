@@ -34,7 +34,6 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.collisionTa
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.maskClassOf
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.maskTypeOf
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorCountCode.appendGuardField
-import com.pandulapeter.kubrikoCreator.actors.codegen.ActorCountCode.appendRemovedFieldSetter
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorCountCode.appendStart
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorCountCode.appendStopFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.STEP_ANIMATION_LINE
@@ -54,6 +53,8 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.SET_FRA
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STATE_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STEP_ANIMATION_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.EventFunctions.appendFunction
+import com.pandulapeter.kubrikoCreator.actors.codegen.KeyEventCode.appendHeldKeyCalls
+import com.pandulapeter.kubrikoCreator.actors.codegen.KeyEventCode.appendKeyDispatch
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneBoundsCode.appendBoundsFields
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneBoundsCode.appendBoundsHandling
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
@@ -101,6 +102,8 @@ internal class ActorClassEmitter(
 
     private fun callOf(event: EventDefinition) = EventFunctions.of(event, scope)?.takeIf { it in functions }?.call
 
+    private fun callOf(events: List<EventDefinition>) = events.firstNotNullOfOrNull(::callOf)
+
     /**
      * @param properties The type's Properties, its ancestors' first.
      */
@@ -118,7 +121,7 @@ internal class ActorClassEmitter(
             appendAlwaysActive()
         }
         appendRemovedField()
-        if (features.countedTypes.isNotEmpty()) appendRemovedFieldSetter()
+        appendRemovedFieldSetter()
         appendProperties(properties)
         appendCollisionMembers(definition.shape)
         features.lookups.forEach { appendLine("    $visibility lateinit var $it") }
@@ -132,7 +135,7 @@ internal class ActorClassEmitter(
         appendOnAdded(definition.name)
         appendOnRemoved(definition.name)
         appendUpdate()
-        appendKeyDispatch()
+        appendKeyDispatches()
         appendCollisionDispatch()
         functions.forEach { function ->
             appendFunction(role.functionModifiers, function, definition.events.filter { EventFunctions.of(it, scope) == function }, scope, imports)
@@ -166,7 +169,7 @@ internal class ActorClassEmitter(
             "Dynamic".takeIf { features.isDynamic },
             if (features.collisionEvents.isNotEmpty()) "CollisionDetector" else "Collidable".takeIf { features.isCollidable },
             "Editable<${definition.name}>".takeIf { role == Role.STANDALONE },
-            "KeyboardInputAware".takeIf { features.keyEvents.isNotEmpty() },
+            "KeyboardInputAware".takeIf { features.isKeyboardInputAware },
         )
         traits.forEach { trait -> imports += TRAIT_IMPORTS.getValue(trait.substringBefore('<')) }
         imports += "androidx.compose.ui.graphics.Color"
@@ -270,6 +273,21 @@ internal class ActorClassEmitter(
         }
     }
 
+    /**
+     * What marking the Actor removed does at once rather than once Kubriko removes it: it stops counting it, and runs its
+     * removed Event, only the first time, on the thread of the Block that removed it.
+     */
+    private fun StringBuilder.appendRemovedFieldSetter() {
+        val removedCall = if (features.firesRemovedEvent) features.removedEvents.firstNotNullOfOrNull(::callOf) else null
+        if (features.countedTypes.isEmpty() && removedCall == null) return
+        appendLine("        set(value) {")
+        if (removedCall != null) appendLine("            val wasRemoved = field")
+        appendLine("            field = value")
+        if (features.countedTypes.isNotEmpty()) appendLine("            if (value) ${ActorCountCode.STOP_CALL}")
+        if (removedCall != null) appendLine("            if (value && !wasRemoved) $removedCall")
+        appendLine("        }")
+    }
+
     private fun StringBuilder.appendSceneChangesField() {
         appendLine()
         appendLine("    /**")
@@ -291,6 +309,8 @@ internal class ActorClassEmitter(
             }
         }
         features.everyFrameEvents.firstNotNullOfOrNull(::callOf)?.let { appendLine("        $it") }
+        if (features.keyHeldEvents.isNotEmpty()) imports += KEY_IMPORT
+        appendHeldKeyCalls(features.keyHeldEvents, ::callOf, indent = "        ")
         appendLine(MOVEMENT_LINE)
         if (features.checksSceneBounds) {
             if (features.containment != SceneContainment.NONE) imports += listOf(SCENE_UNIT_IMPORT, SCENE_OFFSET_IMPORT)
@@ -337,20 +357,14 @@ internal class ActorClassEmitter(
     }
 
     /**
-     * Kubriko keeps telling Actors about key presses while the game is paused, so they return early then.
+     * Kubriko keeps telling Actors about keys while the game is paused, so they return early then.
      */
-    private fun StringBuilder.appendKeyDispatch() {
-        if (features.keyEvents.isEmpty()) return
+    private fun StringBuilder.appendKeyDispatches() {
+        if (!features.isKeyboardInputAware) return
         imports += listOf(KEY_IMPORT, TRAIT_IMPORTS.getValue("KeyboardInputAware"))
-        appendLine()
-        appendLine("    override fun onKeyPressed(key: Key) {")
-        appendLine("        if (!$STATE_MANAGER_FIELD.isRunning.value) return")
-        appendLine("        when (key) {")
-        features.keyEvents.groupBy { it.trigger.key!! }.toSortedMap().forEach { (key, events) ->
-            events.firstNotNullOfOrNull(::callOf)?.let { appendLine("            Key.${key.composeKeyName} -> $it") }
-        }
-        appendLine("        }")
-        appendLine("    }")
+        val guard = "        if (!$STATE_MANAGER_FIELD.isRunning.value) return"
+        appendKeyDispatch("onKeyPressed", features.keyEvents, ::callOf, guard)
+        appendKeyDispatch("onKeyReleased", features.keyReleasedEvents, ::callOf, guard)
     }
 
     private fun StringBuilder.appendCollisionDispatch() {

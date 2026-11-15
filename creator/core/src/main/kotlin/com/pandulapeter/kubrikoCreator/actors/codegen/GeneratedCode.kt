@@ -27,10 +27,10 @@ internal object GeneratedCode {
      * exist (a key, the other Actor type among [actorTypeNames], or a Timer name), is left out, so the code compiles.
      */
     fun isGenerated(event: EventDefinition, kind: BlockTypeKind, actorTypeNames: Collection<String>) = event.type.isAvailableIn(kind) && when (event.type) {
-        EventType.KEY_PRESSED -> event.trigger.key?.isKnown == true
+        EventType.KEY_PRESSED, EventType.KEY_RELEASED, EventType.KEY_HELD -> event.trigger.key?.isKnown == true
         EventType.COLLISION, EventType.ACTOR_ADDED, EventType.ACTOR_REMOVED -> event.trigger.otherActorType in actorTypeNames
         EventType.TIMER_FINISHED -> event.trigger.timer?.let(TimerNaming::isValid) == true
-        EventType.ADDED_TO_SCENE, EventType.EVERY_FRAME, EventType.EDGE_TOUCHED, EventType.LEFT_SCENE, EventType.GAME_STARTED -> true
+        EventType.ADDED_TO_SCENE, EventType.EVERY_FRAME, EventType.EDGE_TOUCHED, EventType.LEFT_SCENE, EventType.REMOVED_FROM_SCENE, EventType.GAME_STARTED -> true
     }
 
     /**

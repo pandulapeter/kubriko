@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
-import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.actors.withEventKey
@@ -31,14 +30,14 @@ import kotlinx.serialization.Serializable
 @OptIn(EditorMutation::class)
 public object SetEventKey : WriteCommand<SetEventKey.Input> {
     override val name: String = "set_event_key"
-    override val description: String = "Sets the key a keyPressed Event of a block-built Actor type or Manager type reacts to."
+    override val description: String = "Sets the key a keyPressed, keyReleased, or keyHeld Event of a block-built Actor type or Manager type reacts to."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.BlockType(input.actorType, eventIndex = input.eventIndex)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex)
         ?: when {
-            context.requireType(input.actorType).events[input.eventIndex].type != EventType.KEY_PRESSED -> Rejection(PlacementProblem.KEY_NOT_ALLOWED)
+            !context.requireType(input.actorType).events[input.eventIndex].type.takesKey -> Rejection(PlacementProblem.KEY_NOT_ALLOWED)
             !input.key.isKnown -> unknownKey(input.key)
             else -> null
         }

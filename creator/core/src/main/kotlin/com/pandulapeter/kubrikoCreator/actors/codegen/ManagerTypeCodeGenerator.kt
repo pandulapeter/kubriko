@@ -15,7 +15,6 @@ import com.pandulapeter.kubrikoCreator.actors.DefinitionPaths
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.GeneratedNames
-import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
@@ -32,6 +31,8 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STATE_M
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.eventCode
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.initialValueLiteral
 import com.pandulapeter.kubrikoCreator.actors.codegen.EventFunctions.appendFunction
+import com.pandulapeter.kubrikoCreator.actors.codegen.KeyEventCode.appendHeldKeyCalls
+import com.pandulapeter.kubrikoCreator.actors.codegen.KeyEventCode.appendKeyDispatch
 import com.pandulapeter.kubrikoCreator.actors.timerName
 
 /**
@@ -82,21 +83,26 @@ public object ManagerTypeCodeGenerator {
         val scope = BlockScope(name, BlockTypeKind.MANAGER, definition.properties, knownActorTypeNames, managerTypes, baseClassNames = baseClassNames)
         val events = definition.events.filter { GeneratedCode.isGenerated(it, BlockTypeKind.MANAGER, knownActorTypeNames) }
         val keyEvents = events.filter { it.type == EventType.KEY_PRESSED }
+        val keyReleasedEvents = events.filter { it.type == EventType.KEY_RELEASED }
+        val keyHeldEvents = events.filter { it.type == EventType.KEY_HELD }
+        val isKeyboardInputAware = keyEvents.isNotEmpty() || keyReleasedEvents.isNotEmpty()
         val timerEvents = events.filter { it.type == EventType.TIMER_FINISHED }
         val startEvents = events.filter { it.type == EventType.GAME_STARTED }
         val frameEvents = events.filter { it.type == EventType.EVERY_FRAME }
         val actorEvents = events.filter { it.type == EventType.ACTOR_ADDED || it.type == EventType.ACTOR_REMOVED }
         val watches = ActorWatch.of(definition, knownActorTypeNames)
-        val generatedEvents = startEvents + frameEvents + keyEvents + timerEvents + actorEvents
+        val generatedEvents = startEvents + frameEvents + keyHeldEvents + keyEvents + keyReleasedEvents + timerEvents + actorEvents
         val timers = (timerEvents.mapNotNull { it.timer } + generatedEvents.flatMap { event -> event.blocks.mapNotNull { it.timerName } }).filter(TimerNaming::isValid).distinct().sorted()
         val blockCode = generatedEvents.fold(BlockCode.NONE) { code, event -> code + eventCode(event.blocks, event.type, scope) }
         val ui = ManagerUiCode.of(definition, scope)
         val usedManagers = (blockCode.managers + ui?.managers.orEmpty()).distinct().sorted()
-        val runsEveryFrame = timers.isNotEmpty() || frameEvents.any { it.blocks.isNotEmpty() } || watches.isNotEmpty()
+        val holdsKeys = keyHeldEvents.any { it.blocks.isNotEmpty() }
+        val runsEveryFrame = timers.isNotEmpty() || frameEvents.any { it.blocks.isNotEmpty() } || watches.isNotEmpty() || holdsKeys
         // Key Events add the Manager to the Scene as an Actor, and onUpdate returns early while the game is paused.
         val needs = blockCode.needs + ui?.needs.orEmpty() + buildSet {
-            if (keyEvents.isNotEmpty()) add(BlockNeed.ACTOR_MANAGER)
+            if (isKeyboardInputAware) add(BlockNeed.ACTOR_MANAGER)
             if (runsEveryFrame) add(BlockNeed.STATE_MANAGER)
+            if (holdsKeys) add(BlockNeed.KEYBOARD_INPUT_MANAGER)
         }
         val functions = generatedEvents.filter { it.blocks.isNotEmpty() }.mapNotNull { EventFunctions.of(it, scope) }.distinct()
         fun callOf(events: List<EventDefinition>) = events.firstNotNullOfOrNull { event -> EventFunctions.of(event, scope)?.takeIf { it in functions }?.call }
@@ -108,8 +114,8 @@ public object ManagerTypeCodeGenerator {
         val imports = buildSet {
             add("com.pandulapeter.kubriko.manager.Manager")
             addAll(functionImports)
-            if (keyEvents.isNotEmpty() || startEvents.any { it.blocks.isNotEmpty() }) add("com.pandulapeter.kubriko.Kubriko")
-            if (keyEvents.isNotEmpty()) addAll(listOf("androidx.compose.ui.input.key.Key", "com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware"))
+            if (isKeyboardInputAware || startEvents.any { it.blocks.isNotEmpty() }) add("com.pandulapeter.kubriko.Kubriko")
+            if (isKeyboardInputAware) addAll(listOf("androidx.compose.ui.input.key.Key", "com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware"))
             if (definition.properties.any { it is PropertyDefinition.Number }) add("androidx.compose.runtime.mutableFloatStateOf")
             if (definition.properties.any { it is PropertyDefinition.Color }) add("androidx.compose.runtime.mutableLongStateOf")
             if (definition.properties.any { it !is PropertyDefinition.Number && it !is PropertyDefinition.Color }) add("androidx.compose.runtime.mutableStateOf")
@@ -130,7 +136,7 @@ public object ManagerTypeCodeGenerator {
             if (watches.isNotEmpty()) appendLine(ActorWatchCode.OPT_IN)
             appendLine("class $name(")
             appendLine("    private val isInSceneEditor: Boolean = false,")
-            appendLine(") : Manager()${if (keyEvents.isNotEmpty()) ", KeyboardInputAware" else ""} {")
+            appendLine(") : Manager()${if (isKeyboardInputAware) ", KeyboardInputAware" else ""} {")
             definition.properties.forEach { property ->
                 appendManagerProperty(property)
             }
@@ -139,12 +145,12 @@ public object ManagerTypeCodeGenerator {
             usedManagers.forEach { appendLine("    private val ${scope.managerField(it)} by manager<$it>()") }
             appendTimerFields(timers, "private")
             if (watches.isNotEmpty()) appendCounterFields(watches)
-            if (keyEvents.isNotEmpty() || startEvents.any { it.blocks.isNotEmpty() }) {
+            if (isKeyboardInputAware || startEvents.any { it.blocks.isNotEmpty() }) {
                 appendLine()
                 appendLine("    override fun onInitialize(kubriko: Kubriko) {")
                 appendLine("        $SCENE_EDITOR_GUARD")
                 // Kubriko tells Actors about key presses, so the Manager is one too (GeneratedScenes keeps it in every Scene).
-                if (keyEvents.isNotEmpty()) appendLine("        actorManager.add(this)")
+                if (isKeyboardInputAware) appendLine("        actorManager.add(this)")
                 callOf(startEvents)?.let { appendLine("        $it") }
                 appendLine("    }")
             }
@@ -157,10 +163,12 @@ public object ManagerTypeCodeGenerator {
                     appendTimerCountdown(timer) { callOf(timerEvents.filter { it.trigger.timer == timer })?.let { appendLine("                $it") } }
                 }
                 callOf(frameEvents)?.let { appendLine("        $it") }
+                appendHeldKeyCalls(keyHeldEvents, ::callOf, indent = "        ")
                 appendLine("    }")
             }
             // Unlike an Actor's, these run while the game is paused, so that a key can resume it.
-            if (keyEvents.isNotEmpty()) appendKeyDispatch(keyEvents.groupBy { it.trigger.key!! }.toSortedMap().mapValues { (_, events) -> callOf(events) })
+            appendKeyDispatch("onKeyPressed", keyEvents, ::callOf)
+            appendKeyDispatch("onKeyReleased", keyReleasedEvents, ::callOf)
             appendNotifyFunctions(watches)
             append(functionsCode)
             ui?.members?.let(::append)
@@ -277,15 +285,6 @@ public object ManagerTypeCodeGenerator {
             appendLine("        }")
         }
         is PropertyDefinition.Text, is PropertyDefinition.Toggle, is PropertyDefinition.ActorType -> appendLine("    var ${property.name} by mutableStateOf(${initialValueLiteral(property)})")
-    }
-
-    private fun StringBuilder.appendKeyDispatch(callsByKey: Map<KeyChoice, String?>) {
-        appendLine()
-        appendLine("    override fun onKeyPressed(key: Key) {")
-        appendLine("        when (key) {")
-        callsByKey.forEach { (key, call) -> if (call != null) appendLine("            Key.${key.composeKeyName} -> $call") }
-        appendLine("        }")
-        appendLine("    }")
     }
 
     private fun fieldOf(need: BlockNeed) = when (need) {

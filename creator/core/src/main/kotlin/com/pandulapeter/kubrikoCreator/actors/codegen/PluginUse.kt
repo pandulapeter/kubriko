@@ -45,8 +45,8 @@ public data class PluginUse(
                     when {
                         event.type == EventType.COLLISION && event.otherActorType in actorTypeNames && definition is ActorTypeDefinition ->
                             uses += PluginUse(KubrikoArtifact.COLLISION, PluginReason.COLLISION_EVENT, definition.name, event.otherActorType)
-                        event.type == EventType.KEY_PRESSED && event.key?.isKnown == true ->
-                            uses += PluginUse(KubrikoArtifact.KEYBOARD_INPUT, PluginReason.KEY_PRESSED_EVENT, definition.name, event.key.composeKeyName)
+                        event.type.takesKey && event.key?.isKnown == true ->
+                            uses += PluginUse(KubrikoArtifact.KEYBOARD_INPUT, PluginReason.KEY_EVENT, definition.name, event.key.composeKeyName)
                     }
                     event.blocks.forEach { block ->
                         if (GeneratedCode.isGenerated(block, event.type, definition.kind)) {

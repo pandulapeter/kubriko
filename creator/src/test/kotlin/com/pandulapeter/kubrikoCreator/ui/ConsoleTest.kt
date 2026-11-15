@@ -84,7 +84,7 @@ class ConsoleTest {
             Console(lines = ConsoleLines(1, rejections), isExpanded = true, onExpandedChange = {}, onClear = {}, listHeight = 200.dp)
         }
         onNodeWithText("Use When added to the Scene instead", substring = true).assertIsDisplayed()
-        onNodeWithText("Only a When a key is pressed Event has a key.").assertIsDisplayed()
+        onNodeWithText("Only the key Events (pressed, released, and held) have a key.").assertIsDisplayed()
         onNodeWithText("Remove the other Actor works only in a When it collides with Event", substring = true).assertIsDisplayed()
         onNodeWithText("Game has no toggle Property called isOver.").assertIsDisplayed()
         listOf("gameStarted", "keyPressed", "collision)", "removeOther").forEach { onNodeWithText(it, substring = true).assertDoesNotExist() }

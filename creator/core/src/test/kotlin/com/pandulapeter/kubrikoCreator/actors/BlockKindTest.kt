@@ -83,7 +83,7 @@ class BlockKindTest {
     fun managersAndActorsHaveTheirOwnStartEvents() {
         val managerOnly = listOf(EventType.GAME_STARTED, EventType.ACTOR_ADDED, EventType.ACTOR_REMOVED)
         assertEquals(
-            listOf(EventType.GAME_STARTED, EventType.EVERY_FRAME, EventType.KEY_PRESSED, EventType.TIMER_FINISHED, EventType.ACTOR_ADDED, EventType.ACTOR_REMOVED),
+            listOf(EventType.GAME_STARTED, EventType.EVERY_FRAME, EventType.KEY_PRESSED, EventType.KEY_RELEASED, EventType.KEY_HELD, EventType.TIMER_FINISHED, EventType.ACTOR_ADDED, EventType.ACTOR_REMOVED),
             EventType.entries.filter { it.isAvailableIn(BlockTypeKind.MANAGER) },
         )
         assertEquals(EventType.entries - managerOnly.toSet(), EventType.entries.filter { it.isAvailableIn(BlockTypeKind.ACTOR) })

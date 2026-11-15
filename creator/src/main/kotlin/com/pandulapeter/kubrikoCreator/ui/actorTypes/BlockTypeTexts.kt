@@ -29,8 +29,11 @@ import kubriko.creator.generated.resources.event_collision
 import kubriko.creator.generated.resources.event_edge_touched
 import kubriko.creator.generated.resources.event_every_frame
 import kubriko.creator.generated.resources.event_game_started
+import kubriko.creator.generated.resources.event_key_held
 import kubriko.creator.generated.resources.event_key_pressed
+import kubriko.creator.generated.resources.event_key_released
 import kubriko.creator.generated.resources.event_left_scene
+import kubriko.creator.generated.resources.event_removed_from_scene
 import kubriko.creator.generated.resources.event_timer_finished
 import kubriko.creator.generated.resources.ic_actor_type
 import kubriko.creator.generated.resources.ic_add
@@ -99,8 +102,11 @@ internal val EventType.title: StringResource
         EventType.ADDED_TO_SCENE -> Res.string.event_added_to_scene
         EventType.EVERY_FRAME -> Res.string.event_every_frame
         EventType.KEY_PRESSED -> Res.string.event_key_pressed
+        EventType.KEY_RELEASED -> Res.string.event_key_released
+        EventType.KEY_HELD -> Res.string.event_key_held
         EventType.EDGE_TOUCHED -> Res.string.event_edge_touched
         EventType.LEFT_SCENE -> Res.string.event_left_scene
+        EventType.REMOVED_FROM_SCENE -> Res.string.event_removed_from_scene
         EventType.COLLISION -> Res.string.event_collision
         EventType.TIMER_FINISHED -> Res.string.event_timer_finished
         EventType.ACTOR_ADDED -> Res.string.event_actor_added
@@ -112,9 +118,10 @@ internal val EventType.icon: DrawableResource
         EventType.GAME_STARTED -> Res.drawable.ic_play
         EventType.ADDED_TO_SCENE -> Res.drawable.ic_add
         EventType.EVERY_FRAME -> Res.drawable.ic_loop
-        EventType.KEY_PRESSED -> Res.drawable.ic_keyboard
+        EventType.KEY_PRESSED, EventType.KEY_RELEASED, EventType.KEY_HELD -> Res.drawable.ic_keyboard
         EventType.EDGE_TOUCHED -> Res.drawable.ic_edge
         EventType.LEFT_SCENE -> Res.drawable.ic_leave
+        EventType.REMOVED_FROM_SCENE -> Res.drawable.ic_delete
         EventType.COLLISION -> Res.drawable.ic_collision
         EventType.TIMER_FINISHED -> Res.drawable.ic_timer
         EventType.ACTOR_ADDED -> Res.drawable.ic_add_actor
