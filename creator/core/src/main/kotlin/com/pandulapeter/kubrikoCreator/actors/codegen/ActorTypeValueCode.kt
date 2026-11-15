@@ -71,21 +71,7 @@ internal object ActorTypeValueCode {
         appendLine("     * Property names.")
         appendLine("     */")
         appendLine("    fun $NEAREST_FUNCTION(actors: List<Actor>, name: String, from: $POSITIONABLE): $POSITIONABLE? {")
-        // The name is matched once, rather than for every candidate.
-        appendLine("        val type = typeIndexOf(name)")
-        appendLine("        if (type < 0) return null")
-        appendLine("        var nearest: $POSITIONABLE? = null")
-        appendLine("        var nearestDistanceSquared = Float.MAX_VALUE")
-        appendLine("        for (index in actors.indices) {")
-        appendLine("            val candidate = actors[index]")
-        appendLine("            if (candidate === from || candidate !is $POSITIONABLE || !isActiveOf(candidate, type)) continue")
-        appendLine("            val offset = candidate.body.position - from.body.position")
-        appendLine("            val distanceSquared = offset.x.raw * offset.x.raw + offset.y.raw * offset.y.raw")
-        appendLine("            if (distanceSquared < nearestDistanceSquared) {")
-        appendLine("                nearest = candidate")
-        appendLine("                nearestDistanceSquared = distanceSquared")
-        appendLine("            }")
-        appendLine("        }")
+        appendNearestSearch(keepsActor = true, notFound = "null")
         appendLine("        return nearest")
         appendLine("    }")
         appendLine()
@@ -94,9 +80,8 @@ internal object ActorTypeValueCode {
         appendLine("     * is none, for the conditions measuring it.")
         appendLine("     */")
         appendLine("    fun $DISTANCE_FUNCTION(actors: List<Actor>, name: String, from: $POSITIONABLE): Float {")
-        appendLine("        val nearest = $NEAREST_FUNCTION(actors, name, from) ?: return Float.MAX_VALUE")
-        appendLine("        val offset = nearest.body.position - from.body.position")
-        appendLine("        return kotlin.math.sqrt(offset.x.raw * offset.x.raw + offset.y.raw * offset.y.raw)")
+        appendNearestSearch(keepsActor = false, notFound = "Float.MAX_VALUE")
+        appendLine("        return if (nearestDistanceSquared == Float.MAX_VALUE) Float.MAX_VALUE else kotlin.math.sqrt(nearestDistanceSquared)")
         appendLine("    }")
         appendLine()
         appendLine("    private fun typeIndexOf(name: String): Int = when (name) {")
@@ -111,6 +96,28 @@ internal object ActorTypeValueCode {
         }
         appendLine("        else -> false")
         appendLine("    }")
+    }
+
+    /**
+     * The search both lookups of the nearest Actor share, leaving its squared distance in `nearestDistanceSquared`, and the
+     * Actor in `nearest` when [keepsActor]; it returns [notFound] for a name no type has. The name is matched once, rather
+     * than for every candidate.
+     */
+    private fun StringBuilder.appendNearestSearch(keepsActor: Boolean, notFound: String) {
+        appendLine("        val type = typeIndexOf(name)")
+        appendLine("        if (type < 0) return $notFound")
+        if (keepsActor) appendLine("        var nearest: $POSITIONABLE? = null")
+        appendLine("        var nearestDistanceSquared = Float.MAX_VALUE")
+        appendLine("        for (index in actors.indices) {")
+        appendLine("            val candidate = actors[index]")
+        appendLine("            if (candidate === from || candidate !is $POSITIONABLE || !isActiveOf(candidate, type)) continue")
+        appendLine("            val offset = candidate.body.position - from.body.position")
+        appendLine("            val distanceSquared = offset.x.raw * offset.x.raw + offset.y.raw * offset.y.raw")
+        appendLine("            if (distanceSquared < nearestDistanceSquared) {")
+        if (keepsActor) appendLine("                nearest = candidate")
+        appendLine("                nearestDistanceSquared = distanceSquared")
+        appendLine("            }")
+        appendLine("        }")
     }
 
     /**
