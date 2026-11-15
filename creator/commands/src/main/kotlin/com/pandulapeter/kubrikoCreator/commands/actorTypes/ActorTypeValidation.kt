@@ -246,7 +246,7 @@ internal fun CommandContext.validateContents(definition: BlockTypeDefinition): R
         ?: actorType?.sprite?.ifEmpty { null }?.let { validateSprite(it) }
         ?: definition.properties.indices.firstNotNullOfOrNull { index -> validateProperty(definition.properties[index], definition.properties.take(index), definition.kind) }
         ?: definition.events.firstNotNullOfOrNull { validateEvent(it, scope) }
-        ?: (definition as? ManagerTypeDefinition)?.texts?.firstNotNullOfOrNull { validateText(it) }
+        ?: (definition as? ManagerTypeDefinition)?.texts?.firstNotNullOfOrNull { validateText(it, scope) }
 }
 
 /**
@@ -279,13 +279,23 @@ internal fun CommandContext.validateSprite(sprite: String): Rejection? {
 }
 
 /**
- * Why [text] can't be shown by a Manager type.
+ * Why [text] can't be one of the texts of the Manager type [scope] is about: a size that isn't above 0, or a condition a
+ * text can't follow or that names a Property or a Manager type that doesn't exist (one left unchosen is allowed, as in an
+ * if Block).
  */
-internal fun validateText(text: ScreenTextDefinition) = when {
+internal fun validateText(text: ScreenTextDefinition, scope: BlockScope) = when {
     !text.size.isFinite() || text.size <= 0f -> Rejection(CommandProblem.TEXT_SIZE_INVALID)
     text.shownWhen?.let { ScreenTextDefinition.isShownWhenAllowed(it) && it.numberValues.all { value -> value.isFinite } } == false -> Rejection(CommandProblem.TEXT_CONDITION_NOT_ALLOWED)
-    else -> null
+    else -> text.shownWhen?.let { condition ->
+        (listOfNotNull(condition.propertyReference) + condition.numberPropertyReferences).firstNotNullOfOrNull { reference -> validatePropertyReference(reference, scope) }
+    }
 }
+
+/**
+ * Why [text] can't be one of the texts of the Manager type [managerType], which exists.
+ */
+internal fun CommandContext.validateText(managerType: String, text: ScreenTextDefinition) =
+    validateText(text, BlockScope.of(requireManagerType(managerType), requireBlockTypes.types.value, scenes.names(), audioFiles()))
 
 /**
  * Whether every number [this] Block takes is finite and, where a field allows only some, within them. A Property's value

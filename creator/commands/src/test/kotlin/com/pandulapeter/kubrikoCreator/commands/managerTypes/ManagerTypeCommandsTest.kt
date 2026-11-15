@@ -126,6 +126,12 @@ class ManagerTypeCommandsTest {
         listOf(ConditionDefinition.Chance(), ConditionDefinition.Number("score", value = NumberValue.Random(0f, 1f)), ConditionDefinition.Number("score", value = NumberValue.Fixed(Float.NaN))).forEach { condition ->
             assertEquals(Rejection(CommandProblem.TEXT_CONDITION_NOT_ALLOWED), Invocation(AddText, AddText.Input("Game", ScreenTextDefinition(shownWhen = condition))).validate(context))
         }
+        fun rejectionOf(condition: ConditionDefinition) = Invocation(AddText, AddText.Input("Game", ScreenTextDefinition(shownWhen = condition))).validate(context)
+        assertEquals(PlacementProblem.TOGGLE_PROPERTY_MISSING_SIMILAR, rejectionOf(ConditionDefinition.Toggle("isOvr"))?.reason)
+        assertEquals(PlacementProblem.TOGGLE_PROPERTY_OF_OTHER_KIND, rejectionOf(ConditionDefinition.Toggle("score"))?.reason)
+        assertEquals(LookupProblem.MANAGER_TYPE_MISSING, rejectionOf(ConditionDefinition.Toggle("isOver", manager = "Nowhere"))?.reason)
+        assertEquals(PlacementProblem.NUMBER_PROPERTY_MISSING, rejectionOf(ConditionDefinition.Number("score", value = NumberValue.Property("lives")))?.reason)
+        assertEquals(null, rejectionOf(ConditionDefinition.Toggle()))
         val shownWhile = ScreenTextDefinition("Over", font = TextFont.SERIF, isBold = true, shownWhen = ConditionDefinition.Number("score", value = NumberValue.Property("score")))
         assertEquals(shownWhile, context.assertRoundTrip(Invocation(EditText, EditText.Input("Game", 0, shownWhile))) { context.game()!!.texts }[0])
     }

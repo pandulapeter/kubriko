@@ -56,6 +56,12 @@ public val ConditionDefinition.numberValues: List<NumberValue>
     }
 
 /**
+ * The Properties [this] condition reads as numbers ([NumberValue.Property]), with or without a name chosen yet.
+ */
+public val ConditionDefinition.numberPropertyReferences: List<PropertyReference>
+    get() = numberValues.mapNotNull { it.propertyReference }
+
+/**
  * [this] condition with each number it takes replaced by what [transform] makes of it.
  */
 public fun ConditionDefinition.withNumberValues(transform: (NumberValue) -> NumberValue): ConditionDefinition = when (this) {

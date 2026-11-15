@@ -35,7 +35,7 @@ public object EditText : WriteCommand<EditText.Input> {
 
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.BlockType(input.managerType)
 
-    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateTextIndex(input.managerType, input.index) ?: validateText(input.text)
+    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateTextIndex(input.managerType, input.index) ?: context.validateText(input.managerType, input.text)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val definition = context.requireManagerType(input.managerType)
