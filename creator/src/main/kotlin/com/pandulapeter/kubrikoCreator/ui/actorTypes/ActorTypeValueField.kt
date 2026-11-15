@@ -9,23 +9,15 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeValue
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
-import com.pandulapeter.kubrikoCreator.actors.PropertyKind
-import com.pandulapeter.kubrikoCreator.actors.PropertyReference
-import com.pandulapeter.kubrikoCreator.ui.components.MenuIconButton
+import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.actor_type_value_fixed
 import kubriko.creator.generated.resources.actor_type_value_kind
 import kubriko.creator.generated.resources.actor_type_value_property
 import kubriko.creator.generated.resources.ic_actor_type
-import kubriko.creator.generated.resources.ic_property
-import org.jetbrains.compose.resources.stringResource
 
 /**
  * The Actor type a Block works with: one chosen by its name, or the one an Actor type reference Property names.
@@ -35,25 +27,15 @@ internal fun ActorTypeValueField(
     value: ActorTypeValue,
     scope: BlockScope,
     onValueChange: (ActorTypeValue) -> Unit,
-) = Row(
-    horizontalArrangement = Arrangement.spacedBy(4.dp),
-    verticalAlignment = Alignment.CenterVertically,
+) = FixedOrPropertyField(
+    property = value.propertyReference,
+    scope = scope,
+    fixedIcon = Res.drawable.ic_actor_type,
+    kindLabel = Res.string.actor_type_value_kind,
+    fixedLabel = Res.string.actor_type_value_fixed,
+    propertyLabel = Res.string.actor_type_value_property,
+    onKindChange = { toProperty -> onValueChange(if (toProperty) ActorTypeValue.Property() else ActorTypeValue.Fixed("")) },
+    onPropertyChange = { onValueChange(ActorTypeValue.Property(property = it.name, manager = it.manager)) },
 ) {
-    val isProperty = value is ActorTypeValue.Property
-    MenuIconButton(
-        icon = if (isProperty) Res.drawable.ic_property else Res.drawable.ic_actor_type,
-        label = Res.string.actor_type_value_kind,
-        options = listOf(false, true),
-        optionText = { stringResource(if (it) Res.string.actor_type_value_property else Res.string.actor_type_value_fixed) },
-        optionIcon = { if (it) Res.drawable.ic_property else Res.drawable.ic_actor_type },
-        onSelected = { toProperty ->
-            if (toProperty != isProperty) onValueChange(if (toProperty) ActorTypeValue.Property() else ActorTypeValue.Fixed(""))
-        },
-    )
-    when (value) {
-        is ActorTypeValue.Fixed -> ActorTypeChoice(value.name, scope.actorTypeNames) { onValueChange(ActorTypeValue.Fixed(it)) }
-        is ActorTypeValue.Property -> PropertyChoice(PropertyReference(value.property, PropertyKind.ACTOR_TYPE, value.manager), scope) {
-            onValueChange(ActorTypeValue.Property(property = it.name, manager = it.manager))
-        }
-    }
+    ActorTypeChoice((value as ActorTypeValue.Fixed).name, scope.actorTypeNames) { onValueChange(ActorTypeValue.Fixed(it)) }
 }
