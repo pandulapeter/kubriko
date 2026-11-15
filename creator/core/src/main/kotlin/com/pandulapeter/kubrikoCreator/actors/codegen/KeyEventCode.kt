@@ -43,19 +43,19 @@ internal object KeyEventCode {
 
     /**
      * The override of [function] (`onKeyPressed` or `onKeyReleased`) calling [events]' functions by their key, after
-     * [guard], or nothing when none of them has a function ([callOf]).
+     * the lines of [guards], or nothing when none of them has a function ([callOf]).
      */
     fun StringBuilder.appendKeyDispatch(
         function: String,
         events: List<EventDefinition>,
         callOf: (List<EventDefinition>) -> String?,
-        guard: String? = null,
+        guards: List<String> = emptyList(),
     ) {
         val calls = callsByKey(events, callOf)
         if (calls.isEmpty()) return
         appendLine()
         appendLine("    override fun $function(key: Key) {")
-        guard?.let(::appendLine)
+        guards.forEach(::appendLine)
         appendLine("        when (key) {")
         calls.forEach { (key, call) -> appendLine("            Key.$key -> $call") }
         appendLine("        }")
@@ -63,14 +63,16 @@ internal object KeyEventCode {
     }
 
     /**
-     * The lines calling the functions of [events], each while its key is held, at [indent].
+     * The lines calling the functions of [events], each while its key is held and [condition] holds, if it is given, at
+     * [indent].
      */
     fun StringBuilder.appendHeldKeyCalls(
         events: List<EventDefinition>,
         callOf: (List<EventDefinition>) -> String?,
         indent: String,
+        condition: String? = null,
     ) = callsByKey(events, callOf).forEach { (key, call) ->
-        appendLine("${indent}if ($KEYBOARD_INPUT_MANAGER_FIELD.isKeyPressed(Key.$key)) $call")
+        appendLine("${indent}if (${condition?.let { "$it && " }.orEmpty()}$KEYBOARD_INPUT_MANAGER_FIELD.isKeyPressed(Key.$key)) $call")
     }
 
     /**

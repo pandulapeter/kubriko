@@ -898,7 +898,7 @@ class ActorTypeCodeGeneratorTest {
     fun keyEventsDoNotRunWhileTheGameIsPaused() {
         val code = generate(EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.SPACE, blocks = listOf(BlockDefinition.Log("Jump"))))
         assertContains(code, "        stateManager = kubriko.get()\n")
-        assertContains(code, "    override fun onKeyPressed(key: Key) {\n        if (!stateManager.isRunning.value) return\n        when (key) {\n")
+        assertContains(code, "    override fun onKeyPressed(key: Key) {\n        if (isRemoved) return\n        if (!stateManager.isRunning.value) return\n        when (key) {\n")
     }
 
     @Test

@@ -310,7 +310,8 @@ internal class ActorClassEmitter(
         }
         features.everyFrameEvents.firstNotNullOfOrNull(::callOf)?.let { appendLine("        $it") }
         if (features.keys.holdsKeys) imports += KEY_IMPORT
-        appendHeldKeyCalls(features.keys.held, ::callOf, indent = "        ")
+        // An earlier Event of this frame may have removed the Actor.
+        appendHeldKeyCalls(features.keys.held, ::callOf, indent = "        ", condition = "!$REMOVED_FIELD")
         appendLine(MOVEMENT_LINE)
         if (features.checksSceneBounds) {
             if (features.containment != SceneContainment.NONE) imports += listOf(SCENE_UNIT_IMPORT, SCENE_OFFSET_IMPORT)
@@ -358,14 +359,13 @@ internal class ActorClassEmitter(
 
     /**
      * Kubriko keeps telling Actors about keys while the game is paused, so a press returns early then, while a key let
-     * go of always runs its Event, so what a press started always ends.
+     * go of always runs its Event, so what a press started always ends; neither reaches an Actor a Block removed.
      */
     private fun StringBuilder.appendKeyDispatches() {
         if (!features.keys.isKeyboardInputAware) return
         imports += listOf(KEY_IMPORT, TRAIT_IMPORTS.getValue("KeyboardInputAware"))
-        val guard = "        if (!$STATE_MANAGER_FIELD.isRunning.value) return"
-        appendKeyDispatch("onKeyPressed", features.keys.pressed, ::callOf, guard)
-        appendKeyDispatch("onKeyReleased", features.keys.released, ::callOf)
+        appendKeyDispatch("onKeyPressed", features.keys.pressed, ::callOf, listOf(REMOVED_GUARD, "        if (!$STATE_MANAGER_FIELD.isRunning.value) return"))
+        appendKeyDispatch("onKeyReleased", features.keys.released, ::callOf, listOf(REMOVED_GUARD))
     }
 
     private fun StringBuilder.appendCollisionDispatch() {

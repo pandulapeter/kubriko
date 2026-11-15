@@ -37,7 +37,7 @@ class KeyAndRemovedEventsCodeTest {
     fun anActorHearsAboutAKeyLetGoOfEvenWhilePausedSoWhatAPressStartedEnds() {
         val code = actor(EventDefinition(EventType.KEY_RELEASED, key = KeyChoice.SPACE, blocks = log))
         assertContains(code, "KeyboardInputAware")
-        assertContains(code, "    override fun onKeyReleased(key: Key) {\n        when (key) {\n            Key.Spacebar -> onKeyReleasedSpacebar()\n")
+        assertContains(code, "    override fun onKeyReleased(key: Key) {\n        if (isRemoved) return\n        when (key) {\n            Key.Spacebar -> onKeyReleasedSpacebar()\n")
         assertFalse("override fun onKeyPressed" in code)
     }
 
@@ -45,7 +45,7 @@ class KeyAndRemovedEventsCodeTest {
     fun aHeldKeyIsAskedAboutEveryFrameWithoutTheTrait() {
         val code = actor(EventDefinition(EventType.KEY_HELD, key = KeyChoice.A, blocks = log), EventDefinition(EventType.KEY_HELD, key = KeyChoice.SPACE, blocks = log))
         assertFalse("KeyboardInputAware" in code)
-        assertContains(code, "        if (keyboardInputManager.isKeyPressed(Key.Spacebar)) whileKeyHeldSpacebar()\n        if (keyboardInputManager.isKeyPressed(Key.A)) whileKeyHeldA()\n")
+        assertContains(code, "        if (!isRemoved && keyboardInputManager.isKeyPressed(Key.Spacebar)) whileKeyHeldSpacebar()\n        if (!isRemoved && keyboardInputManager.isKeyPressed(Key.A)) whileKeyHeldA()\n")
         assertContains(code, "lateinit var keyboardInputManager: KeyboardInputManager")
     }
 
@@ -54,8 +54,14 @@ class KeyAndRemovedEventsCodeTest {
         val ship = ActorTypeDefinition(name = "Ship", events = listOf(EventDefinition(EventType.KEY_HELD, key = KeyChoice.A), EventDefinition(EventType.EVERY_FRAME, blocks = log)))
         val fighter = ActorTypeDefinition(name = "Fighter", parent = "Ship")
         val code = ActorTypeCodeGenerator.generateActorType(ship, "com.example.game", listOf("Ship", "Fighter"), actorTypes = listOf(ship, fighter))
-        assertContains(code, "if (keyboardInputManager.isKeyPressed(Key.A)) whileKeyHeldA()")
+        assertContains(code, "if (!isRemoved && keyboardInputManager.isKeyPressed(Key.A)) whileKeyHeldA()")
         assertContains(code, "lateinit var keyboardInputManager: KeyboardInputManager")
+    }
+
+    @Test
+    fun anActorABlockRemovedHearsNoKeys() {
+        val code = actor(EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.SPACE, blocks = log))
+        assertContains(code, "    override fun onKeyPressed(key: Key) {\n        if (isRemoved) return\n        if (!stateManager.isRunning.value) return\n")
     }
 
     @Test
