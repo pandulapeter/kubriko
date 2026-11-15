@@ -169,7 +169,7 @@ internal class ActorClassEmitter(
             "Dynamic".takeIf { features.isDynamic },
             if (features.collisionEvents.isNotEmpty()) "CollisionDetector" else "Collidable".takeIf { features.isCollidable },
             "Editable<${definition.name}>".takeIf { role == Role.STANDALONE },
-            "KeyboardInputAware".takeIf { features.isKeyboardInputAware },
+            "KeyboardInputAware".takeIf { features.keys.isKeyboardInputAware },
         )
         traits.forEach { trait -> imports += TRAIT_IMPORTS.getValue(trait.substringBefore('<')) }
         imports += "androidx.compose.ui.graphics.Color"
@@ -309,8 +309,8 @@ internal class ActorClassEmitter(
             }
         }
         features.everyFrameEvents.firstNotNullOfOrNull(::callOf)?.let { appendLine("        $it") }
-        if (features.keyHeldEvents.isNotEmpty()) imports += KEY_IMPORT
-        appendHeldKeyCalls(features.keyHeldEvents, ::callOf, indent = "        ")
+        if (features.keys.held.isNotEmpty()) imports += KEY_IMPORT
+        appendHeldKeyCalls(features.keys.held, ::callOf, indent = "        ")
         appendLine(MOVEMENT_LINE)
         if (features.checksSceneBounds) {
             if (features.containment != SceneContainment.NONE) imports += listOf(SCENE_UNIT_IMPORT, SCENE_OFFSET_IMPORT)
@@ -360,11 +360,11 @@ internal class ActorClassEmitter(
      * Kubriko keeps telling Actors about keys while the game is paused, so they return early then.
      */
     private fun StringBuilder.appendKeyDispatches() {
-        if (!features.isKeyboardInputAware) return
+        if (!features.keys.isKeyboardInputAware) return
         imports += listOf(KEY_IMPORT, TRAIT_IMPORTS.getValue("KeyboardInputAware"))
         val guard = "        if (!$STATE_MANAGER_FIELD.isRunning.value) return"
-        appendKeyDispatch("onKeyPressed", features.keyEvents, ::callOf, guard)
-        appendKeyDispatch("onKeyReleased", features.keyReleasedEvents, ::callOf, guard)
+        appendKeyDispatch("onKeyPressed", features.keys.pressed, ::callOf, guard)
+        appendKeyDispatch("onKeyReleased", features.keys.released, ::callOf, guard)
     }
 
     private fun StringBuilder.appendCollisionDispatch() {

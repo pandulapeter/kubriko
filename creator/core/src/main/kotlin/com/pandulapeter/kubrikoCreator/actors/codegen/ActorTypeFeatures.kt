@@ -58,9 +58,7 @@ internal class ActorTypeFeatures(
     eventScopes: List<Pair<List<EventDefinition>, BlockScope>> = listOf(events to scope),
 ) {
     private val knownActorTypeNames = scope.actorTypeNames
-    val keyEvents = events.filter { it.type == EventType.KEY_PRESSED && isGenerated(it) }
-    val keyReleasedEvents = events.filter { it.type == EventType.KEY_RELEASED && isGenerated(it) }
-    val keyHeldEvents = events.filter { it.type == EventType.KEY_HELD && isGenerated(it) }
+    val keys = KeyEventCode.KeyEvents(events.filter { it.type.takesKey && isGenerated(it) })
     val removedEvents = events.filter { it.type == EventType.REMOVED_FROM_SCENE }
     val edgeEvents = events.filter { it.type == EventType.EDGE_TOUCHED }
     val leftSceneEvents = events.filter { it.type == EventType.LEFT_SCENE }
@@ -89,13 +87,7 @@ internal class ActorTypeFeatures(
      * Whether the Blocks removing an Actor run its removed Event, as [firesEdgeEvent].
      */
     val firesRemovedEvent = removedEvents.any { isFamily || it.blocks.isNotEmpty() }
-
-    /**
-     * Whether Kubriko tells the Actors about keys pressed and let go, which the held keys don't need: update asks for them.
-     */
-    val isKeyboardInputAware = keyEvents.isNotEmpty() || keyReleasedEvents.isNotEmpty()
-    private val holdsKeys = keyHeldEvents.any { it.blocks.isNotEmpty() }
-    val generatedEvents = addedEvents + everyFrameEvents + keyHeldEvents + edgeEvents + leftSceneEvents + removedEvents + keyEvents + keyReleasedEvents + collisionEvents + timerEvents
+    val generatedEvents = addedEvents + everyFrameEvents + keys.held + edgeEvents + leftSceneEvents + removedEvents + keys.pressed + keys.released + collisionEvents + timerEvents
     val timers = (timerEvents.mapNotNull { it.trigger.timer } + generatedEvents.flatMap { event -> event.blocks.mapNotNull { it.timerName } }).filter(TimerNaming::isValid).distinct().sorted()
     private val blockCode = eventScopes.fold(BlockCode.NONE) { code, (events, eventScope) ->
         events.filter(::isGenerated).fold(code) { eventsCode, event -> eventsCode + eventCode(event.blocks, event.type, eventScope) }
@@ -124,9 +116,9 @@ internal class ActorTypeFeatures(
      */
     private val needs = blockCode.needs + buildSet {
         if (checksSceneBounds) addAll(listOf(BlockNeed.MOVEMENT, BlockNeed.VIEWPORT_MANAGER, BlockNeed.SCENES))
-        if (timers.isNotEmpty() || everyFrameEvents.any { it.blocks.isNotEmpty() } || holdsKeys) add(BlockNeed.MOVEMENT)
-        if (holdsKeys) add(BlockNeed.KEYBOARD_INPUT_MANAGER)
-        if (isKeyboardInputAware) add(BlockNeed.STATE_MANAGER)
+        if (timers.isNotEmpty() || everyFrameEvents.any { it.blocks.isNotEmpty() } || keys.holdsKeys) add(BlockNeed.MOVEMENT)
+        if (keys.holdsKeys) add(BlockNeed.KEYBOARD_INPUT_MANAGER)
+        if (keys.isKeyboardInputAware) add(BlockNeed.STATE_MANAGER)
         if (isAnimated) add(BlockNeed.MOVEMENT)
         if (watches.any { !it.isAdded } || countedTypes.isNotEmpty()) add(BlockNeed.SCENES)
     }

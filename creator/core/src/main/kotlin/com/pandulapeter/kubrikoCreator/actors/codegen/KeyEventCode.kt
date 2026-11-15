@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.actors.codegen
 
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
+import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 
 /**
@@ -17,6 +18,25 @@ import com.pandulapeter.kubrikoCreator.actors.KeyChoice
  * and let go, and a held key is asked about on every frame, which needs no Trait.
  */
 internal object KeyEventCode {
+
+    /**
+     * The Events of [events] that react to keys, each kind apart, as both generators split them.
+     */
+    class KeyEvents(events: List<EventDefinition>) {
+        val pressed = events.filter { it.type == EventType.KEY_PRESSED }
+        val released = events.filter { it.type == EventType.KEY_RELEASED }
+        val held = events.filter { it.type == EventType.KEY_HELD }
+
+        /**
+         * Whether Kubriko has to tell the type about keys pressed and let go, which the held keys don't need.
+         */
+        val isKeyboardInputAware = pressed.isNotEmpty() || released.isNotEmpty()
+
+        /**
+         * Whether a held key's Event has Blocks, so the type asks about it every frame.
+         */
+        val holdsKeys = held.any { it.blocks.isNotEmpty() }
+    }
 
     /**
      * The override of [function] (`onKeyPressed` or `onKeyReleased`) calling [events]' functions by their key, after
