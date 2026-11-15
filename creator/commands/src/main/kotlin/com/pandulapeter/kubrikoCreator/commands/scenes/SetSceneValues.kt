@@ -9,19 +9,15 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.scenes
 
-import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
-import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.ReplaceScenes
-import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.fits
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireManagerType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateManagerType
 import com.pandulapeter.kubrikoCreator.scenes.ManagerSceneValues
@@ -56,23 +52,9 @@ public object SetSceneValues : WriteCommand<SetSceneValues.Input> {
         if (input.values.any { it.number?.isFinite() == false }) return Rejection(CommandProblem.NUMBER_INVALID)
         val state = context.readScene(input.scene).let { actors -> actors.getOrNull(ManagerSceneValues.indexIn(actors, input.managerType)) }?.state
         if (state != null && SceneDocument.stateObject(state) == null) return Rejection(CommandProblem.SCENE_CONTENT_INVALID)
-        return names.firstNotNullOfOrNull { name ->
-            val property = properties.firstOrNull { it.name == name }
-                ?: return@firstNotNullOfOrNull if (name in input.cleared && state != null && name in ManagerSceneValues.valuesOf(state)) {
-                    null
-                } else {
-                    SimilarNames.rejection(
-                        LookupProblem.ACTOR_PROPERTY_MISSING,
-                        LookupProblem.ACTOR_PROPERTY_MISSING_SIMILAR,
-                        name,
-                        properties.map { it.name },
-                        input.managerType,
-                        name,
-                    )
-                }
-            val value = input.values.firstOrNull { it.name == name } ?: return@firstNotNullOfOrNull null
-            if (value.toJson()?.fits(PropertyKind.of(property)) == true) null else Rejection(CommandProblem.PROPERTY_VALUE_INVALID, name)
-        }
+        val savedNames = state?.let(ManagerSceneValues::valuesOf)?.keys.orEmpty()
+        return validatePropertyValues(input.values, properties, input.managerType)
+            ?: input.cleared.firstNotNullOfOrNull { name -> validatePropertyName(name, properties, input.managerType) { it in savedNames } }
     }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {

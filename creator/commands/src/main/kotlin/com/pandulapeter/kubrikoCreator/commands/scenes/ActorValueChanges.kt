@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.scenes
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.HexColorSerializer
+import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
@@ -99,20 +100,35 @@ internal fun CommandContext.validateActorValues(actor: SceneActorEntry, changes:
         numbers.any { !it.isFinite() } || changes.properties.any { it.number?.isFinite() == false } -> Rejection(CommandProblem.NUMBER_INVALID)
         listOfNotNull(changes.width, changes.height).any { it <= 0f } -> Rejection(CommandProblem.SIZE_INVALID)
         (changes.color != null || changes.properties.isNotEmpty()) && definition == null -> Rejection(CommandProblem.SCENE_ACTOR_NOT_BLOCK_BUILT, actor.typeId)
-        else -> changes.properties.firstNotNullOfOrNull { value ->
-            val property = definition?.properties?.firstOrNull { it.name == value.name }
-                ?: return@firstNotNullOfOrNull SimilarNames.rejection(
-                    LookupProblem.ACTOR_PROPERTY_MISSING,
-                    LookupProblem.ACTOR_PROPERTY_MISSING_SIMILAR,
-                    value.name,
-                    definition?.properties.orEmpty().map { it.name },
-                    actor.typeId,
-                    value.name,
-                )
-            if (value.toJson()?.fits(PropertyKind.of(property)) == true) null else Rejection(CommandProblem.PROPERTY_VALUE_INVALID, value.name)
-        }
+        else -> validatePropertyValues(changes.properties, definition?.properties.orEmpty(), actor.typeId)
     }
 }
+
+/**
+ * Why [values] can't be given to the Properties of [owner] ([properties]): one names a Property it doesn't have, or doesn't
+ * fit its kind. [isKnown] lets a name through that [properties] lacks.
+ */
+internal fun validatePropertyValues(
+    values: List<ActorValueChanges.PropertyValue>,
+    properties: List<PropertyDefinition>,
+    owner: String,
+    isKnown: (String) -> Boolean = { false },
+): Rejection? = values.firstNotNullOfOrNull { value -> validatePropertyName(value.name, properties, owner, isKnown) }
+    ?: values.firstNotNullOfOrNull { value ->
+        val property = properties.firstOrNull { it.name == value.name } ?: return@firstNotNullOfOrNull null
+        if (value.toJson()?.fits(PropertyKind.of(property)) == true) null else Rejection(CommandProblem.PROPERTY_VALUE_INVALID, value.name)
+    }
+
+/**
+ * Why [name] can't name one of [properties] of [owner], naming those called similarly, or null if it does or [isKnown]
+ * lets it through.
+ */
+internal fun validatePropertyName(name: String, properties: List<PropertyDefinition>, owner: String, isKnown: (String) -> Boolean = { false }): Rejection? =
+    if (properties.any { it.name == name } || isKnown(name)) {
+        null
+    } else {
+        SimilarNames.rejection(LookupProblem.ACTOR_PROPERTY_MISSING, LookupProblem.ACTOR_PROPERTY_MISSING_SIMILAR, name, properties.map { it.name }, owner, name)
+    }
 
 /**
  * [state] with [changes] made, which [validateActorValues] has accepted.

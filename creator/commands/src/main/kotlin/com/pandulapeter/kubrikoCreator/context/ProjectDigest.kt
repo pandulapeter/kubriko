@@ -72,6 +72,7 @@ public data class ProjectDigest(
             sceneDescriptions: Map<String, String>,
         ): ProjectDigest {
             val relations = ProjectRelations(types, sceneCounts)
+            val managerTypeNames = types.filterIsInstance<ManagerTypeDefinition>().mapTo(HashSet()) { it.name }
             val sorted = types.sortedWith(compareBy({ it.folder }, { it.name }))
             return ProjectDigest(
                 projectName = projectName,
@@ -79,7 +80,7 @@ public data class ProjectDigest(
                 managerTypes = sorted.filterIsInstance<ManagerTypeDefinition>().map { typeOf(it, parent = null) },
                 scenes = sceneCounts.toSortedMap().map { (name, counts) ->
                     // The Scene settings and the values given to Manager types are no Actors of the Scene; the relations say what it gives values to.
-                    Scene(name, sceneDescriptions[name], counts.filterKeys { typeId -> typeId != SceneSettingsCodeGenerator.SETTINGS_NAME && types.none { it is ManagerTypeDefinition && it.name == typeId } })
+                    Scene(name, sceneDescriptions[name], counts.filterKeys { typeId -> typeId != SceneSettingsCodeGenerator.SETTINGS_NAME && typeId !in managerTypeNames })
                 },
                 relations = linesOf(relations.all),
             )
