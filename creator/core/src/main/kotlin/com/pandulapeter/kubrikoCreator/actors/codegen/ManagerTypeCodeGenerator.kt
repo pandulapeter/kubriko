@@ -16,10 +16,8 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.GeneratedNames
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
-import com.pandulapeter.kubrikoCreator.actors.KotlinUi
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
-import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendNumberTextFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendTimerCountdown
@@ -31,11 +29,8 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.AUDIO_F
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.SCENES_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STATE_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STATE_MANAGER_IMPORT
-import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.colorLiteral
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.eventCode
-import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.floatLiteral
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.initialValueLiteral
-import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.templateLiteral
 import com.pandulapeter.kubrikoCreator.actors.codegen.EventFunctions.appendFunction
 import com.pandulapeter.kubrikoCreator.actors.timerName
 
@@ -68,8 +63,8 @@ public object ManagerTypeCodeGenerator {
     public const val RUNNING_INSTANCES: String = "runningInstances"
     public const val FIRST_SCENE_PROPERTY: String = "kubriko.creator.scene"
     private const val SCENE_EDITOR_GUARD = "if (isInSceneEditor) return"
-    private const val ACTOR_MANAGER_FIELD = "actorManager"
-    private const val VIEWPORT_MANAGER_FIELD = "viewportManager"
+    internal const val ACTOR_MANAGER_FIELD = "actorManager"
+    internal const val VIEWPORT_MANAGER_FIELD = "viewportManager"
 
     /**
      * @param knownActorTypeNames Every Actor type of the project, which the Blocks may add.
@@ -95,16 +90,13 @@ public object ManagerTypeCodeGenerator {
         val generatedEvents = startEvents + frameEvents + keyEvents + timerEvents + actorEvents
         val timers = (timerEvents.mapNotNull { it.timer } + generatedEvents.flatMap { event -> event.blocks.mapNotNull { it.timerName } }).filter(TimerNaming::isValid).distinct().sorted()
         val blockCode = generatedEvents.fold(BlockCode.NONE) { code, event -> code + eventCode(event.blocks, event.type, scope) }
-        val texts = definition.texts.map { templateLiteral(it.text, scope) }
-        val kotlinUi = KotlinUi.of(definition.kotlinUi)
-        val usedManagers = (blockCode.managers + texts.flatMap { it.managers } + scope.managersNamedIn(kotlinUi)).distinct().sorted()
+        val ui = ManagerUiCode.of(definition, scope)
+        val usedManagers = (blockCode.managers + ui?.managers.orEmpty()).distinct().sorted()
         val runsEveryFrame = timers.isNotEmpty() || frameEvents.any { it.blocks.isNotEmpty() } || watches.isNotEmpty()
         // Key Events add the Manager to the Scene as an Actor, and onUpdate returns early while the game is paused.
-        val needs = blockCode.needs + buildSet {
-            if (keyEvents.isNotEmpty() || kotlinUi?.names(ACTOR_MANAGER_FIELD) == true) add(BlockNeed.ACTOR_MANAGER)
-            if (kotlinUi?.names(VIEWPORT_MANAGER_FIELD) == true) add(BlockNeed.VIEWPORT_MANAGER)
-            if (runsEveryFrame || kotlinUi?.names(STATE_MANAGER_FIELD) == true) add(BlockNeed.STATE_MANAGER)
-            if (texts.any { it.usesNumberText }) add(BlockNeed.NUMBER_TEXT)
+        val needs = blockCode.needs + ui?.needs.orEmpty() + buildSet {
+            if (keyEvents.isNotEmpty()) add(BlockNeed.ACTOR_MANAGER)
+            if (runsEveryFrame) add(BlockNeed.STATE_MANAGER)
         }
         val functions = generatedEvents.filter { it.blocks.isNotEmpty() }.mapNotNull { EventFunctions.of(it, scope) }.distinct()
         fun callOf(events: List<EventDefinition>) = events.firstNotNullOfOrNull { event -> EventFunctions.of(event, scope)?.takeIf { it in functions }?.call }
@@ -123,10 +115,7 @@ public object ManagerTypeCodeGenerator {
             if (definition.properties.isNotEmpty()) addAll(listOf("androidx.compose.runtime.getValue", "androidx.compose.runtime.setValue"))
             needs.forEach { addAll(importsOf(it)) }
             addAll(blockCode.imports)
-            if (texts.isNotEmpty()) addAll(TEXT_IMPORTS)
-            if (texts.isNotEmpty() || kotlinUi != null) addAll(COMPOSABLE_IMPORTS)
-            kotlinUi?.imports?.let(::addAll)
-            kotlinUi?.let { ui -> BlockCodeGenerator.randomImportFor(ui.statements.joinToString("\n"), ui.imports)?.let(::add) }
+            ui?.imports?.let(::addAll)
         }.sorted()
         return GeneratedFile.withHeader(" from ${DefinitionPaths.definitionPath(definition)}", buildString {
             appendLine("package $packageName.${ActorTypeCodeGenerator.GENERATED_PACKAGE}")
@@ -172,7 +161,7 @@ public object ManagerTypeCodeGenerator {
             if (keyEvents.isNotEmpty()) appendKeyDispatch(keyEvents.groupBy { it.trigger.key!! }.toSortedMap().mapValues { (_, events) -> callOf(events) })
             appendNotifyFunctions(watches)
             append(functionsCode)
-            if (texts.isNotEmpty() || kotlinUi != null) appendComposable(definition.texts, texts.map { it.code }, kotlinUi)
+            ui?.members?.let(::append)
             if (BlockNeed.NUMBER_TEXT in needs) appendNumberTextFunction("private")
             appendLine("}")
         })
@@ -277,49 +266,6 @@ public object ManagerTypeCodeGenerator {
         appendLine("    }")
     }
 
-    /**
-     * The Manager's `Composable`: its texts, then its Kotlin UI, which is drawn on top of them. Texts sharing a position
-     * are stacked in a column there, in their order, rather than drawn over each other.
-     */
-    private fun StringBuilder.appendComposable(definitions: List<ScreenTextDefinition>, texts: List<String>, kotlinUi: KotlinUi?) {
-        definitions.forEachIndexed { index, definition ->
-            appendLine()
-            appendLine("    private val ${textStyleField(index)} = TextStyle(color = Color(${colorLiteral(definition.color)}), fontSize = ${floatLiteral(definition.size.coerceAtLeast(1f))}.sp)")
-        }
-        appendLine()
-        appendLine("    @Composable")
-        appendLine("    override fun Composable(windowInsets: WindowInsets) {")
-        if (texts.isNotEmpty()) {
-            appendLine("        Box(")
-            appendLine("            modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets).padding(16.dp),")
-            appendLine("        ) {")
-            definitions.indices.groupBy { definitions[it].position }.forEach { (position, indices) ->
-                if (indices.size == 1) {
-                    appendText(texts[indices.single()], indices.single(), indent = "            ", alignment = position.alignment)
-                } else {
-                    // By its full name, since the project may have a type called Column in the generated package.
-                    appendLine("            androidx.compose.foundation.layout.Column(")
-                    appendLine("                modifier = Modifier.align(Alignment.${position.alignment}),")
-                    appendLine("                horizontalAlignment = Alignment.${position.horizontalAlignment},")
-                    appendLine("            ) {")
-                    indices.forEach { index -> appendText(texts[index], index, indent = "                ", alignment = null) }
-                    appendLine("            }")
-                }
-            }
-            appendLine("        }")
-        }
-        kotlinUi?.statements?.forEach { appendLine(if (it.isEmpty()) it else "        $it") }
-        appendLine("    }")
-    }
-
-    private fun StringBuilder.appendText(text: String, index: Int, indent: String, alignment: String?) {
-        appendLine("${indent}BasicText(")
-        if (alignment != null) appendLine("$indent    modifier = Modifier.align(Alignment.$alignment),")
-        appendLine("$indent    text = $text,")
-        appendLine("$indent    style = ${textStyleField(index)},")
-        appendLine("$indent)")
-    }
-
     private fun fieldOf(need: BlockNeed) = when (need) {
         BlockNeed.ACTOR_MANAGER -> "$ACTOR_MANAGER_FIELD by manager<ActorManager>()"
         BlockNeed.VIEWPORT_MANAGER -> "$VIEWPORT_MANAGER_FIELD by manager<ViewportManager>()"
@@ -341,28 +287,4 @@ public object ManagerTypeCodeGenerator {
         BlockNeed.SCALE_TWEEN, BlockNeed.OPACITY_TWEEN, BlockNeed.COLOR_TWEEN, BlockNeed.POSITION_TWEEN,
         -> emptyList()
     }
-
-    /**
-     * The field that keeps the style of the text at [index], so that it isn't built again on every recomposition.
-     */
-    private fun textStyleField(index: Int) = "textStyle${index + 1}"
-
-    private val COMPOSABLE_IMPORTS = listOf(
-        "androidx.compose.foundation.layout.WindowInsets",
-        "androidx.compose.runtime.Composable",
-    )
-
-    private val TEXT_IMPORTS = listOf(
-        "androidx.compose.foundation.layout.Box",
-        "androidx.compose.foundation.layout.fillMaxSize",
-        "androidx.compose.foundation.layout.padding",
-        "androidx.compose.foundation.layout.windowInsetsPadding",
-        "androidx.compose.foundation.text.BasicText",
-        "androidx.compose.ui.Alignment",
-        "androidx.compose.ui.Modifier",
-        "androidx.compose.ui.graphics.Color",
-        "androidx.compose.ui.text.TextStyle",
-        "androidx.compose.ui.unit.dp",
-        "androidx.compose.ui.unit.sp",
-    )
 }
