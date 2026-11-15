@@ -249,6 +249,16 @@ internal fun validateProperty(
     }
 
 /**
+ * Why [name] can't be the Actor type an Actor type reference names in this project, naming those called similarly; an
+ * empty one names none, which is fine.
+ */
+internal fun CommandContext.validateActorTypeName(name: String): Rejection? {
+    if (name.isEmpty()) return null
+    val actorTypeNames = requireBlockTypes.actorTypes.value.map { it.name }
+    return if (name in actorTypeNames) null else missingActorType(name, actorTypeNames, requireBlockTypes.managerTypes.value.map { it.name })
+}
+
+/**
  * Why [property] can't be one of [properties] of a type of [kind] in this project.
  */
 internal fun CommandContext.validateProperty(property: PropertyDefinition, properties: List<PropertyDefinition>, kind: BlockTypeKind, replacedName: String? = null) =

@@ -20,8 +20,7 @@ import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.fits
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.missingActorType
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireBlockTypes
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateActorTypeName
 import com.pandulapeter.kubrikoCreator.scenes.ActorStateEdits
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
@@ -128,10 +127,7 @@ internal fun CommandContext.validatePropertyValues(
         val property = properties.firstOrNull { it.name == value.name } ?: return@firstNotNullOfOrNull null
         if (value.kind == PropertyKind.of(property)) null else Rejection(CommandProblem.PROPERTY_VALUE_INVALID, value.name)
     }
-    ?: values.firstNotNullOfOrNull { value ->
-        val actorTypeNames = requireBlockTypes.actorTypes.value.map { it.name }
-        value.actorType?.takeIf { it.isNotEmpty() && it !in actorTypeNames }?.let { missingActorType(it, actorTypeNames, requireBlockTypes.managerTypes.value.map { type -> type.name }) }
-    }
+    ?: values.firstNotNullOfOrNull { value -> value.actorType?.let(::validateActorTypeName) }
 
 /**
  * Why [name] can't name one of [properties] of [owner], naming those called similarly, or null if it does or [isKnown]
