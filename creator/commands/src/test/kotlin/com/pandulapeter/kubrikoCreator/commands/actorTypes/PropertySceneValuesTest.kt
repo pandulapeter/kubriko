@@ -25,6 +25,9 @@ class PropertySceneValuesTest {
         assertEquals(listOf(PropertyKind.NUMBER), PropertyKind.entries.filter { JsonPrimitive(2.5f).fits(it) })
         assertEquals(listOf(PropertyKind.NUMBER), PropertyKind.entries.filter { JsonPrimitive(-3).fits(it) })
         assertEquals(listOf(PropertyKind.TOGGLE), PropertyKind.entries.filter { JsonPrimitive(true).fits(it) })
+        assertEquals(listOf(PropertyKind.TEXT), PropertyKind.entries.filter { JsonPrimitive("hello there").fits(it) })
+        assertEquals(listOf(PropertyKind.TEXT, PropertyKind.ACTOR_TYPE), PropertyKind.entries.filter { JsonPrimitive("Enemy").fits(it) })
+        assertEquals(listOf(PropertyKind.TEXT, PropertyKind.ACTOR_TYPE), PropertyKind.entries.filter { JsonPrimitive("").fits(it) })
     }
 
     @Test

@@ -45,7 +45,7 @@ public object BlockTypeNaming {
     /**
      * Whether [name] can be a Kotlin class name the way a type's name has to be.
      */
-    internal fun isWellFormed(name: String) = flawOf(name) == null
+    public fun isWellFormed(name: String): Boolean = flawOf(name) == null
 
     private fun flawOf(name: String) = NameFlaw.of(name, isFirstAllowed = { it in 'A'..'Z' }, isAllowed = NameFlaw::isLetterOrDigitAToZ)
 
