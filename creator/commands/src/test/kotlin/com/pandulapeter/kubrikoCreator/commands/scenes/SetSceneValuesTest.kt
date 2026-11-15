@@ -59,12 +59,12 @@ class SetSceneValuesTest {
     fun aSceneGivesValuesThroughAnEntryOfTheManagerTypeThatGoesOnceItGivesNone() = runTest {
         val context = context(wall)
         val afterSetting = context.assertRoundTrip(set(ActorValueChanges.PropertyValue("lives", number = 5f), ActorValueChanges.PropertyValue("isHard", toggle = true))) { context.level() }
-        assertEquals(listOf("Wall", "Game"), afterSetting.map { it.typeId })
-        assertEquals("""{"lives":5.0,"isHard":true}""", afterSetting[1].state)
+        assertEquals(listOf("Game", "Wall"), afterSetting.map { it.typeId })
+        assertEquals("""{"lives":5.0,"isHard":true}""", afterSetting[0].state)
         set(ActorValueChanges.PropertyValue("lives", number = 5f), ActorValueChanges.PropertyValue("isHard", toggle = true)).apply(context)
-        val id = context.level()[1].id
+        val id = context.level()[0].id
         val afterChanging = context.assertRoundTrip(set(ActorValueChanges.PropertyValue("title", text = "Hard"), cleared = listOf("isHard"))) { context.level() }
-        assertEquals(SceneActorEntry("Game", """{"lives":5.0,"title":"Hard"}""", id), afterChanging[1])
+        assertEquals(SceneActorEntry("Game", """{"lives":5.0,"title":"Hard"}""", id), afterChanging[0])
         assertEquals(listOf(wall), context.assertRoundTrip(set(cleared = listOf("lives", "title"))) { context.level() })
     }
 

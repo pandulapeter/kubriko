@@ -35,7 +35,7 @@ import kotlinx.serialization.Serializable
 public object SetSceneValues : WriteCommand<SetSceneValues.Input> {
     override val name: String = "set_scene_values"
     override val description: String = "Sets the values a Scene gives Properties of a block-built Manager type when it starts (the lives a level " +
-        "begins with), or clears some, which then keep the Manager's. Kept as the Scene's Actor of the Manager type's name."
+        "begins with), or clears some, which then keep the Manager's. Kept as the Scene's first Actor, of the Manager type's name."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Scene(input.scene)
@@ -89,7 +89,8 @@ public object SetSceneValues : WriteCommand<SetSceneValues.Input> {
             input.scene,
             when {
                 state == null -> actors.filterIndexed { actorIndex, _ -> actorIndex != index }
-                previous == null -> actors + SceneActorEntry(input.managerType, state, input.actorId ?: SceneDocument.newId(actors.map { it.id }))
+                // First, since Kubriko adds a Scene's Actors in order: the values are given before any Actor's added Events run.
+                previous == null -> listOf(SceneActorEntry(input.managerType, state, input.actorId ?: SceneDocument.newId(actors.map { it.id }))) + actors
                 else -> actors.mapIndexed { actorIndex, actor -> if (actorIndex == index) actor.copy(state = state) else actor }
             },
         )
