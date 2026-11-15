@@ -57,4 +57,9 @@ class CameraCodeTest {
     fun aMoveToAPositionThatIsntANumberIsLeftOut() {
         assertContains(scenes, "        if (isInSceneEditor || !x.isFinite() || !y.isFinite()) return\n")
     }
+
+    @Test
+    fun noStrengthOrNoTimeStopsTheShake() {
+        assertContains(scenes, "            if (strength <= 0f || durationInMilliseconds <= 0f) {\n                shakeRemainingInMilliseconds = 0f\n")
+    }
 }

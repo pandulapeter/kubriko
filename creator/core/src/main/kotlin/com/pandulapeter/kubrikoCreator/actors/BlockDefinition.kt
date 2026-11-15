@@ -278,7 +278,7 @@ public sealed interface BlockDefinition {
 
     @Serializable
     @SerialName("shakeCamera")
-    @Description("Shakes the camera, less and less until it stops.")
+    @Description("Shakes the camera, less and less until it stops. A strength or duration of 0 stops a shake.")
     public data class ShakeCamera(
         @Description("How far it moves at most, in scene units.")
         @SerialName("strength") val strength: NumberValue = NumberValue.Fixed(DEFAULT_SHAKE_STRENGTH),

@@ -86,11 +86,16 @@ internal object CameraCode {
             |    }
             |
             |    /**
-            |     * Shakes the camera at most [strength] far, less and less for [durationInMilliseconds], starting over if it shakes.
+            |     * Shakes the camera at most [strength] far, less and less for [durationInMilliseconds], starting over if it shakes;
+            |     * no strength or no time stops the shake.
             |     */
             |    fun $SHAKE_FUNCTION(strength: Float, durationInMilliseconds: Float) {
-            |        if (isInSceneEditor || !(strength > 0f && durationInMilliseconds > 0f)) return
+            |        if (isInSceneEditor || strength.isNaN() || durationInMilliseconds.isNaN()) return
             |        withCameraLock {
+            |            if (strength <= 0f || durationInMilliseconds <= 0f) {
+            |                shakeRemainingInMilliseconds = 0f
+            |                return@withCameraLock
+            |            }
             |            if (cameraTarget == null && shakenCameraX.isNaN()) {
             |                val position = viewportManager.cameraPosition.value
             |                cameraBaseX = position.x.raw
