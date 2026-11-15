@@ -132,7 +132,7 @@ internal class ProjectRelations(
     private fun MutableList<Relation>.addCheckedBy(typeName: String, place: RelationPlace, condition: ConditionDefinition) {
         condition.propertyReferences.forEach { if (it.name.isNotEmpty()) add(Relation(place, RelationKind.READS, propertyOf(typeName, it.manager, it.name))) }
         condition.actorTypeReferences.forEach { if (it.isNotEmpty()) add(Relation(place, RelationKind.COUNTS, RelationSubject.Type(it))) }
-        condition.measuredActorTypes.forEach { if (it.isNotEmpty()) add(Relation(place, RelationKind.MEASURES, RelationSubject.Type(it))) }
+        condition.measuredActorTypes.forEach { add(Relation(place, RelationKind.MEASURES, RelationSubject.Type(it))) }
     }
 
     private fun MutableList<Relation>.addPlaceholders(typeName: String, place: RelationPlace, text: String) {

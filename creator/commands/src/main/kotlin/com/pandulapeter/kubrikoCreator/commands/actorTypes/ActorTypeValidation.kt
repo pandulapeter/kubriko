@@ -231,7 +231,7 @@ private fun validatePropertyReference(reference: PropertyReference, scope: Block
  * combines), of those chosen.
  */
 private val BlockDefinition.namedActorTypes: List<String>
-    get() = ((this as? BlockDefinition.If)?.condition?.let { it.actorTypeReferences + it.measuredActorTypes }?.filter { it.isNotEmpty() } ?: listOfNotNull(actorTypeReference))
+    get() = ((this as? BlockDefinition.If)?.condition?.let { condition -> condition.actorTypeReferences.filter { it.isNotEmpty() } + condition.measuredActorTypes } ?: listOfNotNull(actorTypeReference))
 
 /**
  * The first key [this] condition, or one it combines, checks that Compose doesn't know.

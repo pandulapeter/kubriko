@@ -75,10 +75,10 @@ public val ConditionDefinition.actorTypeReferences: List<String>
     get() = leaves.mapNotNull { it.actorTypeReference }
 
 /**
- * Every Actor type [this] condition, or a condition it combines, measures the distance to by its name (chosen or not).
+ * Every Actor type [this] condition, or a condition it combines, measures the distance to by its name, of those chosen.
  */
 public val ConditionDefinition.measuredActorTypes: List<String>
-    get() = leaves.mapNotNull { ((it as? ConditionDefinition.Distance)?.actorType as? ActorTypeValue.Fixed)?.name }
+    get() = leaves.mapNotNull { (it as? ConditionDefinition.Distance)?.actorType?.fixedName }
 
 /**
  * [this] condition with the Actor type it counts or measures the distance to renamed from [oldName] to [newName], if it
