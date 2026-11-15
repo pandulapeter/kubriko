@@ -14,6 +14,8 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.Axis
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
+import com.pandulapeter.kubrikoCreator.actors.ColorValue
 import com.pandulapeter.kubrikoCreator.actors.Comparison
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
@@ -702,12 +704,20 @@ class ActorTypeCodeGeneratorTest {
         val scope = BlockScope("Spark")
         fun lines(block: BlockDefinition) = BlockCodeGenerator.blockCode(block, EventType.ADDED_TO_SCENE, scope).lines
         assertEquals(listOf("color = Color(0xFFE05050).copy(alpha = color.alpha)"), lines(BlockDefinition.SetColor()))
-        assertEquals(listOf("color = Color(0x80102030).copy(alpha = color.alpha)"), lines(BlockDefinition.SetColor(listOf(0x80102030))))
+        assertEquals(listOf("color = Color(0x80102030).copy(alpha = color.alpha)"), lines(BlockDefinition.SetColor(listOf(ColorValue.Fixed(0x80102030)))))
         assertEquals(
             listOf("color = when (KubrikoWiring.random.nextInt(3)) { 0 -> Color(0xFFFF0000); 1 -> Color(0xFF00FF00); else -> Color(0xFF0000FF) }.copy(alpha = color.alpha)"),
-            lines(BlockDefinition.SetColor(listOf(0xFFFF0000, 0xFF00FF00, 0xFF0000FF))),
+            lines(BlockDefinition.SetColor(listOf(0xFFFF0000, 0xFF00FF00, 0xFF0000FF).map(ColorValue::Fixed))),
         )
         assertEquals(listOf("// Choose a color for this Block."), lines(BlockDefinition.SetColor(emptyList())))
+        val tinted = BlockScope("Ball", BlockTypeKind.ACTOR, listOf(PropertyDefinition.Color("tint")), managerTypes = listOf(ManagerTypeDefinition("Game", properties = listOf(PropertyDefinition.Color("shade")))))
+        fun tintedLines(block: BlockDefinition) = BlockCodeGenerator.blockCode(block, EventType.ADDED_TO_SCENE, tinted)
+        assertEquals(listOf("color = tint.copy(alpha = color.alpha)"), tintedLines(BlockDefinition.SetColor(listOf(ColorValue.Property("tint")))).lines)
+        assertEquals(listOf("color = Color(0xFFFFFFFF).copy(alpha = color.alpha)"), tintedLines(BlockDefinition.SetColor(listOf(ColorValue.Property("missing")))).lines)
+        val fromManager = tintedLines(BlockDefinition.SetColorProperty("tint", ColorValue.Property("shade", manager = "Game")))
+        assertEquals(listOf("tint = gameManager.shade"), fromManager.lines)
+        assertEquals(setOf("Game"), fromManager.managers)
+        assertEquals(listOf("// Choose a Property for this Block."), tintedLines(BlockDefinition.SetColorProperty("shade")).lines)
     }
 
     @Test

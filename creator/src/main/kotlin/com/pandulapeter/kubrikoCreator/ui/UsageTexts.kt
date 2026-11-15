@@ -40,7 +40,7 @@ import kubriko.creator.generated.resources.usage_effect_scene_values_removed
 import kubriko.creator.generated.resources.usage_effect_section_removed
 import kubriko.creator.generated.resources.usage_effect_sprite_cleared
 import kubriko.creator.generated.resources.usage_effect_text_removed
-import kubriko.creator.generated.resources.usage_effect_value_to_number
+import kubriko.creator.generated.resources.usage_effect_value_to_fixed
 import kubriko.creator.generated.resources.usage_place_block
 import kubriko.creator.generated.resources.usage_place_event
 import kubriko.creator.generated.resources.usage_place_game_settings
@@ -113,7 +113,7 @@ internal fun UsageEffect.text() = stringResource(
         UsageEffect.SCENE_VALUES_REMOVED -> Res.string.usage_effect_scene_values_removed
         UsageEffect.ACTORS_REMOVED -> Res.string.usage_effect_actors_removed
         UsageEffect.PLACEHOLDER_TO_TEXT -> Res.string.usage_effect_placeholder_to_text
-        UsageEffect.VALUE_TO_NUMBER -> Res.string.usage_effect_value_to_number
+        UsageEffect.VALUE_TO_FIXED -> Res.string.usage_effect_value_to_fixed
         UsageEffect.KOTLIN_TO_CHANGE -> Res.string.usage_effect_kotlin_to_change
         UsageEffect.MENTION_TO_TEXT -> Res.string.usage_effect_mention_to_text
         UsageEffect.PREVENTS_DELETING -> Res.string.usage_effect_prevents_deleting

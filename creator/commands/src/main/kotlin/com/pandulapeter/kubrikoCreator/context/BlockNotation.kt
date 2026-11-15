@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.AnimationEasing
 import com.pandulapeter.kubrikoCreator.actors.Axis
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockNesting
+import com.pandulapeter.kubrikoCreator.actors.ColorValue
 import com.pandulapeter.kubrikoCreator.actors.Comparison
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
@@ -83,6 +84,7 @@ internal object BlockNotation {
         is BlockDefinition.ChangeNumber -> "Change ${property(block.property, block.manager)} by ${value(block.by)}"
         is BlockDefinition.SetText -> "Set ${property(block.property, block.manager)} to ${text(block.value)}"
         is BlockDefinition.SetToggle -> "Turn ${property(block.property, block.manager)} ${if (block.value) "on" else "off"}"
+        is BlockDefinition.SetColorProperty -> "Set ${property(block.property, block.manager)} to ${color(block.value)}"
         is BlockDefinition.AddActor -> "Add an Actor of ${name(block.actorType)} at ${point(block.x, block.y)} " + when {
             !block.isRelative -> "from the center"
             block.x.readsEdges || block.y.readsEdges -> "from this Actor (an edge is the Scene's own)"
@@ -105,8 +107,8 @@ internal object BlockNotation {
         is BlockDefinition.SetAnimation -> "Play the sprite's frames at speed ${value(block.speed)}" + if (block.isLooping) ", looping" else ", once"
         is BlockDefinition.SetColor -> "Set the color to " + when (block.colors.size) {
             0 -> NONE
-            1 -> ColorHex.format(block.colors.single())
-            else -> "one of ${block.colors.joinToString { ColorHex.format(it) }} at random"
+            1 -> color(block.colors.single())
+            else -> "one of ${block.colors.joinToString { color(it) }} at random"
         }
         is BlockDefinition.SetOpacity -> "Set the opacity to ${value(block.percent)} percent"
         is BlockDefinition.ChangeOpacity -> "Change the opacity by ${value(block.by)} percent"
@@ -122,7 +124,7 @@ internal object BlockNotation {
     private fun of(animated: AnimatedValue) = when (animated) {
         is AnimatedValue.Scale -> "the scale from ${value(animated.from)} to ${value(animated.to)}"
         is AnimatedValue.Opacity -> "the opacity from ${value(animated.from)} to ${value(animated.to)} percent"
-        is AnimatedValue.Color -> "the color from ${ColorHex.format(animated.from)} to ${ColorHex.format(animated.to)}"
+        is AnimatedValue.Color -> "the color from ${color(animated.from)} to ${color(animated.to)}"
         is AnimatedValue.Position -> "the position " + when {
             !animated.isRelative -> "to ${point(animated.x, animated.y)}"
             animated.x.readsEdges || animated.y.readsEdges -> "by ${point(animated.x, animated.y)} (an edge is the Scene's own)"
@@ -160,6 +162,14 @@ internal object BlockNotation {
         Comparison.NOT_EQUAL -> "isn't"
         Comparison.GREATER_OR_EQUAL -> "is at least"
         Comparison.GREATER -> "is more than"
+    }
+
+    /**
+     * A color a Block takes: `#E05050`, or `tint of Game`.
+     */
+    fun color(value: ColorValue) = when (value) {
+        is ColorValue.Fixed -> ColorHex.format(value.argb)
+        is ColorValue.Property -> property(value.property, value.manager)
     }
 
     /**

@@ -31,6 +31,11 @@
   of its own locals is in scope (passing them to a member function, as Move in a direction does, or reading the one number
   first, as Move towards the nearest does), so a Property named like a local is still the Property; the function's name is
   reserved (format version 8, and Move with keys' by format version 11). A direction, a speed, an opacity, a scale, or a time takes no edge, which is a position.
+- Every color a Block takes is a `ColorValue` (a color, or a color Property's value), as every number is a `NumberValue`:
+  a fixed one stays a bare `"#RRGGBB"`, `ColorValueCode` makes each one `Color` operand (an inline class, so nothing
+  allocates), and a deleted Property's becomes its starting color. Kubriko saves a `Color` through `SerializableColor`,
+  so a Property kind's saved type can differ from its Kotlin type (`PropertyKind.savedType`). A color has no words, so a
+  text's or Log Block's placeholder of one stays as written.
 - An edge is the Scene settings' bounds, or the screen's while there are none, as the edge Event decides. Values read it
   through `GeneratedScenes.edge` and `randomBetweenEdges`, which read the settings once per call, so a Scene that finishes
   loading meanwhile can't mix its bounds with the screen's; the edge Event takes one snapshot in the Actor's own code, so a

@@ -38,6 +38,7 @@ internal object TypeNotation {
         is PropertyDefinition.Number -> "${property.name}: number = ${BlockNotation.number(property.initialValue)}"
         is PropertyDefinition.Text -> "${property.name}: text = \"${property.initialValue}\""
         is PropertyDefinition.Toggle -> "${property.name}: toggle = ${if (property.initialValue) "on" else "off"}"
+        is PropertyDefinition.Color -> "${property.name}: color = ${ColorHex.format(property.initialValue)}"
     }
 
     /**

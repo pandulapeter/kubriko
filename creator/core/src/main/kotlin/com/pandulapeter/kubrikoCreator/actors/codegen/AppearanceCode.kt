@@ -12,7 +12,6 @@ package com.pandulapeter.kubrikoCreator.actors.codegen
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.OPACITY_FIELD
-import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.colorLiteral
 
 /**
  * The statements of the Blocks that change how an Actor looks, through its `color` and its `opacity`, which its look reads
@@ -21,8 +20,8 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.colorLi
  * value is a `Color`, an inline class, or a `Float`, so none of them allocates.
  */
 internal object AppearanceCode {
-    fun setColor(block: BlockDefinition.SetColor): BlockCode {
-        val colors = block.colors.map { "Color(${colorLiteral(it)})" }
+    fun setColor(block: BlockDefinition.SetColor, scope: BlockScope): BlockCode {
+        val colors = block.colors.map { ColorValueCode.color(it, scope) }
         val color = when (colors.size) {
             0 -> return BlockCode(listOf("// Choose a color for this Block."))
             1 -> colors.single()

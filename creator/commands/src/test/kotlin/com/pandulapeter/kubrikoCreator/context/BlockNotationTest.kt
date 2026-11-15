@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.AnimatedValue
 import com.pandulapeter.kubrikoCreator.actors.AnimationEasing
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
+import com.pandulapeter.kubrikoCreator.actors.ColorValue
 import com.pandulapeter.kubrikoCreator.actors.Comparison
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
@@ -49,7 +50,7 @@ class BlockNotationTest {
             BlockNotation.of(BlockDefinition.MoveInDirection(NumberValue.Random(0f, 360f), NumberValue.Fixed(120f))),
         )
         assertEquals("Set the color to #E05050", BlockNotation.of(BlockDefinition.SetColor()))
-        assertEquals("Set the color to one of #20C060, #FFFFFF at random", BlockNotation.of(BlockDefinition.SetColor(listOf(0xFF20C060, 0xFFFFFFFF))))
+        assertEquals("Set the color to one of #20C060, #FFFFFF at random", BlockNotation.of(BlockDefinition.SetColor(listOf(0xFF20C060, 0xFFFFFFFF).map(ColorValue::Fixed))))
         assertEquals("Set the opacity to a random number from 20 to 80 percent", BlockNotation.of(BlockDefinition.SetOpacity(NumberValue.Random(20f, 80f))))
         assertEquals("Change the opacity by -10 percent", BlockNotation.of(BlockDefinition.ChangeOpacity()))
         assertEquals("Animate the scale from 1 to 2 in 0.5 s, ending slowly", BlockNotation.of(BlockDefinition.Animate()))
@@ -63,7 +64,7 @@ class BlockNotationTest {
             "Animate the opacity from 100 to 0 percent in a random number from 1 to 2 s, evenly, then remove this Actor",
             BlockNotation.of(BlockDefinition.Animate(AnimatedValue.Opacity(), NumberValue.Random(1f, 2f), AnimationEasing.LINEAR, removesActor = true)),
         )
-        assertEquals("Animate the color from #FFFFFF to #102030 in 0.5 s, starting slowly", BlockNotation.of(BlockDefinition.Animate(AnimatedValue.Color(to = 0xFF102030), easing = AnimationEasing.EASE_IN)))
+        assertEquals("Animate the color from #FFFFFF to #102030 in 0.5 s, starting slowly", BlockNotation.of(BlockDefinition.Animate(AnimatedValue.Color(to = ColorValue.Fixed(0xFF102030)), easing = AnimationEasing.EASE_IN)))
         assertEquals("Animate the position by (0, -100) in 0.5 s, starting and ending slowly", BlockNotation.of(BlockDefinition.Animate(AnimatedValue.Position(), easing = AnimationEasing.EASE_IN_OUT)))
         assertEquals(
             "Animate the position to (the left edge, 5) in 0.5 s, ending slowly",

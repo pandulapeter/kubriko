@@ -53,12 +53,10 @@ public sealed interface AnimatedValue {
     @SerialName("color")
     @Description("The color, keeping the opacity.")
     public data class Color(
-        @Description("#RRGGBB.")
-        @Serializable(with = HexColorSerializer::class)
-        @SerialName("from") val from: Long = 0xFFFFFFFF,
-        @Description("#RRGGBB.")
-        @Serializable(with = HexColorSerializer::class)
-        @SerialName("to") val to: Long = 0xFFE05050,
+        @Description("#RRGGBB, or a property color value.")
+        @SerialName("from") val from: ColorValue = ColorValue.Fixed(0xFFFFFFFF),
+        @Description("#RRGGBB, or a property color value.")
+        @SerialName("to") val to: ColorValue = ColorValue.Fixed(0xFFE05050),
     ) : AnimatedValue {
         override val target: AnimationTarget get() = AnimationTarget.COLOR
     }

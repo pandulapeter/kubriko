@@ -17,12 +17,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.scenes.ActorValueChanges
+import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
+import com.pandulapeter.kubrikoCreator.ui.components.ColorField
 import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.floatOrNull
+import kotlinx.serialization.json.longOrNull
 
 /**
  * The value of [property] that a Scene keeps ([value]), or its starting value while it keeps none, labeled with [label].
@@ -53,5 +56,11 @@ internal fun PropertyValueField(
         checked = value?.booleanOrNull ?: property.initialValue,
         onCheckedChange = { onChange(ActorValueChanges.PropertyValue(property.name, toggle = it)) },
         labelStyle = MaterialTheme.typography.bodyMedium,
+    )
+    is PropertyDefinition.Color -> ColorField(
+        modifier = modifier.fillMaxWidth(),
+        color = value?.longOrNull?.let(SceneSettingsState::argbOf) ?: property.initialValue,
+        onColorChange = { onChange(ActorValueChanges.PropertyValue(property.name, color = it)) },
+        label = label,
     )
 }

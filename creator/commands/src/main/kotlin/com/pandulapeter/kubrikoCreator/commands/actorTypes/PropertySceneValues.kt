@@ -18,6 +18,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.floatOrNull
+import kotlinx.serialization.json.longOrNull
 
 /**
  * Changes the state of every Actor of the [actorTypes] in every Scene, where each one keeps its own Property values.
@@ -40,4 +41,5 @@ internal fun JsonElement.fits(kind: PropertyKind) = this is JsonPrimitive && whe
     PropertyKind.NUMBER -> !isString && floatOrNull != null
     PropertyKind.TEXT -> isString
     PropertyKind.TOGGLE -> !isString && booleanOrNull != null
+    PropertyKind.COLOR -> !isString && longOrNull != null
 }

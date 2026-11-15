@@ -23,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.actors.AnimationEasing
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockNesting
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
+import com.pandulapeter.kubrikoCreator.actors.ColorValue
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
@@ -61,7 +62,7 @@ class AnimateParametersTest {
         assertEquals(AnimatedValue.Color(), (block as BlockDefinition.Animate).value)
         onNodeWithText("#80102030").performTextReplacement("#102030")
         waitForIdle()
-        assertEquals(AnimatedValue.Color(to = 0xFF102030), (block as BlockDefinition.Animate).value)
+        assertEquals(AnimatedValue.Color(to = ColorValue.Fixed(0xFF102030)), (block as BlockDefinition.Animate).value)
     }
 
     @Test

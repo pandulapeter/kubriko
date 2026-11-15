@@ -73,7 +73,7 @@ public fun ConditionDefinition.withNumberValues(transform: (NumberValue) -> Numb
 }
 
 /**
- * [this] condition with the Property of [manager] (the type's own one, if null) that it checks or reads as a number
+ * [this] condition with the Property of [manager] (the type's own one, if null) that it checks or reads as a value
  * renamed from [oldName] to [newName].
  */
 internal fun ConditionDefinition.withPropertyRenamed(oldName: String, newName: String, manager: String?): ConditionDefinition = when {

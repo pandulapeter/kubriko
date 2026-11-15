@@ -24,7 +24,9 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockNesting
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
+import com.pandulapeter.kubrikoCreator.actors.ColorValue
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
+import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
@@ -33,7 +35,26 @@ import kotlin.test.assertEquals
 
 @OptIn(ExperimentalTestApi::class)
 class AppearanceBlockParametersTest {
-    private val spark = ActorTypeDefinition(name = "Spark")
+    private val spark = ActorTypeDefinition(name = "Spark", properties = listOf(PropertyDefinition.Color("tint")))
+
+    @Test
+    fun aColorCanBeAColorPropertysValue() = uiTest(width = 900, height = 360) {
+        var block by mutableStateOf<BlockDefinition>(BlockDefinition.SetColor())
+        showing { Row(block) { block = it } }
+        onNodeWithContentDescription("Kind of color").performClick()
+        onNodeWithText("A color Property's value").performClick()
+        waitForIdle()
+        assertEquals(BlockDefinition.SetColor(listOf(ColorValue.Property())), block)
+        onNodeWithText("Choose a Property").performClick()
+        onNodeWithText("tint").performClick()
+        waitForIdle()
+        assertEquals(BlockDefinition.SetColor(listOf(ColorValue.Property("tint"))), block)
+        saveSnapshot("set-color-property-value")
+        onNodeWithContentDescription("Kind of color").performClick()
+        onNodeWithText("A color").performClick()
+        waitForIdle()
+        assertEquals(BlockDefinition.SetColor(), block)
+    }
 
     @Test
     fun aColorBlockAddsAndRemovesColorsToPickFromAndTakesOnlyOpaqueOnes() = uiTest(width = 900, height = 360) {
@@ -42,17 +63,17 @@ class AppearanceBlockParametersTest {
         onNodeWithText("Set the color").assertExists()
         onNodeWithContentDescription("Add a color, so one is picked at random").performClick()
         waitForIdle()
-        assertEquals(BlockDefinition.SetColor(listOf(0xFFE05050, 0xFFE05050)), block)
+        assertEquals(BlockDefinition.SetColor(listOf(0xFFE05050, 0xFFE05050).map(ColorValue::Fixed)), block)
         onAllNodesWithText("#E05050")[1].performTextReplacement("#80102030")
         waitForIdle()
-        assertEquals(BlockDefinition.SetColor(listOf(0xFFE05050, 0xFFE05050)), block)
+        assertEquals(BlockDefinition.SetColor(listOf(0xFFE05050, 0xFFE05050).map(ColorValue::Fixed)), block)
         onNodeWithText("#80102030").performTextReplacement("#102030")
         waitForIdle()
-        assertEquals(BlockDefinition.SetColor(listOf(0xFFE05050, 0xFF102030)), block)
+        assertEquals(BlockDefinition.SetColor(listOf(0xFFE05050, 0xFF102030).map(ColorValue::Fixed)), block)
         saveSnapshot("set-color")
         onAllNodesWithContentDescription("Remove this color")[0].performClick()
         waitForIdle()
-        assertEquals(BlockDefinition.SetColor(listOf(0xFF102030)), block)
+        assertEquals(BlockDefinition.SetColor(listOf(0xFF102030).map(ColorValue::Fixed)), block)
         onNodeWithContentDescription("Remove this color").assertDoesNotExist()
     }
 

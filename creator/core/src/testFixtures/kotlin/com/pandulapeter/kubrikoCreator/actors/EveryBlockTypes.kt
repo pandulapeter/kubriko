@@ -17,10 +17,16 @@ import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
  */
 public object EveryBlockTypes {
 
+    /**
+     * The color Property every type has, which format version 14 added.
+     */
+    val colorProperty: PropertyDefinition = PropertyDefinition.Color("tint", 0x803366CC)
+
     private val properties = listOf(
         PropertyDefinition.Number("score", 2.5f),
         PropertyDefinition.Text("title", "Say \"\$hi\" \\ to\neveryone"),
         PropertyDefinition.Toggle("isShielded", true),
+        colorProperty,
     )
 
     val everyBlock = listOf(
@@ -93,7 +99,7 @@ public object EveryBlockTypes {
         BlockDefinition.StopMusic,
         BlockDefinition.SetFrame(frame = NumberValue.Fixed(2f)),
         BlockDefinition.SetAnimation(speed = NumberValue.Fixed(-0.5f), isLooping = false),
-    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks + steeringBlocks + actorCountBlocks
+    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks + steeringBlocks + actorCountBlocks + colorPropertyBlocks
 
     /**
      * Blocks taking random numbers and Properties' values, which format version 5 added.
@@ -131,12 +137,25 @@ public object EveryBlockTypes {
         )
 
     /**
+     * Blocks setting and reading color Properties, which format version 14 added.
+     */
+    val colorPropertyBlocks: List<BlockDefinition>
+        get() = listOf(
+            BlockDefinition.SetColorProperty(),
+            BlockDefinition.SetColorProperty("tint", ColorValue.Fixed(0xFF20C060)),
+            BlockDefinition.SetColorProperty("tint", ColorValue.Property("tint", manager = "EveryManager")),
+            BlockDefinition.SetColorProperty("tint", ColorValue.Property("missing"), manager = "EveryManager"),
+            BlockDefinition.SetColor(colors = listOf(ColorValue.Property("tint"), ColorValue.Fixed(0xFF000000))),
+            BlockDefinition.Animate(value = AnimatedValue.Color(from = ColorValue.Property("tint", manager = "EveryManager"), to = ColorValue.Property("tint"))),
+        )
+
+    /**
      * Blocks setting the color and the opacity, which format version 9 added.
      */
     val appearanceBlocks: List<BlockDefinition>
         get() = listOf(
             BlockDefinition.SetColor(),
-            BlockDefinition.SetColor(colors = listOf(0xFF20C060, 0xFFFFFFFF, 0xFF000000)),
+            BlockDefinition.SetColor(colors = listOf(0xFF20C060, 0xFFFFFFFF, 0xFF000000).map(ColorValue::Fixed)),
             BlockDefinition.SetOpacity(percent = NumberValue.Fixed(0f)),
             BlockDefinition.SetOpacity(percent = NumberValue.Random(20f, 80f)),
             BlockDefinition.ChangeOpacity(),
@@ -184,7 +203,7 @@ public object EveryBlockTypes {
                 removesActor = true,
             ),
             BlockDefinition.Animate(value = AnimatedValue.Opacity(), seconds = NumberValue.Random(1f, 2f), easing = AnimationEasing.EASE_IN, removesActor = true),
-            BlockDefinition.Animate(value = AnimatedValue.Color(from = 0xFF20C060, to = 0xFF000000), seconds = NumberValue.Fixed(0f), easing = AnimationEasing.EASE_IN_OUT),
+            BlockDefinition.Animate(value = AnimatedValue.Color(from = ColorValue.Fixed(0xFF20C060), to = ColorValue.Fixed(0xFF000000)), seconds = NumberValue.Fixed(0f), easing = AnimationEasing.EASE_IN_OUT),
             BlockDefinition.Animate(value = AnimatedValue.Position(x = NumberValue.Fixed(40f), y = NumberValue.Edge(SceneEdge.TOP))),
             BlockDefinition.Animate(value = AnimatedValue.Position(x = NumberValue.Edge(SceneEdge.LEFT), y = NumberValue.Property("score"), isRelative = false), seconds = NumberValue.Fixed(2f)),
         )

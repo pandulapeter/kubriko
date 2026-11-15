@@ -12,10 +12,12 @@ package com.pandulapeter.kubrikoCreator.context
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ColorValue
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
+import com.pandulapeter.kubrikoCreator.actors.withColorValues
 import com.pandulapeter.kubrikoCreator.actors.withNumberValues
 
 /**
@@ -84,7 +86,7 @@ internal class ReferenceCleanup(
                             val blocks = types.first { it.name == place.name }.events[eventIndex].blocks
                             removal.blocks.getOrPut(eventIndex, ::HashSet) += ProjectReferences.sectionOf(blocks, checkNotNull(blockIndex))
                         }
-                        UsageEffect.PLACEHOLDER_TO_TEXT, UsageEffect.VALUE_TO_NUMBER, UsageEffect.ACTORS_REMOVED, UsageEffect.SCENE_VALUES_REMOVED, UsageEffect.TEXT_REMOVED, UsageEffect.KOTLIN_TO_CHANGE, UsageEffect.PREVENTS_DELETING, UsageEffect.MENTION_TO_TEXT,
+                        UsageEffect.PLACEHOLDER_TO_TEXT, UsageEffect.VALUE_TO_FIXED, UsageEffect.ACTORS_REMOVED, UsageEffect.SCENE_VALUES_REMOVED, UsageEffect.TEXT_REMOVED, UsageEffect.KOTLIN_TO_CHANGE, UsageEffect.PREVENTS_DELETING, UsageEffect.MENTION_TO_TEXT,
                         UsageEffect.SPRITE_CLEARED, UsageEffect.MUSIC_CLEARED, UsageEffect.IMAGE_COPIED, UsageEffect.DELETED_WITH_FOLDER,
                         -> Unit
                     }
@@ -103,6 +105,7 @@ internal class ReferenceCleanup(
     private fun cleaned(type: BlockTypeDefinition, removal: Removal, deleted: Deleted): BlockTypeDefinition {
         fun isDeleted(placeholder: PropertyPlaceholders.Placeholder) = relations.propertyOf(type.name, placeholder.manager, placeholder.name) in deleted.properties
         fun fixedIfDeleted(value: NumberValue) = (value as? NumberValue.Property)?.let { fixedInsteadOf(type.name, it, deleted) } ?: value
+        fun fixedIfDeleted(value: ColorValue) = (value as? ColorValue.Property)?.let { fixedInsteadOf(type.name, it, deleted) } ?: value
         val events = type.events.mapIndexedNotNull { eventIndex, event ->
             if (eventIndex in removal.events) return@mapIndexedNotNull null
             val removed = removal.blocks[eventIndex].orEmpty()
@@ -111,7 +114,7 @@ internal class ReferenceCleanup(
                     when {
                         blockIndex in removed -> null
                         block is BlockDefinition.Log -> block.copy(message = PropertyPlaceholders.withPlaceholdersAsText(block.message, ::isDeleted))
-                        else -> block.withNumberValues(::fixedIfDeleted)
+                        else -> block.withNumberValues(::fixedIfDeleted).withColorValues(::fixedIfDeleted)
                     }
                 },
             )
@@ -141,6 +144,17 @@ internal class ReferenceCleanup(
         if (property !in deleted.properties && value.manager !in deleted.types) return null
         val definition = types.firstOrNull { it.name == property.owner }?.properties?.firstOrNull { it.name == property.name }
         return NumberValue.Fixed((definition as? PropertyDefinition.Number)?.initialValue ?: 0f)
+    }
+
+    /**
+     * The starting color of the Property [value] reads, as a fixed color, if that Property, or the Manager type it is
+     * chosen from, is deleted.
+     */
+    private fun fixedInsteadOf(typeName: String, value: ColorValue.Property, deleted: Deleted): ColorValue.Fixed? {
+        val property = relations.propertyOf(typeName, value.manager, value.property)
+        if (property !in deleted.properties && value.manager !in deleted.types) return null
+        val definition = types.firstOrNull { it.name == property.owner }?.properties?.firstOrNull { it.name == property.name }
+        return ColorValue.Fixed((definition as? PropertyDefinition.Color)?.initialValue ?: PropertyDefinition.Color(property.name).initialValue)
     }
 
     private class Deleted(

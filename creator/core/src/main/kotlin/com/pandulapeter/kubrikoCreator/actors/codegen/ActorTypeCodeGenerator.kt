@@ -211,7 +211,7 @@ public object ActorTypeCodeGenerator {
         appendLine("        @SerialName(\"body\") val body: SerializableBoxBody = BoxBody(),")
         appendLine("        @SerialName(\"color\") val color: SerializableColor = Color(${colorLiteral(definition.color)}),")
         properties.forEach { property ->
-            appendLine("        @SerialName(${stringLiteral(property.name)}) val ${property.name}: ${PropertyKind.of(property).kotlinType} = ${initialValueLiteral(property)},")
+            appendLine("        @SerialName(${stringLiteral(property.name)}) val ${property.name}: ${PropertyKind.of(property).savedType} = ${initialValueLiteral(property)},")
         }
         appendLine("    ) : Serializable.State<${definition.name}> {")
         appendLine()
@@ -240,7 +240,7 @@ public object ActorTypeCodeGenerator {
         val sceneValues = ManagerSceneValuesCode.typesWithValues(managerTypes)
         appendLine("package $packageName.$GENERATED_PACKAGE")
         appendLine()
-        (listOf("com.pandulapeter.kubriko.sceneEditor.EditableMetadata") + if (sceneValues.isEmpty()) emptyList() else ManagerSceneValuesCode.imports).sorted()
+        (listOf("com.pandulapeter.kubriko.sceneEditor.EditableMetadata") + if (sceneValues.isEmpty()) emptyList() else ManagerSceneValuesCode.importsOf(sceneValues)).sorted()
             .forEach { appendLine("import $it") }
         appendLine()
         appendLine("/**")

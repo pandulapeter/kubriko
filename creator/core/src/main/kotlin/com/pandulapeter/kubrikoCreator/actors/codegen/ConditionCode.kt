@@ -1,0 +1,77 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubrikoCreator.actors.codegen
+
+import com.pandulapeter.kubrikoCreator.actors.Axis
+import com.pandulapeter.kubrikoCreator.actors.BlockScope
+import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
+import com.pandulapeter.kubrikoCreator.actors.ConditionKind
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.KEY_IMPORT
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STATE_MANAGER_FIELD
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.managersReachedBy
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.propertyExpression
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.stringLiteral
+import com.pandulapeter.kubrikoCreator.actors.numberValues
+import com.pandulapeter.kubrikoCreator.actors.propertyReference
+
+/**
+ * The conditions if Blocks check and texts are shown while, as Kotlin expressions.
+ */
+internal object ConditionCode {
+
+    /**
+     * [condition] as a Kotlin expression (the only line of the result), with what its numbers reach, or `false` if it
+     * needs a Property that doesn't exist (of that kind), an Actor type that doesn't, or an Actor in a Manager type, so
+     * that the generated code always compiles.
+     */
+    fun of(condition: ConditionDefinition, scope: BlockScope): BlockCode = expressionOf(condition, scope).let { code ->
+        if (code.lines.single() == "false") {
+            code
+        } else {
+            code.copy(needs = code.needs + NumberValueCode.needsOf(condition.numberValues), managers = code.managers + NumberValueCode.managersReadBy(condition.numberValues, scope))
+        }
+    }
+
+    private fun expressionOf(condition: ConditionDefinition, scope: BlockScope): BlockCode {
+        val reference = condition.propertyReference
+        if (reference != null && !scope.hasProperty(reference)) return BlockCode(listOf("false"))
+        if (!ConditionKind.of(condition).isAvailableIn(scope.kind)) return BlockCode(listOf("false"))
+        val property = reference?.let { propertyExpression(it, scope) }
+        val managers = managersReachedBy(reference?.manager, scope)
+        return when (condition) {
+            is ConditionDefinition.Number -> BlockCode(listOf("$property ${condition.comparison.operator} ${NumberValueCode.float(condition.value, scope)}"), managers = managers)
+            is ConditionDefinition.Text -> BlockCode(listOf("$property ${if (condition.isEqual) "==" else "!="} ${stringLiteral(condition.value)}"), managers = managers)
+            is ConditionDefinition.Toggle -> BlockCode(listOf(if (condition.isOn) "$property" else "!$property"), managers = managers)
+            is ConditionDefinition.KeyHeld -> if (condition.key.isKnown) {
+                BlockCode(
+                    lines = listOf((if (condition.isHeld) "" else "!") + "keyboardInputManager.isKeyPressed(Key.${condition.key.composeKeyName})"),
+                    needs = setOf(BlockNeed.KEYBOARD_INPUT_MANAGER),
+                    imports = setOf(KEY_IMPORT),
+                )
+            } else {
+                BlockCode(listOf((!condition.isHeld).toString()))
+            }
+            is ConditionDefinition.Velocity -> BlockCode(
+                lines = listOf("velocity.${if (condition.axis == Axis.HORIZONTAL) "x" else "y"} ${condition.comparison.operator} ${NumberValueCode.sceneUnit(condition.value, scope)}"),
+                needs = setOf(BlockNeed.MOVEMENT),
+            )
+            is ConditionDefinition.ActorCount -> if (condition.actorType in scope.actorTypeNames) {
+                BlockCode(
+                    lines = listOf("${ActorCountCode.countOf(condition.actorType)}.toFloat() ${condition.comparison.operator} ${NumberValueCode.float(condition.value, scope)}"),
+                    needs = setOf(BlockNeed.SCENES),
+                )
+            } else {
+                BlockCode(listOf("false"))
+            }
+            is ConditionDefinition.Chance -> BlockCode(listOf("${ManagerTypeCodeGenerator.WIRING_NAME}.${ManagerTypeCodeGenerator.RANDOM_FIELD}.nextFloat() * 100f < ${NumberValueCode.float(condition.percent, scope)}"))
+            is ConditionDefinition.Paused -> BlockCode(listOf((if (condition.isPaused) "!" else "") + "$STATE_MANAGER_FIELD.isRunning.value"), needs = setOf(BlockNeed.STATE_MANAGER))
+        }
+    }
+}

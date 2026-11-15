@@ -17,7 +17,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
-import com.pandulapeter.kubrikoCreator.ui.components.ColorField
+import com.pandulapeter.kubrikoCreator.actors.BlockScope
+import com.pandulapeter.kubrikoCreator.actors.ColorValue
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_color_add
@@ -33,6 +34,7 @@ import kubriko.creator.generated.resources.ic_close
 @Composable
 internal fun SetColorParameters(
     block: BlockDefinition.SetColor,
+    scope: BlockScope,
     onBlockChange: (BlockDefinition) -> Unit,
 ) = FlowRow(
     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -41,9 +43,11 @@ internal fun SetColorParameters(
 ) {
     block.colors.forEachIndexed { index, color ->
         Row(verticalAlignment = Alignment.CenterVertically) {
-            ColorField(
-                color = color,
-                onColorChange = { changed -> onBlockChange(block.copy(colors = block.colors.toMutableList().also { it[index] = changed })) },
+            ColorValueField(
+                value = color,
+                scope = scope,
+                onValueChange = { changed -> onBlockChange(block.copy(colors = block.colors.toMutableList().also { it[index] = changed })) },
+                fallback = BlockDefinition.SetColor.DEFAULT_COLOR,
                 isAlphaEnabled = false,
             )
             if (block.colors.size > 1) {
@@ -59,7 +63,7 @@ internal fun SetColorParameters(
         IconActionButton(
             icon = Res.drawable.ic_add,
             label = Res.string.block_color_add,
-            onClick = { onBlockChange(block.copy(colors = block.colors + (block.colors.lastOrNull() ?: BlockDefinition.SetColor.DEFAULT_COLOR))) },
+            onClick = { onBlockChange(block.copy(colors = block.colors + (block.colors.lastOrNull() ?: ColorValue.Fixed(BlockDefinition.SetColor.DEFAULT_COLOR)))) },
         )
     }
 }

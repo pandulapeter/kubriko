@@ -156,6 +156,18 @@ public sealed interface BlockDefinition {
     ) : BlockDefinition
 
     @Serializable
+    @SerialName("setColorProperty")
+    @Description("Sets a color Property of the type, or of a Manager type, to a color, or to another color Property's value.")
+    public data class SetColorProperty(
+        @Description(PROPERTY_DESCRIPTION)
+        @SerialName("property") val property: String = "",
+        @Description("The color, as #RRGGBB, or #AARRGGBB when it isn't opaque, or a property color value.")
+        @SerialName("value") val value: ColorValue = ColorValue.Fixed(0xFFFFFFFF),
+        @Description(MANAGER_DESCRIPTION)
+        @SerialName("manager") val manager: String? = null,
+    ) : BlockDefinition
+
+    @Serializable
     @SerialName("addActor")
     @Description("Adds a new Actor of a block-built Actor type to the Scene, with that type's size and Property values, like one placed in the Scene editor. In a Manager type, the position is always relative to the center of the Scene.")
     public data class AddActor(
@@ -268,8 +280,8 @@ public sealed interface BlockDefinition {
     @SerialName("setColor")
     @Description("Sets the color of the Actor, keeping its opacity: its shape is drawn in it, and its sprite tinted with it if the type tints its sprite. With several colors, one of them is picked at random each time the Block runs.")
     public data class SetColor(
-        @Description("The colors, as #RRGGBB (opaque; the opacity Blocks set the opacity): one, or up to $MAXIMUM_COLORS to pick one of at random.")
-        @SerialName("colors") val colors: List<@Serializable(with = HexColorSerializer::class) Long> = listOf(DEFAULT_COLOR),
+        @Description("The colors, as #RRGGBB (opaque; the opacity Blocks set the opacity) or property color values: one, or up to $MAXIMUM_COLORS to pick one of at random.")
+        @SerialName("colors") val colors: List<ColorValue> = listOf(ColorValue.Fixed(DEFAULT_COLOR)),
     ) : BlockDefinition {
 
         public companion object {

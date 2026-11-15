@@ -22,6 +22,9 @@ import kubriko.creator.generated.resources.error_placement_block_remove_other_in
 import kubriko.creator.generated.resources.error_placement_block_remove_other_outside_collision
 import kubriko.creator.generated.resources.error_placement_block_remove_self_in_manager_type
 import kubriko.creator.generated.resources.error_placement_block_run_parent_event_in_manager_type
+import kubriko.creator.generated.resources.error_placement_color_property_missing
+import kubriko.creator.generated.resources.error_placement_color_property_missing_similar
+import kubriko.creator.generated.resources.error_placement_color_property_of_other_kind
 import kubriko.creator.generated.resources.error_placement_condition_not_allowed
 import kubriko.creator.generated.resources.error_placement_event_actor_added_in_actor_type
 import kubriko.creator.generated.resources.error_placement_event_actor_removed_in_actor_type
@@ -79,4 +82,7 @@ internal fun PlacementProblem.toResource(): StringResource = when (this) {
     PlacementProblem.NUMBER_PROPERTY_OF_OTHER_KIND -> Res.string.error_placement_number_property_of_other_kind
     PlacementProblem.TEXT_PROPERTY_OF_OTHER_KIND -> Res.string.error_placement_text_property_of_other_kind
     PlacementProblem.TOGGLE_PROPERTY_OF_OTHER_KIND -> Res.string.error_placement_toggle_property_of_other_kind
+    PlacementProblem.COLOR_PROPERTY_MISSING -> Res.string.error_placement_color_property_missing
+    PlacementProblem.COLOR_PROPERTY_MISSING_SIMILAR -> Res.string.error_placement_color_property_missing_similar
+    PlacementProblem.COLOR_PROPERTY_OF_OTHER_KIND -> Res.string.error_placement_color_property_of_other_kind
 }

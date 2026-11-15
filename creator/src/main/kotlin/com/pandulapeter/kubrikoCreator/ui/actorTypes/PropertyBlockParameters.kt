@@ -71,6 +71,11 @@ internal fun PropertyBlockParameters(
             checked = block.value,
             onCheckedChange = { onBlockChange(block.copy(value = it)) },
         )
+        is BlockDefinition.SetColorProperty -> ColorValueField(
+            value = block.value,
+            scope = scope,
+            onValueChange = { onBlockChange(block.copy(value = it)) },
+        )
         is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
         is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
         BlockDefinition.RemoveOther, is BlockDefinition.AddActor, is BlockDefinition.MoveTowardsNearest,

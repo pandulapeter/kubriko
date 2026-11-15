@@ -18,7 +18,6 @@ import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.OPACITY_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.REMOVED_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.SCENE_OFFSET_IMPORT
-import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.colorLiteral
 
 /**
  * The Animate Block and what plays it: each [AnimationTarget] an Actor type animates is a few plain fields (its two ends,
@@ -52,7 +51,7 @@ internal object AnimateCode {
         val ends = when (val value = block.value) {
             is AnimatedValue.Scale -> "from = ${NumberValueCode.float(value.from, scope)}, to = ${NumberValueCode.float(value.to, scope)}"
             is AnimatedValue.Opacity -> "from = ${NumberValueCode.float(value.from, scope)} / 100f, to = ${NumberValueCode.float(value.to, scope)} / 100f"
-            is AnimatedValue.Color -> "from = Color(${colorLiteral(value.from)}), to = Color(${colorLiteral(value.to)})"
+            is AnimatedValue.Color -> "from = ${ColorValueCode.color(value.from, scope)}, to = ${ColorValueCode.color(value.to, scope)}"
             is AnimatedValue.Position -> "to = ${BlockCodeGenerator.placementCode(value.x, value.y, value.isRelative, scope)}"
         }
         val arguments = "$ends, seconds = ${NumberValueCode.float(block.seconds, scope)}, easing = ${easingCode(block.easing)}, removesActor = ${block.removesActor}"

@@ -387,6 +387,13 @@ class ManagerTypeCodeGeneratorTest {
     }
 
     @Test
+    fun aColorPropertysPlaceholderStaysAsItIsWritten() {
+        val tinted = game.copy(properties = game.properties + PropertyDefinition.Color("tint"), texts = listOf(ScreenTextDefinition("Tint: {tint}, {score}")))
+        assertContains(generate(tinted), "text = \"Tint: {tint}, ${'$'}{score.asText()}\",")
+        assertContains(generate(tinted), "    var tint by mutableStateOf(Color(0xFFFFFFFF))\n")
+    }
+
+    @Test
     fun kotlinUiNamingRandomGetsKotlinsRandomUnlessItImportsOne() {
         val game = ManagerTypeDefinition("Game")
         assertContains(generate(game.copy(kotlinUi = "BasicText(Random.nextInt(6).toString())")), "import kotlin.random.Random\n")

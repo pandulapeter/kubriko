@@ -45,6 +45,7 @@ import org.jetbrains.compose.resources.stringResource
  *
  * @param isAlphaEnabled False for a field that takes only opaque colors: its picker has no opacity, it marks an
  *   `#AARRGGBB` code as an error rather than taking it, and it shows a translucent [color] as opaque.
+ * @param label What the field is labeled with, or null for "Color".
  */
 @Composable
 public fun ColorField(
@@ -52,6 +53,7 @@ public fun ColorField(
     onColorChange: (Long) -> Unit,
     modifier: Modifier = Modifier,
     isAlphaEnabled: Boolean = true,
+    label: String? = null,
 ): Unit = Row(
     modifier = modifier,
     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -108,7 +110,7 @@ public fun ColorField(
                 onColorChange(it)
             }
         },
-        label = stringResource(Res.string.actor_type_color),
+        label = label ?: stringResource(Res.string.actor_type_color),
         isError = parse(text) == null,
     )
 }

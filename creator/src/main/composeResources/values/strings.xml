@@ -276,6 +276,9 @@
     <string name="block_property_none">Add a %1$s Property here, or to a Manager type, first.</string>
     <string name="block_parameter_value">Value</string>
     <string name="number_value_kind">Kind of number</string>
+    <string name="color_value_kind">Kind of color</string>
+    <string name="color_value_fixed">A color</string>
+    <string name="color_value_property">A color Property's value</string>
     <string name="number_value_fixed">A number</string>
     <string name="number_value_random">A random number</string>
     <string name="number_value_random_whole">A random whole number</string>
@@ -382,6 +385,7 @@
     <string name="block_change_number">Change a number</string>
     <string name="block_set_text">Set a text</string>
     <string name="block_set_toggle">Turn a toggle on or off</string>
+    <string name="block_set_color_property">Set a color Property</string>
     <string name="actor_type_properties">Properties</string>
     <string name="actor_type_properties_empty">Values each Actor keeps, like a score. Blocks can change them.</string>
     <string name="manager_type_properties_empty">Game-wide values, like the score or the lives left. The Blocks of every type can use them.</string>
@@ -423,6 +427,7 @@
     <string name="property_kind_number">Number</string>
     <string name="property_kind_text">Text</string>
     <string name="property_kind_toggle">Toggle</string>
+    <string name="property_kind_color">Color</string>
     <string name="error_property_name_reserved">That name is already used by the generated code. Try another one.</string>
     <string name="error_property_name_taken">This type already has a Property with that name, or one differing only in capital letters.</string>
     <string name="error_command_property_unknown">%1$s has no Property called %2$s.</string>
@@ -436,6 +441,9 @@
     <string name="error_placement_toggle_property_missing_similar">%2$s has no toggle Property called %1$s. Close matches: %3$s.</string>
     <string name="error_placement_number_property_of_other_kind">%2$s has a Property called %1$s, but it isn't a number Property, so this Block can't use it. Use a Block for its kind, or another Property.</string>
     <string name="error_placement_text_property_of_other_kind">%2$s has a Property called %1$s, but it isn't a text Property, so this Block can't use it. Use a Block for its kind, or another Property.</string>
+    <string name="error_placement_color_property_missing">%2$s has no color Property called %1$s.</string>
+    <string name="error_placement_color_property_missing_similar">%2$s has no color Property called %1$s. Close matches: %3$s.</string>
+    <string name="error_placement_color_property_of_other_kind">%2$s has a Property called %1$s, but it isn't a color Property, so this Block can't use it. Use a Block for its kind, or another Property.</string>
     <string name="error_placement_toggle_property_of_other_kind">%2$s has a Property called %1$s, but it isn't a toggle Property, so this Block can't use it. Use a Block for its kind, or another Property.</string>
     <string name="resource_group_actor_types">Actor types</string>
     <string name="new_actor_type_hint">New Actor type name</string>
@@ -1201,7 +1209,7 @@
     <string name="game_map_moves_towards">Moves towards %1$s</string>
     <string name="game_map_goes_to">Goes to %1$s</string>
     <string name="game_map_reads">Reads %1$s</string>
-    <string name="game_map_reads_as_number">Reads %1$s as a number</string>
+    <string name="game_map_reads_value">Reads the value of %1$s</string>
     <string name="game_map_changes">Changes %1$s</string>
     <string name="game_map_names_in_kotlin">Names %1$s in Kotlin</string>
     <string name="game_map_starts_with">Starts with %1$s</string>
@@ -1239,7 +1247,7 @@
     <string name="usage_effect_scene_values_removed">The Scene no longer gives it values</string>
     <string name="usage_effect_placeholder_to_text">The placeholder becomes plain text</string>
     <string name="usage_effect_text_removed">The text is removed</string>
-    <string name="usage_effect_value_to_number">The Property's value becomes a fixed number</string>
+    <string name="usage_effect_value_to_fixed">The Property's value becomes its starting value, fixed</string>
     <string name="usage_effect_kotlin_to_change">Left as it is: the build fails until you change it</string>
     <string name="usage_effect_mention_to_text">The mention becomes plain text</string>
     <string name="usage_effect_prevents_deleting">Keeps it from being deleted</string>

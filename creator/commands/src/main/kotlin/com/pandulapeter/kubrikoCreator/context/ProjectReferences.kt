@@ -21,6 +21,7 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyReference
 import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.actors.numberPropertyReferences
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
+import com.pandulapeter.kubrikoCreator.actors.valuePropertyReferences
 import com.pandulapeter.kubrikoCreator.screenplay.PageLinks
 
 /**
@@ -117,7 +118,7 @@ internal class ProjectReferences(
                 null, is BlockDefinition.Log -> if ((relation.place as? RelationPlace.Text)?.isCondition == true) conditionUsage(relation.place, ::usage) else usage(UsageEffect.PLACEHOLDER_TO_TEXT)
                 else -> error("${block::class.simpleName} doesn't read a Property.")
             }
-            RelationKind.READS_AS_NUMBER -> usage(UsageEffect.VALUE_TO_NUMBER)
+            RelationKind.READS_VALUE -> usage(UsageEffect.VALUE_TO_FIXED)
         }
     }
 
@@ -140,7 +141,7 @@ internal class ProjectReferences(
         if (subject !is RelationSubject.Type) return@buildList
         fun addChoiceUsages(place: RelationPlace, reference: PropertyReference?, numberReferences: List<PropertyReference>, referenceUsage: () -> Usage) {
             if (numberReferences.any { it.manager == subject.name && it.name.isEmpty() }) {
-                add(Usage(UsagePlace.InModel(place), RelationKind.READS_AS_NUMBER, subject, UsageEffect.VALUE_TO_NUMBER))
+                add(Usage(UsagePlace.InModel(place), RelationKind.READS_VALUE, subject, UsageEffect.VALUE_TO_FIXED))
             }
             if (reference != null && reference.manager == subject.name && reference.name.isEmpty()) add(referenceUsage())
         }
@@ -149,7 +150,7 @@ internal class ProjectReferences(
             type.events.forEachIndexed { eventIndex, event ->
                 event.blocks.forEachIndexed { blockIndex, block ->
                     val place = RelationPlace.Type(type.name, eventIndex, blockIndex)
-                    addChoiceUsages(place, block.propertyReference, block.numberPropertyReferences) {
+                    addChoiceUsages(place, block.propertyReference, block.valuePropertyReferences) {
                         if (block is BlockDefinition.If) {
                             Usage(UsagePlace.InModel(place), RelationKind.READS, subject, UsageEffect.SECTION_REMOVED, blocksInside = sectionOf(place).count() - 1)
                         } else {

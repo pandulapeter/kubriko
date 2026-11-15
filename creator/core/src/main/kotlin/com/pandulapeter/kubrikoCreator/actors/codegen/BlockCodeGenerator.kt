@@ -27,6 +27,7 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
 import com.pandulapeter.kubrikoCreator.actors.PropertyReference
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
+import com.pandulapeter.kubrikoCreator.actors.colorValues
 import com.pandulapeter.kubrikoCreator.actors.numberValues
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.readsEdges
@@ -60,7 +61,7 @@ public object BlockCodeGenerator {
     private const val SCENE_UNIT_EXTENSION_IMPORT = "com.pandulapeter.kubriko.helpers.extensions.sceneUnit"
     private const val NORMALIZED_IMPORT = "com.pandulapeter.kubriko.helpers.extensions.normalized"
     private const val LOGGER_IMPORT = "com.pandulapeter.kubriko.logger.Logger"
-    private const val KEY_IMPORT = "androidx.compose.ui.input.key.Key"
+    internal const val KEY_IMPORT = "androidx.compose.ui.input.key.Key"
     private const val RANDOM_IMPORT = "kotlin.random.Random"
     private const val RANDOM = "Random"
 
@@ -101,7 +102,10 @@ public object BlockCodeGenerator {
             kind.onlyIn != null && kind.onlyIn != eventType -> BlockCode(listOfNotNull(kind.misplacedComment))
             else -> emittedCode(block, scope).let { code ->
                 val numberValues = block.numberValues
-                code.copy(needs = code.needs + NumberValueCode.needsOf(numberValues), managers = code.managers + NumberValueCode.managersReadBy(numberValues, scope))
+                code.copy(
+                    needs = code.needs + NumberValueCode.needsOf(numberValues),
+                    managers = code.managers + NumberValueCode.managersReadBy(numberValues, scope) + ColorValueCode.managersReadBy(block.colorValues, scope),
+                )
             }
         }
     }
@@ -137,6 +141,7 @@ public object BlockCodeGenerator {
         is BlockDefinition.ChangeNumber -> propertyCode(block, scope) { "$it += ${NumberValueCode.float(block.by, scope)}" }
         is BlockDefinition.SetText -> propertyCode(block, scope) { "$it = ${stringLiteral(block.value)}" }
         is BlockDefinition.SetToggle -> propertyCode(block, scope) { "$it = ${block.value}" }
+        is BlockDefinition.SetColorProperty -> propertyCode(block, scope) { "$it = ${ColorValueCode.color(block.value, scope)}" }
         is BlockDefinition.AddActor -> addActorCode(block, scope)
         is BlockDefinition.MoveTowardsNearest -> moveTowardsNearestCode(block, scope)
         is BlockDefinition.StartTimer -> startTimerCode(block, scope)
@@ -170,11 +175,11 @@ public object BlockCodeGenerator {
         BlockDefinition.StopMusic -> BlockCode(listOf("$AUDIO_FIELD.stopMusic()"), needs = setOf(BlockNeed.AUDIO))
         is BlockDefinition.SetFrame -> animationCode(scope, BlockNeed.FRAME, "$SET_FRAME_FUNCTION(${NumberValueCode.whole(block.frame, scope)})")
         is BlockDefinition.SetAnimation -> animationCode(scope, BlockNeed.ANIMATION, "$ANIMATION_SPEED_FIELD = ${NumberValueCode.float(block.speed, scope)}", "$ANIMATION_LOOPING_FIELD = ${block.isLooping}")
-        is BlockDefinition.SetColor -> AppearanceCode.setColor(block)
+        is BlockDefinition.SetColor -> AppearanceCode.setColor(block, scope)
         is BlockDefinition.SetOpacity -> AppearanceCode.setOpacity(block, scope)
         is BlockDefinition.ChangeOpacity -> AppearanceCode.changeOpacity(block, scope)
         is BlockDefinition.Animate -> AnimateCode.animate(block, scope)
-        is BlockDefinition.If -> conditionCode(block.condition, scope).let { condition -> condition.copy(lines = listOf("if (${condition.lines.single()}) {")) }
+        is BlockDefinition.If -> ConditionCode.of(block.condition, scope).let { condition -> condition.copy(lines = listOf("if (${condition.lines.single()}) {")) }
         is BlockDefinition.Repeat -> BlockCode(listOf("repeat(${NumberValueCode.whole(block.times, scope)}) {"))
         BlockDefinition.Else, BlockDefinition.End -> BlockCode.NONE
         is BlockDefinition.Log -> logCode(block, scope)
@@ -341,55 +346,6 @@ public object BlockCodeGenerator {
     }
 
     /**
-     * [condition] as a Kotlin expression (the only line of the result), with what its numbers reach, or `false` if it
-     * needs a Property that doesn't exist (of that kind), an Actor type that doesn't, or an Actor in a Manager type, so
-     * that the generated code always compiles.
-     */
-    internal fun conditionCode(condition: ConditionDefinition, scope: BlockScope): BlockCode = conditionExpression(condition, scope).let { code ->
-        if (code.lines.single() == "false") {
-            code
-        } else {
-            code.copy(needs = code.needs + NumberValueCode.needsOf(condition.numberValues), managers = code.managers + NumberValueCode.managersReadBy(condition.numberValues, scope))
-        }
-    }
-
-    private fun conditionExpression(condition: ConditionDefinition, scope: BlockScope): BlockCode {
-        val reference = condition.propertyReference
-        if (reference != null && !scope.hasProperty(reference)) return BlockCode(listOf("false"))
-        if (!ConditionKind.of(condition).isAvailableIn(scope.kind)) return BlockCode(listOf("false"))
-        val property = reference?.let { propertyExpression(it, scope) }
-        val managers = managersReachedBy(reference?.manager, scope)
-        return when (condition) {
-            is ConditionDefinition.Number -> BlockCode(listOf("$property ${condition.comparison.operator} ${NumberValueCode.float(condition.value, scope)}"), managers = managers)
-            is ConditionDefinition.Text -> BlockCode(listOf("$property ${if (condition.isEqual) "==" else "!="} ${stringLiteral(condition.value)}"), managers = managers)
-            is ConditionDefinition.Toggle -> BlockCode(listOf(if (condition.isOn) "$property" else "!$property"), managers = managers)
-            is ConditionDefinition.KeyHeld -> if (condition.key.isKnown) {
-                BlockCode(
-                    lines = listOf((if (condition.isHeld) "" else "!") + "keyboardInputManager.isKeyPressed(Key.${condition.key.composeKeyName})"),
-                    needs = setOf(BlockNeed.KEYBOARD_INPUT_MANAGER),
-                    imports = setOf(KEY_IMPORT),
-                )
-            } else {
-                BlockCode(listOf((!condition.isHeld).toString()))
-            }
-            is ConditionDefinition.Velocity -> BlockCode(
-                lines = listOf("velocity.${if (condition.axis == Axis.HORIZONTAL) "x" else "y"} ${condition.comparison.operator} ${NumberValueCode.sceneUnit(condition.value, scope)}"),
-                needs = setOf(BlockNeed.MOVEMENT),
-            )
-            is ConditionDefinition.ActorCount -> if (condition.actorType in scope.actorTypeNames) {
-                BlockCode(
-                    lines = listOf("${ActorCountCode.countOf(condition.actorType)}.toFloat() ${condition.comparison.operator} ${NumberValueCode.float(condition.value, scope)}"),
-                    needs = setOf(BlockNeed.SCENES),
-                )
-            } else {
-                BlockCode(listOf("false"))
-            }
-            is ConditionDefinition.Chance -> BlockCode(listOf("${ManagerTypeCodeGenerator.WIRING_NAME}.${ManagerTypeCodeGenerator.RANDOM_FIELD}.nextFloat() * 100f < ${NumberValueCode.float(condition.percent, scope)}"))
-            is ConditionDefinition.Paused -> BlockCode(listOf((if (condition.isPaused) "!" else "") + "$STATE_MANAGER_FIELD.isRunning.value"), needs = setOf(BlockNeed.STATE_MANAGER))
-        }
-    }
-
-    /**
      * The statement of a Block that changes a Property, given the Property's expression, or a comment if there is no
      * Property of that name and kind (one that was renamed, deleted, or not chosen yet), so that the generated code
      * always compiles.
@@ -414,7 +370,7 @@ public object BlockCodeGenerator {
     /**
      * The other Manager type a Property of [manager] is reached through, if it isn't the type's own.
      */
-    private fun managersReachedBy(manager: String?, scope: BlockScope) = if (manager == null || scope.isOwn(manager)) emptySet() else setOf(manager)
+    internal fun managersReachedBy(manager: String?, scope: BlockScope) = if (manager == null || scope.isOwn(manager)) emptySet() else setOf(manager)
 
     /**
      * A string literal for text whose placeholders show Properties.
@@ -439,7 +395,8 @@ public object BlockCodeGenerator {
         val code = buildString {
             append('"')
             PropertyPlaceholders.find(text).forEach { placeholder ->
-                val property = scope.propertyOf(placeholder) ?: return@forEach
+                // A color has no words to show, so its placeholder stays as it is written, as an unknown name's does.
+                val property = scope.propertyOf(placeholder)?.takeUnless { it is PropertyDefinition.Color } ?: return@forEach
                 appendEscaped(text.substring(end, placeholder.range.first))
                 append("\${").append(propertyExpression(PropertyReference(placeholder.name, PropertyKind.of(property), placeholder.manager), scope))
                 if (property is PropertyDefinition.Number) {
@@ -480,6 +437,7 @@ public object BlockCodeGenerator {
         is PropertyDefinition.Number -> floatLiteral(property.initialValue)
         is PropertyDefinition.Text -> stringLiteral(property.initialValue)
         is PropertyDefinition.Toggle -> property.initialValue.toString()
+        is PropertyDefinition.Color -> "Color(${colorLiteral(property.initialValue)})"
     }
 
     private fun offsetCode(x: NumberValue, y: NumberValue, scope: BlockScope) = "SceneOffset(${NumberValueCode.sceneUnit(x, scope)}, ${NumberValueCode.sceneUnit(y, scope)})"

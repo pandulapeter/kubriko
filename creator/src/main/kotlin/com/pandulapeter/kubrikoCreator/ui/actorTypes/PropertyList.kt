@@ -41,6 +41,7 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyNaming
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
+import com.pandulapeter.kubrikoCreator.ui.components.ColorField
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import com.pandulapeter.kubrikoCreator.ui.components.FieldErrorText
@@ -256,6 +257,11 @@ private fun PropertyRow(
                     label = stringResource(Res.string.property_toggle_initially_on),
                     checked = property.initialValue,
                     onCheckedChange = { onChange(property.copy(initialValue = it)) },
+                )
+                is PropertyDefinition.Color -> ColorField(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = property.initialValue,
+                    onColorChange = { onChange(property.copy(initialValue = it)) },
                 )
             }
         }

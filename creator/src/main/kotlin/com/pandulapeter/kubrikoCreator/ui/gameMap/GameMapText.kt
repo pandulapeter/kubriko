@@ -29,7 +29,7 @@ import kubriko.creator.generated.resources.game_map_places
 import kubriko.creator.generated.resources.game_map_plays
 import kubriko.creator.generated.resources.game_map_reacts_to
 import kubriko.creator.generated.resources.game_map_reads
-import kubriko.creator.generated.resources.game_map_reads_as_number
+import kubriko.creator.generated.resources.game_map_reads_value
 import kubriko.creator.generated.resources.game_map_shows
 import kubriko.creator.generated.resources.game_map_starts_with
 import kubriko.creator.generated.resources.game_map_uses_timer
@@ -54,7 +54,7 @@ internal val RelationKind.label
         RelationKind.PLACES -> Res.string.game_map_places
         RelationKind.GIVES_VALUES_TO -> Res.string.game_map_gives_values_to
         RelationKind.READS -> Res.string.game_map_reads
-        RelationKind.READS_AS_NUMBER -> Res.string.game_map_reads_as_number
+        RelationKind.READS_VALUE -> Res.string.game_map_reads_value
         RelationKind.CHANGES -> Res.string.game_map_changes
         RelationKind.NAMES_IN_KOTLIN -> Res.string.game_map_names_in_kotlin
         RelationKind.STARTS_WITH -> Res.string.game_map_starts_with

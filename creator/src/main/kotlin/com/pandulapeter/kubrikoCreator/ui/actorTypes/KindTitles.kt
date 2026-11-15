@@ -40,6 +40,7 @@ import kubriko.creator.generated.resources.block_restart_scene
 import kubriko.creator.generated.resources.block_run_parent_event
 import kubriko.creator.generated.resources.block_set_animation
 import kubriko.creator.generated.resources.block_set_color
+import kubriko.creator.generated.resources.block_set_color_property
 import kubriko.creator.generated.resources.block_set_frame
 import kubriko.creator.generated.resources.block_set_number
 import kubriko.creator.generated.resources.block_set_opacity
@@ -58,6 +59,7 @@ import kubriko.creator.generated.resources.condition_paused
 import kubriko.creator.generated.resources.condition_text
 import kubriko.creator.generated.resources.condition_toggle
 import kubriko.creator.generated.resources.condition_velocity
+import kubriko.creator.generated.resources.property_kind_color
 import kubriko.creator.generated.resources.property_kind_number
 import kubriko.creator.generated.resources.property_kind_text
 import kubriko.creator.generated.resources.property_kind_toggle
@@ -84,6 +86,7 @@ internal val BlockKind.title: StringResource
         BlockKind.CHANGE_NUMBER -> Res.string.block_change_number
         BlockKind.SET_TEXT -> Res.string.block_set_text
         BlockKind.SET_TOGGLE -> Res.string.block_set_toggle
+        BlockKind.SET_COLOR_PROPERTY -> Res.string.block_set_color_property
         BlockKind.ADD_ACTOR -> Res.string.block_add_actor
         BlockKind.MOVE_TOWARDS_NEAREST -> Res.string.block_move_towards_nearest
         BlockKind.START_TIMER -> Res.string.block_start_timer
@@ -121,4 +124,5 @@ internal val PropertyKind.title: StringResource
         PropertyKind.NUMBER -> Res.string.property_kind_number
         PropertyKind.TEXT -> Res.string.property_kind_text
         PropertyKind.TOGGLE -> Res.string.property_kind_toggle
+        PropertyKind.COLOR -> Res.string.property_kind_color
     }

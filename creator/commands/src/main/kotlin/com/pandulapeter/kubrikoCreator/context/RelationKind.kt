@@ -39,9 +39,10 @@ public enum class RelationKind(
     READS("reads"),
 
     /**
-     * A Block reading a Property as one of its numbers ([com.pandulapeter.kubrikoCreator.actors.NumberValue.Property]).
+     * A Block or condition reading a Property as one of its values: a number ([com.pandulapeter.kubrikoCreator.actors.NumberValue.Property])
+     * or a color ([com.pandulapeter.kubrikoCreator.actors.ColorValue.Property]).
      */
-    READS_AS_NUMBER("reads as a number"),
+    READS_VALUE("reads the value of"),
     CHANGES("changes"),
     NAMES_IN_KOTLIN("names in Kotlin"),
 

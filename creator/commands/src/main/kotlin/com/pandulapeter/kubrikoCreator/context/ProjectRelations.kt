@@ -19,9 +19,9 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
 import com.pandulapeter.kubrikoCreator.actors.actorTypeReference
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
-import com.pandulapeter.kubrikoCreator.actors.numberPropertyReferences
 import com.pandulapeter.kubrikoCreator.actors.numberValues
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
+import com.pandulapeter.kubrikoCreator.actors.valuePropertyReferences
 
 /**
  * Every reference between the parts of a game, read from Kubriko Creator's model of it rather than from its code: what
@@ -96,7 +96,7 @@ internal class ProjectRelations(
             is BlockDefinition.GoToScene -> block.scene.ifEmpty { null }?.let { add(Relation(place, RelationKind.GOES_TO, RelationSubject.Scene(it))) }
             is BlockDefinition.Log -> addPlaceholders(typeName, place, block.message)
             is BlockDefinition.Kotlin -> addKotlinNames(place, block.code)
-            is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText, is BlockDefinition.SetToggle,
+            is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.SetColorProperty,
             -> block.propertyReference?.takeIf { it.name.isNotEmpty() }?.let { reference ->
                 add(Relation(place, RelationKind.CHANGES, propertyOf(typeName, reference.manager, reference.name)))
             }
@@ -108,8 +108,8 @@ internal class ProjectRelations(
             is BlockDefinition.ChangeOpacity, is BlockDefinition.Animate, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
             -> Unit
         }
-        block.numberPropertyReferences.forEach { reference ->
-            if (reference.name.isNotEmpty()) add(Relation(place, RelationKind.READS_AS_NUMBER, propertyOf(typeName, reference.manager, reference.name)))
+        block.valuePropertyReferences.forEach { reference ->
+            if (reference.name.isNotEmpty()) add(Relation(place, RelationKind.READS_VALUE, propertyOf(typeName, reference.manager, reference.name)))
         }
     }
 
@@ -119,7 +119,7 @@ internal class ProjectRelations(
     private fun MutableList<Relation>.addRelationsOf(typeName: String, place: RelationPlace, condition: ConditionDefinition) {
         addCheckedBy(typeName, place, condition)
         condition.numberValues.forEach { value ->
-            value.propertyReference?.takeIf { it.name.isNotEmpty() }?.let { add(Relation(place, RelationKind.READS_AS_NUMBER, propertyOf(typeName, it.manager, it.name))) }
+            value.propertyReference?.takeIf { it.name.isNotEmpty() }?.let { add(Relation(place, RelationKind.READS_VALUE, propertyOf(typeName, it.manager, it.name))) }
         }
     }
 

@@ -57,12 +57,14 @@ public data class ScreenTextDefinition(
          * condition with no Property chosen when there is none, which the health checks point out.
          */
         public fun defaultConditionFor(properties: List<PropertyDefinition>): ConditionDefinition {
-            val property = properties.firstOrNull { it is PropertyDefinition.Toggle } ?: properties.firstOrNull { it is PropertyDefinition.Number } ?: properties.firstOrNull()
+            val property = properties.firstOrNull { it is PropertyDefinition.Toggle }
+                ?: properties.firstOrNull { it is PropertyDefinition.Number }
+                ?: properties.firstOrNull { it is PropertyDefinition.Text }
             return when (property) {
                 is PropertyDefinition.Toggle -> ConditionDefinition.Toggle(property.name)
                 is PropertyDefinition.Number -> ConditionDefinition.Number(property.name)
                 is PropertyDefinition.Text -> ConditionDefinition.Text(property.name)
-                null -> ConditionDefinition.Toggle()
+                is PropertyDefinition.Color, null -> ConditionDefinition.Toggle()
             }
         }
 

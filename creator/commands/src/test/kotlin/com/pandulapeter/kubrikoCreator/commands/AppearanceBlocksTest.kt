@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.ColorValue
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
@@ -41,10 +42,10 @@ class AppearanceBlocksTest {
     fun aColorBlockTakesOneToEightOpaqueColors() = runTest {
         val context = commandContext(spark)
         assertNull(context.rejection(BlockDefinition.SetColor()))
-        assertNull(context.rejection(BlockDefinition.SetColor(List(BlockDefinition.SetColor.MAXIMUM_COLORS) { 0xFF000000 + it })))
+        assertNull(context.rejection(BlockDefinition.SetColor(List(BlockDefinition.SetColor.MAXIMUM_COLORS) { ColorValue.Fixed(0xFF000000 + it) })))
         assertEquals(Rejection(CommandProblem.COLORS_COUNT, "8"), context.rejection(BlockDefinition.SetColor(emptyList())))
-        assertEquals(Rejection(CommandProblem.COLORS_COUNT, "8"), context.rejection(BlockDefinition.SetColor(List(9) { 0xFF000000 + it })))
-        assertEquals(Rejection(CommandProblem.COLORS_NOT_OPAQUE), context.rejection(BlockDefinition.SetColor(listOf(0xFFFF0000, 0x80FF0000))))
+        assertEquals(Rejection(CommandProblem.COLORS_COUNT, "8"), context.rejection(BlockDefinition.SetColor(List(9) { ColorValue.Fixed(0xFF000000 + it) })))
+        assertEquals(Rejection(CommandProblem.COLORS_NOT_OPAQUE), context.rejection(BlockDefinition.SetColor(listOf(0xFFFF0000, 0x80FF0000).map(ColorValue::Fixed))))
     }
 
     @Test
@@ -84,7 +85,7 @@ class AppearanceBlocksTest {
     @Test
     fun addingAnAppearanceBlockIsUndone() = runTest {
         val context = commandContext(spark)
-        val color = BlockDefinition.SetColor(listOf(0xFF20C060, 0xFFFFFFFF))
+        val color = BlockDefinition.SetColor(listOf(0xFF20C060, 0xFFFFFFFF).map(ColorValue::Fixed))
         val added = context.assertRoundTrip(Invocation(AddBlock, AddBlock.Input("Spark", 0, color))) { context.blockTypes!!.actorType("Spark") }
         assertEquals(listOf<BlockDefinition>(color), added?.events?.single()?.blocks)
     }

@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.actors.codegen
 
 import com.pandulapeter.kubrikoCreator.actors.GeneratedNames
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 
 /**
@@ -30,7 +31,16 @@ internal object ManagerSceneValuesCode {
      */
     fun typesWithValues(managerTypes: List<ManagerTypeDefinition>) = managerTypes.filter { it.properties.isNotEmpty() }.sortedBy { it.name }
 
-    val imports = listOf(
+    /**
+     * What the classes of [managerTypes] import: Kubriko's serializer of colors too if a Scene can give one.
+     */
+    fun importsOf(managerTypes: List<ManagerTypeDefinition>) = imports + if (managerTypes.any { type -> type.properties.any { it is PropertyDefinition.Color } }) {
+        listOf("com.pandulapeter.kubriko.serialization.typeSerializers.SerializableColor")
+    } else {
+        emptyList()
+    }
+
+    private val imports = listOf(
         "com.pandulapeter.kubriko.Kubriko",
         "com.pandulapeter.kubriko.actor.Actor",
         "com.pandulapeter.kubriko.actor.traits.Unique",
@@ -61,7 +71,7 @@ internal object ManagerSceneValuesCode {
         appendLine("        @kotlinx.serialization.Serializable")
         appendLine("        data class State(")
         definition.properties.forEachIndexed { index, property ->
-            appendLine("            @SerialName(\"${property.name}\") val ${fieldOf(index)}: ${PropertyKind.of(property).kotlinType}? = null,")
+            appendLine("            @SerialName(\"${property.name}\") val ${fieldOf(index)}: ${PropertyKind.of(property).savedType}? = null,")
         }
         appendLine("        ) : Serializable.State<$name> {")
         appendLine()

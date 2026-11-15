@@ -78,6 +78,7 @@ class BlockCodeTest {
             BlockKind.CHANGE_NUMBER to Expected(),
             BlockKind.SET_TEXT to Expected(),
             BlockKind.SET_TOGGLE to Expected(),
+            BlockKind.SET_COLOR_PROPERTY to Expected(),
             BlockKind.ADD_ACTOR to Expected(),
             BlockKind.MOVE_TOWARDS_NEAREST to Expected(),
             BlockKind.START_TIMER to Expected(),

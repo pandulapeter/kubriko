@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.AnimatedValue
 import com.pandulapeter.kubrikoCreator.actors.AnimationEasing
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
+import com.pandulapeter.kubrikoCreator.actors.ColorValue
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
@@ -59,7 +60,7 @@ class AnimateCodeTest {
         )
         assertEquals(
             listOf("startColorTween(from = Color(0xFFFFFFFF), to = Color(0xFF102030), seconds = 0.5f, easing = 3, removesActor = false)"),
-            lines(BlockDefinition.Animate(AnimatedValue.Color(to = 0xFF102030), easing = AnimationEasing.EASE_IN_OUT)),
+            lines(BlockDefinition.Animate(AnimatedValue.Color(to = ColorValue.Fixed(0xFF102030)), easing = AnimationEasing.EASE_IN_OUT)),
         )
     }
 

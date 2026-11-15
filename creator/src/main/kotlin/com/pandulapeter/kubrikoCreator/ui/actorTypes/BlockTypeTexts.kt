@@ -140,6 +140,7 @@ internal val BlockKind.icon: DrawableResource
         BlockKind.CHANGE_NUMBER -> Res.drawable.ic_add
         BlockKind.SET_TEXT -> Res.drawable.ic_text
         BlockKind.SET_TOGGLE -> Res.drawable.ic_toggle
+        BlockKind.SET_COLOR_PROPERTY -> Res.drawable.ic_palette
         BlockKind.ADD_ACTOR -> Res.drawable.ic_add_actor
         BlockKind.MOVE_TOWARDS_NEAREST -> Res.drawable.ic_move_towards
         BlockKind.START_TIMER -> Res.drawable.ic_timer
@@ -193,6 +194,7 @@ internal val PropertyKind.icon: DrawableResource
         PropertyKind.NUMBER -> Res.drawable.ic_number
         PropertyKind.TEXT -> Res.drawable.ic_text
         PropertyKind.TOGGLE -> Res.drawable.ic_toggle
+        PropertyKind.COLOR -> Res.drawable.ic_palette
     }
 
 internal val ScreenPosition.title: StringResource

@@ -116,8 +116,8 @@ class NumberValueUsagesTest {
     fun aPropertyReadAsANumberIsAUsageThatBecomesItsStartingValue() = runTest {
         val context = commandContext(enemy)
         val usages = context.usagesOf(RelationSubject.Property("Enemy", "speed"))
-        assertEquals(listOf(RelationKind.READS_AS_NUMBER, RelationKind.READS_AS_NUMBER, RelationKind.READS), usages.map { it.kind })
-        assertEquals(listOf(UsageEffect.VALUE_TO_NUMBER, UsageEffect.VALUE_TO_NUMBER, UsageEffect.SECTION_REMOVED), usages.map { it.effect })
+        assertEquals(listOf(RelationKind.READS_VALUE, RelationKind.READS_VALUE, RelationKind.READS), usages.map { it.kind })
+        assertEquals(listOf(UsageEffect.VALUE_TO_FIXED, UsageEffect.VALUE_TO_FIXED, UsageEffect.SECTION_REMOVED), usages.map { it.effect })
         val after = context.assertRoundTrip(Invocation(RemoveProperty, RemoveProperty.Input("Enemy", "speed"))) { context.blockTypes!!.types.value }
         assertEquals(
             listOf(
@@ -146,7 +146,7 @@ class NumberValueUsagesTest {
             ),
         )
         val context = commandContext(game, ball)
-        assertEquals(listOf(UsageEffect.VALUE_TO_NUMBER, UsageEffect.VALUE_TO_NUMBER), context.usagesOf(RelationSubject.Type("Game")).map { it.effect })
+        assertEquals(listOf(UsageEffect.VALUE_TO_FIXED, UsageEffect.VALUE_TO_FIXED), context.usagesOf(RelationSubject.Type("Game")).map { it.effect })
         val after = context.assertRoundTrip(Invocation(DeleteManagerType, DeleteManagerType.Input("Game"))) { context.blockTypes!!.types.value }
         assertEquals(
             listOf(BlockDefinition.SetVelocity(x = NumberValue.Fixed(3f), y = NumberValue.Fixed(0f)), BlockDefinition.Stop),

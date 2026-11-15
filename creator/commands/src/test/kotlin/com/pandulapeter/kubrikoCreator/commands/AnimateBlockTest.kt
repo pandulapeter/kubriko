@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AnimatedValue
 import com.pandulapeter.kubrikoCreator.actors.AnimationEasing
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.ColorValue
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
@@ -46,7 +47,7 @@ class AnimateBlockTest {
             BlockDefinition.Animate(),
             BlockDefinition.Animate(AnimatedValue.Scale(NumberValue.Fixed(0f), NumberValue.Property("grow")), NumberValue.Random(0f, 2f), AnimationEasing.LINEAR, removesActor = true),
             BlockDefinition.Animate(AnimatedValue.Opacity(NumberValue.Random(0f, 100f), NumberValue.Property("grow")), NumberValue.Fixed(0f)),
-            BlockDefinition.Animate(AnimatedValue.Color(0xFF000000, 0xFFFFFFFF), easing = AnimationEasing.EASE_IN_OUT),
+            BlockDefinition.Animate(AnimatedValue.Color(ColorValue.Fixed(0xFF000000), ColorValue.Fixed(0xFFFFFFFF)), easing = AnimationEasing.EASE_IN_OUT),
             BlockDefinition.Animate(AnimatedValue.Position(NumberValue.Edge(SceneEdge.RIGHT, -20f), NumberValue.BetweenEdges(SceneEdge.TOP, to = SceneEdge.BOTTOM), isRelative = false)),
         ).forEach { assertNull(context.rejection(it), it.toString()) }
     }
@@ -59,8 +60,8 @@ class AnimateBlockTest {
             BlockDefinition.Animate(AnimatedValue.Opacity(to = NumberValue.Random(-10f, 50f))),
         ).forEach { assertEquals(Rejection(CommandProblem.OPACITY_OUT_OF_RANGE), context.rejection(it), it.toString()) }
         listOf(
-            BlockDefinition.Animate(AnimatedValue.Color(from = 0x80FFFFFF)),
-            BlockDefinition.Animate(AnimatedValue.Color(to = 0x00000000)),
+            BlockDefinition.Animate(AnimatedValue.Color(from = ColorValue.Fixed(0x80FFFFFF))),
+            BlockDefinition.Animate(AnimatedValue.Color(to = ColorValue.Fixed(0x00000000))),
         ).forEach { assertEquals(Rejection(CommandProblem.ANIMATED_COLOR_NOT_OPAQUE), context.rejection(it), it.toString()) }
     }
 

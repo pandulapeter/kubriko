@@ -113,6 +113,7 @@ public object ManagerTypeCodeGenerator {
             if (definition.properties.any { it is PropertyDefinition.Number }) add("androidx.compose.runtime.mutableFloatStateOf")
             if (definition.properties.any { it !is PropertyDefinition.Number }) add("androidx.compose.runtime.mutableStateOf")
             if (definition.properties.isNotEmpty()) addAll(listOf("androidx.compose.runtime.getValue", "androidx.compose.runtime.setValue"))
+            if (definition.properties.any { it is PropertyDefinition.Color }) add("androidx.compose.ui.graphics.Color")
             needs.forEach { addAll(importsOf(it)) }
             addAll(blockCode.imports)
             ui?.imports?.let(::addAll)

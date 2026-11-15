@@ -35,6 +35,7 @@ import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.actorTypeReference
 import com.pandulapeter.kubrikoCreator.actors.areEdgesAlong
+import com.pandulapeter.kubrikoCreator.actors.fixedArgb
 import com.pandulapeter.kubrikoCreator.actors.isFinite
 import com.pandulapeter.kubrikoCreator.actors.numberPropertyReferences
 import com.pandulapeter.kubrikoCreator.actors.numberValues
@@ -42,6 +43,7 @@ import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.readsEdges
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypes
 import com.pandulapeter.kubrikoCreator.actors.timerName
+import com.pandulapeter.kubrikoCreator.actors.valuePropertyReferences
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.LookupProblem
@@ -177,13 +179,13 @@ private fun validateBlockValues(block: BlockDefinition, scope: BlockScope): Reje
     block is BlockDefinition.SetOpacity && !block.percent.isWithin(0f, 100f) -> Rejection(CommandProblem.OPACITY_OUT_OF_RANGE)
     block is BlockDefinition.SetColor && block.colors.size !in 1..BlockDefinition.SetColor.MAXIMUM_COLORS ->
         Rejection(CommandProblem.COLORS_COUNT, BlockDefinition.SetColor.MAXIMUM_COLORS.toString())
-    block is BlockDefinition.SetColor && block.colors.any { !ColorHex.isOpaque(it) } -> Rejection(CommandProblem.COLORS_NOT_OPAQUE)
+    block is BlockDefinition.SetColor && block.colors.any { it.fixedArgb?.let(ColorHex::isOpaque) == false } -> Rejection(CommandProblem.COLORS_NOT_OPAQUE)
     block is BlockDefinition.Animate && block.value is AnimatedValue.Opacity && !block.value.numberValues.all { it.isWithin(0f, 100f) } ->
         Rejection(CommandProblem.OPACITY_OUT_OF_RANGE)
     block is BlockDefinition.MoveWithKeys && block.speed is NumberValue.Random -> Rejection(CommandProblem.SPEED_RANDOM_EVERY_FRAME)
     block is BlockDefinition.Animate && block.value is AnimatedValue.Scale && !block.value.numberValues.all { it.isWithin(minimum = 0f) } ->
         Rejection(CommandProblem.SCALE_NEGATIVE)
-    ((block as? BlockDefinition.Animate)?.value as? AnimatedValue.Color)?.let { ColorHex.isOpaque(it.from) && ColorHex.isOpaque(it.to) } == false ->
+    ((block as? BlockDefinition.Animate)?.value as? AnimatedValue.Color)?.let { listOf(it.from, it.to).all { color -> color.fixedArgb?.let(ColorHex::isOpaque) != false } } == false ->
         Rejection(CommandProblem.ANIMATED_COLOR_NOT_OPAQUE)
     ((block as? BlockDefinition.If)?.condition as? ConditionDefinition.KeyHeld)?.key?.isKnown == false -> unknownKey((block.condition as ConditionDefinition.KeyHeld).key)
     else -> block.timerName?.let(TimerNaming::validate)?.let(::Rejection) ?: validateBlockReferences(block, scope)
@@ -197,7 +199,7 @@ private fun validateBlockReferences(block: BlockDefinition, scope: BlockScope): 
         SimilarNames.rejection(LookupProblem.SOUND_MISSING, LookupProblem.SOUND_MISSING_SIMILAR, block.sound, scope.audioFiles?.sounds.orEmpty(), block.sound)
     block is BlockDefinition.PlayMusic && block.music.isNotEmpty() && scope.audioFiles?.music?.contains(block.music) == false ->
         SimilarNames.rejection(LookupProblem.MUSIC_MISSING, LookupProblem.MUSIC_MISSING_SIMILAR, block.music, scope.audioFiles?.music.orEmpty(), block.music)
-    else -> (listOfNotNull(block.propertyReference) + block.numberPropertyReferences).firstNotNullOfOrNull { reference -> validatePropertyReference(reference, scope) }
+    else -> (listOfNotNull(block.propertyReference) + block.valuePropertyReferences).firstNotNullOfOrNull { reference -> validatePropertyReference(reference, scope) }
 }
 
 private fun validatePropertyReference(reference: PropertyReference, scope: BlockScope): Rejection? {
@@ -311,7 +313,7 @@ private val BlockDefinition.areNumbersValid
         is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, is BlockDefinition.JumpTo, is BlockDefinition.AddActor,
         is BlockDefinition.MoveTowardsNearest, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetAnimation,
         BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
-        is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.StopTimer, BlockDefinition.Else, BlockDefinition.End,
+        is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.SetColorProperty, is BlockDefinition.StopTimer, BlockDefinition.Else, BlockDefinition.End,
         is BlockDefinition.Log, is BlockDefinition.Kotlin, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
         is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity,
         is BlockDefinition.ChangeOpacity,
@@ -328,7 +330,7 @@ private val BlockDefinition.areEdgesAlongTheirAxes
         is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, is BlockDefinition.MoveTowardsNearest, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetAnimation,
         is BlockDefinition.If, is BlockDefinition.Repeat, is BlockDefinition.StartTimer, is BlockDefinition.SetFrame,
         BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
-        is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.StopTimer, BlockDefinition.Else, BlockDefinition.End,
+        is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.SetColorProperty, is BlockDefinition.StopTimer, BlockDefinition.Else, BlockDefinition.End,
         is BlockDefinition.Log, is BlockDefinition.Kotlin, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
         is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity,
         is BlockDefinition.ChangeOpacity,

@@ -44,7 +44,7 @@ internal class ManagerUiCode private constructor(
             val kotlinUi = KotlinUi.of(definition.kotlinUi)
             if (definition.texts.isEmpty() && kotlinUi == null) return null
             val texts = definition.texts.map { templateLiteral(it.text, scope) }
-            val conditions = definition.texts.map { text -> text.shownWhen?.let { BlockCodeGenerator.conditionCode(it, scope) } }
+            val conditions = definition.texts.map { text -> text.shownWhen?.let { ConditionCode.of(it, scope) } }
             val conditionCode = conditions.fold(BlockCode.NONE) { code, condition -> if (condition == null) code else code + condition }
             val needs = conditionCode.needs + buildSet {
                 if (kotlinUi?.names(ManagerTypeCodeGenerator.ACTOR_MANAGER_FIELD) == true) add(BlockNeed.ACTOR_MANAGER)

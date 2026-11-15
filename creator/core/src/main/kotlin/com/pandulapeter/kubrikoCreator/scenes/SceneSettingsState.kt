@@ -125,9 +125,12 @@ public object SceneSettingsState {
      * How Kubriko's serialization saves an sRGB Compose `Color`: its packed value, which keeps the `0xAARRGGBB` in the
      * upper half.
      */
-    internal fun packedColorOf(argb: Long) = (argb and 0xFFFFFFFFL) shl 32
+    public fun packedColorOf(argb: Long): Long = (argb and 0xFFFFFFFFL) shl 32
 
-    internal fun argbOf(packedColor: Long) = packedColor ushr 32
+    /**
+     * The color `0xAARRGGBB` a packed Compose `Color` [packedColor] saved by Kubriko's serializer is.
+     */
+    public fun argbOf(packedColor: Long): Long = packedColor ushr 32
 
     private fun point(x: Float, y: Float) = buildJsonObject {
         put("x", x)

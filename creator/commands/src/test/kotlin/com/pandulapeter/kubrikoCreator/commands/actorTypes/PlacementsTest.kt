@@ -91,7 +91,7 @@ class PlacementsTest {
     @Test
     fun aMissingPropertyIsNamedByItsKind() {
         assertEquals(
-            listOf(PlacementProblem.NUMBER_PROPERTY_MISSING, PlacementProblem.TEXT_PROPERTY_MISSING, PlacementProblem.TOGGLE_PROPERTY_MISSING),
+            listOf(PlacementProblem.NUMBER_PROPERTY_MISSING, PlacementProblem.TEXT_PROPERTY_MISSING, PlacementProblem.TOGGLE_PROPERTY_MISSING, PlacementProblem.COLOR_PROPERTY_MISSING),
             PropertyKind.entries.map { it.missingProblem },
         )
         PropertyKind.entries.forEach { assertTrue(" ${it.serialName} Property" in it.missingProblem.english, "$it") }

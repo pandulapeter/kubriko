@@ -42,6 +42,7 @@ public enum class BlockKind(
     CHANGE_NUMBER({ BlockDefinition.ChangeNumber() }),
     SET_TEXT({ BlockDefinition.SetText() }),
     SET_TOGGLE({ BlockDefinition.SetToggle() }),
+    SET_COLOR_PROPERTY({ BlockDefinition.SetColorProperty() }),
     ADD_ACTOR({ BlockDefinition.AddActor() }),
     MOVE_TOWARDS_NEAREST({ BlockDefinition.MoveTowardsNearest() }, managerTypeProblem = PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE),
     START_TIMER({ BlockDefinition.StartTimer() }),
@@ -101,6 +102,7 @@ public enum class BlockKind(
             is BlockDefinition.ChangeNumber -> CHANGE_NUMBER
             is BlockDefinition.SetText -> SET_TEXT
             is BlockDefinition.SetToggle -> SET_TOGGLE
+            is BlockDefinition.SetColorProperty -> SET_COLOR_PROPERTY
             is BlockDefinition.AddActor -> ADD_ACTOR
             is BlockDefinition.MoveTowardsNearest -> MOVE_TOWARDS_NEAREST
             is BlockDefinition.StartTimer -> START_TIMER

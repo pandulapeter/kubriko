@@ -21,7 +21,6 @@ import com.pandulapeter.kubrikoCreator.actors.AnimationTarget
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
-import com.pandulapeter.kubrikoCreator.ui.components.ColorField
 import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import kubriko.creator.generated.resources.Res
@@ -102,9 +101,9 @@ private fun AnimatedValueParameters(
     }
     is AnimatedValue.Color -> {
         UnitText(Res.string.block_parameter_start)
-        ColorField(color = value.from, onColorChange = { onValueChange(value.copy(from = it)) }, isAlphaEnabled = false)
+        ColorValueField(value = value.from, scope = scope, onValueChange = { onValueChange(value.copy(from = it)) }, isAlphaEnabled = false)
         UnitText(Res.string.block_parameter_end)
-        ColorField(color = value.to, onColorChange = { onValueChange(value.copy(to = it)) }, isAlphaEnabled = false)
+        ColorValueField(value = value.to, scope = scope, onValueChange = { onValueChange(value.copy(to = it)) }, isAlphaEnabled = false)
     }
     is AnimatedValue.Position -> {
         OffsetParameters(value.x, value.y, scope, isVelocity = false) { x, y -> onValueChange(value.copy(x = x, y = y)) }

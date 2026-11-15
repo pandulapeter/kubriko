@@ -63,6 +63,18 @@ public sealed interface PropertyDefinition {
     ) : PropertyDefinition {
         override fun withName(name: String): Toggle = copy(name = name)
     }
+
+    @Serializable
+    @SerialName("color")
+    @Description("A color, as #RRGGBB, or #AARRGGBB when it isn't opaque.")
+    public data class Color(
+        @Description(NAME_DESCRIPTION)
+        @SerialName("name") override val name: String,
+        @Description(INITIAL_VALUE_DESCRIPTION)
+        @SerialName("initialValue") @Serializable(with = HexColorSerializer::class) val initialValue: Long = 0xFFFFFFFF,
+    ) : PropertyDefinition {
+        override fun withName(name: String): Color = copy(name = name)
+    }
 }
 
 private const val NAME_DESCRIPTION = "Its name, also in Kotlin: a lowercase letter, then letters and numbers."

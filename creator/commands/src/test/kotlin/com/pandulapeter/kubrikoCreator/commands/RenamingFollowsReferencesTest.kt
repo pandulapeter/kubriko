@@ -54,9 +54,9 @@ class RenamingFollowsReferencesTest {
         RelationKind.INHERITS_FROM,
         RelationKind.MENTIONS,
     )
-    private val managerTypeKinds = setOf(RelationKind.CHANGES, RelationKind.READS, RelationKind.READS_AS_NUMBER, RelationKind.GIVES_VALUES_TO, RelationKind.MENTIONS)
+    private val managerTypeKinds = setOf(RelationKind.CHANGES, RelationKind.READS, RelationKind.READS_VALUE, RelationKind.GIVES_VALUES_TO, RelationKind.MENTIONS)
     private val sceneKinds = setOf(RelationKind.GOES_TO, RelationKind.STARTS_WITH, RelationKind.NAMES_IN_KOTLIN, RelationKind.MENTIONS)
-    private val propertyKinds = setOf(RelationKind.READS, RelationKind.READS_AS_NUMBER, RelationKind.CHANGES)
+    private val propertyKinds = setOf(RelationKind.READS, RelationKind.READS_VALUE, RelationKind.CHANGES)
     private val pageKinds = setOf(RelationKind.MENTIONS)
     private val spriteKinds = setOf(RelationKind.DRAWN_AS, RelationKind.SHOWS, RelationKind.NAMES_IN_KOTLIN, RelationKind.MENTIONS)
     private val audioKinds = setOf(RelationKind.PLAYS, RelationKind.NAMES_IN_KOTLIN, RelationKind.MENTIONS)
@@ -175,7 +175,7 @@ class RenamingFollowsReferencesTest {
             texts = listOf(ScreenTextDefinition("{lives}", shownWhen = ConditionDefinition.Number("lives", value = NumberValue.Property("lives")))),
         )
         val context = commandContext(game)
-        context.assertFollowed(RelationSubject.Property("Game", "lives"), RelationSubject.Property("Game", "hearts"), setOf(RelationKind.READS, RelationKind.READS_AS_NUMBER)) {
+        context.assertFollowed(RelationSubject.Property("Game", "lives"), RelationSubject.Property("Game", "hearts"), setOf(RelationKind.READS, RelationKind.READS_VALUE)) {
             EditProperty.apply(context, EditProperty.Input("Game", "lives", PropertyDefinition.Number("hearts")))
         }
     }
