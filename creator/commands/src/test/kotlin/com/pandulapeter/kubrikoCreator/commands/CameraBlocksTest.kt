@@ -22,6 +22,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
 import com.pandulapeter.kubrikoCreator.context.BlockNotation
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
@@ -71,6 +72,7 @@ class CameraBlocksTest {
         assertEquals(Rejection(CommandProblem.NUMBER_EDGE_ACROSS), context.rejection(BlockDefinition.MoveCamera(x = NumberValue.Edge(SceneEdge.TOP))))
         assertEquals(Rejection(CommandProblem.NUMBER_EDGE_NOT_TAKEN), context.rejection(BlockDefinition.ShakeCamera(strength = NumberValue.Edge(SceneEdge.LEFT))))
         assertEquals(Rejection(CommandProblem.NUMBER_EDGE_NOT_TAKEN), context.rejection(BlockDefinition.ZoomCamera(NumberValue.Edge(SceneEdge.RIGHT))))
+        assertContains(CommandProblem.NUMBER_EDGE_NOT_TAKEN.english, "a shake's strength, a zoom")
     }
 
     @Test

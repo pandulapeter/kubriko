@@ -755,7 +755,7 @@
     <string name="error_blocks_nothing_to_replace">Give Blocks to add, a count (0 or more) of Blocks to remove, or both.</string>
     <string name="error_command_index_invalid">%1$s isn't a valid index there. Use one from 0 to %2$s.</string>
     <string name="error_command_size_invalid">The width and height have to be positive numbers.</string>
-    <string name="error_command_number_edge_not_taken">A direction, a speed, an opacity, a scale, or a time can't be an edge of the Scene, which is a position. Use a number, a random number, or a Property's value.</string>
+    <string name="error_command_number_edge_not_taken">A direction, a speed, an opacity, a volume, a scale, a time, a shake's strength, a zoom, or what a count or a distance is compared with can't be an edge of the Scene, which is a position. Use a number, a random number, or a Property's value.</string>
     <string name="error_command_opacity_out_of_range">An opacity is from 0 (invisible) to 100 percent (opaque), and so is each end of a random one.</string>
     <string name="error_command_volume_out_of_range">A volume is from 0 (silent) to 100 percent (as recorded), and so is each end of a random one.</string>
     <string name="error_command_zoom_out_of_range">A zoom is at least 1 percent, and so is each end of a random one.</string>
