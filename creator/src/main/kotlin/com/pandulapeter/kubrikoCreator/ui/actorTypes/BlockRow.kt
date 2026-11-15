@@ -69,6 +69,7 @@ import kubriko.creator.generated.resources.block_parameter_repeating
 import kubriko.creator.generated.resources.block_parameter_seconds
 import kubriko.creator.generated.resources.block_parameter_speed
 import kubriko.creator.generated.resources.block_parameter_times
+import kubriko.creator.generated.resources.block_parameter_volume
 import kubriko.creator.generated.resources.block_parameter_x
 import kubriko.creator.generated.resources.block_parameter_y
 import kubriko.creator.generated.resources.block_sound_choose
@@ -233,7 +234,14 @@ private fun InlineParameters(
     }
     is BlockDefinition.StopTimer -> TimerChoice(block.timer, scope.timerNames, { onBlockChange(block.copy(timer = it)) })
     is BlockDefinition.GoToScene -> SceneChoice(block.scene, scope.sceneNames) { onBlockChange(block.copy(scene = it)) }
-    is BlockDefinition.PlaySound -> AudioFileChoice(block.sound, scope.audioFiles?.sounds, Res.string.block_sound_choose, Res.string.audio_sounds_none_yet) { onBlockChange(block.copy(sound = it)) }
+    is BlockDefinition.PlaySound -> FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        itemVerticalAlignment = Alignment.CenterVertically,
+    ) {
+        AudioFileChoice(block.sound, scope.audioFiles?.sounds, Res.string.block_sound_choose, Res.string.audio_sounds_none_yet) { onBlockChange(block.copy(sound = it)) }
+        PercentField(Res.string.block_parameter_volume, block.volume, scope, { onBlockChange(block.copy(volume = it)) }, accepts = { it in 0f..100f })
+    }
     is BlockDefinition.PlayMusic -> FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -245,6 +253,7 @@ private fun InlineParameters(
             checked = block.isLooping,
             onCheckedChange = { onBlockChange(block.copy(isLooping = it)) },
         )
+        PercentField(Res.string.block_parameter_volume, block.volume, scope, { onBlockChange(block.copy(volume = it)) }, accepts = { it in 0f..100f })
     }
     is BlockDefinition.PauseGame -> MenuButton(
         label = stringResource(block.action.title),
@@ -266,8 +275,8 @@ private fun InlineParameters(
     is BlockDefinition.JumpTo -> OffsetParameters(block.x, block.y, scope, isVelocity = false) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
     is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation -> AnimationBlockParameters(block, scope, onBlockChange)
     is BlockDefinition.SetColor -> SetColorParameters(block, scope, onBlockChange)
-    is BlockDefinition.SetOpacity -> OpacityParameters(Res.string.block_parameter_opacity, block.percent, scope, { onBlockChange(block.copy(percent = it)) }, accepts = { it in 0f..100f })
-    is BlockDefinition.ChangeOpacity -> OpacityParameters(Res.string.block_parameter_by, block.by, scope, { onBlockChange(block.copy(by = it)) })
+    is BlockDefinition.SetOpacity -> PercentField(Res.string.block_parameter_opacity, block.percent, scope, { onBlockChange(block.copy(percent = it)) }, accepts = { it in 0f..100f })
+    is BlockDefinition.ChangeOpacity -> PercentField(Res.string.block_parameter_by, block.by, scope, { onBlockChange(block.copy(by = it)) })
     is BlockDefinition.Animate -> AnimateParameters(block, scope, onBlockChange)
     is BlockDefinition.Log -> BufferedTextField(
         modifier = Modifier.fillMaxWidth().padding(end = 8.dp),

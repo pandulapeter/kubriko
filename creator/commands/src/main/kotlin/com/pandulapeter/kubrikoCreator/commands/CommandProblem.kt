@@ -51,6 +51,7 @@ public enum class CommandProblem(override val english: String) : DomainText {
     SPEED_RANDOM_EVERY_FRAME("Move with keys (moveWithKeys) runs on every frame, so a random speed would change on every frame. Use a number, or a Property set to a random number once."),
     SCALE_NEGATIVE("A scale is 0 or more (1 is the Actor's own size), and so is each end of a random one."),
     OPACITY_OUT_OF_RANGE("An opacity is from 0 (invisible) to 100 percent (opaque), and so is each end of a random one."),
+    VOLUME_OUT_OF_RANGE("A volume is from 0 (silent) to 100 percent (as recorded), and so is each end of a random one."),
     NUMBER_EDGE_NOT_TAKEN("A direction, a speed, an opacity, a scale, or a time can't be an edge of the Scene, which is a position. Use a number, a random number, or a Property's value."),
     NUMBER_EDGE_ACROSS("An x takes only the left and right edges, and a y only the top and bottom ones; a random number is drawn between two edges of the same axis."),
     NUMBER_INVALID("Every number has to be finite."),

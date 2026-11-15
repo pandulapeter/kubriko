@@ -137,7 +137,7 @@ public sealed interface BlockDefinition {
     public data class SetText(
         @Description(PROPERTY_DESCRIPTION)
         @SerialName("property") val property: String = "",
-        @Description("The new text, or a property text value to copy another text Property.")
+        @Description("The new text, or a property text value.")
         @SerialName("value") val value: TextValue = TextValue.Fixed(""),
         @Description(MANAGER_DESCRIPTION)
         @SerialName("manager") val manager: String? = null,
@@ -149,7 +149,7 @@ public sealed interface BlockDefinition {
     public data class SetToggle(
         @Description(PROPERTY_DESCRIPTION)
         @SerialName("property") val property: String = "",
-        @Description("Whether it is on, or a property toggle value to copy another toggle Property.")
+        @Description("Whether it is on, or a property toggle value.")
         @SerialName("value") val value: ToggleValue = ToggleValue.Fixed(true),
         @Description(MANAGER_DESCRIPTION)
         @SerialName("manager") val manager: String? = null,
@@ -240,6 +240,8 @@ public sealed interface BlockDefinition {
     public data class PlaySound(
         @Description(SOUND_DESCRIPTION)
         @SerialName("sound") val sound: String = "",
+        @Description(VOLUME_DESCRIPTION)
+        @SerialName("volume") val volume: NumberValue = NumberValue.Fixed(FULL_VOLUME),
     ) : BlockDefinition
 
     @Serializable
@@ -250,6 +252,8 @@ public sealed interface BlockDefinition {
         @SerialName("music") val music: String = "",
         @Description("True to start it again each time it ends, false to play it once.")
         @SerialName("isLooping") val isLooping: Boolean = true,
+        @Description(VOLUME_DESCRIPTION + " Playing the same music again changes it.")
+        @SerialName("volume") val volume: NumberValue = NumberValue.Fixed(FULL_VOLUME),
     ) : BlockDefinition
 
     @Serializable
@@ -368,6 +372,13 @@ public sealed interface BlockDefinition {
 }
 
 private const val PROPERTY_DESCRIPTION = "The name of one of the Properties of this kind, of the type itself or of the Manager type in manager."
+internal const val VOLUME_DESCRIPTION = "How loud, from 0 (silent) to 100 percent (as recorded). Not an edge."
+
+/**
+ * The volume an audio Block plays at unless it says otherwise, in percent.
+ */
+public const val FULL_VOLUME: Float = 100f
+
 internal const val SOUND_DESCRIPTION = "The sound: a .wav file in the project's composeResources, as its path from there, like files/sounds/hit.wav."
 /**
  * How a music field is described to the AI, which the command that changes a Scene's settings uses too.

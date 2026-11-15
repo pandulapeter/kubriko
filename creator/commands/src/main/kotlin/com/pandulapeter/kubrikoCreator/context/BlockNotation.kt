@@ -20,6 +20,7 @@ import com.pandulapeter.kubrikoCreator.actors.Comparison
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.FULL_VOLUME
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.SceneEdge
@@ -109,8 +110,8 @@ internal object BlockNotation {
             PauseAction.RESUME -> "Resume the game"
             PauseAction.TOGGLE -> "Pause or resume the game"
         }
-        is BlockDefinition.PlaySound -> "Play sound ${name(block.sound)}"
-        is BlockDefinition.PlayMusic -> "Play music ${name(block.music)}" + if (block.isLooping) "" else ", once"
+        is BlockDefinition.PlaySound -> "Play sound ${name(block.sound)}" + volume(block.volume)
+        is BlockDefinition.PlayMusic -> "Play music ${name(block.music)}" + (if (block.isLooping) "" else ", once") + volume(block.volume)
         BlockDefinition.StopMusic -> "Stop the music"
         is BlockDefinition.SetFrame -> "Show frame ${value(block.frame)} of the sprite"
         is BlockDefinition.SetAnimation -> "Play the sprite's frames at speed ${value(block.speed)}" + if (block.isLooping) ", looping" else ", once"
@@ -217,6 +218,11 @@ internal object BlockNotation {
     private fun property(name: String, manager: String?) = name(name) + (manager?.let { " of $it" } ?: "")
 
     private fun name(value: String) = value.ifEmpty { NONE }
+
+    /**
+     * How loud an audio Block plays, unless it is at full volume: `, at 50%`.
+     */
+    private fun volume(volume: NumberValue) = if (volume == NumberValue.Fixed(FULL_VOLUME)) "" else ", at ${value(volume)}%"
 
     /**
      * A text a Block or a condition takes: `"Game over"`, or `title of Game`.

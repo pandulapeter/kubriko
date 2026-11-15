@@ -23,7 +23,7 @@ class AudioCodeGeneratorTest {
         assertContains(code, "import com.example.game.resources.Res\n")
         assertContains(code, "class GeneratedAudio(\n    private val isInSceneEditor: Boolean = false,\n) : Manager() {\n")
         assertContains(code, "    override fun onInitialize(kubriko: Kubriko) {\n        if (isInSceneEditor) return\n")
-        assertContains(code, "        if (!isInSceneEditor) soundManager.play(uriOf(path))\n")
+        assertContains(code, "        if (!isInSceneEditor) soundManager.play(uriOf(path), volume)\n")
     }
 
     @Test
@@ -37,6 +37,7 @@ class AudioCodeGeneratorTest {
     @Test
     fun musicStartsOnTheNextFrameAndAgainWhenTheGameIsFocused() {
         assertContains(code, "        if (path != music) music?.let { musicManager.stop(uriOf(it)) }\n")
+        assertContains(code, "        if (path != music || volume != musicVolume) {\n            musicVolume = volume\n            musicManager.setVolume(uriOf(path), volume, volume)\n        }\n")
         assertContains(code, "kubriko.get<StateManager>().isFocused.filter { it }.onEach { isMusicPending = music != null }.launchIn(scope)\n")
         assertContains(code, "            music?.let { musicManager.play(uriOf(it), shouldLoop = isMusicLooping) }\n")
     }

@@ -59,6 +59,7 @@ internal object AudioCodeGenerator {
             |    private val uris = HashMap<String, String>()
             |    private var music: String? = null
             |    private var isMusicLooping = true
+            |    private var musicVolume = 1f
             |    private var sceneSettings: ${SceneSettingsCodeGenerator.SETTINGS_NAME}? = null
             |
             |    /**
@@ -93,18 +94,23 @@ internal object AudioCodeGenerator {
             |    }
             |
             |    /**
-            |     * Plays the sound at [path] (from `composeResources`) once.
+            |     * Plays the sound at [path] (from `composeResources`) once, at [volume] (from 0 to 1).
             |     */
-            |    fun playSound(path: String) {
-            |        if (!isInSceneEditor) soundManager.play(uriOf(path))
+            |    fun playSound(path: String, volume: Float = 1f) {
+            |        if (!isInSceneEditor) soundManager.play(uriOf(path), volume)
             |    }
             |
             |    /**
             |     * Plays the music at [path] (from `composeResources`) instead of the music playing now, or goes on with it if it
-            |     * is the same.
+            |     * is the same, at [volume] (from 0 to 1), which it sets only when it changes, so that a Block playing it every
+            |     * frame allocates nothing.
             |     */
-            |    fun playMusic(path: String, isLooping: Boolean = true) {
+            |    fun playMusic(path: String, isLooping: Boolean = true, volume: Float = 1f) {
             |        if (isInSceneEditor) return
+            |        if (path != music || volume != musicVolume) {
+            |            musicVolume = volume
+            |            musicManager.setVolume(uriOf(path), volume, volume)
+            |        }
             |        if (path != music) music?.let { musicManager.stop(uriOf(it)) }
             |        music = path
             |        isMusicLooping = isLooping

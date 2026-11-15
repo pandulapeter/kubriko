@@ -18,17 +18,17 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.block_opacity_unit
+import kubriko.creator.generated.resources.block_percent_unit
 import org.jetbrains.compose.resources.StringResource
 
 /**
- * The percent of the Set the opacity or Change the opacity Block, which takes no edge.
+ * A percent a Block takes (an opacity, a change of one, or a volume), which takes no edge.
  *
- * @param accepts Which numbers the field takes: an opacity, or any change of one.
+ * @param accepts Which numbers the field takes: from 0 to 100, or any change of one.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun OpacityParameters(
+internal fun PercentField(
     label: StringResource,
     value: NumberValue,
     scope: BlockScope,
@@ -47,5 +47,5 @@ internal fun OpacityParameters(
         offersEdges = false,
         accepts = accepts,
     )
-    UnitText(Res.string.block_opacity_unit)
+    UnitText(Res.string.block_percent_unit)
 }

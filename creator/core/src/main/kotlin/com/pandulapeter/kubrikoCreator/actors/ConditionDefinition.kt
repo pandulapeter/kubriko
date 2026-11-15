@@ -43,7 +43,7 @@ public sealed interface ConditionDefinition {
     public data class Text(
         @Description("The name of one of the text Properties of the type itself, or of the Manager type in manager.")
         @SerialName("property") val property: String = "",
-        @Description("The text it is compared with, or a property text value to compare it with another text Property.")
+        @Description("The text it is compared with, or a property text value.")
         @SerialName("value") val value: TextValue = TextValue.Fixed(""),
         @Description("True to check that it is the text, false to check that it isn't.")
         @SerialName("isEqual") val isEqual: Boolean = true,
@@ -57,7 +57,7 @@ public sealed interface ConditionDefinition {
     public data class Toggle(
         @Description("The name of one of the toggle Properties of the type itself, or of the Manager type in manager.")
         @SerialName("property") val property: String = "",
-        @Description("True to check that it is on, false to check that it is off, or a property toggle value to check that both are alike.")
+        @Description("True to check that it is on, false that it is off, or a property toggle value to check that both are alike.")
         @SerialName("isOn") val isOn: ToggleValue = ToggleValue.Fixed(true),
         @Description(MANAGER_DESCRIPTION)
         @SerialName("manager") val manager: String? = null,
@@ -99,7 +99,7 @@ public sealed interface ConditionDefinition {
 
     @Serializable
     @SerialName("distance")
-    @Description("Compares the distance from the Actor to the nearest other Actor of an Actor type (types inheriting from it included, leaving out those a Block removed this frame), between their positions, with a value; with none of them it is endlessly far, so a less than never holds. Only Actor types have it.")
+    @Description("Compares the distance between the positions of the Actor and the nearest other Actor of an Actor type (inheriting types included, removed ones not) with a value; with none, it is endlessly far. Only Actor types have it.")
     public data class Distance(
         @Description("The Actor type whose nearest Actor it measures the distance to.")
         @SerialName("actorType") val actorType: ActorTypeValue = ActorTypeValue.Fixed(""),

@@ -50,10 +50,12 @@ public fun BlockDefinition.withValues(transform: ValueTransform): BlockDefinitio
     is BlockDefinition.ChangeOpacity -> copy(by = transform.number(by))
     is BlockDefinition.Animate -> copy(value = value.withValues(transform), seconds = transform.number(seconds))
     is BlockDefinition.Repeat -> copy(times = transform.number(times))
+    is BlockDefinition.PlaySound -> copy(volume = transform.number(volume))
+    is BlockDefinition.PlayMusic -> copy(volume = transform.number(volume))
     is BlockDefinition.If -> copy(condition = condition.withValues(transform))
     BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf,
     BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
-    is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, BlockDefinition.Else,
+    BlockDefinition.StopMusic, BlockDefinition.Else,
     BlockDefinition.End, is BlockDefinition.Log, is BlockDefinition.Kotlin,
     -> this
 }

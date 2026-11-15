@@ -180,6 +180,8 @@ private fun validateBlockValues(block: BlockDefinition, scope: BlockScope): Reje
     !block.areEdgesAlongTheirAxes -> Rejection(CommandProblem.NUMBER_EDGE_ACROSS)
     block.edgelessNumberValues.any { it.readsEdges } -> Rejection(CommandProblem.NUMBER_EDGE_NOT_TAKEN)
     block is BlockDefinition.SetOpacity && !block.percent.isWithin(0f, 100f) -> Rejection(CommandProblem.OPACITY_OUT_OF_RANGE)
+    block is BlockDefinition.PlaySound && !block.volume.isWithin(0f, 100f) -> Rejection(CommandProblem.VOLUME_OUT_OF_RANGE)
+    block is BlockDefinition.PlayMusic && !block.volume.isWithin(0f, 100f) -> Rejection(CommandProblem.VOLUME_OUT_OF_RANGE)
     block is BlockDefinition.SetColor && block.colors.size !in 1..BlockDefinition.SetColor.MAXIMUM_COLORS ->
         Rejection(CommandProblem.COLORS_COUNT, BlockDefinition.SetColor.MAXIMUM_COLORS.toString())
     block is BlockDefinition.SetColor && block.colors.any { it.fixedArgb?.let(ColorHex::isOpaque) == false } -> Rejection(CommandProblem.COLORS_NOT_OPAQUE)
@@ -385,8 +387,8 @@ private val BlockDefinition.areEdgesAlongTheirAxes
     }
 
 /**
- * The numbers of [this] Block that are a direction, a speed, an opacity, a scale, a time, or what a count or a distance
- * is compared with, which an edge, a position, means nothing as.
+ * The numbers of [this] Block that are a direction, a speed, an opacity, a volume, a scale, a time, or what a count or a
+ * distance is compared with, which an edge, a position, means nothing as.
  */
 private val BlockDefinition.edgelessNumberValues
     get() = when (this) {
@@ -394,6 +396,8 @@ private val BlockDefinition.edgelessNumberValues
         is BlockDefinition.MoveTowardsNearest -> listOf(speed)
         is BlockDefinition.MoveWithKeys -> listOf(speed)
         is BlockDefinition.SetOpacity -> listOf(percent)
+        is BlockDefinition.PlaySound -> listOf(volume)
+        is BlockDefinition.PlayMusic -> listOf(volume)
         is BlockDefinition.ChangeOpacity -> listOf(by)
         is BlockDefinition.Animate -> if (value is AnimatedValue.Position) listOf(seconds) else value.numberValues + seconds
         is BlockDefinition.If -> condition.leaves.mapNotNull { (it as? ConditionDefinition.ActorCount)?.value ?: (it as? ConditionDefinition.Distance)?.value }

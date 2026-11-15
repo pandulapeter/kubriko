@@ -41,7 +41,7 @@ public enum class EventType(public val misplacedProblem: PlacementProblem? = nul
     @SerialName("keyPressed")
     KEY_PRESSED,
 
-    @Description("When the player lets go of the Event's key, or the game loses the focus while it is held. It runs even while the game is paused, so what pressing the key started always ends; in an Actor type, only once the Actor heard the key pressed while the game ran.")
+    @Description("When the player lets go of the Event's key (or the game loses the focus while it is held), even while paused; in an Actor type, only after the Actor heard it pressed while the game ran.")
     @SerialName("keyReleased")
     KEY_RELEASED,
 
@@ -57,7 +57,7 @@ public enum class EventType(public val misplacedProblem: PlacementProblem? = nul
     @SerialName("leftScene")
     LEFT_SCENE(PlacementProblem.EVENT_LEFT_SCENE_IN_MANAGER_TYPE),
 
-    @Description("Once, when a Block removes the Actor (one of its own Blocks, another Actor's remove the other Block, or an Animate Block removing it at the end), right before it goes, so its Blocks can still use where it is. Never for the Actors a Scene change takes away. Only Actor types have it.")
+    @Description("Once, when a Block removes the Actor (its own, another Actor's, or an Animate Block's), right before it goes, so its Blocks can still use where it is; never when a Scene change takes it away. Only Actor types have it.")
     @SerialName("removedFromScene")
     REMOVED_FROM_SCENE(PlacementProblem.EVENT_REMOVED_FROM_SCENE_IN_MANAGER_TYPE),
 

@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.project
 
 import com.pandulapeter.kubrikoCreator.actors.store.ActorTypeReferencesMigration
+import com.pandulapeter.kubrikoCreator.actors.store.AudioVolumeMigration
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.store.ColorPropertiesMigration
 import com.pandulapeter.kubrikoCreator.actors.store.CombinedConditionsMigration
@@ -114,6 +115,7 @@ public class ProjectFormat(
             MoreEventsMigration,
             TextAndToggleValuesMigration,
             DistanceConditionMigration,
+            AudioVolumeMigration,
         )
 
         /**

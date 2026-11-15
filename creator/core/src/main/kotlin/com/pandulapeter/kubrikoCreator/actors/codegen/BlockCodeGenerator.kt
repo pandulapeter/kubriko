@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockNesting
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.FULL_VOLUME
 import com.pandulapeter.kubrikoCreator.actors.KotlinIdentifiers
 import com.pandulapeter.kubrikoCreator.actors.KotlinUi
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
@@ -162,12 +163,15 @@ public object BlockCodeGenerator {
             needs = setOf(BlockNeed.STATE_MANAGER),
         )
         is BlockDefinition.PlaySound -> if (block.sound.isNotEmpty()) {
-            BlockCode(listOf("$AUDIO_FIELD.playSound(${stringLiteral(block.sound)})"), needs = setOf(BlockNeed.AUDIO))
+            BlockCode(listOf("$AUDIO_FIELD.playSound(${stringLiteral(block.sound)}${volumeArgument(block.volume, scope)})"), needs = setOf(BlockNeed.AUDIO))
         } else {
             BlockCode(listOf("// Choose a sound for this Block."))
         }
         is BlockDefinition.PlayMusic -> if (block.music.isNotEmpty()) {
-            BlockCode(listOf("$AUDIO_FIELD.playMusic(${stringLiteral(block.music)}${if (block.isLooping) "" else ", isLooping = false"})"), needs = setOf(BlockNeed.AUDIO))
+            BlockCode(
+                listOf("$AUDIO_FIELD.playMusic(${stringLiteral(block.music)}${if (block.isLooping) "" else ", isLooping = false"}${volumeArgument(block.volume, scope)})"),
+                needs = setOf(BlockNeed.AUDIO),
+            )
         } else {
             BlockCode(listOf("// Choose music for this Block."))
         }
@@ -471,6 +475,16 @@ public object BlockCodeGenerator {
     private fun offsetCode(x: NumberValue, y: NumberValue, scope: BlockScope) = "SceneOffset(${NumberValueCode.sceneUnit(x, scope)}, ${NumberValueCode.sceneUnit(y, scope)})"
 
     internal fun unitLiteral(value: Float) = "${floatLiteral(value)}.sceneUnit"
+
+    /**
+     * The volume argument of `GeneratedAudio`'s functions for [volume] (in percent), as a fraction, or nothing at full
+     * volume, so that games that use none generate what they did before.
+     */
+    private fun volumeArgument(volume: NumberValue, scope: BlockScope) = when {
+        volume == NumberValue.Fixed(FULL_VOLUME) -> ""
+        volume is NumberValue.Fixed -> ", volume = ${floatLiteral(volume.value / FULL_VOLUME)}"
+        else -> ", volume = ${NumberValueCode.float(volume, scope)} / ${floatLiteral(FULL_VOLUME)}"
+    }
 
     internal fun floatLiteral(value: Float) = when {
         !value.isFinite() -> "0f"

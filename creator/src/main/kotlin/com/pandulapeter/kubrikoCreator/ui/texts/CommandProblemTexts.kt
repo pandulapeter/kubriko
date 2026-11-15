@@ -104,6 +104,7 @@ import kubriko.creator.generated.resources.error_command_timer_taken
 import kubriko.creator.generated.resources.error_command_upgrade_by_hand
 import kubriko.creator.generated.resources.error_command_upgrade_not_needed
 import kubriko.creator.generated.resources.error_command_usages_subject
+import kubriko.creator.generated.resources.error_command_volume_out_of_range
 import kubriko.creator.generated.resources.error_folder_already_there
 import kubriko.creator.generated.resources.error_folder_exists
 import kubriko.creator.generated.resources.error_folder_into_itself
@@ -163,6 +164,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.NUMBER_EDGE_ACROSS -> Res.string.error_command_number_edge_across
     CommandProblem.NUMBER_EDGE_NOT_TAKEN -> Res.string.error_command_number_edge_not_taken
     CommandProblem.OPACITY_OUT_OF_RANGE -> Res.string.error_command_opacity_out_of_range
+    CommandProblem.VOLUME_OUT_OF_RANGE -> Res.string.error_command_volume_out_of_range
     CommandProblem.ANIMATED_COLOR_NOT_OPAQUE -> Res.string.error_command_animated_color_not_opaque
     CommandProblem.SPEED_RANDOM_EVERY_FRAME -> Res.string.error_command_speed_random_every_frame
     CommandProblem.SCALE_NEGATIVE -> Res.string.error_command_scale_negative

@@ -105,7 +105,7 @@ public object EveryBlockTypes {
         BlockDefinition.StopMusic,
         BlockDefinition.SetFrame(frame = NumberValue.Fixed(2f)),
         BlockDefinition.SetAnimation(speed = NumberValue.Fixed(-0.5f), isLooping = false),
-    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks + steeringBlocks + actorCountBlocks + colorPropertyBlocks + actorTypeValueBlocks + combinedConditionBlocks + textAndToggleValueBlocks + distanceBlocks
+    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks + steeringBlocks + actorCountBlocks + colorPropertyBlocks + actorTypeValueBlocks + combinedConditionBlocks + textAndToggleValueBlocks + distanceBlocks + volumeBlocks
 
     /**
      * Blocks taking random numbers and Properties' values, which format version 5 added.
@@ -199,6 +199,16 @@ public object EveryBlockTypes {
             BlockDefinition.If(ConditionDefinition.Toggle("isShielded", ToggleValue.Property("isShielded", manager = "EveryManager"))),
             BlockDefinition.End,
             BlockDefinition.End,
+        )
+
+    /**
+     * Audio Blocks playing at a volume, which format version 20 added: fixed, random, and a Property's.
+     */
+    val volumeBlocks: List<BlockDefinition>
+        get() = listOf(
+            BlockDefinition.PlaySound("files/sounds/hit.wav", volume = NumberValue.Fixed(50f)),
+            BlockDefinition.PlaySound("files/sounds/hit.wav", volume = NumberValue.Random(20f, 80f)),
+            BlockDefinition.PlayMusic("files/music/theme.mp3", volume = NumberValue.Property("score")),
         )
 
     /**

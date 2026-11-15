@@ -143,7 +143,10 @@
   editor, whose game never runs, hears none. `GeneratedScenes`
   ignores a request for the Scene it is already loading, so goToScene every frame doesn't restart the load forever.
 - `GeneratedAudio` exists only while the game plays audio. It starts music on the next frame, since the music player exists only
-  once the viewport is composed, and resumes it when the game is focused again, since `MusicManager` doesn't.
+  once the viewport is composed, and resumes it when the game is focused again, since `MusicManager` doesn't. A
+  volume is a percent on the Block and a fraction in the call, left out at 100 so games using none generate what they
+  did before (and a `GeneratedAudio` changed by hand still compiles); the music's is set only when it changes, so playing
+  it every frame allocates nothing, and a Scene's music plays at full volume.
 - Generated Actor types are `Batched`, so the engine draws runs of them in one call: each final class's `look` (its shape in
   its color, or its sprite) is a property whose getter brings it up to date with the Actor (the color, the sprite's region)
   whenever Kubriko reads it, so a color set by a Kotlin Block or the Scene editor shows without a hook in every setter, and a
