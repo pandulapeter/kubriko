@@ -12,7 +12,7 @@ package com.pandulapeter.kubrikoCreator.actors.codegen
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
+import com.pandulapeter.kubrikoCreator.actors.actorTypeReferences
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.SCENES_FIELD
 
 /**
@@ -42,7 +42,7 @@ internal object ActorCountCode {
      */
     fun countedTypesOf(definitions: List<BlockTypeDefinition>, actorTypeNames: Collection<String>) = definitions.flatMap { definition ->
         definition.events.filter { GeneratedCode.isGenerated(it, definition.kind, actorTypeNames) }.flatMap { event ->
-            event.blocks.mapNotNull { block -> ((block as? BlockDefinition.If)?.condition as? ConditionDefinition.ActorCount)?.actorType?.takeIf { it in actorTypeNames } }
+            event.blocks.flatMap { block -> (block as? BlockDefinition.If)?.condition?.actorTypeReferences.orEmpty() }.filter { it in actorTypeNames }
         }
     }.distinct().sorted()
 

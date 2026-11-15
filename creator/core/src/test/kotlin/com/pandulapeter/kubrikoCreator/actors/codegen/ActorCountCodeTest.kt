@@ -52,6 +52,13 @@ class ActorCountCodeTest {
     }
 
     @Test
+    fun aCountInsideACombinedConditionIsCountedToo() {
+        val nested = BlockDefinition.If(ConditionDefinition.Combined(listOf(ConditionDefinition.Toggle(), ConditionDefinition.Combined(listOf(ConditionDefinition.ActorCount("Brick")), isAll = false))))
+        val hud = ManagerTypeDefinition(name = "Hud", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(nested, BlockDefinition.End))))
+        assertEquals(listOf("Brick"), ActorCountCode.countedTypesOf(listOf(hud, brick), actorTypes.map { it.name }))
+    }
+
+    @Test
     fun theConstantsSpellTheTypesInCapitals() {
         assertEquals("ACTORS_BRICK", ActorCountCode.constantOf("Brick"))
         assertEquals("ACTORS_BIG_ALIEN", ActorCountCode.constantOf("BigAlien"))
