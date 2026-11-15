@@ -38,7 +38,7 @@ import com.pandulapeter.kubrikoCreator.screenplay.PageLinks
  * @param sceneMusic The music each Scene plays, by the Scene's name (only for the usages of a sprite, sound, or music
  *   file, the one subject they matter to).
  * @param sceneActorTypeReferences How many saved Actor type reference values name each Actor type, by Scene
- *   ([sceneActorTypeReferences]; only for the usages of a type).
+ *   ([SceneCounts.actorTypeReferences]; only for the usages of a type).
  * @param mentionedPath The file a page links to to mention the subject asked about, a path from the project's root, if it
  *   can be mentioned.
  */

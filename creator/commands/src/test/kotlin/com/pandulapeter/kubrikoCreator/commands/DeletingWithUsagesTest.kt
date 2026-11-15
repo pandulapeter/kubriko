@@ -212,6 +212,14 @@ class DeletingWithUsagesTest {
     }
 
     @Test
+    fun aReferenceAnActorSavesToItsOwnTypeGoesWithTheActorRatherThanBeingCleared() = runTest {
+        val spawner = ActorTypeDefinition(name = "Spawner", properties = listOf(PropertyDefinition.ActorType("other")))
+        val context = commandContext(spawner)
+        context.writeScene("level", "[{\"typeId\":\"Spawner\",\"state\":\"{\\\"other\\\":\\\"Spawner\\\"}\"}]")
+        assertEquals(setOf(UsageEffect.ACTORS_REMOVED), context.usagesOf(RelationSubject.Type("Spawner")).mapTo(HashSet()) { it.effect })
+    }
+
+    @Test
     fun deletingAPropertyABlockTakesItsActorTypeFromLeavesItsStartingType() = runTest {
         val enemy = ActorTypeDefinition(name = "Enemy")
         val spawner = ActorTypeDefinition(

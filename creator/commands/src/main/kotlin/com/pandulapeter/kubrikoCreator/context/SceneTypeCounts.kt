@@ -18,13 +18,43 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.JsonPrimitive
 
 /**
  * The number of Actors of each type ID that each readable Scene of the project places, by the Scene's name.
  */
-internal suspend fun CommandContext.sceneTypeCounts(): Map<String, Map<String, Int>> = withContext(ioDispatcher) {
-    scenes.names().mapNotNull { name -> scenes.actors(name)?.let { actors -> name to actors.groupingBy { it.typeId }.eachCount().toSortedMap() } }.toMap()
+internal suspend fun CommandContext.sceneTypeCounts(): Map<String, Map<String, Int>> = sceneCounts().types
+
+/**
+ * What the readable Scenes of the project place, read in one pass over them.
+ *
+ * @param types The type IDs of the Actors each Scene places, each with how many, by the Scene's name.
+ * @param actorTypeReferences How many of the values each Scene saves for Actor type reference Properties name each Actor
+ *   type, by the Scene's name and then the type's ([actorTypeReferenceProperties]). A value an Actor keeps about its own
+ *   type isn't counted, since deleting that type takes the Actor away with it.
+ */
+internal class SceneCounts(
+    val types: Map<String, Map<String, Int>>,
+    val actorTypeReferences: Map<String, Map<String, Int>>,
+)
+
+/**
+ * The [SceneCounts] of the open project, with the Actor type reference values only when the project's [types] are given.
+ */
+internal suspend fun CommandContext.sceneCounts(types: List<BlockTypeDefinition>? = null): SceneCounts = withContext(ioDispatcher) {
+    val references = types?.let(::actorTypeReferenceProperties).orEmpty()
+    val typeCounts = LinkedHashMap<String, Map<String, Int>>()
+    val referenceCounts = LinkedHashMap<String, Map<String, Int>>()
+    scenes.names().forEach { name ->
+        val actors = scenes.actors(name) ?: return@forEach
+        typeCounts[name] = actors.groupingBy { it.typeId }.eachCount().toSortedMap()
+        if (references.isEmpty()) return@forEach
+        val named = actors.flatMap { actor ->
+            val names = references[actor.typeId] ?: return@flatMap emptyList()
+            SceneDocument.stateObject(actor.state)?.let { SceneDocument.referencedTypes(it, names) }.orEmpty().filter { it != actor.typeId }
+        }
+        if (named.isNotEmpty()) referenceCounts[name] = named.groupingBy { it }.eachCount()
+    }
+    SceneCounts(typeCounts, referenceCounts)
 }
 
 /**
@@ -35,23 +65,6 @@ internal fun CommandContext.sceneMusic(): Map<String, String> = scenes.names().m
         SceneSettingsState.indexIn(actors).takeIf { it >= 0 }?.let { index -> name to SceneSettingsState.read(actors[index].state).music }
     }
 }.filter { (_, music) -> music.isNotEmpty() }.toMap()
-
-/**
- * How many of the values each Scene saves for Actor type reference Properties name each Actor type, by the Scene's name
- * and then the type's ([actorTypeReferenceProperties]).
- */
-internal fun CommandContext.sceneActorTypeReferences(types: List<BlockTypeDefinition>): Map<String, Map<String, Int>> {
-    val references = actorTypeReferenceProperties(types)
-    if (references.isEmpty()) return emptyMap()
-    return scenes.names().mapNotNull { name ->
-        val actors = scenes.actors(name) ?: return@mapNotNull null
-        val named = actors.flatMap { actor ->
-            val state = references[actor.typeId]?.let { SceneDocument.stateObject(actor.state) } ?: return@flatMap emptyList()
-            references.getValue(actor.typeId).mapNotNull { property -> (state[property] as? JsonPrimitive)?.takeIf { it.isString }?.content?.ifEmpty { null } }
-        }
-        if (named.isEmpty()) null else name to named.groupingBy { it }.eachCount()
-    }.toMap()
-}
 
 /**
  * The relations between the parts of the open project.
@@ -70,8 +83,8 @@ internal suspend fun CommandContext.projectReferences(subject: RelationSubject):
  */
 internal suspend fun CommandContext.projectReferences(subjects: List<RelationSubject>): List<ProjectReferences> {
     val types = blockTypes?.types?.value.orEmpty()
-    // A Scene's Actors refer to nothing but their type, so no other subject's references need them.
-    val sceneCounts = if (subjects.any { it is RelationSubject.Type }) sceneTypeCounts() else emptyMap()
+    // A Scene's Actors refer to nothing but types, so no other subject's references need them.
+    val sceneCounts = if (subjects.any { it is RelationSubject.Type }) sceneCounts(types) else SceneCounts(emptyMap(), emptyMap())
     return withContext(ioDispatcher) {
         val mentionedPaths = subjects.map { mentionedPathOf(it) }
         val firstScene = firstSceneSettings(project.rootDirectory)?.firstScene
@@ -80,8 +93,7 @@ internal suspend fun CommandContext.projectReferences(subjects: List<RelationSub
         // pages are read only for what they can link to.
         val markdown = if (mentionedPaths.all { it == null }) emptyMap() else screenplayTexts().markdown.filterKeys { PageNaming.nameOf(it) != null }
         val music = if (subjects.any { it is RelationSubject.Resource && ResourceKind.of(it.path) == ResourceKind.MUSIC }) sceneMusic() else emptyMap()
-        val actorTypeReferences = if (subjects.any { it is RelationSubject.Type }) sceneActorTypeReferences(types) else emptyMap()
-        val relations = ProjectRelations(types, sceneCounts)
+        val relations = ProjectRelations(types, sceneCounts.types)
         mentionedPaths.map { mentionedPath ->
             ProjectReferences(
                 types = types,
@@ -91,7 +103,7 @@ internal suspend fun CommandContext.projectReferences(subjects: List<RelationSub
                 markdown = if (mentionedPath == null) emptyMap() else markdown,
                 mentionedPath = mentionedPath,
                 sceneMusic = music,
-                sceneActorTypeReferences = actorTypeReferences,
+                sceneActorTypeReferences = sceneCounts.actorTypeReferences,
             )
         }
     }
