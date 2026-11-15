@@ -36,6 +36,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.BlockNesting
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
+import com.pandulapeter.kubrikoCreator.actors.FULL_VOLUME
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
@@ -236,7 +237,7 @@ private fun InlineParameters(
         itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         SoundValueField(block.sound, scope) { onBlockChange(block.copy(sound = it)) }
-        PercentField(Res.string.block_parameter_volume, block.volume, scope, { onBlockChange(block.copy(volume = it)) }, accepts = { it in 0f..100f })
+        PercentField(Res.string.block_parameter_volume, block.volume, scope, { onBlockChange(block.copy(volume = it)) }, accepts = { it in 0f..FULL_VOLUME })
     }
     is BlockDefinition.PlayMusic -> FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -249,7 +250,7 @@ private fun InlineParameters(
             checked = block.isLooping,
             onCheckedChange = { onBlockChange(block.copy(isLooping = it)) },
         )
-        PercentField(Res.string.block_parameter_volume, block.volume, scope, { onBlockChange(block.copy(volume = it)) }, accepts = { it in 0f..100f })
+        PercentField(Res.string.block_parameter_volume, block.volume, scope, { onBlockChange(block.copy(volume = it)) }, accepts = { it in 0f..FULL_VOLUME })
     }
     is BlockDefinition.PauseGame -> MenuButton(
         label = stringResource(block.action.title),

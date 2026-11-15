@@ -23,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.ConditionKind
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.FULL_VOLUME
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
@@ -180,8 +181,8 @@ private fun validateBlockValues(block: BlockDefinition, scope: BlockScope): Reje
     !block.areEdgesAlongTheirAxes -> Rejection(CommandProblem.NUMBER_EDGE_ACROSS)
     block.edgelessNumberValues.any { it.readsEdges } -> Rejection(CommandProblem.NUMBER_EDGE_NOT_TAKEN)
     block is BlockDefinition.SetOpacity && !block.percent.isWithin(0f, 100f) -> Rejection(CommandProblem.OPACITY_OUT_OF_RANGE)
-    block is BlockDefinition.PlaySound && !block.volume.isWithin(0f, 100f) -> Rejection(CommandProblem.VOLUME_OUT_OF_RANGE)
-    block is BlockDefinition.PlayMusic && !block.volume.isWithin(0f, 100f) -> Rejection(CommandProblem.VOLUME_OUT_OF_RANGE)
+    block is BlockDefinition.PlaySound && !block.volume.isWithin(0f, FULL_VOLUME) -> Rejection(CommandProblem.VOLUME_OUT_OF_RANGE)
+    block is BlockDefinition.PlayMusic && !block.volume.isWithin(0f, FULL_VOLUME) -> Rejection(CommandProblem.VOLUME_OUT_OF_RANGE)
     block is BlockDefinition.SetColor && block.colors.size !in 1..BlockDefinition.SetColor.MAXIMUM_COLORS ->
         Rejection(CommandProblem.COLORS_COUNT, BlockDefinition.SetColor.MAXIMUM_COLORS.toString())
     block is BlockDefinition.SetColor && block.colors.any { it.fixedArgb?.let(ColorHex::isOpaque) == false } -> Rejection(CommandProblem.COLORS_NOT_OPAQUE)
