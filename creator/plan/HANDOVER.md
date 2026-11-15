@@ -42,7 +42,8 @@ a commit of its own (73d97e438..f179d62e4):
   looked up by name in the registry; renames follow their starting values and the values Scenes save, deletes clear them.
 - An if or repeat Block from the palette comes with its end Block.
 
-The Simple behavior section's shooter without Kotlin still waits for a live eval run.
+The writers' room shooter is in the eval set (`shooter`, on an empty project) and was built with no Kotlin Block, so the
+Simple behavior section is gone from `01-blocks.md`.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
@@ -75,18 +76,18 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
 - The number value field in the real app (switching kinds, typing a range, choosing a Property or an edge), and a played
   game drawing random numbers and placing an Actor at an edge (the integration test compiles every kind, but nothing runs
   one); an end-to-end scenario under Xvfb could add a Brick at the right edge and check by pixels where it lands.
-- The eval set's `bat.json` recording (`EvalRecordings`) was made before format 7: its Bat stops at an edge with an edge
-  Event but doesn't stay inside, so in the replayed game it can slide off screen once stopped there. Record it again
-  (`EvalSetLiveTest` with `KUBRIKO_CREATOR_EVAL_RECORD=true`) when a live run can be spent, and consider checking in
-  its request that the Bat stays inside.
 - A played game showing a text only while its condition holds, in each font, and a Scene giving a Manager type values
   (the integration test compiles both, but nothing plays them); `PlayingBlocksTest` could add a Manager whose text shows
   while a toggle is on and a Scene setting it.
 - A played game with color Properties (Set the color from one, Animate between two) and with an Actor type reference
   Property (a spawner adding the type it keeps); the integration test compiles every case.
-- The eval set has no request using `find_usages` or `search_project`, nor the new resource tools, `move_folder`, `set_sprite_sheet`, the animation Blocks, Move in a direction, the color and opacity Blocks, Animate, Move with keys, the Manager Events about Actors and the count of Actors, the drawing
-  tools, the text options, `set_scene_values`, color Properties, or Actor type reference Properties yet; record one
-  (`EvalSetLiveTest` with `KUBRIKO_CREATOR_EVAL_RECORD=true`) once a live run can be spent on it.
+- The eval set has no request using `find_usages` or `search_project`, nor the new resource tools, `move_folder`,
+  `set_sprite_sheet`, or the animation Blocks yet; record one (`EvalSetLiveTest` with `KUBRIKO_CREATOR_EVAL_RECORD=true`
+  and `KUBRIKO_CREATOR_EVAL_REQUESTS` naming it) once a live run can be spent on it.
+- `set_scene_values` isn't found unless the request names the Scene: asked "Players should start level-1 with 5 lives;
+  other levels keep the usual 3", the agent gave the Paddle a `startingLives` Property setting Game's lives when added,
+  never looking the tool up (it isn't loaded from the start). The recorded request says "Have the level-1 Scene give Game
+  5 lives"; the digest or `read_manager_type` could point at it.
 
 ## Before a release
 

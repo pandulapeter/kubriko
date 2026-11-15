@@ -13,17 +13,6 @@ Blocks are the heart of the product. Each addition below lands with its command 
 integration test's every-Block types (an Actor type and two Manager types), and is one entry of the Block descriptor (`BlockKind`),
 whose exhaustive `when`s then show every place it needs.
 
-## Simple behavior without Kotlin
-
-Kotlin Blocks are for advanced cases only: the agent writes one only when no combination of Blocks can do the job or the user asks
-for code (`AssistantSystemPrompt`). The first writers' room game (a side-scrolling shooter with scrolling stars and exploding aliens)
-needed twelve Kotlin Blocks, all for simple behavior. Each item replaces some of them, and the section is done when the eval set
-(`EvalSet`) builds the same game with no Kotlin Block left.
-
-- **The shooter without Kotlin:** add the writers' room shooter to the eval set and record it (`EvalSetLiveTest` with
-  `KUBRIKO_CREATOR_EVAL_RECORD=true`, which spends a real agent's requests) once a live run can be spent; whatever it still
-  writes a Kotlin Block for becomes an item here.
-
 ## More for Manager types
 
 - **Font files:** fonts the game bundles (`composeResources/font`), added and named like sprites, so a text looks alike on
@@ -83,4 +72,4 @@ sounds from the audio Blocks). It doubles as the beginner reference project.
 
 ## Order
 
-Simple behavior first, then Manager types, the next additions, UI elements, the Scene editor, Convert to code, and the Paddle game.
+Manager types first, then the next additions, UI elements, the Scene editor, Convert to code, and the Paddle game.
