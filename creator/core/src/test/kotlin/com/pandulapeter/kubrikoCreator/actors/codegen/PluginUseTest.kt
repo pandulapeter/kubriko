@@ -21,6 +21,7 @@ import com.pandulapeter.kubrikoCreator.actors.SteeringKeys
 import com.pandulapeter.kubrikoCreator.project.KubrikoArtifact
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class PluginUseTest {
 
@@ -55,6 +56,14 @@ class PluginUseTest {
             ),
             PluginUse.of(listOf(ball, ActorTypeDefinition(name = "Paddle"), game), sceneMusic = mapOf("levels/1-1" to "files/music/level.mp3")),
         )
+    }
+
+    @Test
+    fun aKeyHeldInsideACombinedConditionUsesTheKeyboard() {
+        val nested = ConditionDefinition.Combined(listOf(ConditionDefinition.Toggle(), ConditionDefinition.Combined(listOf(ConditionDefinition.KeyHeld(KeyChoice.A)), isAll = false)))
+        val game = ManagerTypeDefinition(name = "Game", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.If(nested), BlockDefinition.End))))
+        assertEquals(listOf(PluginUse(KubrikoArtifact.KEYBOARD_INPUT, PluginReason.KEY_HELD_CONDITION, "Game", "A")), PluginUse.of(listOf(game)))
+        assertTrue(PluginManagers.of(listOf(game)).usesKeyboard)
     }
 
     @Test

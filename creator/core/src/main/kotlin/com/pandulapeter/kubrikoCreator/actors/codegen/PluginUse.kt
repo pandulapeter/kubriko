@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.audioFile
+import com.pandulapeter.kubrikoCreator.actors.leaves
 import com.pandulapeter.kubrikoCreator.project.KubrikoArtifact
 
 /**
@@ -48,7 +49,10 @@ public data class PluginUse(
                             uses += PluginUse(KubrikoArtifact.KEYBOARD_INPUT, PluginReason.KEY_PRESSED_EVENT, definition.name, event.key.composeKeyName)
                     }
                     event.blocks.forEach { block ->
-                        if (GeneratedCode.isGenerated(block, event.type, definition.kind)) useOf(block, definition.name)?.let(uses::add)
+                        if (GeneratedCode.isGenerated(block, event.type, definition.kind)) {
+                            useOf(block, definition.name)?.let(uses::add)
+                            (block as? BlockDefinition.If)?.condition?.leaves?.forEach { condition -> useOf(condition, definition.name)?.let(uses::add) }
+                        }
                     }
                 }
                 if (definition is ActorTypeDefinition) {
@@ -61,9 +65,11 @@ public data class PluginUse(
             return uses.toList()
         }
 
+        private fun useOf(condition: ConditionDefinition, owner: String) = (condition as? ConditionDefinition.KeyHeld)?.key?.takeIf { it.isKnown }?.let { key ->
+            PluginUse(KubrikoArtifact.KEYBOARD_INPUT, PluginReason.KEY_HELD_CONDITION, owner, key.composeKeyName)
+        }
+
         private fun useOf(block: BlockDefinition, owner: String) = when {
-            block is BlockDefinition.If && (block.condition as? ConditionDefinition.KeyHeld)?.key?.isKnown == true ->
-                PluginUse(KubrikoArtifact.KEYBOARD_INPUT, PluginReason.KEY_HELD_CONDITION, owner, (block.condition as ConditionDefinition.KeyHeld).key.composeKeyName)
             block is BlockDefinition.PlaySound && block.audioFile != null -> PluginUse(KubrikoArtifact.AUDIO_PLAYBACK, PluginReason.PLAYS_SOUND, owner, block.audioFile)
             block is BlockDefinition.PlayMusic && block.audioFile != null -> PluginUse(KubrikoArtifact.AUDIO_PLAYBACK, PluginReason.PLAYS_MUSIC, owner, block.audioFile)
             block is BlockDefinition.MoveWithKeys -> PluginUse(KubrikoArtifact.KEYBOARD_INPUT, PluginReason.MOVES_WITH_KEYS, owner)
