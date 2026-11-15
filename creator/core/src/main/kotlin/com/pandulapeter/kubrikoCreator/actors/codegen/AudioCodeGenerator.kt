@@ -59,7 +59,13 @@ internal object AudioCodeGenerator {
             |    private lateinit var musicManager: MusicManager
             |    private lateinit var soundManager: SoundManager
             |    private lateinit var generatedScenes: ${ScenesCodeGenerator.SCENES_NAME}
-            |    private val uris = HashMap<String, String>()
+            |
+            |    /**
+            |     * The URI of each file played so far, replaced rather than changed, since Blocks play from more than one thread.
+            |     */
+            |    @Volatile
+            |    private var uris = emptyMap<String, String>()
+            |
             |    private var music: String? = null
             |    private var isMusicLooping = true
             |    private var musicVolume = 1f
@@ -76,7 +82,7 @@ internal object AudioCodeGenerator {
             |        musicManager = kubriko.get()
             |        soundManager = kubriko.get()
             |        generatedScenes = kubriko.get()
-            |        (SOUNDS + MUSIC).forEach { uris[it] = Res.getUri(it) }
+            |        uris = (SOUNDS + MUSIC).associateWith { Res.getUri(it) }
             |        soundManager.preload(SOUNDS.map(::uriOf))
             |        musicManager.preload(MUSIC.map(::uriOf))
             |        // The music manager pauses the music when the game loses focus, and leaves resuming it to the game.
@@ -123,7 +129,7 @@ internal object AudioCodeGenerator {
             |        isMusicPending = false
             |    }
             |
-            |    private fun uriOf(path: String) = uris[path] ?: Res.getUri(path)
+            |    private fun uriOf(path: String) = uris[path] ?: Res.getUri(path).also { uris = uris + (path to it) }
             |
             |    private companion object {
             """.trimMargin(),

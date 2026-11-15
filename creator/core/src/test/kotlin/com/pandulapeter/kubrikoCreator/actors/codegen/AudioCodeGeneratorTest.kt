@@ -37,8 +37,13 @@ class AudioCodeGeneratorTest {
     fun everyFileItPlaysIsPreloadedAndItsUriLookedUpOnce() {
         assertContains(code, "        val SOUNDS = listOf(\n            \"files/sounds/hit.wav\",\n            \"files/sounds/pop.wav\",\n        )\n")
         assertContains(code, "        val MUSIC = emptyList<String>()\n")
-        assertContains(code, "        (SOUNDS + MUSIC).forEach { uris[it] = Res.getUri(it) }\n")
+        assertContains(code, "        uris = (SOUNDS + MUSIC).associateWith { Res.getUri(it) }\n")
         assertContains(code, "        soundManager.preload(SOUNDS.map(::uriOf))\n        musicManager.preload(MUSIC.map(::uriOf))\n")
+    }
+
+    @Test
+    fun aFileItDidntPreloadHasItsUriLookedUpOnceToo() {
+        assertContains(code, "    private fun uriOf(path: String) = uris[path] ?: Res.getUri(path).also { uris = uris + (path to it) }\n")
     }
 
     @Test
