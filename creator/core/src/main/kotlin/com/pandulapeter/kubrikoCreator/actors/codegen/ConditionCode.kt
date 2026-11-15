@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.Axis
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.ConditionKind
+import com.pandulapeter.kubrikoCreator.actors.PropertyReference
 import com.pandulapeter.kubrikoCreator.actors.ToggleValue
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.KEYBOARD_INPUT_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.KEY_IMPORT
@@ -21,9 +22,8 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STATE_M
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.managersReachedBy
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.propertyExpression
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.stringLiteral
-import com.pandulapeter.kubrikoCreator.actors.numberValues
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
-import com.pandulapeter.kubrikoCreator.actors.valuePropertyReferences
+import com.pandulapeter.kubrikoCreator.actors.values
 
 /**
  * The conditions if Blocks check and texts are shown while, as Kotlin expressions.
@@ -33,13 +33,18 @@ internal object ConditionCode {
     /**
      * [condition] as a Kotlin expression (the only line of the result), with what its numbers reach, or `false` if it
      * needs a Property that doesn't exist (of that kind, a value it compares with read from one too), an Actor type that
-     * doesn't, or an Actor in a Manager type, so that the generated code always compiles. A combined condition joins its conditions' expressions, each in parentheses.
+     * doesn't, or an Actor in a Manager type, so that the generated code always compiles. A combined condition joins its
+     * conditions' expressions, each in parentheses.
      */
-    fun of(condition: ConditionDefinition, scope: BlockScope): BlockCode = if (condition is ConditionDefinition.Combined) combinedOf(condition, scope) else expressionOf(condition, scope).let { code ->
-        if (code.lines.single() == "false") {
+    fun of(condition: ConditionDefinition, scope: BlockScope): BlockCode {
+        if (condition is ConditionDefinition.Combined) return combinedOf(condition, scope)
+        val values = condition.values
+        val valueReferences = values.propertyReferences
+        val code = expressionOf(condition, valueReferences, scope)
+        return if (code.lines.single() == "false") {
             code
         } else {
-            code.copy(needs = code.needs + NumberValueCode.needsOf(condition.numberValues), managers = code.managers + scope.managersReading(condition.valuePropertyReferences))
+            code.copy(needs = code.needs + NumberValueCode.needsOf(values.numbers), managers = code.managers + scope.managersReading(valueReferences))
         }
     }
 
@@ -50,11 +55,14 @@ internal object ConditionCode {
             .copy(lines = listOf(parts.joinToString(if (condition.isAll) " && " else " || ") { "(${it.lines.single()})" }))
     }
 
-    private fun expressionOf(condition: ConditionDefinition, scope: BlockScope): BlockCode {
+    /**
+     * @param valueReferences The Properties [condition] reads as values.
+     */
+    private fun expressionOf(condition: ConditionDefinition, valueReferences: List<PropertyReference>, scope: BlockScope): BlockCode {
         val reference = condition.propertyReference
         if (reference != null && !scope.hasProperty(reference)) return BlockCode(listOf("false"))
         // A value read from a Property that doesn't exist would otherwise be compared as 0, an empty text, or off.
-        if (condition.valuePropertyReferences.any { !scope.hasProperty(it) }) return BlockCode(listOf("false"))
+        if (valueReferences.any { !scope.hasProperty(it) }) return BlockCode(listOf("false"))
         if (!ConditionKind.of(condition).isAvailableIn(scope.kind)) return BlockCode(listOf("false"))
         val property = reference?.let { propertyExpression(it, scope) }
         val managers = managersReachedBy(reference?.manager, scope)

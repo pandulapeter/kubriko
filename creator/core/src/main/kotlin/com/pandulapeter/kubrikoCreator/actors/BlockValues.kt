@@ -123,7 +123,10 @@ internal class CollectedValues : ValueTransform {
 internal val BlockDefinition.values: CollectedValues
     get() = CollectedValues().also { withValues(it) }
 
-private val ConditionDefinition.values: CollectedValues
+/**
+ * Every value [this] condition takes, those of the conditions it combines too ([withValues]), by kind.
+ */
+internal val ConditionDefinition.values: CollectedValues
     get() = CollectedValues().also { withValues(it) }
 
 /**
