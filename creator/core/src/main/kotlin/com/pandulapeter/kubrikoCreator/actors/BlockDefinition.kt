@@ -187,7 +187,7 @@ public sealed interface BlockDefinition {
     public data class MoveTowardsNearest(
         @Description("The name of the Actor type, or a property Actor type value.")
         @SerialName("actorType") val actorType: ActorTypeValue = ActorTypeValue.Fixed(""),
-        @Description("The speed, in scene units per second. Not an edge.")
+        @Description("The speed, in scene units per second; a negative one moves away from that Actor instead. Not an edge.")
         @SerialName("speed") val speed: NumberValue = NumberValue.Fixed(200f),
     ) : BlockDefinition
 
