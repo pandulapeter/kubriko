@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.context
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeValue
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ColorValue
@@ -18,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
 import com.pandulapeter.kubrikoCreator.actors.fixedArgb
+import com.pandulapeter.kubrikoCreator.actors.withActorTypeValues
 import com.pandulapeter.kubrikoCreator.actors.withColorValues
 import com.pandulapeter.kubrikoCreator.actors.withNumberValues
 import com.pandulapeter.kubrikoCreator.foundation.ColorHex
@@ -109,6 +111,7 @@ internal class ReferenceCleanup(
         fun isDeleted(placeholder: PropertyPlaceholders.Placeholder) = relations.propertyOf(type.name, placeholder.manager, placeholder.name) in deleted.properties
         fun fixedIfDeleted(value: NumberValue) = (value as? NumberValue.Property)?.let { fixedInsteadOf(type.name, it, deleted) } ?: value
         fun fixedIfDeleted(value: ColorValue) = (value as? ColorValue.Property)?.let { fixedInsteadOf(type.name, it, deleted) } ?: value
+        fun fixedIfDeleted(value: ActorTypeValue) = (value as? ActorTypeValue.Property)?.let { fixedInsteadOf(type.name, it, deleted) } ?: value
         val events = type.events.mapIndexedNotNull { eventIndex, event ->
             if (eventIndex in removal.events) return@mapIndexedNotNull null
             val removed = removal.blocks[eventIndex].orEmpty()
@@ -119,7 +122,7 @@ internal class ReferenceCleanup(
                         block is BlockDefinition.Log -> block.copy(message = PropertyPlaceholders.withPlaceholdersAsText(block.message, ::isDeleted))
                         else -> block.withNumberValues(::fixedIfDeleted).withColorValues { color ->
                             fixedIfDeleted(color).let { fixed -> if (fixed != color && block.takesOnlyOpaqueColors) ColorValue.Fixed(ColorHex.opaque(checkNotNull(fixed.fixedArgb))) else fixed }
-                        }
+                        }.withActorTypeValues(::fixedIfDeleted)
                     }
                 },
             )
@@ -159,6 +162,13 @@ internal class ReferenceCleanup(
      */
     private fun fixedInsteadOf(typeName: String, value: ColorValue.Property, deleted: Deleted) = deletedPropertyRead(typeName, value.manager, value.property, deleted)
         ?.let { ColorValue.Fixed((it.definition as? PropertyDefinition.Color)?.initialValue ?: PropertyDefinition.Color(value.property).initialValue) }
+
+    /**
+     * The starting Actor type of the Property [value] reads, as a fixed one, if that Property, or the Manager type it is
+     * chosen from, is deleted.
+     */
+    private fun fixedInsteadOf(typeName: String, value: ActorTypeValue.Property, deleted: Deleted) = deletedPropertyRead(typeName, value.manager, value.property, deleted)
+        ?.let { ActorTypeValue.Fixed((it.definition as? PropertyDefinition.ActorType)?.initialValue.orEmpty()) }
 
     /**
      * The Property [name] of [manager] (the type's own one, if null) that [typeName] reads, if it, or that Manager type,

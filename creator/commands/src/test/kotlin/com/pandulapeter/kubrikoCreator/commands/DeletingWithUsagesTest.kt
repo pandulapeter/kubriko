@@ -206,6 +206,19 @@ class DeletingWithUsagesTest {
     }
 
     @Test
+    fun deletingAPropertyABlockTakesItsActorTypeFromLeavesItsStartingType() = runTest {
+        val enemy = ActorTypeDefinition(name = "Enemy")
+        val spawner = ActorTypeDefinition(
+            name = "Spawner",
+            properties = listOf(PropertyDefinition.ActorType("spawned", "Enemy")),
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.AddActor(ActorTypeValue.Property("spawned"))))),
+        )
+        val context = commandContext(enemy, spawner)
+        val after = context.assertRoundTrip(Invocation(RemoveProperty, RemoveProperty.Input("Spawner", "spawned"))) { context.snapshot() }.first
+        assertEquals(listOf(BlockDefinition.AddActor(ActorTypeValue.Fixed("Enemy"))), after.single { it.name == "Spawner" }.events.single().blocks)
+    }
+
+    @Test
     fun aRemovedIfBlockWithoutAnEndTakesTheRestOfItsEvent() = runTest {
         val player = ActorTypeDefinition(
             name = "Player",
