@@ -152,7 +152,10 @@ public object EveryBlockTypes {
             BlockDefinition.End,
             BlockDefinition.If(
                 ConditionDefinition.Combined(
-                    listOf(ConditionDefinition.Combined(listOf(ConditionDefinition.Chance(), ConditionDefinition.KeyHeld()), isAll = true), ConditionDefinition.Text("title")),
+                    listOf(
+                        ConditionDefinition.Combined(listOf(ConditionDefinition.Chance(), ConditionDefinition.KeyHeld(), ConditionDefinition.ActorCount("EveryGrandchild")), isAll = true),
+                        ConditionDefinition.Text("title"),
+                    ),
                     isAll = false,
                 ),
             ),

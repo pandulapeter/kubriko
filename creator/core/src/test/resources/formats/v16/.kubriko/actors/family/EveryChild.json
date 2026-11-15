@@ -992,6 +992,12 @@
                                         "type": "keyHeld",
                                         "key": "Spacebar",
                                         "isHeld": true
+                                    },
+                                    {
+                                        "type": "actorCount",
+                                        "actorType": "EveryGrandchild",
+                                        "comparison": "equal",
+                                        "value": 0.0
                                     }
                                 ],
                                 "isAll": true
@@ -1999,6 +2005,12 @@
                                         "type": "keyHeld",
                                         "key": "Spacebar",
                                         "isHeld": true
+                                    },
+                                    {
+                                        "type": "actorCount",
+                                        "actorType": "EveryGrandchild",
+                                        "comparison": "equal",
+                                        "value": 0.0
                                     }
                                 ],
                                 "isAll": true
@@ -3006,6 +3018,12 @@
                                         "type": "keyHeld",
                                         "key": "Spacebar",
                                         "isHeld": true
+                                    },
+                                    {
+                                        "type": "actorCount",
+                                        "actorType": "EveryGrandchild",
+                                        "comparison": "equal",
+                                        "value": 0.0
                                     }
                                 ],
                                 "isAll": true
@@ -4014,6 +4032,12 @@
                                         "type": "keyHeld",
                                         "key": "Spacebar",
                                         "isHeld": true
+                                    },
+                                    {
+                                        "type": "actorCount",
+                                        "actorType": "EveryGrandchild",
+                                        "comparison": "equal",
+                                        "value": 0.0
                                     }
                                 ],
                                 "isAll": true
@@ -5022,6 +5046,12 @@
                                         "type": "keyHeld",
                                         "key": "Spacebar",
                                         "isHeld": true
+                                    },
+                                    {
+                                        "type": "actorCount",
+                                        "actorType": "EveryGrandchild",
+                                        "comparison": "equal",
+                                        "value": 0.0
                                     }
                                 ],
                                 "isAll": true
@@ -6030,6 +6060,12 @@
                                         "type": "keyHeld",
                                         "key": "Spacebar",
                                         "isHeld": true
+                                    },
+                                    {
+                                        "type": "actorCount",
+                                        "actorType": "EveryGrandchild",
+                                        "comparison": "equal",
+                                        "value": 0.0
                                     }
                                 ],
                                 "isAll": true
@@ -13190,6 +13226,12 @@
                                         "type": "keyHeld",
                                         "key": "Spacebar",
                                         "isHeld": true
+                                    },
+                                    {
+                                        "type": "actorCount",
+                                        "actorType": "EveryGrandchild",
+                                        "comparison": "equal",
+                                        "value": 0.0
                                     }
                                 ],
                                 "isAll": true
@@ -14197,6 +14239,12 @@
                                         "type": "keyHeld",
                                         "key": "Spacebar",
                                         "isHeld": true
+                                    },
+                                    {
+                                        "type": "actorCount",
+                                        "actorType": "EveryGrandchild",
+                                        "comparison": "equal",
+                                        "value": 0.0
                                     }
                                 ],
                                 "isAll": true
@@ -15205,6 +15253,12 @@
                                         "type": "keyHeld",
                                         "key": "Spacebar",
                                         "isHeld": true
+                                    },
+                                    {
+                                        "type": "actorCount",
+                                        "actorType": "EveryGrandchild",
+                                        "comparison": "equal",
+                                        "value": 0.0
                                     }
                                 ],
                                 "isAll": true
@@ -16207,6 +16261,12 @@
                                         "type": "keyHeld",
                                         "key": "Spacebar",
                                         "isHeld": true
+                                    },
+                                    {
+                                        "type": "actorCount",
+                                        "actorType": "EveryGrandchild",
+                                        "comparison": "equal",
+                                        "value": 0.0
                                     }
                                 ],
                                 "isAll": true
@@ -17215,6 +17275,12 @@
                                         "type": "keyHeld",
                                         "key": "Spacebar",
                                         "isHeld": true
+                                    },
+                                    {
+                                        "type": "actorCount",
+                                        "actorType": "EveryGrandchild",
+                                        "comparison": "equal",
+                                        "value": 0.0
                                     }
                                 ],
                                 "isAll": true
@@ -18217,6 +18283,12 @@
                                         "type": "keyHeld",
                                         "key": "Spacebar",
                                         "isHeld": true
+                                    },
+                                    {
+                                        "type": "actorCount",
+                                        "actorType": "EveryGrandchild",
+                                        "comparison": "equal",
+                                        "value": 0.0
                                     }
                                 ],
                                 "isAll": true
@@ -19225,6 +19297,12 @@
                                         "type": "keyHeld",
                                         "key": "Spacebar",
                                         "isHeld": true
+                                    },
+                                    {
+                                        "type": "actorCount",
+                                        "actorType": "EveryGrandchild",
+                                        "comparison": "equal",
+                                        "value": 0.0
                                     }
                                 ],
                                 "isAll": true
@@ -20233,6 +20311,12 @@
                                         "type": "keyHeld",
                                         "key": "Spacebar",
                                         "isHeld": true
+                                    },
+                                    {
+                                        "type": "actorCount",
+                                        "actorType": "EveryGrandchild",
+                                        "comparison": "equal",
+                                        "value": 0.0
                                     }
                                 ],
                                 "isAll": true
@@ -21241,6 +21325,12 @@
                                         "type": "keyHeld",
                                         "key": "Spacebar",
                                         "isHeld": true
+                                    },
+                                    {
+                                        "type": "actorCount",
+                                        "actorType": "EveryGrandchild",
+                                        "comparison": "equal",
+                                        "value": 0.0
                                     }
                                 ],
                                 "isAll": true
@@ -22249,6 +22339,12 @@
                                         "type": "keyHeld",
                                         "key": "Spacebar",
                                         "isHeld": true
+                                    },
+                                    {
+                                        "type": "actorCount",
+                                        "actorType": "EveryGrandchild",
+                                        "comparison": "equal",
+                                        "value": 0.0
                                     }
                                 ],
                                 "isAll": true
@@ -23257,6 +23353,12 @@
                                         "type": "keyHeld",
                                         "key": "Spacebar",
                                         "isHeld": true
+                                    },
+                                    {
+                                        "type": "actorCount",
+                                        "actorType": "EveryGrandchild",
+                                        "comparison": "equal",
+                                        "value": 0.0
                                     }
                                 ],
                                 "isAll": true
@@ -24265,6 +24367,12 @@
                                         "type": "keyHeld",
                                         "key": "Spacebar",
                                         "isHeld": true
+                                    },
+                                    {
+                                        "type": "actorCount",
+                                        "actorType": "EveryGrandchild",
+                                        "comparison": "equal",
+                                        "value": 0.0
                                     }
                                 ],
                                 "isAll": true
@@ -25273,6 +25381,12 @@
                                         "type": "keyHeld",
                                         "key": "Spacebar",
                                         "isHeld": true
+                                    },
+                                    {
+                                        "type": "actorCount",
+                                        "actorType": "EveryGrandchild",
+                                        "comparison": "equal",
+                                        "value": 0.0
                                     }
                                 ],
                                 "isAll": true
@@ -26286,6 +26400,12 @@
                                         "type": "keyHeld",
                                         "key": "Spacebar",
                                         "isHeld": true
+                                    },
+                                    {
+                                        "type": "actorCount",
+                                        "actorType": "EveryGrandchild",
+                                        "comparison": "equal",
+                                        "value": 0.0
                                     }
                                 ],
                                 "isAll": true
@@ -27294,6 +27414,12 @@
                                         "type": "keyHeld",
                                         "key": "Spacebar",
                                         "isHeld": true
+                                    },
+                                    {
+                                        "type": "actorCount",
+                                        "actorType": "EveryGrandchild",
+                                        "comparison": "equal",
+                                        "value": 0.0
                                     }
                                 ],
                                 "isAll": true
@@ -28302,6 +28428,12 @@
                                         "type": "keyHeld",
                                         "key": "Spacebar",
                                         "isHeld": true
+                                    },
+                                    {
+                                        "type": "actorCount",
+                                        "actorType": "EveryGrandchild",
+                                        "comparison": "equal",
+                                        "value": 0.0
                                     }
                                 ],
                                 "isAll": true
