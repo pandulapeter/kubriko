@@ -127,9 +127,10 @@
   when Compose drops one.
 - `KubrikoWiring.createManagers` creates only the plugin Managers the game uses (`PluginManagers`), so a game that doesn't use a
   plugin doesn't depend on it. Manager types' Events don't run in the Scene editor. A Manager with key Events adds itself as an
-  Actor, and `GeneratedScenes` adds it back after each Scene's `removeAll`. Key presses arrive while paused, so Actors' key Events
-  return early then and Managers' still run, so a key can resume the game. `GeneratedScenes` ignores a request for the Scene it
-  is already loading, so goToScene every frame doesn't restart the load forever.
+  Actor, and `GeneratedScenes` adds it back after each Scene's `removeAll`. Key presses arrive while paused, so Actors' key
+  pressed Events return early then and Managers' still run, so a key can resume the game; released Events always run, so
+  what a press started ends (Kubriko reports a held key released when the game loses the focus too). `GeneratedScenes`
+  ignores a request for the Scene it is already loading, so goToScene every frame doesn't restart the load forever.
 - `GeneratedAudio` exists only while the game plays audio. It starts music on the next frame, since the music player exists only
   once the viewport is composed, and resumes it when the game is focused again, since `MusicManager` doesn't.
 - Generated Actor types are `Batched`, so the engine draws runs of them in one call: each final class's `look` (its shape in

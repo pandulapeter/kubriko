@@ -357,14 +357,15 @@ internal class ActorClassEmitter(
     }
 
     /**
-     * Kubriko keeps telling Actors about keys while the game is paused, so they return early then.
+     * Kubriko keeps telling Actors about keys while the game is paused, so a press returns early then, while a key let
+     * go of always runs its Event, so what a press started always ends.
      */
     private fun StringBuilder.appendKeyDispatches() {
         if (!features.keys.isKeyboardInputAware) return
         imports += listOf(KEY_IMPORT, TRAIT_IMPORTS.getValue("KeyboardInputAware"))
         val guard = "        if (!$STATE_MANAGER_FIELD.isRunning.value) return"
         appendKeyDispatch("onKeyPressed", features.keys.pressed, ::callOf, guard)
-        appendKeyDispatch("onKeyReleased", features.keys.released, ::callOf, guard)
+        appendKeyDispatch("onKeyReleased", features.keys.released, ::callOf)
     }
 
     private fun StringBuilder.appendCollisionDispatch() {

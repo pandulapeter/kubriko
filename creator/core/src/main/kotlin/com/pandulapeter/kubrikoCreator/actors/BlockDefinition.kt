@@ -228,7 +228,7 @@ public sealed interface BlockDefinition {
 
     @Serializable
     @SerialName("pauseGame")
-    @Description("Pauses or resumes the game. While it is paused, Actors and Timers stop, and neither every frame nor key held Events run, nor the key pressed and released Events of Actor types, but those of Manager types still do, so a key can resume it.")
+    @Description("Pauses or resumes the game. While it is paused, Actors and Timers stop, and neither every frame nor key held Events run, nor the key pressed Events of Actor types, but those of Manager types still do, so a key can resume it.")
     public data class PauseGame(
         @Description("Whether it pauses the game, resumes it, or switches between the two.")
         @SerialName("action") val action: PauseAction = PauseAction.TOGGLE,

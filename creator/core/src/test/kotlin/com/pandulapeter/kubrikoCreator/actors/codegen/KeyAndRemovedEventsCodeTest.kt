@@ -34,10 +34,10 @@ class KeyAndRemovedEventsCodeTest {
     }
 
     @Test
-    fun anActorHearsAboutAKeyLetGoOfOnlyWhileTheGameRuns() {
+    fun anActorHearsAboutAKeyLetGoOfEvenWhilePausedSoWhatAPressStartedEnds() {
         val code = actor(EventDefinition(EventType.KEY_RELEASED, key = KeyChoice.SPACE, blocks = log))
         assertContains(code, "KeyboardInputAware")
-        assertContains(code, "    override fun onKeyReleased(key: Key) {\n        if (!stateManager.isRunning.value) return\n        when (key) {\n            Key.Spacebar -> onKeyReleasedSpacebar()\n")
+        assertContains(code, "    override fun onKeyReleased(key: Key) {\n        when (key) {\n            Key.Spacebar -> onKeyReleasedSpacebar()\n")
         assertFalse("override fun onKeyPressed" in code)
     }
 

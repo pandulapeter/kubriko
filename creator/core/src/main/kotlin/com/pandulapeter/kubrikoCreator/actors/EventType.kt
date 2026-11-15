@@ -41,7 +41,7 @@ public enum class EventType(public val misplacedProblem: PlacementProblem? = nul
     @SerialName("keyPressed")
     KEY_PRESSED,
 
-    @Description("When the player lets go of the Event's key. In an Actor type, not while the game is paused.")
+    @Description("When the player lets go of the Event's key, or the game loses the focus while it is held. It runs even while the game is paused, so what pressing the key started always ends.")
     @SerialName("keyReleased")
     KEY_RELEASED,
 
