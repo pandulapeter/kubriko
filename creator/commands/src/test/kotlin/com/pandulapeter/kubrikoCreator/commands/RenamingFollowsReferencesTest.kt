@@ -118,7 +118,13 @@ class RenamingFollowsReferencesTest {
     @Test
     fun renamingAManagerTypeFollowsEveryReferenceToIt() = runTest {
         val game = ManagerTypeDefinition(name = "Game", properties = listOf(PropertyDefinition.Number("score")))
-        val hud = ManagerTypeDefinition(name = "Hud", texts = listOf(ScreenTextDefinition(text = "Score: {Game.score}")))
+        val hud = ManagerTypeDefinition(
+            name = "Hud",
+            texts = listOf(
+                ScreenTextDefinition(text = "Score: {Game.score}"),
+                ScreenTextDefinition(text = "Record", shownWhen = ConditionDefinition.Number("score", value = NumberValue.Property("score", manager = "Game"), manager = "Game")),
+            ),
+        )
         val player = ActorTypeDefinition(
             name = "Player",
             events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetNumber("score", NumberValue.Fixed(1f), manager = "Game"), BlockDefinition.If(ConditionDefinition.Number("score", value = NumberValue.Fixed(3f), manager = "Game")), BlockDefinition.End, BlockDefinition.SetVelocity(x = NumberValue.Property("score", manager = "Game"))))),
@@ -156,6 +162,19 @@ class RenamingFollowsReferencesTest {
         val context = commandContext(enemy, boss)
         context.assertFollowed(RelationSubject.Property("Enemy", "hp"), RelationSubject.Property("Enemy", "health"), propertyKinds) {
             EditProperty.apply(context, EditProperty.Input("Enemy", "hp", PropertyDefinition.Number("health")))
+        }
+    }
+
+    @Test
+    fun renamingAManagersPropertyFollowsTheConditionsOfItsTexts() = runTest {
+        val game = ManagerTypeDefinition(
+            name = "Game",
+            properties = listOf(PropertyDefinition.Number("lives")),
+            texts = listOf(ScreenTextDefinition("{lives}", shownWhen = ConditionDefinition.Number("lives", value = NumberValue.Property("lives")))),
+        )
+        val context = commandContext(game)
+        context.assertFollowed(RelationSubject.Property("Game", "lives"), RelationSubject.Property("Game", "hearts"), setOf(RelationKind.READS, RelationKind.READS_AS_NUMBER)) {
+            EditProperty.apply(context, EditProperty.Input("Game", "lives", PropertyDefinition.Number("hearts")))
         }
     }
 

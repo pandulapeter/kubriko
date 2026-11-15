@@ -21,6 +21,7 @@ import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
+import com.pandulapeter.kubrikoCreator.actors.TextFont
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -142,6 +143,41 @@ class ManagerTypeCodeGeneratorTest {
         assertContains(code, "                modifier = Modifier.align(Alignment.Center),\n                text = \"Game over\",\n")
         assertContains(code, "    private fun Float.asText() = ")
         assertContains(code, "import androidx.compose.foundation.text.BasicText\n")
+    }
+
+    @Test
+    fun aTextIsDrawnInItsFontAndLettersNamedInFullSoThatATypeCanBeCalledLikeTheirClasses() {
+        val code = generate(
+            game.copy(texts = listOf(ScreenTextDefinition("Hi", font = TextFont.MONOSPACE, isBold = true, isItalic = true), ScreenTextDefinition("Plain"))),
+            actorTypeNames = listOf("FontFamily", "FontWeight", "FontStyle"),
+        )
+        assertContains(
+            code,
+            "    private val textStyle1 = TextStyle(color = Color(0xFF202020), fontSize = 24f.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace, " +
+                "fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)\n",
+        )
+        assertContains(code, "    private val textStyle2 = TextStyle(color = Color(0xFF202020), fontSize = 24f.sp)\n")
+        assertFalse("import androidx.compose.ui.text.font" in code)
+    }
+
+    @Test
+    fun aTextIsShownOnlyWhileItsConditionHoldsReadingComposeStateOfThisAndOtherManagers() {
+        val hud = ManagerTypeDefinition(
+            name = "Hud",
+            texts = listOf(
+                ScreenTextDefinition("Game over", ScreenPosition.CENTER, shownWhen = ConditionDefinition.Toggle("isOver", manager = "Game")),
+                ScreenTextDefinition("Last life", ScreenPosition.CENTER, shownWhen = ConditionDefinition.Number("lives", Comparison.EQUAL, NumberValue.Fixed(1f), manager = "Game")),
+                ScreenTextDefinition("Gone", ScreenPosition.TOP, shownWhen = ConditionDefinition.Toggle("missing")),
+            ),
+        )
+        val code = generate(hud, managerTypes = listOf(hud, game))
+        assertContains(
+            code,
+            "                if (gameManager.isOver) {\n                    BasicText(\n                        text = \"Game over\",\n                        style = textStyle1,\n                    )\n                }\n" +
+                "                if (gameManager.lives == 1f) {\n                    BasicText(\n",
+        )
+        assertContains(code, "            if (false) {\n                BasicText(\n                    modifier = Modifier.align(Alignment.TopCenter),\n                    text = \"Gone\",\n")
+        assertContains(code, "    private val gameManager by manager<Game>()\n")
     }
 
     @Test

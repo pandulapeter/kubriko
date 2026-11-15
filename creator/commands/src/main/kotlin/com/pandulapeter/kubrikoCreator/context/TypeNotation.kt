@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
+import com.pandulapeter.kubrikoCreator.actors.TextFont
 import com.pandulapeter.kubrikoCreator.foundation.ColorHex
 
 /**
@@ -47,6 +48,14 @@ internal object TypeNotation {
         ReadDetail.BLOCKS, ReadDetail.JSON -> BlockNotation.withBlocks(event)
     }
 
-    fun of(index: Int, text: ScreenTextDefinition) =
-        "$index \"${text.text}\" (${ScreenPosition.serializer().descriptor.getElementName(text.position.ordinal)}, ${BlockNotation.number(text.size)}, ${ColorHex.format(text.color)})"
+    fun of(index: Int, text: ScreenTextDefinition) = buildString {
+        append("$index \"${text.text}\" (")
+        append(ScreenPosition.serializer().descriptor.getElementName(text.position.ordinal))
+        append(", ${BlockNotation.number(text.size)}, ${ColorHex.format(text.color)}")
+        if (text.font != TextFont.DEFAULT) append(", ${TextFont.serializer().descriptor.getElementName(text.font.ordinal)}")
+        if (text.isBold) append(", bold")
+        if (text.isItalic) append(", italic")
+        append(")")
+        text.shownWhen?.let { append(" while ${BlockNotation.of(it)}") }
+    }
 }

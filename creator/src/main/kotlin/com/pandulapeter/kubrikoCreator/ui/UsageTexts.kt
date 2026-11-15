@@ -38,6 +38,7 @@ import kubriko.creator.generated.resources.usage_effect_placeholder_to_text
 import kubriko.creator.generated.resources.usage_effect_prevents_deleting
 import kubriko.creator.generated.resources.usage_effect_section_removed
 import kubriko.creator.generated.resources.usage_effect_sprite_cleared
+import kubriko.creator.generated.resources.usage_effect_text_removed
 import kubriko.creator.generated.resources.usage_effect_value_to_number
 import kubriko.creator.generated.resources.usage_place_block
 import kubriko.creator.generated.resources.usage_place_event
@@ -46,6 +47,7 @@ import kubriko.creator.generated.resources.usage_place_kotlin_ui
 import kubriko.creator.generated.resources.usage_place_page
 import kubriko.creator.generated.resources.usage_place_scene
 import kubriko.creator.generated.resources.usage_place_text
+import kubriko.creator.generated.resources.usage_place_text_condition
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -84,7 +86,7 @@ internal fun UsagePlace.text() = when (val place = this) {
                 else -> stringResource(Res.string.usage_place_block, inModel.name, eventIndex + 1, blockIndex + 1)
             }
         }
-        is RelationPlace.Text -> stringResource(Res.string.usage_place_text, inModel.manager, inModel.textIndex + 1)
+        is RelationPlace.Text -> stringResource(if (inModel.isCondition) Res.string.usage_place_text_condition else Res.string.usage_place_text, inModel.manager, inModel.textIndex + 1)
         is RelationPlace.KotlinUi -> stringResource(Res.string.usage_place_kotlin_ui, inModel.manager)
         is RelationPlace.Scene -> stringResource(Res.string.usage_place_scene, inModel.name)
     }
@@ -106,6 +108,7 @@ internal fun UsageEffect.text() = stringResource(
         UsageEffect.BLOCK_REMOVED -> Res.string.usage_effect_block_removed
         UsageEffect.SECTION_REMOVED -> Res.string.usage_effect_section_removed
         UsageEffect.EVENT_REMOVED -> Res.string.usage_effect_event_removed
+        UsageEffect.TEXT_REMOVED -> Res.string.usage_effect_text_removed
         UsageEffect.ACTORS_REMOVED -> Res.string.usage_effect_actors_removed
         UsageEffect.PLACEHOLDER_TO_TEXT -> Res.string.usage_effect_placeholder_to_text
         UsageEffect.VALUE_TO_NUMBER -> Res.string.usage_effect_value_to_number

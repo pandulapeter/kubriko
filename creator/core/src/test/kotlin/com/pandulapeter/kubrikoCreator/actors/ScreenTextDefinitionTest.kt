@@ -11,6 +11,8 @@ package com.pandulapeter.kubrikoCreator.actors
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class ScreenTextDefinitionTest {
 
@@ -18,5 +20,18 @@ class ScreenTextDefinitionTest {
     fun aNewTextShowsTheFirstPropertyOrScore() {
         assertEquals("{score}", ScreenTextDefinition.defaultFor(emptyList()).text)
         assertEquals("{lives}", ScreenTextDefinition.defaultFor(listOf(PropertyDefinition.Number("lives"), PropertyDefinition.Number("score"))).text)
+    }
+
+    @Test
+    fun aTextCanBeShownOnlyWhileAConditionOnAPropertyHoldsWhoseNumberIsFixedOrAProperty() {
+        assertTrue(ScreenTextDefinition.isShownWhenAllowed(ConditionDefinition.Toggle("isOver")))
+        assertTrue(ScreenTextDefinition.isShownWhenAllowed(ConditionDefinition.Text("title", "Hi")))
+        assertTrue(ScreenTextDefinition.isShownWhenAllowed(ConditionDefinition.Number("lives", value = NumberValue.Property("maximum", manager = "Game"))))
+        assertFalse(ScreenTextDefinition.isShownWhenAllowed(ConditionDefinition.Number("lives", value = NumberValue.Random(0f, 3f))))
+        assertFalse(ScreenTextDefinition.isShownWhenAllowed(ConditionDefinition.Number("lives", value = NumberValue.Edge(SceneEdge.LEFT))))
+        assertFalse(ScreenTextDefinition.isShownWhenAllowed(ConditionDefinition.Chance()))
+        assertFalse(ScreenTextDefinition.isShownWhenAllowed(ConditionDefinition.Paused()))
+        assertFalse(ScreenTextDefinition.isShownWhenAllowed(ConditionDefinition.ActorCount("Brick")))
+        assertEquals(listOf(ConditionKind.NUMBER, ConditionKind.TEXT, ConditionKind.TOGGLE), ConditionKind.entries.filter { it.isAvailableForTexts })
     }
 }

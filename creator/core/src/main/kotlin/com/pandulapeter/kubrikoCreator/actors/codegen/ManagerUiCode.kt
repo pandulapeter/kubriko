@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.KotlinUi
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
+import com.pandulapeter.kubrikoCreator.actors.TextFont
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STATE_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.colorLiteral
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.floatLiteral
@@ -43,7 +44,9 @@ internal class ManagerUiCode private constructor(
             val kotlinUi = KotlinUi.of(definition.kotlinUi)
             if (definition.texts.isEmpty() && kotlinUi == null) return null
             val texts = definition.texts.map { templateLiteral(it.text, scope) }
-            val needs = buildSet {
+            val conditions = definition.texts.map { text -> text.shownWhen?.let { BlockCodeGenerator.conditionCode(it, scope) } }
+            val conditionCode = conditions.fold(BlockCode.NONE) { code, condition -> if (condition == null) code else code + condition }
+            val needs = conditionCode.needs + buildSet {
                 if (kotlinUi?.names(ManagerTypeCodeGenerator.ACTOR_MANAGER_FIELD) == true) add(BlockNeed.ACTOR_MANAGER)
                 if (kotlinUi?.names(ManagerTypeCodeGenerator.VIEWPORT_MANAGER_FIELD) == true) add(BlockNeed.VIEWPORT_MANAGER)
                 if (kotlinUi?.names(STATE_MANAGER_FIELD) == true) add(BlockNeed.STATE_MANAGER)
@@ -52,24 +55,28 @@ internal class ManagerUiCode private constructor(
             val imports = buildSet {
                 addAll(COMPOSABLE_IMPORTS)
                 if (texts.isNotEmpty()) addAll(TEXT_IMPORTS)
+                addAll(conditionCode.imports)
                 kotlinUi?.imports?.let(::addAll)
                 kotlinUi?.let { ui -> BlockCodeGenerator.randomImportFor(ui.statements.joinToString("\n"), ui.imports)?.let(::add) }
             }
             return ManagerUiCode(
-                members = buildString { appendComposable(definition.texts, texts.map { it.code }, kotlinUi) },
+                members = buildString { appendComposable(definition.texts, texts.map { it.code }, conditions.map { it?.lines?.single() }, kotlinUi) },
                 needs = needs,
                 imports = imports,
-                managers = texts.flatMapTo(HashSet()) { it.managers } + scope.managersNamedIn(kotlinUi),
+                managers = texts.flatMapTo(HashSet()) { it.managers } + conditionCode.managers + scope.managersNamedIn(kotlinUi),
             )
         }
 
         /**
-         * Texts sharing a position are stacked in a column there, in their order, rather than drawn over each other.
+         * Texts sharing a position are stacked in a column there, in their order, rather than drawn over each other; one
+         * that isn't shown takes no room in it.
+         *
+         * @param conditions The expression each text is shown while, or null for one shown always.
          */
-        private fun StringBuilder.appendComposable(definitions: List<ScreenTextDefinition>, texts: List<String>, kotlinUi: KotlinUi?) {
+        private fun StringBuilder.appendComposable(definitions: List<ScreenTextDefinition>, texts: List<String>, conditions: List<String?>, kotlinUi: KotlinUi?) {
             definitions.forEachIndexed { index, definition ->
                 appendLine()
-                appendLine("    private val ${textStyleField(index)} = TextStyle(color = Color(${colorLiteral(definition.color)}), fontSize = ${floatLiteral(definition.size.coerceAtLeast(1f))}.sp)")
+                appendLine("    private val ${textStyleField(index)} = ${textStyleOf(definition)}")
             }
             appendLine()
             appendLine("    @Composable")
@@ -80,14 +87,14 @@ internal class ManagerUiCode private constructor(
                 appendLine("        ) {")
                 definitions.indices.groupBy { definitions[it].position }.forEach { (position, indices) ->
                     if (indices.size == 1) {
-                        appendText(texts[indices.single()], indices.single(), indent = "            ", alignment = position.alignment)
+                        appendText(texts[indices.single()], indices.single(), conditions[indices.single()], indent = "            ", alignment = position.alignment)
                     } else {
                         // By its full name, since the project may have a type called Column in the generated package.
                         appendLine("            androidx.compose.foundation.layout.Column(")
                         appendLine("                modifier = Modifier.align(Alignment.${position.alignment}),")
                         appendLine("                horizontalAlignment = Alignment.${position.horizontalAlignment},")
                         appendLine("            ) {")
-                        indices.forEach { index -> appendText(texts[index], index, indent = "                ", alignment = null) }
+                        indices.forEach { index -> appendText(texts[index], index, conditions[index], indent = "                ", alignment = null) }
                         appendLine("            }")
                     }
                 }
@@ -97,18 +104,35 @@ internal class ManagerUiCode private constructor(
             appendLine("    }")
         }
 
-        private fun StringBuilder.appendText(text: String, index: Int, indent: String, alignment: String?) {
-            appendLine("${indent}BasicText(")
-            if (alignment != null) appendLine("$indent    modifier = Modifier.align(Alignment.$alignment),")
-            appendLine("$indent    text = $text,")
-            appendLine("$indent    style = ${textStyleField(index)},")
-            appendLine("$indent)")
+        private fun StringBuilder.appendText(text: String, index: Int, condition: String?, indent: String, alignment: String?) {
+            if (condition != null) appendLine("${indent}if ($condition) {")
+            val textIndent = if (condition == null) indent else "$indent    "
+            appendLine("${textIndent}BasicText(")
+            if (alignment != null) appendLine("$textIndent    modifier = Modifier.align(Alignment.$alignment),")
+            appendLine("$textIndent    text = $text,")
+            appendLine("$textIndent    style = ${textStyleField(index)},")
+            appendLine("$textIndent)")
+            if (condition != null) appendLine("$indent}")
         }
+
+        private fun textStyleOf(text: ScreenTextDefinition) = buildList {
+            add("color = Color(${colorLiteral(text.color)})")
+            add("fontSize = ${floatLiteral(text.size.coerceAtLeast(1f))}.sp")
+            if (text.font != TextFont.DEFAULT) add("fontFamily = $FONT_PACKAGE.FontFamily.${text.font.fontFamily}")
+            if (text.isBold) add("fontWeight = $FONT_PACKAGE.FontWeight.Bold")
+            if (text.isItalic) add("fontStyle = $FONT_PACKAGE.FontStyle.Italic")
+        }.joinToString(prefix = "TextStyle(", postfix = ")")
 
         /**
          * The field that keeps the style of the text at [index], so that it isn't built again on every recomposition.
          */
         private fun textStyleField(index: Int) = "textStyle${index + 1}"
+
+        /**
+         * Where the font classes are, named in full rather than imported, since an Actor type or a Manager type may be
+         * called like one of them, and reserving those names would need a migration renaming such types.
+         */
+        private const val FONT_PACKAGE = "androidx.compose.ui.text.font"
 
         private val COMPOSABLE_IMPORTS = listOf(
             "androidx.compose.foundation.layout.WindowInsets",

@@ -121,6 +121,7 @@ internal fun BlockTypeEditor(
                     PropertiesColumn(
                         modifier = columnModifier,
                         definition = definition,
+                        scope = scope,
                         sprites = sprites,
                         propertyKeys = propertyKeys,
                         inheritedProperties = inheritance.properties,
@@ -264,6 +265,7 @@ private fun TypeDetails(
 @Composable
 private fun PropertiesColumn(
     definition: BlockTypeDefinition,
+    scope: BlockScope,
     sprites: SpriteChoices,
     propertyKeys: List<Long>,
     inheritedProperties: List<PropertyDefinition>,
@@ -312,6 +314,7 @@ private fun PropertiesColumn(
                 HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
                 ScreenTextList(
                     texts = definition.texts,
+                    scope = scope,
                     onAdded = actions::addText,
                     onChanged = actions::editText,
                     onRemoved = actions::removeText,

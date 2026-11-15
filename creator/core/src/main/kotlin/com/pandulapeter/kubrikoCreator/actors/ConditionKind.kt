@@ -15,10 +15,12 @@ package com.pandulapeter.kubrikoCreator.actors
 public enum class ConditionKind(
     public val createDefault: () -> ConditionDefinition,
     internal val needsActor: Boolean = false,
+    /** Whether a Manager type's text can be shown only while one holds ([ScreenTextDefinition.isShownWhenAllowed]). */
+    public val isAvailableForTexts: Boolean = false,
 ) {
-    NUMBER({ ConditionDefinition.Number() }),
-    TEXT({ ConditionDefinition.Text() }),
-    TOGGLE({ ConditionDefinition.Toggle() }),
+    NUMBER({ ConditionDefinition.Number() }, isAvailableForTexts = true),
+    TEXT({ ConditionDefinition.Text() }, isAvailableForTexts = true),
+    TOGGLE({ ConditionDefinition.Toggle() }, isAvailableForTexts = true),
     KEY_HELD({ ConditionDefinition.KeyHeld() }),
     VELOCITY({ ConditionDefinition.Velocity() }, needsActor = true),
     ACTOR_COUNT({ ConditionDefinition.ActorCount() }),

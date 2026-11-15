@@ -91,9 +91,11 @@ class TokenBudgetTest {
         const val CHARACTERS_PER_TOKEN = 4
 
         /**
-         * The tools that take a Block list only the Blocks' names, so get_block_catalog describes them once.
+         * The tools that take a Block list or a condition only the Blocks' or conditions' names, so get_block_catalog
+         * describes them once. The texts' options (font, letters, and the condition they show while) are in every tool
+         * taking a text.
          */
-        const val TOOL_LIST_BUDGET = 24_250
+        const val TOOL_LIST_BUDGET = 24_900
         const val ALWAYS_LOADED_BUDGET = 4_175
         const val DIGEST_BUDGET = 300
 

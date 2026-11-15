@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
+import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
@@ -33,7 +34,7 @@ public object GetBlockCatalog : ReadCommand<NoInput> {
     override val name: String = "get_block_catalog"
     override val description: String = "Lists every Event an Actor type or Manager type can react to and every Block an Event can run: what each one does, " +
         "which Events allow which Blocks (a Block without allowedIn works in all; a Manager type has no Blocks that need an Actor), the properties of each Block, " +
-        "and what any number of a Block can be besides a number (numberValue)."
+        "what any number of a Block can be besides a number (numberValue), and the conditions an if Block or a text checks (condition)."
     override val inputSerializer: KSerializer<NoInput> = NoInput.serializer()
     override val readsProject: Boolean = false
 
@@ -55,6 +56,7 @@ public object GetBlockCatalog : ReadCommand<NoInput> {
                 }
             }
             put("numberValue", JsonSchema.expanded(NumberValue.serializer().descriptor))
+            put("condition", JsonSchema.expanded(ConditionDefinition.serializer().descriptor))
             putJsonArray("blocks") {
                 BlockKind.entries.forEach { kind ->
                     add(buildJsonObject {

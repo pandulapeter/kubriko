@@ -20,7 +20,8 @@ import com.pandulapeter.kubrikoCreator.actors.withNumberValues
 
 /**
  * What deleting something does to the types that use it ([ProjectReferences.typesAfterDeleting]): Blocks and Events
- * that only mean something with it are removed (an Event left empty stays), placeholders showing its Properties
+ * that only mean something with it are removed (an Event left empty stays), and so are texts shown only while a
+ * condition on it holds, placeholders showing its Properties
  * become plain text, and an Actor type drawn as its sprite is drawn as its shape. Kotlin and Scenes are left to others.
  */
 internal class ReferenceCleanup(
@@ -60,7 +61,8 @@ internal class ReferenceCleanup(
     }
 
     /**
-     * What deleting removes from each type, by its name: Events, Blocks by Event, and the texts whose placeholders change.
+     * What deleting removes from each type, by its name: Events, Blocks by Event, the texts whose placeholders change,
+     * and the texts shown only while a condition on it holds.
      */
     private fun removalsOf(usages: List<Usage>): Map<String, Removal> {
         val removals = HashMap<String, Removal>()
@@ -79,12 +81,16 @@ internal class ReferenceCleanup(
                             val blocks = types.first { it.name == place.name }.events[eventIndex].blocks
                             removal.blocks.getOrPut(eventIndex, ::HashSet) += ProjectReferences.sectionOf(blocks, checkNotNull(blockIndex))
                         }
-                        UsageEffect.PLACEHOLDER_TO_TEXT, UsageEffect.VALUE_TO_NUMBER, UsageEffect.ACTORS_REMOVED, UsageEffect.KOTLIN_TO_CHANGE, UsageEffect.PREVENTS_DELETING, UsageEffect.MENTION_TO_TEXT,
+                        UsageEffect.PLACEHOLDER_TO_TEXT, UsageEffect.VALUE_TO_NUMBER, UsageEffect.ACTORS_REMOVED, UsageEffect.TEXT_REMOVED, UsageEffect.KOTLIN_TO_CHANGE, UsageEffect.PREVENTS_DELETING, UsageEffect.MENTION_TO_TEXT,
                         UsageEffect.SPRITE_CLEARED, UsageEffect.MUSIC_CLEARED, UsageEffect.IMAGE_COPIED, UsageEffect.DELETED_WITH_FOLDER,
                         -> Unit
                     }
                 }
-                is RelationPlace.Text -> if (usage.effect == UsageEffect.PLACEHOLDER_TO_TEXT) removal.texts += place.textIndex
+                is RelationPlace.Text -> when (usage.effect) {
+                    UsageEffect.PLACEHOLDER_TO_TEXT -> removal.texts += place.textIndex
+                    UsageEffect.TEXT_REMOVED -> removal.removedTexts += place.textIndex
+                    else -> Unit
+                }
                 is RelationPlace.KotlinUi, is RelationPlace.Scene -> Unit
             }
         }
@@ -107,10 +113,14 @@ internal class ReferenceCleanup(
             )
         }
         val withEvents = type.withEvents(events).let { if (removal.clearsSprite && it is ActorTypeDefinition) it.copy(sprite = null) else it }
-        return if (withEvents is ManagerTypeDefinition && removal.texts.isNotEmpty()) {
+        return if (withEvents is ManagerTypeDefinition) {
             withEvents.copy(
-                texts = withEvents.texts.mapIndexed { index, text ->
-                    if (index in removal.texts) text.copy(text = PropertyPlaceholders.withPlaceholdersAsText(text.text, ::isDeleted)) else text
+                texts = withEvents.texts.mapIndexedNotNull { index, text ->
+                    if (index in removal.removedTexts) return@mapIndexedNotNull null
+                    text.copy(
+                        text = if (index in removal.texts) PropertyPlaceholders.withPlaceholdersAsText(text.text, ::isDeleted) else text.text,
+                        shownWhen = text.shownWhen?.withNumberValues { value -> if (value is NumberValue.Property) fixedInsteadOf(type.name, value, deleted) ?: value else value },
+                    )
                 },
             )
         } else {
@@ -138,6 +148,7 @@ internal class ReferenceCleanup(
         val events = HashSet<Int>()
         val blocks = HashMap<Int, MutableSet<Int>>()
         val texts = HashSet<Int>()
+        val removedTexts = HashSet<Int>()
         var clearsSprite = false
     }
 }

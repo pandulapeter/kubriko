@@ -21,6 +21,7 @@ import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
+import com.pandulapeter.kubrikoCreator.actors.TextFont
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
@@ -122,6 +123,11 @@ class ManagerTypeCommandsTest {
         assertEquals(listOf(game.texts[0]), context.assertRoundTrip(Invocation(RemoveText, RemoveText.Input("Game", 0))) { context.game()!!.texts })
         assertEquals(Rejection(LookupProblem.TEXT_MISSING, "Game", "3", "0"), Invocation(RemoveText, RemoveText.Input("Game", 3)).validate(context))
         assertEquals(Rejection(CommandProblem.TEXT_SIZE_INVALID), Invocation(AddText, AddText.Input("Game", ScreenTextDefinition(size = 0f))).validate(context))
+        listOf(ConditionDefinition.Chance(), ConditionDefinition.Number("score", value = NumberValue.Random(0f, 1f)), ConditionDefinition.Number("score", value = NumberValue.Fixed(Float.NaN))).forEach { condition ->
+            assertEquals(Rejection(CommandProblem.TEXT_CONDITION_NOT_ALLOWED), Invocation(AddText, AddText.Input("Game", ScreenTextDefinition(shownWhen = condition))).validate(context))
+        }
+        val shownWhile = ScreenTextDefinition("Over", font = TextFont.SERIF, isBold = true, shownWhen = ConditionDefinition.Number("score", value = NumberValue.Property("score")))
+        assertEquals(shownWhile, context.assertRoundTrip(Invocation(EditText, EditText.Input("Game", 0, shownWhile))) { context.game()!!.texts }[0])
     }
 
     @Test

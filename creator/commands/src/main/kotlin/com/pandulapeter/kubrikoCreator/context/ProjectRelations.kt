@@ -13,12 +13,14 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
 import com.pandulapeter.kubrikoCreator.actors.actorTypeReference
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.numberPropertyReferences
+import com.pandulapeter.kubrikoCreator.actors.numberValues
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 
 /**
@@ -73,7 +75,10 @@ internal class ProjectRelations(
             event.blocks.forEachIndexed { blockIndex, block -> addRelationsOf(type.name, RelationPlace.Type(type.name, eventIndex, blockIndex), block) }
         }
         if (type is ManagerTypeDefinition) {
-            type.texts.forEachIndexed { index, text -> addPlaceholders(type.name, RelationPlace.Text(type.name, index), text.text) }
+            type.texts.forEachIndexed { index, text ->
+                addPlaceholders(type.name, RelationPlace.Text(type.name, index), text.text)
+                text.shownWhen?.let { addRelationsOf(type.name, RelationPlace.Text(type.name, index, isCondition = true), it) }
+            }
             type.kotlinUi?.let { addKotlinNames(RelationPlace.KotlinUi(type.name), it) }
         }
     }
@@ -82,10 +87,7 @@ internal class ProjectRelations(
         when (block) {
             is BlockDefinition.AddActor -> block.actorType.ifEmpty { null }?.let { add(Relation(place, RelationKind.ADDS, RelationSubject.Type(it))) }
             is BlockDefinition.MoveTowardsNearest -> block.actorType.ifEmpty { null }?.let { add(Relation(place, RelationKind.MOVES_TOWARDS, RelationSubject.Type(it))) }
-            is BlockDefinition.If -> {
-                block.propertyReference?.takeIf { it.name.isNotEmpty() }?.let { add(Relation(place, RelationKind.READS, propertyOf(typeName, it.manager, it.name))) }
-                block.actorTypeReference?.let { add(Relation(place, RelationKind.COUNTS, RelationSubject.Type(it))) }
-            }
+            is BlockDefinition.If -> addCheckedBy(typeName, place, block.condition)
             is BlockDefinition.GoToScene -> block.scene.ifEmpty { null }?.let { add(Relation(place, RelationKind.GOES_TO, RelationSubject.Scene(it))) }
             is BlockDefinition.Log -> addPlaceholders(typeName, place, block.message)
             is BlockDefinition.Kotlin -> addKotlinNames(place, block.code)
@@ -104,6 +106,21 @@ internal class ProjectRelations(
         block.numberPropertyReferences.forEach { reference ->
             if (reference.name.isNotEmpty()) add(Relation(place, RelationKind.READS_AS_NUMBER, propertyOf(typeName, reference.manager, reference.name)))
         }
+    }
+
+    /**
+     * What [condition] checks and reads as numbers, at [place] of [typeName].
+     */
+    private fun MutableList<Relation>.addRelationsOf(typeName: String, place: RelationPlace, condition: ConditionDefinition) {
+        addCheckedBy(typeName, place, condition)
+        condition.numberValues.forEach { value ->
+            value.propertyReference?.takeIf { it.name.isNotEmpty() }?.let { add(Relation(place, RelationKind.READS_AS_NUMBER, propertyOf(typeName, it.manager, it.name))) }
+        }
+    }
+
+    private fun MutableList<Relation>.addCheckedBy(typeName: String, place: RelationPlace, condition: ConditionDefinition) {
+        condition.propertyReference?.takeIf { it.name.isNotEmpty() }?.let { add(Relation(place, RelationKind.READS, propertyOf(typeName, it.manager, it.name))) }
+        condition.actorTypeReference?.ifEmpty { null }?.let { add(Relation(place, RelationKind.COUNTS, RelationSubject.Type(it))) }
     }
 
     private fun MutableList<Relation>.addPlaceholders(typeName: String, place: RelationPlace, text: String) {

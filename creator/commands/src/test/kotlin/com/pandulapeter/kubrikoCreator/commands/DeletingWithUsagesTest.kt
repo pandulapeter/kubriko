@@ -166,6 +166,31 @@ class DeletingWithUsagesTest {
     }
 
     @Test
+    fun deletingWhatATextIsShownWhileRemovesTheTextAndANumberItReadsBecomesFixed() = runTest {
+        val game = ManagerTypeDefinition(name = "Game", properties = listOf(PropertyDefinition.Number("lives", initialValue = 3f), PropertyDefinition.Toggle("isOver")))
+        val hud = ManagerTypeDefinition(
+            name = "Hud",
+            properties = listOf(PropertyDefinition.Number("shown")),
+            texts = listOf(
+                ScreenTextDefinition(text = "Game over", shownWhen = ConditionDefinition.Toggle("isOver", manager = "Game")),
+                ScreenTextDefinition(text = "Last life", shownWhen = ConditionDefinition.Number("shown", value = NumberValue.Property("lives", manager = "Game"))),
+                ScreenTextDefinition(text = "Always"),
+            ),
+        )
+        val context = commandContext(game, hud)
+        assertEquals(
+            listOf(Usage(UsagePlace.InModel(RelationPlace.Text("Hud", 0, isCondition = true)), RelationKind.READS, RelationSubject.Property("Game", "isOver"), UsageEffect.TEXT_REMOVED)),
+            context.usagesOf(RelationSubject.Property("Game", "isOver")),
+        )
+        val afterRemoving = context.assertRoundTrip(Invocation(RemoveProperty, RemoveProperty.Input("Game", "isOver"))) { context.snapshot() }.first
+        assertEquals(listOf("Last life", "Always"), (afterRemoving.single { it.name == "Hud" } as ManagerTypeDefinition).texts.map { it.text })
+        val afterDeleting = context.assertRoundTrip(Invocation(DeleteManagerType, DeleteManagerType.Input("Game"))) { context.snapshot() }.first
+        val hudAfterDeleting = afterDeleting.single { it.name == "Hud" } as ManagerTypeDefinition
+        assertEquals(listOf("Last life", "Always"), hudAfterDeleting.texts.map { it.text })
+        assertEquals(listOf(ConditionDefinition.Number("shown", value = NumberValue.Fixed(3f)), null), hudAfterDeleting.texts.map { it.shownWhen })
+    }
+
+    @Test
     fun aRemovedIfBlockWithoutAnEndTakesTheRestOfItsEvent() = runTest {
         val player = ActorTypeDefinition(
             name = "Player",

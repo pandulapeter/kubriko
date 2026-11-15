@@ -12,6 +12,8 @@ package com.pandulapeter.kubrikoCreator.ui.actorTypes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -24,8 +26,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.actors.BlockScope
+import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
+import com.pandulapeter.kubrikoCreator.actors.TextFont
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
 import com.pandulapeter.kubrikoCreator.ui.components.ColorField
@@ -47,6 +52,8 @@ import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_text
 import kubriko.creator.generated.resources.manager_type_text
+import kubriko.creator.generated.resources.manager_type_text_shown_always
+import kubriko.creator.generated.resources.manager_type_text_shown_while
 import kubriko.creator.generated.resources.manager_type_text_size
 import kubriko.creator.generated.resources.manager_type_texts
 import kubriko.creator.generated.resources.manager_type_texts_empty
@@ -59,6 +66,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun ScreenTextList(
     texts: List<ScreenTextDefinition>,
+    scope: BlockScope,
     onAdded: () -> Unit,
     onChanged: (index: Int, ScreenTextDefinition) -> Unit,
     onRemoved: (index: Int) -> Unit,
@@ -94,6 +102,7 @@ internal fun ScreenTextList(
             key(keys[index]) {
                 ScreenTextRow(
                     text = text,
+                    scope = scope,
                     onChange = { onChanged(index, it) },
                     onRemove = { onRemoved(index) },
                 )
@@ -102,9 +111,43 @@ internal fun ScreenTextList(
     }
 }
 
+/**
+ * Whether the text is always shown or only while a condition holds, with that condition's parts.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ScreenTextVisibility(
+    condition: ConditionDefinition?,
+    scope: BlockScope,
+    onConditionChange: (ConditionDefinition?) -> Unit,
+) = FlowRow(
+    horizontalArrangement = Arrangement.spacedBy(6.dp),
+    verticalArrangement = Arrangement.spacedBy(4.dp),
+    itemVerticalAlignment = Alignment.CenterVertically,
+) {
+    MenuButton(
+        label = stringResource(if (condition == null) Res.string.manager_type_text_shown_always else Res.string.manager_type_text_shown_while),
+        options = listOf(false, true),
+        optionText = { stringResource(if (it) Res.string.manager_type_text_shown_while else Res.string.manager_type_text_shown_always) },
+        onSelected = { isConditional ->
+            if (isConditional != (condition != null)) onConditionChange(if (isConditional) ConditionDefinition.Toggle() else null)
+        },
+    )
+    if (condition != null) {
+        ConditionParameters(
+            condition = condition,
+            scope = scope,
+            onConditionChange = onConditionChange,
+            isForText = true,
+        )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ScreenTextRow(
     text: ScreenTextDefinition,
+    scope: BlockScope,
     onChange: (ScreenTextDefinition) -> Unit,
     onRemove: () -> Unit,
 ) {
@@ -129,9 +172,10 @@ private fun ScreenTextRow(
                 RightClickMenu(menu, listOf(ContextAction(stringResource(Res.string.action_remove), Res.drawable.ic_close, isDestructive = true, onClick = onRemove)))
             }
         }
-        Row(
+        FlowRow(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            itemVerticalAlignment = Alignment.CenterVertically,
         ) {
             MenuButton(
                 label = stringResource(text.position.title),
@@ -145,11 +189,28 @@ private fun ScreenTextRow(
                 value = text.size,
                 onValueChange = { if (it > 0f) onChange(text.copy(size = it)) },
             )
+            MenuButton(
+                label = stringResource(text.font.title),
+                options = TextFont.entries,
+                optionText = { stringResource(it.title) },
+                onSelected = { onChange(text.copy(font = it)) },
+            )
+            MenuButton(
+                label = stringResource(TextStyleChoice.of(text).title),
+                options = TextStyleChoice.entries,
+                optionText = { stringResource(it.title) },
+                onSelected = { onChange(text.copy(isBold = it.isBold, isItalic = it.isItalic)) },
+            )
         }
         ColorField(
             modifier = Modifier.fillMaxWidth(),
             color = text.color,
             onColorChange = { onChange(text.copy(color = it)) },
+        )
+        ScreenTextVisibility(
+            condition = text.shownWhen,
+            scope = scope,
+            onConditionChange = { onChange(text.copy(shownWhen = it)) },
         )
     }
 }

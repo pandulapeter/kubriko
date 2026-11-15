@@ -281,7 +281,11 @@ internal fun CommandContext.validateSprite(sprite: String): Rejection? {
 /**
  * Why [text] can't be shown by a Manager type.
  */
-internal fun validateText(text: ScreenTextDefinition) = if (text.size.isFinite() && text.size > 0f) null else Rejection(CommandProblem.TEXT_SIZE_INVALID)
+internal fun validateText(text: ScreenTextDefinition) = when {
+    !text.size.isFinite() || text.size <= 0f -> Rejection(CommandProblem.TEXT_SIZE_INVALID)
+    text.shownWhen?.let { ScreenTextDefinition.isShownWhenAllowed(it) && it.numberValues.all { value -> value.isFinite } } == false -> Rejection(CommandProblem.TEXT_CONDITION_NOT_ALLOWED)
+    else -> null
+}
 
 /**
  * Whether every number [this] Block takes is finite and, where a field allows only some, within them. A Property's value

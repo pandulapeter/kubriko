@@ -22,6 +22,11 @@ public enum class UsageEffect(
      */
     SECTION_REMOVED("the if Block is removed with the Blocks inside it"),
     EVENT_REMOVED("the Event is removed with its Blocks"),
+
+    /**
+     * A Manager type's text shown only while a condition on what is deleted holds.
+     */
+    TEXT_REMOVED("the text is removed"),
     ACTORS_REMOVED("its Actors are removed"),
     PLACEHOLDER_TO_TEXT("the placeholder becomes plain text"),
 

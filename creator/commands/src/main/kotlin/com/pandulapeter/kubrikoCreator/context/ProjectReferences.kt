@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.actors.KotlinIdentifiers
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.actors.numberPropertyReferences
+import com.pandulapeter.kubrikoCreator.actors.numberValues
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.screenplay.PageLinks
 
@@ -103,7 +104,7 @@ internal class ProjectReferences(
         return when (relation.kind) {
             RelationKind.INHERITS_FROM -> usage(UsageEffect.PREVENTS_DELETING)
             RelationKind.COLLIDES_WITH, RelationKind.REACTS_TO -> usage(UsageEffect.EVENT_REMOVED)
-            RelationKind.COUNTS -> usage(UsageEffect.SECTION_REMOVED, sectionOf(relation.place as RelationPlace.Type).count() - 1)
+            RelationKind.COUNTS -> conditionUsage(relation.place, ::usage)
             RelationKind.PLACES -> usage(UsageEffect.ACTORS_REMOVED)
             RelationKind.NAMES_IN_KOTLIN -> usage(UsageEffect.KOTLIN_TO_CHANGE)
             RelationKind.ADDS, RelationKind.MOVES_TOWARDS, RelationKind.GOES_TO, RelationKind.CHANGES -> usage(UsageEffect.BLOCK_REMOVED)
@@ -111,12 +112,22 @@ internal class ProjectReferences(
             RelationKind.MENTIONS -> usage(UsageEffect.MENTION_TO_TEXT)
             RelationKind.DRAWN_AS, RelationKind.PLAYS, RelationKind.SHOWS, RelationKind.USES_TIMER, RelationKind.IS_IN -> error("${relation.kind} is found apart from the relations, never among them.")
             RelationKind.READS -> when (val block = blockAt(relation.place)) {
-                is BlockDefinition.If -> usage(UsageEffect.SECTION_REMOVED, sectionOf(relation.place as RelationPlace.Type).count() - 1)
-                null, is BlockDefinition.Log -> usage(UsageEffect.PLACEHOLDER_TO_TEXT)
+                is BlockDefinition.If -> conditionUsage(relation.place, ::usage)
+                null, is BlockDefinition.Log -> if ((relation.place as? RelationPlace.Text)?.isCondition == true) conditionUsage(relation.place, ::usage) else usage(UsageEffect.PLACEHOLDER_TO_TEXT)
                 else -> error("${block::class.simpleName} doesn't read a Property.")
             }
             RelationKind.READS_AS_NUMBER -> usage(UsageEffect.VALUE_TO_NUMBER)
         }
+    }
+
+    /**
+     * What deleting what the condition at [place] checks does: an if Block goes with its section, and a text shown while
+     * it holds goes too.
+     */
+    private fun conditionUsage(place: RelationPlace, usage: (UsageEffect, Int) -> Usage) = when (place) {
+        is RelationPlace.Type -> usage(UsageEffect.SECTION_REMOVED, sectionOf(place).count() - 1)
+        is RelationPlace.Text -> usage(UsageEffect.TEXT_REMOVED, 0)
+        is RelationPlace.KotlinUi, is RelationPlace.Scene -> error("$place checks no condition.")
     }
 
     /**
@@ -142,6 +153,16 @@ internal class ProjectReferences(
                             Usage(UsagePlace.InModel(place), RelationKind.CHANGES, subject, UsageEffect.BLOCK_REMOVED)
                         },
                     )
+                }
+            }
+            (type as? ManagerTypeDefinition)?.texts?.forEachIndexed { index, text ->
+                val condition = text.shownWhen ?: return@forEachIndexed
+                val place = UsagePlace.InModel(RelationPlace.Text(type.name, index, isCondition = true))
+                val reference = condition.propertyReference
+                if (reference != null && reference.manager == subject.name && reference.name.isEmpty()) {
+                    add(Usage(place, RelationKind.READS, subject, UsageEffect.TEXT_REMOVED))
+                } else if (condition.numberValues.any { value -> value.propertyReference?.let { it.manager == subject.name && it.name.isEmpty() } == true }) {
+                    add(Usage(place, RelationKind.READS_AS_NUMBER, subject, UsageEffect.VALUE_TO_NUMBER))
                 }
             }
         }

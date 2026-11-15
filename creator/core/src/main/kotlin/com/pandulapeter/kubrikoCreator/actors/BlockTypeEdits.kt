@@ -112,7 +112,7 @@ public fun BlockTypeDefinition.withBlockMoved(eventIndex: Int, blockIndex: Int, 
 }
 
 /**
- * Every collision Event, Block, and Kotlin code that names [oldName] names [newName] instead.
+ * Every collision Event, Block, text condition, and Kotlin code that names [oldName] names [newName] instead.
  */
 internal fun BlockTypeDefinition.withOtherActorTypeRenamed(oldName: String, newName: String) = withEvents(
     events.map { event ->
@@ -121,7 +121,7 @@ internal fun BlockTypeDefinition.withOtherActorTypeRenamed(oldName: String, newN
             blocks = event.blocks.map { it.withActorTypeRenamed(oldName, newName) },
         )
     },
-).withKotlinCode { KotlinIdentifiers.withRenamed(it, oldName, newName) }.let { renamed ->
+).withTexts { it.copy(shownWhen = it.shownWhen?.withActorTypeRenamed(oldName, newName)) }.withKotlinCode { KotlinIdentifiers.withRenamed(it, oldName, newName) }.let { renamed ->
     if (renamed is ActorTypeDefinition && renamed.parent == oldName) renamed.copy(parent = newName) else renamed
 }
 
@@ -152,7 +152,7 @@ public fun BlockTypeDefinition.withResourceRenamed(oldPath: String, newPath: Str
  * field the generated code looks it up in) uses [newName] instead.
  */
 internal fun BlockTypeDefinition.withManagerRenamed(oldName: String, newName: String) = withBlocks { it.withManagerRenamed(oldName, newName) }
-    .withTexts { PropertyPlaceholders.withManagerRenamed(it, oldName, newName) }
+    .withTexts { it.copy(text = PropertyPlaceholders.withManagerRenamed(it.text, oldName, newName), shownWhen = it.shownWhen?.withManagerRenamed(oldName, newName)) }
     .withKotlinCode { code ->
         KotlinIdentifiers.withRenamed(code, oldName, newName).let { renamed ->
             if (name == oldName) renamed else KotlinIdentifiers.withRenamed(renamed, scope.managerField(oldName), scope.managerField(newName))
@@ -164,7 +164,7 @@ internal fun BlockTypeDefinition.withManagerRenamed(oldName: String, newName: St
  * uses [newName] instead. The Manager type's own code follows through [withPropertyReplaced].
  */
 public fun BlockTypeDefinition.withManagerPropertyRenamed(manager: String, oldName: String, newName: String): BlockTypeDefinition = withBlocks { it.withPropertyRenamed(oldName, newName, manager) }
-    .withTexts { PropertyPlaceholders.withPropertyRenamed(it, manager, oldName, newName) }
+    .withTexts { it.copy(text = PropertyPlaceholders.withPropertyRenamed(it.text, manager, oldName, newName), shownWhen = it.shownWhen?.withPropertyRenamed(oldName, newName, manager)) }
     .withKotlinCode { if (name == manager) it else KotlinIdentifiers.withRenamed(it, oldName, newName, receiver = scope.managerField(manager)) }
 
 /**
@@ -192,7 +192,7 @@ public fun BlockTypeDefinition.withPropertyReplaced(name: String, property: Prop
  * it) use [newName] instead.
  */
 public fun BlockTypeDefinition.withPropertyUsesRenamed(oldName: String, newName: String): BlockTypeDefinition = withBlocks { it.withPropertyRenamed(oldName, newName) }
-    .withTexts { PropertyPlaceholders.withPropertyRenamed(it, null, oldName, newName) }
+    .withTexts { it.copy(text = PropertyPlaceholders.withPropertyRenamed(it.text, null, oldName, newName), shownWhen = it.shownWhen?.withPropertyRenamed(oldName, newName, null)) }
     .withKotlinCode { KotlinIdentifiers.withRenamed(it, oldName, newName) }
 
 /**
@@ -240,8 +240,8 @@ internal fun BlockTypeDefinition.withManagerFieldsSuffixed(types: List<BlockType
 /**
  * A Manager type's texts changed by [change]; other types have none.
  */
-private fun BlockTypeDefinition.withTexts(change: (String) -> String) = when (this) {
-    is ManagerTypeDefinition -> copy(texts = texts.map { it.copy(text = change(it.text)) })
+private fun BlockTypeDefinition.withTexts(change: (ScreenTextDefinition) -> ScreenTextDefinition) = when (this) {
+    is ManagerTypeDefinition -> copy(texts = texts.map(change))
     is ActorTypeDefinition -> this
 }
 

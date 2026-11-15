@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.actors
 
 import com.pandulapeter.kubrikoCreator.schema.Description
+import com.pandulapeter.kubrikoCreator.schema.SummarizedSchema
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -18,6 +19,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 @Description("What an if Block checks. The type property says which condition it is.")
+@SummarizedSchema("Which condition; get_block_catalog lists the properties of each (condition).")
 public sealed interface ConditionDefinition {
 
     @Serializable

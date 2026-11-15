@@ -35,13 +35,17 @@ public sealed interface RelationPlace {
         }
     }
 
+    /**
+     * @param isCondition True for the condition the text is shown while, false for its words.
+     */
     public data class Text(
         val manager: String,
         val textIndex: Int,
+        val isCondition: Boolean = false,
     ) : RelationPlace {
         override val owner: RelationSubject get() = RelationSubject.Type(manager)
 
-        override fun toString(): String = "$manager text $textIndex"
+        override fun toString(): String = "$manager text $textIndex" + if (isCondition) " condition" else ""
     }
 
     public data class KotlinUi(

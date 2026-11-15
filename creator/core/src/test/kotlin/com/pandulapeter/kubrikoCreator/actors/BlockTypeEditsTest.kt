@@ -162,6 +162,31 @@ class BlockTypeEditsTest {
     }
 
     @Test
+    fun renamesFollowTheConditionsTextsAreShownWhile() {
+        val hud = ManagerTypeDefinition(
+            name = "Hud",
+            properties = listOf(PropertyDefinition.Toggle("isOver")),
+            texts = listOf(
+                ScreenTextDefinition("Over", shownWhen = ConditionDefinition.Toggle("isOver")),
+                ScreenTextDefinition("Last", shownWhen = ConditionDefinition.Number("lives", Comparison.LESS, NumberValue.Property("lives", manager = "Game"), manager = "Game")),
+            ),
+        )
+        fun ManagerTypeDefinition.conditions() = texts.map { it.shownWhen }
+        assertEquals(
+            listOf(ConditionDefinition.Toggle("isDone"), hud.texts[1].shownWhen),
+            (hud.withPropertyReplaced("isOver", PropertyDefinition.Toggle("isDone")) as ManagerTypeDefinition).conditions(),
+        )
+        assertEquals(
+            ConditionDefinition.Number("hearts", Comparison.LESS, NumberValue.Property("hearts", manager = "Game"), manager = "Game"),
+            (hud.withManagerPropertyRenamed("Game", "lives", "hearts") as ManagerTypeDefinition).conditions()[1],
+        )
+        assertEquals(
+            ConditionDefinition.Number("lives", Comparison.LESS, NumberValue.Property("lives", manager = "Match"), manager = "Match"),
+            (hud.withManagerRenamed("Game", "Match") as ManagerTypeDefinition).conditions()[1],
+        )
+    }
+
+    @Test
     fun kotlinCodeFollowsRenamedTypes() {
         val hud = ManagerTypeDefinition(
             name = "Hud",

@@ -17,9 +17,18 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.requestFocus
+import com.pandulapeter.kubrikoCreator.actors.BlockScope
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
+import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
+import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
+import com.pandulapeter.kubrikoCreator.actors.TextFont
+import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
 import kotlin.test.Test
@@ -27,6 +36,39 @@ import kotlin.test.assertEquals
 
 @OptIn(ExperimentalTestApi::class)
 class ScreenTextListTest {
+    private val scope = BlockScope("Game", BlockTypeKind.MANAGER, listOf(PropertyDefinition.Toggle("isOver"), PropertyDefinition.Number("lives")))
+
+    @Test
+    fun aTextIsShownWhileAConditionOnlyOfTheKindsATextCanFollowAndInItsFontAndLetters() = uiTest {
+        var text by mutableStateOf(ScreenTextDefinition(text = "Game over", font = TextFont.SERIF, isBold = true))
+        showing {
+            ScreenTextList(
+                texts = listOf(text),
+                scope = scope,
+                onAdded = {},
+                onChanged = { _, changed -> text = changed },
+                onRemoved = {},
+            )
+        }
+        onNodeWithText("Serif").assertExists()
+        onNodeWithText("Bold").assertExists()
+        onNodeWithText("Always shown").performClick()
+        onNodeWithText("Shown while").performClick()
+        waitForIdle()
+        assertEquals(ConditionDefinition.Toggle(), text.shownWhen)
+        onNodeWithText("A toggle Property").performClick()
+        onNodeWithText("A number Property").assertExists()
+        onAllNodesWithText("By chance").assertCountEquals(0)
+        onAllNodesWithText("A key").assertCountEquals(0)
+        onNodeWithText("A number Property").performClick()
+        waitForIdle()
+        assertEquals(ConditionDefinition.Number(), text.shownWhen)
+        saveSnapshot("screen-text-shown-while")
+        onNodeWithText("Shown while").performClick()
+        onNodeWithText("Always shown").performClick()
+        waitForIdle()
+        assertEquals(null, text.shownWhen)
+    }
 
     @Test
     fun removingATextAboveTheOneBeingTypedIntoKeepsEachRowsText() = uiTest {
@@ -34,6 +76,7 @@ class ScreenTextListTest {
         showing {
             ScreenTextList(
                 texts = texts,
+                scope = scope,
                 onAdded = {},
                 onChanged = { index, text -> texts = texts.toMutableList().also { it[index] = text } },
                 onRemoved = { index -> texts = texts.filterIndexed { other, _ -> other != index } },

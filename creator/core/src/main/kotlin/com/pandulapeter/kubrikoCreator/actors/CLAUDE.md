@@ -78,6 +78,12 @@
   0, and in an actorAdded Event the Actor is counted. The atomics are named in full (importing them would make their
   names reserved type names), which is why `kotlin` is a reserved Property name of Manager types; format version 12
   reserves it with the Managers' counters, `sceneChangesWhenAdded`, and `actorCountGuard`.
+- A Manager type's texts are drawn by `ManagerUiCode`. A text shown only while a condition holds (`shownWhen`) takes only
+  conditions on Properties, whose numbers are fixed or Properties too (`ScreenTextDefinition.isShownWhenAllowed`), since
+  the `Composable` follows Compose state and nothing else: a random number would change at every recomposition, and an
+  edge or a count isn't state. Deleting what such a condition checks removes the text, as it removes an if Block with its
+  section. The font classes are named in full rather than imported, like `Scale`, since reserving their names would need a
+  migration renaming types.
 - What isn't generated needs no plugin: `GeneratedCode` decides which Events and Blocks get code, and both generators,
   `PluginUse`, and `PluginManagers` ask it, so a Block left as a comment (or in an Event left out) adds no plugin.
 - Property names the format raises reserved only for what generated Actor classes declare (`look`, the animation's and

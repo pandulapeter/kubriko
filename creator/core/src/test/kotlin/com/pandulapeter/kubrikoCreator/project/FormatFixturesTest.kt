@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.CreatorProjectSettings
 import com.pandulapeter.kubrikoCreator.actors.DefinitionPaths
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.EveryBlockTypes
+import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDescriptions
@@ -151,9 +152,11 @@ class FormatFixturesTest {
      * up to the current format doesn't make up.
      */
     private fun BlockTypeDefinition.asOf(version: Int): BlockTypeDefinition {
-        if (version >= 12) return this
-        val withoutActorWatching = withEvents(
-            events.filterNot { it.type == EventType.ACTOR_ADDED || it.type == EventType.ACTOR_REMOVED }
+        if (version >= 13) return this
+        val withoutTextOptions = if (this is ManagerTypeDefinition) copy(texts = texts - EveryBlockTypes.textOptionTexts.toSet()) else this
+        if (version == 12) return withoutTextOptions
+        val withoutActorWatching = withoutTextOptions.withEvents(
+            withoutTextOptions.events.filterNot { it.type == EventType.ACTOR_ADDED || it.type == EventType.ACTOR_REMOVED }
                 .map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.actorCountBlocks)) },
         )
         if (version == 11) return withoutActorWatching

@@ -49,12 +49,16 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * What an if Block checks, read as a sentence: the kind of condition, then its parts.
+ *
+ * @param isForText True for the condition a Manager type's text is shown while, which offers only the conditions and
+ *   numbers a text can follow ([com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition.isShownWhenAllowed]).
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun ConditionParameters(
     condition: ConditionDefinition,
     scope: BlockScope,
+    isForText: Boolean = false,
     onConditionChange: (ConditionDefinition) -> Unit,
 ) = FlowRow(
     horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -63,7 +67,7 @@ internal fun ConditionParameters(
 ) {
     MenuButton(
         label = stringResource(ConditionKind.of(condition).title),
-        options = ConditionKind.entries.filter { it.isAvailableIn(scope.kind) },
+        options = ConditionKind.entries.filter { it.isAvailableIn(scope.kind) && (!isForText || it.isAvailableForTexts) },
         optionText = { stringResource(it.title) },
         onSelected = { if (it != ConditionKind.of(condition)) onConditionChange(it.createDefault()) },
     )
@@ -76,6 +80,8 @@ internal fun ConditionParameters(
                 value = condition.value,
                 scope = scope,
                 onValueChange = { onConditionChange(condition.copy(value = it)) },
+                offersEdges = !isForText,
+                offersRandom = !isForText,
                 fieldWidth = 88.dp,
             )
         }

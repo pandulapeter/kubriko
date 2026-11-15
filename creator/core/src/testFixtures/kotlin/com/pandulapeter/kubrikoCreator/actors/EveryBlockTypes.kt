@@ -264,6 +264,19 @@ public object EveryBlockTypes {
     )
 
     /**
+     * Every font, bold and italic letters, and a text shown only while each kind of condition a text allows holds: on its
+     * own Properties, on another Manager type's (against a Property's value too), and on one that doesn't exist.
+     */
+    val textOptionTexts = TextFont.entries.map { ScreenTextDefinition("{title}", ScreenPosition.BOTTOM, font = it) } + listOf(
+        ScreenTextDefinition("Bold", ScreenPosition.CENTER, isBold = true),
+        ScreenTextDefinition("Both", ScreenPosition.CENTER, isBold = true, isItalic = true, shownWhen = ConditionDefinition.Toggle("isShielded", isOn = false)),
+        ScreenTextDefinition("High", ScreenPosition.TOP_RIGHT, isItalic = true, shownWhen = ConditionDefinition.Number("score", Comparison.GREATER, NumberValue.Property("score", manager = "EveryManager"))),
+        ScreenTextDefinition("Low", ScreenPosition.TOP_RIGHT, shownWhen = ConditionDefinition.Number("score", Comparison.LESS_OR_EQUAL, NumberValue.Fixed(-1.5f), manager = "EveryManager")),
+        ScreenTextDefinition("Hi", shownWhen = ConditionDefinition.Text("title", "\"\$hi\"", isEqual = false)),
+        ScreenTextDefinition("Gone", ScreenPosition.RIGHT, shownWhen = ConditionDefinition.Toggle("missing")),
+    )
+
+    /**
      * Uses its own Properties both by themselves and by its own name.
      */
     val everyManager = ManagerTypeDefinition(
@@ -277,7 +290,7 @@ public object EveryBlockTypes {
         name = "Hud",
         properties = properties,
         events = everyEvent(everyManagerBlock),
-        texts = listOf(ScreenTextDefinition("{EveryManager.score} / {score}"), ScreenTextDefinition()),
+        texts = listOf(ScreenTextDefinition("{EveryManager.score} / {score}"), ScreenTextDefinition()) + textOptionTexts,
         kotlinUi = """
             import androidx.compose.foundation.layout.Column
             import androidx.compose.foundation.layout.windowInsetsPadding

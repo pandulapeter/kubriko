@@ -96,6 +96,7 @@ import kubriko.creator.generated.resources.error_command_search_query_blank
 import kubriko.creator.generated.resources.error_command_size_invalid
 import kubriko.creator.generated.resources.error_command_speed_random_every_frame
 import kubriko.creator.generated.resources.error_command_summary_invalid
+import kubriko.creator.generated.resources.error_command_text_condition_not_allowed
 import kubriko.creator.generated.resources.error_command_text_size_invalid
 import kubriko.creator.generated.resources.error_command_timer_taken
 import kubriko.creator.generated.resources.error_command_upgrade_by_hand
@@ -220,6 +221,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.SCENE_IS_FIRST -> Res.string.error_command_scene_is_first
     CommandProblem.SIZE_INVALID -> Res.string.error_command_size_invalid
     CommandProblem.TEXT_SIZE_INVALID -> Res.string.error_command_text_size_invalid
+    CommandProblem.TEXT_CONDITION_NOT_ALLOWED -> Res.string.error_command_text_condition_not_allowed
     CommandProblem.TIMER_TAKEN -> Res.string.error_command_timer_taken
     CommandProblem.UPGRADE_BY_HAND -> Res.string.error_command_upgrade_by_hand
     CommandProblem.UPGRADE_NOT_NEEDED -> Res.string.error_command_upgrade_not_needed
