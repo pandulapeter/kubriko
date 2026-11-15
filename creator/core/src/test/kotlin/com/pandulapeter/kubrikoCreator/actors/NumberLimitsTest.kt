@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.actors
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -18,19 +19,24 @@ class NumberLimitsTest {
 
     @Test
     fun aFixedNumberAndBothEndsOfARandomOneMustBeWithin() {
-        assertTrue(NumberLimits.ZOOM.accept(NumberValue.Fixed(1f)))
-        assertFalse(NumberLimits.ZOOM.accept(NumberValue.Fixed(0f)))
-        assertTrue(NumberLimits.ZOOM.accept(NumberValue.Random(80f, 120f)))
-        assertFalse(NumberLimits.ZOOM.accept(NumberValue.Random(0f, 120f)))
-        assertFalse(NumberLimits.PERCENT.accept(NumberValue.Random(50f, 101f)))
-        assertTrue(NumberLimits.ANY.accept(NumberValue.Fixed(-1000f)))
+        assertTrue(NumberValue.Fixed(1f) in NumberLimits.ZOOM)
+        assertFalse(NumberValue.Fixed(0f) in NumberLimits.ZOOM)
+        assertTrue(NumberValue.Random(80f, 120f) in NumberLimits.ZOOM)
+        assertFalse(NumberValue.Random(0f, 120f) in NumberLimits.ZOOM)
+        assertFalse(NumberValue.Random(50f, 101f) in NumberLimits.PERCENT)
+        assertTrue(NumberValue.Fixed(-1000f) in NumberLimits.ANY)
     }
 
     @Test
     fun whatIsOnlyKnownWhileTheGameRunsIsAccepted() {
-        assertTrue(NumberLimits.ZOOM.accept(NumberValue.Property("zoom")))
-        assertTrue(NumberLimits.NON_NEGATIVE.accept(NumberValue.Edge(SceneEdge.LEFT, -50f)))
-        assertTrue(NumberLimits.NON_NEGATIVE.accept(NumberValue.BetweenEdges()))
+        assertTrue(NumberValue.Property("zoom") in NumberLimits.ZOOM)
+        assertTrue(NumberValue.Edge(SceneEdge.LEFT, -50f) in NumberLimits.NON_NEGATIVE)
+        assertTrue(NumberValue.BetweenEdges() in NumberLimits.NON_NEGATIVE)
+    }
+
+    @Test
+    fun aMinimumAboveTheMaximumIsRefusedWhenBuilt() {
+        assertFailsWith<IllegalArgumentException> { NumberLimits(minimum = 10f, maximum = 0f) }
     }
 
     @Test

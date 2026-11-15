@@ -180,18 +180,18 @@ private fun validateBlockValues(block: BlockDefinition, scope: BlockScope): Reje
     !block.areNumbersValid -> Rejection(CommandProblem.NUMBER_INVALID)
     !block.areEdgesAlongTheirAxes -> Rejection(CommandProblem.NUMBER_EDGE_ACROSS)
     block.edgelessNumberValues.any { it.readsEdges } -> Rejection(CommandProblem.NUMBER_EDGE_NOT_TAKEN)
-    block is BlockDefinition.SetOpacity && !NumberLimits.PERCENT.accept(block.percent) -> Rejection(CommandProblem.OPACITY_OUT_OF_RANGE)
-    block is BlockDefinition.PlaySound && !NumberLimits.VOLUME.accept(block.volume) -> Rejection(CommandProblem.VOLUME_OUT_OF_RANGE)
-    block is BlockDefinition.PlayMusic && !NumberLimits.VOLUME.accept(block.volume) -> Rejection(CommandProblem.VOLUME_OUT_OF_RANGE)
-    block is BlockDefinition.ZoomCamera && !NumberLimits.ZOOM.accept(block.zoom) -> Rejection(CommandProblem.ZOOM_OUT_OF_RANGE)
-    block is BlockDefinition.ShakeCamera && !(NumberLimits.NON_NEGATIVE.accept(block.strength) && NumberLimits.NON_NEGATIVE.accept(block.durationInMilliseconds)) -> Rejection(CommandProblem.SHAKE_NEGATIVE)
+    block is BlockDefinition.SetOpacity && block.percent !in NumberLimits.PERCENT -> Rejection(CommandProblem.OPACITY_OUT_OF_RANGE)
+    block is BlockDefinition.PlaySound && block.volume !in NumberLimits.VOLUME -> Rejection(CommandProblem.VOLUME_OUT_OF_RANGE)
+    block is BlockDefinition.PlayMusic && block.volume !in NumberLimits.VOLUME -> Rejection(CommandProblem.VOLUME_OUT_OF_RANGE)
+    block is BlockDefinition.ZoomCamera && block.zoom !in NumberLimits.ZOOM -> Rejection(CommandProblem.ZOOM_OUT_OF_RANGE)
+    block is BlockDefinition.ShakeCamera && !(block.strength in NumberLimits.NON_NEGATIVE && block.durationInMilliseconds in NumberLimits.NON_NEGATIVE) -> Rejection(CommandProblem.SHAKE_NEGATIVE)
     block is BlockDefinition.SetColor && block.colors.size !in 1..BlockDefinition.SetColor.MAXIMUM_COLORS ->
         Rejection(CommandProblem.COLORS_COUNT, BlockDefinition.SetColor.MAXIMUM_COLORS.toString())
     block is BlockDefinition.SetColor && block.colors.any { it.fixedArgb?.let(ColorHex::isOpaque) == false } -> Rejection(CommandProblem.COLORS_NOT_OPAQUE)
-    block is BlockDefinition.Animate && block.value is AnimatedValue.Opacity && !block.value.numberValues.all(NumberLimits.PERCENT::accept) ->
+    block is BlockDefinition.Animate && block.value is AnimatedValue.Opacity && !block.value.numberValues.all(NumberLimits.PERCENT::contains) ->
         Rejection(CommandProblem.OPACITY_OUT_OF_RANGE)
     block is BlockDefinition.MoveWithKeys && block.speed is NumberValue.Random -> Rejection(CommandProblem.SPEED_RANDOM_EVERY_FRAME)
-    block is BlockDefinition.Animate && block.value is AnimatedValue.Scale && !block.value.numberValues.all(NumberLimits.NON_NEGATIVE::accept) ->
+    block is BlockDefinition.Animate && block.value is AnimatedValue.Scale && !block.value.numberValues.all(NumberLimits.NON_NEGATIVE::contains) ->
         Rejection(CommandProblem.SCALE_NEGATIVE)
     ((block as? BlockDefinition.Animate)?.value as? AnimatedValue.Color)?.let { listOf(it.from, it.to).all { color -> color.fixedArgb?.let(ColorHex::isOpaque) != false } } == false ->
         Rejection(CommandProblem.ANIMATED_COLOR_NOT_OPAQUE)
@@ -367,11 +367,11 @@ internal fun CommandContext.validateText(managerType: String, text: ScreenTextDe
  */
 private val BlockDefinition.areNumbersValid
     get() = numberValues.all { it.isFinite } && when (this) {
-        is BlockDefinition.If -> condition.leaves.all { (it as? ConditionDefinition.Chance)?.percent?.let(NumberLimits.PERCENT::accept) ?: true }
-        is BlockDefinition.Repeat -> NumberLimits.NON_NEGATIVE.accept(times) && times.isWholeWhenFixed
-        is BlockDefinition.StartTimer -> NumberLimits.NON_NEGATIVE.accept(seconds)
-        is BlockDefinition.Animate -> NumberLimits.NON_NEGATIVE.accept(seconds)
-        is BlockDefinition.SetFrame -> NumberLimits.NON_NEGATIVE.accept(frame) && frame.isWholeWhenFixed
+        is BlockDefinition.If -> condition.leaves.all { (it as? ConditionDefinition.Chance)?.percent?.let(NumberLimits.PERCENT::contains) ?: true }
+        is BlockDefinition.Repeat -> times in NumberLimits.NON_NEGATIVE && times.isWholeWhenFixed
+        is BlockDefinition.StartTimer -> seconds in NumberLimits.NON_NEGATIVE
+        is BlockDefinition.Animate -> seconds in NumberLimits.NON_NEGATIVE
+        is BlockDefinition.SetFrame -> frame in NumberLimits.NON_NEGATIVE && frame.isWholeWhenFixed
         is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, is BlockDefinition.JumpTo, is BlockDefinition.AddActor,
         is BlockDefinition.MoveTowardsNearest, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetAnimation,
         BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,

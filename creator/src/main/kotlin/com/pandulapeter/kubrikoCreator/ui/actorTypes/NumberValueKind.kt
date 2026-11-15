@@ -33,8 +33,8 @@ internal enum class NumberValueKind {
      * [value] turned into this kind, keeping what it can, within the [limits] of the field: a fixed number becomes a
      * random one between 0 and it, a random one becomes the number it starts from, rounded in a field that only takes
      * whole numbers, an edge becomes one end of a random number between it and the edge across, and the end it starts
-     * from becomes an edge again. What has no number to keep starts from 0, or the closest number the field takes (a
-     * random one from there up to 1 more). A new edge starts at the left or top edge, whichever [axis] the field is a
+     * from becomes an edge again. What has no number to keep starts from 0, or the closest number the field takes, and a
+     * new random number spans at least 1 where the field leaves room for it. A new edge starts at the left or top edge, whichever [axis] the field is a
      * position on (the left one when it is neither).
      */
     fun of(
@@ -50,16 +50,12 @@ internal enum class NumberValueKind {
         }
         RANDOM, RANDOM_WHOLE -> when (value) {
             is NumberValue.Fixed -> if (value.value == 0f) {
-                limits.newRandom(isWhole = this == RANDOM_WHOLE)
+                limits.newRandom(from = 0f, to = 1f, isWhole = this == RANDOM_WHOLE)
             } else {
-                NumberValue.Random(
-                    from = limits.clamp(min(0f, value.value)),
-                    to = limits.clamp(max(0f, value.value)),
-                    isWhole = this == RANDOM_WHOLE,
-                )
+                limits.newRandom(from = min(0f, value.value), to = max(0f, value.value), isWhole = this == RANDOM_WHOLE)
             }
-            is NumberValue.Random -> value.copy(isWhole = this == RANDOM_WHOLE)
-            is NumberValue.Property, is NumberValue.Edge, is NumberValue.BetweenEdges -> limits.newRandom(isWhole = this == RANDOM_WHOLE)
+            is NumberValue.Random -> value.copy(from = limits.clamp(value.from), to = limits.clamp(value.to), isWhole = this == RANDOM_WHOLE)
+            is NumberValue.Property, is NumberValue.Edge, is NumberValue.BetweenEdges -> limits.newRandom(from = 0f, to = 1f, isWhole = this == RANDOM_WHOLE)
         }
         PROPERTY -> value as? NumberValue.Property ?: NumberValue.Property()
         EDGE -> when (value) {
@@ -98,4 +94,16 @@ internal enum class NumberValueKind {
     }
 }
 
-private fun NumberLimits.newRandom(isWhole: Boolean) = clamp(0f).let { from -> NumberValue.Random(from = from, to = clamp(from + 1f), isWhole = isWhole) }
+/**
+ * A random number from [from] up to [to], each the closest number these limits take, and 1 apart when that leaves them
+ * the same number, so a new random number always varies where the limits leave room for it.
+ */
+private fun NumberLimits.newRandom(from: Float, to: Float, isWhole: Boolean): NumberValue.Random {
+    val clampedFrom = clamp(from)
+    val clampedTo = clamp(to)
+    return when {
+        clampedFrom != clampedTo -> NumberValue.Random(from = clampedFrom, to = clampedTo, isWhole = isWhole)
+        clamp(clampedFrom + 1f) != clampedFrom -> NumberValue.Random(from = clampedFrom, to = clamp(clampedFrom + 1f), isWhole = isWhole)
+        else -> NumberValue.Random(from = clamp(clampedTo - 1f), to = clampedTo, isWhole = isWhole)
+    }
+}

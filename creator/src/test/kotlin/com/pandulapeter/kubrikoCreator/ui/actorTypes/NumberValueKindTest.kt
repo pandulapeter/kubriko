@@ -38,9 +38,12 @@ class NumberValueKindTest {
         assertEquals(NumberValue.Random(1f, 2f, isWhole = true), NumberValueKind.RANDOM_WHOLE.of(NumberValue.Fixed(0f), limits = zoom))
         assertEquals(NumberValue.Fixed(1f), NumberValueKind.FIXED.of(NumberValue.Property("zoom"), limits = zoom))
         assertEquals(NumberValue.Fixed(1f), NumberValueKind.FIXED.of(NumberValue.Random(0f, 5f), limits = zoom))
+        assertEquals(NumberValue.Random(1f, 2f), NumberValueKind.RANDOM.of(NumberValue.Fixed(1f), limits = zoom))
+        assertEquals(NumberValue.Random(-1f, 0f), NumberValueKind.RANDOM.of(NumberValue.Property("x"), limits = NumberLimits(maximum = 0f)))
+        assertEquals(NumberValue.Random(1f, 2.5f, isWhole = true), NumberValueKind.RANDOM_WHOLE.of(NumberValue.Random(0f, 2.5f), limits = zoom))
         listOf(NumberValue.Fixed(100f), NumberValue.Fixed(1f), NumberValue.Random(1f, 2f), NumberValue.Property("zoom")).forEach { value ->
             NumberValueKind.offeredBy(isWholeField = false, offersEdges = false).forEach { kind ->
-                assertTrue(zoom.accept(kind.of(value, limits = zoom)), "$kind of $value")
+                assertTrue(kind.of(value, limits = zoom) in zoom, "$kind of $value")
             }
         }
     }
