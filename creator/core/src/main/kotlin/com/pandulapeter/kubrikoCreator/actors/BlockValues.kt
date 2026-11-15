@@ -56,10 +56,13 @@ public fun BlockDefinition.withValues(transform: ValueTransform): BlockDefinitio
     is BlockDefinition.Repeat -> copy(times = transform.number(times))
     is BlockDefinition.PlaySound -> copy(sound = transform.sound(sound), volume = transform.number(volume))
     is BlockDefinition.PlayMusic -> copy(music = transform.music(music), volume = transform.number(volume))
+    is BlockDefinition.MoveCamera -> copy(x = transform.number(x), y = transform.number(y))
+    is BlockDefinition.ShakeCamera -> copy(strength = transform.number(strength), durationInMilliseconds = transform.number(durationInMilliseconds))
+    is BlockDefinition.ZoomCamera -> copy(zoom = transform.number(zoom))
     is BlockDefinition.If -> copy(condition = condition.withValues(transform))
     BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf,
     BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
-    BlockDefinition.StopMusic, BlockDefinition.Else,
+    BlockDefinition.StopMusic, BlockDefinition.FollowWithCamera, BlockDefinition.Else,
     BlockDefinition.End, is BlockDefinition.Log, is BlockDefinition.Kotlin,
     -> this
 }

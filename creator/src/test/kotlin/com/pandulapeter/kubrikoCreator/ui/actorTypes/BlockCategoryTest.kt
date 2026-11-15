@@ -10,6 +10,8 @@
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
+import com.pandulapeter.kubrikoCreator.actors.EventType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -20,5 +22,15 @@ class BlockCategoryTest {
         val kinds = BlockCategory.entries.flatMap { it.kinds }
         assertEquals(kinds.distinct(), kinds)
         assertEquals(BlockKind.entries.toSet(), kinds.toSet())
+    }
+
+    @Test
+    fun aManagerTypesCameraTabOffersEveryCameraBlockButFollowing() {
+        assertEquals(true, BlockCategory.CAMERA in BlockCategory.availableIn(EventType.GAME_STARTED, BlockTypeKind.MANAGER))
+        assertEquals(
+            listOf(BlockKind.MOVE_CAMERA, BlockKind.SHAKE_CAMERA, BlockKind.ZOOM_CAMERA),
+            BlockCategory.CAMERA.kinds.filter { it.isAvailableIn(EventType.GAME_STARTED, BlockTypeKind.MANAGER) },
+        )
+        assertEquals(BlockCategory.CAMERA.kinds, BlockCategory.CAMERA.kinds.filter { it.isAvailableIn(EventType.EVERY_FRAME, BlockTypeKind.ACTOR) })
     }
 }

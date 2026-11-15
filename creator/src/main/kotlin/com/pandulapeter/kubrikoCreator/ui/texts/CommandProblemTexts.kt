@@ -95,6 +95,7 @@ import kubriko.creator.generated.resources.error_command_scene_values_nothing_to
 import kubriko.creator.generated.resources.error_command_screenplay_settings_unreadable
 import kubriko.creator.generated.resources.error_command_screenplay_style
 import kubriko.creator.generated.resources.error_command_search_query_blank
+import kubriko.creator.generated.resources.error_command_shake_negative
 import kubriko.creator.generated.resources.error_command_size_invalid
 import kubriko.creator.generated.resources.error_command_speed_random_every_frame
 import kubriko.creator.generated.resources.error_command_summary_invalid
@@ -105,6 +106,7 @@ import kubriko.creator.generated.resources.error_command_upgrade_by_hand
 import kubriko.creator.generated.resources.error_command_upgrade_not_needed
 import kubriko.creator.generated.resources.error_command_usages_subject
 import kubriko.creator.generated.resources.error_command_volume_out_of_range
+import kubriko.creator.generated.resources.error_command_zoom_out_of_range
 import kubriko.creator.generated.resources.error_folder_already_there
 import kubriko.creator.generated.resources.error_folder_exists
 import kubriko.creator.generated.resources.error_folder_into_itself
@@ -135,6 +137,9 @@ import org.jetbrains.compose.resources.StringResource
  * The string the user is shown for this [CommandProblem].
  */
 internal fun CommandProblem.toResource(): StringResource = when (this) {
+    CommandProblem.NUMBER_EDGE_ACROSS, CommandProblem.NUMBER_EDGE_NOT_TAKEN, CommandProblem.OPACITY_OUT_OF_RANGE, CommandProblem.VOLUME_OUT_OF_RANGE, CommandProblem.ZOOM_OUT_OF_RANGE, CommandProblem.SHAKE_NEGATIVE,
+    CommandProblem.ANIMATED_COLOR_NOT_OPAQUE, CommandProblem.SPEED_RANDOM_EVERY_FRAME, CommandProblem.SCALE_NEGATIVE, CommandProblem.COLORS_COUNT, CommandProblem.COLORS_NOT_OPAQUE, CommandProblem.NUMBER_INVALID,
+    -> blockValueResource()
     CommandProblem.TURN_CANCELLED -> Res.string.assistant_turn_cancelled
     CommandProblem.ACTOR_ID_EMPTY -> Res.string.error_command_actor_id_empty
     CommandProblem.ACTOR_ID_LETTER_BEYOND_A_TO_Z -> Res.string.error_command_actor_id_letter_beyond_a_to_z
@@ -161,16 +166,6 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.NOT_A_CHANGE -> Res.string.error_command_not_a_change
     CommandProblem.NOT_CHANGED_BY_HAND -> Res.string.error_command_not_changed_by_hand
     CommandProblem.NOTHING_TO_COMMIT -> Res.string.error_command_nothing_to_commit
-    CommandProblem.NUMBER_EDGE_ACROSS -> Res.string.error_command_number_edge_across
-    CommandProblem.NUMBER_EDGE_NOT_TAKEN -> Res.string.error_command_number_edge_not_taken
-    CommandProblem.OPACITY_OUT_OF_RANGE -> Res.string.error_command_opacity_out_of_range
-    CommandProblem.VOLUME_OUT_OF_RANGE -> Res.string.error_command_volume_out_of_range
-    CommandProblem.ANIMATED_COLOR_NOT_OPAQUE -> Res.string.error_command_animated_color_not_opaque
-    CommandProblem.SPEED_RANDOM_EVERY_FRAME -> Res.string.error_command_speed_random_every_frame
-    CommandProblem.SCALE_NEGATIVE -> Res.string.error_command_scale_negative
-    CommandProblem.COLORS_COUNT -> Res.string.error_command_colors_count
-    CommandProblem.COLORS_NOT_OPAQUE -> Res.string.error_command_colors_not_opaque
-    CommandProblem.NUMBER_INVALID -> Res.string.error_command_number_invalid
     CommandProblem.DOCUMENT_NOT_MOVED -> Res.string.error_command_document_not_moved
     CommandProblem.DOCUMENT_TAKEN -> Res.string.error_command_document_taken
     CommandProblem.DOCUMENT_TOO_LONG -> Res.string.error_command_document_too_long
@@ -253,4 +248,23 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.SCENE_NAME_TAKEN -> Res.string.error_scene_name_taken
     CommandProblem.SCENE_NOT_MOVED -> Res.string.error_scene_not_moved
     CommandProblem.SCENE_NAMED_IN_CODE -> Res.string.warning_scene_named_in_code
+}
+
+/**
+ * Why a Block's value can't be taken, which [toResource] hands here.
+ */
+private fun CommandProblem.blockValueResource(): StringResource = when (this) {
+    CommandProblem.NUMBER_EDGE_ACROSS -> Res.string.error_command_number_edge_across
+    CommandProblem.NUMBER_EDGE_NOT_TAKEN -> Res.string.error_command_number_edge_not_taken
+    CommandProblem.OPACITY_OUT_OF_RANGE -> Res.string.error_command_opacity_out_of_range
+    CommandProblem.VOLUME_OUT_OF_RANGE -> Res.string.error_command_volume_out_of_range
+    CommandProblem.ZOOM_OUT_OF_RANGE -> Res.string.error_command_zoom_out_of_range
+    CommandProblem.SHAKE_NEGATIVE -> Res.string.error_command_shake_negative
+    CommandProblem.ANIMATED_COLOR_NOT_OPAQUE -> Res.string.error_command_animated_color_not_opaque
+    CommandProblem.SPEED_RANDOM_EVERY_FRAME -> Res.string.error_command_speed_random_every_frame
+    CommandProblem.SCALE_NEGATIVE -> Res.string.error_command_scale_negative
+    CommandProblem.COLORS_COUNT -> Res.string.error_command_colors_count
+    CommandProblem.COLORS_NOT_OPAQUE -> Res.string.error_command_colors_not_opaque
+    CommandProblem.NUMBER_INVALID -> Res.string.error_command_number_invalid
+    else -> error("$this isn't about a Block's value.")
 }

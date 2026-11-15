@@ -152,8 +152,10 @@ class FormatFixturesTest {
      * up to the current format doesn't make up.
      */
     private fun BlockTypeDefinition.asOf(version: Int): BlockTypeDefinition {
-        if (version >= 21) return this
-        val withoutAudioValues = withProperties(properties - EveryBlockTypes.audioProperties.toSet())
+        if (version >= 22) return this
+        val withoutCamera = withEvents(events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.cameraBlocks)) })
+        if (version == 21) return withoutCamera
+        val withoutAudioValues = withoutCamera.withProperties(withoutCamera.properties - EveryBlockTypes.audioProperties.toSet())
             .let { type -> type.withEvents(type.events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.audioValueBlocks)) }) }
         if (version == 20) return withoutAudioValues
         val withoutVolumes = withoutAudioValues.withEvents(withoutAudioValues.events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.volumeBlocks)) })

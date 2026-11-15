@@ -324,6 +324,15 @@
     <string name="block_play_sound">Play a sound</string>
     <string name="block_play_music">Play music</string>
     <string name="block_stop_music">Stop the music</string>
+    <string name="block_follow_with_camera">Follow with the camera</string>
+    <string name="block_move_camera">Move the camera</string>
+    <string name="block_shake_camera">Shake the camera</string>
+    <string name="block_zoom_camera">Zoom the camera</string>
+    <string name="block_parameter_strength">Strength</string>
+    <string name="block_parameter_duration">Duration</string>
+    <string name="block_parameter_zoom">Zoom</string>
+    <string name="block_units_unit">units</string>
+    <string name="block_milliseconds_unit">milliseconds</string>
     <string name="block_set_frame">Set the frame</string>
     <string name="block_set_animation">Set the animation</string>
     <string name="block_sound_choose">Choose a sound</string>
@@ -351,6 +360,7 @@
     <string name="block_category_timers">Timers</string>
     <string name="block_category_scenes">Scenes and game</string>
     <string name="block_category_audio">Sound and music</string>
+    <string name="block_category_camera">Camera</string>
     <string name="block_category_code">Console and code</string>
     <string name="block_palette_drag_hint">Click a Block to add it at the end, or drag it to where it should go.</string>
     <string name="action_drag_block">Drag to move</string>
@@ -748,6 +758,8 @@
     <string name="error_command_number_edge_not_taken">A direction, a speed, an opacity, a scale, or a time can't be an edge of the Scene, which is a position. Use a number, a random number, or a Property's value.</string>
     <string name="error_command_opacity_out_of_range">An opacity is from 0 (invisible) to 100 percent (opaque), and so is each end of a random one.</string>
     <string name="error_command_volume_out_of_range">A volume is from 0 (silent) to 100 percent (as recorded), and so is each end of a random one.</string>
+    <string name="error_command_zoom_out_of_range">A zoom is at least 1 percent, and so is each end of a random one.</string>
+    <string name="error_command_shake_negative">A shake's strength and duration are at least 0, and so is each end of a random one.</string>
     <string name="block_parameter_volume">Volume</string>
     <string name="error_command_animated_color_not_opaque">Animate takes opaque colors (#RRGGBB) and keeps the Actor's opacity. Animate the opacity with an Animate Block of its own.</string>
     <string name="error_command_speed_random_every_frame">Move with keys runs on every frame, so a random speed would change on every frame. Use a number, or a Property set to a random number once.</string>
@@ -791,6 +803,7 @@
     <string name="error_placement_block_movement_in_manager_type">A Manager type isn't in a Scene, so it has nothing for the Movement Blocks to move. They belong in an Actor type.</string>
     <string name="error_placement_block_remove_self_in_manager_type">A Manager type isn't in a Scene, so it can't have a Remove this Actor Block.</string>
     <string name="error_placement_block_appearance_in_manager_type">A Manager type isn't in a Scene and isn't drawn, so it can't have the Set the color, Set the opacity, or Change the opacity Blocks. They belong in an Actor type.</string>
+    <string name="error_placement_block_follow_with_camera_in_manager_type">A Manager type isn't in a Scene, so the camera can't follow it. A Follow with the camera Block belongs in an Actor type.</string>
     <string name="error_placement_block_animate_in_manager_type">A Manager type isn't in a Scene and isn't drawn, so it can't have an Animate Block. It belongs in an Actor type.</string>
     <string name="error_placement_block_animation_in_manager_type">A Manager type isn't in a Scene and has no sprite, so it can't have the Set the frame or Set the animation Blocks. They belong in an Actor type drawn as a sprite cut into frames.</string>
     <string name="error_placement_block_run_parent_event_in_manager_type">Only Actor types have parents, so a Manager type can't have a Run the parent's Event Block.</string>

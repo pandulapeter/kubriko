@@ -19,6 +19,7 @@ import kubriko.creator.generated.resources.error_placement_block_animation_in_ma
 import kubriko.creator.generated.resources.error_placement_block_appearance_in_manager_type
 import kubriko.creator.generated.resources.error_placement_block_bounce_off_edge_outside_edge_touched
 import kubriko.creator.generated.resources.error_placement_block_bounce_off_other_outside_collision
+import kubriko.creator.generated.resources.error_placement_block_follow_with_camera_in_manager_type
 import kubriko.creator.generated.resources.error_placement_block_move_with_keys_outside_every_frame
 import kubriko.creator.generated.resources.error_placement_block_movement_in_manager_type
 import kubriko.creator.generated.resources.error_placement_block_remove_other_in_manager_type
@@ -77,6 +78,7 @@ internal fun PlacementProblem.toResource(): StringResource = when (this) {
     PlacementProblem.BLOCK_REMOVE_SELF_IN_MANAGER_TYPE -> Res.string.error_placement_block_remove_self_in_manager_type
     PlacementProblem.BLOCK_REMOVE_OTHER_IN_MANAGER_TYPE -> Res.string.error_placement_block_remove_other_in_manager_type
     PlacementProblem.BLOCK_ANIMATE_IN_MANAGER_TYPE -> Res.string.error_placement_block_animate_in_manager_type
+    PlacementProblem.BLOCK_FOLLOW_WITH_CAMERA_IN_MANAGER_TYPE -> Res.string.error_placement_block_follow_with_camera_in_manager_type
     PlacementProblem.BLOCK_ANIMATION_IN_MANAGER_TYPE -> Res.string.error_placement_block_animation_in_manager_type
     PlacementProblem.BLOCK_APPEARANCE_IN_MANAGER_TYPE -> Res.string.error_placement_block_appearance_in_manager_type
     PlacementProblem.BLOCK_RUN_PARENT_EVENT_IN_MANAGER_TYPE -> Res.string.error_placement_block_run_parent_event_in_manager_type

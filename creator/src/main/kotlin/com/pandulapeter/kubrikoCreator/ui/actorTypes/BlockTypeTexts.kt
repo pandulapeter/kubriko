@@ -40,6 +40,8 @@ import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_add_actor
 import kubriko.creator.generated.resources.ic_animation
 import kubriko.creator.generated.resources.ic_bounce
+import kubriko.creator.generated.resources.ic_camera
+import kubriko.creator.generated.resources.ic_camera_follow
 import kubriko.creator.generated.resources.ic_code
 import kubriko.creator.generated.resources.ic_collision
 import kubriko.creator.generated.resources.ic_condition
@@ -64,6 +66,7 @@ import kubriko.creator.generated.resources.ic_play
 import kubriko.creator.generated.resources.ic_refresh
 import kubriko.creator.generated.resources.ic_remove_other
 import kubriko.creator.generated.resources.ic_scene
+import kubriko.creator.generated.resources.ic_shake
 import kubriko.creator.generated.resources.ic_sound
 import kubriko.creator.generated.resources.ic_sprite
 import kubriko.creator.generated.resources.ic_stop
@@ -73,6 +76,7 @@ import kubriko.creator.generated.resources.ic_timer_off
 import kubriko.creator.generated.resources.ic_toggle
 import kubriko.creator.generated.resources.ic_trending_up
 import kubriko.creator.generated.resources.ic_velocity
+import kubriko.creator.generated.resources.ic_zoom_in
 import kubriko.creator.generated.resources.key_a
 import kubriko.creator.generated.resources.key_d
 import kubriko.creator.generated.resources.key_down
@@ -158,6 +162,10 @@ internal val BlockKind.icon: DrawableResource
         BlockKind.PLAY_SOUND -> Res.drawable.ic_sound
         BlockKind.PLAY_MUSIC -> Res.drawable.ic_music
         BlockKind.STOP_MUSIC -> Res.drawable.ic_music_off
+        BlockKind.FOLLOW_WITH_CAMERA -> Res.drawable.ic_camera_follow
+        BlockKind.MOVE_CAMERA -> Res.drawable.ic_camera
+        BlockKind.SHAKE_CAMERA -> Res.drawable.ic_shake
+        BlockKind.ZOOM_CAMERA -> Res.drawable.ic_zoom_in
         BlockKind.SET_FRAME -> Res.drawable.ic_sprite
         BlockKind.SET_ANIMATION -> Res.drawable.ic_play
         BlockKind.IF, BlockKind.ELSE -> Res.drawable.ic_condition

@@ -22,11 +22,13 @@ import kubriko.creator.generated.resources.block_change_number
 import kubriko.creator.generated.resources.block_change_opacity
 import kubriko.creator.generated.resources.block_else
 import kubriko.creator.generated.resources.block_end
+import kubriko.creator.generated.resources.block_follow_with_camera
 import kubriko.creator.generated.resources.block_go_to_scene
 import kubriko.creator.generated.resources.block_if
 import kubriko.creator.generated.resources.block_jump_to
 import kubriko.creator.generated.resources.block_kotlin
 import kubriko.creator.generated.resources.block_log
+import kubriko.creator.generated.resources.block_move_camera
 import kubriko.creator.generated.resources.block_move_in_direction
 import kubriko.creator.generated.resources.block_move_towards_nearest
 import kubriko.creator.generated.resources.block_move_with_keys
@@ -47,10 +49,12 @@ import kubriko.creator.generated.resources.block_set_opacity
 import kubriko.creator.generated.resources.block_set_text
 import kubriko.creator.generated.resources.block_set_toggle
 import kubriko.creator.generated.resources.block_set_velocity
+import kubriko.creator.generated.resources.block_shake_camera
 import kubriko.creator.generated.resources.block_start_timer
 import kubriko.creator.generated.resources.block_stop
 import kubriko.creator.generated.resources.block_stop_music
 import kubriko.creator.generated.resources.block_stop_timer
+import kubriko.creator.generated.resources.block_zoom_camera
 import kubriko.creator.generated.resources.condition_actor_count
 import kubriko.creator.generated.resources.condition_chance
 import kubriko.creator.generated.resources.condition_combined
@@ -102,6 +106,10 @@ internal val BlockKind.title: StringResource
         BlockKind.PLAY_SOUND -> Res.string.block_play_sound
         BlockKind.PLAY_MUSIC -> Res.string.block_play_music
         BlockKind.STOP_MUSIC -> Res.string.block_stop_music
+        BlockKind.FOLLOW_WITH_CAMERA -> Res.string.block_follow_with_camera
+        BlockKind.MOVE_CAMERA -> Res.string.block_move_camera
+        BlockKind.SHAKE_CAMERA -> Res.string.block_shake_camera
+        BlockKind.ZOOM_CAMERA -> Res.string.block_zoom_camera
         BlockKind.SET_FRAME -> Res.string.block_set_frame
         BlockKind.SET_ANIMATION -> Res.string.block_set_animation
         BlockKind.IF -> Res.string.block_if

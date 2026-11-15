@@ -109,7 +109,7 @@ internal class ProjectRelations(
             is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
             is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
             BlockDefinition.RemoveOther, is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, BlockDefinition.RestartScene,
-            is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic,
+            is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, BlockDefinition.FollowWithCamera, is BlockDefinition.MoveCamera, is BlockDefinition.ShakeCamera, is BlockDefinition.ZoomCamera,
             is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity,
             is BlockDefinition.ChangeOpacity, is BlockDefinition.Animate, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
             -> Unit

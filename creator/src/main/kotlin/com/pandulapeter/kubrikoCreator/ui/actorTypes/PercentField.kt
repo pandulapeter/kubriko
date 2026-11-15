@@ -22,9 +22,9 @@ import kubriko.creator.generated.resources.block_percent_unit
 import org.jetbrains.compose.resources.StringResource
 
 /**
- * A percent a Block takes (an opacity, a change of one, or a volume), which takes no edge.
+ * A percent a Block takes (an opacity, a change of one, a volume, or a zoom), which takes no edge.
  *
- * @param accepts Which numbers the field takes: from 0 to 100, or any change of one.
+ * @param accepts Which numbers the field takes: from 0 to 100, any change of one, or a zoom of at least 1.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

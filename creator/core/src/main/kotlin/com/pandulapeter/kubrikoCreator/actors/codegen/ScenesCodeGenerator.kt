@@ -177,6 +177,7 @@ public object ScenesCodeGenerator {
         )
         appendLine(edgeMembers())
         appendLine(viewFitMembers())
+        appendLine(CameraCode.members())
         if (countedTypes.isNotEmpty()) appendScenesMembers(countedTypes)
         appendLine(
             """
@@ -217,6 +218,7 @@ public object ScenesCodeGenerator {
             |            // The first Scene keeps what the Managers added when the game started.
             |            if (!isFirst) {
             |                $SCENE_CHANGES_FIELD++
+            |                ${CameraCode.RESET_FUNCTION}()
             |                actorManager.removeAll()
             |                actorManager.add(managerActors)
             |            }

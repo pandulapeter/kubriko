@@ -110,7 +110,7 @@ public object EveryBlockTypes {
         BlockDefinition.StopMusic,
         BlockDefinition.SetFrame(frame = NumberValue.Fixed(2f)),
         BlockDefinition.SetAnimation(speed = NumberValue.Fixed(-0.5f), isLooping = false),
-    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks + steeringBlocks + actorCountBlocks + colorPropertyBlocks + actorTypeValueBlocks + combinedConditionBlocks + textAndToggleValueBlocks + distanceBlocks + volumeBlocks + audioValueBlocks
+    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks + steeringBlocks + actorCountBlocks + colorPropertyBlocks + actorTypeValueBlocks + combinedConditionBlocks + textAndToggleValueBlocks + distanceBlocks + volumeBlocks + audioValueBlocks + cameraBlocks
 
     /**
      * Blocks taking random numbers and Properties' values, which format version 5 added.
@@ -204,6 +204,19 @@ public object EveryBlockTypes {
             BlockDefinition.If(ConditionDefinition.Toggle("isShielded", ToggleValue.Property("isShielded", manager = "EveryManager"))),
             BlockDefinition.End,
             BlockDefinition.End,
+        )
+
+    /**
+     * The camera Blocks, which format version 22 added: with fixed values, random ones, and a Property's.
+     */
+    val cameraBlocks: List<BlockDefinition>
+        get() = listOf(
+            BlockDefinition.FollowWithCamera,
+            BlockDefinition.MoveCamera(NumberValue.Fixed(120f), NumberValue.Property("score")),
+            BlockDefinition.ShakeCamera(),
+            BlockDefinition.ShakeCamera(strength = NumberValue.Random(4f, 12f), durationInMilliseconds = NumberValue.Fixed(500f)),
+            BlockDefinition.ZoomCamera(NumberValue.Fixed(150f)),
+            BlockDefinition.ZoomCamera(NumberValue.Property("score")),
         )
 
     /**

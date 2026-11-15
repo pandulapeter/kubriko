@@ -25,6 +25,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.FULL_VOLUME
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
+import com.pandulapeter.kubrikoCreator.actors.MINIMUM_ZOOM
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
@@ -183,6 +184,8 @@ private fun validateBlockValues(block: BlockDefinition, scope: BlockScope): Reje
     block is BlockDefinition.SetOpacity && !block.percent.isWithin(0f, 100f) -> Rejection(CommandProblem.OPACITY_OUT_OF_RANGE)
     block is BlockDefinition.PlaySound && !block.volume.isWithin(0f, FULL_VOLUME) -> Rejection(CommandProblem.VOLUME_OUT_OF_RANGE)
     block is BlockDefinition.PlayMusic && !block.volume.isWithin(0f, FULL_VOLUME) -> Rejection(CommandProblem.VOLUME_OUT_OF_RANGE)
+    block is BlockDefinition.ZoomCamera && !block.zoom.isWithin(minimum = MINIMUM_ZOOM) -> Rejection(CommandProblem.ZOOM_OUT_OF_RANGE)
+    block is BlockDefinition.ShakeCamera && !(block.strength.isWithin(minimum = 0f) && block.durationInMilliseconds.isWithin(minimum = 0f)) -> Rejection(CommandProblem.SHAKE_NEGATIVE)
     block is BlockDefinition.SetColor && block.colors.size !in 1..BlockDefinition.SetColor.MAXIMUM_COLORS ->
         Rejection(CommandProblem.COLORS_COUNT, BlockDefinition.SetColor.MAXIMUM_COLORS.toString())
     block is BlockDefinition.SetColor && block.colors.any { it.fixedArgb?.let(ColorHex::isOpaque) == false } -> Rejection(CommandProblem.COLORS_NOT_OPAQUE)
@@ -376,7 +379,7 @@ private val BlockDefinition.areNumbersValid
         is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.SetColorProperty, is BlockDefinition.StopTimer, BlockDefinition.Else, BlockDefinition.End,
         is BlockDefinition.Log, is BlockDefinition.Kotlin, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
         is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity,
-        is BlockDefinition.ChangeOpacity,
+        is BlockDefinition.ChangeOpacity, BlockDefinition.FollowWithCamera, is BlockDefinition.MoveCamera, is BlockDefinition.ShakeCamera, is BlockDefinition.ZoomCamera,
         -> true
     }
 
@@ -386,6 +389,7 @@ private val BlockDefinition.areEdgesAlongTheirAxes
         is BlockDefinition.AddToVelocity -> areEdgesAlong(x, y)
         is BlockDefinition.JumpTo -> areEdgesAlong(x, y)
         is BlockDefinition.AddActor -> areEdgesAlong(x, y)
+        is BlockDefinition.MoveCamera -> areEdgesAlong(x, y)
         is BlockDefinition.Animate -> (value as? AnimatedValue.Position)?.let { areEdgesAlong(it.x, it.y) } ?: true
         is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, is BlockDefinition.MoveTowardsNearest, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetAnimation,
         is BlockDefinition.If, is BlockDefinition.Repeat, is BlockDefinition.StartTimer, is BlockDefinition.SetFrame,
@@ -393,13 +397,13 @@ private val BlockDefinition.areEdgesAlongTheirAxes
         is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.SetColorProperty, is BlockDefinition.StopTimer, BlockDefinition.Else, BlockDefinition.End,
         is BlockDefinition.Log, is BlockDefinition.Kotlin, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
         is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity,
-        is BlockDefinition.ChangeOpacity,
+        is BlockDefinition.ChangeOpacity, BlockDefinition.FollowWithCamera, is BlockDefinition.ShakeCamera, is BlockDefinition.ZoomCamera,
         -> numberValues.none { it is NumberValue.BetweenEdges && it.from.axis != it.to.axis }
     }
 
 /**
- * The numbers of [this] Block that are a direction, a speed, an opacity, a volume, a scale, a time, or what a count or a
- * distance is compared with, which an edge, a position, means nothing as.
+ * The numbers of [this] Block that are a direction, a speed, an opacity, a volume, a scale, a time, a shake's strength, a
+ * zoom, or what a count or a distance is compared with, which an edge, a position, means nothing as.
  */
 private val BlockDefinition.edgelessNumberValues
     get() = when (this) {
@@ -410,6 +414,8 @@ private val BlockDefinition.edgelessNumberValues
         is BlockDefinition.PlaySound -> listOf(volume)
         is BlockDefinition.PlayMusic -> listOf(volume)
         is BlockDefinition.ChangeOpacity -> listOf(by)
+        is BlockDefinition.ShakeCamera -> listOf(strength, durationInMilliseconds)
+        is BlockDefinition.ZoomCamera -> listOf(zoom)
         is BlockDefinition.Animate -> if (value is AnimatedValue.Position) listOf(seconds) else value.numberValues + seconds
         is BlockDefinition.If -> condition.leaves.mapNotNull { (it as? ConditionDefinition.ActorCount)?.value ?: (it as? ConditionDefinition.Distance)?.value }
         else -> emptyList()

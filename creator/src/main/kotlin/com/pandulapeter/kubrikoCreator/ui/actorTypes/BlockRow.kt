@@ -37,6 +37,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockNesting
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.FULL_VOLUME
+import com.pandulapeter.kubrikoCreator.actors.MINIMUM_ZOOM
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
@@ -70,6 +71,7 @@ import kubriko.creator.generated.resources.block_parameter_times
 import kubriko.creator.generated.resources.block_parameter_volume
 import kubriko.creator.generated.resources.block_parameter_x
 import kubriko.creator.generated.resources.block_parameter_y
+import kubriko.creator.generated.resources.block_parameter_zoom
 import kubriko.creator.generated.resources.block_velocity_unit
 import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_drag_handle
@@ -275,6 +277,9 @@ private fun InlineParameters(
     is BlockDefinition.SetOpacity -> PercentField(Res.string.block_parameter_opacity, block.percent, scope, { onBlockChange(block.copy(percent = it)) }, accepts = { it in 0f..100f })
     is BlockDefinition.ChangeOpacity -> PercentField(Res.string.block_parameter_by, block.by, scope, { onBlockChange(block.copy(by = it)) })
     is BlockDefinition.Animate -> AnimateParameters(block, scope, onBlockChange)
+    is BlockDefinition.MoveCamera -> OffsetParameters(block.x, block.y, scope, isVelocity = false) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
+    is BlockDefinition.ShakeCamera -> ShakeCameraParameters(block, scope, onBlockChange)
+    is BlockDefinition.ZoomCamera -> PercentField(Res.string.block_parameter_zoom, block.zoom, scope, { onBlockChange(block.copy(zoom = it)) }, accepts = { it >= MINIMUM_ZOOM })
     is BlockDefinition.Log -> BufferedTextField(
         modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
         value = block.message,
@@ -282,7 +287,7 @@ private fun InlineParameters(
         placeholder = stringResource(Res.string.block_parameter_message),
     )
     BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
-    BlockDefinition.Else, BlockDefinition.End, is BlockDefinition.Kotlin, BlockDefinition.RestartScene, BlockDefinition.StopMusic -> Unit
+    BlockDefinition.Else, BlockDefinition.End, is BlockDefinition.Kotlin, BlockDefinition.RestartScene, BlockDefinition.StopMusic, BlockDefinition.FollowWithCamera -> Unit
 }
 
 /**
@@ -296,12 +301,12 @@ private const val NESTING_INDENT = 20
 private val BlockKind.hasInlineParameters
     get() = when (this) {
         BlockKind.STOP, BlockKind.RUN_PARENT_EVENT, BlockKind.BOUNCE_OFF_EDGE, BlockKind.REMOVE_SELF, BlockKind.BOUNCE_OFF_OTHER,
-        BlockKind.REMOVE_OTHER, BlockKind.ELSE, BlockKind.END, BlockKind.KOTLIN, BlockKind.RESTART_SCENE, BlockKind.STOP_MUSIC,
+        BlockKind.REMOVE_OTHER, BlockKind.ELSE, BlockKind.END, BlockKind.KOTLIN, BlockKind.RESTART_SCENE, BlockKind.STOP_MUSIC, BlockKind.FOLLOW_WITH_CAMERA,
         -> false
         BlockKind.SET_VELOCITY, BlockKind.ADD_TO_VELOCITY, BlockKind.MOVE_IN_DIRECTION, BlockKind.MOVE_WITH_KEYS, BlockKind.JUMP_TO, BlockKind.SET_NUMBER, BlockKind.CHANGE_NUMBER,
         BlockKind.SET_TEXT, BlockKind.SET_TOGGLE, BlockKind.SET_COLOR_PROPERTY, BlockKind.ADD_ACTOR, BlockKind.MOVE_TOWARDS_NEAREST, BlockKind.START_TIMER,
         BlockKind.STOP_TIMER, BlockKind.GO_TO_SCENE, BlockKind.PAUSE_GAME, BlockKind.PLAY_SOUND, BlockKind.PLAY_MUSIC,
         BlockKind.IF, BlockKind.REPEAT, BlockKind.LOG, BlockKind.SET_FRAME, BlockKind.SET_ANIMATION, BlockKind.SET_COLOR,
-        BlockKind.SET_OPACITY, BlockKind.CHANGE_OPACITY, BlockKind.ANIMATE,
+        BlockKind.SET_OPACITY, BlockKind.CHANGE_OPACITY, BlockKind.ANIMATE, BlockKind.MOVE_CAMERA, BlockKind.SHAKE_CAMERA, BlockKind.ZOOM_CAMERA,
         -> true
     }

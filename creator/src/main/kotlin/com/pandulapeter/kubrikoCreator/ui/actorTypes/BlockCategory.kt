@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_category_actors
 import kubriko.creator.generated.resources.block_category_audio
+import kubriko.creator.generated.resources.block_category_camera
 import kubriko.creator.generated.resources.block_category_code
 import kubriko.creator.generated.resources.block_category_flow
 import kubriko.creator.generated.resources.block_category_movement
@@ -23,6 +24,7 @@ import kubriko.creator.generated.resources.block_category_properties
 import kubriko.creator.generated.resources.block_category_scenes
 import kubriko.creator.generated.resources.block_category_timers
 import kubriko.creator.generated.resources.ic_actor_type
+import kubriko.creator.generated.resources.ic_camera
 import kubriko.creator.generated.resources.ic_code
 import kubriko.creator.generated.resources.ic_condition
 import kubriko.creator.generated.resources.ic_property
@@ -64,6 +66,7 @@ internal enum class BlockCategory(
     TIMERS(Res.string.block_category_timers, Res.drawable.ic_timer, Accent.TIMERS, listOf(BlockKind.START_TIMER, BlockKind.STOP_TIMER)),
     SCENES(Res.string.block_category_scenes, Res.drawable.ic_scene, Accent.SCENE, listOf(BlockKind.GO_TO_SCENE, BlockKind.RESTART_SCENE, BlockKind.PAUSE_GAME)),
     AUDIO(Res.string.block_category_audio, Res.drawable.ic_sound, Accent.AUDIO, listOf(BlockKind.PLAY_SOUND, BlockKind.PLAY_MUSIC, BlockKind.STOP_MUSIC)),
+    CAMERA(Res.string.block_category_camera, Res.drawable.ic_camera, Accent.SCENE, listOf(BlockKind.FOLLOW_WITH_CAMERA, BlockKind.MOVE_CAMERA, BlockKind.SHAKE_CAMERA, BlockKind.ZOOM_CAMERA)),
     CODE(Res.string.block_category_code, Res.drawable.ic_code, Accent.CODE, listOf(BlockKind.LOG, BlockKind.KOTLIN));
 
     companion object {

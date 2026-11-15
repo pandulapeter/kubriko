@@ -116,6 +116,10 @@ internal object BlockNotation {
         is BlockDefinition.PlayMusic -> "Play music ${block.music.fixedPath?.let(::name) ?: block.music.propertyReference?.let { "the music in " + property(it.name, it.manager) } ?: NONE}" +
             (if (block.isLooping) "" else ", once") + volume(block.volume)
         BlockDefinition.StopMusic -> "Stop the music"
+        BlockDefinition.FollowWithCamera -> "Follow this Actor with the camera"
+        is BlockDefinition.MoveCamera -> "Move the camera to ${point(block.x, block.y)}"
+        is BlockDefinition.ShakeCamera -> "Shake the camera ${value(block.strength)} far for ${value(block.durationInMilliseconds)} ms"
+        is BlockDefinition.ZoomCamera -> "Zoom the camera to ${value(block.zoom)} percent"
         is BlockDefinition.SetFrame -> "Show frame ${value(block.frame)} of the sprite"
         is BlockDefinition.SetAnimation -> "Play the sprite's frames at speed ${value(block.speed)}" + if (block.isLooping) ", looping" else ", once"
         is BlockDefinition.SetColor -> "Set the color to " + when (block.colors.size) {

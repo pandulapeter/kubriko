@@ -166,6 +166,10 @@ public object BlockCodeGenerator {
         is BlockDefinition.PlaySound -> AudioBlockCode.playSound(block, scope)
         is BlockDefinition.PlayMusic -> AudioBlockCode.playMusic(block, scope)
         BlockDefinition.StopMusic -> AudioBlockCode.STOP_MUSIC
+        BlockDefinition.FollowWithCamera -> CameraBlockCode.FOLLOW_WITH_CAMERA
+        is BlockDefinition.MoveCamera -> CameraBlockCode.moveCamera(block, scope)
+        is BlockDefinition.ShakeCamera -> CameraBlockCode.shakeCamera(block, scope)
+        is BlockDefinition.ZoomCamera -> CameraBlockCode.zoomCamera(block, scope)
         is BlockDefinition.SetFrame -> animationCode(scope, BlockNeed.FRAME, "$SET_FRAME_FUNCTION(${NumberValueCode.whole(block.frame, scope)})")
         is BlockDefinition.SetAnimation -> animationCode(scope, BlockNeed.ANIMATION, "$ANIMATION_SPEED_FIELD = ${NumberValueCode.float(block.speed, scope)}", "$ANIMATION_LOOPING_FIELD = ${block.isLooping}")
         is BlockDefinition.SetColor -> AppearanceCode.setColor(block, scope)

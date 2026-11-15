@@ -53,6 +53,10 @@ public enum class BlockKind(
     PLAY_SOUND({ BlockDefinition.PlaySound() }),
     PLAY_MUSIC({ BlockDefinition.PlayMusic() }),
     STOP_MUSIC({ BlockDefinition.StopMusic }),
+    FOLLOW_WITH_CAMERA({ BlockDefinition.FollowWithCamera }, managerTypeProblem = PlacementProblem.BLOCK_FOLLOW_WITH_CAMERA_IN_MANAGER_TYPE),
+    MOVE_CAMERA({ BlockDefinition.MoveCamera() }),
+    SHAKE_CAMERA({ BlockDefinition.ShakeCamera() }),
+    ZOOM_CAMERA({ BlockDefinition.ZoomCamera() }),
     SET_FRAME({ BlockDefinition.SetFrame() }, managerTypeProblem = PlacementProblem.BLOCK_ANIMATION_IN_MANAGER_TYPE),
     SET_ANIMATION({ BlockDefinition.SetAnimation() }, managerTypeProblem = PlacementProblem.BLOCK_ANIMATION_IN_MANAGER_TYPE),
     SET_COLOR({ BlockDefinition.SetColor() }, managerTypeProblem = PlacementProblem.BLOCK_APPEARANCE_IN_MANAGER_TYPE),
@@ -113,6 +117,10 @@ public enum class BlockKind(
             is BlockDefinition.PlaySound -> PLAY_SOUND
             is BlockDefinition.PlayMusic -> PLAY_MUSIC
             BlockDefinition.StopMusic -> STOP_MUSIC
+            BlockDefinition.FollowWithCamera -> FOLLOW_WITH_CAMERA
+            is BlockDefinition.MoveCamera -> MOVE_CAMERA
+            is BlockDefinition.ShakeCamera -> SHAKE_CAMERA
+            is BlockDefinition.ZoomCamera -> ZOOM_CAMERA
             is BlockDefinition.SetFrame -> SET_FRAME
             is BlockDefinition.SetAnimation -> SET_ANIMATION
             is BlockDefinition.SetColor -> SET_COLOR

@@ -262,6 +262,39 @@ public sealed interface BlockDefinition {
     public data object StopMusic : BlockDefinition
 
     @Serializable
+    @SerialName("followWithCamera")
+    @Description("Keeps the Actor in the center of the screen until a moveCamera Block, another Actor's followWithCamera, or another Scene.")
+    public data object FollowWithCamera : BlockDefinition
+
+    @Serializable
+    @SerialName("moveCamera")
+    @Description("Centers the camera on a position in the Scene and stops it following an Actor.")
+    public data class MoveCamera(
+        @Description("The horizontal position, where 0 is the center of the Scene.")
+        @SerialName("x") val x: NumberValue = NumberValue.Fixed(0f),
+        @Description("The vertical position, where 0 is the center of the Scene, positive downwards.")
+        @SerialName("y") val y: NumberValue = NumberValue.Fixed(0f),
+    ) : BlockDefinition
+
+    @Serializable
+    @SerialName("shakeCamera")
+    @Description("Shakes the camera, less and less until it stops.")
+    public data class ShakeCamera(
+        @Description("How far it moves at most, in scene units.")
+        @SerialName("strength") val strength: NumberValue = NumberValue.Fixed(DEFAULT_SHAKE_STRENGTH),
+        @Description("In milliseconds.")
+        @SerialName("duration") val durationInMilliseconds: NumberValue = NumberValue.Fixed(DEFAULT_SHAKE_DURATION),
+    ) : BlockDefinition
+
+    @Serializable
+    @SerialName("zoomCamera")
+    @Description("Zooms the camera until another zoomCamera Block or another Scene.")
+    public data class ZoomCamera(
+        @Description("In percent, at least 1: 100 is the Scene's size. Kept within 20 to 500 unless the game's code sets other limits.")
+        @SerialName("zoom") val zoom: NumberValue = NumberValue.Fixed(FULL_ZOOM),
+    ) : BlockDefinition
+
+    @Serializable
     @SerialName("setFrame")
     @Description("Shows a frame of the Actor's sprite, when its sprite is cut into frames; the animation goes on from there.")
     public data class SetFrame(
@@ -378,6 +411,26 @@ internal const val VOLUME_DESCRIPTION = "How loud, from 0 (silent) to 100 percen
  * The volume an audio Block plays at unless it says otherwise, in percent.
  */
 public const val FULL_VOLUME: Float = 100f
+
+/**
+ * The zoom that shows a Scene at its size, in percent: what a Zoom the camera Block starts as.
+ */
+public const val FULL_ZOOM: Float = 100f
+
+/**
+ * The smallest zoom a Zoom the camera Block takes, in percent, since the camera can't zoom to nothing.
+ */
+public const val MINIMUM_ZOOM: Float = 1f
+
+/**
+ * How far a new Shake the camera Block moves the camera at most, in scene units.
+ */
+public const val DEFAULT_SHAKE_STRENGTH: Float = 8f
+
+/**
+ * How long a new Shake the camera Block shakes it, in milliseconds.
+ */
+public const val DEFAULT_SHAKE_DURATION: Float = 300f
 
 internal const val SOUND_DESCRIPTION = "The sound: a .wav file's path from composeResources, like files/sounds/hit.wav, or a property sound value."
 /**
