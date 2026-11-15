@@ -54,7 +54,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STATE_M
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STEP_ANIMATION_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.EventFunctions.appendFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.KeyEventCode.appendHeldKeyCalls
-import com.pandulapeter.kubrikoCreator.actors.codegen.KeyEventCode.appendKeyDispatch
+import com.pandulapeter.kubrikoCreator.actors.codegen.KeyEventCode.appendPairedKeyDispatches
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneBoundsCode.appendBoundsFields
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneBoundsCode.appendBoundsHandling
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
@@ -359,14 +359,18 @@ internal class ActorClassEmitter(
     }
 
     /**
-     * Kubriko keeps telling Actors about keys while the game is paused, so a press returns early then, while a key let
-     * go of always runs its Event, so what a press started always ends; neither reaches an Actor a Block removed.
+     * Kubriko keeps telling Actors about keys while the game is paused, so a press returns early then; neither a press
+     * nor a release reaches an Actor a Block removed.
      */
     private fun StringBuilder.appendKeyDispatches() {
         if (!features.keys.isKeyboardInputAware) return
         imports += listOf(KEY_IMPORT, TRAIT_IMPORTS.getValue("KeyboardInputAware"))
-        appendKeyDispatch("onKeyPressed", features.keys.pressed, ::callOf, listOf(REMOVED_GUARD, "        if (!$STATE_MANAGER_FIELD.isRunning.value) return"))
-        appendKeyDispatch("onKeyReleased", features.keys.released, ::callOf, listOf(REMOVED_GUARD))
+        appendPairedKeyDispatches(
+            keys = features.keys,
+            callOf = ::callOf,
+            pressGuards = listOf(REMOVED_GUARD, "        if (!$STATE_MANAGER_FIELD.isRunning.value) return"),
+            releaseGuards = listOf(REMOVED_GUARD),
+        )
     }
 
     private fun StringBuilder.appendCollisionDispatch() {

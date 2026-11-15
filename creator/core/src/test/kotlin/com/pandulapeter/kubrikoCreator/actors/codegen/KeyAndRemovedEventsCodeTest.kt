@@ -34,11 +34,15 @@ class KeyAndRemovedEventsCodeTest {
     }
 
     @Test
-    fun anActorHearsAboutAKeyLetGoOfEvenWhilePausedSoWhatAPressStartedEnds() {
+    fun anActorHearsAboutAKeyLetGoOfEvenWhilePausedOnlyAfterHearingItPressedWhileTheGameRan() {
         val code = actor(EventDefinition(EventType.KEY_RELEASED, key = KeyChoice.SPACE, blocks = log))
         assertContains(code, "KeyboardInputAware")
-        assertContains(code, "    override fun onKeyReleased(key: Key) {\n        if (isRemoved) return\n        when (key) {\n            Key.Spacebar -> onKeyReleasedSpacebar()\n")
-        assertFalse("override fun onKeyPressed" in code)
+        assertContains(code, "    private var _wasPressedSpacebar = false\n")
+        assertContains(code, "    override fun onKeyPressed(key: Key) {\n        if (isRemoved) return\n        if (!stateManager.isRunning.value) return\n        when (key) {\n            Key.Spacebar -> _wasPressedSpacebar = true\n")
+        assertContains(
+            code,
+            "    override fun onKeyReleased(key: Key) {\n        if (isRemoved) return\n        when (key) {\n            Key.Spacebar -> if (_wasPressedSpacebar) {\n                _wasPressedSpacebar = false\n                onKeyReleasedSpacebar()\n            }\n",
+        )
     }
 
     @Test
@@ -62,6 +66,12 @@ class KeyAndRemovedEventsCodeTest {
     fun aHeldKeysKotlinBlockHasTheFrameTimeAsEveryFrameDoes() {
         val code = actor(EventDefinition(EventType.KEY_HELD, key = KeyChoice.A, blocks = listOf(BlockDefinition.Kotlin("velocity = velocity * (deltaTimeInMilliseconds / 16f)"))))
         assertContains(code, "    private fun whileKeyHeldA(deltaTimeInMilliseconds: Int) {\n")
+    }
+
+    @Test
+    fun aKeyWithBothEventsRecordsItsPressAndRunsItsPressedEvent() {
+        val code = actor(EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.SPACE, blocks = log), EventDefinition(EventType.KEY_RELEASED, key = KeyChoice.SPACE, blocks = log))
+        assertContains(code, "            Key.Spacebar -> {\n                _wasPressedSpacebar = true\n                onKeyPressedSpacebar()\n            }\n")
     }
 
     @Test

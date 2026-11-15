@@ -40,6 +40,11 @@ internal object KeyEventCode {
          * Whether the type asks about a held key every frame: one whose Event has Blocks, or any in a family.
          */
         val holdsKeys = held.any { isFamily || it.blocks.isNotEmpty() }
+
+        /**
+         * [keyNames] in the order of the key list ([KeyChoice]).
+         */
+        fun order(keyNames: Collection<String>): List<String> = (pressed + released).mapNotNull { it.trigger.key }.distinct().sorted().map { it.composeKeyName }.filter { it in keyNames }
     }
 
     /**
@@ -62,6 +67,66 @@ internal object KeyEventCode {
         appendLine("        }")
         appendLine("    }")
     }
+
+    /**
+     * An Actor's overrides of `onKeyPressed` and `onKeyReleased`, which pair each key's release with a press the Actor
+     * heard, after the lines of [pressGuards] (while the game runs) and [releaseGuards]: a released Event then runs even
+     * while the game is paused, so what a press started always ends, but never for a press the Actor didn't hear (one in
+     * the Scene editor, whose game never runs, or before it was added). Each key with a released Event keeps whether its
+     * press was heard in a field of its own, so pairing allocates nothing.
+     */
+    fun StringBuilder.appendPairedKeyDispatches(
+        keys: KeyEvents,
+        callOf: (List<EventDefinition>) -> String?,
+        pressGuards: List<String>,
+        releaseGuards: List<String>,
+    ) {
+        val pressedCalls = callsByKey(keys.pressed, callOf).toMap()
+        val releasedCalls = callsByKey(keys.released, callOf).toMap()
+        val pressedKeys = keys.order(pressedCalls.keys + releasedCalls.keys)
+        if (pressedKeys.isEmpty()) return
+        releasedCalls.keys.forEach { key ->
+            appendLine()
+            appendLine("    /**")
+            appendLine("     * Whether the Actor heard $key pressed while the game ran, which its release ends.")
+            appendLine("     */")
+            appendLine("    private var ${pressedField(key)} = false")
+        }
+        appendLine()
+        appendLine("    override fun onKeyPressed(key: Key) {")
+        pressGuards.forEach(::appendLine)
+        appendLine("        when (key) {")
+        pressedKeys.forEach { key ->
+            val lines = listOfNotNull(releasedCalls[key]?.let { "${pressedField(key)} = true" }, pressedCalls[key])
+            if (lines.size == 1) {
+                appendLine("            Key.$key -> ${lines.single()}")
+            } else {
+                appendLine("            Key.$key -> {")
+                lines.forEach { appendLine("                $it") }
+                appendLine("            }")
+            }
+        }
+        appendLine("        }")
+        appendLine("    }")
+        if (releasedCalls.isEmpty()) return
+        appendLine()
+        appendLine("    override fun onKeyReleased(key: Key) {")
+        releaseGuards.forEach(::appendLine)
+        appendLine("        when (key) {")
+        keys.order(releasedCalls.keys).forEach { key ->
+            appendLine("            Key.$key -> if (${pressedField(key)}) {")
+            appendLine("                ${pressedField(key)} = false")
+            appendLine("                ${releasedCalls.getValue(key)}")
+            appendLine("            }")
+        }
+        appendLine("        }")
+        appendLine("    }")
+    }
+
+    /**
+     * Starts with an underscore, which no Property's name can, so it clashes with none.
+     */
+    private fun pressedField(key: String) = "_wasPressed$key"
 
     /**
      * The lines calling the functions of [events], each while its key is held and [condition] holds, if it is given, at
