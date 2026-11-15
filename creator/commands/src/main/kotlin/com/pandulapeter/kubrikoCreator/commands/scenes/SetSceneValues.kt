@@ -51,6 +51,7 @@ public object SetSceneValues : WriteCommand<SetSceneValues.Input> {
     private fun validateValues(context: CommandContext, input: Input): Rejection? {
         val properties = context.requireManagerType(input.managerType).properties
         val names = input.values.map { it.name } + input.cleared
+        if (names.isEmpty()) return Rejection(CommandProblem.SCENE_VALUES_NOTHING_TO_CHANGE)
         names.groupingBy { it }.eachCount().entries.firstOrNull { it.value > 1 }?.let { return Rejection(CommandProblem.SCENE_VALUE_NAMED_TWICE, it.key) }
         if (input.values.any { it.number?.isFinite() == false }) return Rejection(CommandProblem.NUMBER_INVALID)
         val state = context.readScene(input.scene).let { actors -> actors.getOrNull(ManagerSceneValues.indexIn(actors, input.managerType)) }?.state

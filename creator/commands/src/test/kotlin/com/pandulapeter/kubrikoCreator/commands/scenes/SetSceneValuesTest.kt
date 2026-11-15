@@ -78,6 +78,7 @@ class SetSceneValuesTest {
         assertEquals(Rejection(CommandProblem.SCENE_VALUE_NAMED_TWICE, "lives"), set(ActorValueChanges.PropertyValue("lives", number = 1f), cleared = listOf("lives")).validate(context))
         assertEquals(LookupProblem.ACTOR_PROPERTY_MISSING_SIMILAR, set(ActorValueChanges.PropertyValue("live", number = 1f)).validate(context)?.reason)
         assertEquals(null, set(ActorValueChanges.PropertyValue("lives", number = 1f)).validate(context))
+        assertEquals(Rejection(CommandProblem.SCENE_VALUES_NOTHING_TO_CHANGE), set().validate(context))
     }
 
     @Test

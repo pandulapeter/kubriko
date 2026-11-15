@@ -684,6 +684,7 @@
     <string name="error_command_text_missing">%1$s has no text %2$s. Its texts are numbered 0 to %3$s.</string>
     <string name="error_command_text_missing_none">%1$s has no texts yet, so none at index %2$s.</string>
     <string name="error_command_text_size_invalid">The size of a text has to be a number above 0.</string>
+    <string name="error_command_scene_values_nothing_to_change">Give values to set, Properties to clear, or both.</string>
     <string name="error_command_scene_value_named_twice">%1$s is named more than once among the values to set and to clear.</string>
     <string name="error_command_text_condition_not_allowed">A text can be shown only while a number, text, or toggle condition on a Property holds, whose number is fixed or another Property's.</string>
     <string name="error_command_event_missing">%1$s has no Event at index %2$s. Its Events are at indexes 0 to %3$s.</string>

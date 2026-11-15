@@ -91,6 +91,7 @@ import kubriko.creator.generated.resources.error_command_scene_content_invalid
 import kubriko.creator.generated.resources.error_command_scene_invalid
 import kubriko.creator.generated.resources.error_command_scene_is_first
 import kubriko.creator.generated.resources.error_command_scene_value_named_twice
+import kubriko.creator.generated.resources.error_command_scene_values_nothing_to_change
 import kubriko.creator.generated.resources.error_command_screenplay_settings_unreadable
 import kubriko.creator.generated.resources.error_command_screenplay_style
 import kubriko.creator.generated.resources.error_command_search_query_blank
@@ -224,6 +225,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.TEXT_SIZE_INVALID -> Res.string.error_command_text_size_invalid
     CommandProblem.TEXT_CONDITION_NOT_ALLOWED -> Res.string.error_command_text_condition_not_allowed
     CommandProblem.SCENE_VALUE_NAMED_TWICE -> Res.string.error_command_scene_value_named_twice
+    CommandProblem.SCENE_VALUES_NOTHING_TO_CHANGE -> Res.string.error_command_scene_values_nothing_to_change
     CommandProblem.TIMER_TAKEN -> Res.string.error_command_timer_taken
     CommandProblem.UPGRADE_BY_HAND -> Res.string.error_command_upgrade_by_hand
     CommandProblem.UPGRADE_NOT_NEEDED -> Res.string.error_command_upgrade_not_needed

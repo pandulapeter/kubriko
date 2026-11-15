@@ -104,6 +104,7 @@ public enum class CommandProblem(override val english: String) : DomainText {
     SCENE_IS_FIRST("The game starts with %1\$s, so it can't be deleted. Choose another first Scene in Project settings first."),
     SIZE_INVALID("The width and height have to be positive numbers."),
     TEXT_SIZE_INVALID("The size of a text has to be a number above 0."),
+    SCENE_VALUES_NOTHING_TO_CHANGE("Give values to set, Properties to clear, or both."),
     SCENE_VALUE_NAMED_TWICE("%1\$s is named more than once among the values to set and to clear."),
     TEXT_CONDITION_NOT_ALLOWED("A text can be shown only while a number, text, or toggle condition on a Property holds, whose number is fixed or another Property's."),
     TIMER_TAKEN("There is a Timer with that name already."),
