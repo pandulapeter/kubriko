@@ -31,6 +31,11 @@ public enum class RelationKind(
     MOVES_TOWARDS("moves towards"),
     GOES_TO("goes to"),
     PLACES("places"),
+
+    /**
+     * A Scene giving the Properties of a Manager type values when it starts.
+     */
+    GIVES_VALUES_TO("gives values to"),
     READS("reads"),
 
     /**

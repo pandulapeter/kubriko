@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.renameTypeWithItsSceneEntries
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireBlockTypes
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateManagerType
 import com.pandulapeter.kubrikoCreator.commands.screenplay.typeMoves
@@ -30,7 +31,7 @@ import kotlinx.serialization.Serializable
 @OptIn(EditorMutation::class)
 public object RenameManagerType : WriteCommand<RenameManagerType.Input> {
     override val name: String = "rename_manager_type"
-    override val description: String = "Renames a block-built Manager type, its generated Kotlin class, and every Block, log message, and text of every type that uses its Properties, and the screenplay's mentions of it."
+    override val description: String = "Renames a block-built Manager type, its generated Kotlin class, and every Block, log message, and text of every type that uses its Properties, the values Scenes give it, and the screenplay's mentions of it."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.BlockType(if (context.blockTypes?.managerType(input.newName) != null) input.newName else input.managerType)
@@ -40,7 +41,7 @@ public object RenameManagerType : WriteCommand<RenameManagerType.Input> {
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val moves = context.typeMoves(input.managerType, newName = input.newName)
-        context.requireBlockTypes.rename(input.managerType, input.newName)
+        context.renameTypeWithItsSceneEntries(input.managerType, input.newName)
         return context.withMentionsFollowed(moves, Applied(inverse = Invocation(RenameManagerType, Input(managerType = input.newName, newName = input.managerType))))
     }
 

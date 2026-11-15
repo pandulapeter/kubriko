@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.commands.ActorsBroughtBack
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -106,11 +107,13 @@ internal fun WorkspaceCenter(
     val newestReveal = remember { NewestHighlight() }.revealIfNewer(revealed, shownAiStep?.flashKey)
     val markdownTitle = markdownTitleOf(selection)
     val actorTypes = remember(blockTypes) { blockTypes.filterIsInstance<ActorTypeDefinition>() }
+    val managerTypes = remember(blockTypes) { blockTypes.filterIsInstance<ManagerTypeDefinition>() }
     val audioFiles = remember(resources) { AudioFiles.ofScanned(resources) }
     SceneContent(
         modifier = contentModifier,
         sceneEditing = sceneEditing,
         actorTypes = actorTypes,
+        managerTypes = managerTypes,
         music = audioFiles?.music,
         sceneDescriptions = sceneDescriptions,
         shownAiStep = shownAiStep,
@@ -185,6 +188,7 @@ private fun SceneContent(
     modifier: Modifier,
     sceneEditing: SceneEditingState,
     actorTypes: List<ActorTypeDefinition>,
+    managerTypes: List<ManagerTypeDefinition>,
     music: List<String>?,
     sceneDescriptions: Map<String, String>,
     shownAiStep: ShownAiStep?,
@@ -209,6 +213,7 @@ private fun SceneContent(
             actorTypeDragState = actorTypeDragState,
             panelLayout = panelLayout,
             actorTypes = actorTypes,
+            managerTypes = managerTypes,
             music = music,
             description = sceneDescriptions[sceneEditing.sceneName],
             broughtBack = broughtBack,

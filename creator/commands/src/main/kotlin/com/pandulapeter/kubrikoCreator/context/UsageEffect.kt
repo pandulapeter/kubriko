@@ -28,6 +28,11 @@ public enum class UsageEffect(
      */
     TEXT_REMOVED("the text is removed"),
     ACTORS_REMOVED("its Actors are removed"),
+
+    /**
+     * A Scene giving a deleted Manager type's Properties values, which then gives none.
+     */
+    SCENE_VALUES_REMOVED("the Scene no longer gives it values"),
     PLACEHOLDER_TO_TEXT("the placeholder becomes plain text"),
 
     /**

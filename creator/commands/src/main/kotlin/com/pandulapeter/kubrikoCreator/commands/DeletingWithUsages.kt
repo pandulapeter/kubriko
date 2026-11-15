@@ -80,7 +80,8 @@ private suspend fun CommandContext.scenesWithout(subject: RelationSubject, usage
     fun scenesWith(effect: UsageEffect) = usages.filter { it.effect == effect }.mapNotNull { ((it.place as? UsagePlace.InModel)?.place as? RelationPlace.Scene)?.name }
     return when (subject) {
         is RelationSubject.Type -> withContext(ioDispatcher) {
-            scenesWith(UsageEffect.ACTORS_REMOVED).associateWith { scene -> SceneDocument.format(checkNotNull(scenes.actors(scene)).filter { it.typeId != subject.name }) }
+            (scenesWith(UsageEffect.ACTORS_REMOVED) + scenesWith(UsageEffect.SCENE_VALUES_REMOVED)).distinct()
+                .associateWith { scene -> SceneDocument.format(checkNotNull(scenes.actors(scene)).filter { it.typeId != subject.name }) }
         }
         is RelationSubject.Resource -> withContext(ioDispatcher) { scenesWithMusicReplaced(scenesWith(UsageEffect.MUSIC_CLEARED), subject.path, "") }
         is RelationSubject.Scene, is RelationSubject.Property, is RelationSubject.Page, is RelationSubject.Image, is RelationSubject.Timer, is RelationSubject.Folder -> emptyMap()

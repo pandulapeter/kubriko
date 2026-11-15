@@ -20,7 +20,6 @@ import com.pandulapeter.kubrikoCreator.commands.screenplay.typeMoves
 import com.pandulapeter.kubrikoCreator.commands.screenplay.withMentionsFollowed
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -38,14 +37,7 @@ public object RenameActorType : WriteCommand<RenameActorType.Input> {
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val moves = context.typeMoves(input.actorType, newName = input.newName)
-        context.requireBlockTypes.rename(input.actorType, input.newName)
-        try {
-            withContext(context.ioDispatcher) { context.scenes.renameTypeId(input.actorType, input.newName) }
-        } catch (exception: Exception) {
-            // Exact, since validate refused a taken name: only references this rename made point to the new one.
-            context.requireBlockTypes.rename(input.newName, input.actorType)
-            throw exception
-        }
+        context.renameTypeWithItsSceneEntries(input.actorType, input.newName)
         return context.withMentionsFollowed(moves, Applied(inverse = Invocation(RenameActorType, Input(actorType = input.newName, newName = input.actorType))))
     }
 

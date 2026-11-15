@@ -338,6 +338,12 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   names from its last `refresh` (each resource scan) and its own writes, so validating on the main thread reads nothing; what
   writes acts on the folder as it is (`scanNames`), so `create_scene` and `rename_scene` don't overwrite a Scene made outside
   Creator since, and type renames reach it.
+- **What a Scene gives Manager types** (`set_scene_values`) is an entry of the Scene whose type ID is the Manager type's
+  name, holding only the Properties it sets, in the Manager type's order, so renames, deletes, and the digest treat it as
+  they treat an Actor type's Actors without a model of their own; it goes once it sets nothing. The game reads it through a
+  class nested by that name in `GeneratedActorTypes` (`ManagerSceneValuesCode`), which applies the values when the Scene
+  starts, after the Managers' game-started Events. A Kubriko without that class skips the entry, so an older Creator
+  shows it as an Actor it can't create and loses nothing.
 - **Folders** are real directories. Names stay unique across folders, since generated code is flat in one package; a Scene is
   named by its path (`levels/1-1`). `delete_folder` deletes what a folder holds through each thing's own delete (`contentDeletesOf`:
   an Actor type's descendants first, a page with its own images), then its folders deepest first, as one step; its

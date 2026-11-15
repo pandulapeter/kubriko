@@ -562,6 +562,10 @@
     <string name="scene_inspector_rotation">Rotation (degrees)</string>
     <string name="scene_inspector_scale_horizontal">Scale across</string>
     <string name="scene_inspector_scale_vertical">Scale down</string>
+    <string name="scene_values_hint">What this Scene gives each Manager type when it starts. A value it doesn't set keeps what the Manager has.</string>
+    <string name="scene_value_kept">%1$s (keeps its value)</string>
+    <string name="scene_values_actor">%1$s's values</string>
+    <string name="action_clear_scene_value">Keep the Manager's value</string>
     <string name="scene_settings_title">Scene settings</string>
     <string name="action_restore_scene_settings">Restore the defaults</string>
     <string name="scene_actor_search">Filter by type or ID</string>
@@ -680,6 +684,7 @@
     <string name="error_command_text_missing">%1$s has no text %2$s. Its texts are numbered 0 to %3$s.</string>
     <string name="error_command_text_missing_none">%1$s has no texts yet, so none at index %2$s.</string>
     <string name="error_command_text_size_invalid">The size of a text has to be a number above 0.</string>
+    <string name="error_command_scene_value_named_twice">%1$s is named more than once among the values to set and to clear.</string>
     <string name="error_command_text_condition_not_allowed">A text can be shown only while a number, text, or toggle condition on a Property holds, whose number is fixed or another Property's.</string>
     <string name="error_command_event_missing">%1$s has no Event at index %2$s. Its Events are at indexes 0 to %3$s.</string>
     <string name="error_command_event_missing_none">%1$s has no Events yet, so none at index %2$s.</string>
@@ -936,6 +941,7 @@
     <string name="command_place_actor">Place Actor</string>
     <string name="command_move_actor">Move Actor</string>
     <string name="command_set_scene_settings">Change Scene settings</string>
+    <string name="command_set_scene_values">Set a Scene's values</string>
     <string name="command_remove_actor">Remove Actor</string>
     <string name="command_move_actor_order">Reorder Actor</string>
     <string name="command_restore_actor">Restore Actor</string>
@@ -1185,6 +1191,7 @@
     <string name="game_map_page_title">%1$s: %2$s</string>
     <string name="game_map_scenes">Scenes</string>
     <string name="game_map_places">Places %1$s</string>
+    <string name="game_map_gives_values_to">Gives values to %1$s</string>
     <string name="game_map_inherits_from">Based on %1$s</string>
     <string name="game_map_collides_with">Collides with %1$s</string>
     <string name="game_map_reacts_to">Reacts to %1$s coming and going</string>
@@ -1228,6 +1235,7 @@
     <string name="usage_effect_section_removed">The if Block is removed with the Blocks inside it</string>
     <string name="usage_effect_event_removed">The Event is removed with its Blocks</string>
     <string name="usage_effect_actors_removed">Its Actors are removed</string>
+    <string name="usage_effect_scene_values_removed">The Scene no longer gives it values</string>
     <string name="usage_effect_placeholder_to_text">The placeholder becomes plain text</string>
     <string name="usage_effect_text_removed">The text is removed</string>
     <string name="usage_effect_value_to_number">The Property's value becomes a fixed number</string>

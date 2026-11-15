@@ -31,10 +31,13 @@ import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
+import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.commands.ActorsBroughtBack
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
+import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneValues
 import com.pandulapeter.kubrikoCreator.context.HealthFinding
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
@@ -210,6 +213,25 @@ class SceneEditorPaneTest {
     }
 
     @Test
+    fun theValuesTheSceneGivesEachManagerTypeAreShownAndSetBesideTheScene() = uiTest(width = 900, height = 700) {
+        val game = ManagerTypeDefinition("Game", properties = listOf(PropertyDefinition.Number("lives", initialValue = 3f), PropertyDefinition.Text("title")))
+        val commands = mutableListOf<Invocation<*>>()
+        showPane(
+            emptyFlow(),
+            actors = { listOf(ball, SceneActorEntry("Game", """{"lives":5.0}""", "values")) },
+            onCommand = { commands += it },
+            managerTypes = listOf(game, ManagerTypeDefinition("Empty")),
+        )
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText(INSPECTOR_HINT)).fetchSemanticsNodes().isNotEmpty() }
+        onNodeWithText("title (keeps its value)").assertExists()
+        onNodeWithText("Empty").assertDoesNotExist()
+        saveSnapshot("scene-editor-manager-values")
+        onNodeWithContentDescription("Keep the Manager's value").performClick()
+        waitForIdle()
+        assertEquals(listOf<Invocation<*>>(Invocation(SetSceneValues, SetSceneValues.Input("level", "Game", cleared = listOf("lives")))), commands)
+    }
+
+    @Test
     fun anActorBroughtBackWhileTheSceneIsStillPreparedIsSelectedOnceItShows() = uiTest(width = 900, height = 600) {
         val broughtBack = MutableSharedFlow<ActorsBroughtBack>(extraBufferCapacity = 4)
         val entryPoint = SlowEntryPoint()
@@ -228,8 +250,9 @@ class SceneEditorPaneTest {
         hints: HealthHints = HealthHints(),
         previews: Map<String, ActorTypeLook> = emptyMap(),
         highlight: () -> SceneHighlight? = { null },
+        managerTypes: List<ManagerTypeDefinition> = emptyList(),
     ) = showing {
-        CompositionLocalProvider(LocalHealthHints provides hints) { ShownPane(broughtBack, entryPoint, actors, onCommand, previews, highlight()) }
+        CompositionLocalProvider(LocalHealthHints provides hints) { ShownPane(broughtBack, entryPoint, actors, onCommand, previews, highlight(), managerTypes) }
     }
 
     @Composable
@@ -240,6 +263,7 @@ class SceneEditorPaneTest {
         onCommand: (Invocation<*>) -> Unit,
         previews: Map<String, ActorTypeLook>,
         highlight: SceneHighlight?,
+        managerTypes: List<ManagerTypeDefinition>,
     ) {
         SceneEditorPane(
             state = SceneEditingState.Open(
@@ -253,6 +277,7 @@ class SceneEditorPaneTest {
             actorTypeDragState = SidebarDragState(),
             panelLayout = PanelLayout(emptyMap(), onSizeChange = { _, _ -> }, onSizeReset = {}),
             actorTypes = emptyList(),
+            managerTypes = managerTypes,
             music = emptyList(),
             description = null,
             broughtBack = broughtBack,

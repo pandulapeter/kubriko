@@ -106,6 +106,7 @@ internal class ProjectReferences(
             RelationKind.COLLIDES_WITH, RelationKind.REACTS_TO -> usage(UsageEffect.EVENT_REMOVED)
             RelationKind.COUNTS -> conditionUsage(relation.place, ::usage)
             RelationKind.PLACES -> usage(UsageEffect.ACTORS_REMOVED)
+            RelationKind.GIVES_VALUES_TO -> usage(UsageEffect.SCENE_VALUES_REMOVED)
             RelationKind.NAMES_IN_KOTLIN -> usage(UsageEffect.KOTLIN_TO_CHANGE)
             RelationKind.ADDS, RelationKind.MOVES_TOWARDS, RelationKind.GOES_TO, RelationKind.CHANGES -> usage(UsageEffect.BLOCK_REMOVED)
             RelationKind.STARTS_WITH -> usage(UsageEffect.PREVENTS_DELETING)

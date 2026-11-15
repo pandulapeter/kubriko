@@ -39,12 +39,14 @@ import kubriko.creator.generated.resources.scene_actor_count_filtered
 import kubriko.creator.generated.resources.scene_actor_not_created
 import kubriko.creator.generated.resources.scene_actor_search
 import kubriko.creator.generated.resources.scene_settings_title
+import kubriko.creator.generated.resources.scene_values_actor
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * The Actors of the open Scene in the order they are added, by type and ID, filtered by what is typed, for Scenes too
  * dense to click into. The selected one is scrolled to whenever it is selected elsewhere, and those that couldn't be
- * created ([uncreatedIds]) say so. The rows of the Actors [flash] names light up with it.
+ * created ([uncreatedIds]) say so. The rows of the Actors [flash] names light up with it. The values the Scene gives a
+ * Manager type (an entry of one of [managerTypeNames]) are named as such.
  */
 @Composable
 internal fun SceneActorList(
@@ -54,6 +56,7 @@ internal fun SceneActorList(
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier,
     flash: SceneFlash? = null,
+    managerTypeNames: Set<String> = emptySet(),
 ) = Column(
     modifier = modifier,
 ) {
@@ -87,7 +90,11 @@ internal fun SceneActorList(
     ) {
         items(shown, key = { it.id }) { entry ->
             SceneActorRow(
-                title = if (entry.typeId == SceneSettingsCodeGenerator.SETTINGS_NAME) settingsTitle else entry.typeId,
+                title = when (entry.typeId) {
+                    SceneSettingsCodeGenerator.SETTINGS_NAME -> settingsTitle
+                    in managerTypeNames -> stringResource(Res.string.scene_values_actor, entry.typeId)
+                    else -> entry.typeId
+                },
                 id = entry.id,
                 isCreated = entry.id !in uncreatedIds,
                 isSelected = entry.id == selectedId,

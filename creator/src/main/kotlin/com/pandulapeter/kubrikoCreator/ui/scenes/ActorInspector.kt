@@ -14,23 +14,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
-import com.pandulapeter.kubrikoCreator.commands.scenes.ActorValueChanges
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.sceneRuntime.ActorBodyValues
 import com.pandulapeter.kubrikoCreator.scenes.ActorStateEdits
-import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
 import com.pandulapeter.kubrikoCreator.ui.components.ColorField
-import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import com.pandulapeter.kubrikoCreator.ui.components.NumberField
-import kotlinx.serialization.json.booleanOrNull
-import kotlinx.serialization.json.floatOrNull
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.actor_type_height
 import kubriko.creator.generated.resources.actor_type_width
@@ -102,7 +95,7 @@ internal fun ActorInspector(
         definition.properties.forEach { property ->
             PropertyValueField(
                 property = property,
-                state = state,
+                value = ActorStateEdits.propertyOf(state, property.name),
                 onChange = { value -> onChange { copy(properties = listOf(value)) } },
             )
         }
@@ -122,34 +115,4 @@ private fun NumberPair(
 ) {
     NumberField(modifier = Modifier.weight(1f), label = firstLabel, value = first, onValueChange = onFirstChange)
     NumberField(modifier = Modifier.weight(1f), label = secondLabel, value = second, onValueChange = onSecondChange)
-}
-
-@Composable
-private fun PropertyValueField(
-    property: PropertyDefinition,
-    state: String,
-    onChange: (ActorValueChanges.PropertyValue) -> Unit,
-) {
-    val saved = ActorStateEdits.propertyOf(state, property.name)
-    when (property) {
-        is PropertyDefinition.Number -> NumberField(
-            modifier = Modifier.fillMaxWidth(),
-            label = property.name,
-            value = saved?.floatOrNull ?: property.initialValue,
-            onValueChange = { onChange(ActorValueChanges.PropertyValue(property.name, number = it)) },
-        )
-        is PropertyDefinition.Text -> BufferedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = saved?.takeIf { it.isString }?.content ?: property.initialValue,
-            onValueChange = { onChange(ActorValueChanges.PropertyValue(property.name, text = it)) },
-            label = property.name,
-        )
-        is PropertyDefinition.Toggle -> LabeledSwitch(
-            modifier = Modifier.fillMaxWidth().padding(start = 4.dp),
-            label = property.name,
-            checked = saved?.booleanOrNull ?: property.initialValue,
-            onCheckedChange = { onChange(ActorValueChanges.PropertyValue(property.name, toggle = it)) },
-            labelStyle = MaterialTheme.typography.bodyMedium,
-        )
-    }
 }

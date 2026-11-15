@@ -386,6 +386,21 @@ class ActorTypeCodeGeneratorTest {
     }
 
     @Test
+    fun theRegistryHasWhatScenesGiveEachManagerTypeWithPropertiesNamedSoThatPropertiesCantClashWithItsMembers() {
+        val game = ManagerTypeDefinition("Game", properties = listOf(PropertyDefinition.Number("restore"), PropertyDefinition.Toggle("isOver")))
+        val registry = ActorTypeCodeGenerator.generateRegistry(listOf("Ball"), packageName, listOf(game, ManagerTypeDefinition("Empty")))
+        assertContains(registry, "        Ball.metadata,\n        Game.metadata,\n        SceneSettings.metadata,\n")
+        assertFalse("Empty" in registry)
+        assertContains(registry, "    class Game private constructor(private val state: State) : Actor, Unique, Editable<Game> {\n")
+        assertContains(registry, "            if (kubriko.get<GeneratedScenes>().isInSceneEditor) return\n")
+        assertContains(registry, "            val manager = kubriko.get<com.example.game.generated.Game>()\n")
+        assertContains(registry, "            state.value1?.let { manager.restore = it }\n            state.value2?.let { manager.isOver = it }\n")
+        assertContains(registry, "            @SerialName(\"restore\") val value1: Float? = null,\n            @SerialName(\"isOver\") val value2: Boolean? = null,\n")
+        assertContains(registry, "            val metadata = EditableMetadata.create<Game, State>(typeId = \"Game\") { State() }\n")
+        assertFalse("import com.pandulapeter.kubriko.Kubriko\n" in ActorTypeCodeGenerator.generateRegistry(listOf("Ball"), packageName, listOf(ManagerTypeDefinition("Empty"))))
+    }
+
+    @Test
     fun aProjectWithoutActorTypesStillHasSceneSettings() {
         assertContains(ActorTypeCodeGenerator.generateRegistry(emptyList(), packageName), "    val metadata: List<EditableMetadata<*>> = listOf(\n        SceneSettings.metadata,\n    )\n")
     }

@@ -115,6 +115,7 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsState
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
+import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneValues
 import com.pandulapeter.kubrikoCreator.commands.screenplay.AddDocumentToScreenplay
 import com.pandulapeter.kubrikoCreator.commands.screenplay.AddPageImage
 import com.pandulapeter.kubrikoCreator.commands.screenplay.CreateDocument
@@ -241,6 +242,7 @@ import kubriko.creator.generated.resources.command_set_parent
 import kubriko.creator.generated.resources.command_set_plan
 import kubriko.creator.generated.resources.command_set_project_settings
 import kubriko.creator.generated.resources.command_set_scene_settings
+import kubriko.creator.generated.resources.command_set_scene_values
 import kubriko.creator.generated.resources.command_set_screenplay_reminders
 import kubriko.creator.generated.resources.command_set_sprite_sheet
 import kubriko.creator.generated.resources.command_set_target
@@ -396,4 +398,5 @@ private val commandTitles = mapOf(
     SetActorsState.name to Res.string.command_set_actors_state,
     SetActorsValues.name to Res.string.command_set_actors_values,
     SetSceneSettings.name to Res.string.command_set_scene_settings,
+    SetSceneValues.name to Res.string.command_set_scene_values,
 )

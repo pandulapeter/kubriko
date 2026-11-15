@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.ActorsBroughtBack
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
@@ -96,6 +97,7 @@ import org.jetbrains.compose.resources.stringResource
  * Every change is a command.
  *
  * @param actorTypes The project's block-built Actor types.
+ * @param managerTypes The project's block-built Manager types, whose Properties the Scene can give values to.
  * @param music The project's music files, by their path from `composeResources`.
  * @param description What the Scene is for.
  * @param broughtBack The Actors each undo or redo put back: one put back into this Scene is selected once the Scene
@@ -112,6 +114,7 @@ internal fun SceneEditorPane(
     actorTypeDragState: SidebarDragState,
     panelLayout: PanelLayout,
     actorTypes: List<ActorTypeDefinition>,
+    managerTypes: List<ManagerTypeDefinition>,
     music: List<String>?,
     description: String?,
     broughtBack: Flow<ActorsBroughtBack>,
@@ -126,6 +129,8 @@ internal fun SceneEditorPane(
     modifier = modifier,
 ) {
     val selection = rememberSceneSelection(state, broughtBack, highlight)
+    val managerTypeNames = remember(managerTypes) { managerTypes.mapTo(HashSet()) { it.name } }
+    val valueTakingManagerTypes = remember(managerTypes) { managerTypes.filter { it.properties.isNotEmpty() } }
     val flash = rememberSceneFlash(highlight)
     val view = rememberSceneView(state, onViewFailed) ?: return@Column ProgressScreen(stringResource(Res.string.scene_preparing, state.scene.name))
     SelectingRestoredActor(selection, view)
@@ -173,12 +178,15 @@ internal fun SceneEditorPane(
                     uncreatedIds = view.uncreatedIds,
                     selectedId = selection.selectedId,
                     flash = flash,
+                    managerTypeNames = managerTypeNames,
                     onSelect = { actorId ->
-                        if (view.isBackground(actorId)) {
-                            isSettingsShown = true
-                        } else {
-                            selection.select(actorId)
-                            view.centerOn(actorId)
+                        when {
+                            view.isBackground(actorId) -> isSettingsShown = true
+                            view.entryOf(actorId)?.typeId in managerTypeNames -> selection.select(actorId)
+                            else -> {
+                                selection.select(actorId)
+                                view.centerOn(actorId)
+                            }
                         }
                     },
                 )
@@ -210,6 +218,7 @@ internal fun SceneEditorPane(
                 sceneName = state.sceneName,
                 selectedId = selection.selectedId,
                 actorTypes = actorTypes,
+                managerTypes = valueTakingManagerTypes,
                 music = music,
                 onOpenSceneSettings = { isSettingsShown = true },
                 onCommand = onCommand,

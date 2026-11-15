@@ -23,25 +23,31 @@ import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActorOrder
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
+import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneValues
 import com.pandulapeter.kubrikoCreator.sceneRuntime.ActorBodyValues
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneView
+import com.pandulapeter.kubrikoCreator.scenes.ManagerSceneValues
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
+import kotlinx.serialization.json.JsonPrimitive
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_bring_actor_to_front
 import kubriko.creator.generated.resources.action_remove_actor
 import kubriko.creator.generated.resources.action_send_actor_to_back
 import kubriko.creator.generated.resources.ic_actor_type
 import kubriko.creator.generated.resources.ic_delete
+import kubriko.creator.generated.resources.ic_manager_type
 import kubriko.creator.generated.resources.ic_move_down
 import kubriko.creator.generated.resources.ic_move_up
 import kubriko.creator.generated.resources.scene_actor_not_created_hint
 import kubriko.creator.generated.resources.scene_inspector_hint
 import kubriko.creator.generated.resources.scene_settings_title
+import kubriko.creator.generated.resources.scene_values_actor
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -49,6 +55,7 @@ import org.jetbrains.compose.resources.stringResource
  * Scene settings.
  *
  * @param actorTypes The project's block-built Actor types, whose Properties and colors their Actors show.
+ * @param managerTypes The project's block-built Manager types with Properties, which the Scene can give values to.
  * @param music The project's music files, for the Scene settings.
  */
 @Composable
@@ -57,6 +64,7 @@ internal fun SceneInspector(
     sceneName: String,
     selectedId: String?,
     actorTypes: List<ActorTypeDefinition>,
+    managerTypes: List<ManagerTypeDefinition>,
     music: List<String>?,
     onOpenSceneSettings: () -> Unit,
     onCommand: (Invocation<*>) -> Unit,
@@ -69,6 +77,9 @@ internal fun SceneInspector(
     view.loadRevision.collectAsState().value
     val entry = selectedId?.let(view::entryOf)
     val actor = selectedId?.let(view::actorOf)
+    val sceneValues = view.entries.filter { candidate -> managerTypes.any { it.name == candidate.typeId } }
+        .associate { it.typeId to ManagerSceneValues.valuesOf(it.state) }
+    val selectedManager = entry?.let { selected -> managerTypes.firstOrNull { it.name == selected.typeId } }
     when {
         selectedId == null || entry == null -> {
             Text(
@@ -83,6 +94,13 @@ internal fun SceneInspector(
             ) {
                 Text(stringResource(Res.string.scene_settings_title))
             }
+            if (managerTypes.isNotEmpty()) SceneValues(managerTypes, sceneValues, sceneName, onCommand)
+        }
+        selectedManager != null -> {
+            PanelHeader(icon = Res.drawable.ic_manager_type, title = stringResource(Res.string.scene_values_actor, selectedManager.name), accent = Accent.CREW) {
+                IconActionButton(icon = Res.drawable.ic_delete, label = Res.string.action_remove_actor, onClick = { onRemove(checkNotNull(selectedId)) })
+            }
+            SceneValues(listOf(selectedManager), sceneValues, sceneName, onCommand)
         }
         else -> {
             PanelHeader(icon = Res.drawable.ic_actor_type, title = entry.typeId, accent = Accent.CAST) {
@@ -122,3 +140,16 @@ internal fun SceneInspector(
         }
     }
 }
+
+@Composable
+private fun SceneValues(
+    managerTypes: List<ManagerTypeDefinition>,
+    values: Map<String, Map<String, JsonPrimitive>>,
+    sceneName: String,
+    onCommand: (Invocation<*>) -> Unit,
+) = ManagerSceneValuesSection(
+    managerTypes = managerTypes,
+    values = values,
+    onSet = { managerType, value -> onCommand(Invocation(SetSceneValues, SetSceneValues.Input(sceneName, managerType, values = listOf(value)))) },
+    onClear = { managerType, property -> onCommand(Invocation(SetSceneValues, SetSceneValues.Input(sceneName, managerType, cleared = listOf(property)))) },
+)

@@ -54,7 +54,7 @@ class RenamingFollowsReferencesTest {
         RelationKind.INHERITS_FROM,
         RelationKind.MENTIONS,
     )
-    private val managerTypeKinds = setOf(RelationKind.CHANGES, RelationKind.READS, RelationKind.READS_AS_NUMBER, RelationKind.MENTIONS)
+    private val managerTypeKinds = setOf(RelationKind.CHANGES, RelationKind.READS, RelationKind.READS_AS_NUMBER, RelationKind.GIVES_VALUES_TO, RelationKind.MENTIONS)
     private val sceneKinds = setOf(RelationKind.GOES_TO, RelationKind.STARTS_WITH, RelationKind.NAMES_IN_KOTLIN, RelationKind.MENTIONS)
     private val propertyKinds = setOf(RelationKind.READS, RelationKind.READS_AS_NUMBER, RelationKind.CHANGES)
     private val pageKinds = setOf(RelationKind.MENTIONS)
@@ -130,6 +130,8 @@ class RenamingFollowsReferencesTest {
             events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetNumber("score", NumberValue.Fixed(1f), manager = "Game"), BlockDefinition.If(ConditionDefinition.Number("score", value = NumberValue.Fixed(3f), manager = "Game")), BlockDefinition.End, BlockDefinition.SetVelocity(x = NumberValue.Property("score", manager = "Game"))))),
         )
         val context = commandContext(game, hud, player)
+        context.writeFile("src/commonMain/composeResources/files/scenes/level.json", """[{"typeId":"Game","state":"{\"score\":2.0}"}]""")
+        context.scenes.refresh()
         CreatePage.apply(context, CreatePage.Input("README", "# Game\n\nThe [game](../.kubriko/managers/Game.json) keeps the score.\n"))
         context.assertFollowed(RelationSubject.Type("Game"), RelationSubject.Type("Match"), managerTypeKinds) {
             RenameManagerType.apply(context, RenameManagerType.Input("Game", "Match"))

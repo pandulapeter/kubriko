@@ -42,7 +42,7 @@ class DigestTextTest {
         val digest = ProjectDigest.of(
             projectName = "breakout",
             types = listOf(brick, game, ball),
-            sceneCounts = mapOf("level" to mapOf("Ball" to 1, "Brick" to 40, "SceneSettings" to 1), "won" to emptyMap()),
+            sceneCounts = mapOf("level" to mapOf("Ball" to 1, "Brick" to 40, "SceneSettings" to 1, "Game" to 1), "won" to emptyMap()),
             sceneDescriptions = mapOf("level" to "the only level"),
         )
         assertEquals(
@@ -62,6 +62,7 @@ class DigestTextTest {
 
             References:
             - Ball collides with Brick; changes Game.score; goes to Scene won.
+            - Scene level gives values to Game.
 
             """.trimIndent(),
             DigestText.of(digest),

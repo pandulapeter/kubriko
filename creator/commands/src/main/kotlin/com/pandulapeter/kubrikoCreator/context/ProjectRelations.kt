@@ -34,6 +34,7 @@ internal class ProjectRelations(
     scenes: Map<String, Map<String, Int>>,
 ) {
     private val typeNames = types.mapTo(HashSet()) { it.name }
+    private val managerTypeNames = types.filterIsInstance<ManagerTypeDefinition>().mapTo(HashSet()) { it.name }
     private val family = ActorTypeFamily(types.filterIsInstance<ActorTypeDefinition>())
     private val declaredProperties = types.associate { type -> type.name to type.properties.mapTo(HashSet()) { it.name } }
 
@@ -41,7 +42,11 @@ internal class ProjectRelations(
         types.forEach { type -> addRelationsOf(type) }
         scenes.forEach { (scene, counts) ->
             counts.forEach { (typeId, count) ->
-                if (typeId != SceneSettingsCodeGenerator.SETTINGS_NAME) add(Relation(RelationPlace.Scene(scene), RelationKind.PLACES, RelationSubject.Type(typeId), count))
+                when (typeId) {
+                    SceneSettingsCodeGenerator.SETTINGS_NAME -> Unit
+                    in managerTypeNames -> add(Relation(RelationPlace.Scene(scene), RelationKind.GIVES_VALUES_TO, RelationSubject.Type(typeId)))
+                    else -> add(Relation(RelationPlace.Scene(scene), RelationKind.PLACES, RelationSubject.Type(typeId), count))
+                }
             }
         }
     }

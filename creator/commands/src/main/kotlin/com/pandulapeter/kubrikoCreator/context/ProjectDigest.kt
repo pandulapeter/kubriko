@@ -78,7 +78,8 @@ public data class ProjectDigest(
                 actorTypes = sorted.filterIsInstance<ActorTypeDefinition>().map { typeOf(it, it.parent) },
                 managerTypes = sorted.filterIsInstance<ManagerTypeDefinition>().map { typeOf(it, parent = null) },
                 scenes = sceneCounts.toSortedMap().map { (name, counts) ->
-                    Scene(name, sceneDescriptions[name], counts.filterKeys { it != SceneSettingsCodeGenerator.SETTINGS_NAME })
+                    // The Scene settings and the values given to Manager types are no Actors of the Scene; the relations say what it gives values to.
+                    Scene(name, sceneDescriptions[name], counts.filterKeys { typeId -> typeId != SceneSettingsCodeGenerator.SETTINGS_NAME && types.none { it is ManagerTypeDefinition && it.name == typeId } })
                 },
                 relations = linesOf(relations.all),
             )

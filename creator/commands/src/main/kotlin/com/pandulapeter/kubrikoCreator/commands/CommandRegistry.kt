@@ -113,6 +113,7 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsState
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
+import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneValues
 import com.pandulapeter.kubrikoCreator.commands.screenplay.AddDocumentToScreenplay
 import com.pandulapeter.kubrikoCreator.commands.screenplay.AddPageImage
 import com.pandulapeter.kubrikoCreator.commands.screenplay.CreateDocument
@@ -282,6 +283,7 @@ public class CommandRegistry(
                 SetActorsValues,
                 SetActorsState,
                 SetSceneSettings,
+                SetSceneValues,
                 RemoveActor,
                 RemoveActors,
                 RestoreActor,

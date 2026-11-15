@@ -233,20 +233,25 @@ public object ActorTypeCodeGenerator {
     }
 
     /**
-     * The registry of every block-built Actor type, plus the Scene settings ([SceneSettingsCodeGenerator]).
+     * The registry of the Scene metadata of every block-built Actor type, of the Scene settings ([SceneSettingsCodeGenerator]),
+     * and of the values Scenes give the Properties of [managerTypes] ([ManagerSceneValuesCode]).
      */
-    internal fun generateRegistry(actorTypeNames: List<String>, packageName: String) = GeneratedFile.withHeader("", buildString {
+    internal fun generateRegistry(actorTypeNames: List<String>, packageName: String, managerTypes: List<ManagerTypeDefinition> = emptyList()) = GeneratedFile.withHeader("", buildString {
+        val sceneValues = ManagerSceneValuesCode.typesWithValues(managerTypes)
         appendLine("package $packageName.$GENERATED_PACKAGE")
         appendLine()
-        appendLine("import com.pandulapeter.kubriko.sceneEditor.EditableMetadata")
+        (listOf("com.pandulapeter.kubriko.sceneEditor.EditableMetadata") + if (sceneValues.isEmpty()) emptyList() else ManagerSceneValuesCode.imports).sorted()
+            .forEach { appendLine("import $it") }
         appendLine()
         appendLine("/**")
-        appendLine(" * The Scene metadata of every Actor type built in Kubriko Creator, and of the Scene settings.")
+        appendLine(" * The Scene metadata of every Actor type built in Kubriko Creator, of the Scene settings, and of what Scenes give the")
+        appendLine(" * Properties of its Manager types.")
         appendLine(" */")
         appendLine("object $REGISTRY_NAME {")
         appendLine("    val metadata: List<EditableMetadata<*>> = listOf(")
-        (actorTypeNames + SceneSettingsCodeGenerator.SETTINGS_NAME).sorted().forEach { appendLine("        $it.metadata,") }
+        (actorTypeNames + SceneSettingsCodeGenerator.SETTINGS_NAME + sceneValues.map { it.name }).sorted().forEach { appendLine("        $it.metadata,") }
         appendLine("    )")
+        sceneValues.forEach { with(ManagerSceneValuesCode) { appendSceneValues(it, packageName) } }
         appendLine("}")
     })
 

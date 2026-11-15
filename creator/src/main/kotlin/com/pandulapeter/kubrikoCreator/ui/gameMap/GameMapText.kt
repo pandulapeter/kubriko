@@ -18,6 +18,7 @@ import kubriko.creator.generated.resources.game_map_changes
 import kubriko.creator.generated.resources.game_map_collides_with
 import kubriko.creator.generated.resources.game_map_counts
 import kubriko.creator.generated.resources.game_map_drawn_as
+import kubriko.creator.generated.resources.game_map_gives_values_to
 import kubriko.creator.generated.resources.game_map_goes_to
 import kubriko.creator.generated.resources.game_map_inherits_from
 import kubriko.creator.generated.resources.game_map_is_in
@@ -51,6 +52,7 @@ internal val RelationKind.label
         RelationKind.MOVES_TOWARDS -> Res.string.game_map_moves_towards
         RelationKind.GOES_TO -> Res.string.game_map_goes_to
         RelationKind.PLACES -> Res.string.game_map_places
+        RelationKind.GIVES_VALUES_TO -> Res.string.game_map_gives_values_to
         RelationKind.READS -> Res.string.game_map_reads
         RelationKind.READS_AS_NUMBER -> Res.string.game_map_reads_as_number
         RelationKind.CHANGES -> Res.string.game_map_changes

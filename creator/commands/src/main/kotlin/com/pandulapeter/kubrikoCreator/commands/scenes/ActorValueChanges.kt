@@ -26,6 +26,8 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.floatOrNull
 
 /**
  * The values of one Actor of a Scene that [SetActorValues] and [SetActorsValues] change; those left null stay as they are.
@@ -70,6 +72,19 @@ public data class ActorValueChanges(
          * The value as it is saved, or null unless exactly one kind of value is given.
          */
         internal fun toJson() = listOfNotNull(number?.let(::JsonPrimitive), text?.let(::JsonPrimitive), toggle?.let(::JsonPrimitive)).singleOrNull()
+
+        internal companion object {
+
+            /**
+             * The value of the Property [name] as [value] saves it: a string as a text, a boolean as a toggle, and any other
+             * as a number.
+             */
+            fun of(name: String, value: JsonPrimitive) = when {
+                value.isString -> PropertyValue(name, text = value.content)
+                value.booleanOrNull != null -> PropertyValue(name, toggle = value.booleanOrNull)
+                else -> PropertyValue(name, number = value.floatOrNull)
+            }
+        }
     }
 }
 
