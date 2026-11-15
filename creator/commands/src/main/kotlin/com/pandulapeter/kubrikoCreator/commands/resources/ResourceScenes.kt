@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.resources
 
+import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.audioReferenceProperties
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
@@ -28,6 +29,8 @@ internal fun CommandContext.scenesWithAudioReplaced(sceneNames: Collection<Strin
  */
 internal fun CommandContext.scenesWithAudioReplaced(sceneNames: Collection<String>, renames: Map<String, String>): Map<String, String> {
     val references = audioReferenceProperties(blockTypes?.types?.value.orEmpty())
+    // Without a sound or music Property, a Scene names nothing but its music.
+    if (references.isEmpty() && renames.keys.none { ResourceKind.of(it) == ResourceKind.MUSIC }) return emptyMap()
     return sceneNames.mapNotNull { name ->
         val actors = scenes.actors(name) ?: return@mapNotNull null
         val settingsIndex = SceneSettingsState.indexIn(actors)
