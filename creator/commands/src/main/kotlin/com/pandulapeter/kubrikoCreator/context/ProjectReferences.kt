@@ -34,10 +34,10 @@ import com.pandulapeter.kubrikoCreator.screenplay.PageLinks
  * @param kotlinFiles The text of every hand-written Kotlin file, by its path from the project's root (only those
  *   [readsKotlinFiles] says the usages of a subject need).
  * @param markdown The text of every page, by its path from the project's root.
- * @param sceneMusic The music each Scene plays, by the Scene's name (only for the usages of a sprite, sound, or music
+ * @param sceneMusic The music each Scene plays, by the Scene's name ([SceneCounts.music]; only for the usages of a music
  *   file, the one subject they matter to).
  * @param sceneSavedReferences How many saved reference values name each Actor type, sound, or music, by Scene
- *   ([SceneCounts.savedReferences]; only for the usages of a type or a file).
+ *   ([SceneCounts.savedReferences]; only for the usages of a type, a sound, or music).
  * @param mentionedPath The file a page links to to mention the subject asked about, a path from the project's root, if it
  *   can be mentioned.
  */

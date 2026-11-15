@@ -33,11 +33,17 @@ internal suspend fun CommandContext.sceneTypeCounts(): Map<String, Map<String, I
  *   Scene's name and then the thing's: an Actor type's name ([actorTypeReferenceProperties]), or a sound's or music's
  *   path ([audioReferenceProperties]), which never look alike. A value an Actor keeps about its own type isn't counted,
  *   since deleting that type takes the Actor away with it.
+ * @param music The music each Scene plays, by the Scene's name, leaving out those that play none.
  */
 internal class SceneCounts(
     val types: Map<String, Map<String, Int>>,
     val savedReferences: Map<String, Map<String, Int>>,
-)
+    val music: Map<String, String>,
+) {
+    companion object {
+        val NONE = SceneCounts(emptyMap(), emptyMap(), emptyMap())
+    }
+}
 
 /**
  * The [SceneCounts] of the open project, with the saved reference values only when the project's [types] are given.
@@ -46,9 +52,11 @@ internal suspend fun CommandContext.sceneCounts(types: List<BlockTypeDefinition>
     val references = types?.let { merged(actorTypeReferenceProperties(it), audioReferenceProperties(it)) }.orEmpty()
     val typeCounts = LinkedHashMap<String, Map<String, Int>>()
     val referenceCounts = LinkedHashMap<String, Map<String, Int>>()
+    val music = LinkedHashMap<String, String>()
     scenes.names().forEach { name ->
         val actors = scenes.actors(name) ?: return@forEach
         typeCounts[name] = actors.groupingBy { it.typeId }.eachCount().toSortedMap()
+        SceneSettingsState.indexIn(actors).takeIf { it >= 0 }?.let { SceneSettingsState.read(actors[it].state).music }?.ifEmpty { null }?.let { music[name] = it }
         if (references.isEmpty()) return@forEach
         val named = actors.flatMap { actor ->
             val names = references[actor.typeId] ?: return@flatMap emptyList()
@@ -56,7 +64,7 @@ internal suspend fun CommandContext.sceneCounts(types: List<BlockTypeDefinition>
         }
         if (named.isNotEmpty()) referenceCounts[name] = named.groupingBy { it }.eachCount()
     }
-    SceneCounts(typeCounts, referenceCounts)
+    SceneCounts(typeCounts, referenceCounts, music)
 }
 
 private fun merged(first: Map<String, Set<String>>, second: Map<String, Set<String>>) = (first.keys + second.keys).associateWith { first[it].orEmpty() + second[it].orEmpty() }
@@ -64,11 +72,7 @@ private fun merged(first: Map<String, Set<String>>, second: Map<String, Set<Stri
 /**
  * The music each Scene of the open project plays, by the Scene's name, leaving out those that play none.
  */
-internal fun CommandContext.sceneMusic(): Map<String, String> = scenes.names().mapNotNull { name ->
-    scenes.actors(name)?.let { actors ->
-        SceneSettingsState.indexIn(actors).takeIf { it >= 0 }?.let { index -> name to SceneSettingsState.read(actors[index].state).music }
-    }
-}.filter { (_, music) -> music.isNotEmpty() }.toMap()
+internal suspend fun CommandContext.sceneMusic(): Map<String, String> = sceneCounts().music
 
 /**
  * The relations between the parts of the open project.
@@ -87,8 +91,8 @@ internal suspend fun CommandContext.projectReferences(subject: RelationSubject):
  */
 internal suspend fun CommandContext.projectReferences(subjects: List<RelationSubject>): List<ProjectReferences> {
     val types = blockTypes?.types?.value.orEmpty()
-    // A Scene's Actors refer to nothing but types and, through what they save, audio files.
-    val sceneCounts = if (subjects.any { it is RelationSubject.Type || it is RelationSubject.Resource }) sceneCounts(types) else SceneCounts(emptyMap(), emptyMap())
+    // A Scene's Actors refer to nothing but types and, through what they save and the Scene's settings, audio files.
+    val sceneCounts = if (subjects.any { it is RelationSubject.Type || it.isAudio }) sceneCounts(types) else SceneCounts.NONE
     return withContext(ioDispatcher) {
         val mentionedPaths = subjects.map { mentionedPathOf(it) }
         val firstScene = firstSceneSettings(project.rootDirectory)?.firstScene
@@ -96,7 +100,6 @@ internal suspend fun CommandContext.projectReferences(subjects: List<RelationSub
         // Documents are the user's, which Creator changes only when asked to, so only pages are cleaned up; and
         // pages are read only for what they can link to.
         val markdown = if (mentionedPaths.all { it == null }) emptyMap() else screenplayTexts().markdown.filterKeys { PageNaming.nameOf(it) != null }
-        val music = if (subjects.any { it is RelationSubject.Resource && ResourceKind.of(it.path) == ResourceKind.MUSIC }) sceneMusic() else emptyMap()
         val relations = ProjectRelations(types, sceneCounts.types)
         mentionedPaths.map { mentionedPath ->
             ProjectReferences(
@@ -106,9 +109,11 @@ internal suspend fun CommandContext.projectReferences(subjects: List<RelationSub
                 kotlinFiles = kotlinFiles,
                 markdown = if (mentionedPath == null) emptyMap() else markdown,
                 mentionedPath = mentionedPath,
-                sceneMusic = music,
+                sceneMusic = sceneCounts.music,
                 sceneSavedReferences = sceneCounts.savedReferences,
             )
         }
     }
 }
+
+private val RelationSubject.isAudio get() = this is RelationSubject.Resource && ResourceKind.of(path).let { it == ResourceKind.SOUND || it == ResourceKind.MUSIC }

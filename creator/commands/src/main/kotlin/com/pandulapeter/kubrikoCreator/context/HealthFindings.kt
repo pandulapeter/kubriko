@@ -20,7 +20,7 @@ public suspend fun CommandContext.healthFindings(): List<HealthFinding> {
     val types = blockTypes?.types?.value.orEmpty()
     val sceneCounts = sceneCounts(types)
     val (firstScene, screenplay) = withContext(ioDispatcher) { firstSceneSettings(project.rootDirectory)?.firstScene to screenplayFindings() }
-    return HealthChecks.of(types, ProjectRelations(types, sceneCounts.types), scenes.names(), audioFiles(), sceneMusic(), firstScene, sceneCounts.savedReferences) + screenplay
+    return HealthChecks.of(types, ProjectRelations(types, sceneCounts.types), scenes.names(), audioFiles(), sceneCounts.music, firstScene, sceneCounts.savedReferences) + screenplay
 }
 
 /**
@@ -29,5 +29,5 @@ public suspend fun CommandContext.healthFindings(): List<HealthFinding> {
 public suspend fun CommandContext.missingReferences(): List<HealthFinding> {
     val types = blockTypes?.types?.value.orEmpty()
     val sceneCounts = sceneCounts(types)
-    return withContext(ioDispatcher) { MissingReferenceChecks.of(types, ProjectRelations(types, sceneCounts.types), scenes.names(), audioFiles(), sceneMusic(), sceneCounts.savedReferences) }
+    return withContext(ioDispatcher) { MissingReferenceChecks.of(types, ProjectRelations(types, sceneCounts.types), scenes.names(), audioFiles(), sceneCounts.music, sceneCounts.savedReferences) }
 }

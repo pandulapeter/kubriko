@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
+import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -36,5 +37,21 @@ class SceneMusicTest {
             listOf(HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Scene("boss"), "Scene boss", usage = "files/boss.mp3")),
             context.missingReferences(),
         )
+    }
+
+    @OptIn(EditorMutation::class)
+    @Test
+    fun aSpritesUsagesReadNoSceneWhileAMusicFilesListTheScenesPlayingIt() = runTest {
+        val rootDirectory = testDirectory()
+        commandContext(rootDirectory = rootDirectory).scenes.write(
+            "main",
+            SceneDocument.format(listOf(SceneActorEntry(SceneSettingsCodeGenerator.SETTINGS_NAME, SceneSettingsState.withChanges(music = "files/theme.mp3"), "settings"))),
+        )
+        var sceneReads = 0
+        val context = commandContext(rootDirectory = rootDirectory, sceneReadText = { file -> sceneReads++; file.readText() })
+        assertEquals(emptyList(), context.findUsages(RelationSubject.Resource("files/ball.png")))
+        assertEquals(0, sceneReads)
+        assertEquals(1, context.findUsages(RelationSubject.Resource("files/theme.mp3")).size)
+        assertEquals(1, sceneReads)
     }
 }
