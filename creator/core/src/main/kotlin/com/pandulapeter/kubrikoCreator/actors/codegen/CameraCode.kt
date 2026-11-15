@@ -16,8 +16,8 @@ package com.pandulapeter.kubrikoCreator.actors.codegen
  * Blocks run on the game's thread and, in an Actor's added Event, on Kubriko's, and a removed Actor stops the camera
  * following it on Kubriko's too, so every change of the camera's state happens under one short lock. A following Actor
  * passes the Scene it was added in, so one that is still updating after a new Scene was asked for can't take the camera
- * back. Something else moving the camera (a Scene's settings, a Kotlin Block) moves where a shake shakes around. The
- * camera stays still while the game is paused, and costs nothing per frame while it neither follows nor shakes.
+ * back. Something else moving the camera (a Scene's settings, a Kotlin Block) moves where a shake shakes around. A shake
+ * holds still while the game is paused, following goes on, and neither costs anything per frame while it doesn't happen.
  */
 internal object CameraCode {
     const val FOLLOW_FUNCTION = "followWithCamera"
@@ -33,6 +33,8 @@ internal object CameraCode {
             |    private var shakeStrength = 0f
             |    private var shakeDurationInMilliseconds = 0f
             |    private var shakeRemainingInMilliseconds = 0f
+            |    private var shakeOffsetX = 0f
+            |    private var shakeOffsetY = 0f
             |
             |    /**
             |     * Where the camera would be without the shake, and where the shake last put it, which tells whether something
@@ -78,7 +80,7 @@ internal object CameraCode {
             |            if (shakenCameraX.isNaN()) {
             |                viewportManager.setCameraPosition(SceneOffset(x.sceneUnit, y.sceneUnit))
             |            } else {
-            |                placeShakenCamera(shakenCameraX - cameraBaseX + x, shakenCameraY - cameraBaseY + y)
+            |                placeShakenCamera(x + shakeOffsetX, y + shakeOffsetY)
             |            }
             |            cameraBaseX = x
             |            cameraBaseY = y
@@ -115,7 +117,9 @@ internal object CameraCode {
             |    }
             |
             |    override fun onUpdate(deltaTimeInMilliseconds: Int) {
-            |        if (isInSceneEditor || !stateManager.isRunning.value) return
+            |        if (isInSceneEditor) return
+            |        // Kubriko keeps updating Actors while the game isn't running if it is told to, so the camera keeps following them.
+            |        val isRunning = stateManager.isRunning.value
             |        withCameraLock {
             |            val target = cameraTarget
             |            if (target == null && shakenCameraX.isNaN() && shakeRemainingInMilliseconds <= 0f) return
@@ -130,12 +134,13 @@ internal object CameraCode {
             |                }
             |            }
             |            if (shakeRemainingInMilliseconds > 0f) {
-            |                shakeRemainingInMilliseconds -= deltaTimeInMilliseconds
-            |                val reach = shakeStrength * (shakeRemainingInMilliseconds / shakeDurationInMilliseconds).coerceIn(0f, 1f)
-            |                placeShakenCamera(
-            |                    cameraBaseX + (KubrikoWiring.random.nextFloat() * 2f - 1f) * reach,
-            |                    cameraBaseY + (KubrikoWiring.random.nextFloat() * 2f - 1f) * reach,
-            |                )
+            |                if (isRunning) {
+            |                    shakeRemainingInMilliseconds -= deltaTimeInMilliseconds
+            |                    val reach = shakeStrength * (shakeRemainingInMilliseconds / shakeDurationInMilliseconds).coerceIn(0f, 1f)
+            |                    shakeOffsetX = (KubrikoWiring.random.nextFloat() * 2f - 1f) * reach
+            |                    shakeOffsetY = (KubrikoWiring.random.nextFloat() * 2f - 1f) * reach
+            |                }
+            |                placeShakenCamera(cameraBaseX + shakeOffsetX, cameraBaseY + shakeOffsetY)
             |            } else {
             |                shakenCameraX = Float.NaN
             |                shakenCameraY = Float.NaN

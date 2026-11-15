@@ -37,8 +37,9 @@ class CameraCodeTest {
     }
 
     @Test
-    fun theCameraStaysStillWhileTheGameIsPausedAndCostsNothingWhileIdle() {
-        assertContains(scenes, "    override fun onUpdate(deltaTimeInMilliseconds: Int) {\n        if (isInSceneEditor || !stateManager.isRunning.value) return\n")
+    fun aShakeHoldsStillWhileTheGameIsntRunningWhileFollowingGoesOnAndNeitherCostsAnythingWhileIdle() {
+        assertContains(scenes, "                if (isRunning) {\n                    shakeRemainingInMilliseconds -= deltaTimeInMilliseconds\n")
+        assertContains(scenes, "                placeShakenCamera(cameraBaseX + shakeOffsetX, cameraBaseY + shakeOffsetY)\n")
         assertContains(scenes, "            if (target == null && shakenCameraX.isNaN() && shakeRemainingInMilliseconds <= 0f) return\n")
     }
 

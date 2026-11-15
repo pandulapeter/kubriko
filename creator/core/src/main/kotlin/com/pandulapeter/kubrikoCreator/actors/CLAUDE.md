@@ -149,8 +149,8 @@
 - The camera Blocks reach `GeneratedScenes` too (`CameraCode`), rather than a Manager of their own, so they reserve no new
   names. Blocks run on the game's thread and, in an added Event, on Kubriko's, where a removed Actor also stops the camera
   following it, so the camera's state changes only under one short lock. A following Actor passes the Scene it was added
-  in, so an old Scene's Actor still updating after a new Scene was asked for can't take the camera back. The camera stays
-  still while paused, a shake shakes around wherever something else moved the camera, and the zoom is the viewport's own,
+  in, so an old Scene's Actor still updating after a new Scene was asked for can't take the camera back. A shake holds
+  still while the game isn't running while following goes on (Actors may be told to keep updating then), a shake shakes around wherever something else moved the camera, and the zoom is the viewport's own,
   kept across Scenes until another Zoom the camera Block. `GeneratedScenes` keeps the view's aspect ratio from before a
   Scene fitted it (`fitsView`), which a Scene that doesn't fit the view gives back; a Scene's settings may be added before
   the last Scene's are removed, so an ending Scene unfits the view only while its settings are still the current ones.
