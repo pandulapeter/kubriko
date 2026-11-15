@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.actors.codegen
 
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeValue
 import com.pandulapeter.kubrikoCreator.actors.Axis
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
@@ -80,6 +81,15 @@ internal object ConditionCode {
                 lines = listOf("velocity.${if (condition.axis == Axis.HORIZONTAL) "x" else "y"} ${condition.comparison.operator} ${NumberValueCode.sceneUnit(condition.value, scope)}"),
                 needs = setOf(BlockNeed.MOVEMENT),
             )
+            is ConditionDefinition.Distance -> when (val type = condition.actorType) {
+                is ActorTypeValue.Fixed -> type.name.takeIf { it in scope.actorTypeNames }?.let(::stringLiteral)
+                is ActorTypeValue.Property -> ActorTypeValueCode.nameExpression(type, scope)
+            }?.let { name ->
+                BlockCode(
+                    lines = listOf("${ActorTypeValueCode.distanceCall("actorManager.allActors.value", name, "this")} ${condition.comparison.operator} ${NumberValueCode.float(condition.value, scope)}"),
+                    needs = setOf(BlockNeed.ACTOR_MANAGER),
+                )
+            } ?: BlockCode(listOf("false"))
             is ConditionDefinition.ActorCount -> if (condition.actorType in scope.actorTypeNames) {
                 BlockCode(
                     lines = listOf("${ActorCountCode.countOf(condition.actorType)}.toFloat() ${condition.comparison.operator} ${NumberValueCode.float(condition.value, scope)}"),

@@ -22,6 +22,7 @@ import kubriko.creator.generated.resources.game_map_gives_values_to
 import kubriko.creator.generated.resources.game_map_goes_to
 import kubriko.creator.generated.resources.game_map_inherits_from
 import kubriko.creator.generated.resources.game_map_is_in
+import kubriko.creator.generated.resources.game_map_measures
 import kubriko.creator.generated.resources.game_map_mentions
 import kubriko.creator.generated.resources.game_map_moves_towards
 import kubriko.creator.generated.resources.game_map_names_in_kotlin
@@ -52,6 +53,7 @@ internal val RelationKind.label
         RelationKind.COLLIDES_WITH -> Res.string.game_map_collides_with
         RelationKind.REACTS_TO -> Res.string.game_map_reacts_to
         RelationKind.COUNTS -> Res.string.game_map_counts
+        RelationKind.MEASURES -> Res.string.game_map_measures
         RelationKind.ADDS -> Res.string.game_map_adds
         RelationKind.MOVES_TOWARDS -> Res.string.game_map_moves_towards
         RelationKind.GOES_TO -> Res.string.game_map_goes_to

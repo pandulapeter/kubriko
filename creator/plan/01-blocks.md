@@ -20,8 +20,6 @@ whose exhaustive `when`s then show every place it needs.
 
 ## Next additions
 
-- **Distance:** a condition comparing the distance to the nearest Actor of a type with a value (the writers' room's sheep,
-  fleeing a dog within 150 units, needed a Kotlin Block for it).
 - **More audio:** volume, and sounds and music as Properties (so one Block plays the sound an Actor keeps).
 - **Scene settings in the game:** an option that fits the game's view to the Scene's bounds (through
   `ViewportManager.setAspectRatioMode`); the Scene editor's inspector already edits the settings.

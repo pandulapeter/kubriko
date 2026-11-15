@@ -98,6 +98,18 @@ public sealed interface ConditionDefinition {
     ) : ConditionDefinition
 
     @Serializable
+    @SerialName("distance")
+    @Description("Compares the distance from the Actor to the nearest other Actor of an Actor type (types inheriting from it included, leaving out those a Block removed this frame), between their positions, with a value; with none of them it is endlessly far, so a less than never holds. Only Actor types have it.")
+    public data class Distance(
+        @Description("The Actor type whose nearest Actor it measures the distance to.")
+        @SerialName("actorType") val actorType: ActorTypeValue = ActorTypeValue.Fixed(""),
+        @Description("How the distance is compared with the value.")
+        @SerialName("comparison") val comparison: Comparison = Comparison.LESS,
+        @Description("The value, in scene units. Not an edge.")
+        @SerialName("value") val value: NumberValue = NumberValue.Fixed(100f),
+    ) : ConditionDefinition
+
+    @Serializable
     @SerialName("chance")
     @Description("True by chance, each time it is checked.")
     public data class Chance(

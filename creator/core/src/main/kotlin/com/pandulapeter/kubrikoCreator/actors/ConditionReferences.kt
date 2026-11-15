@@ -17,8 +17,8 @@ public val ConditionDefinition.propertyReference: PropertyReference?
         is ConditionDefinition.Number -> PropertyReference(property, PropertyKind.NUMBER, manager)
         is ConditionDefinition.Text -> PropertyReference(property, PropertyKind.TEXT, manager)
         is ConditionDefinition.Toggle -> PropertyReference(property, PropertyKind.TOGGLE, manager)
-        is ConditionDefinition.KeyHeld, is ConditionDefinition.Velocity, is ConditionDefinition.ActorCount, is ConditionDefinition.Chance, is ConditionDefinition.Paused,
-        is ConditionDefinition.Combined,
+        is ConditionDefinition.KeyHeld, is ConditionDefinition.Velocity, is ConditionDefinition.ActorCount, is ConditionDefinition.Distance, is ConditionDefinition.Chance,
+        is ConditionDefinition.Paused, is ConditionDefinition.Combined,
         -> null
     }
 
@@ -57,8 +57,8 @@ public fun ConditionDefinition.withPropertyReference(manager: String?, name: Str
     is ConditionDefinition.Number -> copy(manager = manager, property = name)
     is ConditionDefinition.Text -> copy(manager = manager, property = name)
     is ConditionDefinition.Toggle -> copy(manager = manager, property = name)
-    is ConditionDefinition.KeyHeld, is ConditionDefinition.Velocity, is ConditionDefinition.ActorCount, is ConditionDefinition.Chance, is ConditionDefinition.Paused,
-    is ConditionDefinition.Combined,
+    is ConditionDefinition.KeyHeld, is ConditionDefinition.Velocity, is ConditionDefinition.ActorCount, is ConditionDefinition.Distance, is ConditionDefinition.Chance,
+    is ConditionDefinition.Paused, is ConditionDefinition.Combined,
     -> this
 }
 
@@ -75,13 +75,24 @@ public val ConditionDefinition.actorTypeReferences: List<String>
     get() = leaves.mapNotNull { it.actorTypeReference }
 
 /**
- * [this] condition with the Actor type it counts renamed from [oldName] to [newName], if it is that one.
+ * Every Actor type [this] condition, or a condition it combines, measures the distance to by its name (chosen or not).
+ */
+public val ConditionDefinition.measuredActorTypes: List<String>
+    get() = leaves.mapNotNull { ((it as? ConditionDefinition.Distance)?.actorType as? ActorTypeValue.Fixed)?.name }
+
+/**
+ * [this] condition with the Actor type it counts or measures the distance to renamed from [oldName] to [newName], if it
+ * is that one.
  */
 internal fun ConditionDefinition.withActorTypeRenamed(oldName: String, newName: String): ConditionDefinition = when {
     this is ConditionDefinition.ActorCount && actorType == oldName -> copy(actorType = newName)
     this is ConditionDefinition.Combined -> copy(conditions = conditions.map { it.withActorTypeRenamed(oldName, newName) })
     else -> this
-}
+}.withValues(
+    object : ValueTransform {
+        override fun actorType(value: ActorTypeValue) = value.withActorTypeRenamed(oldName, newName)
+    },
+)
 
 /**
  * [this] condition with the Property of [manager] (the type's own one, if null) that it checks or reads as a value

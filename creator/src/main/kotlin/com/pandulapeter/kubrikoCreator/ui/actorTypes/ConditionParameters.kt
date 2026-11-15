@@ -130,6 +130,18 @@ internal fun ConditionParameters(
                 fieldWidth = 88.dp,
             )
         }
+        is ConditionDefinition.Distance -> {
+            ActorTypeValueField(condition.actorType, scope) { onConditionChange(condition.copy(actorType = it)) }
+            ComparisonChoice(condition.comparison) { onConditionChange(condition.copy(comparison = it)) }
+            NumberValueField(
+                label = Res.string.block_parameter_value,
+                value = condition.value,
+                scope = scope,
+                onValueChange = { onConditionChange(condition.copy(value = it)) },
+                offersEdges = false,
+                fieldWidth = 88.dp,
+            )
+        }
         is ConditionDefinition.ActorCount -> {
             ActorTypeChoice(
                 actorType = condition.actorType,

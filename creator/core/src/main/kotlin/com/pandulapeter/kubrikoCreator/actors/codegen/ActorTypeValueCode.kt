@@ -24,6 +24,7 @@ import com.pandulapeter.kubrikoCreator.actors.propertyReference
 internal object ActorTypeValueCode {
     private const val METADATA_FUNCTION = "metadataOf"
     private const val NEAREST_FUNCTION = "nearestActiveOf"
+    private const val DISTANCE_FUNCTION = "distanceToNearestOf"
 
     /**
      * The Kotlin expression of the name of the type [value] reads from its Property, or null if that Property doesn't
@@ -44,7 +45,12 @@ internal object ActorTypeValueCode {
     fun nearestCall(actors: String, name: String, from: String) = "${ActorTypeCodeGenerator.REGISTRY_NAME}.$NEAREST_FUNCTION($actors, $name, $from)"
 
     /**
-     * The registry's two lookups over [actorTypeNames], whose types in [baseClassNames] have children, so their Actors
+     * The distance from [from] to the Actor [nearestCall] finds, or `Float.MAX_VALUE` if there is none.
+     */
+    fun distanceCall(actors: String, name: String, from: String) = "${ActorTypeCodeGenerator.REGISTRY_NAME}.$DISTANCE_FUNCTION($actors, $name, $from)"
+
+    /**
+     * The registry's lookups over [actorTypeNames], whose types in [baseClassNames] have children, so their Actors
      * are instances of a base class.
      */
     fun StringBuilder.appendLookups(actorTypeNames: List<String>, baseClassNames: Set<String>) {
@@ -81,6 +87,16 @@ internal object ActorTypeValueCode {
         appendLine("            }")
         appendLine("        }")
         appendLine("        return nearest")
+        appendLine("    }")
+        appendLine()
+        appendLine("    /**")
+        appendLine("     * The distance from [from] to the Actor [$NEAREST_FUNCTION] finds, between their positions, or Float.MAX_VALUE if there")
+        appendLine("     * is none, for the conditions measuring it.")
+        appendLine("     */")
+        appendLine("    fun $DISTANCE_FUNCTION(actors: List<Actor>, name: String, from: $POSITIONABLE): Float {")
+        appendLine("        val nearest = $NEAREST_FUNCTION(actors, name, from) ?: return Float.MAX_VALUE")
+        appendLine("        val offset = nearest.body.position - from.body.position")
+        appendLine("        return kotlin.math.sqrt(offset.x.raw * offset.x.raw + offset.y.raw * offset.y.raw)")
         appendLine("    }")
         appendLine()
         appendLine("    private fun typeIndexOf(name: String): Int = when (name) {")

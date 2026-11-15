@@ -66,6 +66,7 @@ public fun ConditionDefinition.withValues(transform: ValueTransform): ConditionD
     is ConditionDefinition.Number -> copy(value = transform.number(value))
     is ConditionDefinition.Velocity -> copy(value = transform.number(value))
     is ConditionDefinition.ActorCount -> copy(value = transform.number(value))
+    is ConditionDefinition.Distance -> copy(actorType = transform.actorType(actorType), value = transform.number(value))
     is ConditionDefinition.Chance -> copy(percent = transform.number(percent))
     is ConditionDefinition.Text -> copy(value = transform.text(value))
     is ConditionDefinition.Toggle -> copy(isOn = transform.toggle(isOn))

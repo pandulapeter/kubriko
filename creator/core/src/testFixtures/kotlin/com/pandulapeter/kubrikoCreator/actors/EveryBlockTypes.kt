@@ -105,7 +105,7 @@ public object EveryBlockTypes {
         BlockDefinition.StopMusic,
         BlockDefinition.SetFrame(frame = NumberValue.Fixed(2f)),
         BlockDefinition.SetAnimation(speed = NumberValue.Fixed(-0.5f), isLooping = false),
-    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks + steeringBlocks + actorCountBlocks + colorPropertyBlocks + actorTypeValueBlocks + combinedConditionBlocks + textAndToggleValueBlocks
+    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks + steeringBlocks + actorCountBlocks + colorPropertyBlocks + actorTypeValueBlocks + combinedConditionBlocks + textAndToggleValueBlocks + distanceBlocks
 
     /**
      * Blocks taking random numbers and Properties' values, which format version 5 added.
@@ -197,6 +197,20 @@ public object EveryBlockTypes {
             BlockDefinition.SetText("title", TextValue.Property("missing")),
             BlockDefinition.If(ConditionDefinition.Text("title", TextValue.Property("title", manager = "EveryManager"))),
             BlockDefinition.If(ConditionDefinition.Toggle("isShielded", ToggleValue.Property("isShielded", manager = "EveryManager"))),
+            BlockDefinition.End,
+            BlockDefinition.End,
+        )
+
+    /**
+     * Distance conditions, which format version 19 added: to a type by its name, to the one a Property names, and to none
+     * chosen yet.
+     */
+    val distanceBlocks: List<BlockDefinition>
+        get() = listOf(
+            BlockDefinition.If(ConditionDefinition.Distance(ActorTypeValue.Fixed("EveryChild"), Comparison.LESS, NumberValue.Fixed(150f))),
+            BlockDefinition.If(ConditionDefinition.Distance(ActorTypeValue.Property("enemyType"), Comparison.GREATER, NumberValue.Property("score"))),
+            BlockDefinition.If(ConditionDefinition.Distance()),
+            BlockDefinition.End,
             BlockDefinition.End,
             BlockDefinition.End,
         )

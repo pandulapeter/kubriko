@@ -152,8 +152,10 @@ class FormatFixturesTest {
      * up to the current format doesn't make up.
      */
     private fun BlockTypeDefinition.asOf(version: Int): BlockTypeDefinition {
-        if (version >= 18) return this
-        val withoutTextAndToggleValues = withEvents(events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.textAndToggleValueBlocks)) })
+        if (version >= 19) return this
+        val withoutDistances = withEvents(events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.distanceBlocks)) })
+        if (version == 18) return withoutDistances
+        val withoutTextAndToggleValues = withoutDistances.withEvents(withoutDistances.events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.textAndToggleValueBlocks)) })
             .let { if (it is ManagerTypeDefinition) it.copy(texts = it.texts - EveryBlockTypes.textAndToggleValueText) else it }
         if (version == 17) return withoutTextAndToggleValues
         val withoutMoreEvents = withoutTextAndToggleValues.withEvents(withoutTextAndToggleValues.events.filterNot { it.type == EventType.KEY_RELEASED || it.type == EventType.KEY_HELD || it.type == EventType.REMOVED_FROM_SCENE })

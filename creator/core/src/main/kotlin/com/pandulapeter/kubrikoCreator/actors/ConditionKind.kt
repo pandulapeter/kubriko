@@ -24,6 +24,7 @@ public enum class ConditionKind(
     KEY_HELD({ ConditionDefinition.KeyHeld() }),
     VELOCITY({ ConditionDefinition.Velocity() }, needsActor = true),
     ACTOR_COUNT({ ConditionDefinition.ActorCount() }),
+    DISTANCE({ ConditionDefinition.Distance() }, needsActor = true),
     CHANCE({ ConditionDefinition.Chance() }),
     PAUSED({ ConditionDefinition.Paused() }),
     COMBINED({ ConditionDefinition.Combined() }, isAvailableForTexts = true);
@@ -39,6 +40,7 @@ public enum class ConditionKind(
             is ConditionDefinition.KeyHeld -> KEY_HELD
             is ConditionDefinition.Velocity -> VELOCITY
             is ConditionDefinition.ActorCount -> ACTOR_COUNT
+            is ConditionDefinition.Distance -> DISTANCE
             is ConditionDefinition.Chance -> CHANCE
             is ConditionDefinition.Paused -> PAUSED
             is ConditionDefinition.Combined -> COMBINED

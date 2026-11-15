@@ -157,6 +157,7 @@ internal object BlockNotation {
         }
         is ConditionDefinition.KeyHeld -> "${condition.key.composeKeyName} ${if (condition.isHeld) "is held" else "isn't held"}"
         is ConditionDefinition.Velocity -> "the ${if (condition.axis == Axis.HORIZONTAL) "horizontal" else "vertical"} velocity ${of(condition.comparison)} ${value(condition.value)}"
+        is ConditionDefinition.Distance -> "the distance to the nearest Actor of ${actorType(condition.actorType)} ${of(condition.comparison)} ${value(condition.value)}"
         is ConditionDefinition.ActorCount -> "the number of Actors of ${condition.actorType.ifEmpty { NONE }} ${of(condition.comparison)} ${value(condition.value)}"
         is ConditionDefinition.Chance -> "by chance (${value(condition.percent)}%)"
         is ConditionDefinition.Paused -> if (condition.isPaused) "the game is paused" else "the game isn't paused"

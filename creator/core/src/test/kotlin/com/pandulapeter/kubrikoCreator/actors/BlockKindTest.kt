@@ -90,8 +90,9 @@ class BlockKindTest {
     }
 
     @Test
-    fun onlyActorsCheckTheirVelocity() {
-        assertFalse(ConditionKind.VELOCITY.isAvailableIn(BlockTypeKind.MANAGER))
-        (ConditionKind.entries - ConditionKind.VELOCITY).forEach { assertTrue(it.isAvailableIn(BlockTypeKind.MANAGER), it.name) }
+    fun onlyActorsCheckTheirVelocityAndTheirDistanceToOthers() {
+        val actorOnly = setOf(ConditionKind.VELOCITY, ConditionKind.DISTANCE)
+        actorOnly.forEach { assertFalse(it.isAvailableIn(BlockTypeKind.MANAGER), it.name) }
+        (ConditionKind.entries - actorOnly).forEach { assertTrue(it.isAvailableIn(BlockTypeKind.MANAGER), it.name) }
     }
 }

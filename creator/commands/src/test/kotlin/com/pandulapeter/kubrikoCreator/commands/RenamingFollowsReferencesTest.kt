@@ -52,6 +52,7 @@ class RenamingFollowsReferencesTest {
         RelationKind.COLLIDES_WITH,
         RelationKind.REACTS_TO,
         RelationKind.COUNTS,
+        RelationKind.MEASURES,
         RelationKind.PLACES,
         RelationKind.INHERITS_FROM,
         RelationKind.STARTS_AS,
@@ -99,7 +100,16 @@ class RenamingFollowsReferencesTest {
         val ball = ActorTypeDefinition(
             name = "Ball",
             events = listOf(
-                EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.AddActor(ActorTypeValue.Fixed("Brick")), BlockDefinition.MoveTowardsNearest(ActorTypeValue.Fixed("Brick")), BlockDefinition.Kotlin("println(Brick::class)"))),
+                EventDefinition(
+                    EventType.EVERY_FRAME,
+                    blocks = listOf(
+                        BlockDefinition.AddActor(ActorTypeValue.Fixed("Brick")),
+                        BlockDefinition.MoveTowardsNearest(ActorTypeValue.Fixed("Brick")),
+                        BlockDefinition.Kotlin("println(Brick::class)"),
+                        BlockDefinition.If(ConditionDefinition.Distance(ActorTypeValue.Fixed("Brick"))),
+                        BlockDefinition.End,
+                    ),
+                ),
                 EventDefinition(EventType.COLLISION, otherActorType = "Brick"),
             ),
         )

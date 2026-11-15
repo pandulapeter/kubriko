@@ -39,6 +39,7 @@ import com.pandulapeter.kubrikoCreator.actors.areEdgesAlong
 import com.pandulapeter.kubrikoCreator.actors.fixedArgb
 import com.pandulapeter.kubrikoCreator.actors.isFinite
 import com.pandulapeter.kubrikoCreator.actors.leaves
+import com.pandulapeter.kubrikoCreator.actors.measuredActorTypes
 import com.pandulapeter.kubrikoCreator.actors.numberValues
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.propertyReferences
@@ -194,7 +195,7 @@ private fun validateBlockValues(block: BlockDefinition, scope: BlockScope): Reje
 }
 
 private fun validateBlockReferences(block: BlockDefinition, scope: BlockScope): Rejection? = when {
-    block.countedActorTypes.any { it !in scope.actorTypeNames } -> missingActorType(block.countedActorTypes.first { it !in scope.actorTypeNames }, scope)
+    block.namedActorTypes.any { it !in scope.actorTypeNames } -> missingActorType(block.namedActorTypes.first { it !in scope.actorTypeNames }, scope)
     block is BlockDefinition.GoToScene && block.scene.isNotEmpty() && scope.sceneNames?.contains(block.scene) == false ->
         SimilarNames.rejection(LookupProblem.SCENE_MISSING, LookupProblem.SCENE_MISSING_SIMILAR, block.scene, scope.sceneNames.orEmpty(), block.scene)
     block is BlockDefinition.PlaySound && block.sound.isNotEmpty() && scope.audioFiles?.sounds?.contains(block.sound) == false ->
@@ -224,10 +225,11 @@ private fun validatePropertyReference(reference: PropertyReference, scope: Block
 }
 
 /**
- * The Actor types [this] Block adds, moves towards, or counts (in every condition an if Block combines), of those chosen.
+ * The Actor types [this] Block adds, moves towards, counts, or measures the distance to (in every condition an if Block
+ * combines), of those chosen.
  */
-private val BlockDefinition.countedActorTypes: List<String>
-    get() = ((this as? BlockDefinition.If)?.condition?.actorTypeReferences?.filter { it.isNotEmpty() } ?: listOfNotNull(actorTypeReference))
+private val BlockDefinition.namedActorTypes: List<String>
+    get() = ((this as? BlockDefinition.If)?.condition?.let { it.actorTypeReferences + it.measuredActorTypes }?.filter { it.isNotEmpty() } ?: listOfNotNull(actorTypeReference))
 
 /**
  * The first key [this] condition, or one it combines, checks that Compose doesn't know.
@@ -383,8 +385,8 @@ private val BlockDefinition.areEdgesAlongTheirAxes
     }
 
 /**
- * The numbers of [this] Block that are a direction, a speed, an opacity, a scale, a time, or what a count is compared
- * with, which an edge, a position, means nothing as.
+ * The numbers of [this] Block that are a direction, a speed, an opacity, a scale, a time, or what a count or a distance
+ * is compared with, which an edge, a position, means nothing as.
  */
 private val BlockDefinition.edgelessNumberValues
     get() = when (this) {
@@ -394,7 +396,7 @@ private val BlockDefinition.edgelessNumberValues
         is BlockDefinition.SetOpacity -> listOf(percent)
         is BlockDefinition.ChangeOpacity -> listOf(by)
         is BlockDefinition.Animate -> if (value is AnimatedValue.Position) listOf(seconds) else value.numberValues + seconds
-        is BlockDefinition.If -> condition.leaves.mapNotNull { (it as? ConditionDefinition.ActorCount)?.value }
+        is BlockDefinition.If -> condition.leaves.mapNotNull { (it as? ConditionDefinition.ActorCount)?.value ?: (it as? ConditionDefinition.Distance)?.value }
         else -> emptyList()
     }
 

@@ -244,5 +244,6 @@ internal fun ProjectRelations.conditionWithout(
     types: Set<String>,
 ) = condition.without { part ->
     val reference = part.propertyReference
-    (reference != null && (reference.manager in types || propertyOf(typeName, reference.manager, reference.name) in properties)) || part.actorTypeReference in types
+    (reference != null && (reference.manager in types || propertyOf(typeName, reference.manager, reference.name) in properties)) || part.actorTypeReference in types ||
+        ((part as? ConditionDefinition.Distance)?.actorType as? ActorTypeValue.Fixed)?.name in types
 }

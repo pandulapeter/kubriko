@@ -37,6 +37,11 @@ public enum class RelationKind(
      * An If Block counting the Actors of a type (the actorCount condition).
      */
     COUNTS("counts"),
+
+    /**
+     * An If Block measuring the distance to the nearest Actor of a type (the distance condition), naming it.
+     */
+    MEASURES("measures the distance to"),
     ADDS("adds"),
     MOVES_TOWARDS("moves towards"),
     GOES_TO("goes to"),

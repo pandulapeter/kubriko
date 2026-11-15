@@ -54,6 +54,7 @@ import kubriko.creator.generated.resources.block_stop_timer
 import kubriko.creator.generated.resources.condition_actor_count
 import kubriko.creator.generated.resources.condition_chance
 import kubriko.creator.generated.resources.condition_combined
+import kubriko.creator.generated.resources.condition_distance
 import kubriko.creator.generated.resources.condition_key_held
 import kubriko.creator.generated.resources.condition_number
 import kubriko.creator.generated.resources.condition_paused
@@ -117,6 +118,7 @@ internal val ConditionKind.title: StringResource
         ConditionKind.KEY_HELD -> Res.string.condition_key_held
         ConditionKind.VELOCITY -> Res.string.condition_velocity
         ConditionKind.ACTOR_COUNT -> Res.string.condition_actor_count
+        ConditionKind.DISTANCE -> Res.string.condition_distance
         ConditionKind.CHANCE -> Res.string.condition_chance
         ConditionKind.PAUSED -> Res.string.condition_paused
         ConditionKind.COMBINED -> Res.string.condition_combined

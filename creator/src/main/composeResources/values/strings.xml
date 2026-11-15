@@ -370,6 +370,7 @@
     <string name="condition_key_held">A key</string>
     <string name="condition_velocity">The velocity</string>
     <string name="condition_actor_count">The number of Actors of</string>
+    <string name="condition_distance">The distance to the nearest Actor of</string>
     <string name="condition_chance">By chance</string>
     <string name="condition_combined">Several conditions</string>
     <string name="condition_all">all of these hold</string>
@@ -1231,6 +1232,7 @@
     <string name="game_map_collides_with">Collides with %1$s</string>
     <string name="game_map_reacts_to">Reacts to %1$s coming and going</string>
     <string name="game_map_counts">Counts the Actors of %1$s</string>
+    <string name="game_map_measures">Measures the distance to %1$s</string>
     <string name="game_map_adds">Adds %1$s</string>
     <string name="game_map_moves_towards">Moves towards %1$s</string>
     <string name="game_map_goes_to">Goes to %1$s</string>

@@ -48,7 +48,8 @@
   name, still a bare name, or an Actor type reference Property's), so a spawner can keep what it spawns. A Property's
   type is known only while the game runs, so `GeneratedActorTypes` looks it up by name with a `when` over every type
   (`ActorTypeValueCode`), which allocates nothing; the counting condition and collision Events stay fixed, since what
-  they need is generated per type. Generated locals that sit beside a Block's values start with an underscore, which no
+  they need is generated per type, while the distance condition takes either, measuring through the registry
+  (`distanceToNearestOf`) with a fixed type's name as a literal, so both go one way. Generated locals that sit beside a Block's values start with an underscore, which no
   Property's name can, so the values still read the Properties without reserving another name.
 - An edge is the Scene settings' bounds, or the screen's while there are none, as the edge Event decides. Values read it
   through `GeneratedScenes.edge` and `randomBetweenEdges`, which read the settings once per call, so a Scene that finishes
