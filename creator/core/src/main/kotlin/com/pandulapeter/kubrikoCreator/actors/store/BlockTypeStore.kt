@@ -203,7 +203,7 @@ public class BlockTypeStore private constructor(
 
     /**
      * What the last [regenerate] generated from, and what it found, so that regenerating from the same types, Scene
-     * music, and sprite sheets (after a Scene change, for example) does nothing.
+     * music, sprite sheets, and Kubriko version (after a Scene change, for example) does nothing.
      */
     private var lastGeneration: Generation? = null
 
@@ -213,10 +213,11 @@ public class BlockTypeStore private constructor(
         val definitions: List<BlockTypeDefinition>,
         val sceneMusic: Set<String>,
         val spriteSheets: Map<String, SpriteSheet>,
+        val kubrikoVersion: String?,
     )
 
     override fun regenerate(definitions: List<BlockTypeDefinition>, overwriting: Set<String>): RegeneratedCode {
-        val generation = Generation(definitions, sceneMusic(), spriteSheetFiles.read(rootDirectory))
+        val generation = Generation(definitions, sceneMusic(), spriteSheetFiles.read(rootDirectory), kubrikoVersion())
         val typeNames = definitions.mapTo(HashSet()) { it.name }
         if (overwriting.isEmpty() && lastGeneration == generation && generatedFilesAreAsLeft()) return found(typeNames, removeLeftovers(typeNames))
         lastGeneration = null
@@ -253,8 +254,7 @@ public class BlockTypeStore private constructor(
         writeUnlessChangedByHand(
             AudioCodeGenerator.AUDIO_NAME,
             if (pluginManagers.usesAudio) {
-                val kubrikoVersion = File(rootDirectory, VersionCatalog.FILE).takeIf { it.isFile }?.readText()?.let(VersionCatalog::kubrikoVersion)
-                AudioCodeGenerator.generate(settings.packageName, pluginManagers.sounds, pluginManagers.music, AudioCodeGenerator.takesSoundVolume(kubrikoVersion, pluginManagers.usesSoundVolume))
+                AudioCodeGenerator.generate(settings.packageName, pluginManagers.sounds, pluginManagers.music, AudioCodeGenerator.takesSoundVolume(generation.kubrikoVersion, pluginManagers.usesSoundVolume))
             } else {
                 null
             },
@@ -333,6 +333,11 @@ public class BlockTypeStore private constructor(
             generatedTexts[name] = KnownFile(text, file.length(), file.lastModified())
         }
     }
+
+    /**
+     * The project's Kubriko version, as its version catalog names it, or null if it doesn't.
+     */
+    private fun kubrikoVersion() = File(rootDirectory, VersionCatalog.FILE).takeIf { it.isFile }?.readText()?.let(VersionCatalog::kubrikoVersion)
 
     /**
      * The music of every Scene the game can load (those next to the source folder, in `composeResources`) that has some.

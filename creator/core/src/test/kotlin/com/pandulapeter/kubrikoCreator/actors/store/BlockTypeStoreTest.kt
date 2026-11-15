@@ -28,6 +28,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ScenesCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.codegen.SpritesCodeGenerator
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
+import com.pandulapeter.kubrikoCreator.project.VersionCatalog
 import com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import org.junit.Assume.assumeFalse
@@ -149,6 +150,19 @@ class BlockTypeStoreTest {
         SpriteFolderStore(root, OwnWrites()).setSheet("ball", SpriteSheet(frameWidth = 8, frameHeight = 8, frameCount = 2, framesPerRow = 2))
         store.regenerateAll()
         assertContains(File(generated, "Ball.kt").readText(), "AnimatedSprite.fromAtlas(")
+    }
+
+    @Test
+    fun regeneratingAfterTheKubrikoVersionChangedRewritesHowSoundsArePlayed() {
+        optIn()
+        val catalog = File(root, VersionCatalog.FILE).apply { parentFile.mkdirs() }
+        catalog.writeText("[versions]\nkubriko = \"0.8.0\"\n")
+        val store = BlockTypeStore.open(root)!!
+        store.saveAndRegenerate(ball.copy(events = listOf(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.PlaySound(SoundValue.Fixed("files/hit.wav")))))))
+        assertContains(File(generated, "GeneratedAudio.kt").readText(), "    fun playSound(path: String) {\n")
+        catalog.writeText("[versions]\nkubriko = \"0.8.1\"\n")
+        store.regenerateAll()
+        assertContains(File(generated, "GeneratedAudio.kt").readText(), "    fun playSound(path: String, volume: Float = 1f) {\n")
     }
 
     @Test
