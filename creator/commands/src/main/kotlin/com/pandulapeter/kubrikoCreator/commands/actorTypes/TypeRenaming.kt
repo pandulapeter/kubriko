@@ -15,8 +15,6 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 
 /**
  * Renames the Actor type or Manager type [oldName] to [newName] with the entries of every Scene whose type ID is its
@@ -27,13 +25,8 @@ import kotlinx.serialization.json.JsonPrimitive
 internal suspend fun CommandContext.renameTypeWithItsSceneEntries(oldName: String, newName: String) {
     requireBlockTypes.rename(oldName, newName)
     try {
-        withContext(ioDispatcher) { scenes.renameTypeId(oldName, newName) }
-        actorTypeReferenceProperties().forEach { (typeId, names) ->
-            changeSceneStates(setOf(typeId)) { state ->
-                val renamed = names.filter { (state[it] as? JsonPrimitive)?.takeIf { value -> value.isString }?.content == oldName }
-                if (renamed.isEmpty()) state else JsonObject(state + renamed.associateWith { JsonPrimitive(newName) })
-            }
-        }
+        val references = actorTypeReferenceProperties()
+        withContext(ioDispatcher) { scenes.renameTypeId(oldName, newName, references) }
     } catch (exception: Exception) {
         // Exact, since validate refused a taken name: only references this rename made point to the new one.
         requireBlockTypes.rename(newName, oldName)

@@ -172,6 +172,18 @@ class SceneStoreTest {
     }
 
     @Test
+    fun renamingATypeIdFollowsTheSavedReferencesToItInTheSameWrite() {
+        store.write("one", """[{"typeId":"Ball","state":"{}"},{"typeId":"Spawner","state":"{\"spawned\":\"Ball\",\"label\":\"Ball\"}"}]""")
+        store.write("two", """[{"typeId":"Spawner","state":"{\"spawned\":\"Wall\"}"}]""")
+        assertEquals(listOf("one"), store.renameTypeId("Ball", "Puck", references = mapOf("Spawner" to setOf("spawned"))))
+        assertEquals(
+            listOf("""{"spawned":"Puck","label":"Ball"}"""),
+            SceneDocument.parse(checkNotNull(store.read("one"))).filter { it.typeId == "Spawner" }.map { it.state },
+        )
+        assertEquals("""[{"typeId":"Spawner","state":"{\"spawned\":\"Wall\"}"}]""", store.read("two"))
+    }
+
+    @Test
     fun renamingATypeIdRewritesOnlyTheScenesThatUseIt() {
         store.write("one", """[{"typeId":"Ball","state":"{}"},{"typeId":"Wall","state":"{}"}]""")
         store.write("two", """[{"typeId":"Wall","state":"{}"}]""")

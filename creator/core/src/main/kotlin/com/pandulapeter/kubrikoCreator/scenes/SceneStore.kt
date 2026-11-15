@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
@@ -278,12 +279,26 @@ public class SceneStore(
     }
 
     /**
-     * Points the Actors of every Scene that are of the [oldTypeId] type to [newTypeId].
+     * Points the Actors of every Scene that are of the [oldTypeId] type to [newTypeId], and the values of the Properties
+     * [references] names for each type ID (after the rename) that name [oldTypeId] to [newTypeId] too, in one write of
+     * every Scene, all or none.
      *
      * @return The names of the Scenes that changed.
      */
     @EditorMutation
-    public fun renameTypeId(oldTypeId: String, newTypeId: String): List<String> = changeActors { actor -> if (actor.typeId == oldTypeId) actor.copy(typeId = newTypeId) else actor }.keys.toList()
+    public fun renameTypeId(oldTypeId: String, newTypeId: String, references: Map<String, Set<String>> = emptyMap()): List<String> = changeActors { actor ->
+        val typeId = if (actor.typeId == oldTypeId) newTypeId else actor.typeId
+        val names = references[typeId].orEmpty()
+        val state = if (names.isEmpty()) {
+            actor.state
+        } else {
+            SceneDocument.withStateChanged(actor.state) { state ->
+                val renamed = names.filter { (state[it] as? JsonPrimitive)?.takeIf { value -> value.isString }?.content == oldTypeId }
+                if (renamed.isEmpty()) state else JsonObject(state + renamed.associateWith { JsonPrimitive(newTypeId) })
+            } ?: actor.state
+        }
+        if (typeId == actor.typeId && state == actor.state) actor else actor.copy(typeId = typeId, state = state)
+    }.keys.toList()
 
     /**
      * Changes the state of every Actor of the [typeIds] types in every Scene with [change], writing them all or none
