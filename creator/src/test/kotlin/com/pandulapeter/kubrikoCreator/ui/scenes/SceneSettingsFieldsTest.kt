@@ -9,6 +9,9 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.scenes
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasSetTextAction
@@ -69,5 +72,21 @@ class SceneSettingsFieldsTest {
         onNodeWithText("None").performClick()
         onNodeWithText("No music yet. Put .mp3 or .ogg files in the files folder of composeResources, like files/music/theme.mp3, to play them.").assertExists()
         saveSnapshot("scene-settings-music-none-yet")
+    }
+
+    @Test
+    fun whereTheCameraStartsIsOfferedOnlyWhileTheSceneDoesntFitTheView() = uiTest(width = 400, height = 600) {
+        var values by mutableStateOf(SceneSettingsState.Values())
+        showing {
+            SceneSettingsFields(
+                values = values,
+                music = music,
+                onChange = { change -> change(SetSceneSettings.Input(scene = "main")).fitsView?.let { values = values.copy(fitsView = it) } },
+            )
+        }
+        onNodeWithText("Camera X").assertExists()
+        onNodeWithText("Fit the game's view to the bounds").performClick()
+        waitForIdle()
+        onNodeWithText("Camera X").assertDoesNotExist()
     }
 }

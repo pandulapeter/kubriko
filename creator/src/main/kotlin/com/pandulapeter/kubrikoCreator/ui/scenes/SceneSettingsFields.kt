@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.scenes
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -67,16 +68,19 @@ internal fun SceneSettingsFields(
         color = values.backgroundColor,
         onColorChange = { onChange { copy(backgroundColor = it) } },
     )
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        NumberField(modifier = Modifier.weight(1f), label = Res.string.scene_settings_camera_x, value = values.cameraX, onValueChange = { onChange { copy(cameraX = it) } })
-        NumberField(modifier = Modifier.weight(1f), label = Res.string.scene_settings_camera_y, value = values.cameraY, onValueChange = { onChange { copy(cameraY = it) } })
-    }
     LabeledSwitch(
         modifier = Modifier.fillMaxWidth(),
         label = stringResource(Res.string.scene_settings_fits_view),
         checked = values.fitsView,
         onCheckedChange = { onChange { copy(fitsView = it) } },
     )
+    // A Scene fitting the view centers the camera on its bounds, so where the camera starts doesn't matter then.
+    AnimatedVisibility(visible = !values.fitsView) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            NumberField(modifier = Modifier.weight(1f), label = Res.string.scene_settings_camera_x, value = values.cameraX, onValueChange = { onChange { copy(cameraX = it) } })
+            NumberField(modifier = Modifier.weight(1f), label = Res.string.scene_settings_camera_y, value = values.cameraY, onValueChange = { onChange { copy(cameraY = it) } })
+        }
+    }
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
