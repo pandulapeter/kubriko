@@ -47,6 +47,20 @@ internal fun actorTypeReferenceProperties(types: List<BlockTypeDefinition>): Map
  */
 internal fun audioReferenceProperties(types: List<BlockTypeDefinition>): Map<String, Set<String>> = referenceProperties(types, setOf(PropertyKind.SOUND, PropertyKind.MUSIC))
 
+/**
+ * The reference Properties each of [types] keeps in Scenes, of each of the kinds that name something (an Actor type, a
+ * sound, or music), by the type's name, for the types that have any.
+ */
+internal fun referencePropertiesByKind(types: List<BlockTypeDefinition>): Map<String, Map<PropertyKind, Set<String>>> {
+    val family = ActorTypeFamily(types.filterIsInstance<ActorTypeDefinition>())
+    return types.associate { type ->
+        val properties = if (type is ActorTypeDefinition) family.propertiesOf(type.name) else type.properties
+        type.name to properties.filter { PropertyKind.of(it) in REFERENCE_KINDS }.groupBy(PropertyKind::of) { it.name }.mapValues { (_, names) -> names.toSet() }
+    }.filterValues { it.isNotEmpty() }
+}
+
+private val REFERENCE_KINDS = setOf(PropertyKind.ACTOR_TYPE, PropertyKind.SOUND, PropertyKind.MUSIC)
+
 private fun referenceProperties(types: List<BlockTypeDefinition>, kinds: Set<PropertyKind>): Map<String, Set<String>> {
     val family = ActorTypeFamily(types.filterIsInstance<ActorTypeDefinition>())
     return types.associate { type ->

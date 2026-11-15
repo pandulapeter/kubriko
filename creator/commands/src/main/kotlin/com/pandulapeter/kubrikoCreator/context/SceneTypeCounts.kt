@@ -10,10 +10,12 @@
 package com.pandulapeter.kubrikoCreator.context
 
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.actorTypeReferenceProperties
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.audioReferenceProperties
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.referencePropertiesByKind
 import com.pandulapeter.kubrikoCreator.commands.scenes.firstSceneSettings
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
@@ -33,41 +35,64 @@ internal suspend fun CommandContext.sceneTypeCounts(): Map<String, Map<String, I
  *   Scene's name and then the thing's: an Actor type's name ([actorTypeReferenceProperties]), or a sound's or music's
  *   path ([audioReferenceProperties]), which never look alike. A value an Actor keeps about its own type isn't counted,
  *   since deleting that type takes the Actor away with it.
+ * @param savedAudio The sounds and music each Scene saves for sound and music Properties, each of its kind, by the
+ *   Scene's name, leaving out those that save none.
  * @param music The music each Scene plays, by the Scene's name, leaving out those that play none.
  */
 internal class SceneCounts(
     val types: Map<String, Map<String, Int>>,
     val savedReferences: Map<String, Map<String, Int>>,
+    val savedAudio: Map<String, SavedAudio>,
     val music: Map<String, String>,
 ) {
     companion object {
-        val NONE = SceneCounts(emptyMap(), emptyMap(), emptyMap())
+        val NONE = SceneCounts(emptyMap(), emptyMap(), emptyMap(), emptyMap())
     }
 }
+
+/**
+ * The paths a Scene saves for sound Properties ([sounds]) and for music Properties ([music]).
+ */
+internal data class SavedAudio(
+    val sounds: Set<String> = emptySet(),
+    val music: Set<String> = emptySet(),
+)
 
 /**
  * The [SceneCounts] of the open project, with the saved reference values only when the project's [types] are given.
  */
 internal suspend fun CommandContext.sceneCounts(types: List<BlockTypeDefinition>? = null): SceneCounts = withContext(ioDispatcher) {
-    val references = types?.let { merged(actorTypeReferenceProperties(it), audioReferenceProperties(it)) }.orEmpty()
+    val references = types?.let(::referencePropertiesByKind).orEmpty()
     val typeCounts = LinkedHashMap<String, Map<String, Int>>()
     val referenceCounts = LinkedHashMap<String, Map<String, Int>>()
+    val savedAudio = LinkedHashMap<String, SavedAudio>()
     val music = LinkedHashMap<String, String>()
     scenes.names().forEach { name ->
         val actors = scenes.actors(name) ?: return@forEach
         typeCounts[name] = actors.groupingBy { it.typeId }.eachCount().toSortedMap()
         SceneSettingsState.indexIn(actors).takeIf { it >= 0 }?.let { SceneSettingsState.read(actors[it].state).music }?.ifEmpty { null }?.let { music[name] = it }
         if (references.isEmpty()) return@forEach
-        val named = actors.flatMap { actor ->
-            val names = references[actor.typeId] ?: return@flatMap emptyList()
-            SceneDocument.stateObject(actor.state)?.let { SceneDocument.referencedTypes(it, names) }.orEmpty().filter { it != actor.typeId }
+        val named = ArrayList<String>()
+        val sounds = HashSet<String>()
+        val savedMusic = HashSet<String>()
+        actors.forEach { actor ->
+            val kinds = references[actor.typeId] ?: return@forEach
+            val state = SceneDocument.stateObject(actor.state) ?: return@forEach
+            kinds.forEach { (kind, names) ->
+                val values = SceneDocument.referencedTypes(state, names)
+                when (kind) {
+                    PropertyKind.SOUND -> sounds += values
+                    PropertyKind.MUSIC -> savedMusic += values
+                    else -> Unit
+                }
+                values.filterTo(named) { it != actor.typeId }
+            }
         }
         if (named.isNotEmpty()) referenceCounts[name] = named.groupingBy { it }.eachCount()
+        if (sounds.isNotEmpty() || savedMusic.isNotEmpty()) savedAudio[name] = SavedAudio(sounds, savedMusic)
     }
-    SceneCounts(typeCounts, referenceCounts, music)
+    SceneCounts(typeCounts, referenceCounts, savedAudio, music)
 }
-
-private fun merged(first: Map<String, Set<String>>, second: Map<String, Set<String>>) = (first.keys + second.keys).associateWith { first[it].orEmpty() + second[it].orEmpty() }
 
 /**
  * The music each Scene of the open project plays, by the Scene's name, leaving out those that play none.

@@ -291,13 +291,25 @@ class HealthChecksTest {
     @Test
     fun aSoundOrMusicAPropertyStartsAsOrAScenesSavesThatIsGoneIsReported() {
         val enemy = ActorTypeDefinition(name = "Enemy", properties = listOf(PropertyDefinition.Sound("cry", "files/sounds/gone.wav"), PropertyDefinition.Music("tune", "files/music/theme.mp3")))
-        val saved = mapOf("level" to mapOf("files/sounds/gone.wav" to 1, "files/music/theme.mp3" to 2, "Enemy" to 1))
+        val saved = mapOf("level" to SavedAudio(sounds = setOf("files/sounds/gone.wav"), music = setOf("files/music/theme.mp3")))
         assertEquals(
             listOf(
                 HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Type("Enemy"), "Enemy", usage = "files/sounds/gone.wav"),
                 HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Scene("level"), "Scene level", usage = "files/sounds/gone.wav"),
             ),
-            MissingReferenceChecks.of(listOf(enemy), ProjectRelations(listOf(enemy), emptyMap()), listOf("level"), AudioFiles(music = listOf("files/music/theme.mp3")), sceneSavedReferences = saved),
+            MissingReferenceChecks.of(listOf(enemy), ProjectRelations(listOf(enemy), emptyMap()), listOf("level"), AudioFiles(music = listOf("files/music/theme.mp3")), sceneSavedAudio = saved),
+        )
+    }
+
+    @Test
+    fun aScenesSavedSoundIsLookedForAmongTheSoundsAndNothingElse() {
+        val saved = mapOf("level" to SavedAudio(sounds = setOf("files/music/theme.mp3", "files/sounds/old.flac")))
+        assertEquals(
+            listOf(
+                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Scene("level"), "Scene level", usage = "files/music/theme.mp3"),
+                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Scene("level"), "Scene level", usage = "files/sounds/old.flac"),
+            ),
+            MissingReferenceChecks.of(emptyList(), ProjectRelations(emptyList(), emptyMap()), listOf("level"), AudioFiles(music = listOf("files/music/theme.mp3")), sceneSavedAudio = saved),
         )
     }
 }

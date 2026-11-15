@@ -13,7 +13,6 @@ import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
-import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.actors.fixedPath
 
 /**
@@ -27,8 +26,8 @@ internal object MissingReferenceChecks {
      * @param audioFiles The project's sounds and music, or null if they aren't known, which leaves the play Blocks and
      *   the Scenes' music out.
      * @param sceneMusic The music each Scene plays, by the Scene's name ([sceneMusic]).
-     * @param sceneSavedReferences What the Scenes save for reference Properties ([SceneCounts.savedReferences]), of which
-     *   the sound and music paths are checked.
+     * @param sceneSavedAudio The sounds and music the Scenes save for sound and music Properties ([SceneCounts.savedAudio]),
+     *   each checked against the files of its kind.
      */
     fun of(
         types: List<BlockTypeDefinition>,
@@ -36,7 +35,7 @@ internal object MissingReferenceChecks {
         sceneNames: Collection<String>,
         audioFiles: AudioFiles? = null,
         sceneMusic: Map<String, String> = emptyMap(),
-        sceneSavedReferences: Map<String, Map<String, Int>> = emptyMap(),
+        sceneSavedAudio: Map<String, SavedAudio> = emptyMap(),
     ): List<HealthFinding> {
         val typeNames = types.mapTo(HashSet()) { it.name }
         val declared = types.associate { type -> type.name to type.properties.mapTo(HashSet()) { it.name } }
@@ -51,7 +50,9 @@ internal object MissingReferenceChecks {
         }.map { finding(it.place, it.subject.toString()) }
         val missingSceneMusic = audioFiles?.let { files ->
             sceneMusic.filterValues { it !in files.music }.map { (scene, music) -> finding(RelationPlace.Scene(scene), music) } +
-                sceneSavedReferences.flatMap { (scene, counts) -> counts.keys.filter { !files.has(it) }.map { finding(RelationPlace.Scene(scene), it) } }
+                sceneSavedAudio.flatMap { (scene, saved) ->
+                    (saved.sounds.filter { it !in files.sounds } + saved.music.filter { it !in files.music }).map { finding(RelationPlace.Scene(scene), it) }
+                }
         }.orEmpty()
         return (missingRelations + audioFiles?.let { missingAudioFiles(types, it) }.orEmpty() + missingSceneMusic).distinct()
     }
@@ -77,16 +78,6 @@ internal object MissingReferenceChecks {
                 }
             }
         }
-    }
-
-    /**
-     * Whether [path], a saved reference value, names a sound or music file the project has, or isn't such a path at all
-     * (an Actor type's name, which the relations check).
-     */
-    private fun AudioFiles.has(path: String) = when (ResourceKind.of(path)) {
-        ResourceKind.SOUND -> path in sounds
-        ResourceKind.MUSIC -> path in music
-        else -> true
     }
 
     private fun finding(place: RelationPlace, missing: String) = HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, place.owner, detail = place.toString(), usage = missing)

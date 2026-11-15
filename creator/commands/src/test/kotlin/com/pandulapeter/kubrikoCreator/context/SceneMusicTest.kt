@@ -9,7 +9,9 @@
  */
 package com.pandulapeter.kubrikoCreator.context
 
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
+import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
@@ -53,5 +55,16 @@ class SceneMusicTest {
         assertEquals(0, sceneReads)
         assertEquals(1, context.findUsages(RelationSubject.Resource("files/theme.mp3")).size)
         assertEquals(1, sceneReads)
+    }
+
+    @OptIn(EditorMutation::class)
+    @Test
+    fun theSoundsAndMusicAScenesActorsSaveAreKeptApartByTheKindOfTheirProperty() = runTest {
+        val enemy = ActorTypeDefinition(name = "Enemy", properties = listOf(PropertyDefinition.Sound("cry"), PropertyDefinition.Music("tune")))
+        val context = commandContext(enemy)
+        context.scenes.write("level", SceneDocument.format(listOf(SceneActorEntry("Enemy", """{"cry":"files/music/theme.mp3","tune":"files/music/theme.mp3"}""", "enemy"))))
+        val counts = context.sceneCounts(listOf(enemy))
+        assertEquals(mapOf("level" to SavedAudio(sounds = setOf("files/music/theme.mp3"), music = setOf("files/music/theme.mp3"))), counts.savedAudio)
+        assertEquals(mapOf("level" to mapOf("files/music/theme.mp3" to 2)), counts.savedReferences)
     }
 }
