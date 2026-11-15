@@ -89,6 +89,18 @@ class EndToEndScenarioTest {
     }
 
     @Test
+    fun pressingKeysHoldsEachStepInOrderAndSavesTheImageOnceReleased() = runTest {
+        val runner = FakeProjectRunner(step = GameStep.Done(console = emptyList(), png = png(RED)))
+        withServedTools(runner) {
+            open()
+            val image = scenario().pressKeys("moved", listOf("RIGHT") to 500, emptyList<String>() to 200)
+            assertEquals(listOf("press RIGHT 500", "press  200", "screenshot"), runner.calls)
+            assertEquals(RED, image.getRGB(0, 0) and 0xFFFFFF)
+            assertEquals(listOf("01-moved.png"), outputDirectory.list()!!.toList())
+        }
+    }
+
+    @Test
     fun waitingForTheGameThroughUnreadableFramesEndsWithWhyTheLastFailed() = runTest {
         withServedTools(FakeProjectRunner(step = GameStep.Done(console = emptyList(), png = png(RED).copyOf(40)))) {
             open()

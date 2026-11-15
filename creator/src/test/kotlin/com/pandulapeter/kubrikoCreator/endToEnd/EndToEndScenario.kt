@@ -64,14 +64,29 @@ internal class EndToEndScenario(
     }
 
     /**
-     * What the running game shows, through `take_screenshot` (the game's own drawing, wherever its window is), saved as
-     * [imageName].
+     * What the running game shows, through `take_screenshot` (the game's own drawing, wherever its window is) called with
+     * [arguments], such as an `actorType` to crop to, saved as [imageName].
      */
-    fun captureGame(imageName: String): BufferedImage {
-        val result = tools.call("take_screenshot")
-        check(!result.isError) { "take_screenshot failed: ${result.text}" }
-        val png = checkNotNull(result.png) { "take_screenshot returned no image: ${result.text}" }
-        return checkNotNull(decode(png)) { "take_screenshot's image can't be read." }.also { save(imageName, it) }
+    fun captureGame(imageName: String, arguments: Map<String, Any?> = emptyMap()): BufferedImage = imageOf("take_screenshot", arguments, imageName)
+
+    /**
+     * What the running game shows once `press_keys` has held each of [steps] (the keys held together, and for how many
+     * milliseconds) one after another and released them, saved as [imageName].
+     */
+    fun pressKeys(imageName: String, vararg steps: Pair<List<String>, Int>): BufferedImage = imageOf(
+        tool = "press_keys",
+        arguments = mapOf(
+            "steps" to steps.map { (keys, milliseconds) -> mapOf("keys" to keys, "milliseconds" to milliseconds) },
+            "screenshotWidth" to PRESSED_KEYS_IMAGE_WIDTH,
+        ),
+        imageName = imageName,
+    )
+
+    private fun imageOf(tool: String, arguments: Map<String, Any?>, imageName: String): BufferedImage {
+        val result = tools.call(tool, arguments)
+        check(!result.isError) { "$tool failed: ${result.text}" }
+        val png = checkNotNull(result.png) { "$tool returned no image: ${result.text}" }
+        return checkNotNull(decode(png)) { "$tool's image can't be read." }.also { save(imageName, it) }
     }
 
     /**
@@ -171,6 +186,11 @@ internal class EndToEndScenario(
 
     private companion object {
         const val LAST_IMAGES = 3
+
+        /**
+         * As wide as `take_screenshot`'s images are at most, so that both show the game at the same scale.
+         */
+        const val PRESSED_KEYS_IMAGE_WIDTH = 1280
         val SCREEN_POLLING_INTERVAL = 250.milliseconds
         val SCREEN_TIMEOUT = 15.seconds
         val GAME_TIMEOUT = 30.seconds
