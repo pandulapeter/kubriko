@@ -236,6 +236,9 @@ class AssistantLiveScenariosTest {
             if (!session.hasPlayableSlice()) chat.ask("Go on: build the first playable slice.", timeout = 20.minutes)
         }
         answering.cancel()
+        // What the room did is printed, since tuning its rules goes by that rather than by whether it passed.
+        chat.transcript.value.items.filterIsInstance<TranscriptItem.AgentMessage>().forEach { println("Agent: ${it.text}") }
+        session.calls.forEach { println("  ${if (it.isError) "rejected" else "accepted"} ${it.call.tool} ${it.call.arguments.toString().take(CALL_PRINT_LENGTH)}") }
         val pages = session.context.screenplayTexts().pages
         assertTrue(pages.isNotEmpty(), "No page was written.")
         pages.forEach { (name, text) ->
@@ -284,6 +287,11 @@ class AssistantLiveScenariosTest {
          * How many times the writers' room is asked to go on when it stops before building anything, waiting to be told.
          */
         const val FOLLOW_UPS = 2
+
+        /**
+         * How much of a tool call's input the writers' room prints.
+         */
+        const val CALL_PRINT_LENGTH = 400
 
         /**
          * The index of the Ball's collision with Brick among its Events in [BreakoutFixture].

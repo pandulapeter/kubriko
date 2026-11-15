@@ -43,7 +43,10 @@ a commit of its own (73d97e438..f179d62e4):
 - An if or repeat Block from the palette comes with its end Block.
 
 The writers' room shooter is in the eval set (`shooter`, on an empty project) and was built with no Kotlin Block, so the
-Simple behavior section is gone from `01-blocks.md`.
+Simple behavior section is gone from `01-blocks.md`. The live writers' room scenario passed on 2026-11-15 and kept every
+rule of `WRITERS_ROOM` (seven questions one at a time, the README before any type, a plan, folders, the slice, the page
+updated, a closing question), so the prompt is unchanged; its sheep needed a Kotlin Block only for their distance to the
+dog (`01-blocks.md` → Distance). The scenario prints the agent's messages and calls.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
@@ -57,8 +60,6 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
 - Adding sprites, sounds, and music by dropping them from Finder onto the sidebar, through the file chooser, and by pasting
   a copied image or copied files; and the game playing one added that way (a Compose resource accessor appears only once the
   game builds, which Play does).
-- The live writers' room scenario: `KUBRIKO_CREATOR_CLAUDE_AGENT=true ./gradlew :creator:ai:test --tests "*AssistantLiveScenariosTest.aPitchInTheWritersRoom*"`
-  (it spends a real Claude subscription's requests, up to an hour), then tune `AssistantSystemPrompt.WRITERS_ROOM` by what it does.
 - A project created from an idea, through to the room's first questions, in the real app (an end-to-end scenario could cover
   it under Xvfb, but it needs a signed-in agent).
 - Pasting an image from the system clipboard, and dropping one from Finder, onto a page.
