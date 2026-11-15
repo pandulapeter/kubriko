@@ -12,24 +12,18 @@ package com.pandulapeter.kubrikoCreator.ui.actorTypes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.ToggleValue
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.withPropertyReference
-import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_parameter_by
-import kubriko.creator.generated.resources.block_parameter_text
 import kubriko.creator.generated.resources.block_parameter_value
-import org.jetbrains.compose.resources.stringResource
 
 /**
  * The parameters of a Block that changes a Property: which of the Properties in [scope] (of the kind the Block needs)
