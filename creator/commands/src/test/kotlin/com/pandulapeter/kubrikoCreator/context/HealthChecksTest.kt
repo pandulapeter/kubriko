@@ -287,4 +287,17 @@ class HealthChecksTest {
         )
         assertEquals(emptyList(), MissingReferenceChecks.of(emptyList(), ProjectRelations(emptyList(), emptyMap()), music.keys, null, music))
     }
+
+    @Test
+    fun aSoundOrMusicAPropertyStartsAsOrAScenesSavesThatIsGoneIsReported() {
+        val enemy = ActorTypeDefinition(name = "Enemy", properties = listOf(PropertyDefinition.Sound("cry", "files/sounds/gone.wav"), PropertyDefinition.Music("tune", "files/music/theme.mp3")))
+        val saved = mapOf("level" to mapOf("files/sounds/gone.wav" to 1, "files/music/theme.mp3" to 2, "Enemy" to 1))
+        assertEquals(
+            listOf(
+                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Type("Enemy"), "Enemy", usage = "files/sounds/gone.wav"),
+                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Scene("level"), "Scene level", usage = "files/sounds/gone.wav"),
+            ),
+            MissingReferenceChecks.of(listOf(enemy), ProjectRelations(listOf(enemy), emptyMap()), listOf("level"), AudioFiles(music = listOf("files/music/theme.mp3")), sceneSavedReferences = saved),
+        )
+    }
 }

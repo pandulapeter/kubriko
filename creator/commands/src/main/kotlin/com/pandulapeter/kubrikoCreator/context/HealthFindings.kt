@@ -18,9 +18,9 @@ import kotlinx.coroutines.withContext
  */
 public suspend fun CommandContext.healthFindings(): List<HealthFinding> {
     val types = blockTypes?.types?.value.orEmpty()
-    val sceneCounts = sceneTypeCounts()
+    val sceneCounts = sceneCounts(types)
     val (firstScene, screenplay) = withContext(ioDispatcher) { firstSceneSettings(project.rootDirectory)?.firstScene to screenplayFindings() }
-    return HealthChecks.of(types, ProjectRelations(types, sceneCounts), scenes.names(), audioFiles(), sceneMusic(), firstScene) + screenplay
+    return HealthChecks.of(types, ProjectRelations(types, sceneCounts.types), scenes.names(), audioFiles(), sceneMusic(), firstScene, sceneCounts.savedReferences) + screenplay
 }
 
 /**
@@ -28,6 +28,6 @@ public suspend fun CommandContext.healthFindings(): List<HealthFinding> {
  */
 public suspend fun CommandContext.missingReferences(): List<HealthFinding> {
     val types = blockTypes?.types?.value.orEmpty()
-    val sceneCounts = sceneTypeCounts()
-    return withContext(ioDispatcher) { MissingReferenceChecks.of(types, ProjectRelations(types, sceneCounts), scenes.names(), audioFiles(), sceneMusic()) }
+    val sceneCounts = sceneCounts(types)
+    return withContext(ioDispatcher) { MissingReferenceChecks.of(types, ProjectRelations(types, sceneCounts.types), scenes.names(), audioFiles(), sceneMusic(), sceneCounts.savedReferences) }
 }

@@ -34,6 +34,7 @@ internal object HealthChecks {
         audioFiles: AudioFiles? = null,
         sceneMusic: Map<String, String> = emptyMap(),
         firstScene: String? = null,
+        sceneSavedReferences: Map<String, Map<String, Int>> = emptyMap(),
     ): List<HealthFinding> {
         val actorTypes = types.filterIsInstance<ActorTypeDefinition>()
         val family = ActorTypeFamily(actorTypes)
@@ -80,7 +81,7 @@ internal object HealthChecks {
                 }
             }
             addAll(KotlinBlockScopeChecks.of(types, family))
-            addAll(MissingReferenceChecks.of(types, relations, sceneNames, audioFiles, sceneMusic))
+            addAll(MissingReferenceChecks.of(types, relations, sceneNames, audioFiles, sceneMusic, sceneSavedReferences))
         }
     }
 
