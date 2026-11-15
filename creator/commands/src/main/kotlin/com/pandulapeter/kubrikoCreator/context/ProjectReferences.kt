@@ -17,9 +17,9 @@ import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.KotlinIdentifiers
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.PropertyReference
 import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.actors.numberPropertyReferences
-import com.pandulapeter.kubrikoCreator.actors.numberValues
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.screenplay.PageLinks
 
@@ -131,38 +131,37 @@ internal class ProjectReferences(
     }
 
     /**
-     * Blocks that have the Manager type [subject] chosen but none of its Properties yet, which [ProjectRelations] leaves
-     * out, since they refer to no Property: as the Property they change or check, or as one of their numbers.
+     * Blocks and text conditions that have the Manager type [subject] chosen but none of its Properties yet, which
+     * [ProjectRelations] leaves out, since they refer to no Property: as the Property they change or check, or as one of
+     * their numbers.
      */
     private fun managerChoiceUsagesOf(subject: RelationSubject) = buildList {
         if (subject !is RelationSubject.Type) return@buildList
+        fun addChoiceUsages(place: RelationPlace, reference: PropertyReference?, numberReferences: List<PropertyReference>, referenceUsage: () -> Usage) {
+            if (numberReferences.any { it.manager == subject.name && it.name.isEmpty() }) {
+                add(Usage(UsagePlace.InModel(place), RelationKind.READS_AS_NUMBER, subject, UsageEffect.VALUE_TO_NUMBER))
+            }
+            if (reference != null && reference.manager == subject.name && reference.name.isEmpty()) add(referenceUsage())
+        }
         types.forEach { type ->
             if (type.name == subject.name) return@forEach
             type.events.forEachIndexed { eventIndex, event ->
                 event.blocks.forEachIndexed { blockIndex, block ->
                     val place = RelationPlace.Type(type.name, eventIndex, blockIndex)
-                    if (block.numberPropertyReferences.any { it.manager == subject.name && it.name.isEmpty() }) {
-                        add(Usage(UsagePlace.InModel(place), RelationKind.READS_AS_NUMBER, subject, UsageEffect.VALUE_TO_NUMBER))
-                    }
-                    val reference = block.propertyReference ?: return@forEachIndexed
-                    if (reference.manager != subject.name || reference.name.isNotEmpty()) return@forEachIndexed
-                    add(
+                    addChoiceUsages(place, block.propertyReference, block.numberPropertyReferences) {
                         if (block is BlockDefinition.If) {
                             Usage(UsagePlace.InModel(place), RelationKind.READS, subject, UsageEffect.SECTION_REMOVED, blocksInside = sectionOf(place).count() - 1)
                         } else {
                             Usage(UsagePlace.InModel(place), RelationKind.CHANGES, subject, UsageEffect.BLOCK_REMOVED)
-                        },
-                    )
+                        }
+                    }
                 }
             }
             (type as? ManagerTypeDefinition)?.texts?.forEachIndexed { index, text ->
                 val condition = text.shownWhen ?: return@forEachIndexed
-                val place = UsagePlace.InModel(RelationPlace.Text(type.name, index, isCondition = true))
-                val reference = condition.propertyReference
-                if (reference != null && reference.manager == subject.name && reference.name.isEmpty()) {
-                    add(Usage(place, RelationKind.READS, subject, UsageEffect.TEXT_REMOVED))
-                } else if (condition.numberValues.any { value -> value.propertyReference?.let { it.manager == subject.name && it.name.isEmpty() } == true }) {
-                    add(Usage(place, RelationKind.READS_AS_NUMBER, subject, UsageEffect.VALUE_TO_NUMBER))
+                val place = RelationPlace.Text(type.name, index, isCondition = true)
+                addChoiceUsages(place, condition.propertyReference, condition.numberPropertyReferences) {
+                    Usage(UsagePlace.InModel(place), RelationKind.READS, subject, UsageEffect.TEXT_REMOVED)
                 }
             }
         }

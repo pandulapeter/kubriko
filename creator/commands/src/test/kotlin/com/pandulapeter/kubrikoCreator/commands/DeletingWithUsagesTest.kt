@@ -175,6 +175,7 @@ class DeletingWithUsagesTest {
                 ScreenTextDefinition(text = "Game over", shownWhen = ConditionDefinition.Toggle("isOver", manager = "Game")),
                 ScreenTextDefinition(text = "Last life", shownWhen = ConditionDefinition.Number("shown", value = NumberValue.Property("lives", manager = "Game"))),
                 ScreenTextDefinition(text = "Always"),
+                ScreenTextDefinition(text = "Unchosen", shownWhen = ConditionDefinition.Number(manager = "Game", value = NumberValue.Property("", manager = "Game"))),
             ),
         )
         val context = commandContext(game, hud)
@@ -183,7 +184,7 @@ class DeletingWithUsagesTest {
             context.usagesOf(RelationSubject.Property("Game", "isOver")),
         )
         val afterRemoving = context.assertRoundTrip(Invocation(RemoveProperty, RemoveProperty.Input("Game", "isOver"))) { context.snapshot() }.first
-        assertEquals(listOf("Last life", "Always"), (afterRemoving.single { it.name == "Hud" } as ManagerTypeDefinition).texts.map { it.text })
+        assertEquals(listOf("Last life", "Always", "Unchosen"), (afterRemoving.single { it.name == "Hud" } as ManagerTypeDefinition).texts.map { it.text })
         val afterDeleting = context.assertRoundTrip(Invocation(DeleteManagerType, DeleteManagerType.Input("Game"))) { context.snapshot() }.first
         val hudAfterDeleting = afterDeleting.single { it.name == "Hud" } as ManagerTypeDefinition
         assertEquals(listOf("Last life", "Always"), hudAfterDeleting.texts.map { it.text })
