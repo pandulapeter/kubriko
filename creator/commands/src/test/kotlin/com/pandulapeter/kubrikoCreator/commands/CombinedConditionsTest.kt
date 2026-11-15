@@ -104,10 +104,12 @@ class CombinedConditionsTest {
             texts = listOf(
                 ScreenTextDefinition("Never", shownWhen = ConditionDefinition.Combined(listOf(ConditionDefinition.Toggle("isOver"), ConditionDefinition.Toggle()))),
                 ScreenTextDefinition("Sometimes", shownWhen = ConditionDefinition.Combined(listOf(ConditionDefinition.Toggle("isOver"), ConditionDefinition.Toggle()), isAll = false)),
+                ScreenTextDefinition("Always", shownWhen = ConditionDefinition.Combined(emptyList())),
+                ScreenTextDefinition("Never either", shownWhen = ConditionDefinition.Combined(listOf(ConditionDefinition.Toggle("isOver"), ConditionDefinition.Combined(emptyList(), isAll = false)))),
             ),
         )
         assertEquals(
-            listOf(HealthFinding(HealthFinding.Kind.TEXT_NEVER_SHOWN, RelationSubject.Type("Hud"), "1")),
+            listOf(HealthFinding(HealthFinding.Kind.TEXT_NEVER_SHOWN, RelationSubject.Type("Hud"), "1"), HealthFinding(HealthFinding.Kind.TEXT_NEVER_SHOWN, RelationSubject.Type("Hud"), "4")),
             HealthChecks.of(listOf(hud), ProjectRelations(listOf(hud), emptyMap()), emptyList()).filter { it.kind == HealthFinding.Kind.TEXT_NEVER_SHOWN },
         )
     }

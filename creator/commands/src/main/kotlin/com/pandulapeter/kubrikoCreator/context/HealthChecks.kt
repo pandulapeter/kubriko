@@ -83,11 +83,11 @@ internal object HealthChecks {
     }
 
     /**
-     * Whether [condition] is always false because a Property it checks isn't chosen yet: one whose own Property isn't, all
-     * of whose conditions are false, or one of whose conditions are, as it combines them.
+     * Whether [condition] is always false because a Property it checks isn't chosen yet: one whose own Property isn't, or
+     * an or all of whose conditions are always false (so one combining none), or an and one of whose conditions is.
      */
     private fun isNeverTrue(condition: ConditionDefinition): Boolean = when (condition) {
-        is ConditionDefinition.Combined -> condition.conditions.isNotEmpty() && if (condition.isAll) condition.conditions.any(::isNeverTrue) else condition.conditions.all(::isNeverTrue)
+        is ConditionDefinition.Combined -> if (condition.isAll) condition.conditions.any(::isNeverTrue) else condition.conditions.all(::isNeverTrue)
         else -> condition.propertyReference?.name?.isEmpty() == true
     }
 
