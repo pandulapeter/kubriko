@@ -86,13 +86,17 @@ public object ScenesCodeGenerator {
             |    private var aspectRatioModeBeforeFit: ViewportManager.AspectRatioMode? = null
             |
             |    /**
-            |     * Makes the game's view show a Scene's bounds, of [size] around [center], as wide as they are, keeping the
-            |     * aspect ratio it had before the first Scene that fitted it.
+            |     * Makes the game's view show a Scene's [bounds], as wide as they are, centered on them, keeping the aspect ratio it
+            |     * had before the first Scene that fitted it, or does nothing and returns false if the bounds have no area.
             |     */
-            |    internal fun fitView(size: SceneSize, center: SceneOffset) {
+            |    internal fun fitView(bounds: com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox): Boolean {
+            |        val width = bounds.maxXRaw - bounds.minXRaw
+            |        val height = bounds.maxYRaw - bounds.minYRaw
+            |        if (!(width > 0f && height > 0f)) return false
             |        if (aspectRatioModeBeforeFit == null) aspectRatioModeBeforeFit = viewportManager.aspectRatioMode.value
-            |        viewportManager.setAspectRatioMode(ViewportManager.AspectRatioMode.Fixed(ratio = size.width.raw / size.height.raw, width = size.width))
-            |        viewportManager.setCameraPosition(center)
+            |        viewportManager.setAspectRatioMode(ViewportManager.AspectRatioMode.Fixed(ratio = width / height, width = width.sceneUnit))
+            |        viewportManager.setCameraPosition(SceneOffset((bounds.minXRaw + width / 2f).sceneUnit, (bounds.minYRaw + height / 2f).sceneUnit))
+            |        return true
             |    }
             |
             |    /**
@@ -107,6 +111,7 @@ public object ScenesCodeGenerator {
     private fun importsOf(packageName: String) = listOf(
         "com.pandulapeter.kubriko.Kubriko",
         "com.pandulapeter.kubriko.actor.Actor",
+        "com.pandulapeter.kubriko.helpers.extensions.sceneUnit",
         "com.pandulapeter.kubriko.logger.Logger",
         "com.pandulapeter.kubriko.manager.ActorManager",
         "com.pandulapeter.kubriko.manager.Manager",
@@ -115,7 +120,6 @@ public object ScenesCodeGenerator {
         "com.pandulapeter.kubriko.sceneEditor.EditableMetadata",
         "com.pandulapeter.kubriko.serialization.SerializationManager",
         "com.pandulapeter.kubriko.types.SceneOffset",
-        "com.pandulapeter.kubriko.types.SceneSize",
         "kotlin.concurrent.Volatile",
         "kotlinx.coroutines.CancellationException",
         "kotlinx.coroutines.Job",

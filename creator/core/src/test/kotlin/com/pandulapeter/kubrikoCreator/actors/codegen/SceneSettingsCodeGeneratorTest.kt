@@ -41,7 +41,7 @@ class SceneSettingsCodeGeneratorTest {
 
     @Test
     fun aSceneFitsTheViewOrGivesBackTheAspectRatioOfTheGameWhenItStarts() {
-        assertContains(code, "        if (fitsView) {\n            generatedScenes.fitView(body.size, body.position)\n        } else {\n            generatedScenes.unfitView()\n")
+        assertContains(code, "        if (!fitsView || !generatedScenes.fitView(body.axisAlignedBoundingBox)) {\n            generatedScenes.unfitView()\n")
         assertContains(code, "        @SerialName(\"fitsView\") val fitsView: Boolean = false,\n")
     }
 

@@ -52,4 +52,10 @@ class ScenesCodeGeneratorTest {
         assertContains(code, "        if (aspectRatioModeBeforeFit == null) aspectRatioModeBeforeFit = viewportManager.aspectRatioMode.value\n")
         assertContains(code, "        aspectRatioModeBeforeFit?.let(viewportManager::setAspectRatioMode)\n        aspectRatioModeBeforeFit = null\n")
     }
+
+    @Test
+    fun aSceneFitsTheViewToItsScaledAndRotatedBoundsAndOnlyIfTheyHaveAnArea() {
+        assertContains(code, "        val width = bounds.maxXRaw - bounds.minXRaw\n        val height = bounds.maxYRaw - bounds.minYRaw\n        if (!(width > 0f && height > 0f)) return false\n")
+        assertContains(code, "Fixed(ratio = width / height, width = width.sceneUnit)")
+    }
 }

@@ -71,8 +71,8 @@ public object SceneSettingsCodeGenerator {
             | * The settings of a Scene. Its body is the Scene's bounds, which edge Events use instead of the edges of the screen,
             | * and which it fills with the background color, behind every other Actor. When the Scene starts, the camera moves
             | * to [$CAMERA_START_KEY], and its [$MUSIC_KEY] plays, if it has some and the game plays audio. While the Scene
-            | * [$FITS_VIEW_KEY], the game's view shows its bounds instead, as wide as they are, centered on them, and gets back
-            | * the aspect ratio it had when the Scene ends.
+            | * [$FITS_VIEW_KEY] (and its bounds have an area), the game's view shows its bounds instead, as wide as they are,
+            | * centered on them, and gets back the aspect ratio it had once no Scene fits it.
             | */
             |class $SETTINGS_NAME private constructor(state: State) : Visible, Unique, Editable<$SETTINGS_NAME> {
             |    override val body = state.body
@@ -109,9 +109,7 @@ public object SceneSettingsCodeGenerator {
             |        generatedScenes = kubriko.get()
             |        generatedScenes.settings = this
             |        if (generatedScenes.isInSceneEditor) return
-            |        if ($FITS_VIEW_KEY) {
-            |            generatedScenes.fitView(body.size, body.position)
-            |        } else {
+            |        if (!$FITS_VIEW_KEY || !generatedScenes.fitView(body.axisAlignedBoundingBox)) {
             |            generatedScenes.unfitView()
             |            kubriko.get<ViewportManager>().setCameraPosition($CAMERA_START_KEY)
             |        }
