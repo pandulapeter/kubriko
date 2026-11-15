@@ -19,10 +19,13 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
 import com.pandulapeter.kubrikoCreator.actors.withNumberValues
 
 /**
- * What deleting something does to the types that use it ([ProjectReferences.typesAfterDeleting]): Blocks and Events
- * that only mean something with it are removed (an Event left empty stays), and so are texts shown only while a
- * condition on it holds, placeholders showing its Properties
- * become plain text, and an Actor type drawn as its sprite is drawn as its shape. Kotlin and Scenes are left to others.
+ * What deleting something does to the types that use it ([ProjectReferences.typesAfterDeleting]):
+ * - Blocks and Events that only mean something with it are removed (an Event left empty stays), as are texts shown only
+ *   while a condition on it holds.
+ * - Placeholders showing its Properties become plain text, and numbers reading them their starting values.
+ * - An Actor type drawn as its sprite is drawn as its shape.
+ *
+ * Kotlin and Scenes are left to others.
  */
 internal class ReferenceCleanup(
     private val types: List<BlockTypeDefinition>,
