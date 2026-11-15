@@ -149,8 +149,7 @@ public fun BlockTypeDefinition.withResourceRenamed(oldPath: String, newPath: Str
         renamed.withProperties(
             renamed.properties.map { property ->
                 when {
-                    property is PropertyDefinition.Sound && property.initialValue == oldPath -> property.copy(initialValue = newPath)
-                    property is PropertyDefinition.Music && property.initialValue == oldPath -> property.copy(initialValue = newPath)
+                    property is PropertyDefinition.AudioFile && property.initialValue == oldPath -> property.withInitialValue(newPath)
                     else -> property
                 }
             },

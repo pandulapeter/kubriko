@@ -146,8 +146,7 @@ internal class ReferenceCleanup(
                     changed.properties.map { property ->
                         when {
                             property is PropertyDefinition.ActorType && property.initialValue in deleted.types -> property.copy(initialValue = "")
-                            property is PropertyDefinition.Sound && property.initialValue in deleted.files -> property.copy(initialValue = "")
-                            property is PropertyDefinition.Music && property.initialValue in deleted.files -> property.copy(initialValue = "")
+                            property is PropertyDefinition.AudioFile && property.initialValue in deleted.files -> property.withInitialValue("")
                             else -> property
                         }
                     },

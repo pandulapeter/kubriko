@@ -95,9 +95,11 @@ public sealed interface PropertyDefinition {
         @Description(NAME_DESCRIPTION)
         @SerialName("name") override val name: String,
         @Description(INITIAL_VALUE_DESCRIPTION)
-        @SerialName("initialValue") val initialValue: String = "",
-    ) : PropertyDefinition {
+        @SerialName("initialValue") override val initialValue: String = "",
+    ) : AudioFile {
         override fun withName(name: String): Sound = copy(name = name)
+
+        override fun withInitialValue(initialValue: String): Sound = copy(initialValue = initialValue)
     }
 
     @Serializable
@@ -107,9 +109,21 @@ public sealed interface PropertyDefinition {
         @Description(NAME_DESCRIPTION)
         @SerialName("name") override val name: String,
         @Description(INITIAL_VALUE_DESCRIPTION)
-        @SerialName("initialValue") val initialValue: String = "",
-    ) : PropertyDefinition {
+        @SerialName("initialValue") override val initialValue: String = "",
+    ) : AudioFile {
         override fun withName(name: String): Music = copy(name = name)
+
+        override fun withInitialValue(initialValue: String): Music = copy(initialValue = initialValue)
+    }
+
+    /**
+     * A [Sound] or [Music] Property, which starts as the file at [initialValue] (from `composeResources`), or as none
+     * when it is empty.
+     */
+    public sealed interface AudioFile : PropertyDefinition {
+        public val initialValue: String
+
+        public fun withInitialValue(initialValue: String): AudioFile
     }
 }
 

@@ -291,4 +291,17 @@ class BlockTypeEditsTest {
         assertEquals("Text(beatPeriodInMilliseconds.toString())", renamed.kotlinUi)
         assertEquals(listOf("tick"), clock.timerNames)
     }
+
+    @Test
+    fun renamingAFileRenamesTheSoundAndMusicPropertiesStartingAsIt() {
+        val game = ManagerTypeDefinition(
+            name = "Game",
+            properties = listOf(PropertyDefinition.Sound("cry", initialValue = "files/hit.wav"), PropertyDefinition.Music("tune", initialValue = "files/theme.mp3"), PropertyDefinition.Sound("other", initialValue = "files/pop.wav")),
+        )
+        assertEquals(
+            listOf(PropertyDefinition.Sound("cry", initialValue = "files/bump.wav"), PropertyDefinition.Music("tune", initialValue = "files/theme.mp3"), PropertyDefinition.Sound("other", initialValue = "files/pop.wav")),
+            game.withResourceRenamed("files/hit.wav", "files/bump.wav").properties,
+        )
+        assertEquals(PropertyDefinition.Music("tune", initialValue = "files/song.mp3"), game.withResourceRenamed("files/theme.mp3", "files/song.mp3").properties[1])
+    }
 }

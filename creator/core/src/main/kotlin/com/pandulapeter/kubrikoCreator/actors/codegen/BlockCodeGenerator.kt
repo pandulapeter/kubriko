@@ -460,8 +460,7 @@ public object BlockCodeGenerator {
         is PropertyDefinition.Toggle -> property.initialValue.toString()
         is PropertyDefinition.Color -> "Color(${colorLiteral(property.initialValue)})"
         is PropertyDefinition.ActorType -> stringLiteral(property.initialValue)
-        is PropertyDefinition.Sound -> stringLiteral(property.initialValue)
-        is PropertyDefinition.Music -> stringLiteral(property.initialValue)
+        is PropertyDefinition.AudioFile -> stringLiteral(property.initialValue)
     }
 
     private fun offsetCode(x: NumberValue, y: NumberValue, scope: BlockScope) = "SceneOffset(${NumberValueCode.sceneUnit(x, scope)}, ${NumberValueCode.sceneUnit(y, scope)})"

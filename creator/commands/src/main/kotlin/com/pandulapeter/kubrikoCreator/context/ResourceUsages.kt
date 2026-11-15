@@ -30,7 +30,7 @@ internal fun resourceUsagesOf(subject: RelationSubject.Resource, types: List<Blo
         if (type is ActorTypeDefinition && type.sprite == subject.path) {
             add(Usage(UsagePlace.InModel(RelationPlace.Type(type.name)), RelationKind.DRAWN_AS, subject, UsageEffect.SPRITE_CLEARED))
         }
-        if (type.properties.any { (it as? PropertyDefinition.Sound)?.initialValue == subject.path || (it as? PropertyDefinition.Music)?.initialValue == subject.path }) {
+        if (type.properties.any { (it as? PropertyDefinition.AudioFile)?.initialValue == subject.path }) {
             add(Usage(UsagePlace.InModel(RelationPlace.Type(type.name)), RelationKind.STARTS_AS, subject, UsageEffect.STARTING_VALUE_CLEARED))
         }
         type.events.forEachIndexed { eventIndex, event ->
