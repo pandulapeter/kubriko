@@ -395,7 +395,7 @@ private val BlockDefinition.edgelessNumberValues
         is BlockDefinition.SetOpacity -> listOf(percent)
         is BlockDefinition.ChangeOpacity -> listOf(by)
         is BlockDefinition.Animate -> if (value is AnimatedValue.Position) listOf(seconds) else value.numberValues + seconds
-        is BlockDefinition.If -> listOfNotNull((condition as? ConditionDefinition.ActorCount)?.value)
+        is BlockDefinition.If -> condition.leaves.mapNotNull { (it as? ConditionDefinition.ActorCount)?.value }
         else -> emptyList()
     }
 

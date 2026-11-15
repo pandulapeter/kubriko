@@ -67,6 +67,8 @@ class CombinedConditionsTest {
         assertEquals(LookupProblem.GAME_KEY_UNKNOWN, rejection(combined(ConditionDefinition.KeyHeld(KeyChoice("NoSuchKey")))))
         assertEquals(CommandProblem.NUMBER_INVALID, rejection(combined(ConditionDefinition.Chance(com.pandulapeter.kubrikoCreator.actors.NumberValue.Fixed(150f)))))
         assertEquals(LookupProblem.ACTOR_TYPE_MISSING, rejection(combined(ConditionDefinition.ActorCount("Ghost"))))
+        val countedToAnEdge = ConditionDefinition.ActorCount("Ball", value = com.pandulapeter.kubrikoCreator.actors.NumberValue.Edge(com.pandulapeter.kubrikoCreator.actors.SceneEdge.LEFT))
+        assertEquals(CommandProblem.NUMBER_EDGE_NOT_TAKEN, rejection(combined(countedToAnEdge)))
     }
 
     @Test
