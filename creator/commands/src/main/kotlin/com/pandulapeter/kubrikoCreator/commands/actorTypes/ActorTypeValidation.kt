@@ -33,13 +33,11 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyReference
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
-import com.pandulapeter.kubrikoCreator.actors.actorTypeReference
 import com.pandulapeter.kubrikoCreator.actors.actorTypeReferences
 import com.pandulapeter.kubrikoCreator.actors.areEdgesAlong
 import com.pandulapeter.kubrikoCreator.actors.fixedArgb
 import com.pandulapeter.kubrikoCreator.actors.isFinite
 import com.pandulapeter.kubrikoCreator.actors.leaves
-import com.pandulapeter.kubrikoCreator.actors.measuredActorTypes
 import com.pandulapeter.kubrikoCreator.actors.numberValues
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.propertyReferences
@@ -197,7 +195,7 @@ private fun validateBlockValues(block: BlockDefinition, scope: BlockScope): Reje
 }
 
 private fun validateBlockReferences(block: BlockDefinition, scope: BlockScope): Rejection? = when {
-    block.namedActorTypes.any { it !in scope.actorTypeNames } -> missingActorType(block.namedActorTypes.first { it !in scope.actorTypeNames }, scope)
+    block.actorTypeReferences.any { it !in scope.actorTypeNames } -> missingActorType(block.actorTypeReferences.first { it !in scope.actorTypeNames }, scope)
     block is BlockDefinition.GoToScene && block.scene.isNotEmpty() && scope.sceneNames?.contains(block.scene) == false ->
         SimilarNames.rejection(LookupProblem.SCENE_MISSING, LookupProblem.SCENE_MISSING_SIMILAR, block.scene, scope.sceneNames.orEmpty(), block.scene)
     block is BlockDefinition.PlaySound && block.sound.isNotEmpty() && scope.audioFiles?.sounds?.contains(block.sound) == false ->
@@ -225,13 +223,6 @@ private fun validatePropertyReference(reference: PropertyReference, scope: Block
         else -> null
     }
 }
-
-/**
- * The Actor types [this] Block adds, moves towards, counts, or measures the distance to (in every condition an if Block
- * combines), of those chosen.
- */
-private val BlockDefinition.namedActorTypes: List<String>
-    get() = ((this as? BlockDefinition.If)?.condition?.let { condition -> condition.actorTypeReferences.filter { it.isNotEmpty() } + condition.measuredActorTypes } ?: listOfNotNull(actorTypeReference))
 
 /**
  * The first key [this] condition, or one it combines, checks that Compose doesn't know.

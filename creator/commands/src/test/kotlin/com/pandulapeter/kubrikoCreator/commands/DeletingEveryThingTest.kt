@@ -17,7 +17,7 @@ import com.pandulapeter.kubrikoCreator.actors.EveryBlockTypes
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
 import com.pandulapeter.kubrikoCreator.actors.ResourceKind
-import com.pandulapeter.kubrikoCreator.actors.actorTypeReference
+import com.pandulapeter.kubrikoCreator.actors.actorTypeReferences
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.timerNames
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
@@ -58,7 +58,7 @@ class DeletingEveryThingTest {
                 other.events.forEach { event ->
                     assertTrue(event.otherActorType != type.name, "${other.name} still collides with ${type.name}.")
                     event.blocks.forEach { block ->
-                        assertTrue(block.actorTypeReference != type.name, "${other.name} still has $block.")
+                        assertTrue(type.name !in block.actorTypeReferences, "${other.name} still has $block.")
                         assertTrue(block.propertyReference?.manager != type.name, "${other.name} still has $block.")
                         if (block is BlockDefinition.Log) assertTrue(PropertyPlaceholders.find(block.message).none { it.manager == type.name }, "${other.name} still has $block.")
                     }
@@ -80,7 +80,7 @@ class DeletingEveryThingTest {
         context.blockTypes!!.types.value.forEach { other ->
             other.events.forEach { event ->
                 assertTrue(event.otherActorType !in deleted, "${other.name} still collides with ${event.otherActorType}.")
-                event.blocks.forEach { block -> assertTrue(block.actorTypeReference !in deleted, "${other.name} still has $block.") }
+                event.blocks.forEach { block -> assertTrue(block.actorTypeReferences.none { it in deleted }, "${other.name} still has $block.") }
             }
         }
     }

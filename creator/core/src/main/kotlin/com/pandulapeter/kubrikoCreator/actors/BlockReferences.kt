@@ -31,25 +31,19 @@ public val BlockDefinition.propertyReference: PropertyReference?
     }
 
 /**
- * The Actor type [this] Block adds, moves towards, or counts, if it is one of those and one is chosen.
+ * Every Actor type [this] Block names by its name, of those chosen: the one it adds or moves towards, or those its
+ * condition (and every condition it combines) counts or measures the distance to.
  */
-public val BlockDefinition.actorTypeReference: String?
-    get() = when (this) {
-        is BlockDefinition.AddActor -> actorType.fixedName
-        is BlockDefinition.MoveTowardsNearest -> actorType.fixedName
-        is BlockDefinition.If -> condition.actorTypeReference
-        is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
-        is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
-        BlockDefinition.RemoveOther, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText,
-        is BlockDefinition.SetToggle, is BlockDefinition.SetColorProperty, is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene,
-        BlockDefinition.RestartScene, is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic,
-        BlockDefinition.StopMusic, is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity, is BlockDefinition.ChangeOpacity, is BlockDefinition.Animate, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
-        is BlockDefinition.Log, is BlockDefinition.Kotlin,
-        -> null
-    }?.ifEmpty { null }
+public val BlockDefinition.actorTypeReferences: List<String>
+    get() = if (this is BlockDefinition.If) {
+        condition.actorTypeReferences.filter { it.isNotEmpty() } + condition.measuredActorTypes
+    } else {
+        values.actorTypes.mapNotNull { it.fixedName }
+    }
 
 /**
- * [this] Block with the Actor type it adds, moves towards, or counts renamed from [oldName] to [newName], if it is that one.
+ * [this] Block with the Actor type it adds, moves towards, counts, or measures the distance to renamed from [oldName] to
+ * [newName], if it is that one.
  */
 internal fun BlockDefinition.withActorTypeRenamed(oldName: String, newName: String): BlockDefinition = when (this) {
     is BlockDefinition.If -> copy(condition = condition.withActorTypeRenamed(oldName, newName))
