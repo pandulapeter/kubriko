@@ -174,7 +174,7 @@ public object BlockCodeGenerator {
         is BlockDefinition.SetOpacity -> AppearanceCode.setOpacity(block, scope)
         is BlockDefinition.ChangeOpacity -> AppearanceCode.changeOpacity(block, scope)
         is BlockDefinition.Animate -> AnimateCode.animate(block, scope)
-        is BlockDefinition.If -> conditionCode(block, scope).let { condition -> condition.copy(lines = listOf("if (${condition.lines.single()}) {")) }
+        is BlockDefinition.If -> conditionCode(block.condition, scope).let { condition -> condition.copy(lines = listOf("if (${condition.lines.single()}) {")) }
         is BlockDefinition.Repeat -> BlockCode(listOf("repeat(${NumberValueCode.whole(block.times, scope)}) {"))
         BlockDefinition.Else, BlockDefinition.End -> BlockCode.NONE
         is BlockDefinition.Log -> logCode(block, scope)
@@ -341,13 +341,12 @@ public object BlockCodeGenerator {
     }
 
     /**
-     * The condition of [block] as a Kotlin expression (the only line of the result), or `false` if it needs a Property
-     * that doesn't exist (of that kind), an Actor type that doesn't, or an Actor in a Manager type, so that the generated
-     * code always compiles.
+     * [condition] as a Kotlin expression (the only line of the result), or `false` if it needs a Property that doesn't
+     * exist (of that kind), an Actor type that doesn't, or an Actor in a Manager type, so that the generated code always
+     * compiles.
      */
-    private fun conditionCode(block: BlockDefinition.If, scope: BlockScope): BlockCode {
-        val condition = block.condition
-        val reference = block.propertyReference
+    internal fun conditionCode(condition: ConditionDefinition, scope: BlockScope): BlockCode {
+        val reference = condition.propertyReference
         if (reference != null && !scope.hasProperty(reference)) return BlockCode(listOf("false"))
         if (!ConditionKind.of(condition).isAvailableIn(scope.kind)) return BlockCode(listOf("false"))
         val property = reference?.let { propertyExpression(it, scope) }
