@@ -85,14 +85,14 @@ public val ConditionDefinition.measuredActorTypes: List<String>
  * is that one.
  */
 internal fun ConditionDefinition.withActorTypeRenamed(oldName: String, newName: String): ConditionDefinition = when {
-    this is ConditionDefinition.ActorCount && actorType == oldName -> copy(actorType = newName)
     this is ConditionDefinition.Combined -> copy(conditions = conditions.map { it.withActorTypeRenamed(oldName, newName) })
-    else -> this
-}.withValues(
-    object : ValueTransform {
-        override fun actorType(value: ActorTypeValue) = value.withActorTypeRenamed(oldName, newName)
-    },
-)
+    this is ConditionDefinition.ActorCount && actorType == oldName -> copy(actorType = newName)
+    else -> withValues(
+        object : ValueTransform {
+            override fun actorType(value: ActorTypeValue) = value.withActorTypeRenamed(oldName, newName)
+        },
+    )
+}
 
 /**
  * [this] condition with the Property of [manager] (the type's own one, if null) that it checks or reads as a value
@@ -100,15 +100,15 @@ internal fun ConditionDefinition.withActorTypeRenamed(oldName: String, newName: 
  */
 internal fun ConditionDefinition.withPropertyRenamed(oldName: String, newName: String, manager: String?): ConditionDefinition = when {
     this is ConditionDefinition.Combined -> copy(conditions = conditions.map { it.withPropertyRenamed(oldName, newName, manager) })
-    propertyReference?.let { it.manager == manager && it.name == oldName } == true -> withPropertyReference(manager, newName)
-    else -> this
-}.withValues(propertyRenaming(oldName, newName, manager))
+    propertyReference?.let { it.manager == manager && it.name == oldName } == true -> withPropertyReference(manager, newName).withValues(propertyRenaming(oldName, newName, manager))
+    else -> withValues(propertyRenaming(oldName, newName, manager))
+}
 
 /**
  * [this] condition with the Properties of the Manager type [oldName] it checks or reads taken from [newName] instead.
  */
 internal fun ConditionDefinition.withManagerRenamed(oldName: String, newName: String): ConditionDefinition = when {
     this is ConditionDefinition.Combined -> copy(conditions = conditions.map { it.withManagerRenamed(oldName, newName) })
-    propertyReference?.manager == oldName -> withPropertyReference(newName, propertyReference!!.name)
-    else -> this
-}.withValues(managerRenaming(oldName, newName))
+    propertyReference?.manager == oldName -> withPropertyReference(newName, propertyReference!!.name).withValues(managerRenaming(oldName, newName))
+    else -> withValues(managerRenaming(oldName, newName))
+}

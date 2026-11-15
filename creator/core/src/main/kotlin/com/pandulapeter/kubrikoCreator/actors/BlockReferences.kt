@@ -51,18 +51,13 @@ public val BlockDefinition.actorTypeReference: String?
 /**
  * [this] Block with the Actor type it adds, moves towards, or counts renamed from [oldName] to [newName], if it is that one.
  */
-internal fun BlockDefinition.withActorTypeRenamed(oldName: String, newName: String) = when (this) {
-    is BlockDefinition.AddActor -> copy(actorType = actorType.withActorTypeRenamed(oldName, newName))
-    is BlockDefinition.MoveTowardsNearest -> copy(actorType = actorType.withActorTypeRenamed(oldName, newName))
+internal fun BlockDefinition.withActorTypeRenamed(oldName: String, newName: String): BlockDefinition = when (this) {
     is BlockDefinition.If -> copy(condition = condition.withActorTypeRenamed(oldName, newName))
-    is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
-    is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
-    BlockDefinition.RemoveOther, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText,
-    is BlockDefinition.SetToggle, is BlockDefinition.SetColorProperty, is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene,
-    BlockDefinition.RestartScene, is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic,
-    BlockDefinition.StopMusic, is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity, is BlockDefinition.ChangeOpacity, is BlockDefinition.Animate, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
-    is BlockDefinition.Log, is BlockDefinition.Kotlin,
-    -> this
+    else -> withValues(
+        object : ValueTransform {
+            override fun actorType(value: ActorTypeValue) = value.withActorTypeRenamed(oldName, newName)
+        },
+    )
 }
 
 /**
@@ -102,23 +97,24 @@ public fun BlockDefinition.withTimerRenamed(oldName: String, newName: String): B
  * [this] Block with the Property of [manager] (the type's own one, if null) that it changes, reads as a value, or shows
  * in a Log Block, renamed from [oldName] to [newName].
  */
-internal fun BlockDefinition.withPropertyRenamed(oldName: String, newName: String, manager: String? = null) = when {
+internal fun BlockDefinition.withPropertyRenamed(oldName: String, newName: String, manager: String? = null): BlockDefinition = when {
+    // The condition renames its own values, so the Block doesn't walk it again.
     this is BlockDefinition.If -> copy(condition = condition.withPropertyRenamed(oldName, newName, manager))
-    propertyReference?.let { it.manager == manager && it.name == oldName } == true -> withPropertyReference(manager, newName)
+    propertyReference?.let { it.manager == manager && it.name == oldName } == true -> withPropertyReference(manager, newName).withValues(propertyRenaming(oldName, newName, manager))
     this is BlockDefinition.Log -> copy(message = PropertyPlaceholders.withPropertyRenamed(message, manager, oldName, newName))
-    else -> this
-}.withValues(propertyRenaming(oldName, newName, manager))
+    else -> withValues(propertyRenaming(oldName, newName, manager))
+}
 
 /**
  * [this] Block with the Properties of the Manager type [oldName] it uses (or shows, in a Log Block) taken from [newName]
  * instead.
  */
-internal fun BlockDefinition.withManagerRenamed(oldName: String, newName: String) = when {
+internal fun BlockDefinition.withManagerRenamed(oldName: String, newName: String): BlockDefinition = when {
     this is BlockDefinition.If -> copy(condition = condition.withManagerRenamed(oldName, newName))
-    propertyReference?.manager == oldName -> withPropertyReference(newName, propertyReference!!.name)
+    propertyReference?.manager == oldName -> withPropertyReference(newName, propertyReference!!.name).withValues(managerRenaming(oldName, newName))
     this is BlockDefinition.Log -> copy(message = PropertyPlaceholders.withManagerRenamed(message, oldName, newName))
-    else -> this
-}.withValues(managerRenaming(oldName, newName))
+    else -> withValues(managerRenaming(oldName, newName))
+}
 
 /**
  * [this] Block using the Property called [name] of [manager] (the type's own one, if null) instead, if it is one that
