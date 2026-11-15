@@ -72,6 +72,12 @@ internal enum class BlockNeed {
     /** The function that shows a frame of the Actor's sprite. */
     FRAME,
 
+    /**
+     * The Scene the Actor was added in, which the camera follows it only in, and stopping the camera following it once it
+     * is removed ([CameraCode]).
+     */
+    CAMERA_FOLLOW,
+
     /** What plays the Animate Blocks of the scale ([AnimateCode]). */
     SCALE_TWEEN,
 

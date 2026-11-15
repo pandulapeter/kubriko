@@ -21,7 +21,10 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.floatLi
  */
 internal object CameraBlockCode {
 
-    val FOLLOW_WITH_CAMERA = BlockCode(listOf("$SCENES_FIELD.${CameraCode.FOLLOW_FUNCTION}(this)"), needs = setOf(BlockNeed.SCENES))
+    val FOLLOW_WITH_CAMERA = BlockCode(
+        lines = listOf("$SCENES_FIELD.${CameraCode.FOLLOW_FUNCTION}(this, ${ScenesCodeGenerator.SCENE_CHANGES_WHEN_ADDED_FIELD})"),
+        needs = setOf(BlockNeed.SCENES, BlockNeed.CAMERA_FOLLOW),
+    )
 
     fun moveCamera(block: BlockDefinition.MoveCamera, scope: BlockScope) = BlockCode(
         lines = listOf("$SCENES_FIELD.${CameraCode.MOVE_FUNCTION}(${NumberValueCode.float(block.x, scope)}, ${NumberValueCode.float(block.y, scope)})"),

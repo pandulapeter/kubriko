@@ -147,12 +147,13 @@
   editor, whose game never runs, hears none. `GeneratedScenes`
   ignores a request for the Scene it is already loading, so goToScene every frame doesn't restart the load forever.
 - The camera Blocks reach `GeneratedScenes` too (`CameraCode`), rather than a Manager of their own, so they reserve no new
-  names: it follows an Actor and shakes the camera in its `onUpdate`, which returns at once while neither happens, and
-  keeps the view's aspect ratio from before a Scene fitted it (`fitsView`) and the zoom from before the first Zoom the
-  camera Block, which a Scene that doesn't fit the view, and every new Scene, give back. A new Scene also stops the
-  following and the shake, so its own settings place the camera. Blocks run on the game's thread and, in an added Event,
-  on Kubriko's, and Scenes load on a third, so every field of it is volatile. A Scene's settings may be added before the
-  last Scene's are removed, so an ending Scene unfits the view only while its settings are still the current ones.
+  names. Blocks run on the game's thread and, in an added Event, on Kubriko's, where a removed Actor also stops the camera
+  following it, so the camera's state changes only under one short lock. A following Actor passes the Scene it was added
+  in, so an old Scene's Actor still updating after a new Scene was asked for can't take the camera back. The camera stays
+  still while paused, a shake shakes around wherever something else moved the camera, and the zoom is the viewport's own,
+  kept across Scenes until another Zoom the camera Block. `GeneratedScenes` keeps the view's aspect ratio from before a
+  Scene fitted it (`fitsView`), which a Scene that doesn't fit the view gives back; a Scene's settings may be added before
+  the last Scene's are removed, so an ending Scene unfits the view only while its settings are still the current ones.
 - `GeneratedAudio` exists only while the game plays audio. It starts music on the next frame, since the music player exists only
   once the viewport is composed, and resumes it when the game is focused again, since `MusicManager` doesn't. A
   volume is a percent on the Block and a fraction in the call, left out at 100 so games using none generate what they

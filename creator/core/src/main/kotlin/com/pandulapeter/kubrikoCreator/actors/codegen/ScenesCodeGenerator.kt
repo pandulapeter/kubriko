@@ -31,6 +31,11 @@ public object ScenesCodeGenerator {
      */
     internal const val SCENE_CHANGES_FIELD = "sceneChanges"
 
+    /**
+     * The field of a generated Actor holding what [SCENE_CHANGES_FIELD] was when it was added.
+     */
+    internal const val SCENE_CHANGES_WHEN_ADDED_FIELD = "sceneChangesWhenAdded"
+
     private const val LEFT = "LEFT"
     private const val RIGHT = "RIGHT"
     private const val TOP = "TOP"
@@ -115,6 +120,7 @@ public object ScenesCodeGenerator {
         "com.pandulapeter.kubriko.logger.Logger",
         "com.pandulapeter.kubriko.manager.ActorManager",
         "com.pandulapeter.kubriko.manager.Manager",
+        "com.pandulapeter.kubriko.manager.StateManager",
         "com.pandulapeter.kubriko.manager.ViewportManager",
         "com.pandulapeter.kubriko.sceneEditor.Editable",
         "com.pandulapeter.kubriko.sceneEditor.EditableMetadata",
@@ -144,7 +150,8 @@ public object ScenesCodeGenerator {
             | * @param isInSceneEditor True in the Scene editor, which loads its Scenes itself.
             | * @param managerActors The Managers that are Actors too, which every Scene keeps.
             | */
-            |${if (countedTypes.isEmpty()) "" else ActorCountCode.OPT_IN + "\n"}class $SCENES_NAME(
+            |${ActorCountCode.OPT_IN}
+            |class $SCENES_NAME(
             |    private val firstScene: String? = null,
             |    val isInSceneEditor: Boolean = false,
             |    private val managerActors: List<Actor> = emptyList(),
@@ -152,6 +159,7 @@ public object ScenesCodeGenerator {
             |    private val actorManager by manager<ActorManager>()
             |    private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
             |    private val viewportManager by manager<ViewportManager>()
+            |    private val stateManager by manager<StateManager>()
             |    private var loading: Job? = null
             |
             |    /**
@@ -218,7 +226,6 @@ public object ScenesCodeGenerator {
             |            // The first Scene keeps what the Managers added when the game started.
             |            if (!isFirst) {
             |                $SCENE_CHANGES_FIELD++
-            |                ${CameraCode.RESET_FUNCTION}()
             |                actorManager.removeAll()
             |                actorManager.add(managerActors)
             |            }

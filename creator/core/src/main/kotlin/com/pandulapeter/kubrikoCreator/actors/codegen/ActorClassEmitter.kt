@@ -57,6 +57,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.KeyEventCode.appendHeldKey
 import com.pandulapeter.kubrikoCreator.actors.codegen.KeyEventCode.appendPairedKeyDispatches
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneBoundsCode.appendBoundsFields
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneBoundsCode.appendBoundsHandling
+import com.pandulapeter.kubrikoCreator.actors.codegen.ScenesCodeGenerator.SCENE_CHANGES_WHEN_ADDED_FIELD
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 
 /**
@@ -127,7 +128,7 @@ internal class ActorClassEmitter(
         appendCollisionMembers(definition.shape)
         features.lookups.forEach { appendLine("    $visibility lateinit var $it") }
         imports += features.lookupImports
-        if (features.watches.any { !it.isAdded }) appendSceneChangesField()
+        if (features.keepsSceneChanges) appendSceneChangesField()
         if (features.countedTypes.isNotEmpty()) appendGuardField()
         appendTimerFields(features.timers, visibility)
         appendBoundsFields(features.containment, features.firesEdgeEvent, features.firesLeftSceneEvent, isFamilyRoot = role == Role.FAMILY_ROOT)
@@ -238,7 +239,7 @@ internal class ActorClassEmitter(
         appendLine()
         appendLine("    override fun onAdded(kubriko: Kubriko) {")
         features.lookups.forEach { appendLine("        ${it.substringBefore(':')} = kubriko.get()") }
-        if (features.watches.any { !it.isAdded }) appendLine("        $SCENE_CHANGES_WHEN_ADDED_FIELD = $SCENES_FIELD.${ScenesCodeGenerator.SCENE_CHANGES_FIELD}")
+        if (features.keepsSceneChanges) appendLine("        $SCENE_CHANGES_WHEN_ADDED_FIELD = $SCENES_FIELD.${ScenesCodeGenerator.SCENE_CHANGES_FIELD}")
         if (features.countedTypes.isNotEmpty()) appendStart(name, features.countedTypes, scope)
         appendNotifications(name, features.watches.filter { it.isAdded })
         callOf(features.addedEvents)?.let { appendLine("        $it") }
@@ -246,16 +247,17 @@ internal class ActorClassEmitter(
     }
 
     /**
-     * Stops counting the Actor ([ActorCountCode]), and tells the Managers whose actorRemoved Events are about these Actors
-     * that one was removed, however it was, unless it left with its Scene, which [ScenesCodeGenerator.SCENE_CHANGES_FIELD]
-     * tells.
+     * Stops counting the Actor ([ActorCountCode]) and the camera following it ([CameraCode]), and tells the Managers whose
+     * actorRemoved Events are about these Actors that one was removed, however it was, unless it left with its Scene,
+     * which [ScenesCodeGenerator.SCENE_CHANGES_FIELD] tells.
      */
     private fun StringBuilder.appendOnRemoved(name: String) {
         val watches = features.watches.filterNot { it.isAdded }
-        if (watches.isEmpty() && features.countedTypes.isEmpty()) return
+        if (watches.isEmpty() && features.countedTypes.isEmpty() && !features.followsWithCamera) return
         appendLine()
         appendLine("    override fun onRemoved() {")
         if (features.countedTypes.isNotEmpty()) appendLine("        ${ActorCountCode.STOP_CALL}")
+        if (features.followsWithCamera) appendLine("        $SCENES_FIELD.${CameraCode.UNFOLLOW_FUNCTION}(this)")
         if (watches.isNotEmpty()) {
             appendLine("        if ($SCENE_CHANGES_WHEN_ADDED_FIELD != $SCENES_FIELD.${ScenesCodeGenerator.SCENE_CHANGES_FIELD}) return")
             appendNotifications(name, watches)
@@ -292,9 +294,9 @@ internal class ActorClassEmitter(
     private fun StringBuilder.appendSceneChangesField() {
         appendLine()
         appendLine("    /**")
-        appendLine("     * How many times the Scene had changed when the Actor was added, which tells whether it leaves with its Scene.")
+        appendLine("     * How many times the Scene had changed when the Actor was added, which tells whether it belongs to the Scene shown.")
         appendLine("     */")
-        appendLine("    private var $SCENE_CHANGES_WHEN_ADDED_FIELD = 0")
+        appendLine("    $visibility var $SCENE_CHANGES_WHEN_ADDED_FIELD = 0")
     }
 
     private fun StringBuilder.appendUpdate() {
@@ -410,7 +412,6 @@ internal class ActorClassEmitter(
         const val COLLIDABLE_IMPORT = "com.pandulapeter.kubriko.collision.Collidable"
         const val SCENE_UNIT_IMPORT = "com.pandulapeter.kubriko.types.SceneUnit"
         const val KEY_IMPORT = "androidx.compose.ui.input.key.Key"
-        const val SCENE_CHANGES_WHEN_ADDED_FIELD = "sceneChangesWhenAdded"
         val TRAIT_IMPORTS = mapOf(
             "Batched" to "com.pandulapeter.kubriko.actor.traits.Batched",
             "Dynamic" to "com.pandulapeter.kubriko.actor.traits.Dynamic",

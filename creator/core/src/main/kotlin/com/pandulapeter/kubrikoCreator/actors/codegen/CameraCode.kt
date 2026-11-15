@@ -11,53 +11,61 @@ package com.pandulapeter.kubrikoCreator.actors.codegen
 
 /**
  * What `GeneratedScenes` ([ScenesCodeGenerator]) keeps for the camera Blocks ([CameraBlockCode]): the Actor the camera
- * follows, the shake, and the zoom from before the first Zoom the camera Block, which a new Scene gets back. A new Scene
- * also stops the following and the shaking, so its own settings and Actors decide where the camera is.
+ * follows and the shake. The zoom is the viewport's own, which a Zoom the camera Block sets until another one does.
  *
- * Blocks run on the game's thread, and in an Actor's added Event on Kubriko's own, and a Scene is loaded on a third, so
- * every field is volatile. The camera moves only while it follows or shakes, and costs nothing per frame otherwise.
+ * Blocks run on the game's thread and, in an Actor's added Event, on Kubriko's, and a removed Actor stops the camera
+ * following it on Kubriko's too, so every change of the camera's state happens under one short lock. A following Actor
+ * passes the Scene it was added in, so one that is still updating after a new Scene was asked for can't take the camera
+ * back. Something else moving the camera (a Scene's settings, a Kotlin Block) moves where a shake shakes around. The
+ * camera stays still while the game is paused, and costs nothing per frame while it neither follows nor shakes.
  */
 internal object CameraCode {
     const val FOLLOW_FUNCTION = "followWithCamera"
+    const val UNFOLLOW_FUNCTION = "unfollowWithCamera"
     const val MOVE_FUNCTION = "moveCamera"
     const val SHAKE_FUNCTION = "shakeCamera"
     const val ZOOM_FUNCTION = "zoomCamera"
-    const val RESET_FUNCTION = "resetCamera"
 
     fun members() = """
             |
-            |    @Volatile
+            |    private val cameraLock = kotlin.concurrent.atomics.AtomicInt(0)
             |    private var cameraTarget: com.pandulapeter.kubriko.actor.traits.Positionable? = null
-            |
-            |    @Volatile
             |    private var shakeStrength = 0f
-            |
-            |    @Volatile
             |    private var shakeDurationInMilliseconds = 0f
-            |
-            |    @Volatile
             |    private var shakeRemainingInMilliseconds = 0f
             |
             |    /**
-            |     * How far the camera is from where it would be without the shake.
+            |     * Where the camera would be without the shake, and where the shake last put it, which tells whether something
+            |     * else moved it since.
             |     */
-            |    @Volatile
-            |    private var shakeOffsetX = 0f
+            |    private var cameraBaseX = 0f
+            |    private var cameraBaseY = 0f
+            |    private var shakenCameraX = Float.NaN
+            |    private var shakenCameraY = Float.NaN
             |
-            |    @Volatile
-            |    private var shakeOffsetY = 0f
+            |    private inline fun <T> withCameraLock(action: () -> T): T {
+            |        while (!cameraLock.compareAndSet(0, 1)) Unit
+            |        try {
+            |            return action()
+            |        } finally {
+            |            cameraLock.store(0)
+            |        }
+            |    }
             |
             |    /**
-            |     * The zoom the game had before the first Block that zoomed the camera, or NaN while none did.
+            |     * Makes the camera follow [actor] if it belongs to the Scene shown ([sceneChangesWhenAdded] is [sceneChanges]),
+            |     * until it moves to a position, follows another Actor, or [actor] is removed.
             |     */
-            |    @Volatile
-            |    private var scaleFactorBeforeZoom = Float.NaN
+            |    fun $FOLLOW_FUNCTION(actor: com.pandulapeter.kubriko.actor.traits.Positionable, sceneChangesWhenAdded: Int) {
+            |        if (isInSceneEditor) return
+            |        withCameraLock { if (sceneChangesWhenAdded == sceneChanges) cameraTarget = actor }
+            |    }
             |
             |    /**
-            |     * Makes the camera follow [actor] until it moves to a position, follows another Actor, or a new Scene starts.
+            |     * Stops the camera following [actor], which was removed, if it follows it.
             |     */
-            |    fun $FOLLOW_FUNCTION(actor: com.pandulapeter.kubriko.actor.traits.Positionable) {
-            |        if (!isInSceneEditor) cameraTarget = actor
+            |    fun $UNFOLLOW_FUNCTION(actor: com.pandulapeter.kubriko.actor.traits.Positionable) = withCameraLock {
+            |        if (cameraTarget === actor) cameraTarget = null
             |    }
             |
             |    /**
@@ -65,66 +73,76 @@ internal object CameraCode {
             |     */
             |    fun $MOVE_FUNCTION(x: Float, y: Float) {
             |        if (isInSceneEditor) return
-            |        cameraTarget = null
-            |        viewportManager.setCameraPosition(SceneOffset((x + shakeOffsetX).sceneUnit, (y + shakeOffsetY).sceneUnit))
+            |        withCameraLock {
+            |            cameraTarget = null
+            |            if (shakenCameraX.isNaN()) {
+            |                viewportManager.setCameraPosition(SceneOffset(x.sceneUnit, y.sceneUnit))
+            |            } else {
+            |                placeShakenCamera(shakenCameraX - cameraBaseX + x, shakenCameraY - cameraBaseY + y)
+            |            }
+            |            cameraBaseX = x
+            |            cameraBaseY = y
+            |        }
             |    }
             |
             |    /**
-            |     * Shakes the camera at most [strength] far, less and less for [durationInMilliseconds].
+            |     * Shakes the camera at most [strength] far, less and less for [durationInMilliseconds], starting over if it shakes.
             |     */
             |    fun $SHAKE_FUNCTION(strength: Float, durationInMilliseconds: Float) {
-            |        if (isInSceneEditor) return
-            |        shakeStrength = strength
-            |        shakeDurationInMilliseconds = durationInMilliseconds
-            |        shakeRemainingInMilliseconds = durationInMilliseconds
+            |        if (isInSceneEditor || !(strength > 0f && durationInMilliseconds > 0f)) return
+            |        withCameraLock {
+            |            if (cameraTarget == null && shakenCameraX.isNaN()) {
+            |                val position = viewportManager.cameraPosition.value
+            |                cameraBaseX = position.x.raw
+            |                cameraBaseY = position.y.raw
+            |            }
+            |            shakeStrength = strength
+            |            shakeDurationInMilliseconds = durationInMilliseconds
+            |            shakeRemainingInMilliseconds = durationInMilliseconds
+            |        }
             |    }
             |
             |    /**
-            |     * Zooms the camera to [scaleFactor] (1 for the Scene's size), keeping the zoom the game had before for the next Scene.
+            |     * Zooms the camera to [scaleFactor] (1 for the Scene's size) until another zoom.
             |     */
             |    fun $ZOOM_FUNCTION(scaleFactor: Float) {
-            |        if (isInSceneEditor || scaleFactor.isNaN() || scaleFactor <= 0f) return
-            |        if (scaleFactorBeforeZoom.isNaN()) scaleFactorBeforeZoom = viewportManager.scaleFactor.value.horizontal
-            |        viewportManager.setScaleFactor(scaleFactor)
-            |    }
-            |
-            |    private fun $RESET_FUNCTION() {
-            |        cameraTarget = null
-            |        shakeRemainingInMilliseconds = 0f
-            |        // The new Scene's settings place the camera, without the old Scene's shake.
-            |        shakeOffsetX = 0f
-            |        shakeOffsetY = 0f
-            |        val scaleFactor = scaleFactorBeforeZoom
-            |        if (!scaleFactor.isNaN()) {
-            |            scaleFactorBeforeZoom = Float.NaN
-            |            viewportManager.setScaleFactor(scaleFactor)
-            |        }
+            |        if (!isInSceneEditor && scaleFactor > 0f) viewportManager.setScaleFactor(scaleFactor)
             |    }
             |
             |    override fun onUpdate(deltaTimeInMilliseconds: Int) {
-            |        val target = cameraTarget
-            |        val isShaking = shakeRemainingInMilliseconds > 0f
-            |        if (target == null && !isShaking && shakeOffsetX == 0f && shakeOffsetY == 0f) return
-            |        var x: Float
-            |        var y: Float
-            |        if (target == null) {
-            |            val position = viewportManager.cameraPosition.value
-            |            x = position.x.raw - shakeOffsetX
-            |            y = position.y.raw - shakeOffsetY
-            |        } else {
-            |            x = target.body.position.x.raw
-            |            y = target.body.position.y.raw
+            |        if (isInSceneEditor || !stateManager.isRunning.value) return
+            |        withCameraLock {
+            |            val target = cameraTarget
+            |            if (target == null && shakenCameraX.isNaN() && shakeRemainingInMilliseconds <= 0f) return
+            |            if (target != null) {
+            |                cameraBaseX = target.body.position.x.raw
+            |                cameraBaseY = target.body.position.y.raw
+            |            } else if (!shakenCameraX.isNaN()) {
+            |                val position = viewportManager.cameraPosition.value
+            |                if (position.x.raw != shakenCameraX || position.y.raw != shakenCameraY) {
+            |                    cameraBaseX = position.x.raw
+            |                    cameraBaseY = position.y.raw
+            |                }
+            |            }
+            |            if (shakeRemainingInMilliseconds > 0f) {
+            |                shakeRemainingInMilliseconds -= deltaTimeInMilliseconds
+            |                val reach = shakeStrength * (shakeRemainingInMilliseconds / shakeDurationInMilliseconds).coerceIn(0f, 1f)
+            |                placeShakenCamera(
+            |                    cameraBaseX + (KubrikoWiring.random.nextFloat() * 2f - 1f) * reach,
+            |                    cameraBaseY + (KubrikoWiring.random.nextFloat() * 2f - 1f) * reach,
+            |                )
+            |            } else {
+            |                shakenCameraX = Float.NaN
+            |                shakenCameraY = Float.NaN
+            |                viewportManager.setCameraPosition(SceneOffset(cameraBaseX.sceneUnit, cameraBaseY.sceneUnit))
+            |            }
             |        }
-            |        if (isShaking) {
-            |            shakeRemainingInMilliseconds -= deltaTimeInMilliseconds
-            |            val reach = shakeStrength * (shakeRemainingInMilliseconds / shakeDurationInMilliseconds).coerceIn(0f, 1f)
-            |            shakeOffsetX = (KubrikoWiring.random.nextFloat() * 2f - 1f) * reach
-            |            shakeOffsetY = (KubrikoWiring.random.nextFloat() * 2f - 1f) * reach
-            |        } else {
-            |            shakeOffsetX = 0f
-            |            shakeOffsetY = 0f
-            |        }
-            |        viewportManager.setCameraPosition(SceneOffset((x + shakeOffsetX).sceneUnit, (y + shakeOffsetY).sceneUnit))
+            |    }
+            |
+            |    private fun placeShakenCamera(x: Float, y: Float) {
+            |        shakenCameraX = x
+            |        shakenCameraY = y
+            |        viewportManager.setCameraPosition(SceneOffset(x.sceneUnit, y.sceneUnit))
             |    }
     """.trimMargin()
 }

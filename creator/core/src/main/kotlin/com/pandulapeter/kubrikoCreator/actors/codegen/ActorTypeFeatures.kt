@@ -130,6 +130,18 @@ internal class ActorTypeFeatures(
     val usesNumberText = BlockNeed.NUMBER_TEXT in needs
 
     /**
+     * Whether a Block makes the camera follow the Actor, which the camera stops once the Actor is removed.
+     */
+    val followsWithCamera = BlockNeed.CAMERA_FOLLOW in needs
+
+    /**
+     * Whether the Actors keep how many times the Scene had changed when they were added: to tell the Managers watching
+     * them only about Actors that didn't leave with their Scene, and to have the camera follow only Actors of the Scene
+     * shown.
+     */
+    val keepsSceneChanges = watches.any { !it.isAdded } || followsWithCamera
+
+    /**
      * The values the Animate Blocks animate, each of which the class plays ([AnimateCode]).
      */
     val animatedTargets = AnimationTarget.entries.filter { AnimateCode.needOf(it) in needs }
@@ -175,7 +187,7 @@ internal class ActorTypeFeatures(
             BlockNeed.SCENES -> "$SCENES_FIELD: ${ScenesCodeGenerator.SCENES_NAME}"
             BlockNeed.AUDIO -> "$AUDIO_FIELD: ${AudioCodeGenerator.AUDIO_NAME}"
             BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.STEERING, BlockNeed.ANIMATION, BlockNeed.FRAME,
-            BlockNeed.SCALE_TWEEN, BlockNeed.OPACITY_TWEEN, BlockNeed.COLOR_TWEEN, BlockNeed.POSITION_TWEEN,
+            BlockNeed.CAMERA_FOLLOW, BlockNeed.SCALE_TWEEN, BlockNeed.OPACITY_TWEEN, BlockNeed.COLOR_TWEEN, BlockNeed.POSITION_TWEEN,
             -> null
         }
 
@@ -185,7 +197,7 @@ internal class ActorTypeFeatures(
             BlockNeed.KEYBOARD_INPUT_MANAGER -> "com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager"
             BlockNeed.STATE_MANAGER -> STATE_MANAGER_IMPORT
             BlockNeed.SCENES, BlockNeed.AUDIO, BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.STEERING, BlockNeed.ANIMATION, BlockNeed.FRAME,
-            BlockNeed.SCALE_TWEEN, BlockNeed.OPACITY_TWEEN, BlockNeed.COLOR_TWEEN, BlockNeed.POSITION_TWEEN,
+            BlockNeed.CAMERA_FOLLOW, BlockNeed.SCALE_TWEEN, BlockNeed.OPACITY_TWEEN, BlockNeed.COLOR_TWEEN, BlockNeed.POSITION_TWEEN,
             -> null
         }
     }

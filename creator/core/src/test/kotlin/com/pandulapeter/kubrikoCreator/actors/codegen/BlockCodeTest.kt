@@ -29,6 +29,7 @@ import com.pandulapeter.kubrikoCreator.actors.SoundValue
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.ACTOR_MANAGER
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.AUDIO
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.BOUNCE_OFF
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.CAMERA_FOLLOW
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.COLOR_TWEEN
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.DIRECTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.KEYBOARD_INPUT_MANAGER
@@ -93,7 +94,7 @@ class BlockCodeTest {
             BlockKind.PLAY_SOUND to Expected(),
             BlockKind.PLAY_MUSIC to Expected(),
             BlockKind.STOP_MUSIC to Expected(setOf(AUDIO)),
-            BlockKind.FOLLOW_WITH_CAMERA to Expected(setOf(SCENES)),
+            BlockKind.FOLLOW_WITH_CAMERA to Expected(setOf(SCENES, CAMERA_FOLLOW)),
             BlockKind.MOVE_CAMERA to Expected(setOf(SCENES)),
             BlockKind.SHAKE_CAMERA to Expected(setOf(SCENES)),
             BlockKind.ZOOM_CAMERA to Expected(setOf(SCENES)),

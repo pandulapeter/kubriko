@@ -36,7 +36,7 @@ class ScenesCodeGeneratorTest {
     @Test
     fun onlyLaterScenesRemoveTheActorsBeforeThemCountingTheChangeAndManagersThatAreActorsStay() {
         assertContains(code, "    @Volatile\n    var sceneChanges = 0\n        private set\n")
-        assertContains(code, "if (!isFirst) {\n                sceneChanges++\n                resetCamera()\n                actorManager.removeAll()\n                actorManager.add(managerActors)\n            }\n            actorManager.add(actors)\n")
+        assertContains(code, "if (!isFirst) {\n                sceneChanges++\n                actorManager.removeAll()\n                actorManager.add(managerActors)\n            }\n            actorManager.add(actors)\n")
         assertContains(code, "if (!isInSceneEditor && firstScene != null) load(firstScene, isFirst = true)")
         assertContains(code, "if (!isInSceneEditor) load(scene, isFirst = false)")
     }
