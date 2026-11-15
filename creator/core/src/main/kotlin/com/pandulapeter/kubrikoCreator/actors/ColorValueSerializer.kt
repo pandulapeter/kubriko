@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
-import com.pandulapeter.kubrikoCreator.foundation.ColorHex
 import com.pandulapeter.kubrikoCreator.schema.SummarizedSchema
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
@@ -30,11 +29,10 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.longOrNull
 
 /**
- * Reads and writes a [ColorValue] in JSON: a fixed color as a bare `"#RRGGBB"` (or the plain number the earliest versions
- * wrote), a Property's as an object whose `type` is `property`. Its descriptor is a sealed one whose first variant is that
+ * Reads and writes a [ColorValue] in JSON: a fixed color as [HexColorSerializer] writes and reads one, a Property's as an
+ * object whose `type` is `property`. Its descriptor is a sealed one whose first variant is that
  * bare color, which the tools' schemas and the persisted shape read like any other sealed type.
  */
 @OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class)
@@ -60,7 +58,7 @@ internal object ColorValueSerializer : KSerializer<ColorValue> {
         val json = (encoder as? JsonEncoder)?.json ?: throw SerializationException("A color value is only written as JSON.")
         encoder.encodeJsonElement(
             when (value) {
-                is ColorValue.Fixed -> JsonPrimitive(ColorHex.format(value.argb))
+                is ColorValue.Fixed -> json.encodeToJsonElement(HexColorSerializer, value.argb)
                 is ColorValue.Property -> JsonObject(mapOf(TYPE_KEY to JsonPrimitive(PROPERTY_NAME)) + json.encodeToJsonElement(ColorValue.Property.serializer(), value).jsonObject)
             },
         )
@@ -69,11 +67,7 @@ internal object ColorValueSerializer : KSerializer<ColorValue> {
     override fun deserialize(decoder: Decoder): ColorValue {
         val json = (decoder as? JsonDecoder)?.json ?: throw SerializationException("A color value is only read from JSON.")
         return when (val element = decoder.decodeJsonElement()) {
-            is JsonPrimitive -> ColorValue.Fixed(
-                element.takeUnless { it.isString }?.longOrNull
-                    ?: element.contentOrNull?.takeIf { it.startsWith("#") }?.let(ColorHex::parse)
-                    ?: throw SerializationException("$element isn't a color: it is #RRGGBB, or an object of the type $PROPERTY_NAME."),
-            )
+            is JsonPrimitive -> ColorValue.Fixed(json.decodeFromJsonElement(HexColorSerializer, element))
             is JsonObject -> when (val type = (element[TYPE_KEY] as? JsonPrimitive)?.contentOrNull) {
                 PROPERTY_NAME -> json.decodeFromJsonElement(ColorValue.Property.serializer(), JsonObject(element - TYPE_KEY))
                 null -> throw SerializationException("A color value written as an object needs a type: $PROPERTY_NAME.")
