@@ -279,6 +279,12 @@
     <string name="color_value_kind">Kind of color</string>
     <string name="color_value_fixed">A color</string>
     <string name="color_value_property">A color Property's value</string>
+    <string name="text_value_kind">Kind of text</string>
+    <string name="text_value_fixed">A text</string>
+    <string name="text_value_property">A text Property's value</string>
+    <string name="toggle_value_kind">Kind of on or off</string>
+    <string name="toggle_value_fixed">On or off</string>
+    <string name="toggle_value_property">A toggle Property's value</string>
     <string name="number_value_fixed">A number</string>
     <string name="number_value_random">A random number</string>
     <string name="number_value_random_whole">A random whole number</string>
@@ -376,6 +382,7 @@
     <string name="condition_comparison_greater_or_equal">is at least</string>
     <string name="condition_comparison_greater">is more than</string>
     <string name="condition_is">is</string>
+    <string name="condition_is_as">is as</string>
     <string name="condition_is_not">isn't</string>
     <string name="condition_is_on">is on</string>
     <string name="condition_is_off">is off</string>

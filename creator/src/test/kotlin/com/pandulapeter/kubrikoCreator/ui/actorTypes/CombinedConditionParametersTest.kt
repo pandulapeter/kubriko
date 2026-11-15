@@ -24,6 +24,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.actors.TextValue
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
@@ -57,7 +58,7 @@ class CombinedConditionParametersTest {
     fun theFieldBeingTypedInGoesWithItsConditionRatherThanTypingIntoTheNextOne() = uiTest(width = 900, height = 400) {
         val texts = BlockScope("Ball", BlockTypeKind.ACTOR, listOf(PropertyDefinition.Text("title")))
         var condition by mutableStateOf<ConditionDefinition>(
-            ConditionDefinition.Combined(listOf(ConditionDefinition.Text("title", value = "first"), ConditionDefinition.Text("title", value = "second"))),
+            ConditionDefinition.Combined(listOf(ConditionDefinition.Text("title", value = TextValue.Fixed("first")), ConditionDefinition.Text("title", value = TextValue.Fixed("second")))),
         )
         showing { ConditionParameters(condition, texts) { condition = it } }
         onNodeWithText("first").performTextReplacement("firstly")
@@ -65,7 +66,7 @@ class CombinedConditionParametersTest {
         onNodeWithText("firstly").assertIsFocused()
         onAllNodesWithContentDescription("Remove this condition")[0].performClick()
         waitForIdle()
-        assertEquals(ConditionDefinition.Combined(listOf(ConditionDefinition.Text("title", value = "second"))), condition)
+        assertEquals(ConditionDefinition.Combined(listOf(ConditionDefinition.Text("title", value = TextValue.Fixed("second")))), condition)
         onNodeWithText("second").assertIsNotFocused()
     }
 }

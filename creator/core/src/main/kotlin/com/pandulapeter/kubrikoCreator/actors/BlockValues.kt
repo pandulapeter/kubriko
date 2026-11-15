@@ -20,6 +20,10 @@ public interface ValueTransform {
     public fun color(value: ColorValue): ColorValue = value
 
     public fun actorType(value: ActorTypeValue): ActorTypeValue = value
+
+    public fun text(value: TextValue): TextValue = value
+
+    public fun toggle(value: ToggleValue): ToggleValue = value
 }
 
 /**
@@ -33,6 +37,8 @@ public fun BlockDefinition.withValues(transform: ValueTransform): BlockDefinitio
     is BlockDefinition.JumpTo -> copy(x = transform.number(x), y = transform.number(y))
     is BlockDefinition.SetNumber -> copy(value = transform.number(value))
     is BlockDefinition.ChangeNumber -> copy(by = transform.number(by))
+    is BlockDefinition.SetText -> copy(value = transform.text(value))
+    is BlockDefinition.SetToggle -> copy(value = transform.toggle(value))
     is BlockDefinition.SetColorProperty -> copy(value = transform.color(value))
     is BlockDefinition.AddActor -> copy(actorType = transform.actorType(actorType), x = transform.number(x), y = transform.number(y))
     is BlockDefinition.MoveTowardsNearest -> copy(actorType = transform.actorType(actorType), speed = transform.number(speed))
@@ -46,8 +52,7 @@ public fun BlockDefinition.withValues(transform: ValueTransform): BlockDefinitio
     is BlockDefinition.Repeat -> copy(times = transform.number(times))
     is BlockDefinition.If -> copy(condition = condition.withValues(transform))
     BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf,
-    BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther, is BlockDefinition.SetText, is BlockDefinition.SetToggle,
-    is BlockDefinition.StopTimer, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
+    BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
     is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, BlockDefinition.Else,
     BlockDefinition.End, is BlockDefinition.Log, is BlockDefinition.Kotlin,
     -> this
@@ -62,8 +67,10 @@ public fun ConditionDefinition.withValues(transform: ValueTransform): ConditionD
     is ConditionDefinition.Velocity -> copy(value = transform.number(value))
     is ConditionDefinition.ActorCount -> copy(value = transform.number(value))
     is ConditionDefinition.Chance -> copy(percent = transform.number(percent))
+    is ConditionDefinition.Text -> copy(value = transform.text(value))
+    is ConditionDefinition.Toggle -> copy(isOn = transform.toggle(isOn))
     is ConditionDefinition.Combined -> copy(conditions = conditions.map { it.withValues(transform) })
-    is ConditionDefinition.Text, is ConditionDefinition.Toggle, is ConditionDefinition.KeyHeld, is ConditionDefinition.Paused -> this
+    is ConditionDefinition.KeyHeld, is ConditionDefinition.Paused -> this
 }
 
 private fun AnimatedValue.withValues(transform: ValueTransform) = when (this) {
@@ -80,12 +87,25 @@ private class ValueCollector : ValueTransform {
     val numbers = ArrayList<NumberValue>()
     val colors = ArrayList<ColorValue>()
     val actorTypes = ArrayList<ActorTypeValue>()
+    val texts = ArrayList<TextValue>()
+    val toggles = ArrayList<ToggleValue>()
 
     override fun number(value: NumberValue) = value.also(numbers::add)
 
     override fun color(value: ColorValue) = value.also(colors::add)
 
     override fun actorType(value: ActorTypeValue) = value.also(actorTypes::add)
+
+    override fun text(value: TextValue) = value.also(texts::add)
+
+    override fun toggle(value: ToggleValue) = value.also(toggles::add)
+
+    /**
+     * The Properties the values read, of every kind, in order by kind.
+     */
+    val propertyReferences: List<PropertyReference>
+        get() = numbers.mapNotNull { it.propertyReference } + colors.mapNotNull { it.propertyReference } + actorTypes.mapNotNull { it.propertyReference } +
+            texts.mapNotNull { it.propertyReference } + toggles.mapNotNull { it.propertyReference }
 }
 
 private fun BlockDefinition.collectedValues() = ValueCollector().also { withValues(it) }
@@ -151,10 +171,11 @@ public val BlockDefinition.numberPropertyReferences: List<PropertyReference>
     get() = numberValues.mapNotNull { it.propertyReference }
 
 /**
- * The Properties [this] condition reads as numbers ([NumberValue.Property]), with or without a name chosen yet.
+ * The Properties [this] condition, or a condition it combines, reads as values of any kind, with or without a name chosen
+ * yet: not those it checks ([propertyReferences]).
  */
-public val ConditionDefinition.numberPropertyReferences: List<PropertyReference>
-    get() = numberValues.mapNotNull { it.propertyReference }
+public val ConditionDefinition.valuePropertyReferences: List<PropertyReference>
+    get() = ValueCollector().also { withValues(it) }.propertyReferences
 
 /**
  * The color Properties [this] Block reads as colors ([ColorValue.Property]), with or without a name chosen yet.
@@ -166,9 +187,7 @@ public val BlockDefinition.colorPropertyReferences: List<PropertyReference>
  * The Properties [this] Block reads as values of any kind, with or without a name chosen yet.
  */
 public val BlockDefinition.valuePropertyReferences: List<PropertyReference>
-    get() = collectedValues().let { values ->
-        values.numbers.mapNotNull { it.propertyReference } + values.colors.mapNotNull { it.propertyReference } + values.actorTypes.mapNotNull { it.propertyReference }
-    }
+    get() = collectedValues().propertyReferences
 
 /**
  * What every value a Block or condition takes becomes once the Property [oldName] of [manager] (the type's own one, if
@@ -180,6 +199,10 @@ internal fun propertyRenaming(oldName: String, newName: String, manager: String?
     override fun color(value: ColorValue) = value.withPropertyRenamed(oldName, newName, manager)
 
     override fun actorType(value: ActorTypeValue) = value.withPropertyRenamed(oldName, newName, manager)
+
+    override fun text(value: TextValue) = value.withPropertyRenamed(oldName, newName, manager)
+
+    override fun toggle(value: ToggleValue) = value.withPropertyRenamed(oldName, newName, manager)
 }
 
 /**
@@ -191,4 +214,8 @@ internal fun managerRenaming(oldName: String, newName: String): ValueTransform =
     override fun color(value: ColorValue) = value.withManagerRenamed(oldName, newName)
 
     override fun actorType(value: ActorTypeValue) = value.withManagerRenamed(oldName, newName)
+
+    override fun text(value: TextValue) = value.withManagerRenamed(oldName, newName)
+
+    override fun toggle(value: ToggleValue) = value.withManagerRenamed(oldName, newName)
 }

@@ -48,8 +48,8 @@ public object EveryBlockTypes {
         BlockDefinition.Kotlin(code = "val speed = velocity.x\nif (speed > 0f.sceneUnit) velocity = SceneOffset.Zero"),
         BlockDefinition.SetNumber(property = "score", value = NumberValue.Fixed(-1f)),
         BlockDefinition.ChangeNumber(property = "score", by = NumberValue.Fixed(0.5f)),
-        BlockDefinition.SetText(property = "title", value = "Game \"over\""),
-        BlockDefinition.SetToggle(property = "isShielded", value = false),
+        BlockDefinition.SetText(property = "title", value = TextValue.Fixed("Game \"over\"")),
+        BlockDefinition.SetToggle(property = "isShielded", value = ToggleValue.Fixed(false)),
         BlockDefinition.SetNumber(),
         BlockDefinition.ChangeNumber(property = "missing"),
         BlockDefinition.Log(message = "{title}: {score} ({isShielded}) {missing}"),
@@ -67,7 +67,7 @@ public object EveryBlockTypes {
         BlockDefinition.End,
         BlockDefinition.If(ConditionDefinition.Number("score", Comparison.LESS_OR_EQUAL, NumberValue.Fixed(3f))),
         BlockDefinition.Repeat(times = NumberValue.Fixed(2f)),
-        BlockDefinition.If(ConditionDefinition.Text("title", "Say \"\$hi\"", isEqual = false)),
+        BlockDefinition.If(ConditionDefinition.Text("title", TextValue.Fixed("Say \"\$hi\""), isEqual = false)),
         BlockDefinition.If(ConditionDefinition.Toggle("isShielded")),
         BlockDefinition.If(ConditionDefinition.KeyHeld(KeyChoice.SPACE, isHeld = false)),
         BlockDefinition.If(ConditionDefinition.Velocity(Axis.VERTICAL, Comparison.NOT_EQUAL, NumberValue.Fixed(-1.5f))),
@@ -80,7 +80,7 @@ public object EveryBlockTypes {
         BlockDefinition.RemoveSelf,
         BlockDefinition.End,
         BlockDefinition.ChangeNumber(property = "score", by = NumberValue.Fixed(2f), manager = "EveryManager"),
-        BlockDefinition.SetText(property = "title", value = "Hi", manager = "EveryManager"),
+        BlockDefinition.SetText(property = "title", value = TextValue.Fixed("Hi"), manager = "EveryManager"),
         BlockDefinition.SetToggle(property = "isShielded", manager = "EveryManager"),
         BlockDefinition.SetNumber(property = "score", manager = "Missing"),
         BlockDefinition.SetNumber(manager = "EveryManager"),
@@ -105,7 +105,7 @@ public object EveryBlockTypes {
         BlockDefinition.StopMusic,
         BlockDefinition.SetFrame(frame = NumberValue.Fixed(2f)),
         BlockDefinition.SetAnimation(speed = NumberValue.Fixed(-0.5f), isLooping = false),
-    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks + steeringBlocks + actorCountBlocks + colorPropertyBlocks + actorTypeValueBlocks + combinedConditionBlocks
+    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks + steeringBlocks + actorCountBlocks + colorPropertyBlocks + actorTypeValueBlocks + combinedConditionBlocks + textAndToggleValueBlocks
 
     /**
      * Blocks taking random numbers and Properties' values, which format version 5 added.
@@ -185,6 +185,26 @@ public object EveryBlockTypes {
             BlockDefinition.MoveTowardsNearest(ActorTypeValue.Property("enemyType"), speed = NumberValue.Property("score")),
             BlockDefinition.MoveTowardsNearest(ActorTypeValue.Property()),
         )
+
+    /**
+     * Blocks and conditions taking text and toggle Properties' values, which format version 18 added: their own and a
+     * Manager type's, and one that doesn't exist.
+     */
+    val textAndToggleValueBlocks: List<BlockDefinition>
+        get() = listOf(
+            BlockDefinition.SetText("title", TextValue.Property("title", manager = "EveryManager")),
+            BlockDefinition.SetToggle("isShielded", ToggleValue.Property("isShielded", manager = "EveryManager")),
+            BlockDefinition.SetText("title", TextValue.Property("missing")),
+            BlockDefinition.If(ConditionDefinition.Text("title", TextValue.Property("title", manager = "EveryManager"))),
+            BlockDefinition.If(ConditionDefinition.Toggle("isShielded", ToggleValue.Property("isShielded", manager = "EveryManager"))),
+            BlockDefinition.End,
+            BlockDefinition.End,
+        )
+
+    /**
+     * A text shown while a toggle Property is as another one, which format version 18 added.
+     */
+    val textAndToggleValueText = ScreenTextDefinition("Alike", shownWhen = ConditionDefinition.Toggle("isShielded", ToggleValue.Property("isShielded", manager = "EveryManager")))
 
     /**
      * Blocks setting and reading color Properties, which format version 14 added.
@@ -338,7 +358,7 @@ public object EveryBlockTypes {
             parent = "EveryChild",
             sprite = "drawable/every-block.png",
             properties = listOf(PropertyDefinition.Toggle("isLast")),
-            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.RunParentEvent, BlockDefinition.Stop, BlockDefinition.SetToggle("isLast", value = true)))),
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.RunParentEvent, BlockDefinition.Stop, BlockDefinition.SetToggle("isLast", value = ToggleValue.Fixed(true))))),
         ),
     )
 
@@ -348,10 +368,10 @@ public object EveryBlockTypes {
      */
     val textOptionTexts = TextFont.entries.map { ScreenTextDefinition("{title}", ScreenPosition.BOTTOM, font = it) } + listOf(
         ScreenTextDefinition("Bold", ScreenPosition.CENTER, isBold = true),
-        ScreenTextDefinition("Both", ScreenPosition.CENTER, isBold = true, isItalic = true, shownWhen = ConditionDefinition.Toggle("isShielded", isOn = false)),
+        ScreenTextDefinition("Both", ScreenPosition.CENTER, isBold = true, isItalic = true, shownWhen = ConditionDefinition.Toggle("isShielded", isOn = ToggleValue.Fixed(false))),
         ScreenTextDefinition("High", ScreenPosition.TOP_RIGHT, isItalic = true, shownWhen = ConditionDefinition.Number("score", Comparison.GREATER, NumberValue.Property("score", manager = "EveryManager"))),
         ScreenTextDefinition("Low", ScreenPosition.TOP_RIGHT, shownWhen = ConditionDefinition.Number("score", Comparison.LESS_OR_EQUAL, NumberValue.Fixed(-1.5f), manager = "EveryManager")),
-        ScreenTextDefinition("Hi", shownWhen = ConditionDefinition.Text("title", "\"\$hi\"", isEqual = false)),
+        ScreenTextDefinition("Hi", shownWhen = ConditionDefinition.Text("title", TextValue.Fixed("\"\$hi\""), isEqual = false)),
         ScreenTextDefinition("Gone", ScreenPosition.RIGHT, shownWhen = ConditionDefinition.Toggle("missing")),
     )
 
@@ -369,7 +389,7 @@ public object EveryBlockTypes {
         name = "Hud",
         properties = properties,
         events = everyEvent(everyManagerBlock),
-        texts = listOf(ScreenTextDefinition("{EveryManager.score} / {score}"), ScreenTextDefinition()) + textOptionTexts + combinedConditionText,
+        texts = listOf(ScreenTextDefinition("{EveryManager.score} / {score}"), ScreenTextDefinition()) + textOptionTexts + combinedConditionText + textAndToggleValueText,
         kotlinUi = """
             import androidx.compose.foundation.layout.Column
             import androidx.compose.foundation.layout.windowInsetsPadding

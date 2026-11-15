@@ -39,7 +39,6 @@ import com.pandulapeter.kubrikoCreator.actors.areEdgesAlong
 import com.pandulapeter.kubrikoCreator.actors.fixedArgb
 import com.pandulapeter.kubrikoCreator.actors.isFinite
 import com.pandulapeter.kubrikoCreator.actors.leaves
-import com.pandulapeter.kubrikoCreator.actors.numberPropertyReferences
 import com.pandulapeter.kubrikoCreator.actors.numberValues
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.propertyReferences
@@ -335,7 +334,7 @@ internal fun validateText(text: ScreenTextDefinition, scope: BlockScope) = when 
     !text.size.isFinite() || text.size <= 0f -> Rejection(CommandProblem.TEXT_SIZE_INVALID)
     text.shownWhen?.let { ScreenTextDefinition.isShownWhenAllowed(it) && it.numberValues.all { value -> value.isFinite } } == false -> Rejection(CommandProblem.TEXT_CONDITION_NOT_ALLOWED)
     else -> text.shownWhen?.let { condition ->
-        (condition.propertyReferences + condition.numberPropertyReferences).firstNotNullOfOrNull { reference -> validatePropertyReference(reference, scope) }
+        (condition.propertyReferences + condition.valuePropertyReferences).firstNotNullOfOrNull { reference -> validatePropertyReference(reference, scope) }
     }
 }
 

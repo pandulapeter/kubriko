@@ -98,7 +98,7 @@ class CloseMatchesTest {
         )
         assertEquals(
             Rejection(PlacementProblem.TEXT_PROPERTY_OF_OTHER_KIND, "speed", "Paddle"),
-            validateBlock(BlockDefinition.SetText("speed", ""), EventType.EVERY_FRAME, scope),
+            validateBlock(BlockDefinition.SetText("speed"), EventType.EVERY_FRAME, scope),
         )
         assertEquals(
             Rejection(LookupProblem.SCENE_MISSING_SIMILAR, "first", "levels/first"),

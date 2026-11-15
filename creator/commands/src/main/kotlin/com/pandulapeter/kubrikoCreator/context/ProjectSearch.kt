@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ResourceKind
+import com.pandulapeter.kubrikoCreator.actors.TextValue
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.resources.knownResourcePaths
 import com.pandulapeter.kubrikoCreator.foundation.NameMatching
@@ -83,7 +84,7 @@ internal object ProjectSearch {
                     val place = UsagePlace.InModel(RelationPlace.Type(type.name, eventIndex, blockIndex))
                     when (block) {
                         is BlockDefinition.Log -> addLines(block.message, query, place, SearchHit.Kind.BLOCK_TEXT)
-                        is BlockDefinition.SetText -> addLines(block.value, query, place, SearchHit.Kind.BLOCK_TEXT)
+                        is BlockDefinition.SetText -> (block.value as? TextValue.Fixed)?.let { addLines(it.text, query, place, SearchHit.Kind.BLOCK_TEXT) }
                         is BlockDefinition.Kotlin -> addLines(block.code, query, place, SearchHit.Kind.KOTLIN, isNumbered = true)
                         else -> Unit
                     }

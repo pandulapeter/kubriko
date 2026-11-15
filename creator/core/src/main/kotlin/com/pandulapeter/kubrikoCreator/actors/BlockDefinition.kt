@@ -137,8 +137,8 @@ public sealed interface BlockDefinition {
     public data class SetText(
         @Description(PROPERTY_DESCRIPTION)
         @SerialName("property") val property: String = "",
-        @Description("The new text.")
-        @SerialName("value") val value: String = "",
+        @Description("The new text, or a property text value to copy another text Property.")
+        @SerialName("value") val value: TextValue = TextValue.Fixed(""),
         @Description(MANAGER_DESCRIPTION)
         @SerialName("manager") val manager: String? = null,
     ) : BlockDefinition
@@ -149,8 +149,8 @@ public sealed interface BlockDefinition {
     public data class SetToggle(
         @Description(PROPERTY_DESCRIPTION)
         @SerialName("property") val property: String = "",
-        @Description("Whether it is on.")
-        @SerialName("value") val value: Boolean = true,
+        @Description("Whether it is on, or a property toggle value to copy another toggle Property.")
+        @SerialName("value") val value: ToggleValue = ToggleValue.Fixed(true),
         @Description(MANAGER_DESCRIPTION)
         @SerialName("manager") val manager: String? = null,
     ) : BlockDefinition

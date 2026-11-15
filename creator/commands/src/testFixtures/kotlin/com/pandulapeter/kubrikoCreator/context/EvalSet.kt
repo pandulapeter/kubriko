@@ -22,6 +22,7 @@ import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
 import com.pandulapeter.kubrikoCreator.actors.TextFont
+import com.pandulapeter.kubrikoCreator.actors.ToggleValue
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.scenes.ManagerSceneValues
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
@@ -98,7 +99,7 @@ public object EvalSet {
                 texts.any { text ->
                     val shownWhen = text.shownWhen as? ConditionDefinition.Toggle
                     text.position == ScreenPosition.CENTER && text.font == TextFont.SERIF && text.isBold &&
-                        shownWhen != null && shownWhen.isOn && shownWhen.property in toggles && shownWhen.manager in setOf(null, "Game")
+                        shownWhen != null && shownWhen.isOn == ToggleValue.Fixed(true) && shownWhen.property in toggles && shownWhen.manager in setOf(null, "Game")
                 },
                 "No bold serif Game over text in the middle shows while a toggle of Game is on: $texts",
             )

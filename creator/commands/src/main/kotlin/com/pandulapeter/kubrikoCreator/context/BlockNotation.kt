@@ -24,6 +24,8 @@ import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.SceneEdge
 import com.pandulapeter.kubrikoCreator.actors.SteeringKeys
+import com.pandulapeter.kubrikoCreator.actors.TextValue
+import com.pandulapeter.kubrikoCreator.actors.ToggleValue
 import com.pandulapeter.kubrikoCreator.actors.readsEdges
 import com.pandulapeter.kubrikoCreator.foundation.ColorHex
 
@@ -87,7 +89,10 @@ internal object BlockNotation {
         is BlockDefinition.SetNumber -> "Set ${property(block.property, block.manager)} to ${value(block.value)}"
         is BlockDefinition.ChangeNumber -> "Change ${property(block.property, block.manager)} by ${value(block.by)}"
         is BlockDefinition.SetText -> "Set ${property(block.property, block.manager)} to ${text(block.value)}"
-        is BlockDefinition.SetToggle -> "Turn ${property(block.property, block.manager)} ${if (block.value) "on" else "off"}"
+        is BlockDefinition.SetToggle -> when (val value = block.value) {
+            is ToggleValue.Fixed -> "Turn ${property(block.property, block.manager)} ${if (value.isOn) "on" else "off"}"
+            is ToggleValue.Property -> "Turn ${property(block.property, block.manager)} on or off as ${property(value.property, value.manager)} is"
+        }
         is BlockDefinition.SetColorProperty -> "Set ${property(block.property, block.manager)} to ${color(block.value)}"
         is BlockDefinition.AddActor -> "Add an Actor of ${actorType(block.actorType)} at ${point(block.x, block.y)} " + when {
             !block.isRelative -> "from the center"
@@ -146,7 +151,10 @@ internal object BlockNotation {
     fun of(condition: ConditionDefinition): String = when (condition) {
         is ConditionDefinition.Number -> "${property(condition.property, condition.manager)} ${of(condition.comparison)} ${value(condition.value)}"
         is ConditionDefinition.Text -> "${property(condition.property, condition.manager)} ${if (condition.isEqual) "is" else "isn't"} ${text(condition.value)}"
-        is ConditionDefinition.Toggle -> "${property(condition.property, condition.manager)} ${if (condition.isOn) "is on" else "is off"}"
+        is ConditionDefinition.Toggle -> when (val isOn = condition.isOn) {
+            is ToggleValue.Fixed -> "${property(condition.property, condition.manager)} ${if (isOn.isOn) "is on" else "is off"}"
+            is ToggleValue.Property -> "${property(condition.property, condition.manager)} is on or off as ${property(isOn.property, isOn.manager)} is"
+        }
         is ConditionDefinition.KeyHeld -> "${condition.key.composeKeyName} ${if (condition.isHeld) "is held" else "isn't held"}"
         is ConditionDefinition.Velocity -> "the ${if (condition.axis == Axis.HORIZONTAL) "horizontal" else "vertical"} velocity ${of(condition.comparison)} ${value(condition.value)}"
         is ConditionDefinition.ActorCount -> "the number of Actors of ${condition.actorType.ifEmpty { NONE }} ${of(condition.comparison)} ${value(condition.value)}"
@@ -208,6 +216,14 @@ internal object BlockNotation {
     private fun property(name: String, manager: String?) = name(name) + (manager?.let { " of $it" } ?: "")
 
     private fun name(value: String) = value.ifEmpty { NONE }
+
+    /**
+     * A text a Block or a condition takes: `"Game over"`, or `title of Game`.
+     */
+    private fun text(value: TextValue) = when (value) {
+        is TextValue.Fixed -> text(value.text)
+        is TextValue.Property -> property(value.property, value.manager)
+    }
 
     private fun text(value: String) = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n") + "\""
 

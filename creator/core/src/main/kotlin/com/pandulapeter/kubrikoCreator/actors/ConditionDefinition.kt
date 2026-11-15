@@ -43,8 +43,8 @@ public sealed interface ConditionDefinition {
     public data class Text(
         @Description("The name of one of the text Properties of the type itself, or of the Manager type in manager.")
         @SerialName("property") val property: String = "",
-        @Description("The text it is compared with.")
-        @SerialName("value") val value: String = "",
+        @Description("The text it is compared with, or a property text value to compare it with another text Property.")
+        @SerialName("value") val value: TextValue = TextValue.Fixed(""),
         @Description("True to check that it is the text, false to check that it isn't.")
         @SerialName("isEqual") val isEqual: Boolean = true,
         @Description(MANAGER_DESCRIPTION)
@@ -57,8 +57,8 @@ public sealed interface ConditionDefinition {
     public data class Toggle(
         @Description("The name of one of the toggle Properties of the type itself, or of the Manager type in manager.")
         @SerialName("property") val property: String = "",
-        @Description("True to check that it is on, false to check that it is off.")
-        @SerialName("isOn") val isOn: Boolean = true,
+        @Description("True to check that it is on, false to check that it is off, or a property toggle value to check that both are alike.")
+        @SerialName("isOn") val isOn: ToggleValue = ToggleValue.Fixed(true),
         @Description(MANAGER_DESCRIPTION)
         @SerialName("manager") val manager: String? = null,
     ) : ConditionDefinition

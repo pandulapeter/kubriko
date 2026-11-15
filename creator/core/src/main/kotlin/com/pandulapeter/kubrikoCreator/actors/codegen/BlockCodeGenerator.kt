@@ -144,8 +144,8 @@ public object BlockCodeGenerator {
         BlockDefinition.RemoveOther -> BlockCode(listOf("other.$REMOVED_FIELD = true", "actorManager.remove(other)"), needs = setOf(BlockNeed.ACTOR_MANAGER))
         is BlockDefinition.SetNumber -> propertyCode(block, scope) { "$it = ${NumberValueCode.float(block.value, scope)}" }
         is BlockDefinition.ChangeNumber -> propertyCode(block, scope) { "$it += ${NumberValueCode.float(block.by, scope)}" }
-        is BlockDefinition.SetText -> propertyCode(block, scope) { "$it = ${stringLiteral(block.value)}" }
-        is BlockDefinition.SetToggle -> propertyCode(block, scope) { "$it = ${block.value}" }
+        is BlockDefinition.SetText -> propertyCode(block, scope) { "$it = ${TextAndToggleValueCode.text(block.value, scope)}" }
+        is BlockDefinition.SetToggle -> propertyCode(block, scope) { "$it = ${TextAndToggleValueCode.toggle(block.value, scope)}" }
         is BlockDefinition.SetColorProperty -> propertyCode(block, scope) { "$it = ${ColorValueCode.color(block.value, scope)}" }
         is BlockDefinition.AddActor -> addActorCode(block, scope)
         is BlockDefinition.MoveTowardsNearest -> moveTowardsNearestCode(block, scope)

@@ -26,7 +26,9 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.actors.TextValue
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
+import com.pandulapeter.kubrikoCreator.actors.ToggleValue
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -556,8 +558,8 @@ class ActorTypeCodeGeneratorTest {
         fun lines(block: BlockDefinition) = BlockCodeGenerator.blockCode(block, EventType.EVERY_FRAME, BlockScope("Player", properties = properties)).lines
         assertEquals(listOf("score = 10f"), lines(BlockDefinition.SetNumber("score", NumberValue.Fixed(10f))))
         assertEquals(listOf("score += -1.5f"), lines(BlockDefinition.ChangeNumber("score", NumberValue.Fixed(-1.5f))))
-        assertEquals(listOf("title = \"Game \\\"over\\\"\""), lines(BlockDefinition.SetText("title", "Game \"over\"")))
-        assertEquals(listOf("isShielded = false"), lines(BlockDefinition.SetToggle("isShielded", false)))
+        assertEquals(listOf("title = \"Game \\\"over\\\"\""), lines(BlockDefinition.SetText("title", TextValue.Fixed("Game \"over\""))))
+        assertEquals(listOf("isShielded = false"), lines(BlockDefinition.SetToggle("isShielded", ToggleValue.Fixed(false))))
         val comment = listOf("// Choose a Property for this Block.")
         assertEquals(comment, lines(BlockDefinition.SetNumber()))
         assertEquals(comment, lines(BlockDefinition.ChangeNumber("lives")))
@@ -628,8 +630,8 @@ class ActorTypeCodeGeneratorTest {
         val properties = listOf(PropertyDefinition.Number("score"), PropertyDefinition.Text("title"), PropertyDefinition.Toggle("isShielded"))
         fun line(condition: ConditionDefinition) = BlockCodeGenerator.blockCode(BlockDefinition.If(condition), EventType.EVERY_FRAME, BlockScope("Player", properties = properties)).lines.single()
         assertEquals("if (score >= 10f) {", line(ConditionDefinition.Number("score", Comparison.GREATER_OR_EQUAL, NumberValue.Fixed(10f))))
-        assertEquals("if (title != \"Game \\\"over\\\"\") {", line(ConditionDefinition.Text("title", "Game \"over\"", isEqual = false)))
-        assertEquals("if (!isShielded) {", line(ConditionDefinition.Toggle("isShielded", isOn = false)))
+        assertEquals("if (title != \"Game \\\"over\\\"\") {", line(ConditionDefinition.Text("title", TextValue.Fixed("Game \"over\""), isEqual = false)))
+        assertEquals("if (!isShielded) {", line(ConditionDefinition.Toggle("isShielded", isOn = ToggleValue.Fixed(false))))
         assertEquals("if (keyboardInputManager.isKeyPressed(Key.Spacebar)) {", line(ConditionDefinition.KeyHeld(KeyChoice.SPACE)))
         assertEquals("if (!keyboardInputManager.isKeyPressed(Key.A)) {", line(ConditionDefinition.KeyHeld(KeyChoice.A, isHeld = false)))
         assertEquals("if (velocity.x == 0f.sceneUnit) {", line(ConditionDefinition.Velocity(comparison = Comparison.EQUAL)))

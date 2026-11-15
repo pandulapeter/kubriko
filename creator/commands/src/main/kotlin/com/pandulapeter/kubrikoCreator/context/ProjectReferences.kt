@@ -19,7 +19,6 @@ import com.pandulapeter.kubrikoCreator.actors.KotlinIdentifiers
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyReference
 import com.pandulapeter.kubrikoCreator.actors.ResourceKind
-import com.pandulapeter.kubrikoCreator.actors.numberPropertyReferences
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.propertyReferences
 import com.pandulapeter.kubrikoCreator.actors.valuePropertyReferences
@@ -186,7 +185,7 @@ internal class ProjectReferences(
             (type as? ManagerTypeDefinition)?.texts?.forEachIndexed { index, text ->
                 val condition = text.shownWhen ?: return@forEachIndexed
                 val place = RelationPlace.Text(type.name, index, isCondition = true)
-                addChoiceUsages(place, condition.propertyReferences, condition.numberPropertyReferences) {
+                addChoiceUsages(place, condition.propertyReferences, condition.valuePropertyReferences) {
                     conditionUsage(place, subject) { effect, blocksInside -> Usage(UsagePlace.InModel(place), RelationKind.READS, subject, effect, blocksInside = blocksInside) }
                 }
             }

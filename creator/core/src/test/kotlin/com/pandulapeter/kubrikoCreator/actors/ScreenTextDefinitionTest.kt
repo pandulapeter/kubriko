@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
+import com.pandulapeter.kubrikoCreator.actors.TextValue
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -25,7 +26,7 @@ class ScreenTextDefinitionTest {
     @Test
     fun aTextCanBeShownOnlyWhileAConditionOnAPropertyHoldsWhoseNumberIsFixedOrAProperty() {
         assertTrue(ScreenTextDefinition.isShownWhenAllowed(ConditionDefinition.Toggle("isOver")))
-        assertTrue(ScreenTextDefinition.isShownWhenAllowed(ConditionDefinition.Text("title", "Hi")))
+        assertTrue(ScreenTextDefinition.isShownWhenAllowed(ConditionDefinition.Text("title", TextValue.Fixed("Hi"))))
         assertTrue(ScreenTextDefinition.isShownWhenAllowed(ConditionDefinition.Number("lives", value = NumberValue.Property("maximum", manager = "Game"))))
         assertFalse(ScreenTextDefinition.isShownWhenAllowed(ConditionDefinition.Number("lives", value = NumberValue.Random(0f, 3f))))
         assertFalse(ScreenTextDefinition.isShownWhenAllowed(ConditionDefinition.Number("lives", value = NumberValue.Edge(SceneEdge.LEFT))))

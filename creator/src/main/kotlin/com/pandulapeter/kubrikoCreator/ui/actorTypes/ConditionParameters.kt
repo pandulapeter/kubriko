@@ -24,6 +24,7 @@ import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.ConditionKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyReference
+import com.pandulapeter.kubrikoCreator.actors.ToggleValue
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import kubriko.creator.generated.resources.Res
@@ -36,6 +37,7 @@ import kubriko.creator.generated.resources.condition_comparison_greater_or_equal
 import kubriko.creator.generated.resources.condition_comparison_less
 import kubriko.creator.generated.resources.condition_comparison_less_or_equal
 import kubriko.creator.generated.resources.condition_is
+import kubriko.creator.generated.resources.condition_is_as
 import kubriko.creator.generated.resources.condition_is_held
 import kubriko.creator.generated.resources.condition_is_not
 import kubriko.creator.generated.resources.condition_is_not_held
@@ -96,16 +98,14 @@ internal fun ConditionParameters(
         is ConditionDefinition.Text -> {
             PropertyChoice(PropertyReference(condition.property, PropertyKind.TEXT, condition.manager), scope) { onConditionChange(condition.copy(property = it.name, manager = it.manager)) }
             YesNoChoice(condition.isEqual, Res.string.condition_is, Res.string.condition_is_not) { onConditionChange(condition.copy(isEqual = it)) }
-            BufferedTextField(
-                modifier = Modifier.width(140.dp),
-                value = condition.value,
-                onValueChange = { onConditionChange(condition.copy(value = it)) },
-                placeholder = stringResource(Res.string.block_parameter_text),
-            )
+            TextValueField(condition.value, scope, fieldWidth = 140.dp) { onConditionChange(condition.copy(value = it)) }
         }
         is ConditionDefinition.Toggle -> {
             PropertyChoice(PropertyReference(condition.property, PropertyKind.TOGGLE, condition.manager), scope) { onConditionChange(condition.copy(property = it.name, manager = it.manager)) }
-            YesNoChoice(condition.isOn, Res.string.condition_is_on, Res.string.condition_is_off) { onConditionChange(condition.copy(isOn = it)) }
+            if (condition.isOn is ToggleValue.Property) UnitText(Res.string.condition_is_as)
+            ToggleValueField(condition.isOn, scope, onValueChange = { onConditionChange(condition.copy(isOn = it)) }) { isOn ->
+                YesNoChoice(isOn, Res.string.condition_is_on, Res.string.condition_is_off) { onConditionChange(condition.copy(isOn = ToggleValue.Fixed(it))) }
+            }
         }
         is ConditionDefinition.KeyHeld -> {
             KeyChoiceButton(

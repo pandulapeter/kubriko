@@ -20,8 +20,6 @@ whose exhaustive `when`s then show every place it needs.
 
 ## Next additions
 
-- **More flow:** comparing a text or toggle Property with another Property (numbers compare with any number value
-  already, and conditions combine with and and or).
 - **Distance:** a condition comparing the distance to the nearest Actor of a type with a value (the writers' room's sheep,
   fleeing a dog within 150 units, needed a Kotlin Block for it).
 - **More audio:** volume, and sounds and music as Properties (so one Block plays the sound an Actor keeps).

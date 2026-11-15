@@ -26,6 +26,7 @@ import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.actors.TextFont
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
+import com.pandulapeter.kubrikoCreator.actors.ToggleValue
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -70,7 +71,7 @@ class ManagerTypeCodeGeneratorTest {
             game.copy(
                 events = listOf(
                     EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.SetNumber("lives", NumberValue.Fixed(3f)))),
-                    EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.If(ConditionDefinition.Number("lives", Comparison.LESS_OR_EQUAL, NumberValue.Fixed(0f))), BlockDefinition.SetToggle("isOver", true))),
+                    EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.If(ConditionDefinition.Number("lives", Comparison.LESS_OR_EQUAL, NumberValue.Fixed(0f))), BlockDefinition.SetToggle("isOver", ToggleValue.Fixed(true)))),
                 ),
             ),
         )

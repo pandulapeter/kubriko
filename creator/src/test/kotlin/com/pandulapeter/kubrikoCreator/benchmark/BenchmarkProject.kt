@@ -23,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
+import com.pandulapeter.kubrikoCreator.actors.ToggleValue
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
@@ -116,7 +117,7 @@ internal object BenchmarkProject {
                     ),
                 ),
                 EventDefinition(EventType.COLLISION, otherActorType = other, blocks = listOf(BlockDefinition.BounceOffOther, BlockDefinition.ChangeNumber("hp", by = NumberValue.Fixed(-1f)), BlockDefinition.Log("{label} was hit: {hp}"))),
-                EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.SPACE, blocks = listOf(BlockDefinition.SetToggle("isAngry", value = true), BlockDefinition.MoveTowardsNearest(ActorTypeValue.Fixed(other), speed = NumberValue.Fixed(80f)))),
+                EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.SPACE, blocks = listOf(BlockDefinition.SetToggle("isAngry", value = ToggleValue.Fixed(true)), BlockDefinition.MoveTowardsNearest(ActorTypeValue.Fixed(other), speed = NumberValue.Fixed(80f)))),
                 EventDefinition(EventType.TIMER_FINISHED, timer = "spawn", blocks = listOf(BlockDefinition.AddActor(ActorTypeValue.Fixed(actorTypeName((index + 7) % ACTOR_TYPE_COUNT)), x = NumberValue.Fixed(16f)))),
                 EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.BounceOffEdge)),
             ),

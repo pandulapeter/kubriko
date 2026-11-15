@@ -13,15 +13,16 @@ import com.pandulapeter.kubrikoCreator.actors.Axis
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.ConditionKind
+import com.pandulapeter.kubrikoCreator.actors.ToggleValue
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.KEYBOARD_INPUT_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.KEY_IMPORT
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STATE_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.managersReachedBy
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.propertyExpression
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.stringLiteral
-import com.pandulapeter.kubrikoCreator.actors.numberPropertyReferences
 import com.pandulapeter.kubrikoCreator.actors.numberValues
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
+import com.pandulapeter.kubrikoCreator.actors.valuePropertyReferences
 
 /**
  * The conditions if Blocks check and texts are shown while, as Kotlin expressions.
@@ -37,7 +38,7 @@ internal object ConditionCode {
         if (code.lines.single() == "false") {
             code
         } else {
-            code.copy(needs = code.needs + NumberValueCode.needsOf(condition.numberValues), managers = code.managers + scope.managersReading(condition.numberPropertyReferences))
+            code.copy(needs = code.needs + NumberValueCode.needsOf(condition.numberValues), managers = code.managers + scope.managersReading(condition.valuePropertyReferences))
         }
     }
 
@@ -56,8 +57,16 @@ internal object ConditionCode {
         val managers = managersReachedBy(reference?.manager, scope)
         return when (condition) {
             is ConditionDefinition.Number -> BlockCode(listOf("$property ${condition.comparison.operator} ${NumberValueCode.float(condition.value, scope)}"), managers = managers)
-            is ConditionDefinition.Text -> BlockCode(listOf("$property ${if (condition.isEqual) "==" else "!="} ${stringLiteral(condition.value)}"), managers = managers)
-            is ConditionDefinition.Toggle -> BlockCode(listOf(if (condition.isOn) "$property" else "!$property"), managers = managers)
+            is ConditionDefinition.Text -> BlockCode(listOf("$property ${if (condition.isEqual) "==" else "!="} ${TextAndToggleValueCode.text(condition.value, scope)}"), managers = managers)
+            is ConditionDefinition.Toggle -> BlockCode(
+                lines = listOf(
+                    when (val isOn = condition.isOn) {
+                        is ToggleValue.Fixed -> if (isOn.isOn) "$property" else "!$property"
+                        is ToggleValue.Property -> "$property == ${TextAndToggleValueCode.toggle(isOn, scope)}"
+                    },
+                ),
+                managers = managers,
+            )
             is ConditionDefinition.KeyHeld -> if (condition.key.isKnown) {
                 BlockCode(
                     lines = listOf((if (condition.isHeld) "" else "!") + "$KEYBOARD_INPUT_MANAGER_FIELD.isKeyPressed(Key.${condition.key.composeKeyName})"),

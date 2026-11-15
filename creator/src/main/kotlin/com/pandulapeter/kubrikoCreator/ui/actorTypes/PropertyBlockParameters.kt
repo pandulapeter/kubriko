@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
+import com.pandulapeter.kubrikoCreator.actors.ToggleValue
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.withPropertyReference
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
@@ -61,16 +62,10 @@ internal fun PropertyBlockParameters(
             scope = scope,
             onValueChange = { onBlockChange(block.copy(by = it)) },
         )
-        is BlockDefinition.SetText -> BufferedTextField(
-            modifier = Modifier.width(180.dp),
-            value = block.value,
-            onValueChange = { onBlockChange(block.copy(value = it)) },
-            placeholder = stringResource(Res.string.block_parameter_text),
-        )
-        is BlockDefinition.SetToggle -> Switch(
-            checked = block.value,
-            onCheckedChange = { onBlockChange(block.copy(value = it)) },
-        )
+        is BlockDefinition.SetText -> TextValueField(block.value, scope, fieldWidth = 180.dp) { onBlockChange(block.copy(value = it)) }
+        is BlockDefinition.SetToggle -> ToggleValueField(block.value, scope, onValueChange = { onBlockChange(block.copy(value = it)) }) { isOn ->
+            Switch(checked = isOn, onCheckedChange = { onBlockChange(block.copy(value = ToggleValue.Fixed(it))) })
+        }
         is BlockDefinition.SetColorProperty -> ColorValueField(
             value = block.value,
             scope = scope,

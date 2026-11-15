@@ -125,8 +125,8 @@ internal class ProjectRelations(
      */
     private fun MutableList<Relation>.addRelationsOf(typeName: String, place: RelationPlace, condition: ConditionDefinition) {
         addCheckedBy(typeName, place, condition)
-        condition.numberValues.forEach { value ->
-            value.propertyReference?.takeIf { it.name.isNotEmpty() }?.let { add(Relation(place, RelationKind.READS_VALUE, propertyOf(typeName, it.manager, it.name))) }
+        condition.valuePropertyReferences.forEach { reference ->
+            if (reference.name.isNotEmpty()) add(Relation(place, RelationKind.READS_VALUE, propertyOf(typeName, reference.manager, reference.name)))
         }
     }
 

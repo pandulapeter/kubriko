@@ -25,7 +25,7 @@
 - Every number a Block takes is a `NumberValue` (a number, a random number between two, a number Property's value, an edge
   of the Scene plus an offset, or a random number between two edges), one
   type every field shares rather than a random variant of each Block, so a new kind of number reaches every Block at once
-  (`numberValues` reads them and `withNumberValues` replaces them, and `NumberValueFieldsTest` keeps the two agreeing). A fixed number stays a bare JSON number, so files only
+  (`numberValues` reads them and `withNumberValues` replaces them). A fixed number stays a bare JSON number, so files only
   change where a value is something else. `NumberValueCode` makes each one operand that allocates nothing, and every random
   number comes from the one `KubrikoWiring.random`, so a test can seed the whole game. A Block reads its numbers while none
   of its own locals is in scope (passing them to a member function, as Move in a direction does, or reading the one number
@@ -36,6 +36,14 @@
   allocates), and a deleted Property's becomes its starting color. Kubriko saves a `Color` through `SerializableColor`,
   so a Property kind's saved type can differ from its Kotlin type (`PropertyKind.savedType`). A color has no words, so a
   text's or Log Block's placeholder of one stays as written.
+- Every value field of every Block and condition, whatever its kind, is reached through one exhaustive `when`
+  (`withValues`, with a `ValueTransform` holding a method per kind), and every reader, replacer, rename, and delete of
+  values is built on it, so a new field or a new kind of value is added in one place. A kind that is fixed or a
+  Property's (colors, Actor types, texts, and toggles) is read and written through `FixedOrPropertySerializer`, and edited
+  through `FixedOrPropertyField`.
+- A text or toggle a Block sets, or a condition compares with, is a `TextValue` or a `ToggleValue`, so a Property can be
+  copied into another or compared with another; a fixed one stays a bare string or boolean, and a deleted Property's
+  becomes its starting value.
 - The Actor type the Blocks adding an Actor and moving towards the nearest one take is an `ActorTypeValue` (a type by its
   name, still a bare name, or an Actor type reference Property's), so a spawner can keep what it spawns. A Property's
   type is known only while the game runs, so `GeneratedActorTypes` looks it up by name with a `when` over every type
