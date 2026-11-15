@@ -15,10 +15,11 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * What an if Block checks before it runs the Blocks that follow it.
+ * What an if Block checks before it runs the Blocks that follow it, or what has to hold for a Manager type's text to show
+ * ([ScreenTextDefinition.shownWhen]).
  */
 @Serializable
-@Description("What an if Block checks. The type property says which condition it is.")
+@Description("What an if Block checks, or what a text is shown while. The type property says which condition it is.")
 @SummarizedSchema("Which condition; get_block_catalog lists the properties of each (condition).")
 public sealed interface ConditionDefinition {
 

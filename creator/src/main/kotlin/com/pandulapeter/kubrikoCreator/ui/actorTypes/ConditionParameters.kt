@@ -48,7 +48,7 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * What an if Block checks, read as a sentence: the kind of condition, then its parts.
+ * What an if Block checks, or what a text is shown while, read as a sentence: the kind of condition, then its parts.
  *
  * @param isForText True for the condition a Manager type's text is shown while, which offers only the conditions and
  *   numbers a text can follow ([com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition.isShownWhenAllowed]).
