@@ -25,7 +25,7 @@
 - Every number a Block takes is a `NumberValue` (a number, a random number between two, a number Property's value, an edge
   of the Scene plus an offset, or a random number between two edges), one
   type every field shares rather than a random variant of each Block, so a new kind of number reaches every Block at once
-  (`numberValues` reads them and `withNumberValues` replaces them). A fixed number stays a bare JSON number, so files only
+  (`numberValues` reads them, and `withValues` replaces every kind of value). A fixed number stays a bare JSON number, so files only
   change where a value is something else. `NumberValueCode` makes each one operand that allocates nothing, and every random
   number comes from the one `KubrikoWiring.random`, so a test can seed the whole game. A Block reads its numbers while none
   of its own locals is in scope (passing them to a member function, as Move in a direction does, or reading the one number
