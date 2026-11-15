@@ -100,9 +100,10 @@ internal class ActorClassEmitter(
         .mapNotNull { EventFunctions.of(it, scope) }
         .distinct()
 
-    private fun callOf(event: EventDefinition) = EventFunctions.of(event, scope)?.takeIf { it in functions }?.call
-
-    private fun callOf(events: List<EventDefinition>) = events.firstNotNullOfOrNull(::callOf)
+    /**
+     * How the class calls the function of the first of [events] it has one for, if any ([functions]).
+     */
+    private fun callOf(events: List<EventDefinition>) = events.firstNotNullOfOrNull { event -> EventFunctions.of(event, scope)?.takeIf { it in functions }?.call }
 
     /**
      * @param properties The type's Properties, its ancestors' first.
@@ -240,7 +241,7 @@ internal class ActorClassEmitter(
         if (features.watches.any { !it.isAdded }) appendLine("        $SCENE_CHANGES_WHEN_ADDED_FIELD = $SCENES_FIELD.${ScenesCodeGenerator.SCENE_CHANGES_FIELD}")
         if (features.countedTypes.isNotEmpty()) appendStart(name, features.countedTypes, scope)
         appendNotifications(name, features.watches.filter { it.isAdded })
-        features.addedEvents.firstNotNullOfOrNull(::callOf)?.let { appendLine("        $it") }
+        callOf(features.addedEvents)?.let { appendLine("        $it") }
         appendLine("    }")
     }
 
@@ -278,7 +279,7 @@ internal class ActorClassEmitter(
      * removed Event, only the first time, on the thread of the Block that removed it.
      */
     private fun StringBuilder.appendRemovedFieldSetter() {
-        val removedCall = if (features.firesRemovedEvent) features.removedEvents.firstNotNullOfOrNull(::callOf) else null
+        val removedCall = if (features.firesRemovedEvent) callOf(features.removedEvents) else null
         if (features.countedTypes.isEmpty() && removedCall == null) return
         appendLine("        set(value) {")
         if (removedCall != null) appendLine("            val wasRemoved = field")
@@ -305,10 +306,10 @@ internal class ActorClassEmitter(
         appendSteps(features.animatedTargets)
         features.timers.forEach { timer ->
             appendTimerCountdown(timer) {
-                features.timerEvents.filter { it.trigger.timer == timer }.firstNotNullOfOrNull(::callOf)?.let { appendLine("                $it") }
+                callOf(features.timerEvents.filter { it.trigger.timer == timer })?.let { appendLine("                $it") }
             }
         }
-        features.everyFrameEvents.firstNotNullOfOrNull(::callOf)?.let { appendLine("        $it") }
+        callOf(features.everyFrameEvents)?.let { appendLine("        $it") }
         if (features.keys.holdsKeys) imports += KEY_IMPORT
         // An earlier Event of this frame may have removed the Actor.
         appendHeldKeyCalls(features.keys.held, ::callOf, indent = "        ", condition = "!$REMOVED_FIELD")
@@ -317,8 +318,8 @@ internal class ActorClassEmitter(
             if (features.containment != SceneContainment.NONE) imports += listOf(SCENE_UNIT_IMPORT, SCENE_OFFSET_IMPORT)
             appendBoundsHandling(
                 containment = features.containment,
-                edgeCall = if (features.firesEdgeEvent) checkNotNull(features.edgeEvents.firstNotNullOfOrNull(::callOf)) else null,
-                leftSceneCall = if (features.firesLeftSceneEvent) checkNotNull(features.leftSceneEvents.firstNotNullOfOrNull(::callOf)) else null,
+                edgeCall = if (features.firesEdgeEvent) checkNotNull(callOf(features.edgeEvents)) else null,
+                leftSceneCall = if (features.firesLeftSceneEvent) checkNotNull(callOf(features.leftSceneEvents)) else null,
             )
         }
         if (features.isCollidable) {
@@ -377,7 +378,7 @@ internal class ActorClassEmitter(
         appendLine("        for (index in collidables.indices) {")
         appendLine("            when (val other = collidables[index]) {")
         features.collisionEvents.groupBy { it.trigger.otherActorType!! }.toSortedMap(collisionTargetOrder(family)).forEach { (other, events) ->
-            events.firstNotNullOfOrNull(::callOf)?.let { appendLine("                is ${scope.classOf(other)} -> if (!other.$REMOVED_FIELD) $it") }
+            callOf(events)?.let { appendLine("                is ${scope.classOf(other)} -> if (!other.$REMOVED_FIELD) $it") }
         }
         appendLine("            }")
         appendLine("        }")
