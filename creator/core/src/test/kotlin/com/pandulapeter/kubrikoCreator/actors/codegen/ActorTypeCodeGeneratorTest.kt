@@ -632,6 +632,8 @@ class ActorTypeCodeGeneratorTest {
         assertEquals("if (score >= 10f) {", line(ConditionDefinition.Number("score", Comparison.GREATER_OR_EQUAL, NumberValue.Fixed(10f))))
         assertEquals("if (title != \"Game \\\"over\\\"\") {", line(ConditionDefinition.Text("title", TextValue.Fixed("Game \"over\""), isEqual = false)))
         assertEquals("if (!isShielded) {", line(ConditionDefinition.Toggle("isShielded", isOn = ToggleValue.Fixed(false))))
+        assertEquals("if (false) {", line(ConditionDefinition.Toggle("isShielded", isOn = ToggleValue.Property())))
+        assertEquals("if (false) {", line(ConditionDefinition.Text("title", TextValue.Property("missing"))))
         assertEquals("if (keyboardInputManager.isKeyPressed(Key.Spacebar)) {", line(ConditionDefinition.KeyHeld(KeyChoice.SPACE)))
         assertEquals("if (!keyboardInputManager.isKeyPressed(Key.A)) {", line(ConditionDefinition.KeyHeld(KeyChoice.A, isHeld = false)))
         assertEquals("if (velocity.x == 0f.sceneUnit) {", line(ConditionDefinition.Velocity(comparison = Comparison.EQUAL)))
