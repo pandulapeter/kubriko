@@ -99,6 +99,7 @@ internal class ReferenceCleanup(
 
     private fun cleaned(type: BlockTypeDefinition, removal: Removal, deleted: Deleted): BlockTypeDefinition {
         fun isDeleted(placeholder: PropertyPlaceholders.Placeholder) = relations.propertyOf(type.name, placeholder.manager, placeholder.name) in deleted.properties
+        fun fixedIfDeleted(value: NumberValue) = (value as? NumberValue.Property)?.let { fixedInsteadOf(type.name, it, deleted) } ?: value
         val events = type.events.mapIndexedNotNull { eventIndex, event ->
             if (eventIndex in removal.events) return@mapIndexedNotNull null
             val removed = removal.blocks[eventIndex].orEmpty()
@@ -107,19 +108,19 @@ internal class ReferenceCleanup(
                     when {
                         blockIndex in removed -> null
                         block is BlockDefinition.Log -> block.copy(message = PropertyPlaceholders.withPlaceholdersAsText(block.message, ::isDeleted))
-                        else -> block.withNumberValues { value -> if (value is NumberValue.Property) fixedInsteadOf(type.name, value, deleted) ?: value else value }
+                        else -> block.withNumberValues(::fixedIfDeleted)
                     }
                 },
             )
         }
         val withEvents = type.withEvents(events).let { if (removal.clearsSprite && it is ActorTypeDefinition) it.copy(sprite = null) else it }
-        return if (withEvents is ManagerTypeDefinition) {
+        return if (withEvents is ManagerTypeDefinition && withEvents.texts.isNotEmpty()) {
             withEvents.copy(
                 texts = withEvents.texts.mapIndexedNotNull { index, text ->
                     if (index in removal.removedTexts) return@mapIndexedNotNull null
                     text.copy(
                         text = if (index in removal.texts) PropertyPlaceholders.withPlaceholdersAsText(text.text, ::isDeleted) else text.text,
-                        shownWhen = text.shownWhen?.withNumberValues { value -> if (value is NumberValue.Property) fixedInsteadOf(type.name, value, deleted) ?: value else value },
+                        shownWhen = text.shownWhen?.withNumberValues(::fixedIfDeleted),
                     )
                 },
             )
