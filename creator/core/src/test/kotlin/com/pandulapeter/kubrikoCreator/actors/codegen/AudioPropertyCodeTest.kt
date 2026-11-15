@@ -14,12 +14,14 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.MusicValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.SoundValue
 import com.pandulapeter.kubrikoCreator.project.KubrikoArtifact
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class AudioPropertyCodeTest {
@@ -39,9 +41,23 @@ class AudioPropertyCodeTest {
     @Test
     fun playingAPropertysSoundUsesTheAudioPluginAndItsStartingFileIsPreloaded() {
         val enemy = ActorTypeDefinition(name = "Enemy", properties = properties, events = listOf(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.PlaySound(SoundValue.Property("cry"))))))
-        assertEquals(listOf(PluginUse(KubrikoArtifact.AUDIO_PLAYBACK, PluginReason.PLAYS_SOUND, "Enemy", "cry")), PluginUse.of(listOf(enemy)))
+        assertEquals(listOf(PluginUse(KubrikoArtifact.AUDIO_PLAYBACK, PluginReason.PLAYS_SOUND_PROPERTY, "Enemy", "cry")), PluginUse.of(listOf(enemy)))
         val managers = PluginManagers.of(listOf(enemy))
         assertTrue(managers.usesAudio)
         assertEquals(setOf("files/sounds/hit.wav"), managers.sounds.toSet())
+    }
+
+    @Test
+    fun aBlockReadingAPropertyThatIsntThereUsesNoPlugin() {
+        val enemy = ActorTypeDefinition(name = "Enemy", events = listOf(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.PlaySound(SoundValue.Property("cry"))))))
+        assertEquals(emptyList(), PluginUse.of(listOf(enemy)))
+        assertFalse(PluginManagers.of(listOf(enemy)).usesAudio)
+    }
+
+    @Test
+    fun aBlockPlayingAManagersMusicNamesThePropertyWithItsManager() {
+        val game = ManagerTypeDefinition(name = "Game", properties = listOf(PropertyDefinition.Music("tune", initialValue = "files/music/theme.mp3")))
+        val enemy = ActorTypeDefinition(name = "Enemy", events = listOf(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.PlayMusic(MusicValue.Property("tune", manager = "Game"))))))
+        assertEquals(listOf(PluginUse(KubrikoArtifact.AUDIO_PLAYBACK, PluginReason.PLAYS_MUSIC_PROPERTY, "Enemy", "Game.tune")), PluginUse.of(listOf(game, enemy)))
     }
 }

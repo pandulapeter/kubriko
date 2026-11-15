@@ -44,7 +44,9 @@ import kubriko.creator.generated.resources.project_settings_use_key
 import kubriko.creator.generated.resources.project_settings_use_key_held
 import kubriko.creator.generated.resources.project_settings_use_moves_with_keys
 import kubriko.creator.generated.resources.project_settings_use_plays_music
+import kubriko.creator.generated.resources.project_settings_use_plays_music_property
 import kubriko.creator.generated.resources.project_settings_use_plays_sound
+import kubriko.creator.generated.resources.project_settings_use_plays_sound_property
 import kubriko.creator.generated.resources.project_settings_use_scene_music
 import kubriko.creator.generated.resources.project_settings_use_sprite
 import kubriko.creator.generated.resources.project_settings_use_stops_music
@@ -100,6 +102,8 @@ internal val PluginUse.text: StringResource
         PluginReason.MOVES_WITH_KEYS -> Res.string.project_settings_use_moves_with_keys
         PluginReason.PLAYS_SOUND -> Res.string.project_settings_use_plays_sound
         PluginReason.PLAYS_MUSIC -> Res.string.project_settings_use_plays_music
+        PluginReason.PLAYS_SOUND_PROPERTY -> Res.string.project_settings_use_plays_sound_property
+        PluginReason.PLAYS_MUSIC_PROPERTY -> Res.string.project_settings_use_plays_music_property
         PluginReason.STOPS_MUSIC -> Res.string.project_settings_use_stops_music
         PluginReason.SCENE_MUSIC -> Res.string.project_settings_use_scene_music
         PluginReason.SPRITE -> Res.string.project_settings_use_sprite

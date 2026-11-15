@@ -44,6 +44,16 @@ public enum class PluginReason {
     PLAYS_MUSIC,
 
     /**
+     * A Block playing the sound a Property holds.
+     */
+    PLAYS_SOUND_PROPERTY,
+
+    /**
+     * A Block playing the music a Property holds.
+     */
+    PLAYS_MUSIC_PROPERTY,
+
+    /**
      * A Block stopping the music.
      */
     STOPS_MUSIC,

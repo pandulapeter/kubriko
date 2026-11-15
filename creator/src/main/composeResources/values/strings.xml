@@ -1513,6 +1513,8 @@
     <string name="project_settings_use_moves_with_keys">%1$s moves with keys</string>
     <string name="project_settings_use_plays_sound">%1$s plays %2$s</string>
     <string name="project_settings_use_plays_music">%1$s plays the music %2$s</string>
+    <string name="project_settings_use_plays_sound_property">%1$s plays the sound in %2$s</string>
+    <string name="project_settings_use_plays_music_property">%1$s plays the music in %2$s</string>
     <string name="project_settings_use_stops_music">%1$s stops the music</string>
     <string name="project_settings_use_scene_music">The Scene %1$s plays %2$s</string>
     <string name="project_settings_use_sprite">%1$s is drawn as %2$s</string>

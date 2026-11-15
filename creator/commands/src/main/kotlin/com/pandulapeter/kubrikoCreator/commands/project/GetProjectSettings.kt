@@ -111,6 +111,8 @@ public object GetProjectSettings : ReadCommand<NoInput> {
         PluginReason.MOVES_WITH_KEYS -> "${use.owner}: moves with keys"
         PluginReason.PLAYS_SOUND -> "${use.owner}: plays ${use.subject}"
         PluginReason.PLAYS_MUSIC -> "${use.owner}: plays music ${use.subject}"
+        PluginReason.PLAYS_SOUND_PROPERTY -> "${use.owner}: plays the sound in ${use.subject}"
+        PluginReason.PLAYS_MUSIC_PROPERTY -> "${use.owner}: plays the music in ${use.subject}"
         PluginReason.STOPS_MUSIC -> "${use.owner}: stops the music"
         PluginReason.SCENE_MUSIC -> "Scene ${use.owner}: music ${use.subject}"
         PluginReason.SPRITE -> "${use.owner}: drawn as ${use.subject}"
