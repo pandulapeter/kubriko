@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.actors.codegen
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
@@ -59,5 +60,15 @@ class AudioPropertyCodeTest {
         val game = ManagerTypeDefinition(name = "Game", properties = listOf(PropertyDefinition.Music("tune", initialValue = "files/music/theme.mp3")))
         val enemy = ActorTypeDefinition(name = "Enemy", events = listOf(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.PlayMusic(MusicValue.Property("tune", manager = "Game"))))))
         assertEquals(listOf(PluginUse(KubrikoArtifact.AUDIO_PLAYBACK, PluginReason.PLAYS_MUSIC_PROPERTY, "Enemy", "Game.tune")), PluginUse.of(listOf(game, enemy)))
+    }
+
+    @Test
+    fun aChildPlayingItsParentsSoundPropertyUsesTheAudioPluginThroughTheFamilyGiven() {
+        val enemy = ActorTypeDefinition(name = "Enemy", properties = properties)
+        val boss = ActorTypeDefinition(name = "Boss", parent = "Enemy", events = listOf(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.PlaySound(SoundValue.Property("cry"))))))
+        val expected = listOf(PluginUse(KubrikoArtifact.AUDIO_PLAYBACK, PluginReason.PLAYS_SOUND_PROPERTY, "Boss", "cry"))
+        assertEquals(expected, PluginUse.of(listOf(enemy, boss)))
+        assertEquals(expected, PluginUse.of(listOf(enemy, boss), family = ActorTypeFamily(listOf(enemy, boss))))
+        assertTrue(PluginManagers.of(listOf(enemy, boss)).usesAudio)
     }
 }

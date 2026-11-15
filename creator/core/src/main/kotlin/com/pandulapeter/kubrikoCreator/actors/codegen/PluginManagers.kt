@@ -65,7 +65,7 @@ internal data class PluginManagers(
                     .filter { it.type == EventType.COLLISION && it.otherActorType in actorTypeNames }
                     .flatMap { listOf(definition.name) + family.familyOf(it.otherActorType!!) }
             }
-            val pluginsInUse = PluginUse.of(definitions).mapTo(HashSet()) { it.artifact }
+            val pluginsInUse = PluginUse.of(definitions, family = family).mapTo(HashSet()) { it.artifact }
             val properties = definitions.flatMap { it.properties }
             val blocks = definitions.flatMap { definition ->
                 definition.events.filter { GeneratedCode.isGenerated(it, definition.kind, actorTypeNames) }

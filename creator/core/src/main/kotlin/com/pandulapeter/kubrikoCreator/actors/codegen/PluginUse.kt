@@ -41,13 +41,14 @@ public data class PluginUse(
         /**
          * Every reason [definitions] and the Scenes in [sceneMusic] (the music file of each Scene that has some, by its
          * name) give the game to use a plugin, as the generated code decides them ([PluginManagers]), each named once.
+         * [family], the Actor types' family, is built here when it isn't given and a Block reads a Property.
          */
-        public fun of(definitions: List<BlockTypeDefinition>, sceneMusic: Map<String, String> = emptyMap()): List<PluginUse> {
+        public fun of(definitions: List<BlockTypeDefinition>, sceneMusic: Map<String, String> = emptyMap(), family: ActorTypeFamily? = null): List<PluginUse> {
             val actorTypeNames = definitions.filterIsInstance<ActorTypeDefinition>().mapTo(HashSet()) { it.name }
-            val family = ActorTypeFamily(definitions.filterIsInstance<ActorTypeDefinition>())
+            val sharedFamily by lazy { family ?: ActorTypeFamily(definitions.filterIsInstance<ActorTypeDefinition>()) }
             val uses = LinkedHashSet<PluginUse>()
             definitions.forEach { definition ->
-                val scope by lazy { BlockScope.of(definition, definitions, family = family) }
+                val scope by lazy { BlockScope.of(definition, definitions, family = sharedFamily) }
                 definition.events.filter { GeneratedCode.isGenerated(it, definition.kind, actorTypeNames) }.forEach { event ->
                     when {
                         event.type == EventType.COLLISION && event.otherActorType in actorTypeNames && definition is ActorTypeDefinition ->
