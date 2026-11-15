@@ -410,7 +410,7 @@ class ActorTypeCodeGeneratorTest {
         assertContains(registry, "        \"Enemy\" -> actor is EnemyBase && !actor.isRemoved\n")
         assertContains(registry, "        \"Ball\" -> actor is Ball && !actor.isRemoved\n")
         assertContains(registry, "    fun nearestActiveOf(actors: List<Actor>, name: String, from: com.pandulapeter.kubriko.actor.traits.Positionable): com.pandulapeter.kubriko.actor.traits.Positionable? {\n")
-        assertFalse("metadataOf" in ActorTypeCodeGenerator.generateRegistry(emptyList(), packageName))
+        assertContains(ActorTypeCodeGenerator.generateRegistry(emptyList(), packageName), "    fun metadataOf(name: String): EditableMetadata<*>? = when (name) {\n        else -> null\n    }\n")
     }
 
     @Test

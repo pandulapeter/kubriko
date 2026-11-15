@@ -247,7 +247,7 @@ public object ActorTypeCodeGenerator {
         appendLine()
         buildSet {
             add("com.pandulapeter.kubriko.sceneEditor.EditableMetadata")
-            if (actorTypeNames.isNotEmpty()) add("com.pandulapeter.kubriko.actor.Actor")
+            add("com.pandulapeter.kubriko.actor.Actor")
             if (sceneValues.isNotEmpty()) addAll(ManagerSceneValuesCode.importsOf(sceneValues))
         }.sorted().forEach { appendLine("import $it") }
         appendLine()
@@ -259,7 +259,8 @@ public object ActorTypeCodeGenerator {
         appendLine("    val metadata: List<EditableMetadata<*>> = listOf(")
         (actorTypeNames + SceneSettingsCodeGenerator.SETTINGS_NAME + sceneValues.map { it.name }).sorted().forEach { appendLine("        $it.metadata,") }
         appendLine("    )")
-        if (actorTypeNames.isNotEmpty()) with(ActorTypeValueCode) { appendLookups(actorTypeNames, baseClassNames) }
+        // Even without Actor types, since a Manager type's Blocks can take their type from a Property that names none.
+        with(ActorTypeValueCode) { appendLookups(actorTypeNames, baseClassNames) }
         sceneValues.forEach { with(ManagerSceneValuesCode) { appendSceneValues(it, packageName) } }
         appendLine("}")
     })
