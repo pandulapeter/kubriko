@@ -163,7 +163,7 @@ public object ManagerTypeCodeGenerator {
                 appendHeldKeyCalls(keys.held, ::callOf, indent = "        ")
                 appendLine("    }")
             }
-            // Unlike an Actor's, these run while the game is paused, so that a key can resume it.
+            // Unlike an Actor's presses, these run while the game is paused, so that a key can resume it.
             appendKeyDispatch("onKeyPressed", keys.pressed, ::callOf)
             appendKeyDispatch("onKeyReleased", keys.released, ::callOf)
             appendNotifyFunctions(watches)

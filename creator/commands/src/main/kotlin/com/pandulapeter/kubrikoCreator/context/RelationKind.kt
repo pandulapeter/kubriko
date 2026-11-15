@@ -54,8 +54,8 @@ public enum class RelationKind(
     READS("reads"),
 
     /**
-     * A Block or condition reading a Property as one of its values: a number ([com.pandulapeter.kubrikoCreator.actors.NumberValue.Property])
-     * or a color ([com.pandulapeter.kubrikoCreator.actors.ColorValue.Property]).
+     * A Block or condition reading a Property as one of its values, of any kind
+     * ([com.pandulapeter.kubrikoCreator.actors.ValueTransform]): a number, a color, an Actor type, a text, or a toggle.
      */
     READS_VALUE("reads the value of"),
     CHANGES("changes"),
