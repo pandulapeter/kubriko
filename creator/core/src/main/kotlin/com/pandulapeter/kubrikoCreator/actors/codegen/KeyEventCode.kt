@@ -48,20 +48,18 @@ internal object KeyEventCode {
     }
 
     /**
-     * The override of [function] (`onKeyPressed` or `onKeyReleased`) calling [events]' functions by their key, after
-     * the lines of [guards], or nothing when none of them has a function ([callOf]).
+     * A Manager's override of [function] (`onKeyPressed` or `onKeyReleased`) calling [events]' functions by their key,
+     * or nothing when none of them has a function ([callOf]); a Manager hears keys while the game is paused too.
      */
     fun StringBuilder.appendKeyDispatch(
         function: String,
         events: List<EventDefinition>,
         callOf: (List<EventDefinition>) -> String?,
-        guards: List<String> = emptyList(),
     ) {
         val calls = callsByKey(events, callOf)
         if (calls.isEmpty()) return
         appendLine()
         appendLine("    override fun $function(key: Key) {")
-        guards.forEach(::appendLine)
         appendLine("        when (key) {")
         calls.forEach { (key, call) -> appendLine("            Key.$key -> $call") }
         appendLine("        }")
