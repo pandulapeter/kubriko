@@ -37,7 +37,7 @@ internal suspend fun CommandContext.sceneTypeCounts(): Map<String, Map<String, I
  *   since deleting that type takes the Actor away with it.
  * @param savedAudio The sounds and music each Scene saves for sound and music Properties, each of its kind, by the
  *   Scene's name, leaving out those that save none.
- * @param music The music each Scene plays, by the Scene's name, leaving out those that play none.
+ * @param music The music each Scene plays, by the Scene's name, leaving out those that play none (and empty unless asked for).
  */
 internal class SceneCounts(
     val types: Map<String, Map<String, Int>>,
@@ -59,9 +59,10 @@ internal data class SavedAudio(
 )
 
 /**
- * The [SceneCounts] of the open project, with the saved reference values only when the project's [types] are given.
+ * The [SceneCounts] of the open project, with the saved reference values only when the project's [types] are given, and
+ * each Scene's music only when [withMusic].
  */
-internal suspend fun CommandContext.sceneCounts(types: List<BlockTypeDefinition>? = null): SceneCounts = withContext(ioDispatcher) {
+internal suspend fun CommandContext.sceneCounts(types: List<BlockTypeDefinition>? = null, withMusic: Boolean = false): SceneCounts = withContext(ioDispatcher) {
     val references = types?.let(::referencePropertiesByKind).orEmpty()
     val typeCounts = LinkedHashMap<String, Map<String, Int>>()
     val referenceCounts = LinkedHashMap<String, Map<String, Int>>()
@@ -70,7 +71,7 @@ internal suspend fun CommandContext.sceneCounts(types: List<BlockTypeDefinition>
     scenes.names().forEach { name ->
         val actors = scenes.actors(name) ?: return@forEach
         typeCounts[name] = actors.groupingBy { it.typeId }.eachCount().toSortedMap()
-        SceneSettingsState.indexIn(actors).takeIf { it >= 0 }?.let { SceneSettingsState.read(actors[it].state).music }?.ifEmpty { null }?.let { music[name] = it }
+        if (withMusic) SceneSettingsState.indexIn(actors).takeIf { it >= 0 }?.let { SceneSettingsState.read(actors[it].state).music }?.ifEmpty { null }?.let { music[name] = it }
         if (references.isEmpty()) return@forEach
         val named = ArrayList<String>()
         val sounds = HashSet<String>()
@@ -112,7 +113,7 @@ internal suspend fun CommandContext.projectReferences(subject: RelationSubject):
 internal suspend fun CommandContext.projectReferences(subjects: List<RelationSubject>): List<ProjectReferences> {
     val types = blockTypes?.types?.value.orEmpty()
     // A Scene's Actors refer to nothing but types and, through what they save and the Scene's settings, audio files.
-    val sceneCounts = if (subjects.any { it is RelationSubject.Type || it.isAudio }) sceneCounts(types) else SceneCounts.NONE
+    val sceneCounts = if (subjects.any { it is RelationSubject.Type || it.isAudio }) sceneCounts(types, withMusic = subjects.any { it.isMusic }) else SceneCounts.NONE
     return withContext(ioDispatcher) {
         val mentionedPaths = subjects.map { mentionedPathOf(it) }
         val firstScene = firstSceneSettings(project.rootDirectory)?.firstScene
@@ -137,3 +138,5 @@ internal suspend fun CommandContext.projectReferences(subjects: List<RelationSub
 }
 
 private val RelationSubject.isAudio get() = this is RelationSubject.Resource && ResourceKind.of(path).let { it == ResourceKind.SOUND || it == ResourceKind.MUSIC }
+
+private val RelationSubject.isMusic get() = this is RelationSubject.Resource && ResourceKind.of(path) == ResourceKind.MUSIC
