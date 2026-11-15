@@ -1208,6 +1208,7 @@
     <string name="game_map_scenes">Scenes</string>
     <string name="game_map_places">Places %1$s</string>
     <string name="game_map_starts_as">Has a Property starting as %1$s</string>
+    <string name="game_map_saves_reference_to">Saves a reference to %1$s</string>
     <string name="game_map_gives_values_to">Gives values to %1$s</string>
     <string name="game_map_inherits_from">Based on %1$s</string>
     <string name="game_map_collides_with">Collides with %1$s</string>
@@ -1253,6 +1254,7 @@
     <string name="usage_effect_event_removed">The Event is removed with its Blocks</string>
     <string name="usage_effect_actors_removed">Its Actors are removed</string>
     <string name="usage_effect_starting_type_cleared">The Property starts as no Actor type</string>
+    <string name="usage_effect_saved_reference_cleared">The saved reference names no Actor type</string>
     <string name="usage_effect_scene_values_removed">The Scene no longer gives it values</string>
     <string name="usage_effect_placeholder_to_text">The placeholder becomes plain text</string>
     <string name="usage_effect_text_removed">The text is removed</string>

@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.actorTypeReferenceProperties
 import com.pandulapeter.kubrikoCreator.commands.folders.contentDeletesOf
 import com.pandulapeter.kubrikoCreator.commands.folders.folderUsagesOf
 import com.pandulapeter.kubrikoCreator.commands.resources.scenesWithMusicReplaced
@@ -23,6 +24,7 @@ import com.pandulapeter.kubrikoCreator.context.projectReferences
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonArray
@@ -80,8 +82,19 @@ private suspend fun CommandContext.scenesWithout(subject: RelationSubject, usage
     fun scenesWith(effect: UsageEffect) = usages.filter { it.effect == effect }.mapNotNull { ((it.place as? UsagePlace.InModel)?.place as? RelationPlace.Scene)?.name }
     return when (subject) {
         is RelationSubject.Type -> withContext(ioDispatcher) {
-            (scenesWith(UsageEffect.ACTORS_REMOVED) + scenesWith(UsageEffect.SCENE_VALUES_REMOVED)).distinct()
-                .associateWith { scene -> SceneDocument.format(checkNotNull(scenes.actors(scene)).filter { it.typeId != subject.name }) }
+            val references = actorTypeReferenceProperties(blockTypes?.types?.value.orEmpty())
+            (scenesWith(UsageEffect.ACTORS_REMOVED) + scenesWith(UsageEffect.SCENE_VALUES_REMOVED) + scenesWith(UsageEffect.SAVED_REFERENCE_CLEARED)).distinct()
+                .associateWith { scene ->
+                    SceneDocument.format(
+                        checkNotNull(scenes.actors(scene)).filter { it.typeId != subject.name }.map { actor ->
+                            val names = references[actor.typeId] ?: return@map actor
+                            SceneDocument.withStateChanged(actor.state) { state ->
+                                val cleared = names.filter { (state[it] as? JsonPrimitive)?.takeIf { value -> value.isString }?.content == subject.name }
+                                if (cleared.isEmpty()) state else JsonObject(state + cleared.associateWith { JsonPrimitive("") })
+                            }?.let { actor.copy(state = it) } ?: actor
+                        },
+                    )
+                }
         }
         is RelationSubject.Resource -> withContext(ioDispatcher) { scenesWithMusicReplaced(scenesWith(UsageEffect.MUSIC_CLEARED), subject.path, "") }
         is RelationSubject.Scene, is RelationSubject.Property, is RelationSubject.Page, is RelationSubject.Image, is RelationSubject.Timer, is RelationSubject.Folder -> emptyMap()

@@ -21,6 +21,11 @@ public enum class RelationKind(
      * An Actor type reference Property of a type starting as an Actor type.
      */
     STARTS_AS("has a Property starting as"),
+
+    /**
+     * A Scene saving an Actor type reference Property's value naming an Actor type, which only [ProjectReferences] reports.
+     */
+    SAVES_REFERENCE_TO("saves a reference to"),
     COLLIDES_WITH("collides with"),
 
     /**

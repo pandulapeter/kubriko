@@ -91,7 +91,7 @@ internal class ReferenceCleanup(
                             val blocks = types.first { it.name == place.name }.events[eventIndex].blocks
                             removal.blocks.getOrPut(eventIndex, ::HashSet) += ProjectReferences.sectionOf(blocks, checkNotNull(blockIndex))
                         }
-                        UsageEffect.PLACEHOLDER_TO_TEXT, UsageEffect.VALUE_TO_FIXED, UsageEffect.ACTORS_REMOVED, UsageEffect.SCENE_VALUES_REMOVED, UsageEffect.STARTING_TYPE_CLEARED, UsageEffect.TEXT_REMOVED, UsageEffect.KOTLIN_TO_CHANGE, UsageEffect.PREVENTS_DELETING, UsageEffect.MENTION_TO_TEXT,
+                        UsageEffect.PLACEHOLDER_TO_TEXT, UsageEffect.VALUE_TO_FIXED, UsageEffect.ACTORS_REMOVED, UsageEffect.SCENE_VALUES_REMOVED, UsageEffect.STARTING_TYPE_CLEARED, UsageEffect.SAVED_REFERENCE_CLEARED, UsageEffect.TEXT_REMOVED, UsageEffect.KOTLIN_TO_CHANGE, UsageEffect.PREVENTS_DELETING, UsageEffect.MENTION_TO_TEXT,
                         UsageEffect.SPRITE_CLEARED, UsageEffect.MUSIC_CLEARED, UsageEffect.IMAGE_COPIED, UsageEffect.DELETED_WITH_FOLDER,
                         -> Unit
                     }

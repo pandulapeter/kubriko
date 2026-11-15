@@ -55,6 +55,7 @@ class RenamingFollowsReferencesTest {
         RelationKind.PLACES,
         RelationKind.INHERITS_FROM,
         RelationKind.STARTS_AS,
+        RelationKind.SAVES_REFERENCE_TO,
         RelationKind.MENTIONS,
     )
     private val managerTypeKinds = setOf(RelationKind.CHANGES, RelationKind.READS, RelationKind.READS_VALUE, RelationKind.GIVES_VALUES_TO, RelationKind.MENTIONS)

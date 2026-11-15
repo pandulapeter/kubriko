@@ -35,6 +35,11 @@ public enum class UsageEffect(
     STARTING_TYPE_CLEARED("the Property starts as no Actor type"),
 
     /**
+     * A Scene's saved Actor type reference value naming a deleted Actor type, which then names none.
+     */
+    SAVED_REFERENCE_CLEARED("the saved reference names no Actor type"),
+
+    /**
      * A Scene giving a deleted Manager type's Properties values, which then gives none.
      */
     SCENE_VALUES_REMOVED("the Scene no longer gives it values"),

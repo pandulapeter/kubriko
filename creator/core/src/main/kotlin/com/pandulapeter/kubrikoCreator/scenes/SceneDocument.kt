@@ -130,7 +130,7 @@ public object SceneDocument {
     /**
      * [state] changed by [change], or null if it isn't a JSON object or [change] left it as it was.
      */
-    internal fun withStateChanged(state: String, change: (JsonObject) -> JsonObject): String? {
+    public fun withStateChanged(state: String, change: (JsonObject) -> JsonObject): String? {
         val stateObject = stateObject(state) ?: return null
         return change(stateObject).takeIf { it != stateObject }?.toString()
     }

@@ -36,6 +36,8 @@ import com.pandulapeter.kubrikoCreator.screenplay.PageLinks
  * @param markdown The text of every page, by its path from the project's root.
  * @param sceneMusic The music each Scene plays, by the Scene's name (only for the usages of a sprite, sound, or music
  *   file, the one subject they matter to).
+ * @param sceneActorTypeReferences How many saved Actor type reference values name each Actor type, by Scene
+ *   ([sceneActorTypeReferences]; only for the usages of a type).
  * @param mentionedPath The file a page links to to mention the subject asked about, a path from the project's root, if it
  *   can be mentioned.
  */
@@ -47,6 +49,7 @@ internal class ProjectReferences(
     private val markdown: Map<String, String> = emptyMap(),
     val mentionedPath: String? = null,
     private val sceneMusic: Map<String, String> = emptyMap(),
+    private val sceneActorTypeReferences: Map<String, Map<String, Int>> = emptyMap(),
 ) {
     private val family by lazy { ActorTypeFamily(types.filterIsInstance<ActorTypeDefinition>()) }
 
@@ -61,6 +64,11 @@ internal class ProjectReferences(
             .forEach { relation -> add(usageOf(relation)) }
         if (subject is RelationSubject.Resource) addAll(resourceUsagesOf(subject, types, sceneMusic))
         if (subject is RelationSubject.Timer) addAll(timerUsagesOf(subject, types, family))
+        if (subject is RelationSubject.Type) {
+            sceneActorTypeReferences.toSortedMap().forEach { (scene, counts) ->
+                counts[subject.name]?.let { count -> add(Usage(UsagePlace.InModel(RelationPlace.Scene(scene)), RelationKind.SAVES_REFERENCE_TO, subject, UsageEffect.SAVED_REFERENCE_CLEARED, count)) }
+            }
+        }
         addAll(managerChoiceUsagesOf(subject))
         addAll(kotlinBlockUsagesOf(subject))
         if (subject is RelationSubject.Scene && subject.name == firstScene) {
@@ -113,7 +121,7 @@ internal class ProjectReferences(
             RelationKind.ADDS, RelationKind.MOVES_TOWARDS, RelationKind.GOES_TO, RelationKind.CHANGES -> usage(UsageEffect.BLOCK_REMOVED)
             RelationKind.STARTS_WITH -> usage(UsageEffect.PREVENTS_DELETING)
             RelationKind.MENTIONS -> usage(UsageEffect.MENTION_TO_TEXT)
-            RelationKind.DRAWN_AS, RelationKind.PLAYS, RelationKind.SHOWS, RelationKind.USES_TIMER, RelationKind.IS_IN -> error("${relation.kind} is found apart from the relations, never among them.")
+            RelationKind.DRAWN_AS, RelationKind.PLAYS, RelationKind.SHOWS, RelationKind.USES_TIMER, RelationKind.IS_IN, RelationKind.SAVES_REFERENCE_TO -> error("${relation.kind} is found apart from the relations, never among them.")
             RelationKind.READS -> when (val block = blockAt(relation.place)) {
                 is BlockDefinition.If -> conditionUsage(relation.place, ::usage)
                 null, is BlockDefinition.Log -> if ((relation.place as? RelationPlace.Text)?.isCondition == true) conditionUsage(relation.place, ::usage) else usage(UsageEffect.PLACEHOLDER_TO_TEXT)

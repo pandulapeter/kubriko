@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
@@ -25,7 +26,7 @@ import kotlinx.coroutines.withContext
 internal suspend fun CommandContext.renameTypeWithItsSceneEntries(oldName: String, newName: String) {
     requireBlockTypes.rename(oldName, newName)
     try {
-        val references = actorTypeReferenceProperties()
+        val references = actorTypeReferenceProperties(requireBlockTypes.types.value)
         withContext(ioDispatcher) { scenes.renameTypeId(oldName, newName, references) }
     } catch (exception: Exception) {
         // Exact, since validate refused a taken name: only references this rename made point to the new one.
@@ -35,11 +36,10 @@ internal suspend fun CommandContext.renameTypeWithItsSceneEntries(oldName: Strin
 }
 
 /**
- * The Actor type reference Properties each type keeps in Scenes (an Actor type with its inherited ones), by the type's
- * name, for the types that have any.
+ * The Actor type reference Properties each of [types] keeps in Scenes (an Actor type with its inherited ones), by the
+ * type's name, for the types that have any.
  */
-private fun CommandContext.actorTypeReferenceProperties(): Map<String, Set<String>> {
-    val types = requireBlockTypes.types.value
+internal fun actorTypeReferenceProperties(types: List<BlockTypeDefinition>): Map<String, Set<String>> {
     val family = ActorTypeFamily(types.filterIsInstance<ActorTypeDefinition>())
     return types.associate { type ->
         val properties = if (type is ActorTypeDefinition) family.propertiesOf(type.name) else type.properties

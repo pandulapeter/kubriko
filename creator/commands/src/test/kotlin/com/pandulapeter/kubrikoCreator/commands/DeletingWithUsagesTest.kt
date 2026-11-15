@@ -32,6 +32,7 @@ import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.context.Usage
 import com.pandulapeter.kubrikoCreator.context.UsageEffect
 import com.pandulapeter.kubrikoCreator.context.UsagePlace
+import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonArray
@@ -197,12 +198,17 @@ class DeletingWithUsagesTest {
         val enemy = ActorTypeDefinition(name = "Enemy")
         val spawner = ActorTypeDefinition(name = "Spawner", properties = listOf(PropertyDefinition.ActorType("spawned", "Enemy"), PropertyDefinition.ActorType("other", "Spawner")))
         val context = commandContext(enemy, spawner)
+        context.writeScene("level", "[{\"typeId\":\"Spawner\",\"state\":\"{\\\"spawned\\\":\\\"Enemy\\\",\\\"other\\\":\\\"Spawner\\\"}\"}]")
         assertEquals(
-            listOf(Usage(UsagePlace.InModel(RelationPlace.Type("Spawner")), RelationKind.STARTS_AS, RelationSubject.Type("Enemy"), UsageEffect.STARTING_TYPE_CLEARED)),
+            listOf(
+                Usage(UsagePlace.InModel(RelationPlace.Type("Spawner")), RelationKind.STARTS_AS, RelationSubject.Type("Enemy"), UsageEffect.STARTING_TYPE_CLEARED),
+                Usage(UsagePlace.InModel(RelationPlace.Scene("level")), RelationKind.SAVES_REFERENCE_TO, RelationSubject.Type("Enemy"), UsageEffect.SAVED_REFERENCE_CLEARED),
+            ),
             context.usagesOf(RelationSubject.Type("Enemy")),
         )
         val after = context.assertRoundTrip(Invocation(DeleteActorType, DeleteActorType.Input("Enemy"))) { context.snapshot() }.first
         assertEquals(listOf(PropertyDefinition.ActorType("spawned"), PropertyDefinition.ActorType("other", "Spawner")), after.single().properties)
+        assertEquals(listOf("""{"spawned":"","other":"Spawner"}"""), SceneDocument.parse(context.sceneFile("level").readText()).map { it.state })
     }
 
     @Test

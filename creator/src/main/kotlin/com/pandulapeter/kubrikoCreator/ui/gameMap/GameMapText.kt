@@ -30,6 +30,7 @@ import kubriko.creator.generated.resources.game_map_plays
 import kubriko.creator.generated.resources.game_map_reacts_to
 import kubriko.creator.generated.resources.game_map_reads
 import kubriko.creator.generated.resources.game_map_reads_value
+import kubriko.creator.generated.resources.game_map_saves_reference_to
 import kubriko.creator.generated.resources.game_map_shows
 import kubriko.creator.generated.resources.game_map_starts_as
 import kubriko.creator.generated.resources.game_map_starts_with
@@ -47,6 +48,7 @@ internal val RelationKind.label
     get() = when (this) {
         RelationKind.INHERITS_FROM -> Res.string.game_map_inherits_from
         RelationKind.STARTS_AS -> Res.string.game_map_starts_as
+        RelationKind.SAVES_REFERENCE_TO -> Res.string.game_map_saves_reference_to
         RelationKind.COLLIDES_WITH -> Res.string.game_map_collides_with
         RelationKind.REACTS_TO -> Res.string.game_map_reacts_to
         RelationKind.COUNTS -> Res.string.game_map_counts
