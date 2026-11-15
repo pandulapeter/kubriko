@@ -71,6 +71,17 @@ public data class ActorValueChanges(
         @SerialName("color") @Serializable(with = HexColorSerializer::class) val color: Long? = null,
     ) {
         /**
+         * The kind of Property the value is given for, by which of its fields is set, or null unless exactly one is.
+         */
+        internal val kind: PropertyKind?
+            get() = listOfNotNull(
+                number?.let { PropertyKind.NUMBER },
+                text?.let { PropertyKind.TEXT },
+                toggle?.let { PropertyKind.TOGGLE },
+                color?.let { PropertyKind.COLOR },
+            ).singleOrNull()
+
+        /**
          * The value as it is saved, or null unless exactly one kind of value is given.
          */
         internal fun toJson() = listOfNotNull(
@@ -109,7 +120,7 @@ internal fun validatePropertyValues(
 ): Rejection? = values.firstNotNullOfOrNull { value -> validatePropertyName(value.name, properties, owner, isKnown) }
     ?: values.firstNotNullOfOrNull { value ->
         val property = properties.firstOrNull { it.name == value.name } ?: return@firstNotNullOfOrNull null
-        if (value.toJson()?.fits(PropertyKind.of(property)) == true) null else Rejection(CommandProblem.PROPERTY_VALUE_INVALID, value.name)
+        if (value.kind == PropertyKind.of(property)) null else Rejection(CommandProblem.PROPERTY_VALUE_INVALID, value.name)
     }
 
 /**

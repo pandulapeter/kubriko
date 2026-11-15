@@ -74,6 +74,7 @@ class SetSceneValuesTest {
         assertEquals(LookupProblem.MANAGER_TYPE_MISSING, SetSceneValues.validate(context, SetSceneValues.Input("level", "Nowhere"))?.reason)
         assertEquals(LookupProblem.SCENE_MISSING, SetSceneValues.validate(context, SetSceneValues.Input("cave", "Game"))?.reason)
         assertEquals(Rejection(CommandProblem.PROPERTY_VALUE_INVALID, "lives"), set(ActorValueChanges.PropertyValue("lives", text = "five")).validate(context))
+        assertEquals(Rejection(CommandProblem.PROPERTY_VALUE_INVALID, "lives"), set(ActorValueChanges.PropertyValue("lives", color = 0xFF000000)).validate(context))
         assertEquals(Rejection(CommandProblem.NUMBER_INVALID), set(ActorValueChanges.PropertyValue("lives", number = Float.NaN)).validate(context))
         assertEquals(Rejection(CommandProblem.SCENE_VALUE_NAMED_TWICE, "lives"), set(ActorValueChanges.PropertyValue("lives", number = 1f), cleared = listOf("lives")).validate(context))
         assertEquals(LookupProblem.ACTOR_PROPERTY_MISSING_SIMILAR, set(ActorValueChanges.PropertyValue("live", number = 1f)).validate(context)?.reason)
