@@ -44,6 +44,10 @@ class MissingHeadersTest(unittest.TestCase):
     def test_a_file_with_the_header_passes(self):
         self.assertEqual(check({"engine/src/commonMain/kotlin/Kubriko.kt": KOTLIN_HEADER}), [])
 
+    def test_a_header_ending_in_another_full_stop_fails(self):
+        path = "engine/src/commonMain/kotlin/Kubriko.kt"
+        self.assertEqual(check({path: KOTLIN_HEADER.replace("MPL/2.0/.", "MPL/2.0/\u3002")}), [path])
+
     def test_a_file_without_the_header_fails(self):
         self.assertEqual(
             check({"engine/src/commonMain/kotlin/Kubriko.kt": "package com.pandulapeter.kubriko\n"}),

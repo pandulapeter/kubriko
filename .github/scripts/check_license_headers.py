@@ -22,7 +22,7 @@ import sys
 
 HEADER_LINES = (
     "This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.",
-    "https://mozilla.org/MPL/2.0/",
+    "https://mozilla.org/MPL/2.0/.",
 )
 
 # How far into a file the header may start: an XML declaration or a shebang comes before it.
