@@ -34,4 +34,15 @@ class ScreenTextDefinitionTest {
         assertFalse(ScreenTextDefinition.isShownWhenAllowed(ConditionDefinition.ActorCount("Brick")))
         assertEquals(listOf(ConditionKind.NUMBER, ConditionKind.TEXT, ConditionKind.TOGGLE), ConditionKind.entries.filter { it.isAvailableForTexts })
     }
+
+    @Test
+    fun aTextMadeToShowWhileAConditionHoldsStartsWithAToggleThenANumberThenATextProperty() {
+        val number = PropertyDefinition.Number("lives")
+        val text = PropertyDefinition.Text("title")
+        val toggle = PropertyDefinition.Toggle("isOver")
+        assertEquals(ConditionDefinition.Toggle("isOver"), ScreenTextDefinition.defaultConditionFor(listOf(number, text, toggle)))
+        assertEquals(ConditionDefinition.Number("lives"), ScreenTextDefinition.defaultConditionFor(listOf(text, number)))
+        assertEquals(ConditionDefinition.Text("title"), ScreenTextDefinition.defaultConditionFor(listOf(text)))
+        assertEquals(ConditionDefinition.Toggle(), ScreenTextDefinition.defaultConditionFor(emptyList()))
+    }
 }

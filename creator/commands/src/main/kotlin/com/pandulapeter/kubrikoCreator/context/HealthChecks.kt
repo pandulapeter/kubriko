@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.propertyReference
 
 /**
  * Works out what about a game is worth a look ([HealthFinding]) from its types, the relations between its parts, and
@@ -71,6 +72,9 @@ internal object HealthChecks {
                     .distinct()
                     .filter { it in actorTypeNames && !isPresent(it) }
                     .forEach { add(HealthFinding(HealthFinding.Kind.COUNT_OF_ABSENT_TYPE, RelationSubject.Type(type.name), it)) }
+                (type as? ManagerTypeDefinition)?.texts?.forEachIndexed { index, text ->
+                    if (text.shownWhen?.propertyReference?.name?.isEmpty() == true) add(HealthFinding(HealthFinding.Kind.TEXT_NEVER_SHOWN, RelationSubject.Type(type.name), (index + 1).toString()))
+                }
             }
             addAll(KotlinBlockScopeChecks.of(types, family))
             addAll(MissingReferenceChecks.of(types, relations, sceneNames, audioFiles, sceneMusic))

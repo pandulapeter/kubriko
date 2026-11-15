@@ -51,6 +51,21 @@ public data class ScreenTextDefinition(
         public fun isShownWhenAllowed(condition: ConditionDefinition): Boolean = ConditionKind.of(condition).isAvailableForTexts &&
             condition.numberValues.all { it is NumberValue.Fixed || it is NumberValue.Property }
 
+        /**
+         * The condition a text starts with when it is made to show only while one holds: on the first toggle Property of
+         * [properties], or else the first number or text one, so that it names a Property from the start, or a toggle
+         * condition with no Property chosen when there is none, which the health checks point out.
+         */
+        public fun defaultConditionFor(properties: List<PropertyDefinition>): ConditionDefinition {
+            val property = properties.firstOrNull { it is PropertyDefinition.Toggle } ?: properties.firstOrNull { it is PropertyDefinition.Number } ?: properties.firstOrNull()
+            return when (property) {
+                is PropertyDefinition.Toggle -> ConditionDefinition.Toggle(property.name)
+                is PropertyDefinition.Number -> ConditionDefinition.Number(property.name)
+                is PropertyDefinition.Text -> ConditionDefinition.Text(property.name)
+                null -> ConditionDefinition.Toggle()
+            }
+        }
+
         /** A new text showing the Manager's first Property ([properties]), or `{score}` when it has none yet. */
         public fun defaultFor(properties: List<PropertyDefinition>): ScreenTextDefinition = ScreenTextDefinition(text = "{${properties.firstOrNull()?.name ?: DEFAULT_PROPERTY_NAME}}")
     }

@@ -55,7 +55,7 @@ class ScreenTextListTest {
         onNodeWithText("Always shown").performClick()
         onNodeWithText("Shown while").performClick()
         waitForIdle()
-        assertEquals(ConditionDefinition.Toggle(), text.shownWhen)
+        assertEquals(ConditionDefinition.Toggle("isOver"), text.shownWhen)
         onNodeWithText("A toggle Property").performClick()
         onNodeWithText("A number Property").assertExists()
         onAllNodesWithText("By chance").assertCountEquals(0)

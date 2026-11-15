@@ -130,7 +130,7 @@ private fun ScreenTextVisibility(
         options = listOf(false, true),
         optionText = { stringResource(if (it) Res.string.manager_type_text_shown_while else Res.string.manager_type_text_shown_always) },
         onSelected = { isConditional ->
-            if (isConditional != (condition != null)) onConditionChange(if (isConditional) ConditionDefinition.Toggle() else null)
+            if (isConditional != (condition != null)) onConditionChange(if (isConditional) ScreenTextDefinition.defaultConditionFor(scope.properties) else null)
         },
     )
     if (condition != null) {

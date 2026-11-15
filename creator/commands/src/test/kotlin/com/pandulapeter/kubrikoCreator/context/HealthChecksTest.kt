@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.scenes.writeScene
 import kotlinx.coroutines.test.runTest
@@ -90,6 +91,24 @@ class HealthChecksTest {
                 HealthFinding(HealthFinding.Kind.COUNT_OF_ABSENT_TYPE, RelationSubject.Type("Referee"), "Ghost"),
             ),
             HealthChecks.of(withReferee, ProjectRelations(withReferee, scenes), scenes.keys).filter { it.subject == RelationSubject.Type("Referee") }.sortedBy { it.kind.ordinal },
+        )
+    }
+
+    @Test
+    fun aTextShownWhileAConditionWithNoPropertyChosenNeverShows() {
+        val hud = ManagerTypeDefinition(
+            name = "Hud",
+            properties = listOf(PropertyDefinition.Toggle("isOver")),
+            texts = listOf(
+                ScreenTextDefinition("Over", shownWhen = ConditionDefinition.Toggle("isOver")),
+                ScreenTextDefinition("Never", shownWhen = ConditionDefinition.Toggle()),
+                ScreenTextDefinition("Always"),
+            ),
+        )
+        val types = listOf(hud)
+        assertEquals(
+            listOf(HealthFinding(HealthFinding.Kind.TEXT_NEVER_SHOWN, RelationSubject.Type("Hud"), "2")),
+            HealthChecks.of(types, ProjectRelations(types, emptyMap()), emptyList()).filter { it.kind == HealthFinding.Kind.TEXT_NEVER_SHOWN },
         )
     }
 
