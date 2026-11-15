@@ -103,6 +103,7 @@ public fun BlockDefinition.withTimerRenamed(oldName: String, newName: String): B
  * in a Log Block, renamed from [oldName] to [newName].
  */
 internal fun BlockDefinition.withPropertyRenamed(oldName: String, newName: String, manager: String? = null) = when {
+    this is BlockDefinition.If -> copy(condition = condition.withPropertyRenamed(oldName, newName, manager))
     propertyReference?.let { it.manager == manager && it.name == oldName } == true -> withPropertyReference(manager, newName)
     this is BlockDefinition.Log -> copy(message = PropertyPlaceholders.withPropertyRenamed(message, manager, oldName, newName))
     else -> this
@@ -114,6 +115,7 @@ internal fun BlockDefinition.withPropertyRenamed(oldName: String, newName: Strin
  * instead.
  */
 internal fun BlockDefinition.withManagerRenamed(oldName: String, newName: String) = when {
+    this is BlockDefinition.If -> copy(condition = condition.withManagerRenamed(oldName, newName))
     propertyReference?.manager == oldName -> withPropertyReference(newName, propertyReference!!.name)
     this is BlockDefinition.Log -> copy(message = PropertyPlaceholders.withManagerRenamed(message, oldName, newName))
     else -> this

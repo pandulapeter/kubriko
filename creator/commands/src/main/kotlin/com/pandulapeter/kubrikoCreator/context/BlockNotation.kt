@@ -149,6 +149,7 @@ internal object BlockNotation {
         is ConditionDefinition.ActorCount -> "the number of Actors of ${condition.actorType.ifEmpty { NONE }} ${of(condition.comparison)} ${value(condition.value)}"
         is ConditionDefinition.Chance -> "by chance (${value(condition.percent)}%)"
         is ConditionDefinition.Paused -> if (condition.isPaused) "the game is paused" else "the game isn't paused"
+        is ConditionDefinition.Combined -> condition.conditions.joinToString(if (condition.isAll) " and " else " or ") { "(${of(it)})" }.ifEmpty { if (condition.isAll) "always" else "never" }
     }
 
     /**

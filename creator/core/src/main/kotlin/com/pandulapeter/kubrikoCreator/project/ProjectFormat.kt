@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.project
 import com.pandulapeter.kubrikoCreator.actors.store.ActorTypeReferencesMigration
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.store.ColorPropertiesMigration
+import com.pandulapeter.kubrikoCreator.actors.store.CombinedConditionsMigration
 import com.pandulapeter.kubrikoCreator.actors.store.EdgeValuesMigration
 import com.pandulapeter.kubrikoCreator.actors.store.KotlinBlockImportsMigration
 import com.pandulapeter.kubrikoCreator.actors.store.ManagerFieldMigration
@@ -106,6 +107,7 @@ public class ProjectFormat(
             TextOptionsMigration,
             ColorPropertiesMigration,
             ActorTypeReferencesMigration,
+            CombinedConditionsMigration,
         )
 
         /**

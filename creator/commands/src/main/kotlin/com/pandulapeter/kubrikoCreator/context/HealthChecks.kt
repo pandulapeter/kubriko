@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
@@ -73,12 +74,21 @@ internal object HealthChecks {
                     .filter { it in actorTypeNames && !isPresent(it) }
                     .forEach { add(HealthFinding(HealthFinding.Kind.COUNT_OF_ABSENT_TYPE, RelationSubject.Type(type.name), it)) }
                 (type as? ManagerTypeDefinition)?.texts?.forEachIndexed { index, text ->
-                    if (text.shownWhen?.propertyReference?.name?.isEmpty() == true) add(HealthFinding(HealthFinding.Kind.TEXT_NEVER_SHOWN, RelationSubject.Type(type.name), (index + 1).toString()))
+                    if (text.shownWhen?.let(::isNeverTrue) == true) add(HealthFinding(HealthFinding.Kind.TEXT_NEVER_SHOWN, RelationSubject.Type(type.name), (index + 1).toString()))
                 }
             }
             addAll(KotlinBlockScopeChecks.of(types, family))
             addAll(MissingReferenceChecks.of(types, relations, sceneNames, audioFiles, sceneMusic))
         }
+    }
+
+    /**
+     * Whether [condition] is always false because a Property it checks isn't chosen yet: one whose own Property isn't, all
+     * of whose conditions are false, or one of whose conditions are, as it combines them.
+     */
+    private fun isNeverTrue(condition: ConditionDefinition): Boolean = when (condition) {
+        is ConditionDefinition.Combined -> condition.conditions.isNotEmpty() && if (condition.isAll) condition.conditions.any(::isNeverTrue) else condition.conditions.all(::isNeverTrue)
+        else -> condition.propertyReference?.name?.isEmpty() == true
     }
 
     /**

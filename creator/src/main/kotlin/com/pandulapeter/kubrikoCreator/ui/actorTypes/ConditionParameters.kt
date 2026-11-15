@@ -60,16 +60,24 @@ internal fun ConditionParameters(
     scope: BlockScope,
     isForText: Boolean = false,
     onConditionChange: (ConditionDefinition) -> Unit,
-) = FlowRow(
+): Unit = FlowRow(
     horizontalArrangement = Arrangement.spacedBy(6.dp),
     verticalArrangement = Arrangement.spacedBy(4.dp),
-    itemVerticalAlignment = Alignment.CenterVertically,
+    // A combined condition's list starts beside its kind, rather than the kind floating beside the list's middle.
+    itemVerticalAlignment = if (condition is ConditionDefinition.Combined) Alignment.Top else Alignment.CenterVertically,
 ) {
     MenuButton(
         label = stringResource(ConditionKind.of(condition).title),
         options = ConditionKind.entries.filter { it.isAvailableIn(scope.kind) && (!isForText || it.isAvailableForTexts) },
         optionText = { stringResource(it.title) },
-        onSelected = { if (it != ConditionKind.of(condition)) onConditionChange(it.createDefault()) },
+        onSelected = { kind ->
+            when {
+                kind == ConditionKind.of(condition) -> Unit
+                // Combining keeps the condition there is, as the first of those combined.
+                kind == ConditionKind.COMBINED -> onConditionChange(ConditionDefinition.Combined(listOf(condition, ConditionDefinition.Toggle())))
+                else -> onConditionChange(kind.createDefault())
+            }
+        },
     )
     when (condition) {
         is ConditionDefinition.Number -> {
@@ -146,6 +154,7 @@ internal fun ConditionParameters(
             accepts = { it in 0f..100f },
             fieldWidth = 88.dp,
         )
+        is ConditionDefinition.Combined -> CombinedConditionParameters(condition, scope, isForText, onConditionChange)
         is ConditionDefinition.Paused -> YesNoChoice(condition.isPaused, Res.string.condition_is_paused, Res.string.condition_is_not_paused) { onConditionChange(condition.copy(isPaused = it)) }
     }
 }

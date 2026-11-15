@@ -25,7 +25,8 @@ public enum class ConditionKind(
     VELOCITY({ ConditionDefinition.Velocity() }, needsActor = true),
     ACTOR_COUNT({ ConditionDefinition.ActorCount() }),
     CHANCE({ ConditionDefinition.Chance() }),
-    PAUSED({ ConditionDefinition.Paused() });
+    PAUSED({ ConditionDefinition.Paused() }),
+    COMBINED({ ConditionDefinition.Combined() }, isAvailableForTexts = true);
 
     public fun isAvailableIn(kind: BlockTypeKind): Boolean = !needsActor || kind == BlockTypeKind.ACTOR
 
@@ -40,6 +41,7 @@ public enum class ConditionKind(
             is ConditionDefinition.ActorCount -> ACTOR_COUNT
             is ConditionDefinition.Chance -> CHANCE
             is ConditionDefinition.Paused -> PAUSED
+            is ConditionDefinition.Combined -> COMBINED
         }
     }
 }

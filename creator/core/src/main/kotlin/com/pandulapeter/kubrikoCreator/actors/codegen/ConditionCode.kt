@@ -30,14 +30,21 @@ internal object ConditionCode {
     /**
      * [condition] as a Kotlin expression (the only line of the result), with what its numbers reach, or `false` if it
      * needs a Property that doesn't exist (of that kind), an Actor type that doesn't, or an Actor in a Manager type, so
-     * that the generated code always compiles.
+     * that the generated code always compiles. A combined condition joins its conditions' expressions, each in parentheses.
      */
-    fun of(condition: ConditionDefinition, scope: BlockScope): BlockCode = expressionOf(condition, scope).let { code ->
+    fun of(condition: ConditionDefinition, scope: BlockScope): BlockCode = if (condition is ConditionDefinition.Combined) combinedOf(condition, scope) else expressionOf(condition, scope).let { code ->
         if (code.lines.single() == "false") {
             code
         } else {
             code.copy(needs = code.needs + NumberValueCode.needsOf(condition.numberValues), managers = code.managers + scope.managersReading(condition.numberPropertyReferences))
         }
+    }
+
+    private fun combinedOf(condition: ConditionDefinition.Combined, scope: BlockScope): BlockCode {
+        if (condition.conditions.isEmpty()) return BlockCode(listOf(condition.isAll.toString()))
+        val parts = condition.conditions.map { of(it, scope) }
+        return parts.fold(BlockCode.NONE) { code, part -> code + part.copy(lines = emptyList()) }
+            .copy(lines = listOf(parts.joinToString(if (condition.isAll) " && " else " || ") { "(${it.lines.single()})" }))
     }
 
     private fun expressionOf(condition: ConditionDefinition, scope: BlockScope): BlockCode {
@@ -73,6 +80,7 @@ internal object ConditionCode {
             }
             is ConditionDefinition.Chance -> BlockCode(listOf("${ManagerTypeCodeGenerator.WIRING_NAME}.${ManagerTypeCodeGenerator.RANDOM_FIELD}.nextFloat() * 100f < ${NumberValueCode.float(condition.percent, scope)}"))
             is ConditionDefinition.Paused -> BlockCode(listOf((if (condition.isPaused) "!" else "") + "$STATE_MANAGER_FIELD.isRunning.value"), needs = setOf(BlockNeed.STATE_MANAGER))
+            is ConditionDefinition.Combined -> combinedOf(condition, scope)
         }
     }
 }

@@ -49,6 +49,10 @@
   goes through a nullable `SceneOffset`, which would box every frame. An x takes only horizontal edges and a y only vertical
   ones, and fields of whole numbers take none (they count rather than place). An edge is the Scene's even in an Add an Actor
   placing from this Actor: only the other coordinate is relative.
+- Conditions combine with and and or as a condition of their own (`ConditionDefinition.Combined`), so if Blocks and texts
+  get it alike; every condition helper recurses into it (`leaves`, `propertyReferences`), and each rule a single
+  condition is held to (where it is allowed, a known key, a chance within 0 and 100) holds for every condition it
+  combines.
 - Flow stays in each Event's flat Block list (if, else, repeat, and end mark sections), so every Block keeps its plain index
   (`BlockNesting` works out the depths).
 - It reads like the examples' hand-written code (`Dynamic`, `Collidable`, and Manager lookups only where needed) and behaves like

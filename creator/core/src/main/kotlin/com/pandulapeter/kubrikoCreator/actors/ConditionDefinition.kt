@@ -106,6 +106,16 @@ public sealed interface ConditionDefinition {
     ) : ConditionDefinition
 
     @Serializable
+    @SerialName("combined")
+    @Description("Several conditions together: true while all of them hold (isAll), or while any of them does.")
+    public data class Combined(
+        @Description("The conditions, each of any type, a combined one too.")
+        @SerialName("conditions") val conditions: List<ConditionDefinition> = listOf(Toggle(), Toggle()),
+        @Description("True for all of them (and), false for any of them (or).")
+        @SerialName("isAll") val isAll: Boolean = true,
+    ) : ConditionDefinition
+
+    @Serializable
     @SerialName("paused")
     @Description("Checks whether the game is paused by a pause Block. Most useful in a Manager type's key pressed Events, which still run while it is.")
     public data class Paused(

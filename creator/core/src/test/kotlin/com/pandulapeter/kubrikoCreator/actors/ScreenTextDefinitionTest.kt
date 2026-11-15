@@ -32,7 +32,9 @@ class ScreenTextDefinitionTest {
         assertFalse(ScreenTextDefinition.isShownWhenAllowed(ConditionDefinition.Chance()))
         assertFalse(ScreenTextDefinition.isShownWhenAllowed(ConditionDefinition.Paused()))
         assertFalse(ScreenTextDefinition.isShownWhenAllowed(ConditionDefinition.ActorCount("Brick")))
-        assertEquals(listOf(ConditionKind.NUMBER, ConditionKind.TEXT, ConditionKind.TOGGLE), ConditionKind.entries.filter { it.isAvailableForTexts })
+        assertEquals(listOf(ConditionKind.NUMBER, ConditionKind.TEXT, ConditionKind.TOGGLE, ConditionKind.COMBINED), ConditionKind.entries.filter { it.isAvailableForTexts })
+        assertTrue(ScreenTextDefinition.isShownWhenAllowed(ConditionDefinition.Combined(listOf(ConditionDefinition.Toggle("isOver"), ConditionDefinition.Text("title")), isAll = false)))
+        assertFalse(ScreenTextDefinition.isShownWhenAllowed(ConditionDefinition.Combined(listOf(ConditionDefinition.Toggle("isOver"), ConditionDefinition.Combined(listOf(ConditionDefinition.Chance()))))))
     }
 
     @Test

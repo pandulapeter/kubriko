@@ -105,7 +105,7 @@ public object EveryBlockTypes {
         BlockDefinition.StopMusic,
         BlockDefinition.SetFrame(frame = NumberValue.Fixed(2f)),
         BlockDefinition.SetAnimation(speed = NumberValue.Fixed(-0.5f), isLooping = false),
-    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks + steeringBlocks + actorCountBlocks + colorPropertyBlocks + actorTypeValueBlocks
+    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks + steeringBlocks + actorCountBlocks + colorPropertyBlocks + actorTypeValueBlocks + combinedConditionBlocks
 
     /**
      * Blocks taking random numbers and Properties' values, which format version 5 added.
@@ -141,6 +141,34 @@ public object EveryBlockTypes {
             BlockDefinition.If(ConditionDefinition.Number("score", Comparison.LESS, NumberValue.BetweenEdges(SceneEdge.TOP, to = SceneEdge.BOTTOM))),
             BlockDefinition.End,
         )
+
+    /**
+     * If Blocks combining conditions, nested and empty, which format version 16 added.
+     */
+    val combinedConditionBlocks: List<BlockDefinition>
+        get() = listOf(
+            BlockDefinition.If(ConditionDefinition.Combined(listOf(ConditionDefinition.Number("score"), ConditionDefinition.Toggle("isShielded", manager = "EveryManager")))),
+            BlockDefinition.Stop,
+            BlockDefinition.End,
+            BlockDefinition.If(
+                ConditionDefinition.Combined(
+                    listOf(ConditionDefinition.Combined(listOf(ConditionDefinition.Chance(), ConditionDefinition.KeyHeld()), isAll = true), ConditionDefinition.Text("title")),
+                    isAll = false,
+                ),
+            ),
+            BlockDefinition.End,
+            BlockDefinition.If(ConditionDefinition.Combined(emptyList(), isAll = false)),
+            BlockDefinition.End,
+        )
+
+    /**
+     * A text shown while either of two conditions holds, which format version 16 added.
+     */
+    val combinedConditionText = ScreenTextDefinition(
+        "Either",
+        ScreenPosition.LEFT,
+        shownWhen = ConditionDefinition.Combined(listOf(ConditionDefinition.Toggle("isShielded"), ConditionDefinition.Number("score", value = NumberValue.Property("score", manager = "EveryManager"))), isAll = false),
+    )
 
     /**
      * Blocks adding and moving towards the Actor type an Actor type reference Property names, which format version 15
@@ -328,7 +356,7 @@ public object EveryBlockTypes {
         name = "Hud",
         properties = properties,
         events = everyEvent(everyManagerBlock),
-        texts = listOf(ScreenTextDefinition("{EveryManager.score} / {score}"), ScreenTextDefinition()) + textOptionTexts,
+        texts = listOf(ScreenTextDefinition("{EveryManager.score} / {score}"), ScreenTextDefinition()) + textOptionTexts + combinedConditionText,
         kotlinUi = """
             import androidx.compose.foundation.layout.Column
             import androidx.compose.foundation.layout.windowInsetsPadding

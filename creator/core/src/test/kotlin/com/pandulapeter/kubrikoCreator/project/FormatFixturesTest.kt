@@ -152,9 +152,12 @@ class FormatFixturesTest {
      * up to the current format doesn't make up.
      */
     private fun BlockTypeDefinition.asOf(version: Int): BlockTypeDefinition {
-        if (version >= 15) return this
-        val withoutActorTypeReferences = withProperties(properties - EveryBlockTypes.actorTypeProperty)
-            .withEvents(events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.actorTypeValueBlocks)) })
+        if (version >= 16) return this
+        val withoutCombinedConditions = withEvents(events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.combinedConditionBlocks)) })
+            .let { if (it is ManagerTypeDefinition) it.copy(texts = it.texts - EveryBlockTypes.combinedConditionText) else it }
+        if (version == 15) return withoutCombinedConditions
+        val withoutActorTypeReferences = withoutCombinedConditions.withProperties(withoutCombinedConditions.properties - EveryBlockTypes.actorTypeProperty)
+            .withEvents(withoutCombinedConditions.events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.actorTypeValueBlocks)) })
         if (version == 14) return withoutActorTypeReferences
         val withoutColorProperties = withoutActorTypeReferences.withProperties(withoutActorTypeReferences.properties - EveryBlockTypes.colorProperty)
             .withEvents(withoutActorTypeReferences.events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.colorPropertyBlocks)) })

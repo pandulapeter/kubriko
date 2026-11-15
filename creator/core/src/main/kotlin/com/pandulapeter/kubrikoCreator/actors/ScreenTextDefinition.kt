@@ -48,7 +48,7 @@ public data class ScreenTextDefinition(
          * compares one) is fixed or another Property's, since those are what the text's `Composable` follows. A random
          * number would change at every recomposition, and an edge isn't Compose state.
          */
-        public fun isShownWhenAllowed(condition: ConditionDefinition): Boolean = ConditionKind.of(condition).isAvailableForTexts &&
+        public fun isShownWhenAllowed(condition: ConditionDefinition): Boolean = condition.leaves.all { ConditionKind.of(it).isAvailableForTexts } &&
             condition.numberValues.all { it is NumberValue.Fixed || it is NumberValue.Property }
 
         /**

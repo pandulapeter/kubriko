@@ -21,6 +21,7 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyReference
 import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.actors.numberPropertyReferences
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
+import com.pandulapeter.kubrikoCreator.actors.propertyReferences
 import com.pandulapeter.kubrikoCreator.actors.valuePropertyReferences
 import com.pandulapeter.kubrikoCreator.screenplay.PageLinks
 
@@ -148,18 +149,17 @@ internal class ProjectReferences(
      */
     private fun managerChoiceUsagesOf(subject: RelationSubject) = buildList {
         if (subject !is RelationSubject.Type) return@buildList
-        fun addChoiceUsages(place: RelationPlace, reference: PropertyReference?, valueReferences: List<PropertyReference>, referenceUsage: () -> Usage) {
-            if (valueReferences.any { it.manager == subject.name && it.name.isEmpty() }) {
-                add(Usage(UsagePlace.InModel(place), RelationKind.READS_VALUE, subject, UsageEffect.VALUE_TO_FIXED))
-            }
-            if (reference != null && reference.manager == subject.name && reference.name.isEmpty()) add(referenceUsage())
+        fun isUnchosenOf(reference: PropertyReference) = reference.manager == subject.name && reference.name.isEmpty()
+        fun addChoiceUsages(place: RelationPlace, references: List<PropertyReference>, valueReferences: List<PropertyReference>, referenceUsage: () -> Usage) {
+            if (valueReferences.any(::isUnchosenOf)) add(Usage(UsagePlace.InModel(place), RelationKind.READS_VALUE, subject, UsageEffect.VALUE_TO_FIXED))
+            if (references.any(::isUnchosenOf)) add(referenceUsage())
         }
         types.forEach { type ->
             if (type.name == subject.name) return@forEach
             type.events.forEachIndexed { eventIndex, event ->
                 event.blocks.forEachIndexed { blockIndex, block ->
                     val place = RelationPlace.Type(type.name, eventIndex, blockIndex)
-                    addChoiceUsages(place, block.propertyReference, block.valuePropertyReferences) {
+                    addChoiceUsages(place, (block as? BlockDefinition.If)?.condition?.propertyReferences ?: listOfNotNull(block.propertyReference), block.valuePropertyReferences) {
                         if (block is BlockDefinition.If) {
                             Usage(UsagePlace.InModel(place), RelationKind.READS, subject, UsageEffect.SECTION_REMOVED, blocksInside = sectionOf(place).count() - 1)
                         } else {
@@ -171,7 +171,7 @@ internal class ProjectReferences(
             (type as? ManagerTypeDefinition)?.texts?.forEachIndexed { index, text ->
                 val condition = text.shownWhen ?: return@forEachIndexed
                 val place = RelationPlace.Text(type.name, index, isCondition = true)
-                addChoiceUsages(place, condition.propertyReference, condition.numberPropertyReferences) {
+                addChoiceUsages(place, condition.propertyReferences, condition.numberPropertyReferences) {
                     Usage(UsagePlace.InModel(place), RelationKind.READS, subject, UsageEffect.TEXT_REMOVED)
                 }
             }

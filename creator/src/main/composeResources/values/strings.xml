@@ -365,6 +365,11 @@
     <string name="condition_velocity">The velocity</string>
     <string name="condition_actor_count">The number of Actors of</string>
     <string name="condition_chance">By chance</string>
+    <string name="condition_combined">Several conditions</string>
+    <string name="condition_all">all of these hold</string>
+    <string name="condition_any">any of these holds</string>
+    <string name="action_add_condition">Add a condition</string>
+    <string name="action_remove_condition">Remove this condition</string>
     <string name="condition_paused">The game</string>
     <string name="condition_comparison_less">is less than</string>
     <string name="condition_comparison_less_or_equal">is at most</string>

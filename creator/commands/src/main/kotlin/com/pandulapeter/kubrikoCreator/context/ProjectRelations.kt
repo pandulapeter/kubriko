@@ -19,10 +19,12 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
 import com.pandulapeter.kubrikoCreator.actors.actorTypeReference
+import com.pandulapeter.kubrikoCreator.actors.actorTypeReferences
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.fixedName
 import com.pandulapeter.kubrikoCreator.actors.numberValues
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
+import com.pandulapeter.kubrikoCreator.actors.propertyReferences
 import com.pandulapeter.kubrikoCreator.actors.valuePropertyReferences
 
 /**
@@ -129,8 +131,8 @@ internal class ProjectRelations(
     }
 
     private fun MutableList<Relation>.addCheckedBy(typeName: String, place: RelationPlace, condition: ConditionDefinition) {
-        condition.propertyReference?.takeIf { it.name.isNotEmpty() }?.let { add(Relation(place, RelationKind.READS, propertyOf(typeName, it.manager, it.name))) }
-        condition.actorTypeReference?.ifEmpty { null }?.let { add(Relation(place, RelationKind.COUNTS, RelationSubject.Type(it))) }
+        condition.propertyReferences.forEach { if (it.name.isNotEmpty()) add(Relation(place, RelationKind.READS, propertyOf(typeName, it.manager, it.name))) }
+        condition.actorTypeReferences.forEach { if (it.isNotEmpty()) add(Relation(place, RelationKind.COUNTS, RelationSubject.Type(it))) }
     }
 
     private fun MutableList<Relation>.addPlaceholders(typeName: String, place: RelationPlace, text: String) {

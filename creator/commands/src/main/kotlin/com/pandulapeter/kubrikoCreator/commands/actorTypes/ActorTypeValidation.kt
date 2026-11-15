@@ -34,12 +34,15 @@ import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.actorTypeReference
+import com.pandulapeter.kubrikoCreator.actors.actorTypeReferences
 import com.pandulapeter.kubrikoCreator.actors.areEdgesAlong
 import com.pandulapeter.kubrikoCreator.actors.fixedArgb
 import com.pandulapeter.kubrikoCreator.actors.isFinite
+import com.pandulapeter.kubrikoCreator.actors.leaves
 import com.pandulapeter.kubrikoCreator.actors.numberPropertyReferences
 import com.pandulapeter.kubrikoCreator.actors.numberValues
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
+import com.pandulapeter.kubrikoCreator.actors.propertyReferences
 import com.pandulapeter.kubrikoCreator.actors.readsEdges
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypes
 import com.pandulapeter.kubrikoCreator.actors.timerName
@@ -172,7 +175,7 @@ internal fun validateBlock(block: BlockDefinition, eventType: EventType, scope: 
     ?: validateBlockValues(block, scope)
 
 private fun validateBlockValues(block: BlockDefinition, scope: BlockScope): Rejection? = when {
-    block is BlockDefinition.If && !ConditionKind.of(block.condition).isAvailableIn(scope.kind) -> Rejection(PlacementProblem.CONDITION_NOT_ALLOWED)
+    block is BlockDefinition.If && block.condition.leaves.any { !ConditionKind.of(it).isAvailableIn(scope.kind) } -> Rejection(PlacementProblem.CONDITION_NOT_ALLOWED)
     !block.areNumbersValid -> Rejection(CommandProblem.NUMBER_INVALID)
     !block.areEdgesAlongTheirAxes -> Rejection(CommandProblem.NUMBER_EDGE_ACROSS)
     block.edgelessNumberValues.any { it.readsEdges } -> Rejection(CommandProblem.NUMBER_EDGE_NOT_TAKEN)
@@ -187,19 +190,20 @@ private fun validateBlockValues(block: BlockDefinition, scope: BlockScope): Reje
         Rejection(CommandProblem.SCALE_NEGATIVE)
     ((block as? BlockDefinition.Animate)?.value as? AnimatedValue.Color)?.let { listOf(it.from, it.to).all { color -> color.fixedArgb?.let(ColorHex::isOpaque) != false } } == false ->
         Rejection(CommandProblem.ANIMATED_COLOR_NOT_OPAQUE)
-    ((block as? BlockDefinition.If)?.condition as? ConditionDefinition.KeyHeld)?.key?.isKnown == false -> unknownKey((block.condition as ConditionDefinition.KeyHeld).key)
+    block is BlockDefinition.If && block.condition.unknownKey != null -> unknownKey(checkNotNull(block.condition.unknownKey))
     else -> block.timerName?.let(TimerNaming::validate)?.let(::Rejection) ?: validateBlockReferences(block, scope)
 }
 
 private fun validateBlockReferences(block: BlockDefinition, scope: BlockScope): Rejection? = when {
-    block.actorTypeReference?.let { it !in scope.actorTypeNames } == true -> missingActorType(block.actorTypeReference.orEmpty(), scope)
+    block.countedActorTypes.any { it !in scope.actorTypeNames } -> missingActorType(block.countedActorTypes.first { it !in scope.actorTypeNames }, scope)
     block is BlockDefinition.GoToScene && block.scene.isNotEmpty() && scope.sceneNames?.contains(block.scene) == false ->
         SimilarNames.rejection(LookupProblem.SCENE_MISSING, LookupProblem.SCENE_MISSING_SIMILAR, block.scene, scope.sceneNames.orEmpty(), block.scene)
     block is BlockDefinition.PlaySound && block.sound.isNotEmpty() && scope.audioFiles?.sounds?.contains(block.sound) == false ->
         SimilarNames.rejection(LookupProblem.SOUND_MISSING, LookupProblem.SOUND_MISSING_SIMILAR, block.sound, scope.audioFiles?.sounds.orEmpty(), block.sound)
     block is BlockDefinition.PlayMusic && block.music.isNotEmpty() && scope.audioFiles?.music?.contains(block.music) == false ->
         SimilarNames.rejection(LookupProblem.MUSIC_MISSING, LookupProblem.MUSIC_MISSING_SIMILAR, block.music, scope.audioFiles?.music.orEmpty(), block.music)
-    else -> (listOfNotNull(block.propertyReference) + block.valuePropertyReferences).firstNotNullOfOrNull { reference -> validatePropertyReference(reference, scope) }
+    else -> (((block as? BlockDefinition.If)?.condition?.propertyReferences ?: listOfNotNull(block.propertyReference)) + block.valuePropertyReferences)
+        .firstNotNullOfOrNull { reference -> validatePropertyReference(reference, scope) }
 }
 
 private fun validatePropertyReference(reference: PropertyReference, scope: BlockScope): Rejection? {
@@ -219,6 +223,17 @@ private fun validatePropertyReference(reference: PropertyReference, scope: Block
         else -> null
     }
 }
+
+/**
+ * The Actor types [this] Block adds, moves towards, or counts (in every condition an if Block combines), of those chosen.
+ */
+private val BlockDefinition.countedActorTypes: List<String>
+    get() = ((this as? BlockDefinition.If)?.condition?.actorTypeReferences?.filter { it.isNotEmpty() } ?: listOfNotNull(actorTypeReference))
+
+/**
+ * The first key [this] condition, or one it combines, checks that Compose doesn't know.
+ */
+private val ConditionDefinition.unknownKey get() = leaves.firstNotNullOfOrNull { (it as? ConditionDefinition.KeyHeld)?.key?.takeUnless { key -> key.isKnown } }
 
 private fun missingActorType(name: String, scope: BlockScope) = missingActorType(name, scope.actorTypeNames, scope.managerTypes.map { it.name })
 
@@ -320,7 +335,7 @@ internal fun validateText(text: ScreenTextDefinition, scope: BlockScope) = when 
     !text.size.isFinite() || text.size <= 0f -> Rejection(CommandProblem.TEXT_SIZE_INVALID)
     text.shownWhen?.let { ScreenTextDefinition.isShownWhenAllowed(it) && it.numberValues.all { value -> value.isFinite } } == false -> Rejection(CommandProblem.TEXT_CONDITION_NOT_ALLOWED)
     else -> text.shownWhen?.let { condition ->
-        (listOfNotNull(condition.propertyReference) + condition.numberPropertyReferences).firstNotNullOfOrNull { reference -> validatePropertyReference(reference, scope) }
+        (condition.propertyReferences + condition.numberPropertyReferences).firstNotNullOfOrNull { reference -> validatePropertyReference(reference, scope) }
     }
 }
 
@@ -336,7 +351,7 @@ internal fun CommandContext.validateText(managerType: String, text: ScreenTextDe
  */
 private val BlockDefinition.areNumbersValid
     get() = numberValues.all { it.isFinite } && when (this) {
-        is BlockDefinition.If -> (condition as? ConditionDefinition.Chance)?.percent?.isWithin(0f, 100f) ?: true
+        is BlockDefinition.If -> condition.leaves.all { (it as? ConditionDefinition.Chance)?.percent?.isWithin(0f, 100f) ?: true }
         is BlockDefinition.Repeat -> times.isWithin(minimum = 0f) && times.isWholeWhenFixed
         is BlockDefinition.StartTimer -> seconds.isWithin(minimum = 0f)
         is BlockDefinition.Animate -> seconds.isWithin(minimum = 0f)

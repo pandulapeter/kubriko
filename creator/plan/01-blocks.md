@@ -31,9 +31,8 @@ needed twelve Kotlin Blocks, all for simple behavior. Each item replaces some of
 
 ## Next additions
 
-- **More flow:** combining conditions (and, or), and comparing a text or toggle Property with another Property (numbers
-  compare with any number value already). Sections live in the flat Block list (`BlockNesting`), so drag-and-drop stays a
-  reorder.
+- **More flow:** comparing a text or toggle Property with another Property (numbers compare with any number value
+  already, and conditions combine with and and or).
 - **More audio:** volume, and sounds and music as Properties (so one Block plays the sound an Actor keeps).
 - **Scene settings in the game:** an option that fits the game's view to the Scene's bounds (through
   `ViewportManager.setAspectRatioMode`); the Scene editor's inspector already edits the settings.
