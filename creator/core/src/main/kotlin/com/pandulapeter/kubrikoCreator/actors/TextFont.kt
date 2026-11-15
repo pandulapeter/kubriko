@@ -14,11 +14,13 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * The family of letters a Manager type's text is drawn in, with the Compose `FontFamily` it becomes. These are the ones
- * every platform has, so a text looks alike everywhere it is played.
+ * The family of letters a Manager type's text is drawn in, with the Compose `FontFamily` it becomes: Compose's generic
+ * families, which each platform maps to faces of its own, so they look different from one platform to the next, and the
+ * web, which has no system fonts, may draw them all in its default one. Font files the game bundles are planned for a text
+ * that has to look alike everywhere.
  */
 @Serializable
-@Description("A family of letters every platform has.")
+@Description("A generic family of letters, which each platform draws in a face of its own.")
 public enum class TextFont(
     internal val fontFamily: String,
 ) {

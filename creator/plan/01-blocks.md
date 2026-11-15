@@ -27,6 +27,8 @@ needed twelve Kotlin Blocks, all for simple behavior. Each item replaces some of
 ## More for Manager types
 
 - **More text:** showing a text only while a toggle Property is on, and fonts.
+- **Font files:** fonts the game bundles (`composeResources/font`), added and named like sprites, so a text looks alike on
+  every platform; the generic families a text has now are drawn in each platform's own faces, and the web has none.
 - **Managers in the Scene editor:** their Properties shown and set per Scene (a library change, released before Creator relies on
   it).
 
