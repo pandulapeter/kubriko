@@ -341,11 +341,19 @@ public object BlockCodeGenerator {
     }
 
     /**
-     * [condition] as a Kotlin expression (the only line of the result), or `false` if it needs a Property that doesn't
-     * exist (of that kind), an Actor type that doesn't, or an Actor in a Manager type, so that the generated code always
-     * compiles.
+     * [condition] as a Kotlin expression (the only line of the result), with what its numbers reach, or `false` if it
+     * needs a Property that doesn't exist (of that kind), an Actor type that doesn't, or an Actor in a Manager type, so
+     * that the generated code always compiles.
      */
-    internal fun conditionCode(condition: ConditionDefinition, scope: BlockScope): BlockCode {
+    internal fun conditionCode(condition: ConditionDefinition, scope: BlockScope): BlockCode = conditionExpression(condition, scope).let { code ->
+        if (code.lines.single() == "false") {
+            code
+        } else {
+            code.copy(needs = code.needs + NumberValueCode.needsOf(condition.numberValues), managers = code.managers + NumberValueCode.managersReadBy(condition.numberValues, scope))
+        }
+    }
+
+    private fun conditionExpression(condition: ConditionDefinition, scope: BlockScope): BlockCode {
         val reference = condition.propertyReference
         if (reference != null && !scope.hasProperty(reference)) return BlockCode(listOf("false"))
         if (!ConditionKind.of(condition).isAvailableIn(scope.kind)) return BlockCode(listOf("false"))

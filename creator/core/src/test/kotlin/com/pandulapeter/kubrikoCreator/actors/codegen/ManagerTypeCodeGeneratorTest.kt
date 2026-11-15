@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.actors.SceneEdge
 import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.actors.TextFont
@@ -178,6 +179,22 @@ class ManagerTypeCodeGeneratorTest {
         )
         assertContains(code, "            if (false) {\n                BasicText(\n                    modifier = Modifier.align(Alignment.TopCenter),\n                    text = \"Gone\",\n")
         assertContains(code, "    private val gameManager by manager<Game>()\n")
+    }
+
+    @Test
+    fun aTextConditionComparingWithAnotherManagersPropertyOrAnEdgeDeclaresWhatItReaches() {
+        val hud = ManagerTypeDefinition(
+            name = "Hud",
+            properties = listOf(PropertyDefinition.Number("score")),
+            texts = listOf(
+                ScreenTextDefinition("Low", shownWhen = ConditionDefinition.Number("score", Comparison.LESS, NumberValue.Property("lives", manager = "Game"))),
+                ScreenTextDefinition("Left", shownWhen = ConditionDefinition.Number("score", Comparison.LESS, NumberValue.Edge(SceneEdge.LEFT))),
+            ),
+        )
+        val code = generate(hud, managerTypes = listOf(hud, game))
+        assertContains(code, "if (score < gameManager.lives) {")
+        assertContains(code, "    private val gameManager by manager<Game>()\n")
+        assertContains(code, "    private val generatedScenes by manager<GeneratedScenes>()\n")
     }
 
     @Test
