@@ -15,7 +15,10 @@ internal interface SoundPlayer {
 
     suspend fun preload(uri: String): Any?
 
-    suspend fun play(cachedSound: Any)
+    /**
+     * Plays [cachedSound] at [volume], from 0 to 1.
+     */
+    suspend fun play(cachedSound: Any, volume: Float)
 
     fun dispose(cachedSound: Any)
 

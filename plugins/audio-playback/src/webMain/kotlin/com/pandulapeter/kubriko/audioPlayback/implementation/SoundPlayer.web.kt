@@ -52,11 +52,14 @@ internal actual fun createSoundPlayer(
         }
     }
 
-    override suspend fun play(cachedSound: Any) {
+    override suspend fun play(cachedSound: Any, volume: Float) {
         cachedSound as WebCachedSound
         withContext(Dispatchers.Default) {
             // The browser rejects plays before the first user gesture; the element stays paused and is reused.
-            cachedSound.elements.firstOrNull { it.paused }?.play()?.catch { null }
+            cachedSound.elements.firstOrNull { it.paused }?.let { element ->
+                element.volume = volume.toDouble()
+                element.play().catch { null }
+            }
         }
     }
 

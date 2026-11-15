@@ -56,9 +56,10 @@ internal actual fun createSoundPlayer(
         }
     }
 
-    override suspend fun play(cachedSound: Any) = withContext(Dispatchers.IO) {
+    override suspend fun play(cachedSound: Any, volume: Float) = withContext(Dispatchers.IO) {
         val sound = cachedSound as CachedSound
         val clip = sound.getAvailableClip()
+        clip?.applyVolume(volume)
         clip?.start()
         Unit
     }

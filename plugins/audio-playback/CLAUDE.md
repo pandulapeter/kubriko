@@ -49,7 +49,7 @@ Streaming music and pooled SFX. Reliably works on Android and Desktop; iOS and W
 - Desktop clips return to pool via `LineEvent.Type.STOP`. If all clips are busy, the sound is **silently dropped** (no queuing)
 - Desktop: a sound none of whose clips opens (a format the mixer rejects, exhausted mixer lines) is a failed load, logged and retried; on a system with no Clip line at all (no audio device) it stays loaded and its plays are dropped
 - `play()` checks `stateManager.isFocused.value` — suppressed when unfocused
-- No per-call volume or loop control in SFX; use `MusicManager` for those features
+- `play(uri, volume)` sets each play's volume (0 to 1, clamped) on the stream or player it takes: `SoundPool.play`'s volumes on Android, a pooled `Clip`'s master gain on Desktop (set before every start, since a clip keeps the gain of its last play; `gainInDecibelsOf` maps the amplitude factor into the control's range, its minimum for silence, and a mixer without the control plays as recorded), `AVAudioPlayer.volume` on iOS, and the element's `volume` on Web. There is no loop control in SFX; use `MusicManager` for that
 
 ## Neither Manager Overrides `onUpdate`
 

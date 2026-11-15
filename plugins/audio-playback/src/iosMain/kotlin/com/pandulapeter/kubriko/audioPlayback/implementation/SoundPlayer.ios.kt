@@ -31,13 +31,13 @@ internal actual fun createSoundPlayer(
         List(maximumSimultaneousStreamsOfTheSameSound) { createPreparedAudioPlayer(uri) ?: return@withContext null }
     }
 
-    override suspend fun play(cachedSound: Any) = withContext(Dispatchers.Default) {
+    override suspend fun play(cachedSound: Any, volume: Float) = withContext(Dispatchers.Default) {
         cachedSound as List<AVAudioPlayer>
         var attempts = 0
         var wasSoundPlayed = false
 
         while (!wasSoundPlayed && attempts < MAXIMUM_ATTEMPTS) {
-            wasSoundPlayed = cachedSound.firstOrNull { !it.playing }?.play() == true
+            wasSoundPlayed = cachedSound.firstOrNull { !it.playing }?.also { it.setVolume(volume) }?.play() == true
             if (!wasSoundPlayed) {
                 attempts++
                 delay(RETRY_DELAY_IN_MILLISECONDS)
@@ -48,6 +48,7 @@ internal actual fun createSoundPlayer(
             cachedSound.firstOrNull()?.let { player ->
                 player.stop()
                 player.setCurrentTime(0.0)
+                player.setVolume(volume)
                 player.play()
             }
         }

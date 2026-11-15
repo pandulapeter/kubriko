@@ -239,7 +239,7 @@ Each plugin requires its Manager to be passed to `Kubriko.newInstance()`. Omitti
 
 | Plugin | Manager(s) | Traits | Artifact |
 |---|---|---|---|
-| `audio-playback` | `MusicManager` (streaming, looping, volume), `SoundManager` (low-latency SFX, simultaneous) | — | `plugin-audio-playback` |
+| `audio-playback` | `MusicManager` (streaming, looping, volume), `SoundManager` (low-latency SFX, simultaneous, a volume per play) | — | `plugin-audio-playback` |
 | `collision` | `CollisionManager` | `Collidable` (defines `CollisionMask`), `CollisionDetector : Collidable` (receives `onCollisionDetected`) | `plugin-collision` |
 | `gamepad-input` | `GamepadInputManager` | `GamepadInputAware` (`handleGamepadState`, `onGamepadButtonPressed`/`Released`, `onGamepadConnected`/`Disconnected`) | `plugin-gamepad-input` |
 | `keyboard-input` | `KeyboardInputManager` | `KeyboardInputAware` (`onKeyPressed`, `onKeyReleased`, `handleActiveKeys`) | `plugin-keyboard-input` |

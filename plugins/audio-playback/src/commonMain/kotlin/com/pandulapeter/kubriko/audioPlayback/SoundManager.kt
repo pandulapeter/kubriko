@@ -53,11 +53,19 @@ sealed class SoundManager(
     abstract fun preload(uris: Collection<String>)
 
     /**
-     * Plays the sound associated with the given [uri].
+     * Plays the sound associated with the given [uri] at full volume.
      *
      * If the sound is not yet loaded, it will be loaded automatically.
      */
-    abstract fun play(uri: String)
+    fun play(uri: String) = play(uri, volume = 1f)
+
+    /**
+     * Plays the sound associated with the given [uri] at [volume], from 0 (silent) to 1 (full volume, as recorded); a
+     * value outside that range is clamped to it.
+     *
+     * If the sound is not yet loaded, it will be loaded automatically.
+     */
+    abstract fun play(uri: String, volume: Float)
 
     /**
      * Unloads the specified sound [uri] from memory.

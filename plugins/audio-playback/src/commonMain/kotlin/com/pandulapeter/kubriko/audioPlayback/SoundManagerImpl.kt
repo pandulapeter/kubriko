@@ -65,11 +65,12 @@ internal class SoundManagerImpl(
 
     override fun preload(uris: Collection<String>) = uris.forEach(audioCache::preload)
 
-    override fun play(uri: String) {
+    override fun play(uri: String, volume: Float) {
+        val clampedVolume = volume.coerceIn(0f, 1f)
         scope.launch {
             if (stateManager.isFocused.value) {
                 soundPlayer?.let { soundPlayer ->
-                    audioCache.get(uri)?.let { sound -> soundPlayer.play(sound) }
+                    audioCache.get(uri)?.let { sound -> soundPlayer.play(sound, clampedVolume) }
                 }
             }
         }
