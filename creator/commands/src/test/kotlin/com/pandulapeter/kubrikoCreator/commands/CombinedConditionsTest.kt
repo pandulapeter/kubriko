@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
+import com.pandulapeter.kubrikoCreator.actors.ToggleValue
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveProperty
@@ -106,10 +107,13 @@ class CombinedConditionsTest {
                 ScreenTextDefinition("Sometimes", shownWhen = ConditionDefinition.Combined(listOf(ConditionDefinition.Toggle("isOver"), ConditionDefinition.Toggle()), isAll = false)),
                 ScreenTextDefinition("Always", shownWhen = ConditionDefinition.Combined(emptyList())),
                 ScreenTextDefinition("Never either", shownWhen = ConditionDefinition.Combined(listOf(ConditionDefinition.Toggle("isOver"), ConditionDefinition.Combined(emptyList(), isAll = false)))),
+                ScreenTextDefinition("Compared with nothing", shownWhen = ConditionDefinition.Toggle("isOver", ToggleValue.Property())),
             ),
         )
         assertEquals(
-            listOf(HealthFinding(HealthFinding.Kind.TEXT_NEVER_SHOWN, RelationSubject.Type("Hud"), "1"), HealthFinding(HealthFinding.Kind.TEXT_NEVER_SHOWN, RelationSubject.Type("Hud"), "4")),
+            listOf(HealthFinding(HealthFinding.Kind.TEXT_NEVER_SHOWN, RelationSubject.Type("Hud"), "1"), HealthFinding(HealthFinding.Kind.TEXT_NEVER_SHOWN, RelationSubject.Type("Hud"), "4"),
+                HealthFinding(HealthFinding.Kind.TEXT_NEVER_SHOWN, RelationSubject.Type("Hud"), "5"),
+            ),
             HealthChecks.of(listOf(hud), ProjectRelations(listOf(hud), emptyMap()), emptyList()).filter { it.kind == HealthFinding.Kind.TEXT_NEVER_SHOWN },
         )
     }

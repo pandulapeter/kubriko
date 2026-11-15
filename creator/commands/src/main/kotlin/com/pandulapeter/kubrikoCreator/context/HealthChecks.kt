@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
+import com.pandulapeter.kubrikoCreator.actors.valuePropertyReferences
 
 /**
  * Works out what about a game is worth a look ([HealthFinding]) from its types, the relations between its parts, and
@@ -85,12 +86,13 @@ internal object HealthChecks {
     }
 
     /**
-     * Whether [condition] is always false because a Property it checks isn't chosen yet: one whose own Property isn't, or
+     * Whether [condition] is always false because a Property it checks, or reads a value it compares with from, isn't
+     * chosen yet: one whose own Property isn't, or
      * an or all of whose conditions are always false (so one combining none), or an and one of whose conditions is.
      */
     private fun isNeverTrue(condition: ConditionDefinition): Boolean = when (condition) {
         is ConditionDefinition.Combined -> if (condition.isAll) condition.conditions.any(::isNeverTrue) else condition.conditions.all(::isNeverTrue)
-        else -> condition.propertyReference?.name?.isEmpty() == true
+        else -> condition.propertyReference?.name?.isEmpty() == true || condition.valuePropertyReferences.any { it.name.isEmpty() }
     }
 
     /**
