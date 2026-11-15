@@ -36,6 +36,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveEvent
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameTimer
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.ReplaceBlocks
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
@@ -129,9 +130,19 @@ internal class BlockTypeEditorActions(
 
     fun deleteTimer(timer: String) = dispatch(Invocation(DeleteTimer, DeleteTimer.Input(name, timer)))
 
-    fun addBlock(eventIndex: Int, kind: BlockKind, gap: Int? = null) = dispatch(
-        Invocation(AddBlock, AddBlock.Input(name, eventIndex, kind.createDefault(), index = gap)),
-    )
+    /**
+     * Adds a Block of [kind] at [gap], or last; an if or repeat Block comes with its end Block, as one step, so what is
+     * added after it goes inside its section.
+     */
+    fun addBlock(eventIndex: Int, kind: BlockKind, gap: Int? = null) {
+        val block = kind.createDefault()
+        val event = definition.events.getOrNull(eventIndex)
+        if (event != null && (block is BlockDefinition.If || block is BlockDefinition.Repeat)) {
+            dispatch(Invocation(ReplaceBlocks, ReplaceBlocks.Input(name, eventIndex, gap ?: event.blocks.size, blocks = listOf(block, BlockDefinition.End))))
+        } else {
+            dispatch(Invocation(AddBlock, AddBlock.Input(name, eventIndex, block, index = gap)))
+        }
+    }
 
     fun moveBlock(eventIndex: Int, index: Int, gap: Int) {
         moveTarget(index, gap)?.let { dispatch(Invocation(MoveBlock, MoveBlock.Input(name, eventIndex, index, it))) }

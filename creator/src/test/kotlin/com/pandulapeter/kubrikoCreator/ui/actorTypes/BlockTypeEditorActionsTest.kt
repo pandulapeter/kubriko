@@ -27,6 +27,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.MoveBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveEvent
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.ReplaceBlocks
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventTimer
@@ -83,6 +84,22 @@ class BlockTypeEditorActionsTest {
                 Invocation(SetEventTimer, SetEventTimer.Input("Ball", 1, "spawnBrick")),
                 Invocation(SetEventOtherActorType, SetEventOtherActorType.Input("Ball", 3, "Brick")),
                 Invocation(RemoveEvent, RemoveEvent.Input("Ball", 1)),
+            ),
+            dispatched,
+        )
+    }
+
+    @Test
+    fun anIfOrARepeatFromThePaletteComesWithItsEndBlock() {
+        val actions = actionsOf(ball.copy(events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Stop, BlockDefinition.Stop)))))
+
+        actions.addBlock(0, BlockKind.IF)
+        actions.addBlock(0, BlockKind.REPEAT, gap = 1)
+
+        assertEquals<List<Invocation<*>>>(
+            listOf(
+                Invocation(ReplaceBlocks, ReplaceBlocks.Input("Ball", 0, 2, blocks = listOf(BlockKind.IF.createDefault(), BlockDefinition.End))),
+                Invocation(ReplaceBlocks, ReplaceBlocks.Input("Ball", 0, 1, blocks = listOf(BlockKind.REPEAT.createDefault(), BlockDefinition.End))),
             ),
             dispatched,
         )
