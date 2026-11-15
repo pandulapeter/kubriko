@@ -31,6 +31,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ScenesCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.codegen.SpritesCodeGenerator
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
+import com.pandulapeter.kubrikoCreator.project.VersionCatalog
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheetFiles
@@ -251,7 +252,12 @@ public class BlockTypeStore private constructor(
         writeUnlessChangedByHand(ManagerTypeCodeGenerator.WIRING_NAME, ManagerTypeCodeGenerator.generateWiring(managerTypes.map { it.name }, settings.packageName, pluginManagers))
         writeUnlessChangedByHand(
             AudioCodeGenerator.AUDIO_NAME,
-            if (pluginManagers.usesAudio) AudioCodeGenerator.generate(settings.packageName, pluginManagers.sounds, pluginManagers.music, pluginManagers.usesSoundVolume) else null,
+            if (pluginManagers.usesAudio) {
+                val kubrikoVersion = File(rootDirectory, VersionCatalog.FILE).takeIf { it.isFile }?.readText()?.let(VersionCatalog::kubrikoVersion)
+                AudioCodeGenerator.generate(settings.packageName, pluginManagers.sounds, pluginManagers.music, AudioCodeGenerator.takesSoundVolume(kubrikoVersion, pluginManagers.usesSoundVolume))
+            } else {
+                null
+            },
         )
         writeUnlessChangedByHand(
             SpritesCodeGenerator.SPRITES_NAME,

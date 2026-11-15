@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.actors.codegen
 import com.pandulapeter.kubrikoCreator.actors.GeneratedNames
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.INDENT
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.stringLiteral
+import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
 
 /**
  * The Manager that plays sounds and music for the audio Blocks and each Scene's music. Generated only into projects
@@ -24,11 +25,10 @@ internal object AudioCodeGenerator {
     /**
      * @param sounds The sound files the game plays, by their path from `composeResources`.
      * @param music The music files the game plays, by their path from `composeResources`.
-     * @param usesSoundVolume Whether a Block plays a sound at less than full volume, the only case that calls
-     *   `SoundManager.play` with a volume, which only Kubriko releases after 0.8.0 have, so a game that doesn't builds with
-     *   older ones too.
+     * @param takesSoundVolume Whether `playSound` takes a volume, which it passes to `SoundManager.play`
+     *   ([takesSoundVolume]).
      */
-    fun generate(packageName: String, sounds: Collection<String>, music: Collection<String>, usesSoundVolume: Boolean = false) = GeneratedFile.withHeader("", buildString {
+    fun generate(packageName: String, sounds: Collection<String>, music: Collection<String>, takesSoundVolume: Boolean = true) = GeneratedFile.withHeader("", buildString {
         appendLine("package $packageName.${ActorTypeCodeGenerator.GENERATED_PACKAGE}")
         appendLine()
         listOf(
@@ -96,7 +96,7 @@ internal object AudioCodeGenerator {
             |        }
             |    }
             |
-            ${playSoundFunction(usesSoundVolume)}
+            ${playSoundFunction(takesSoundVolume)}
             |
             |    /**
             |     * Plays the music at [path] (from `composeResources`) instead of the music playing now, or goes on with it if it
@@ -135,9 +135,23 @@ internal object AudioCodeGenerator {
     })
 
     /**
-     * `playSound`, as lines of the margin-trimmed template, taking a volume only when [usesSoundVolume].
+     * The first Kubriko release whose `SoundManager.play` takes a volume.
      */
-    private fun playSoundFunction(usesSoundVolume: Boolean) = if (usesSoundVolume) {
+    private const val SOUND_VOLUME_SINCE = "0.8.1"
+
+    /**
+     * Whether `playSound` takes a volume in a project on [kubrikoVersion] (null when its build doesn't say): when its Kubriko
+     * has the volume, or when it can't be told, since Creator raises the projects it opens to its own, so a game on an older
+     * one still builds, and hand-written code calling it with a volume keeps compiling whatever the Blocks use; or when a
+     * Block plays a sound at less than full volume ([usesSoundVolume]), which needs it anyway.
+     */
+    fun takesSoundVolume(kubrikoVersion: String?, usesSoundVolume: Boolean) =
+        usesSoundVolume || kubrikoVersion == null || KubrikoBuildFiles.compareVersions(kubrikoVersion, SOUND_VOLUME_SINCE) >= 0
+
+    /**
+     * `playSound`, as lines of the margin-trimmed template, taking a volume only when [takesSoundVolume].
+     */
+    private fun playSoundFunction(takesSoundVolume: Boolean) = if (takesSoundVolume) {
         listOf(
             "|    /**",
             "|     * Plays the sound at [path] (from `composeResources`) once, at [volume] (from 0 to 1), or nothing for an empty",
