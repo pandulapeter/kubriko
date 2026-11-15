@@ -58,7 +58,7 @@ internal class ActorTypeFeatures(
     eventScopes: List<Pair<List<EventDefinition>, BlockScope>> = listOf(events to scope),
 ) {
     private val knownActorTypeNames = scope.actorTypeNames
-    val keys = KeyEventCode.KeyEvents(events.filter { it.type.takesKey && isGenerated(it) })
+    val keys = KeyEventCode.KeyEvents(events.filter { it.type.takesKey && isGenerated(it) }, isFamily)
     val removedEvents = events.filter { it.type == EventType.REMOVED_FROM_SCENE }
     val edgeEvents = events.filter { it.type == EventType.EDGE_TOUCHED }
     val leftSceneEvents = events.filter { it.type == EventType.LEFT_SCENE }

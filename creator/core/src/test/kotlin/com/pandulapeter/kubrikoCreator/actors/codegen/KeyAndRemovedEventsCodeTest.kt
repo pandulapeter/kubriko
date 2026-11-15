@@ -50,6 +50,15 @@ class KeyAndRemovedEventsCodeTest {
     }
 
     @Test
+    fun aFamilyWhoseHeldKeyHasNoBlocksStillLooksUpTheKeyboardItsHookAsksAbout() {
+        val ship = ActorTypeDefinition(name = "Ship", events = listOf(EventDefinition(EventType.KEY_HELD, key = KeyChoice.A), EventDefinition(EventType.EVERY_FRAME, blocks = log)))
+        val fighter = ActorTypeDefinition(name = "Fighter", parent = "Ship")
+        val code = ActorTypeCodeGenerator.generateActorType(ship, "com.example.game", listOf("Ship", "Fighter"), actorTypes = listOf(ship, fighter))
+        assertContains(code, "if (keyboardInputManager.isKeyPressed(Key.A)) whileKeyHeldA()")
+        assertContains(code, "lateinit var keyboardInputManager: KeyboardInputManager")
+    }
+
+    @Test
     fun theRemovedEventRunsOnceWhenABlockFirstMarksTheActorRemoved() {
         val code = actor(EventDefinition(EventType.REMOVED_FROM_SCENE, blocks = log))
         assertContains(code, "    var isRemoved = false\n        set(value) {\n            val wasRemoved = field\n            field = value\n            if (value && !wasRemoved) onRemovedFromScene()\n        }\n")

@@ -21,8 +21,11 @@ internal object KeyEventCode {
 
     /**
      * The Events of [events] that react to keys, each kind apart, as both generators split them.
+     *
+     * @param isFamily Whether they are a family's, whose base class runs a held key's hook even without Blocks, since a
+     *   child may override it.
      */
-    class KeyEvents(events: List<EventDefinition>) {
+    class KeyEvents(events: List<EventDefinition>, isFamily: Boolean = false) {
         val pressed = events.filter { it.type == EventType.KEY_PRESSED }
         val released = events.filter { it.type == EventType.KEY_RELEASED }
         val held = events.filter { it.type == EventType.KEY_HELD }
@@ -33,9 +36,9 @@ internal object KeyEventCode {
         val isKeyboardInputAware = pressed.isNotEmpty() || released.isNotEmpty()
 
         /**
-         * Whether a held key's Event has Blocks, so the type asks about it every frame.
+         * Whether the type asks about a held key every frame: one whose Event has Blocks, or any in a family.
          */
-        val holdsKeys = held.any { it.blocks.isNotEmpty() }
+        val holdsKeys = held.any { isFamily || it.blocks.isNotEmpty() }
     }
 
     /**
