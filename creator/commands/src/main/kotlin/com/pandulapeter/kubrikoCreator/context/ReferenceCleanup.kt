@@ -17,8 +17,10 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
+import com.pandulapeter.kubrikoCreator.actors.fixedArgb
 import com.pandulapeter.kubrikoCreator.actors.withColorValues
 import com.pandulapeter.kubrikoCreator.actors.withNumberValues
+import com.pandulapeter.kubrikoCreator.foundation.ColorHex
 
 /**
  * What deleting something does to the types that use it ([ProjectReferences.typesAfterDeleting]):
@@ -114,7 +116,9 @@ internal class ReferenceCleanup(
                     when {
                         blockIndex in removed -> null
                         block is BlockDefinition.Log -> block.copy(message = PropertyPlaceholders.withPlaceholdersAsText(block.message, ::isDeleted))
-                        else -> block.withNumberValues(::fixedIfDeleted).withColorValues(::fixedIfDeleted)
+                        else -> block.withNumberValues(::fixedIfDeleted).withColorValues { color ->
+                            fixedIfDeleted(color).let { fixed -> if (fixed != color && block.takesOnlyOpaqueColors) ColorValue.Fixed(ColorHex.opaque(checkNotNull(fixed.fixedArgb))) else fixed }
+                        }
                     }
                 },
             )
@@ -163,6 +167,11 @@ internal class ReferenceCleanup(
      * @param definition The deleted Property, or null when no type declares it (one named but never made).
      */
     private class DeletedProperty(val definition: PropertyDefinition?)
+
+    /**
+     * Whether [this] Block's colors are opaque, the opacity Blocks setting how see-through the Actor is.
+     */
+    private val BlockDefinition.takesOnlyOpaqueColors get() = this is BlockDefinition.SetColor || this is BlockDefinition.Animate
 
     private class Deleted(
         val properties: Set<RelationSubject.Property>,

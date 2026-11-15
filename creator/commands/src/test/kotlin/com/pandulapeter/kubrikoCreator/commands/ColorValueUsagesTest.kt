@@ -38,7 +38,7 @@ class ColorValueUsagesTest {
     private val game = ManagerTypeDefinition("Game", properties = listOf(PropertyDefinition.Color("shade", 0xFF102030)))
     private val enemy = ActorTypeDefinition(
         name = "Enemy",
-        properties = listOf(PropertyDefinition.Color("tint", 0xFF20C060), PropertyDefinition.Number("hp")),
+        properties = listOf(PropertyDefinition.Color("tint", 0x8020C060), PropertyDefinition.Number("hp")),
         events = listOf(
             EventDefinition(
                 EventType.EVERY_FRAME,
@@ -65,7 +65,7 @@ class ColorValueUsagesTest {
     fun renamingAColorPropertyFollowsEveryBlockReadingIt() = runTest {
         val context = commandContext(enemy, game)
         EditProperty.apply(context, EditProperty.Input("Game", "shade", PropertyDefinition.Color("hue", 0xFF102030)))
-        EditProperty.apply(context, EditProperty.Input("Enemy", "tint", PropertyDefinition.Color("paint", 0xFF20C060)))
+        EditProperty.apply(context, EditProperty.Input("Enemy", "tint", PropertyDefinition.Color("paint", 0x8020C060)))
         assertEquals(
             listOf(
                 BlockDefinition.SetColor(listOf(ColorValue.Property("paint"), ColorValue.Fixed(0xFF000000))),
@@ -77,7 +77,7 @@ class ColorValueUsagesTest {
     }
 
     @Test
-    fun deletingWhatAColorValueReadsLeavesItsStartingColorAndRemovesTheBlockSettingIt() = runTest {
+    fun deletingWhatAColorValueReadsLeavesItsStartingColorOpaqueWhereOnlyOpaqueOnesAreTaken() = runTest {
         val context = commandContext(enemy, game)
         assertEquals(
             listOf(RelationKind.READS_VALUE, RelationKind.READS_VALUE) to listOf(UsageEffect.VALUE_TO_FIXED, UsageEffect.VALUE_TO_FIXED),
