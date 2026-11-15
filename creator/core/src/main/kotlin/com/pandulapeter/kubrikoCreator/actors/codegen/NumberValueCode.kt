@@ -74,13 +74,6 @@ internal object NumberValueCode {
     fun sceneUnit(value: NumberValue, scope: BlockScope) = float(value, scope) + ".sceneUnit"
 
     /**
-     * The other Manager types whose Properties [values] read, which the generated class has to look up.
-     */
-    fun managersReadBy(values: List<NumberValue>, scope: BlockScope) = values.mapNotNullTo(HashSet()) { value ->
-        value.propertyReference?.takeIf { scope.hasProperty(it) }?.manager?.takeUnless(scope::isOwn)
-    }
-
-    /**
      * What the class has to declare for [values]: the Manager that knows where the edges are, if any of them reads one.
      */
     fun needsOf(values: List<NumberValue>) = if (values.any { it.readsEdges }) setOf(BlockNeed.SCENES) else emptySet()

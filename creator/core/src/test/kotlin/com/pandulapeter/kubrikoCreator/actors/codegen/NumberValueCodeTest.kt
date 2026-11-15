@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.SceneEdge
+import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -66,7 +67,7 @@ class NumberValueCodeTest {
         assertEquals("gameManager.score", NumberValueCode.float(NumberValue.Property("score", manager = "Game"), scope))
         assertEquals("speed.toInt().coerceAtLeast(0)", NumberValueCode.whole(NumberValue.Property("speed"), scope))
         assertEquals("gameManager.score.sceneUnit", NumberValueCode.sceneUnit(NumberValue.Property("score", manager = "Game"), scope))
-        assertEquals(setOf("Game"), NumberValueCode.managersReadBy(listOf(NumberValue.Property("score", manager = "Game"), NumberValue.Property("speed")), scope))
+        assertEquals(setOf("Game"), scope.managersReading(listOf(NumberValue.Property("score", manager = "Game"), NumberValue.Property("speed")).mapNotNull { it.propertyReference }))
     }
 
     @Test
@@ -74,7 +75,7 @@ class NumberValueCodeTest {
         listOf(NumberValue.Property(), NumberValue.Property("missing"), NumberValue.Property("title", manager = "Game"), NumberValue.Property("score", manager = "Missing")).forEach { value ->
             assertEquals("0f", NumberValueCode.float(value, scope), value.toString())
             assertEquals("0", NumberValueCode.whole(value, scope), value.toString())
-            assertEquals(emptySet(), NumberValueCode.managersReadBy(listOf(value), scope), value.toString())
+            assertEquals(emptySet(), scope.managersReading(listOfNotNull(value.propertyReference)), value.toString())
         }
     }
 
@@ -82,7 +83,7 @@ class NumberValueCodeTest {
     fun aManagerTypeReadsItsOwnPropertiesByTheirNames() {
         val managerScope = BlockScope("Game", BlockTypeKind.MANAGER, game.properties, managerTypes = listOf(game))
         assertEquals("score", NumberValueCode.float(NumberValue.Property("score", manager = "Game"), managerScope))
-        assertEquals(emptySet(), NumberValueCode.managersReadBy(listOf(NumberValue.Property("score", manager = "Game")), managerScope))
+        assertEquals(emptySet(), managerScope.managersReading(listOfNotNull(NumberValue.Property("score", manager = "Game").propertyReference)))
     }
 
     @Test

@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STATE_M
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.managersReachedBy
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.propertyExpression
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.stringLiteral
+import com.pandulapeter.kubrikoCreator.actors.numberPropertyReferences
 import com.pandulapeter.kubrikoCreator.actors.numberValues
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 
@@ -35,7 +36,7 @@ internal object ConditionCode {
         if (code.lines.single() == "false") {
             code
         } else {
-            code.copy(needs = code.needs + NumberValueCode.needsOf(condition.numberValues), managers = code.managers + NumberValueCode.managersReadBy(condition.numberValues, scope))
+            code.copy(needs = code.needs + NumberValueCode.needsOf(condition.numberValues), managers = code.managers + scope.managersReading(condition.numberPropertyReferences))
         }
     }
 

@@ -66,6 +66,13 @@ public data class BlockScope(
     internal fun managerField(manager: String) = managerFieldOf(manager)
 
     /**
+     * The other Manager types whose Properties [references] read, of those that exist, which the generated class looks up.
+     */
+    internal fun managersReading(references: List<PropertyReference>) = references.mapNotNullTo(HashSet()) { reference ->
+        reference.takeIf { hasProperty(it) }?.manager?.takeUnless(::isOwn)
+    }
+
+    /**
      * The other Manager types that [kotlinUi] names by their field, which the generated class has to look up.
      */
     internal fun managersNamedIn(kotlinUi: KotlinUi?) = kotlinUi?.let { ui -> managerTypes.map { it.name }.filter { !isOwn(it) && ui.names(managerField(it)) } }.orEmpty()

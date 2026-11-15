@@ -35,11 +35,4 @@ internal object ColorValueCode {
         is ColorValue.Property -> value.propertyReference?.takeIf { scope.hasProperty(it) }?.let { BlockCodeGenerator.propertyExpression(it, scope) }
             ?: "Color(${colorLiteral(MISSING_PROPERTY_COLOR)})"
     }
-
-    /**
-     * The other Manager types whose fields [values] read.
-     */
-    fun managersReadBy(values: List<ColorValue>, scope: BlockScope) = values.mapNotNullTo(HashSet()) { value ->
-        value.propertyReference?.takeIf { scope.hasProperty(it) }?.manager?.takeUnless(scope::isOwn)
-    }
 }

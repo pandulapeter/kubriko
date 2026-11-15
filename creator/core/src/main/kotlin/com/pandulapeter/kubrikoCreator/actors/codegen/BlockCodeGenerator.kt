@@ -31,6 +31,7 @@ import com.pandulapeter.kubrikoCreator.actors.colorValues
 import com.pandulapeter.kubrikoCreator.actors.numberValues
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.readsEdges
+import com.pandulapeter.kubrikoCreator.actors.valuePropertyReferences
 import kotlin.math.absoluteValue
 import kotlin.math.roundToLong
 
@@ -106,7 +107,7 @@ public object BlockCodeGenerator {
                 code.copy(
                     needs = code.needs + NumberValueCode.needsOf(numberValues),
                     imports = if (colorValues.isEmpty()) code.imports else code.imports + ColorValueCode.IMPORT,
-                    managers = code.managers + NumberValueCode.managersReadBy(numberValues, scope) + ColorValueCode.managersReadBy(colorValues, scope),
+                    managers = code.managers + scope.managersReading(block.valuePropertyReferences),
                 )
             }
         }
