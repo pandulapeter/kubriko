@@ -23,7 +23,7 @@ class AudioCodeGeneratorTest {
         assertContains(code, "import com.example.game.resources.Res\n")
         assertContains(code, "class GeneratedAudio(\n    private val isInSceneEditor: Boolean = false,\n) : Manager() {\n")
         assertContains(code, "    override fun onInitialize(kubriko: Kubriko) {\n        if (isInSceneEditor) return\n")
-        assertContains(code, "        if (!isInSceneEditor) soundManager.play(uriOf(path), volume)\n")
+        assertContains(code, "        if (!isInSceneEditor && path.isNotEmpty()) soundManager.play(uriOf(path), volume)\n")
     }
 
     @Test

@@ -27,13 +27,18 @@ public object EveryBlockTypes {
      */
     val actorTypeProperty: PropertyDefinition = PropertyDefinition.ActorType("enemyType", "EveryParent")
 
+    /**
+     * The sound and music Properties every type has, which format version 21 added.
+     */
+    val audioProperties: List<PropertyDefinition> = listOf(PropertyDefinition.Sound("hitSound", "files/sounds/hit.wav"), PropertyDefinition.Music("theme"))
+
     private val properties = listOf(
         PropertyDefinition.Number("score", 2.5f),
         PropertyDefinition.Text("title", "Say \"\$hi\" \\ to\neveryone"),
         PropertyDefinition.Toggle("isShielded", true),
         colorProperty,
         actorTypeProperty,
-    )
+    ) + audioProperties
 
     val everyBlock = listOf(
         BlockDefinition.SetVelocity(x = NumberValue.Fixed(1.5f), y = NumberValue.Fixed(-2f)),
@@ -96,16 +101,16 @@ public object EveryBlockTypes {
         BlockDefinition.PauseGame(PauseAction.PAUSE),
         BlockDefinition.PauseGame(PauseAction.RESUME),
         BlockDefinition.PauseGame(PauseAction.TOGGLE),
-        BlockDefinition.PlaySound("files/sounds/hit.wav"),
-        BlockDefinition.PlaySound("files/sounds/say \"\$hi\".wav"),
+        BlockDefinition.PlaySound(SoundValue.Fixed("files/sounds/hit.wav")),
+        BlockDefinition.PlaySound(SoundValue.Fixed("files/sounds/say \"\$hi\".wav")),
         BlockDefinition.PlaySound(),
-        BlockDefinition.PlayMusic("files/music/theme.mp3"),
-        BlockDefinition.PlayMusic("files/music/win.mp3", isLooping = false),
+        BlockDefinition.PlayMusic(MusicValue.Fixed("files/music/theme.mp3")),
+        BlockDefinition.PlayMusic(MusicValue.Fixed("files/music/win.mp3"), isLooping = false),
         BlockDefinition.PlayMusic(),
         BlockDefinition.StopMusic,
         BlockDefinition.SetFrame(frame = NumberValue.Fixed(2f)),
         BlockDefinition.SetAnimation(speed = NumberValue.Fixed(-0.5f), isLooping = false),
-    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks + steeringBlocks + actorCountBlocks + colorPropertyBlocks + actorTypeValueBlocks + combinedConditionBlocks + textAndToggleValueBlocks + distanceBlocks + volumeBlocks
+    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks + steeringBlocks + actorCountBlocks + colorPropertyBlocks + actorTypeValueBlocks + combinedConditionBlocks + textAndToggleValueBlocks + distanceBlocks + volumeBlocks + audioValueBlocks
 
     /**
      * Blocks taking random numbers and Properties' values, which format version 5 added.
@@ -202,13 +207,24 @@ public object EveryBlockTypes {
         )
 
     /**
+     * Audio Blocks playing what a sound or music Property holds, which format version 21 added: their own, a Manager
+     * type's, and one that doesn't exist.
+     */
+    val audioValueBlocks: List<BlockDefinition>
+        get() = listOf(
+            BlockDefinition.PlaySound(SoundValue.Property("hitSound"), volume = NumberValue.Fixed(80f)),
+            BlockDefinition.PlayMusic(MusicValue.Property("theme", manager = "EveryManager"), isLooping = false),
+            BlockDefinition.PlaySound(SoundValue.Property("missing")),
+        )
+
+    /**
      * Audio Blocks playing at a volume, which format version 20 added: fixed, random, and a Property's.
      */
     val volumeBlocks: List<BlockDefinition>
         get() = listOf(
-            BlockDefinition.PlaySound("files/sounds/hit.wav", volume = NumberValue.Fixed(50f)),
-            BlockDefinition.PlaySound("files/sounds/hit.wav", volume = NumberValue.Random(20f, 80f)),
-            BlockDefinition.PlayMusic("files/music/theme.mp3", volume = NumberValue.Property("score")),
+            BlockDefinition.PlaySound(SoundValue.Fixed("files/sounds/hit.wav"), volume = NumberValue.Fixed(50f)),
+            BlockDefinition.PlaySound(SoundValue.Fixed("files/sounds/hit.wav"), volume = NumberValue.Random(20f, 80f)),
+            BlockDefinition.PlayMusic(MusicValue.Fixed("files/music/theme.mp3"), volume = NumberValue.Property("score")),
         )
 
     /**

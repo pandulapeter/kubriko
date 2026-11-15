@@ -16,9 +16,11 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ColorValue
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.MusicValue
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
+import com.pandulapeter.kubrikoCreator.actors.SoundValue
 import com.pandulapeter.kubrikoCreator.actors.TextValue
 import com.pandulapeter.kubrikoCreator.actors.ToggleValue
 import com.pandulapeter.kubrikoCreator.actors.ValueTransform
@@ -84,7 +86,7 @@ internal class ReferenceCleanup(
             when (place) {
                 is RelationPlace.Type -> {
                     if (usage.effect == UsageEffect.SPRITE_CLEARED) removal.clearsSprite = true
-                    if (usage.effect == UsageEffect.STARTING_TYPE_CLEARED) removal.clearsStartingTypes = true
+                    if (usage.effect == UsageEffect.STARTING_VALUE_CLEARED) removal.clearsStartingValues = true
                     val eventIndex = place.eventIndex ?: return@forEach
                     val blockIndex = place.blockIndex
                     when (usage.effect) {
@@ -97,7 +99,7 @@ internal class ReferenceCleanup(
                             val condition = relations.conditionWithout(block.condition, place.name, deleted.properties, deleted.types)
                             if (condition == null) removal.removeSection(place.name, eventIndex, blockIndex) else removal.conditions[eventIndex to blockIndex] = condition
                         }
-                        UsageEffect.PLACEHOLDER_TO_TEXT, UsageEffect.VALUE_TO_FIXED, UsageEffect.ACTORS_REMOVED, UsageEffect.SCENE_VALUES_REMOVED, UsageEffect.STARTING_TYPE_CLEARED, UsageEffect.SAVED_REFERENCE_CLEARED, UsageEffect.TEXT_REMOVED, UsageEffect.KOTLIN_TO_CHANGE, UsageEffect.PREVENTS_DELETING, UsageEffect.MENTION_TO_TEXT,
+                        UsageEffect.PLACEHOLDER_TO_TEXT, UsageEffect.VALUE_TO_FIXED, UsageEffect.ACTORS_REMOVED, UsageEffect.SCENE_VALUES_REMOVED, UsageEffect.STARTING_VALUE_CLEARED, UsageEffect.SAVED_REFERENCE_CLEARED, UsageEffect.TEXT_REMOVED, UsageEffect.KOTLIN_TO_CHANGE, UsageEffect.PREVENTS_DELETING, UsageEffect.MENTION_TO_TEXT,
                         UsageEffect.SPRITE_CLEARED, UsageEffect.MUSIC_CLEARED, UsageEffect.IMAGE_COPIED, UsageEffect.DELETED_WITH_FOLDER,
                         -> Unit
                     }
@@ -137,10 +139,19 @@ internal class ReferenceCleanup(
             )
         }
         val withEvents = type.withEvents(events).let { if (removal.clearsSprite && it is ActorTypeDefinition) it.copy(sprite = null) else it }.let { changed ->
-            if (!removal.clearsStartingTypes) {
+            if (!removal.clearsStartingValues) {
                 changed
             } else {
-                changed.withProperties(changed.properties.map { if (it is PropertyDefinition.ActorType && it.initialValue in deleted.types) it.copy(initialValue = "") else it })
+                changed.withProperties(
+                    changed.properties.map { property ->
+                        when {
+                            property is PropertyDefinition.ActorType && property.initialValue in deleted.types -> property.copy(initialValue = "")
+                            property is PropertyDefinition.Sound && property.initialValue in deleted.files -> property.copy(initialValue = "")
+                            property is PropertyDefinition.Music && property.initialValue in deleted.files -> property.copy(initialValue = "")
+                            else -> property
+                        }
+                    },
+                )
             }
         }
         return if (withEvents is ManagerTypeDefinition && withEvents.texts.isNotEmpty()) {
@@ -181,6 +192,12 @@ internal class ReferenceCleanup(
 
         override fun toggle(value: ToggleValue) = (value as? ToggleValue.Property)?.let { definitionRead(it.manager, it.property) }
             ?.let { ToggleValue.Fixed((it.definition as? PropertyDefinition.Toggle)?.initialValue ?: false) } ?: value
+
+        override fun sound(value: SoundValue) = (value as? SoundValue.Property)?.let { definitionRead(it.manager, it.property) }
+            ?.let { SoundValue.Fixed((it.definition as? PropertyDefinition.Sound)?.initialValue.orEmpty()) } ?: value
+
+        override fun music(value: MusicValue) = (value as? MusicValue.Property)?.let { definitionRead(it.manager, it.property) }
+            ?.let { MusicValue.Fixed((it.definition as? PropertyDefinition.Music)?.initialValue.orEmpty()) } ?: value
     }
 
     /**
@@ -206,11 +223,13 @@ internal class ReferenceCleanup(
     private class Deleted(
         val properties: Set<RelationSubject.Property>,
         val types: Set<String>,
+        val files: Set<String>,
     )
 
     private fun deletedBy(usages: List<Usage>) = Deleted(
         properties = usages.mapNotNullTo(HashSet()) { it.subject as? RelationSubject.Property },
         types = usages.mapNotNullTo(HashSet()) { (it.subject as? RelationSubject.Type)?.name },
+        files = usages.mapNotNullTo(HashSet()) { (it.subject as? RelationSubject.Resource)?.path },
     )
 
     private fun Removal.removeSection(typeName: String, eventIndex: Int, blockIndex: Int) {
@@ -230,7 +249,7 @@ internal class ReferenceCleanup(
         val removedTexts = HashSet<Int>()
         val textConditions = HashMap<Int, ConditionDefinition>()
         var clearsSprite = false
-        var clearsStartingTypes = false
+        var clearsStartingValues = false
     }
 }
 

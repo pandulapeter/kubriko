@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.SoundValue
 import com.pandulapeter.kubrikoCreator.project.KubrikoArtifact
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -59,7 +60,7 @@ class GeneratedCodeTest {
 
     @Test
     fun whatIsLeftOutOfTheCodeNeedsNoPlugin() {
-        val sound = BlockDefinition.PlaySound("files/sounds/hit.wav")
+        val sound = BlockDefinition.PlaySound(SoundValue.Fixed("files/sounds/hit.wav"))
         val ball = ActorTypeDefinition(
             name = "Ball",
             events = listOf(

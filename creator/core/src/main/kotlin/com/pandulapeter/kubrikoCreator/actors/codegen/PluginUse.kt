@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.audioFile
 import com.pandulapeter.kubrikoCreator.actors.leaves
+import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.project.KubrikoArtifact
 
 /**
@@ -70,8 +71,8 @@ public data class PluginUse(
         }
 
         private fun useOf(block: BlockDefinition, owner: String) = when {
-            block is BlockDefinition.PlaySound && block.audioFile != null -> PluginUse(KubrikoArtifact.AUDIO_PLAYBACK, PluginReason.PLAYS_SOUND, owner, block.audioFile)
-            block is BlockDefinition.PlayMusic && block.audioFile != null -> PluginUse(KubrikoArtifact.AUDIO_PLAYBACK, PluginReason.PLAYS_MUSIC, owner, block.audioFile)
+            block is BlockDefinition.PlaySound -> (block.audioFile ?: block.sound.propertyReference?.name?.ifEmpty { null })?.let { PluginUse(KubrikoArtifact.AUDIO_PLAYBACK, PluginReason.PLAYS_SOUND, owner, it) }
+            block is BlockDefinition.PlayMusic -> (block.audioFile ?: block.music.propertyReference?.name?.ifEmpty { null })?.let { PluginUse(KubrikoArtifact.AUDIO_PLAYBACK, PluginReason.PLAYS_MUSIC, owner, it) }
             block is BlockDefinition.MoveWithKeys -> PluginUse(KubrikoArtifact.KEYBOARD_INPUT, PluginReason.MOVES_WITH_KEYS, owner)
             block == BlockDefinition.StopMusic -> PluginUse(KubrikoArtifact.AUDIO_PLAYBACK, PluginReason.STOPS_MUSIC, owner)
             else -> null

@@ -38,10 +38,16 @@ import kubriko.creator.generated.resources.error_placement_event_game_started_in
 import kubriko.creator.generated.resources.error_placement_event_left_scene_in_manager_type
 import kubriko.creator.generated.resources.error_placement_event_removed_from_scene_in_manager_type
 import kubriko.creator.generated.resources.error_placement_key_not_allowed
+import kubriko.creator.generated.resources.error_placement_music_property_missing
+import kubriko.creator.generated.resources.error_placement_music_property_missing_similar
+import kubriko.creator.generated.resources.error_placement_music_property_of_other_kind
 import kubriko.creator.generated.resources.error_placement_number_property_missing
 import kubriko.creator.generated.resources.error_placement_number_property_missing_similar
 import kubriko.creator.generated.resources.error_placement_number_property_of_other_kind
 import kubriko.creator.generated.resources.error_placement_other_actor_type_not_allowed
+import kubriko.creator.generated.resources.error_placement_sound_property_missing
+import kubriko.creator.generated.resources.error_placement_sound_property_missing_similar
+import kubriko.creator.generated.resources.error_placement_sound_property_of_other_kind
 import kubriko.creator.generated.resources.error_placement_text_property_missing
 import kubriko.creator.generated.resources.error_placement_text_property_missing_similar
 import kubriko.creator.generated.resources.error_placement_text_property_of_other_kind
@@ -93,4 +99,10 @@ internal fun PlacementProblem.toResource(): StringResource = when (this) {
     PlacementProblem.ACTOR_TYPE_PROPERTY_MISSING -> Res.string.error_placement_actor_type_property_missing
     PlacementProblem.ACTOR_TYPE_PROPERTY_MISSING_SIMILAR -> Res.string.error_placement_actor_type_property_missing_similar
     PlacementProblem.ACTOR_TYPE_PROPERTY_OF_OTHER_KIND -> Res.string.error_placement_actor_type_property_of_other_kind
+    PlacementProblem.SOUND_PROPERTY_MISSING -> Res.string.error_placement_sound_property_missing
+    PlacementProblem.SOUND_PROPERTY_MISSING_SIMILAR -> Res.string.error_placement_sound_property_missing_similar
+    PlacementProblem.SOUND_PROPERTY_OF_OTHER_KIND -> Res.string.error_placement_sound_property_of_other_kind
+    PlacementProblem.MUSIC_PROPERTY_MISSING -> Res.string.error_placement_music_property_missing
+    PlacementProblem.MUSIC_PROPERTY_MISSING_SIMILAR -> Res.string.error_placement_music_property_missing_similar
+    PlacementProblem.MUSIC_PROPERTY_OF_OTHER_KIND -> Res.string.error_placement_music_property_of_other_kind
 }

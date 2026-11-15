@@ -239,7 +239,7 @@ public sealed interface BlockDefinition {
     @Description("Plays a sound effect once. Several sounds, and the same sound several times, can play at once.")
     public data class PlaySound(
         @Description(SOUND_DESCRIPTION)
-        @SerialName("sound") val sound: String = "",
+        @SerialName("sound") val sound: SoundValue = SoundValue.Fixed(""),
         @Description(VOLUME_DESCRIPTION)
         @SerialName("volume") val volume: NumberValue = NumberValue.Fixed(FULL_VOLUME),
     ) : BlockDefinition
@@ -249,7 +249,7 @@ public sealed interface BlockDefinition {
     @Description("Plays music instead of the music that plays now (if it is the same music, it keeps playing). It pauses while the game's window isn't focused, and goes on when it is again.")
     public data class PlayMusic(
         @Description(MUSIC_DESCRIPTION)
-        @SerialName("music") val music: String = "",
+        @SerialName("music") val music: MusicValue = MusicValue.Fixed(""),
         @Description("True to start it again each time it ends, false to play it once.")
         @SerialName("isLooping") val isLooping: Boolean = true,
         @Description(VOLUME_DESCRIPTION + " Playing the same music again changes it.")
@@ -379,9 +379,9 @@ internal const val VOLUME_DESCRIPTION = "How loud, from 0 (silent) to 100 percen
  */
 public const val FULL_VOLUME: Float = 100f
 
-internal const val SOUND_DESCRIPTION = "The sound: a .wav file in the project's composeResources, as its path from there, like files/sounds/hit.wav."
+internal const val SOUND_DESCRIPTION = "The sound: a .wav file's path from composeResources, like files/sounds/hit.wav, or a property sound value."
 /**
  * How a music field is described to the AI, which the command that changes a Scene's settings uses too.
  */
-public const val MUSIC_DESCRIPTION: String = "The music: an .mp3 file in the project's composeResources, as its path from there, like files/music/theme.mp3."
+public const val MUSIC_DESCRIPTION: String = "The music: an .mp3 file's path from composeResources, like files/music/theme.mp3, or a property music value."
 internal const val MANAGER_DESCRIPTION = "The Manager type whose Property it uses. Left out for a Property of the type itself."

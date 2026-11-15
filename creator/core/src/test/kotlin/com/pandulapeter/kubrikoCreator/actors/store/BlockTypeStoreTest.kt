@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
+import com.pandulapeter.kubrikoCreator.actors.SoundValue
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.codegen.AudioCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.codegen.ManagerTypeCodeGenerator
@@ -362,7 +363,7 @@ class BlockTypeStoreTest {
         val audio = File(generated, "GeneratedAudio.kt")
         store.saveAndRegenerate(ball)
         assertFalse(audio.exists())
-        val hit = ball.copy(events = ball.events + EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.PlaySound("files/sounds/hit.wav"))))
+        val hit = ball.copy(events = ball.events + EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.PlaySound(SoundValue.Fixed("files/sounds/hit.wav")))))
         store.saveAndRegenerate(hit)
         assertEquals(AudioCodeGenerator.generate("com.example.game", setOf("files/sounds/hit.wav"), emptySet()), audio.readText())
         assertContains(File(generated, "KubrikoWiring.kt").readText(), "SoundManager.newInstance()")

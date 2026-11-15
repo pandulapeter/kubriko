@@ -44,24 +44,25 @@ internal fun CommandContext.followInTypes(renames: Map<String, String>): Invocat
 }
 
 /**
- * Makes the Scenes playing the music at one of [renames]' keys play its value, all of them or none, written together,
- * saying in the console which still play the old music when they can't be written.
+ * Makes the Scenes naming the sound or music at one of [renames]' keys (as their music, or as a sound or music
+ * Property's saved value) name its value, all of them or none, written together, saying in the console which still name
+ * the old file when they can't be written.
  *
  * @return What puts back the Scenes it changed byte for byte, or null if it changed none.
  */
 @EditorMutation
 internal suspend fun CommandContext.followInScenes(renames: Map<String, String>): Invocation<*>? {
-    val musicRenames = renames.filterKeys { ResourceKind.of(it) == ResourceKind.MUSIC }
-    if (musicRenames.isEmpty()) return null
+    val audioRenames = renames.filterKeys { ResourceKind.of(it) == ResourceKind.MUSIC || ResourceKind.of(it) == ResourceKind.SOUND }
+    if (audioRenames.isEmpty()) return null
     val previous = withContext(ioDispatcher) {
-        val contents = scenesWithMusicReplaced(scenes.scanNames(), musicRenames)
+        val contents = scenesWithAudioReplaced(scenes.scanNames(), audioRenames)
         val texts = contents.keys.associateWith { checkNotNull(scenes.read(it)) }
         try {
             scenes.writeAllTexts(contents)
             texts
         } catch (exception: IOException) {
             val reason = exception.message ?: exception.toString()
-            report(ConsoleEntry.Status(CommandProblem.RESOURCE_MUSIC_NOT_FOLLOWED, isError = true, arguments = listOf(contents.keys.joinToString(), musicRenames.keys.joinToString(), reason)))
+            report(ConsoleEntry.Status(CommandProblem.RESOURCE_AUDIO_NOT_FOLLOWED, isError = true, arguments = listOf(contents.keys.joinToString(), audioRenames.keys.joinToString(), reason)))
             emptyMap()
         }
     }

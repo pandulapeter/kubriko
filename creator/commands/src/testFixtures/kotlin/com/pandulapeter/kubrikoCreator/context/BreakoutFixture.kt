@@ -21,6 +21,7 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
+import com.pandulapeter.kubrikoCreator.actors.SoundValue
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 
@@ -39,7 +40,7 @@ public object BreakoutFixture {
         properties = listOf(PropertyDefinition.Number("speed", 300f)),
         events = listOf(
             EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.SetVelocity(NumberValue.Fixed(200f), NumberValue.Fixed(-300f)))),
-            EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.BounceOffEdge, BlockDefinition.PlaySound("files/sounds/wall.wav"))),
+            EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.BounceOffEdge, BlockDefinition.PlaySound(SoundValue.Fixed("files/sounds/wall.wav")))),
             EventDefinition(
                 type = EventType.COLLISION,
                 otherActorType = "Brick",
@@ -47,7 +48,7 @@ public object BreakoutFixture {
                     BlockDefinition.BounceOffOther,
                     BlockDefinition.RemoveOther,
                     BlockDefinition.ChangeNumber("score", NumberValue.Fixed(10f), manager = "Game"),
-                    BlockDefinition.PlaySound("files/sounds/hit.wav"),
+                    BlockDefinition.PlaySound(SoundValue.Fixed("files/sounds/hit.wav")),
                 ),
             ),
             EventDefinition(EventType.COLLISION, otherActorType = "Paddle", blocks = listOf(BlockDefinition.BounceOffOther, BlockDefinition.AddToVelocity(NumberValue.Fixed(0f), NumberValue.Fixed(-20f)))),

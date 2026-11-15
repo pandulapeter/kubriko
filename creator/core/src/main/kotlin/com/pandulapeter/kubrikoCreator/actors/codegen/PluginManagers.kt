@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.audioFile
 import com.pandulapeter.kubrikoCreator.project.KubrikoArtifact
@@ -61,6 +62,7 @@ internal data class PluginManagers(
                     .flatMap { listOf(definition.name) + family.familyOf(it.otherActorType!!) }
             }
             val pluginsInUse = PluginUse.of(definitions).mapTo(HashSet()) { it.artifact }
+            val properties = definitions.flatMap { it.properties }
             val blocks = definitions.flatMap { definition ->
                 definition.events.filter { GeneratedCode.isGenerated(it, definition.kind, actorTypeNames) }
                     .flatMap { event -> event.blocks.filter { GeneratedCode.isGenerated(it, event.type, definition.kind) } }
@@ -69,8 +71,11 @@ internal data class PluginManagers(
                 collidableActorTypeNames = collidableActorTypeNames,
                 usesKeyboard = KubrikoArtifact.KEYBOARD_INPUT in pluginsInUse,
                 usesAudio = sceneMusic.isNotEmpty() || KubrikoArtifact.AUDIO_PLAYBACK in pluginsInUse,
-                sounds = blocks.mapNotNullTo(sortedSetOf()) { (it as? BlockDefinition.PlaySound)?.audioFile },
-                music = blocks.mapNotNullTo(sortedSetOf()) { (it as? BlockDefinition.PlayMusic)?.audioFile } + sceneMusic,
+                // A Property's starting file is preloaded too; one set later loads as it first plays.
+                sounds = blocks.mapNotNullTo(sortedSetOf()) { (it as? BlockDefinition.PlaySound)?.audioFile } +
+                    properties.mapNotNull { (it as? PropertyDefinition.Sound)?.initialValue?.ifEmpty { null } },
+                music = blocks.mapNotNullTo(sortedSetOf()) { (it as? BlockDefinition.PlayMusic)?.audioFile } + sceneMusic +
+                    properties.mapNotNull { (it as? PropertyDefinition.Music)?.initialValue?.ifEmpty { null } },
                 sprites = actorTypes.mapNotNullTo(sortedSetOf()) { type -> type.sprite?.let(SpriteFiles::accessorOf) },
             )
         }

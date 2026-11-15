@@ -39,8 +39,12 @@
 - Every value field of every Block and condition, whatever its kind, is reached through one exhaustive `when`
   (`withValues`, with a `ValueTransform` holding a method per kind), and every reader, replacer, rename, and delete of
   values is built on it, so a new field or a new kind of value is added in one place. A kind that is fixed or a
-  Property's (colors, Actor types, texts, and toggles) is read and written through `FixedOrPropertySerializer`, and edited
-  through `FixedOrPropertyField`.
+  Property's (colors, Actor types, texts, toggles, sounds, and music) is read and written through
+  `FixedOrPropertySerializer`, and edited through `FixedOrPropertyField`.
+- A sound or music Property names a file, as an Actor type reference Property names a type, so a file's renames and deletes
+  reach its starting value and the values Scenes save for it too; `GeneratedAudio` skips the empty path such a Property
+  holds while it names none, and preloads every one's starting file, while one a Scene or a Block sets later loads as it
+  first plays.
 - A text or toggle a Block sets, or a condition compares with, is a `TextValue` or a `ToggleValue`, so a Property can be
   copied into another or compared with another; a fixed one stays a bare string or boolean, and a deleted Property's
   becomes its starting value.

@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.ActorsBroughtBack
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -98,7 +99,7 @@ import org.jetbrains.compose.resources.stringResource
  *
  * @param actorTypes The project's block-built Actor types.
  * @param managerTypes The project's block-built Manager types, whose Properties the Scene can give values to.
- * @param music The project's music files, by their path from `composeResources`.
+ * @param audioFiles The project's sound and music files, by their paths from `composeResources`.
  * @param description What the Scene is for.
  * @param broughtBack The Actors each undo or redo put back: one put back into this Scene is selected once the Scene
  *   shows it, unless it is the Scene settings.
@@ -115,7 +116,7 @@ internal fun SceneEditorPane(
     panelLayout: PanelLayout,
     actorTypes: List<ActorTypeDefinition>,
     managerTypes: List<ManagerTypeDefinition>,
-    music: List<String>?,
+    audioFiles: AudioFiles?,
     description: String?,
     broughtBack: Flow<ActorsBroughtBack>,
     onPlay: () -> Unit,
@@ -152,7 +153,7 @@ internal fun SceneEditorPane(
     SceneDetails(state = state, description = description, onCommand = onCommand)
     HorizontalDivider()
     if (isSettingsShown) {
-        SceneSettingsDialogOf(view = view, sceneName = state.sceneName, music = music, onCommand = onCommand, onDismiss = { isSettingsShown = false })
+        SceneSettingsDialogOf(view = view, sceneName = state.sceneName, music = audioFiles?.music, onCommand = onCommand, onDismiss = { isSettingsShown = false })
     }
     state.problem?.let { problem -> InvalidSceneNotice(problem = problem, onOpenFile = { openInSystemEditor(state.scene.file) }) }
     val onRemove = { actorId: String ->
@@ -218,7 +219,7 @@ internal fun SceneEditorPane(
                 selectedId = selection.selectedId,
                 actorTypes = actorTypes,
                 managerTypes = managerTypes,
-                music = music,
+                audioFiles = audioFiles,
                 onOpenSceneSettings = { isSettingsShown = true },
                 onCommand = onCommand,
                 onRemove = onRemove,

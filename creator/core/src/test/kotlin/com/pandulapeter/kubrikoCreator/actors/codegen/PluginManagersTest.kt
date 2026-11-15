@@ -16,6 +16,8 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.MusicValue
+import com.pandulapeter.kubrikoCreator.actors.SoundValue
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -39,9 +41,9 @@ class PluginManagersTest {
     @Test
     fun audioIsUsedByTheBlocksThatPlayOrStopItAndByTheScenesThatHaveMusic() {
         val blocks = listOf(
-            BlockDefinition.PlaySound("files/sounds/hit.wav"),
+            BlockDefinition.PlaySound(SoundValue.Fixed("files/sounds/hit.wav")),
             BlockDefinition.PlaySound(),
-            BlockDefinition.PlayMusic("files/music/theme.mp3"),
+            BlockDefinition.PlayMusic(MusicValue.Fixed("files/music/theme.mp3")),
             BlockDefinition.PlayMusic(),
         )
         val game = ManagerTypeDefinition(name = "Game", events = listOf(EventDefinition(EventType.GAME_STARTED, blocks = blocks)))

@@ -201,7 +201,7 @@ class DeletingWithUsagesTest {
         context.writeScene("level", "[{\"typeId\":\"Spawner\",\"state\":\"{\\\"spawned\\\":\\\"Enemy\\\",\\\"other\\\":\\\"Spawner\\\"}\"}]")
         assertEquals(
             listOf(
-                Usage(UsagePlace.InModel(RelationPlace.Type("Spawner")), RelationKind.STARTS_AS, RelationSubject.Type("Enemy"), UsageEffect.STARTING_TYPE_CLEARED),
+                Usage(UsagePlace.InModel(RelationPlace.Type("Spawner")), RelationKind.STARTS_AS, RelationSubject.Type("Enemy"), UsageEffect.STARTING_VALUE_CLEARED),
                 Usage(UsagePlace.InModel(RelationPlace.Scene("level")), RelationKind.SAVES_REFERENCE_TO, RelationSubject.Type("Enemy"), UsageEffect.SAVED_REFERENCE_CLEARED),
             ),
             context.usagesOf(RelationSubject.Type("Enemy")),

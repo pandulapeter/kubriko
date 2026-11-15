@@ -40,6 +40,8 @@ internal object TypeNotation {
         is PropertyDefinition.Toggle -> "${property.name}: toggle = ${if (property.initialValue) "on" else "off"}"
         is PropertyDefinition.Color -> "${property.name}: color = ${ColorHex.format(property.initialValue)}"
         is PropertyDefinition.ActorType -> "${property.name}: Actor type = ${property.initialValue.ifEmpty { "none" }}"
+        is PropertyDefinition.Sound -> "${property.name}: sound = ${property.initialValue.ifEmpty { "none" }}"
+        is PropertyDefinition.Music -> "${property.name}: music = ${property.initialValue.ifEmpty { "none" }}"
     }
 
     /**

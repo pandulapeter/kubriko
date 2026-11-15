@@ -203,6 +203,8 @@ internal val PropertyKind.icon: DrawableResource
         PropertyKind.TOGGLE -> Res.drawable.ic_toggle
         PropertyKind.COLOR -> Res.drawable.ic_palette
         PropertyKind.ACTOR_TYPE -> Res.drawable.ic_actor_type
+        PropertyKind.SOUND -> Res.drawable.ic_sound
+        PropertyKind.MUSIC -> Res.drawable.ic_music
     }
 
 internal val ScreenPosition.title: StringResource

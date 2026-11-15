@@ -54,11 +54,8 @@ import com.pandulapeter.kubrikoCreator.ui.components.rightClickMenu
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_drag_block
 import kubriko.creator.generated.resources.action_remove
-import kubriko.creator.generated.resources.audio_music_none_yet
-import kubriko.creator.generated.resources.audio_sounds_none_yet
 import kubriko.creator.generated.resources.block_else_stray
 import kubriko.creator.generated.resources.block_end_stray
-import kubriko.creator.generated.resources.block_music_choose
 import kubriko.creator.generated.resources.block_parameter_by
 import kubriko.creator.generated.resources.block_parameter_code
 import kubriko.creator.generated.resources.block_parameter_looping
@@ -72,7 +69,6 @@ import kubriko.creator.generated.resources.block_parameter_times
 import kubriko.creator.generated.resources.block_parameter_volume
 import kubriko.creator.generated.resources.block_parameter_x
 import kubriko.creator.generated.resources.block_parameter_y
-import kubriko.creator.generated.resources.block_sound_choose
 import kubriko.creator.generated.resources.block_velocity_unit
 import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_drag_handle
@@ -239,7 +235,7 @@ private fun InlineParameters(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         itemVerticalAlignment = Alignment.CenterVertically,
     ) {
-        AudioFileChoice(block.sound, scope.audioFiles?.sounds, Res.string.block_sound_choose, Res.string.audio_sounds_none_yet) { onBlockChange(block.copy(sound = it)) }
+        SoundValueField(block.sound, scope) { onBlockChange(block.copy(sound = it)) }
         PercentField(Res.string.block_parameter_volume, block.volume, scope, { onBlockChange(block.copy(volume = it)) }, accepts = { it in 0f..100f })
     }
     is BlockDefinition.PlayMusic -> FlowRow(
@@ -247,7 +243,7 @@ private fun InlineParameters(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         itemVerticalAlignment = Alignment.CenterVertically,
     ) {
-        AudioFileChoice(block.music, scope.audioFiles?.music, Res.string.block_music_choose, Res.string.audio_music_none_yet) { onBlockChange(block.copy(music = it)) }
+        MusicValueField(block.music, scope) { onBlockChange(block.copy(music = it)) }
         LabeledSwitch(
             label = stringResource(Res.string.block_parameter_looping),
             checked = block.isLooping,

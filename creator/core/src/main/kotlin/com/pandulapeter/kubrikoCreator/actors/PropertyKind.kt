@@ -26,7 +26,9 @@ public enum class PropertyKind(
     TEXT("String", "label", { PropertyDefinition.Text(it) }),
     TOGGLE("Boolean", "isOn", { PropertyDefinition.Toggle(it) }),
     COLOR("Color", "tint", { PropertyDefinition.Color(it) }, savedType = "SerializableColor"),
-    ACTOR_TYPE("String", "actorType", { PropertyDefinition.ActorType(it) });
+    ACTOR_TYPE("String", "actorType", { PropertyDefinition.ActorType(it) }),
+    SOUND("String", "sound", { PropertyDefinition.Sound(it) }),
+    MUSIC("String", "music", { PropertyDefinition.Music(it) });
 
     public companion object {
 
@@ -36,6 +38,8 @@ public enum class PropertyKind(
             is PropertyDefinition.Toggle -> TOGGLE
             is PropertyDefinition.Color -> COLOR
             is PropertyDefinition.ActorType -> ACTOR_TYPE
+            is PropertyDefinition.Sound -> SOUND
+            is PropertyDefinition.Music -> MUSIC
         }
     }
 }

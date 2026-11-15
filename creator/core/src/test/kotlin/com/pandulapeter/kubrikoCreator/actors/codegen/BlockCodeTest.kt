@@ -21,9 +21,11 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.MusicValue
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.SceneEdge
+import com.pandulapeter.kubrikoCreator.actors.SoundValue
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.ACTOR_MANAGER
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.AUDIO
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.BOUNCE_OFF
@@ -112,8 +114,8 @@ class BlockCodeTest {
             BlockDefinition.BounceOffEdge to Expected(),
             BlockDefinition.BounceOffOther to Expected(),
             BlockDefinition.RemoveOther to Expected(),
-            BlockDefinition.PlaySound("hit.wav") to Expected(setOf(AUDIO)),
-            BlockDefinition.PlayMusic("level.mp3") to Expected(setOf(AUDIO)),
+            BlockDefinition.PlaySound(SoundValue.Fixed("hit.wav")) to Expected(setOf(AUDIO)),
+            BlockDefinition.PlayMusic(MusicValue.Fixed("level.mp3")) to Expected(setOf(AUDIO)),
             BlockDefinition.GoToScene("Level") to Expected(setOf(SCENES)),
             BlockDefinition.AddActor(ActorTypeValue.Fixed("Ball")) to Expected(setOf(ACTOR_MANAGER), setOf(sceneOffset)),
             BlockDefinition.AddActor(ActorTypeValue.Fixed("Missing")) to Expected(),

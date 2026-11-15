@@ -131,18 +131,8 @@ public fun BlockDefinition.withPropertyReference(manager: String?, name: String)
 }
 
 /**
- * The sound or music file [this] Block plays, if it is one of those and one is chosen.
+ * The sound or music file [this] Block plays by its path, if it is one of those and one is chosen (not the one a
+ * Property holds).
  */
-internal val BlockDefinition.audioFile
-    get() = when (this) {
-        is BlockDefinition.PlaySound -> sound
-        is BlockDefinition.PlayMusic -> music
-        is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
-        is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
-        BlockDefinition.RemoveOther, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText,
-        is BlockDefinition.SetToggle, is BlockDefinition.SetColorProperty, is BlockDefinition.AddActor, is BlockDefinition.MoveTowardsNearest,
-        is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene, BlockDefinition.RestartScene,
-        is BlockDefinition.PauseGame, BlockDefinition.StopMusic, is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity, is BlockDefinition.ChangeOpacity, is BlockDefinition.Animate, is BlockDefinition.If, BlockDefinition.Else,
-        is BlockDefinition.Repeat, BlockDefinition.End, is BlockDefinition.Log, is BlockDefinition.Kotlin,
-        -> null
-    }?.ifEmpty { null }
+internal val BlockDefinition.audioFile: String?
+    get() = values.let { it.sounds.firstNotNullOfOrNull(SoundValue::fixedPath) ?: it.music.firstNotNullOfOrNull(MusicValue::fixedPath) }

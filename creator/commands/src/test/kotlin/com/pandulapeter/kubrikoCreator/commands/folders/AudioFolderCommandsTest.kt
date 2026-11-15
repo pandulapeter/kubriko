@@ -14,7 +14,9 @@ import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.MusicValue
 import com.pandulapeter.kubrikoCreator.actors.NameProblem
+import com.pandulapeter.kubrikoCreator.actors.SoundValue
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
@@ -51,7 +53,7 @@ class AudioFolderCommandsTest {
         events = listOf(
             EventDefinition(
                 EventType.EVERY_FRAME,
-                blocks = listOf(BlockDefinition.PlaySound("files/sounds/enemies/hit.wav"), BlockDefinition.PlayMusic("files/sounds/enemies/boss.mp3")),
+                blocks = listOf(BlockDefinition.PlaySound(SoundValue.Fixed("files/sounds/enemies/hit.wav")), BlockDefinition.PlayMusic(MusicValue.Fixed("files/sounds/enemies/boss.mp3"))),
             ),
         ),
     )
@@ -121,7 +123,7 @@ class AudioFolderCommandsTest {
         assertTrue("$desktop/files/sounds/foes/hit.wav" in files)
         assertTrue(files.none { "enemies" in it })
         val blocks = (after.second.single() as ActorTypeDefinition).events.single().blocks
-        assertEquals(listOf(BlockDefinition.PlaySound("files/sounds/foes/hit.wav"), BlockDefinition.PlayMusic("files/sounds/foes/boss.mp3")), blocks)
+        assertEquals(listOf(BlockDefinition.PlaySound(SoundValue.Fixed("files/sounds/foes/hit.wav")), BlockDefinition.PlayMusic(MusicValue.Fixed("files/sounds/foes/boss.mp3"))), blocks)
     }
 
     @Test
@@ -181,12 +183,12 @@ class AudioFolderCommandsTest {
         assertTrue("$common/files/sounds/cave/enemies/hit.wav" in after.first.keys)
         assertTrue(after.first.keys.none { it.endsWith("sounds/enemies/hit.wav") })
         val blocks = (after.second.single() as ActorTypeDefinition).events.single().blocks
-        assertEquals(listOf(BlockDefinition.PlaySound("files/sounds/cave/enemies/hit.wav"), BlockDefinition.PlayMusic("files/sounds/cave/enemies/boss.mp3")), blocks)
+        assertEquals(listOf(BlockDefinition.PlaySound(SoundValue.Fixed("files/sounds/cave/enemies/hit.wav")), BlockDefinition.PlayMusic(MusicValue.Fixed("files/sounds/cave/enemies/boss.mp3"))), blocks)
     }
 
     @Test
     fun undoingARenamePutsBackExactlyWhatItChanged() = runTest {
-        val dangling = ActorTypeDefinition(name = "Ghost", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.PlaySound("files/sounds/foes/hit.wav")))))
+        val dangling = ActorTypeDefinition(name = "Ghost", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.PlaySound(SoundValue.Fixed("files/sounds/foes/hit.wav"))))))
         val reported = ArrayList<ConsoleEntry>()
         val context = context(player, dangling, sounds = listOf("files/sounds/enemies/hit.wav", "files/sounds/enemies/deep/roar.wav"), report = { reported += it })
         File(context.project.rootDirectory, "src/commonMain/kotlin/Game.kt").apply { parentFile.mkdirs() }.writeText("val a = \"files/sounds/enemies/hit.wav\"\nval b = \"files/sounds/enemies/deep/roar.wav\"")

@@ -46,6 +46,8 @@ internal val PropertyKind.missingProblem: PlacementProblem
         PropertyKind.TOGGLE -> PlacementProblem.TOGGLE_PROPERTY_MISSING
         PropertyKind.COLOR -> PlacementProblem.COLOR_PROPERTY_MISSING
         PropertyKind.ACTOR_TYPE -> PlacementProblem.ACTOR_TYPE_PROPERTY_MISSING
+        PropertyKind.SOUND -> PlacementProblem.SOUND_PROPERTY_MISSING
+        PropertyKind.MUSIC -> PlacementProblem.MUSIC_PROPERTY_MISSING
     }
 
 /**
@@ -59,6 +61,8 @@ internal val PropertyKind.missingSimilarProblem: PlacementProblem
         PropertyKind.TOGGLE -> PlacementProblem.TOGGLE_PROPERTY_MISSING_SIMILAR
         PropertyKind.COLOR -> PlacementProblem.COLOR_PROPERTY_MISSING_SIMILAR
         PropertyKind.ACTOR_TYPE -> PlacementProblem.ACTOR_TYPE_PROPERTY_MISSING_SIMILAR
+        PropertyKind.SOUND -> PlacementProblem.SOUND_PROPERTY_MISSING_SIMILAR
+        PropertyKind.MUSIC -> PlacementProblem.MUSIC_PROPERTY_MISSING_SIMILAR
     }
 
 /**
@@ -71,4 +75,6 @@ internal val PropertyKind.otherKindProblem: PlacementProblem
         PropertyKind.TOGGLE -> PlacementProblem.TOGGLE_PROPERTY_OF_OTHER_KIND
         PropertyKind.COLOR -> PlacementProblem.COLOR_PROPERTY_OF_OTHER_KIND
         PropertyKind.ACTOR_TYPE -> PlacementProblem.ACTOR_TYPE_PROPERTY_OF_OTHER_KIND
+        PropertyKind.SOUND -> PlacementProblem.SOUND_PROPERTY_OF_OTHER_KIND
+        PropertyKind.MUSIC -> PlacementProblem.MUSIC_PROPERTY_OF_OTHER_KIND
     }

@@ -13,13 +13,16 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
+import com.pandulapeter.kubrikoCreator.actors.fixedPath
 import com.pandulapeter.kubrikoCreator.screenplay.PageLinks
 
 /**
  * The usages of the sprite, sound, or music file [subject] in Kubriko Creator's model ([ProjectReferences.usagesOf]):
- * the Actor types drawn as it, the Blocks playing it, the Scenes playing it as their music ([sceneMusic], by the
- * Scene's name), and the Kotlin Blocks and Kotlin UI naming it, which are left as they are.
+ * the Actor types drawn as it, the types whose sound or music Properties start as it, the Blocks playing it, the Scenes
+ * playing it as their music ([sceneMusic], by the Scene's name), and the Kotlin Blocks and Kotlin UI naming it, which are
+ * left as they are.
  */
 internal fun resourceUsagesOf(subject: RelationSubject.Resource, types: List<BlockTypeDefinition>, sceneMusic: Map<String, String>): List<Usage> = buildList {
     val isNaming = resourceNaming(subject)
@@ -27,12 +30,15 @@ internal fun resourceUsagesOf(subject: RelationSubject.Resource, types: List<Blo
         if (type is ActorTypeDefinition && type.sprite == subject.path) {
             add(Usage(UsagePlace.InModel(RelationPlace.Type(type.name)), RelationKind.DRAWN_AS, subject, UsageEffect.SPRITE_CLEARED))
         }
+        if (type.properties.any { (it as? PropertyDefinition.Sound)?.initialValue == subject.path || (it as? PropertyDefinition.Music)?.initialValue == subject.path }) {
+            add(Usage(UsagePlace.InModel(RelationPlace.Type(type.name)), RelationKind.STARTS_AS, subject, UsageEffect.STARTING_VALUE_CLEARED))
+        }
         type.events.forEachIndexed { eventIndex, event ->
             event.blocks.forEachIndexed { blockIndex, block ->
                 val place = UsagePlace.InModel(RelationPlace.Type(type.name, eventIndex, blockIndex))
                 when {
-                    block is BlockDefinition.PlaySound && block.sound == subject.path -> add(Usage(place, RelationKind.PLAYS, subject, UsageEffect.BLOCK_REMOVED))
-                    block is BlockDefinition.PlayMusic && block.music == subject.path -> add(Usage(place, RelationKind.PLAYS, subject, UsageEffect.BLOCK_REMOVED))
+                    block is BlockDefinition.PlaySound && block.sound.fixedPath == subject.path -> add(Usage(place, RelationKind.PLAYS, subject, UsageEffect.BLOCK_REMOVED))
+                    block is BlockDefinition.PlayMusic && block.music.fixedPath == subject.path -> add(Usage(place, RelationKind.PLAYS, subject, UsageEffect.BLOCK_REMOVED))
                     block is BlockDefinition.Kotlin && isNaming(block.code) -> add(Usage(place, RelationKind.NAMES_IN_KOTLIN, subject, UsageEffect.KOTLIN_TO_CHANGE))
                 }
             }

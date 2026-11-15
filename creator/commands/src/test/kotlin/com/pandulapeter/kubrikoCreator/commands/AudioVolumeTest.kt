@@ -13,8 +13,10 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.MusicValue
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.SceneEdge
+import com.pandulapeter.kubrikoCreator.actors.SoundValue
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
 import com.pandulapeter.kubrikoCreator.context.BlockNotation
 import kotlinx.coroutines.test.runTest
@@ -37,7 +39,7 @@ class AudioVolumeTest {
 
     @Test
     fun aVolumeOtherThanFullReadsInTheSentence() {
-        assertEquals("Play sound hit", BlockNotation.of(BlockDefinition.PlaySound("hit")))
-        assertEquals("Play music theme, once, at 40%", BlockNotation.of(BlockDefinition.PlayMusic("theme", isLooping = false, volume = NumberValue.Fixed(40f))))
+        assertEquals("Play sound hit", BlockNotation.of(BlockDefinition.PlaySound(SoundValue.Fixed("hit"))))
+        assertEquals("Play music theme, once, at 40%", BlockNotation.of(BlockDefinition.PlayMusic(MusicValue.Fixed("theme"), isLooping = false, volume = NumberValue.Fixed(40f))))
     }
 }

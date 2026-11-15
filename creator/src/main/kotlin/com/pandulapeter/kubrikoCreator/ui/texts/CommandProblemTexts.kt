@@ -126,7 +126,7 @@ import kubriko.creator.generated.resources.error_scene_folder_reserved
 import kubriko.creator.generated.resources.error_scene_name_taken
 import kubriko.creator.generated.resources.error_scene_not_moved
 import kubriko.creator.generated.resources.error_sprite_not_moved
-import kubriko.creator.generated.resources.warning_resource_music_not_followed
+import kubriko.creator.generated.resources.warning_resource_audio_not_followed
 import kubriko.creator.generated.resources.warning_resource_named_in_code
 import kubriko.creator.generated.resources.warning_scene_named_in_code
 import org.jetbrains.compose.resources.StringResource
@@ -207,7 +207,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.USAGES_SUBJECT -> Res.string.error_command_usages_subject
     CommandProblem.RESOURCE_CONTENT_MISMATCH -> Res.string.error_command_resource_content_mismatch
     CommandProblem.RESOURCE_KIND_CHANGED -> Res.string.error_command_resource_kind_changed
-    CommandProblem.RESOURCE_MUSIC_NOT_FOLLOWED -> Res.string.warning_resource_music_not_followed
+    CommandProblem.RESOURCE_AUDIO_NOT_FOLLOWED -> Res.string.warning_resource_audio_not_followed
     CommandProblem.RESOURCE_NAMED_IN_CODE -> Res.string.warning_resource_named_in_code
     CommandProblem.RESOURCE_FOLDER_NOT_MOVED -> Res.string.error_command_resource_folder_not_moved
     CommandProblem.RESOURCE_NOT_MOVED_BACK -> Res.string.error_command_resource_not_moved_back

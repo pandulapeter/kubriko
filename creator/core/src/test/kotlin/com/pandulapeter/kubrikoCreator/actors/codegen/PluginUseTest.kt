@@ -17,6 +17,8 @@ import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.EveryBlockTypes
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.MusicValue
+import com.pandulapeter.kubrikoCreator.actors.SoundValue
 import com.pandulapeter.kubrikoCreator.actors.SteeringKeys
 import com.pandulapeter.kubrikoCreator.project.KubrikoArtifact
 import kotlin.test.Test
@@ -31,8 +33,8 @@ class PluginUseTest {
             name = "Ball",
             sprite = "drawable/ball.png",
             events = listOf(
-                EventDefinition(EventType.COLLISION, otherActorType = "Paddle", blocks = listOf(BlockDefinition.PlaySound("files/sounds/hit.wav"))),
-                EventDefinition(EventType.COLLISION, otherActorType = "Paddle", blocks = listOf(BlockDefinition.PlaySound("files/sounds/hit.wav"))),
+                EventDefinition(EventType.COLLISION, otherActorType = "Paddle", blocks = listOf(BlockDefinition.PlaySound(SoundValue.Fixed("files/sounds/hit.wav")))),
+                EventDefinition(EventType.COLLISION, otherActorType = "Paddle", blocks = listOf(BlockDefinition.PlaySound(SoundValue.Fixed("files/sounds/hit.wav")))),
                 EventDefinition(EventType.COLLISION, otherActorType = "Deleted"),
             ),
         )
@@ -40,7 +42,7 @@ class PluginUseTest {
             name = "Game",
             events = listOf(
                 EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.SPACE, blocks = listOf(BlockDefinition.StopMusic)),
-                EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.If(ConditionDefinition.KeyHeld(KeyChoice.A)), BlockDefinition.PlayMusic("files/music/theme.mp3"), BlockDefinition.PlayMusic())),
+                EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.If(ConditionDefinition.KeyHeld(KeyChoice.A)), BlockDefinition.PlayMusic(MusicValue.Fixed("files/music/theme.mp3")), BlockDefinition.PlayMusic())),
             ),
         )
         assertEquals(

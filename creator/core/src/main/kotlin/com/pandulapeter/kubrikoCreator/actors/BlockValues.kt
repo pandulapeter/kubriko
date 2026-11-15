@@ -24,6 +24,10 @@ public interface ValueTransform {
     public fun text(value: TextValue): TextValue = value
 
     public fun toggle(value: ToggleValue): ToggleValue = value
+
+    public fun sound(value: SoundValue): SoundValue = value
+
+    public fun music(value: MusicValue): MusicValue = value
 }
 
 /**
@@ -50,8 +54,8 @@ public fun BlockDefinition.withValues(transform: ValueTransform): BlockDefinitio
     is BlockDefinition.ChangeOpacity -> copy(by = transform.number(by))
     is BlockDefinition.Animate -> copy(value = value.withValues(transform), seconds = transform.number(seconds))
     is BlockDefinition.Repeat -> copy(times = transform.number(times))
-    is BlockDefinition.PlaySound -> copy(volume = transform.number(volume))
-    is BlockDefinition.PlayMusic -> copy(volume = transform.number(volume))
+    is BlockDefinition.PlaySound -> copy(sound = transform.sound(sound), volume = transform.number(volume))
+    is BlockDefinition.PlayMusic -> copy(music = transform.music(music), volume = transform.number(volume))
     is BlockDefinition.If -> copy(condition = condition.withValues(transform))
     BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf,
     BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
@@ -93,6 +97,8 @@ internal class CollectedValues : ValueTransform {
     val actorTypes = ArrayList<ActorTypeValue>()
     val texts = ArrayList<TextValue>()
     val toggles = ArrayList<ToggleValue>()
+    val sounds = ArrayList<SoundValue>()
+    val music = ArrayList<MusicValue>()
 
     override fun number(value: NumberValue) = value.also(numbers::add)
 
@@ -104,6 +110,10 @@ internal class CollectedValues : ValueTransform {
 
     override fun toggle(value: ToggleValue) = value.also(toggles::add)
 
+    override fun sound(value: SoundValue) = value.also(sounds::add)
+
+    override fun music(value: MusicValue) = value.also(music::add)
+
     /**
      * The Properties the values read, of every kind, with or without a name chosen yet, in order by kind.
      */
@@ -114,6 +124,8 @@ internal class CollectedValues : ValueTransform {
             actorTypes.mapNotNullTo(this) { it.propertyReference }
             texts.mapNotNullTo(this) { it.propertyReference }
             toggles.mapNotNullTo(this) { it.propertyReference }
+            sounds.mapNotNullTo(this) { it.propertyReference }
+            music.mapNotNullTo(this) { it.propertyReference }
         }
 }
 
@@ -174,6 +186,10 @@ internal fun propertyRenaming(oldName: String, newName: String, manager: String?
     override fun text(value: TextValue) = value.withPropertyRenamed(oldName, newName, manager)
 
     override fun toggle(value: ToggleValue) = value.withPropertyRenamed(oldName, newName, manager)
+
+    override fun sound(value: SoundValue) = value.withPropertyRenamed(oldName, newName, manager)
+
+    override fun music(value: MusicValue) = value.withPropertyRenamed(oldName, newName, manager)
 }
 
 /**
@@ -189,4 +205,8 @@ internal fun managerRenaming(oldName: String, newName: String): ValueTransform =
     override fun text(value: TextValue) = value.withManagerRenamed(oldName, newName)
 
     override fun toggle(value: ToggleValue) = value.withManagerRenamed(oldName, newName)
+
+    override fun sound(value: SoundValue) = value.withManagerRenamed(oldName, newName)
+
+    override fun music(value: MusicValue) = value.withManagerRenamed(oldName, newName)
 }

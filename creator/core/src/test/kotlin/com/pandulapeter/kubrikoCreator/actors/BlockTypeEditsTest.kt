@@ -264,11 +264,11 @@ class BlockTypeEditsTest {
         val ball = ActorTypeDefinition(
             name = "Ball",
             sprite = "drawable/ball.png",
-            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.PlaySound("files/hit.wav"), BlockDefinition.PlayMusic("files/hit.wav"), BlockDefinition.PlaySound("files/other.wav")))),
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.PlaySound(SoundValue.Fixed("files/hit.wav")), BlockDefinition.PlayMusic(MusicValue.Fixed("files/hit.wav")), BlockDefinition.PlaySound(SoundValue.Fixed("files/other.wav"))))),
         )
         assertEquals("drawable/orb.png", (ball.withResourceRenamed("drawable/ball.png", "drawable/orb.png") as ActorTypeDefinition).sprite)
         assertEquals(
-            listOf(BlockDefinition.PlaySound("files/bounce.wav"), BlockDefinition.PlayMusic("files/bounce.wav"), BlockDefinition.PlaySound("files/other.wav")),
+            listOf(BlockDefinition.PlaySound(SoundValue.Fixed("files/bounce.wav")), BlockDefinition.PlayMusic(MusicValue.Fixed("files/bounce.wav")), BlockDefinition.PlaySound(SoundValue.Fixed("files/other.wav"))),
             ball.withResourceRenamed("files/hit.wav", "files/bounce.wav").events.single().blocks,
         )
         assertEquals(ball, ball.withResourceRenamed("drawable/bat.png", "drawable/club.png"))

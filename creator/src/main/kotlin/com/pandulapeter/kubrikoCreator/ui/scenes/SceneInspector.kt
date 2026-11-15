@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActorOrder
@@ -32,6 +33,7 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneValues
 import com.pandulapeter.kubrikoCreator.sceneRuntime.ActorBodyValues
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneView
 import com.pandulapeter.kubrikoCreator.scenes.ManagerSceneValues
+import com.pandulapeter.kubrikoCreator.ui.actorTypes.ReferenceChoices
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
@@ -58,7 +60,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param actorTypes The project's block-built Actor types, whose Properties and colors their Actors show.
  * @param managerTypes The project's block-built Manager types, those with Properties of which the Scene can give values
  *   to (an entry of one without, left after its Properties were removed, can still be removed).
- * @param music The project's music files, for the Scene settings.
+ * @param audioFiles The project's sound and music files, which sound and music Properties can name.
  */
 @Composable
 internal fun SceneInspector(
@@ -67,7 +69,7 @@ internal fun SceneInspector(
     selectedId: String?,
     actorTypes: List<ActorTypeDefinition>,
     managerTypes: List<ManagerTypeDefinition>,
-    music: List<String>?,
+    audioFiles: AudioFiles?,
     onOpenSceneSettings: () -> Unit,
     onCommand: (Invocation<*>) -> Unit,
     onRemove: (String) -> Unit,
@@ -97,13 +99,13 @@ internal fun SceneInspector(
             ) {
                 Text(stringResource(Res.string.scene_settings_title))
             }
-            if (valueTakingManagerTypes.isNotEmpty()) SceneValues(valueTakingManagerTypes, sceneValues, sceneName, actorTypes, onCommand)
+            if (valueTakingManagerTypes.isNotEmpty()) SceneValues(valueTakingManagerTypes, sceneValues, sceneName, actorTypes, audioFiles, onCommand)
         }
         selectedManager != null -> {
             PanelHeader(icon = Res.drawable.ic_manager_type, title = stringResource(Res.string.scene_values_actor, selectedManager.name), accent = Accent.CREW) {
                 IconActionButton(icon = Res.drawable.ic_delete, label = Res.string.action_remove_actor, onClick = { onRemove(checkNotNull(selectedId)) })
             }
-            SceneValues(listOf(selectedManager), sceneValues, sceneName, actorTypes, onCommand)
+            SceneValues(listOf(selectedManager), sceneValues, sceneName, actorTypes, audioFiles, onCommand)
         }
         else -> {
             PanelHeader(icon = Res.drawable.ic_actor_type, title = entry.typeId, accent = Accent.CAST) {
@@ -129,7 +131,7 @@ internal fun SceneInspector(
                         body = ActorBodyValues.of(actor.body),
                         state = entry.state,
                         definition = actorTypes.firstOrNull { it.name == entry.typeId },
-                        actorTypeNames = actorTypes.map { it.name },
+                        choices = ReferenceChoices(actorTypes.map { it.name }, audioFiles),
                         onChange = { change -> onCommand(Invocation(SetActorValues, SetActorValues.Input(sceneName, selectedId).change())) },
                     )
                 }
@@ -151,11 +153,12 @@ private fun SceneValues(
     values: Map<String, Map<String, JsonPrimitive>>,
     sceneName: String,
     actorTypes: List<ActorTypeDefinition>,
+    audioFiles: AudioFiles?,
     onCommand: (Invocation<*>) -> Unit,
 ) = ManagerSceneValuesSection(
     managerTypes = managerTypes,
     values = values,
-    actorTypeNames = actorTypes.map { it.name },
+    choices = ReferenceChoices(actorTypes.map { it.name }, audioFiles),
     onSet = { managerType, value -> onCommand(Invocation(SetSceneValues, SetSceneValues.Input(sceneName, managerType, values = listOf(value)))) },
     onClear = { managerType, property -> onCommand(Invocation(SetSceneValues, SetSceneValues.Input(sceneName, managerType, cleared = listOf(property)))) },
 )

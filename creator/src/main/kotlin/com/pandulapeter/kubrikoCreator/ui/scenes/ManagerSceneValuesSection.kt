@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.scenes.ActorValueChanges
+import com.pandulapeter.kubrikoCreator.ui.actorTypes.ReferenceChoices
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
@@ -47,7 +48,7 @@ internal fun ManagerSceneValuesSection(
     onSet: (managerType: String, ActorValueChanges.PropertyValue) -> Unit,
     onClear: (managerType: String, property: String) -> Unit,
     modifier: Modifier = Modifier,
-    actorTypeNames: List<String> = emptyList(),
+    choices: ReferenceChoices = ReferenceChoices(),
 ) = Column(
     modifier = modifier,
 ) {
@@ -66,7 +67,7 @@ internal fun ManagerSceneValuesSection(
             managerType.properties.forEach { property ->
                 SceneValueRow(
                     property = property,
-                    actorTypeNames = actorTypeNames,
+                    choices = choices,
                     value = values[managerType.name]?.get(property.name),
                     onSet = { onSet(managerType.name, it) },
                     onClear = { onClear(managerType.name, property.name) },
@@ -79,7 +80,7 @@ internal fun ManagerSceneValuesSection(
 @Composable
 private fun SceneValueRow(
     property: PropertyDefinition,
-    actorTypeNames: List<String>,
+    choices: ReferenceChoices,
     value: JsonPrimitive?,
     onSet: (ActorValueChanges.PropertyValue) -> Unit,
     onClear: () -> Unit,
@@ -93,7 +94,7 @@ private fun SceneValueRow(
         value = value,
         label = if (value == null) stringResource(Res.string.scene_value_kept, property.name) else property.name,
         onChange = onSet,
-        actorTypeNames = actorTypeNames,
+        choices = choices,
     )
     if (value != null) {
         IconActionButton(icon = Res.drawable.ic_close, label = Res.string.action_clear_scene_value, onClick = onClear)

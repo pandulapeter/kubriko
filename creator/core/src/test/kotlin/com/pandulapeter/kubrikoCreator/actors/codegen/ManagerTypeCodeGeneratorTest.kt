@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.MusicValue
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
@@ -320,7 +321,7 @@ class ManagerTypeCodeGeneratorTest {
 
     @Test
     fun audioBlocksUseTheGeneratedAudio() {
-        val code = generate(game.copy(events = listOf(EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.PlayMusic("files/music/theme.mp3"), BlockDefinition.PlayMusic())))))
+        val code = generate(game.copy(events = listOf(EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.PlayMusic(MusicValue.Fixed("files/music/theme.mp3")), BlockDefinition.PlayMusic())))))
         assertContains(code, "    private val generatedAudio by manager<GeneratedAudio>()\n")
         assertContains(code, "        generatedAudio.playMusic(\"files/music/theme.mp3\")\n        // Choose music for this Block.\n")
         assertFalse("GeneratedAudio" in generate(game.copy(events = listOf(EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.PlaySound()))))))

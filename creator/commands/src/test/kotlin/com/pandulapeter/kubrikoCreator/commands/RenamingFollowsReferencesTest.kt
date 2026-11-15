@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.MusicValue
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
@@ -64,7 +65,7 @@ class RenamingFollowsReferencesTest {
     private val propertyKinds = setOf(RelationKind.READS, RelationKind.READS_VALUE, RelationKind.CHANGES)
     private val pageKinds = setOf(RelationKind.MENTIONS)
     private val spriteKinds = setOf(RelationKind.DRAWN_AS, RelationKind.SHOWS, RelationKind.NAMES_IN_KOTLIN, RelationKind.MENTIONS)
-    private val audioKinds = setOf(RelationKind.PLAYS, RelationKind.NAMES_IN_KOTLIN, RelationKind.MENTIONS)
+    private val audioKinds = setOf(RelationKind.PLAYS, RelationKind.STARTS_AS, RelationKind.SAVES_REFERENCE_TO, RelationKind.NAMES_IN_KOTLIN, RelationKind.MENTIONS)
     private val timerKinds = setOf(RelationKind.USES_TIMER, RelationKind.NAMES_IN_KOTLIN)
 
     /**
@@ -222,16 +223,25 @@ class RenamingFollowsReferencesTest {
 
     @Test
     fun renamingAudioFollowsEveryReferenceToIt() = runTest {
-        val ball = ActorTypeDefinition(name = "Ball", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.PlayMusic("files/music/theme.mp3")))))
+        val ball = ActorTypeDefinition(
+            name = "Ball",
+            properties = listOf(PropertyDefinition.Music("tune", "files/music/theme.mp3")),
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.PlayMusic(MusicValue.Fixed("files/music/theme.mp3"))))),
+        )
         val context = commandContext(ball)
         File(context.project.rootDirectory, "src/commonMain/composeResources/files/music/theme.mp3").apply { parentFile.mkdirs() }.writeBytes(byteArrayOf(1))
-        context.writeFile("src/commonMain/composeResources/files/scenes/level.json", """[{"typeId":"SceneSettings","state":"{\"music\":\"files/music/theme.mp3\"}"}]""")
+        context.writeFile(
+            "src/commonMain/composeResources/files/scenes/level.json",
+            """[{"typeId":"SceneSettings","state":"{\"music\":\"files/music/theme.mp3\"}"},{"typeId":"Ball","state":"{\"tune\":\"files/music/theme.mp3\"}"}]""",
+        )
         context.scenes.refresh()
         context.writeFile("src/commonMain/kotlin/Game.kt", "val theme = \"files/music/theme.mp3\"")
         CreatePage.apply(context, CreatePage.Input("README", "# Game\n\nThe [theme](../src/commonMain/composeResources/files/music/theme.mp3) plays.\n"))
         context.assertFollowed(RelationSubject.Resource("files/music/theme.mp3"), RelationSubject.Resource("files/music/song.mp3"), audioKinds) {
             RenameResource.apply(context, RenameResource.Input("files/music/theme.mp3", "files/music/song.mp3"))
         }
+        val ballState = SceneDocument.parse(checkNotNull(context.scenes.read("level"))).single { it.typeId == "Ball" }.state
+        assertEquals("""{"tune":"files/music/song.mp3"}""", ballState, "A saved music value follows the rename too.")
     }
 
     @Test

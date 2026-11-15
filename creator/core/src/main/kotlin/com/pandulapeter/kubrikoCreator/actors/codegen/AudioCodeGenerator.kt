@@ -94,10 +94,11 @@ internal object AudioCodeGenerator {
             |    }
             |
             |    /**
-            |     * Plays the sound at [path] (from `composeResources`) once, at [volume] (from 0 to 1).
+            |     * Plays the sound at [path] (from `composeResources`) once, at [volume] (from 0 to 1), or nothing for an empty
+            |     * path, which a sound Property holds while it names no sound.
             |     */
             |    fun playSound(path: String, volume: Float = 1f) {
-            |        if (!isInSceneEditor) soundManager.play(uriOf(path), volume)
+            |        if (!isInSceneEditor && path.isNotEmpty()) soundManager.play(uriOf(path), volume)
             |    }
             |
             |    /**
@@ -106,7 +107,7 @@ internal object AudioCodeGenerator {
             |     * frame allocates nothing.
             |     */
             |    fun playMusic(path: String, isLooping: Boolean = true, volume: Float = 1f) {
-            |        if (isInSceneEditor) return
+            |        if (isInSceneEditor || path.isEmpty()) return
             |        if (path != music || volume != musicVolume) {
             |            musicVolume = volume
             |            musicManager.setVolume(uriOf(path), volume, volume)

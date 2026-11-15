@@ -87,6 +87,30 @@ public sealed interface PropertyDefinition {
     ) : PropertyDefinition {
         override fun withName(name: String): ActorType = copy(name = name)
     }
+
+    @Serializable
+    @SerialName("sound")
+    @Description("A sound file's path, or empty for none.")
+    public data class Sound(
+        @Description(NAME_DESCRIPTION)
+        @SerialName("name") override val name: String,
+        @Description(INITIAL_VALUE_DESCRIPTION)
+        @SerialName("initialValue") val initialValue: String = "",
+    ) : PropertyDefinition {
+        override fun withName(name: String): Sound = copy(name = name)
+    }
+
+    @Serializable
+    @SerialName("music")
+    @Description("A music file's path, or empty for none.")
+    public data class Music(
+        @Description(NAME_DESCRIPTION)
+        @SerialName("name") override val name: String,
+        @Description(INITIAL_VALUE_DESCRIPTION)
+        @SerialName("initialValue") val initialValue: String = "",
+    ) : PropertyDefinition {
+        override fun withName(name: String): Music = copy(name = name)
+    }
 }
 
 private const val NAME_DESCRIPTION = "Its name, also in Kotlin: a lowercase letter, then letters and numbers."

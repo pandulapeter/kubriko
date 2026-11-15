@@ -281,7 +281,7 @@ public object ManagerTypeCodeGenerator {
             appendLine("            $backingField.longValue = value.value.toLong()")
             appendLine("        }")
         }
-        is PropertyDefinition.Text, is PropertyDefinition.Toggle, is PropertyDefinition.ActorType -> appendLine("    var ${property.name} by mutableStateOf(${initialValueLiteral(property)})")
+        is PropertyDefinition.Text, is PropertyDefinition.Toggle, is PropertyDefinition.ActorType, is PropertyDefinition.Sound, is PropertyDefinition.Music -> appendLine("    var ${property.name} by mutableStateOf(${initialValueLiteral(property)})")
     }
 
     private fun fieldOf(need: BlockNeed) = when (need) {

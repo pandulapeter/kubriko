@@ -65,6 +65,10 @@ import kubriko.creator.generated.resources.action_find_usages
 import kubriko.creator.generated.resources.action_remove
 import kubriko.creator.generated.resources.actor_type_inherited_property
 import kubriko.creator.generated.resources.actor_type_properties
+import kubriko.creator.generated.resources.audio_music_none_yet
+import kubriko.creator.generated.resources.audio_sounds_none_yet
+import kubriko.creator.generated.resources.block_music_choose
+import kubriko.creator.generated.resources.block_sound_choose
 import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_property
@@ -101,7 +105,7 @@ internal fun LazyListScope.propertyListItems(
     inheritedProperties: List<PropertyDefinition> = emptyList(),
     flashedProperty: Pair<Any, String>? = null,
     onFindUsages: ((name: String) -> Unit)? = null,
-    actorTypeNames: List<String> = emptyList(),
+    choices: ReferenceChoices = ReferenceChoices(),
 ) {
     item {
         PanelHeader(
@@ -145,7 +149,7 @@ internal fun LazyListScope.propertyListItems(
             property = property,
             otherNames = names - property.name,
             typeKind = typeKind,
-            actorTypeNames = actorTypeNames,
+            choices = choices,
             onChange = { onChanged(property.name, it) },
             onRename = { onRenamed(property.name, property.withName(it)) },
             onRemove = { onRemoved(property.name) },
@@ -193,7 +197,7 @@ private fun PropertyRow(
     property: PropertyDefinition,
     otherNames: List<String>,
     typeKind: BlockTypeKind,
-    actorTypeNames: List<String>,
+    choices: ReferenceChoices,
     onChange: (PropertyDefinition) -> Unit,
     onRename: (String) -> Rejection?,
     onRemove: () -> Unit,
@@ -268,10 +272,16 @@ private fun PropertyRow(
                 )
                 is PropertyDefinition.ActorType -> ActorTypeChoice(
                     actorType = property.initialValue,
-                    actorTypeNames = actorTypeNames,
+                    actorTypeNames = choices.actorTypeNames,
                     onSelected = { onChange(property.copy(initialValue = it)) },
                     isNoneOffered = true,
                 )
+                is PropertyDefinition.Sound -> AudioFileChoice(property.initialValue, choices.audioFiles?.sounds, Res.string.block_sound_choose, Res.string.audio_sounds_none_yet, canChooseNone = true) {
+                    onChange(property.copy(initialValue = it))
+                }
+                is PropertyDefinition.Music -> AudioFileChoice(property.initialValue, choices.audioFiles?.music, Res.string.block_music_choose, Res.string.audio_music_none_yet, canChooseNone = true) {
+                    onChange(property.copy(initialValue = it))
+                }
             }
         }
     }

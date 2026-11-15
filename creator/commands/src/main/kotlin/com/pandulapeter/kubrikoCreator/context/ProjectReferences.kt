@@ -36,8 +36,8 @@ import com.pandulapeter.kubrikoCreator.screenplay.PageLinks
  * @param markdown The text of every page, by its path from the project's root.
  * @param sceneMusic The music each Scene plays, by the Scene's name (only for the usages of a sprite, sound, or music
  *   file, the one subject they matter to).
- * @param sceneActorTypeReferences How many saved Actor type reference values name each Actor type, by Scene
- *   ([SceneCounts.actorTypeReferences]; only for the usages of a type).
+ * @param sceneSavedReferences How many saved reference values name each Actor type, sound, or music, by Scene
+ *   ([SceneCounts.savedReferences]; only for the usages of a type or a file).
  * @param mentionedPath The file a page links to to mention the subject asked about, a path from the project's root, if it
  *   can be mentioned.
  */
@@ -49,7 +49,7 @@ internal class ProjectReferences(
     private val markdown: Map<String, String> = emptyMap(),
     val mentionedPath: String? = null,
     private val sceneMusic: Map<String, String> = emptyMap(),
-    private val sceneActorTypeReferences: Map<String, Map<String, Int>> = emptyMap(),
+    private val sceneSavedReferences: Map<String, Map<String, Int>> = emptyMap(),
 ) {
     private val family by lazy { ActorTypeFamily(types.filterIsInstance<ActorTypeDefinition>()) }
 
@@ -64,9 +64,10 @@ internal class ProjectReferences(
             .forEach { relation -> add(usageOf(relation)) }
         if (subject is RelationSubject.Resource) addAll(resourceUsagesOf(subject, types, sceneMusic))
         if (subject is RelationSubject.Timer) addAll(timerUsagesOf(subject, types, family))
-        if (subject is RelationSubject.Type) {
-            sceneActorTypeReferences.toSortedMap().forEach { (scene, counts) ->
-                counts[subject.name]?.let { count -> add(Usage(UsagePlace.InModel(RelationPlace.Scene(scene)), RelationKind.SAVES_REFERENCE_TO, subject, UsageEffect.SAVED_REFERENCE_CLEARED, count)) }
+        val savedName = (subject as? RelationSubject.Type)?.name ?: (subject as? RelationSubject.Resource)?.path
+        if (savedName != null) {
+            sceneSavedReferences.toSortedMap().forEach { (scene, counts) ->
+                counts[savedName]?.let { count -> add(Usage(UsagePlace.InModel(RelationPlace.Scene(scene)), RelationKind.SAVES_REFERENCE_TO, subject, UsageEffect.SAVED_REFERENCE_CLEARED, count)) }
             }
         }
         addAll(managerChoiceUsagesOf(subject))
@@ -112,7 +113,7 @@ internal class ProjectReferences(
         fun usage(effect: UsageEffect, blocksInside: Int = 0) = Usage(place, relation.kind, relation.subject, effect, relation.count, blocksInside)
         return when (relation.kind) {
             RelationKind.INHERITS_FROM -> usage(UsageEffect.PREVENTS_DELETING)
-            RelationKind.STARTS_AS -> usage(UsageEffect.STARTING_TYPE_CLEARED)
+            RelationKind.STARTS_AS -> usage(UsageEffect.STARTING_VALUE_CLEARED)
             RelationKind.COLLIDES_WITH, RelationKind.REACTS_TO -> usage(UsageEffect.EVENT_REMOVED)
             RelationKind.COUNTS, RelationKind.MEASURES -> conditionUsage(relation.place, relation.subject, ::usage)
             RelationKind.PLACES -> usage(UsageEffect.ACTORS_REMOVED)

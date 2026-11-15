@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
 import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.actors.actorTypeReferences
+import com.pandulapeter.kubrikoCreator.actors.fixedPath
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.timerNames
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
@@ -131,7 +132,7 @@ class DeletingEveryThingTest {
         val types = EveryBlockTypes.all
         val paths = types.flatMap { type ->
             listOfNotNull((type as? ActorTypeDefinition)?.sprite) + type.events.flatMap { event ->
-                event.blocks.mapNotNull { (it as? BlockDefinition.PlaySound)?.sound ?: (it as? BlockDefinition.PlayMusic)?.music }
+                event.blocks.mapNotNull { (it as? BlockDefinition.PlaySound)?.sound?.fixedPath ?: (it as? BlockDefinition.PlayMusic)?.music?.fixedPath }
             }
         }.filter { ResourceKind.of(it) != null && canBeAFile(it) }.distinct()
         assertTrue(paths.size >= 3, "EveryBlockTypes uses a sprite, a sound, and music.")
@@ -145,7 +146,7 @@ class DeletingEveryThingTest {
                 assertTrue((type as? ActorTypeDefinition)?.sprite != path, "${type.name} is still drawn as $path.")
                 type.events.forEach { event ->
                     event.blocks.forEach { block ->
-                        assertTrue(block != BlockDefinition.PlaySound(path) && (block as? BlockDefinition.PlayMusic)?.music != path, "${type.name} still has $block.")
+                        assertTrue((block as? BlockDefinition.PlaySound)?.sound?.fixedPath != path && (block as? BlockDefinition.PlayMusic)?.music?.fixedPath != path, "${type.name} still has $block.")
                     }
                 }
             }

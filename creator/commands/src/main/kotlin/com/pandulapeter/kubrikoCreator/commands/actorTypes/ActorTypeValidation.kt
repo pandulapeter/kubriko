@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.AnimatedValue
+import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
@@ -36,6 +37,7 @@ import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.actorTypeReferences
 import com.pandulapeter.kubrikoCreator.actors.areEdgesAlong
 import com.pandulapeter.kubrikoCreator.actors.fixedArgb
+import com.pandulapeter.kubrikoCreator.actors.fixedPath
 import com.pandulapeter.kubrikoCreator.actors.isFinite
 import com.pandulapeter.kubrikoCreator.actors.leaves
 import com.pandulapeter.kubrikoCreator.actors.numberValues
@@ -198,12 +200,27 @@ private fun validateBlockReferences(block: BlockDefinition, scope: BlockScope): 
     block.actorTypeReferences.any { it !in scope.actorTypeNames } -> missingActorType(block.actorTypeReferences.first { it !in scope.actorTypeNames }, scope)
     block is BlockDefinition.GoToScene && block.scene.isNotEmpty() && scope.sceneNames?.contains(block.scene) == false ->
         SimilarNames.rejection(LookupProblem.SCENE_MISSING, LookupProblem.SCENE_MISSING_SIMILAR, block.scene, scope.sceneNames.orEmpty(), block.scene)
-    block is BlockDefinition.PlaySound && block.sound.isNotEmpty() && scope.audioFiles?.sounds?.contains(block.sound) == false ->
-        SimilarNames.rejection(LookupProblem.SOUND_MISSING, LookupProblem.SOUND_MISSING_SIMILAR, block.sound, scope.audioFiles?.sounds.orEmpty(), block.sound)
-    block is BlockDefinition.PlayMusic && block.music.isNotEmpty() && scope.audioFiles?.music?.contains(block.music) == false ->
-        SimilarNames.rejection(LookupProblem.MUSIC_MISSING, LookupProblem.MUSIC_MISSING_SIMILAR, block.music, scope.audioFiles?.music.orEmpty(), block.music)
-    else -> (((block as? BlockDefinition.If)?.condition?.propertyReferences ?: listOfNotNull(block.propertyReference)) + block.valuePropertyReferences)
+    block is BlockDefinition.PlaySound -> block.sound.fixedPath?.let { scope.audioFiles?.missingSound(it) } ?: validateValueReferences(block, scope)
+    block is BlockDefinition.PlayMusic -> block.music.fixedPath?.let { scope.audioFiles?.missingMusic(it) } ?: validateValueReferences(block, scope)
+    else -> validateValueReferences(block, scope)
+}
+
+private fun validateValueReferences(block: BlockDefinition, scope: BlockScope) =
+    (((block as? BlockDefinition.If)?.condition?.propertyReferences ?: listOfNotNull(block.propertyReference)) + block.valuePropertyReferences)
         .firstNotNullOfOrNull { reference -> validatePropertyReference(reference, scope) }
+
+/**
+ * Why a Block can't play the sound at [path], if this project has none there.
+ */
+internal fun AudioFiles.missingSound(path: String) = path.takeIf { it !in sounds }?.let {
+    SimilarNames.rejection(LookupProblem.SOUND_MISSING, LookupProblem.SOUND_MISSING_SIMILAR, it, sounds, it)
+}
+
+/**
+ * Why a Block can't play the music at [path], if this project has none there.
+ */
+internal fun AudioFiles.missingMusic(path: String) = path.takeIf { it !in music }?.let {
+    SimilarNames.rejection(LookupProblem.MUSIC_MISSING, LookupProblem.MUSIC_MISSING_SIMILAR, it, music, it)
 }
 
 private fun validatePropertyReference(reference: PropertyReference, scope: BlockScope): Rejection? {
@@ -249,11 +266,14 @@ internal fun validateProperty(
     actorTypeNames: List<String>,
     managerTypeNames: List<String>,
     replacedName: String? = null,
+    audioFiles: AudioFiles? = null,
 ): Rejection? = PropertyNaming.validate(property.name, properties.map { it.name }.filter { it != replacedName }, kind)?.let(::Rejection)
     ?: when {
         property is PropertyDefinition.Number && !property.initialValue.isFinite() -> Rejection(CommandProblem.NUMBER_INVALID)
         property is PropertyDefinition.ActorType && property.initialValue.isNotEmpty() && property.initialValue !in actorTypeNames ->
             missingActorType(property.initialValue, actorTypeNames, managerTypeNames)
+        property is PropertyDefinition.Sound -> property.initialValue.ifEmpty { null }?.let { audioFiles?.missingSound(it) }
+        property is PropertyDefinition.Music -> property.initialValue.ifEmpty { null }?.let { audioFiles?.missingMusic(it) }
         else -> null
     }
 
@@ -271,7 +291,7 @@ internal fun CommandContext.validateActorTypeName(name: String): Rejection? {
  * Why [property] can't be one of [properties] of a type of [kind] in this project.
  */
 internal fun CommandContext.validateProperty(property: PropertyDefinition, properties: List<PropertyDefinition>, kind: BlockTypeKind, replacedName: String? = null) =
-    validateProperty(property, properties, kind, requireBlockTypes.actorTypes.value.map { it.name }, requireBlockTypes.managerTypes.value.map { it.name }, replacedName)
+    validateProperty(property, properties, kind, requireBlockTypes.actorTypes.value.map { it.name }, requireBlockTypes.managerTypes.value.map { it.name }, replacedName, audioFiles())
 
 /**
  * Why the new type [definition] can't be part of the project: its Blocks are checked against the project with it, so
@@ -285,7 +305,7 @@ internal fun CommandContext.validateContents(definition: BlockTypeDefinition): R
         ?: actorType?.parent?.let { parent -> validateNewParent(definition.name, parent, actorType.properties) }
         ?: actorType?.sprite?.ifEmpty { null }?.let { validateSprite(it) }
         ?: definition.properties.indices.firstNotNullOfOrNull { index ->
-            validateProperty(definition.properties[index], definition.properties.take(index), definition.kind, scope.actorTypeNames, scope.managerTypes.map { it.name })
+            validateProperty(definition.properties[index], definition.properties.take(index), definition.kind, scope.actorTypeNames, scope.managerTypes.map { it.name }, audioFiles = scope.audioFiles)
         }
         ?: definition.events.firstNotNullOfOrNull { validateEvent(it, scope) }
         ?: (definition as? ManagerTypeDefinition)?.texts?.firstNotNullOfOrNull { validateText(it, scope) }

@@ -27,6 +27,8 @@ import com.pandulapeter.kubrikoCreator.actors.SceneEdge
 import com.pandulapeter.kubrikoCreator.actors.SteeringKeys
 import com.pandulapeter.kubrikoCreator.actors.TextValue
 import com.pandulapeter.kubrikoCreator.actors.ToggleValue
+import com.pandulapeter.kubrikoCreator.actors.fixedPath
+import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.readsEdges
 import com.pandulapeter.kubrikoCreator.foundation.ColorHex
 
@@ -110,8 +112,9 @@ internal object BlockNotation {
             PauseAction.RESUME -> "Resume the game"
             PauseAction.TOGGLE -> "Pause or resume the game"
         }
-        is BlockDefinition.PlaySound -> "Play sound ${name(block.sound)}" + volume(block.volume)
-        is BlockDefinition.PlayMusic -> "Play music ${name(block.music)}" + (if (block.isLooping) "" else ", once") + volume(block.volume)
+        is BlockDefinition.PlaySound -> "Play sound ${block.sound.fixedPath?.let(::name) ?: block.sound.propertyReference?.let { "the sound in " + property(it.name, it.manager) } ?: NONE}" + volume(block.volume)
+        is BlockDefinition.PlayMusic -> "Play music ${block.music.fixedPath?.let(::name) ?: block.music.propertyReference?.let { "the music in " + property(it.name, it.manager) } ?: NONE}" +
+            (if (block.isLooping) "" else ", once") + volume(block.volume)
         BlockDefinition.StopMusic -> "Stop the music"
         is BlockDefinition.SetFrame -> "Show frame ${value(block.frame)} of the sprite"
         is BlockDefinition.SetAnimation -> "Play the sprite's frames at speed ${value(block.speed)}" + if (block.isLooping) ", looping" else ", once"

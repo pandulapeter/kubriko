@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.actorTypeReferenceProperties
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.audioReferenceProperties
 import com.pandulapeter.kubrikoCreator.commands.scenes.firstSceneSettings
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
@@ -28,20 +29,21 @@ internal suspend fun CommandContext.sceneTypeCounts(): Map<String, Map<String, I
  * What the readable Scenes of the project place, read in one pass over them.
  *
  * @param types The type IDs of the Actors each Scene places, each with how many, by the Scene's name.
- * @param actorTypeReferences How many of the values each Scene saves for Actor type reference Properties name each Actor
- *   type, by the Scene's name and then the type's ([actorTypeReferenceProperties]). A value an Actor keeps about its own
- *   type isn't counted, since deleting that type takes the Actor away with it.
+ * @param savedReferences How many of the values each Scene saves for reference Properties name each thing, by the
+ *   Scene's name and then the thing's: an Actor type's name ([actorTypeReferenceProperties]), or a sound's or music's
+ *   path ([audioReferenceProperties]), which never look alike. A value an Actor keeps about its own type isn't counted,
+ *   since deleting that type takes the Actor away with it.
  */
 internal class SceneCounts(
     val types: Map<String, Map<String, Int>>,
-    val actorTypeReferences: Map<String, Map<String, Int>>,
+    val savedReferences: Map<String, Map<String, Int>>,
 )
 
 /**
- * The [SceneCounts] of the open project, with the Actor type reference values only when the project's [types] are given.
+ * The [SceneCounts] of the open project, with the saved reference values only when the project's [types] are given.
  */
 internal suspend fun CommandContext.sceneCounts(types: List<BlockTypeDefinition>? = null): SceneCounts = withContext(ioDispatcher) {
-    val references = types?.let(::actorTypeReferenceProperties).orEmpty()
+    val references = types?.let { merged(actorTypeReferenceProperties(it), audioReferenceProperties(it)) }.orEmpty()
     val typeCounts = LinkedHashMap<String, Map<String, Int>>()
     val referenceCounts = LinkedHashMap<String, Map<String, Int>>()
     scenes.names().forEach { name ->
@@ -56,6 +58,8 @@ internal suspend fun CommandContext.sceneCounts(types: List<BlockTypeDefinition>
     }
     SceneCounts(typeCounts, referenceCounts)
 }
+
+private fun merged(first: Map<String, Set<String>>, second: Map<String, Set<String>>) = (first.keys + second.keys).associateWith { first[it].orEmpty() + second[it].orEmpty() }
 
 /**
  * The music each Scene of the open project plays, by the Scene's name, leaving out those that play none.
@@ -83,8 +87,8 @@ internal suspend fun CommandContext.projectReferences(subject: RelationSubject):
  */
 internal suspend fun CommandContext.projectReferences(subjects: List<RelationSubject>): List<ProjectReferences> {
     val types = blockTypes?.types?.value.orEmpty()
-    // A Scene's Actors refer to nothing but types, so no other subject's references need them.
-    val sceneCounts = if (subjects.any { it is RelationSubject.Type }) sceneCounts(types) else SceneCounts(emptyMap(), emptyMap())
+    // A Scene's Actors refer to nothing but types and, through what they save, audio files.
+    val sceneCounts = if (subjects.any { it is RelationSubject.Type || it is RelationSubject.Resource }) sceneCounts(types) else SceneCounts(emptyMap(), emptyMap())
     return withContext(ioDispatcher) {
         val mentionedPaths = subjects.map { mentionedPathOf(it) }
         val firstScene = firstSceneSettings(project.rootDirectory)?.firstScene
@@ -103,7 +107,7 @@ internal suspend fun CommandContext.projectReferences(subjects: List<RelationSub
                 markdown = if (mentionedPath == null) emptyMap() else markdown,
                 mentionedPath = mentionedPath,
                 sceneMusic = music,
-                sceneActorTypeReferences = sceneCounts.actorTypeReferences,
+                sceneSavedReferences = sceneCounts.savedReferences,
             )
         }
     }

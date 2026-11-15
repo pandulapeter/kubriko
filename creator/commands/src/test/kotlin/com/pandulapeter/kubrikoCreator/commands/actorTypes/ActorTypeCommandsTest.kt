@@ -18,11 +18,13 @@ import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
+import com.pandulapeter.kubrikoCreator.actors.MusicValue
 import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.actors.SoundValue
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
@@ -237,12 +239,12 @@ class ActorTypeCommandsTest {
     fun audioBlocksMayLeaveTheirFileUnchosenButNotNameOneThatDoesNotExist() = runTest {
         val context = commandContext(ball, wall, audioFiles = AudioFiles(sounds = listOf("files/sounds/hit.wav"), music = listOf("files/music/theme.mp3")))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlaySound())))
-        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlaySound("files/sounds/hit.wav"))))
-        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlayMusic("files/music/theme.mp3", isLooping = false))))
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlaySound(SoundValue.Fixed("files/sounds/hit.wav")))))
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlayMusic(MusicValue.Fixed("files/music/theme.mp3"), isLooping = false))))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.StopMusic)))
-        assertEquals(Rejection(LookupProblem.SOUND_MISSING, "files/music/theme.mp3"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlaySound("files/music/theme.mp3"))))
-        assertEquals(Rejection(LookupProblem.MUSIC_MISSING, "files/sounds/hit.wav"), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.PlayMusic("files/sounds/hit.wav"))))
-        assertNull(commandContext(ball).rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlaySound("files/sounds/unknown.wav"))))
+        assertEquals(Rejection(LookupProblem.SOUND_MISSING, "files/music/theme.mp3"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlaySound(SoundValue.Fixed("files/music/theme.mp3")))))
+        assertEquals(Rejection(LookupProblem.MUSIC_MISSING, "files/sounds/hit.wav"), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.PlayMusic(MusicValue.Fixed("files/sounds/hit.wav")))))
+        assertNull(commandContext(ball).rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlaySound(SoundValue.Fixed("files/sounds/unknown.wav")))))
     }
 
     @Test

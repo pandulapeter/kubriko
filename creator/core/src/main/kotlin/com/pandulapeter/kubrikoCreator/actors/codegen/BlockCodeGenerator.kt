@@ -26,6 +26,7 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
 import com.pandulapeter.kubrikoCreator.actors.PropertyReference
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
+import com.pandulapeter.kubrikoCreator.actors.fixedPath
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.readsEdges
 import com.pandulapeter.kubrikoCreator.actors.values
@@ -162,20 +163,9 @@ public object BlockCodeGenerator {
             ),
             needs = setOf(BlockNeed.STATE_MANAGER),
         )
-        is BlockDefinition.PlaySound -> if (block.sound.isNotEmpty()) {
-            BlockCode(listOf("$AUDIO_FIELD.playSound(${stringLiteral(block.sound)}${volumeArgument(block.volume, scope)})"), needs = setOf(BlockNeed.AUDIO))
-        } else {
-            BlockCode(listOf("// Choose a sound for this Block."))
-        }
-        is BlockDefinition.PlayMusic -> if (block.music.isNotEmpty()) {
-            BlockCode(
-                listOf("$AUDIO_FIELD.playMusic(${stringLiteral(block.music)}${if (block.isLooping) "" else ", isLooping = false"}${volumeArgument(block.volume, scope)})"),
-                needs = setOf(BlockNeed.AUDIO),
-            )
-        } else {
-            BlockCode(listOf("// Choose music for this Block."))
-        }
-        BlockDefinition.StopMusic -> BlockCode(listOf("$AUDIO_FIELD.stopMusic()"), needs = setOf(BlockNeed.AUDIO))
+        is BlockDefinition.PlaySound -> AudioBlockCode.playSound(block, scope)
+        is BlockDefinition.PlayMusic -> AudioBlockCode.playMusic(block, scope)
+        BlockDefinition.StopMusic -> AudioBlockCode.STOP_MUSIC
         is BlockDefinition.SetFrame -> animationCode(scope, BlockNeed.FRAME, "$SET_FRAME_FUNCTION(${NumberValueCode.whole(block.frame, scope)})")
         is BlockDefinition.SetAnimation -> animationCode(scope, BlockNeed.ANIMATION, "$ANIMATION_SPEED_FIELD = ${NumberValueCode.float(block.speed, scope)}", "$ANIMATION_LOOPING_FIELD = ${block.isLooping}")
         is BlockDefinition.SetColor -> AppearanceCode.setColor(block, scope)
@@ -470,21 +460,13 @@ public object BlockCodeGenerator {
         is PropertyDefinition.Toggle -> property.initialValue.toString()
         is PropertyDefinition.Color -> "Color(${colorLiteral(property.initialValue)})"
         is PropertyDefinition.ActorType -> stringLiteral(property.initialValue)
+        is PropertyDefinition.Sound -> stringLiteral(property.initialValue)
+        is PropertyDefinition.Music -> stringLiteral(property.initialValue)
     }
 
     private fun offsetCode(x: NumberValue, y: NumberValue, scope: BlockScope) = "SceneOffset(${NumberValueCode.sceneUnit(x, scope)}, ${NumberValueCode.sceneUnit(y, scope)})"
 
     internal fun unitLiteral(value: Float) = "${floatLiteral(value)}.sceneUnit"
-
-    /**
-     * The volume argument of `GeneratedAudio`'s functions for [volume] (in percent), as a fraction, or nothing at full
-     * volume, so that games that use none generate what they did before.
-     */
-    private fun volumeArgument(volume: NumberValue, scope: BlockScope) = when {
-        volume == NumberValue.Fixed(FULL_VOLUME) -> ""
-        volume is NumberValue.Fixed -> ", volume = ${floatLiteral(volume.value / FULL_VOLUME)}"
-        else -> ", volume = ${NumberValueCode.float(volume, scope)} / ${floatLiteral(FULL_VOLUME)}"
-    }
 
     internal fun floatLiteral(value: Float) = when {
         !value.isFinite() -> "0f"

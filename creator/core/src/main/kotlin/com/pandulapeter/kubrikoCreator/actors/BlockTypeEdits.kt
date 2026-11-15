@@ -136,16 +136,25 @@ public fun BlockTypeDefinition.withScenesRenamed(renamed: Map<String, String>): 
 }
 
 /**
- * The type drawn as, and its Blocks playing, the sprite, sound, or music at [newPath] (from `composeResources`) wherever
- * they did the one at [oldPath].
+ * The type drawn as, its Blocks playing, and its sound and music Properties starting as, the sprite, sound, or music at
+ * [newPath] (from `composeResources`) wherever they did the one at [oldPath].
  */
 public fun BlockTypeDefinition.withResourceRenamed(oldPath: String, newPath: String): BlockTypeDefinition {
-    val withBlocks = withBlocks { block ->
-        when {
-            block is BlockDefinition.PlaySound && block.sound == oldPath -> block.copy(sound = newPath)
-            block is BlockDefinition.PlayMusic && block.music == oldPath -> block.copy(music = newPath)
-            else -> block
-        }
+    val renaming = object : ValueTransform {
+        override fun sound(value: SoundValue) = if (value.fixedPath == oldPath) SoundValue.Fixed(newPath) else value
+
+        override fun music(value: MusicValue) = if (value.fixedPath == oldPath) MusicValue.Fixed(newPath) else value
+    }
+    val withBlocks = withBlocks { it.withValues(renaming) }.let { renamed ->
+        renamed.withProperties(
+            renamed.properties.map { property ->
+                when {
+                    property is PropertyDefinition.Sound && property.initialValue == oldPath -> property.copy(initialValue = newPath)
+                    property is PropertyDefinition.Music && property.initialValue == oldPath -> property.copy(initialValue = newPath)
+                    else -> property
+                }
+            },
+        )
     }
     return if (withBlocks is ActorTypeDefinition && withBlocks.sprite == oldPath) withBlocks.copy(sprite = newPath) else withBlocks
 }

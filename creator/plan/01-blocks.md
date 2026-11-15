@@ -20,7 +20,6 @@ whose exhaustive `when`s then show every place it needs.
 
 ## Next additions
 
-- **More audio:** volume, and sounds and music as Properties (so one Block plays the sound an Actor keeps).
 - **Scene settings in the game:** an option that fits the game's view to the Scene's bounds (through
   `ViewportManager.setAspectRatioMode`); the Scene editor's inspector already edits the settings.
 - **Camera:** follow an Actor, shake, zoom.

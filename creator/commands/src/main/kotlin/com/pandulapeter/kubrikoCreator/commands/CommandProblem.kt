@@ -84,7 +84,7 @@ public enum class CommandProblem(override val english: String) : DomainText {
     PROPERTY_VALUE_INVALID("Give %1\$s one value, of the kind the Property is."),
     RESOURCE_CONTENT_MISMATCH("%1\$s doesn't hold what a .%2\$s file holds, so the game couldn't read it."),
     RESOURCE_KIND_CHANGED("A file stays what it is when it's renamed: keep the .%1\$s at the end, and a sprite right in drawable, or a sound or music in files."),
-    RESOURCE_MUSIC_NOT_FOLLOWED("%1\$s still play %2\$s as their music, since they couldn't be written: %3\$s"),
+    RESOURCE_AUDIO_NOT_FOLLOWED("%1\$s still name %2\$s, as their music or a sound or music Property's value, since they couldn't be written: %3\$s"),
     RESOURCE_NAMED_IN_CODE("%1\$s still names %2\$s, which is now %3\$s. Change it there by hand."),
     RESOURCE_FOLDER_NOT_MOVED("Kubriko Creator couldn't move %1\$s, so nothing changed. Another program, such as the running game, may have a file in it open."),
     RESOURCE_NOT_MOVED_BACK("Kubriko Creator couldn't move %1\$s back to %2\$s, so it's still there. Move it back by hand."),

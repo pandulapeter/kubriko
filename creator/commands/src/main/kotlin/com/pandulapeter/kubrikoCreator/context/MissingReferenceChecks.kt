@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.context
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.fixedPath
 
 /**
  * Blocks, Events, placeholders, parents, and Scenes' music naming an Actor type, a Scene, a Property, or an audio file that doesn't
@@ -54,8 +55,8 @@ internal object MissingReferenceChecks {
             type.events.forEachIndexed { eventIndex, event ->
                 event.blocks.forEachIndexed { blockIndex, block ->
                     val missing = when (block) {
-                        is BlockDefinition.PlaySound -> block.sound.takeIf { it.isNotEmpty() && it !in audioFiles.sounds }
-                        is BlockDefinition.PlayMusic -> block.music.takeIf { it.isNotEmpty() && it !in audioFiles.music }
+                        is BlockDefinition.PlaySound -> block.sound.fixedPath?.takeIf { it !in audioFiles.sounds }
+                        is BlockDefinition.PlayMusic -> block.music.fixedPath?.takeIf { it !in audioFiles.music }
                         else -> null
                     }
                     if (missing != null) add(finding(RelationPlace.Type(type.name, eventIndex, blockIndex), missing))

@@ -14,7 +14,9 @@ import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.MusicValue
 import com.pandulapeter.kubrikoCreator.actors.NameProblem
+import com.pandulapeter.kubrikoCreator.actors.SoundValue
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
@@ -121,7 +123,7 @@ class ResourceCommandsTest {
         val ball = ActorTypeDefinition(
             name = "Ball",
             sprite = "drawable/ball.png",
-            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.PlaySound("files/sounds/hit.wav"), BlockDefinition.PlayMusic("files/music/theme.mp3")))),
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.PlaySound(SoundValue.Fixed("files/sounds/hit.wav")), BlockDefinition.PlayMusic(MusicValue.Fixed("files/music/theme.mp3"))))),
         )
         val reported = ArrayList<ConsoleEntry>()
         val context = context(ball, sprites = listOf("drawable/ball.png"), sounds = listOf("files/sounds/hit.wav"), music = listOf("files/music/theme.mp3"), report = { reported += it })
@@ -140,7 +142,7 @@ class ResourceCommandsTest {
 
         val renamed = context.blockTypes!!["Ball"] as ActorTypeDefinition
         assertEquals("drawable/orb.png", renamed.sprite)
-        assertEquals(listOf(BlockDefinition.PlaySound("files/effects/bounce.wav"), BlockDefinition.PlayMusic("files/music/song.mp3")), renamed.events.single().blocks)
+        assertEquals(listOf(BlockDefinition.PlaySound(SoundValue.Fixed("files/effects/bounce.wav")), BlockDefinition.PlayMusic(MusicValue.Fixed("files/music/song.mp3"))), renamed.events.single().blocks)
         assertEquals("files/music/song.mp3", context.scenes.actors("level")!!.single().let { SceneSettingsState.read(it.state).music })
         assertTrue(context.resource("drawable/orb.png").isFile)
         assertFalse(context.resource("drawable/ball.png").exists())
@@ -194,7 +196,7 @@ class ResourceCommandsTest {
         val ball = ActorTypeDefinition(
             name = "Ball",
             sprite = "drawable/ball.png",
-            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.PlayMusic("files/music/theme.mp3"), BlockDefinition.Log("hi")))),
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.PlayMusic(MusicValue.Fixed("files/music/theme.mp3")), BlockDefinition.Log("hi")))),
         )
         val context = context(ball, sprites = listOf("drawable/ball.png"), music = listOf("files/music/theme.mp3"))
         context.file("$resources/files/scenes/level.json").apply { parentFile.mkdirs() }.writeText(sceneWithMusic("files/music/theme.mp3"))

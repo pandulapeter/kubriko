@@ -278,7 +278,7 @@ class SceneEditorPaneTest {
             panelLayout = PanelLayout(emptyMap(), onSizeChange = { _, _ -> }, onSizeReset = {}),
             actorTypes = emptyList(),
             managerTypes = managerTypes,
-            music = emptyList(),
+            audioFiles = null,
             description = null,
             broughtBack = broughtBack,
             onPlay = {},

@@ -19,8 +19,10 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.MusicValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
+import com.pandulapeter.kubrikoCreator.actors.SoundValue
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.scenes.writeScene
 import kotlinx.coroutines.test.runTest
@@ -161,7 +163,7 @@ class HealthChecksTest {
     fun aPlayBlockWhoseAudioFileIsGoneIsReportedOnlyWhenTheFilesAreKnown() {
         val radio = ActorTypeDefinition(
             name = "Radio",
-            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.PlaySound("files/hit.wav"), BlockDefinition.PlaySound("files/gone.wav"), BlockDefinition.PlayMusic("files/theme.mp3")))),
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.PlaySound(SoundValue.Fixed("files/hit.wav")), BlockDefinition.PlaySound(SoundValue.Fixed("files/gone.wav")), BlockDefinition.PlayMusic(MusicValue.Fixed("files/theme.mp3"))))),
         )
         val placed = mapOf("main" to mapOf("Radio" to 1))
         val relations = ProjectRelations(listOf(radio), placed)

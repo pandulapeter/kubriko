@@ -35,14 +35,14 @@ public enum class UsageEffect(
     ACTORS_REMOVED("its Actors are removed"),
 
     /**
-     * An Actor type reference Property starting as a deleted Actor type, which then starts as none.
+     * A reference Property starting as a deleted Actor type, sound, or music, which then starts as none.
      */
-    STARTING_TYPE_CLEARED("the Property starts as no Actor type"),
+    STARTING_VALUE_CLEARED("the Property starts as none"),
 
     /**
-     * A Scene's saved Actor type reference value naming a deleted Actor type, which then names none.
+     * A Scene's saved reference value naming a deleted Actor type, sound, or music, which then names none.
      */
-    SAVED_REFERENCE_CLEARED("the saved reference names no Actor type"),
+    SAVED_REFERENCE_CLEARED("the saved reference names none"),
 
     /**
      * A Scene giving a deleted Manager type's Properties values, which then gives none.

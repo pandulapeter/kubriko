@@ -63,7 +63,9 @@ import kubriko.creator.generated.resources.condition_toggle
 import kubriko.creator.generated.resources.condition_velocity
 import kubriko.creator.generated.resources.property_kind_actor_type
 import kubriko.creator.generated.resources.property_kind_color
+import kubriko.creator.generated.resources.property_kind_music
 import kubriko.creator.generated.resources.property_kind_number
+import kubriko.creator.generated.resources.property_kind_sound
 import kubriko.creator.generated.resources.property_kind_text
 import kubriko.creator.generated.resources.property_kind_toggle
 import org.jetbrains.compose.resources.StringResource
@@ -131,4 +133,6 @@ internal val PropertyKind.title: StringResource
         PropertyKind.TOGGLE -> Res.string.property_kind_toggle
         PropertyKind.COLOR -> Res.string.property_kind_color
         PropertyKind.ACTOR_TYPE -> Res.string.property_kind_actor_type
+        PropertyKind.SOUND -> Res.string.property_kind_sound
+        PropertyKind.MUSIC -> Res.string.property_kind_music
     }

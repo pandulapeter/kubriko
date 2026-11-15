@@ -20,6 +20,8 @@ import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.fits
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.missingMusic
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.missingSound
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateActorTypeName
 import com.pandulapeter.kubrikoCreator.scenes.ActorStateEdits
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
@@ -72,6 +74,10 @@ public data class ActorValueChanges(
         @SerialName("color") @Serializable(with = HexColorSerializer::class) val color: Long? = null,
         @Description("The value of an Actor type reference Property.")
         @SerialName("actorType") val actorType: String? = null,
+        @Description("The value of a sound Property: a file's path, or empty for none.")
+        @SerialName("sound") val sound: String? = null,
+        @Description("The value of a music Property: a file's path, or empty for none.")
+        @SerialName("music") val music: String? = null,
     ) {
         /**
          * The kind of Property the value is given for, by which of its fields is set, or null unless exactly one is.
@@ -83,6 +89,8 @@ public data class ActorValueChanges(
                 toggle?.let { PropertyKind.TOGGLE },
                 color?.let { PropertyKind.COLOR },
                 actorType?.let { PropertyKind.ACTOR_TYPE },
+                sound?.let { PropertyKind.SOUND },
+                music?.let { PropertyKind.MUSIC },
             ).singleOrNull()
 
         /**
@@ -94,6 +102,8 @@ public data class ActorValueChanges(
             toggle?.let(::JsonPrimitive),
             color?.let { JsonPrimitive(SceneSettingsState.packedColorOf(it)) },
             actorType?.let(::JsonPrimitive),
+            sound?.let(::JsonPrimitive),
+            music?.let(::JsonPrimitive),
         ).singleOrNull()
     }
 }
@@ -128,6 +138,9 @@ internal fun CommandContext.validatePropertyValues(
         if (value.kind == PropertyKind.of(property)) null else Rejection(CommandProblem.PROPERTY_VALUE_INVALID, value.name)
     }
     ?: values.firstNotNullOfOrNull { value -> value.actorType?.let(::validateActorTypeName) }
+    ?: audioFiles()?.let { files ->
+        values.firstNotNullOfOrNull { value -> value.sound?.ifEmpty { null }?.let(files::missingSound) ?: value.music?.ifEmpty { null }?.let(files::missingMusic) }
+    }
 
 /**
  * Why [name] can't name one of [properties] of [owner], naming those called similarly, or null if it does or [isKnown]

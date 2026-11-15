@@ -31,6 +31,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockNesting
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.actors.SoundValue
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
@@ -71,7 +72,7 @@ class BlockRowTest {
         val blocks = listOf(
             BlockDefinition.AddActor(ActorTypeValue.Fixed("Brick")),
             BlockDefinition.GoToScene("cave"),
-            BlockDefinition.PlaySound("files/sounds/gone.wav"),
+            BlockDefinition.PlaySound(SoundValue.Fixed("files/sounds/gone.wav")),
             BlockDefinition.SetNumber("lives", manager = "Game"),
             BlockDefinition.AddActor(ActorTypeValue.Fixed("Ball")),
             BlockDefinition.GoToScene("level"),

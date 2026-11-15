@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeNaming
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
+import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import kotlinx.coroutines.withContext
@@ -41,11 +42,14 @@ internal fun JsonObject.withoutMismatchedValue(name: String, kind: PropertyKind)
 /**
  * Whether [this] saved value is one of [kind]. A color is saved as its packed `Long`, which is a number too, but one beyond
  * an `Int`'s range (but transparent black's 0), as no number a Property is given is, so the two are told apart by it.
- * An Actor type reference is a text that is empty or shaped like an Actor type's name, which most texts aren't.
+ * An Actor type reference is a text that is empty or shaped like an Actor type's name, and a sound or a music one that is
+ * empty or the path of a file of its kind, which most texts aren't.
  */
 internal fun JsonElement.fits(kind: PropertyKind) = this is JsonPrimitive && when (kind) {
     PropertyKind.NUMBER -> !isString && floatOrNull != null && longOrNull.let { it == null || it in Int.MIN_VALUE..Int.MAX_VALUE }
     PropertyKind.TEXT -> isString
+    PropertyKind.SOUND -> isString && (content.isEmpty() || ResourceKind.of(content) == ResourceKind.SOUND)
+    PropertyKind.MUSIC -> isString && (content.isEmpty() || ResourceKind.of(content) == ResourceKind.MUSIC)
     PropertyKind.TOGGLE -> !isString && booleanOrNull != null
     PropertyKind.ACTOR_TYPE -> isString && (content.isEmpty() || BlockTypeNaming.isWellFormed(content))
     PropertyKind.COLOR -> !isString && longOrNull.let { it != null && (it == 0L || it !in Int.MIN_VALUE..Int.MAX_VALUE) }

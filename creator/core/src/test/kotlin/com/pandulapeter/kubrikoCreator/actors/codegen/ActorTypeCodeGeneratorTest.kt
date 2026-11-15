@@ -23,9 +23,11 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.MusicValue
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.actors.SoundValue
 import com.pandulapeter.kubrikoCreator.actors.TextValue
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.ToggleValue
@@ -842,9 +844,9 @@ class ActorTypeCodeGeneratorTest {
                 EventType.COLLISION,
                 otherActorType = "Player",
                 blocks = listOf(
-                    BlockDefinition.PlaySound("files/sounds/hit.wav"),
-                    BlockDefinition.PlayMusic("files/music/theme.mp3"),
-                    BlockDefinition.PlayMusic("files/music/win.mp3", isLooping = false),
+                    BlockDefinition.PlaySound(SoundValue.Fixed("files/sounds/hit.wav")),
+                    BlockDefinition.PlayMusic(MusicValue.Fixed("files/music/theme.mp3")),
+                    BlockDefinition.PlayMusic(MusicValue.Fixed("files/music/win.mp3"), isLooping = false),
                     BlockDefinition.StopMusic,
                     BlockDefinition.PlaySound(),
                 ),

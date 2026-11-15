@@ -12,7 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import kotlinx.coroutines.withContext
@@ -39,10 +39,18 @@ internal suspend fun CommandContext.renameTypeWithItsSceneEntries(oldName: Strin
  * The Actor type reference Properties each of [types] keeps in Scenes (an Actor type with its inherited ones), by the
  * type's name, for the types that have any.
  */
-internal fun actorTypeReferenceProperties(types: List<BlockTypeDefinition>): Map<String, Set<String>> {
+internal fun actorTypeReferenceProperties(types: List<BlockTypeDefinition>): Map<String, Set<String>> = referenceProperties(types, setOf(PropertyKind.ACTOR_TYPE))
+
+/**
+ * The sound and music Properties each of [types] keeps in Scenes, as [actorTypeReferenceProperties] finds those naming
+ * Actor types: what a Scene saves for them names a file.
+ */
+internal fun audioReferenceProperties(types: List<BlockTypeDefinition>): Map<String, Set<String>> = referenceProperties(types, setOf(PropertyKind.SOUND, PropertyKind.MUSIC))
+
+private fun referenceProperties(types: List<BlockTypeDefinition>, kinds: Set<PropertyKind>): Map<String, Set<String>> {
     val family = ActorTypeFamily(types.filterIsInstance<ActorTypeDefinition>())
     return types.associate { type ->
         val properties = if (type is ActorTypeDefinition) family.propertiesOf(type.name) else type.properties
-        type.name to properties.filterIsInstance<PropertyDefinition.ActorType>().mapTo(HashSet()) { it.name }
+        type.name to properties.filter { PropertyKind.of(it) in kinds }.mapTo(HashSet()) { it.name }
     }.filterValues { it.isNotEmpty() }
 }

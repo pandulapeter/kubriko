@@ -23,6 +23,8 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.scenes.ActorValueChanges
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.ActorTypeChoice
+import com.pandulapeter.kubrikoCreator.ui.actorTypes.AudioFileChoice
+import com.pandulapeter.kubrikoCreator.ui.actorTypes.ReferenceChoices
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
 import com.pandulapeter.kubrikoCreator.ui.components.ColorField
 import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
@@ -31,6 +33,11 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.floatOrNull
 import kotlinx.serialization.json.longOrNull
+import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.audio_music_none_yet
+import kubriko.creator.generated.resources.audio_sounds_none_yet
+import kubriko.creator.generated.resources.block_music_choose
+import kubriko.creator.generated.resources.block_sound_choose
 
 /**
  * The value of [property] that a Scene keeps ([value]), or its starting value while it keeps none, labeled with [label].
@@ -42,7 +49,7 @@ internal fun PropertyValueField(
     onChange: (ActorValueChanges.PropertyValue) -> Unit,
     modifier: Modifier = Modifier,
     label: String = property.name,
-    actorTypeNames: List<String> = emptyList(),
+    choices: ReferenceChoices = ReferenceChoices(),
 ) = when (property) {
     is PropertyDefinition.Number -> NumberField(
         modifier = modifier.fillMaxWidth(),
@@ -77,9 +84,39 @@ internal fun PropertyValueField(
         Text(text = label, style = MaterialTheme.typography.bodyMedium)
         ActorTypeChoice(
             actorType = value?.takeIf { it.isString }?.content ?: property.initialValue,
-            actorTypeNames = actorTypeNames,
+            actorTypeNames = choices.actorTypeNames,
             onSelected = { onChange(ActorValueChanges.PropertyValue(property.name, actorType = it)) },
             isNoneOffered = true,
+        )
+    }
+    is PropertyDefinition.Sound -> Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text = label, style = MaterialTheme.typography.bodyMedium)
+        AudioFileChoice(
+            path = value?.takeIf { it.isString }?.content ?: property.initialValue,
+            paths = choices.audioFiles?.sounds,
+            placeholder = Res.string.block_sound_choose,
+            noneYet = Res.string.audio_sounds_none_yet,
+            canChooseNone = true,
+            onSelected = { onChange(ActorValueChanges.PropertyValue(property.name, sound = it)) },
+        )
+    }
+    is PropertyDefinition.Music -> Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text = label, style = MaterialTheme.typography.bodyMedium)
+        AudioFileChoice(
+            path = value?.takeIf { it.isString }?.content ?: property.initialValue,
+            paths = choices.audioFiles?.music,
+            placeholder = Res.string.block_music_choose,
+            noneYet = Res.string.audio_music_none_yet,
+            canChooseNone = true,
+            onSelected = { onChange(ActorValueChanges.PropertyValue(property.name, music = it)) },
         )
     }
 }

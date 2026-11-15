@@ -307,7 +307,7 @@ private fun PropertiesColumn(
         onRemoved = actions::removeProperty,
         flashedProperty = flashedProperty,
         onFindUsages = findUsages?.let { find -> { name -> find(RelationSubject.Property(inheritedPropertyOwners[name] ?: definition.name, name)) } },
-        actorTypeNames = scope.actorTypeNames,
+        choices = ReferenceChoices(scope.actorTypeNames, scope.audioFiles),
     )
     if (definition is ManagerTypeDefinition) {
         item {

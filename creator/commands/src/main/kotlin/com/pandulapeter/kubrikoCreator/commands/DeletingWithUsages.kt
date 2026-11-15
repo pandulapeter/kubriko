@@ -12,7 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.actorTypeReferenceProperties
 import com.pandulapeter.kubrikoCreator.commands.folders.contentDeletesOf
 import com.pandulapeter.kubrikoCreator.commands.folders.folderUsagesOf
-import com.pandulapeter.kubrikoCreator.commands.resources.scenesWithMusicReplaced
+import com.pandulapeter.kubrikoCreator.commands.resources.scenesWithAudioReplaced
 import com.pandulapeter.kubrikoCreator.commands.screenplay.KeepPageImages
 import com.pandulapeter.kubrikoCreator.commands.screenplay.UnlinkMentions
 import com.pandulapeter.kubrikoCreator.context.RelationPlace
@@ -92,7 +92,9 @@ private suspend fun CommandContext.scenesWithout(subject: RelationSubject, usage
                     )
                 }
         }
-        is RelationSubject.Resource -> withContext(ioDispatcher) { scenesWithMusicReplaced(scenesWith(UsageEffect.MUSIC_CLEARED), subject.path, "") }
+        is RelationSubject.Resource -> withContext(ioDispatcher) {
+            scenesWithAudioReplaced((scenesWith(UsageEffect.MUSIC_CLEARED) + scenesWith(UsageEffect.SAVED_REFERENCE_CLEARED)).distinct(), subject.path, "")
+        }
         is RelationSubject.Scene, is RelationSubject.Property, is RelationSubject.Page, is RelationSubject.Image, is RelationSubject.Timer, is RelationSubject.Folder -> emptyMap()
     }
 }

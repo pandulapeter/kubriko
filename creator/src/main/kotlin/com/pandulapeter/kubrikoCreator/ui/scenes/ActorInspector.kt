@@ -22,6 +22,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.sceneRuntime.ActorBodyValues
 import com.pandulapeter.kubrikoCreator.scenes.ActorStateEdits
+import com.pandulapeter.kubrikoCreator.ui.actorTypes.ReferenceChoices
 import com.pandulapeter.kubrikoCreator.ui.components.ColorField
 import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import kubriko.creator.generated.resources.Res
@@ -49,7 +50,7 @@ internal fun ActorInspector(
     definition: ActorTypeDefinition?,
     onChange: (SetActorValues.Input.() -> SetActorValues.Input) -> Unit,
     modifier: Modifier = Modifier,
-    actorTypeNames: List<String> = emptyList(),
+    choices: ReferenceChoices = ReferenceChoices(),
 ) = Column(
     modifier = modifier,
     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -98,7 +99,7 @@ internal fun ActorInspector(
                 property = property,
                 value = ActorStateEdits.propertyOf(state, property.name),
                 onChange = { value -> onChange { copy(properties = listOf(value)) } },
-                actorTypeNames = actorTypeNames,
+                choices = choices,
             )
         }
     }
