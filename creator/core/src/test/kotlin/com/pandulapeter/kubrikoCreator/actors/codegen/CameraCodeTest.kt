@@ -52,4 +52,9 @@ class CameraCodeTest {
         assertContains(scenes, "        if (!isInSceneEditor && scaleFactor > 0f) viewportManager.setScaleFactor(scaleFactor)\n")
         assertFalse("BeforeZoom" in scenes)
     }
+
+    @Test
+    fun aMoveToAPositionThatIsntANumberIsLeftOut() {
+        assertContains(scenes, "        if (isInSceneEditor || !x.isFinite() || !y.isFinite()) return\n")
+    }
 }

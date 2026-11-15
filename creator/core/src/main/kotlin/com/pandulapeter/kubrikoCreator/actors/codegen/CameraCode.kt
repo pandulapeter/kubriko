@@ -69,10 +69,10 @@ internal object CameraCode {
             |    }
             |
             |    /**
-            |     * Moves the camera to [x], [y] at once, and stops it following an Actor.
+            |     * Moves the camera to [x], [y] at once, and stops it following an Actor; a position that isn't a number is left out.
             |     */
             |    fun $MOVE_FUNCTION(x: Float, y: Float) {
-            |        if (isInSceneEditor) return
+            |        if (isInSceneEditor || !x.isFinite() || !y.isFinite()) return
             |        withCameraLock {
             |            cameraTarget = null
             |            if (shakenCameraX.isNaN()) {
