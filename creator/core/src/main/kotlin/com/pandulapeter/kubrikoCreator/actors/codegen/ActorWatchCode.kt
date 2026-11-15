@@ -12,16 +12,13 @@ package com.pandulapeter.kubrikoCreator.actors.codegen
 /**
  * The code of the actorAdded and actorRemoved Events ([ActorWatch]): in the Manager type, a counter per watched Actor
  * type that its Actors raise and its next frame runs the Events for, and in the Actor types, the calls that raise them.
- * The counters are atomic, since Kubriko calls `onAdded` and `onRemoved` on a thread of its own while the game ticks on
- * another. Their classes are named in full rather than imported, so an Actor type may be called `AtomicIntArray`, which is
- * why `kotlin` is a reserved Property name of Manager types.
+ * The counters are atomic ([AtomicsCode]), since Kubriko calls `onAdded` and `onRemoved` on a thread of its own while the
+ * game ticks on another.
  */
 internal object ActorWatchCode {
 
     private const val ADDED_COUNTERS_FIELD = "actorsAdded"
     private const val REMOVED_COUNTERS_FIELD = "actorsRemoved"
-    private const val ATOMICS = "kotlin.concurrent.atomics"
-    const val OPT_IN = "@OptIn($ATOMICS.ExperimentalAtomicApi::class)"
 
     /**
      * The Manager's counters, one per watched Actor type, of the Actors added and removed since its last frame.
@@ -34,8 +31,8 @@ internal object ActorWatchCode {
         appendLine("     * How many Actors were ${listOfNotNull("added".takeIf { added.isNotEmpty() }, "removed".takeIf { removed.isNotEmpty() }).joinToString(" and ")} since its last frame, for each Actor type")
         appendLine("     * its Events react to, counted on the thread Kubriko adds and removes them on.")
         appendLine("     */")
-        if (added.isNotEmpty()) appendLine("    private val $ADDED_COUNTERS_FIELD = $ATOMICS.AtomicIntArray(${added.size})")
-        if (removed.isNotEmpty()) appendLine("    private val $REMOVED_COUNTERS_FIELD = $ATOMICS.AtomicIntArray(${removed.size})")
+        if (added.isNotEmpty()) appendLine("    private val $ADDED_COUNTERS_FIELD = ${AtomicsCode.PACKAGE}.AtomicIntArray(${added.size})")
+        if (removed.isNotEmpty()) appendLine("    private val $REMOVED_COUNTERS_FIELD = ${AtomicsCode.PACKAGE}.AtomicIntArray(${removed.size})")
     }
 
     /**

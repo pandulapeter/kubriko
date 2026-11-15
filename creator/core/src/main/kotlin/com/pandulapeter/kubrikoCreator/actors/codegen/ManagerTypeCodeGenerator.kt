@@ -130,7 +130,7 @@ public object ManagerTypeCodeGenerator {
             appendLine("/**")
             appendLine(" * @param isInSceneEditor True in the Scene editor, where its Events don't run, but Actors placed there can still use it.")
             appendLine(" */")
-            if (watches.isNotEmpty()) appendLine(ActorWatchCode.OPT_IN)
+            if (watches.isNotEmpty()) appendLine(AtomicsCode.OPT_IN)
             appendLine("class $name(")
             appendLine("    private val isInSceneEditor: Boolean = false,")
             appendLine(") : Manager()${if (keys.isKeyboardInputAware) ", KeyboardInputAware" else ""} {")

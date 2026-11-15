@@ -28,7 +28,7 @@ internal object CameraCode {
 
     fun members() = """
             |
-            |    private val cameraLock = kotlin.concurrent.atomics.AtomicInt(0)
+            |    private val cameraLock = ${AtomicsCode.PACKAGE}.AtomicInt(0)
             |    private var cameraTarget: com.pandulapeter.kubriko.actor.traits.Positionable? = null
             |    private var shakeStrength = 0f
             |    private var shakeDurationInMilliseconds = 0f

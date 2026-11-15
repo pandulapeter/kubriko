@@ -30,12 +30,6 @@ internal object ActorCountCode {
     private const val GUARD_CLASS = "ActorCountGuard"
     const val GUARD_FIELD = "actorCountGuard"
     private const val STOP_FUNCTION = "stopCounting"
-    private const val ATOMICS = "kotlin.concurrent.atomics"
-
-    /**
-     * The atomics are named in full rather than imported, so an Actor type may be called `AtomicBoolean`.
-     */
-    const val OPT_IN = "@OptIn($ATOMICS.ExperimentalAtomicApi::class)"
 
     /**
      * The Actor types the actorCount conditions whose code is generated count, among [definitions], sorted.
@@ -67,7 +61,7 @@ internal object ActorCountCode {
      */
     fun StringBuilder.appendScenesMembers(countedTypes: List<String>) {
         appendLine()
-        appendLine("    private val $COUNTS_FIELD = $ATOMICS.AtomicIntArray(${countedTypes.size})")
+        appendLine("    private val $COUNTS_FIELD = ${AtomicsCode.PACKAGE}.AtomicIntArray(${countedTypes.size})")
         appendLine()
         appendLine("    /**")
         appendLine("     * How many Actors of a counted Actor type ([${constantOf(countedTypes.first())}], …) are in the Scene, those of the types inheriting")
@@ -87,7 +81,7 @@ internal object ActorCountCode {
         appendLine("     * threads they run on never both take it away.")
         appendLine("     */")
         appendLine("    class $GUARD_CLASS {")
-        appendLine("        private val isCounted = $ATOMICS.AtomicBoolean(false)")
+        appendLine("        private val isCounted = ${AtomicsCode.PACKAGE}.AtomicBoolean(false)")
         appendLine()
         appendLine("        fun start() = isCounted.compareAndSet(false, true)")
         appendLine()

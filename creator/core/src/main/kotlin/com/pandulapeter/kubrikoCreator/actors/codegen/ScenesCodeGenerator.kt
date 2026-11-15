@@ -150,7 +150,7 @@ public object ScenesCodeGenerator {
             | * @param isInSceneEditor True in the Scene editor, which loads its Scenes itself.
             | * @param managerActors The Managers that are Actors too, which every Scene keeps.
             | */
-            |${ActorCountCode.OPT_IN}
+            |${AtomicsCode.OPT_IN}
             |class $SCENES_NAME(
             |    private val firstScene: String? = null,
             |    val isInSceneEditor: Boolean = false,
