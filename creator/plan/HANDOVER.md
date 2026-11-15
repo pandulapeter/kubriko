@@ -85,10 +85,6 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
 - The eval set has no request using `find_usages` or `search_project`, nor the new resource tools, `move_folder`,
   `set_sprite_sheet`, or the animation Blocks yet; record one (`EvalSetLiveTest` with `KUBRIKO_CREATOR_EVAL_RECORD=true`
   and `KUBRIKO_CREATOR_EVAL_REQUESTS` naming it) once a live run can be spent on it.
-- `set_scene_values` isn't found unless the request names the Scene: asked "Players should start level-1 with 5 lives;
-  other levels keep the usual 3", the agent gave the Paddle a `startingLives` Property setting Game's lives when added,
-  never looking the tool up (it isn't loaded from the start). The recorded request says "Have the level-1 Scene give Game
-  5 lives"; the digest or `read_manager_type` could point at it.
 
 ## Before a release
 

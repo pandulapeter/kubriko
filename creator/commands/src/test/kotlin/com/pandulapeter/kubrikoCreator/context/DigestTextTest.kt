@@ -55,6 +55,7 @@ class DigestTextTest {
 
             Manager types:
             - Game: keeps the score. Properties score: number = 0.
+            A Scene can start these Properties at values of its own (set_scene_values).
 
             Scenes:
             - level: the only level. Places Ball, Brick (40).
@@ -88,5 +89,13 @@ class DigestTextTest {
         assertTrue(medium.length <= DigestText.BUDGET)
         assertContains(medium, "flies towards the player")
         assertFalse("health" in medium)
+    }
+
+    @Test
+    fun theSceneValuesAreNamedOnlyWhereAScenesCouldGiveDifferentOnes() {
+        fun digest(types: List<ManagerTypeDefinition>, scenes: List<String>) = DigestText.of(ProjectDigest.of(projectName = "game", types = types, sceneCounts = scenes.associateWith { emptyMap() }, sceneDescriptions = emptyMap()))
+        assertContains(digest(listOf(game), listOf("level-1", "level-2")), DigestText.SCENE_VALUES_HINT)
+        assertFalse(DigestText.SCENE_VALUES_HINT in digest(listOf(game), listOf("level-1")))
+        assertFalse(DigestText.SCENE_VALUES_HINT in digest(listOf(ManagerTypeDefinition(name = "Hud")), listOf("level-1", "level-2")))
     }
 }

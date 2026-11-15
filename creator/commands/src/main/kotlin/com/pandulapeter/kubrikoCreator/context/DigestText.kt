@@ -34,6 +34,8 @@ internal object DigestText {
         append(count(digest.scenes.size, "Scene")).append(".\n")
         types("Actor types", digest.actorTypes, level)
         types("Manager types", digest.managerTypes, level)
+        // Asked for a Scene to start with other values, agents reached for an Actor setting them rather than look this up.
+        if (level != Level.NAMES && digest.scenes.size > 1 && digest.managerTypes.any { it.properties.isNotEmpty() }) append(SCENE_VALUES_HINT)
         if (digest.scenes.isNotEmpty()) {
             append("\nScenes:\n")
             digest.scenes.forEach { scene ->
@@ -90,4 +92,6 @@ internal object DigestText {
     private fun count(count: Int, noun: String) = "$count $noun" + if (count == 1) "" else "s"
 
     private const val CUT_NOTE_LENGTH = 120
+
+    const val SCENE_VALUES_HINT = "A Scene can start these Properties at values of its own (set_scene_values).\n"
 }
