@@ -155,9 +155,9 @@ class SceneCommandsTest {
     fun existingSceneSettingsChangeInPlaceAndOnlyWhatIsGiven() = runTest {
         val settings = SceneActorEntry("SceneSettings", SceneSettingsState.withChanges(x = 1f, cameraX = 2f))
         val context = context(settings, wall)
-        val actors = context.assertRoundTrip(Invocation(SetSceneSettings, SetSceneSettings.Input("main", y = 5f, height = 100f, cameraY = -3f))) { context.main() }!!
+        val actors = context.assertRoundTrip(Invocation(SetSceneSettings, SetSceneSettings.Input("main", y = 5f, height = 100f, cameraY = -3f, fitsView = true))) { context.main() }!!
         assertEquals(listOf("SceneSettings", "Wall"), actors.map { it.typeId })
-        assertEquals(SceneSettingsState.Values(x = 1f, y = 5f, height = 100f, cameraX = 2f, cameraY = -3f), SceneSettingsState.read(actors[0].state))
+        assertEquals(SceneSettingsState.Values(x = 1f, y = 5f, height = 100f, cameraX = 2f, cameraY = -3f, fitsView = true), SceneSettingsState.read(actors[0].state))
     }
 
     @Test

@@ -34,7 +34,7 @@ public object SetSceneSettings : WriteCommand<SetSceneSettings.Input> {
     override val description: String = "Changes the settings of a Scene, kept by its ${SceneSettingsCodeGenerator.SETTINGS_NAME} Actor, which this adds " +
         "at the end of the Scene's Actor list if it has none. Its bounds are where edge Events happen (instead of the edges of the " +
         "screen) and are filled with the background color; the camera starts at the camera start, and the music plays, when the " +
-        "Scene does. Positions " +
+        "Scene does, unless it fits the view to its bounds. Positions " +
         "are in scene units, with y growing downwards. Values left out stay as they are."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
@@ -61,6 +61,7 @@ public object SetSceneSettings : WriteCommand<SetSceneSettings.Input> {
             cameraX = input.cameraX,
             cameraY = input.cameraY,
             music = input.music,
+            fitsView = input.fitsView,
         )
         val settings = SceneActorEntry(SceneSettingsCodeGenerator.SETTINGS_NAME, state, actors.getOrNull(index)?.id ?: input.actorId ?: SceneDocument.newId(actors.map { it.id }))
         if (previous == null) {
@@ -82,6 +83,7 @@ public object SetSceneSettings : WriteCommand<SetSceneSettings.Input> {
                     cameraX = input.cameraX?.let { values.cameraX },
                     cameraY = input.cameraY?.let { values.cameraY },
                     music = input.music?.let { values.music },
+                    fitsView = input.fitsView?.let { values.fitsView },
                 ),
             ),
         )
@@ -89,7 +91,7 @@ public object SetSceneSettings : WriteCommand<SetSceneSettings.Input> {
 
     override fun mergeKey(input: Input): Any? = listOf(
         input.scene, input.x != null, input.y != null, input.width != null, input.height != null, input.backgroundColor != null, input.cameraX != null, input.cameraY != null,
-        input.music != null,
+        input.music != null, input.fitsView != null,
     )
 
     @Serializable
@@ -112,6 +114,8 @@ public object SetSceneSettings : WriteCommand<SetSceneSettings.Input> {
         @SerialName("cameraY") val cameraY: Float? = null,
         @Description(MUSIC_DESCRIPTION + " It plays when the Scene starts, unless it is the music playing already. An empty text for none, which keeps the music of the Scene before playing.")
         @SerialName("music") val music: String? = null,
+        @Description("True to make the game's view show the Scene's bounds while it plays, as wide as they are and centered on them, instead of starting the camera at the camera start; the game's own aspect ratio comes back when the Scene ends.")
+        @SerialName("fitsView") val fitsView: Boolean? = null,
         @Description("The ID the Scene settings get when the Scene has none yet. Left out, they get a new one.")
         @SerialName("actorId") val actorId: String? = null,
     )

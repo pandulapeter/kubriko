@@ -35,8 +35,18 @@ class SceneSettingsCodeGeneratorTest {
 
     @Test
     fun theCameraMovesOnlyInTheGameAndTheSettingsRegisterWhileTheyAreInTheScene() {
-        assertContains(code, "        generatedScenes.settings = this\n        if (!generatedScenes.isInSceneEditor) kubriko.get<ViewportManager>().setCameraPosition(cameraStart)\n")
+        assertContains(code, "        generatedScenes.settings = this\n        if (generatedScenes.isInSceneEditor) return\n")
+        assertContains(code, "        } else {\n            viewportManager.setCameraPosition(cameraStart)\n        }\n")
         assertContains(code, "        if (generatedScenes.settings === this) generatedScenes.settings = null\n")
+    }
+
+    @Test
+    fun aSceneFittingTheViewShowsItsBoundsAndGivesTheAspectRatioBackWhenItEnds() {
+        assertContains(code, "            previousAspectRatioMode = viewportManager.aspectRatioMode.value\n")
+        assertContains(code, "            viewportManager.setAspectRatioMode(ViewportManager.AspectRatioMode.Fixed(ratio = body.size.width.raw / body.size.height.raw, width = body.size.width))\n")
+        assertContains(code, "            viewportManager.setCameraPosition(body.position)\n")
+        assertContains(code, "        previousAspectRatioMode?.let { viewportManager?.setAspectRatioMode(it) }\n")
+        assertContains(code, "        @SerialName(\"fitsView\") val fitsView: Boolean = false,\n")
     }
 
     @Test
@@ -47,6 +57,7 @@ class SceneSettingsCodeGeneratorTest {
         assertContains(code, "        @SerialName(\"cameraStart\") val cameraStart: SerializableSceneOffset = SceneOffset.Zero,\n")
         assertContains(code, "    @set:Exposed(name = \"music\")\n    var music: String = state.music\n")
         assertContains(code, "        @SerialName(\"music\") val music: String = \"\",\n")
-        assertContains(code, "        music = music,\n    )\n")
+        assertContains(code, "        music = music,\n        fitsView = fitsView,\n    )\n")
+        assertContains(code, "    @set:Exposed(name = \"fitsView\")\n    var fitsView: Boolean = state.fitsView\n")
     }
 }

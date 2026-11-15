@@ -39,8 +39,8 @@ class SceneSettingsStateTest {
     @Test
     fun changesKeepEverythingElse() {
         val before = """{"body":{"position":{"x":1.0,"y":2.0},"size":{"width":10.0,"height":20.0},"pivot":{"x":5.0,"y":10.0},"rotation":0.0},"cameraStart":{"x":3.0,"y":4.0},"other":true}"""
-        val after = SceneSettingsState.withChanges(before, width = 30f, cameraY = 8f)
-        assertEquals(SceneSettingsState.Values(x = 1f, y = 2f, width = 30f, height = 20f, cameraX = 3f, cameraY = 8f), SceneSettingsState.read(after))
+        val after = SceneSettingsState.withChanges(before, width = 30f, cameraY = 8f, fitsView = true)
+        assertEquals(SceneSettingsState.Values(x = 1f, y = 2f, width = 30f, height = 20f, cameraX = 3f, cameraY = 8f, fitsView = true), SceneSettingsState.read(after))
         val body = Json.parseToJsonElement(after).jsonObject.getValue("body").jsonObject
         assertEquals("""{"x":15.0,"y":10.0}""", body.getValue("pivot").toString())
         assertEquals("0.0", body.getValue("rotation").toString())

@@ -21,6 +21,7 @@ public object SceneSettingsCodeGenerator {
 
     public const val SETTINGS_NAME: String = GeneratedNames.SCENE_SETTINGS
     internal const val BACKGROUND_COLOR_KEY = "backgroundColor"
+    internal const val FITS_VIEW_KEY = "fitsView"
     internal const val CAMERA_START_KEY = "cameraStart"
     internal const val MUSIC_KEY = "music"
 
@@ -35,38 +36,43 @@ public object SceneSettingsCodeGenerator {
     internal const val DEFAULT_WIDTH = 1280f
     internal const val DEFAULT_HEIGHT = 720f
 
+    private val IMPORTS = listOf(
+        "androidx.compose.ui.graphics.Color",
+        "androidx.compose.ui.graphics.drawscope.DrawScope",
+        "com.pandulapeter.kubriko.Kubriko",
+        "com.pandulapeter.kubriko.actor.body.BoxBody",
+        "com.pandulapeter.kubriko.actor.traits.Unique",
+        "com.pandulapeter.kubriko.actor.traits.Visible",
+        "com.pandulapeter.kubriko.helpers.extensions.get",
+        "com.pandulapeter.kubriko.helpers.extensions.sceneUnit",
+        "com.pandulapeter.kubriko.manager.ViewportManager",
+        "com.pandulapeter.kubriko.sceneEditor.Editable",
+        "com.pandulapeter.kubriko.sceneEditor.EditableMetadata",
+        "com.pandulapeter.kubriko.sceneEditor.Exposed",
+        "com.pandulapeter.kubriko.serialization.Serializable",
+        "com.pandulapeter.kubriko.serialization.typeSerializers.SerializableBoxBody",
+        "com.pandulapeter.kubriko.serialization.typeSerializers.SerializableColor",
+        "com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneOffset",
+        "com.pandulapeter.kubriko.types.SceneOffset",
+        "com.pandulapeter.kubriko.types.SceneSize",
+        "kotlinx.serialization.SerialName",
+        "kotlinx.serialization.json.Json",
+
+    )
+
     internal fun generate(packageName: String) = GeneratedFile.withHeader("", buildString {
         appendLine("package $packageName.${ActorTypeCodeGenerator.GENERATED_PACKAGE}")
         appendLine()
-        listOf(
-            "androidx.compose.ui.graphics.Color",
-            "androidx.compose.ui.graphics.drawscope.DrawScope",
-            "com.pandulapeter.kubriko.Kubriko",
-            "com.pandulapeter.kubriko.actor.body.BoxBody",
-            "com.pandulapeter.kubriko.actor.traits.Unique",
-            "com.pandulapeter.kubriko.actor.traits.Visible",
-            "com.pandulapeter.kubriko.helpers.extensions.get",
-            "com.pandulapeter.kubriko.helpers.extensions.sceneUnit",
-            "com.pandulapeter.kubriko.manager.ViewportManager",
-            "com.pandulapeter.kubriko.sceneEditor.Editable",
-            "com.pandulapeter.kubriko.sceneEditor.EditableMetadata",
-            "com.pandulapeter.kubriko.sceneEditor.Exposed",
-            "com.pandulapeter.kubriko.serialization.Serializable",
-            "com.pandulapeter.kubriko.serialization.typeSerializers.SerializableBoxBody",
-            "com.pandulapeter.kubriko.serialization.typeSerializers.SerializableColor",
-            "com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneOffset",
-            "com.pandulapeter.kubriko.types.SceneOffset",
-            "com.pandulapeter.kubriko.types.SceneSize",
-            "kotlinx.serialization.SerialName",
-            "kotlinx.serialization.json.Json",
-        ).forEach { appendLine("import $it") }
+        IMPORTS.forEach { appendLine("import $it") }
         appendLine()
         appendLine(
             """
             |/**
             | * The settings of a Scene. Its body is the Scene's bounds, which edge Events use instead of the edges of the screen,
             | * and which it fills with the background color, behind every other Actor. When the Scene starts, the camera moves
-            | * to [$CAMERA_START_KEY], and its [$MUSIC_KEY] plays, if it has some and the game plays audio.
+            | * to [$CAMERA_START_KEY], and its [$MUSIC_KEY] plays, if it has some and the game plays audio. While the Scene
+            | * [$FITS_VIEW_KEY], the game's view shows its bounds instead, as wide as they are, centered on them, and gets back
+            | * the aspect ratio it had when the Scene ends.
             | */
             |class $SETTINGS_NAME private constructor(state: State) : Visible, Unique, Editable<$SETTINGS_NAME> {
             |    override val body = state.body
@@ -84,7 +90,16 @@ public object SceneSettingsCodeGenerator {
             |    @set:Exposed(name = "$MUSIC_KEY")
             |    var $MUSIC_KEY: String = state.$MUSIC_KEY
             |
+            |    @set:Exposed(name = "$FITS_VIEW_KEY")
+            |    var $FITS_VIEW_KEY: Boolean = state.$FITS_VIEW_KEY
+            |
             |    private lateinit var generatedScenes: ${ScenesCodeGenerator.SCENES_NAME}
+            |
+            |    /**
+            |     * The viewport and the aspect ratio it had before the Scene fitted it, which it gets back when the Scene ends.
+            |     */
+            |    private var viewportManager: ViewportManager? = null
+            |    private var previousAspectRatioMode: ViewportManager.AspectRatioMode? = null
             |
             |    /**
             |     * The top left corner of the Scene's bounds.
@@ -99,11 +114,21 @@ public object SceneSettingsCodeGenerator {
             |    override fun onAdded(kubriko: Kubriko) {
             |        generatedScenes = kubriko.get()
             |        generatedScenes.settings = this
-            |        if (!generatedScenes.isInSceneEditor) kubriko.get<ViewportManager>().setCameraPosition($CAMERA_START_KEY)
+            |        if (generatedScenes.isInSceneEditor) return
+            |        val viewportManager = kubriko.get<ViewportManager>()
+            |        if ($FITS_VIEW_KEY) {
+            |            this.viewportManager = viewportManager
+            |            previousAspectRatioMode = viewportManager.aspectRatioMode.value
+            |            viewportManager.setAspectRatioMode(ViewportManager.AspectRatioMode.Fixed(ratio = body.size.width.raw / body.size.height.raw, width = body.size.width))
+            |            viewportManager.setCameraPosition(body.position)
+            |        } else {
+            |            viewportManager.setCameraPosition($CAMERA_START_KEY)
+            |        }
             |    }
             |
             |    override fun onRemoved() {
             |        if (generatedScenes.settings === this) generatedScenes.settings = null
+            |        previousAspectRatioMode?.let { viewportManager?.setAspectRatioMode(it) }
             |    }
             |
             |    override fun DrawScope.draw() = drawRect(
@@ -116,6 +141,7 @@ public object SceneSettingsCodeGenerator {
             |        $BACKGROUND_COLOR_KEY = $BACKGROUND_COLOR_KEY,
             |        $CAMERA_START_KEY = $CAMERA_START_KEY,
             |        $MUSIC_KEY = $MUSIC_KEY,
+            |        $FITS_VIEW_KEY = $FITS_VIEW_KEY,
             |    )
             |
             |    @kotlinx.serialization.Serializable
@@ -124,6 +150,7 @@ public object SceneSettingsCodeGenerator {
             |        @SerialName("$BACKGROUND_COLOR_KEY") val $BACKGROUND_COLOR_KEY: SerializableColor = Color(${colorLiteral(DEFAULT_BACKGROUND_COLOR)}),
             |        @SerialName("$CAMERA_START_KEY") val $CAMERA_START_KEY: SerializableSceneOffset = SceneOffset.Zero,
             |        @SerialName("$MUSIC_KEY") val $MUSIC_KEY: String = "",
+            |        @SerialName("$FITS_VIEW_KEY") val $FITS_VIEW_KEY: Boolean = false,
             |    ) : Serializable.State<$SETTINGS_NAME> {
             |
             |        override fun restore() = $SETTINGS_NAME(this)

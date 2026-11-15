@@ -23,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.AudioFileChoice
 import com.pandulapeter.kubrikoCreator.ui.components.ColorField
+import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.actor_type_height
@@ -32,12 +33,14 @@ import kubriko.creator.generated.resources.scene_settings_camera_x
 import kubriko.creator.generated.resources.scene_settings_camera_y
 import kubriko.creator.generated.resources.scene_settings_center_x
 import kubriko.creator.generated.resources.scene_settings_center_y
+import kubriko.creator.generated.resources.scene_settings_fits_view
 import kubriko.creator.generated.resources.scene_settings_music
 import kubriko.creator.generated.resources.scene_settings_music_none
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * A Scene's settings: its bounds, background color, where the camera starts, and its music.
+ * A Scene's settings: its bounds, background color, where the camera starts (or whether the game's view fits the bounds),
+ * and its music.
  *
  * @param music The music files the project has, by their path from `composeResources`, or null while they aren't known.
  * @param onChange Called with the values to change, as `set_scene_settings` takes them (without the Scene).
@@ -68,6 +71,12 @@ internal fun SceneSettingsFields(
         NumberField(modifier = Modifier.weight(1f), label = Res.string.scene_settings_camera_x, value = values.cameraX, onValueChange = { onChange { copy(cameraX = it) } })
         NumberField(modifier = Modifier.weight(1f), label = Res.string.scene_settings_camera_y, value = values.cameraY, onValueChange = { onChange { copy(cameraY = it) } })
     }
+    LabeledSwitch(
+        modifier = Modifier.fillMaxWidth(),
+        label = stringResource(Res.string.scene_settings_fits_view),
+        checked = values.fitsView,
+        onCheckedChange = { onChange { copy(fitsView = it) } },
+    )
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,

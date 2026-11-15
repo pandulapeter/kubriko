@@ -335,7 +335,7 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   Kubriko's serialization (`ignoreUnknownKeys`), so games load the files unchanged; an Actor without an ID, or with an earlier one's,
   gets one from its index, the same every time, so a Scene changes only when a command writes it. Undoing a removal brings back
   the same ID. Placing works for block-built Actor types only, whose state is known without loading classes. A Scene's settings
-  (bounds, background, camera start, music) are an Actor (`SceneSettings`, `Unique` and `Editable`), not a file of their own, so
+  (bounds, background, camera start, music, and whether the game's view fits the bounds) are an Actor (`SceneSettings`, `Unique` and `Editable`), not a file of their own, so
   they are placed, edited, and undone like any other; a Scene without one keeps the screen's edges. `SceneStore` knows the Scene
   names from its last `refresh` (each resource scan) and its own writes, so validating on the main thread reads nothing; what
   writes acts on the folder as it is (`scanNames`), so `create_scene` and `rename_scene` don't overwrite a Scene made outside

@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.floatOrNull
 import kotlinx.serialization.json.longOrNull
@@ -31,6 +32,7 @@ public object SceneSettingsState {
      * @param y The vertical center of the Scene's bounds.
      * @param backgroundColor As `0xAARRGGBB`.
      * @param music By its path from `composeResources`, or empty for none.
+     * @param fitsView Whether the game's view shows the bounds while the Scene plays.
      */
     public data class Values(
         val x: Float = 0f,
@@ -41,6 +43,7 @@ public object SceneSettingsState {
         val cameraX: Float = 0f,
         val cameraY: Float = 0f,
         val music: String = "",
+        val fitsView: Boolean = false,
     )
 
     /**
@@ -75,6 +78,7 @@ public object SceneSettingsState {
             cameraX = camera.numberAt("x") ?: defaults.cameraX,
             cameraY = camera.numberAt("y") ?: defaults.cameraY,
             music = (stateObject[SceneSettingsCodeGenerator.MUSIC_KEY] as? JsonPrimitive)?.takeIf { it.isString }?.content ?: defaults.music,
+            fitsView = (stateObject[SceneSettingsCodeGenerator.FITS_VIEW_KEY] as? JsonPrimitive)?.takeUnless { it.isString }?.booleanOrNull ?: defaults.fitsView,
         )
     }
 
@@ -92,6 +96,7 @@ public object SceneSettingsState {
         cameraX: Float? = null,
         cameraY: Float? = null,
         music: String? = null,
+        fitsView: Boolean? = null,
     ): String {
         val values = read(state)
         val stateObject = SceneDocument.stateObject(state) ?: JsonObject(emptyMap())
@@ -111,6 +116,8 @@ public object SceneSettingsState {
         backgroundColor?.let { changed[SceneSettingsCodeGenerator.BACKGROUND_COLOR_KEY] = JsonPrimitive(packedColorOf(it)) }
         if (cameraX != null || cameraY != null) changed[SceneSettingsCodeGenerator.CAMERA_START_KEY] = point(cameraX ?: values.cameraX, cameraY ?: values.cameraY)
         music?.let { changed[SceneSettingsCodeGenerator.MUSIC_KEY] = JsonPrimitive(it) }
+        // Off is the default, so it is left out rather than written, as settings that never fitted the view have it.
+        fitsView?.let { if (it) changed[SceneSettingsCodeGenerator.FITS_VIEW_KEY] = JsonPrimitive(true) else changed.remove(SceneSettingsCodeGenerator.FITS_VIEW_KEY) }
         return JsonObject(changed).toString()
     }
 

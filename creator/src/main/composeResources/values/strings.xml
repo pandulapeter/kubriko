@@ -623,6 +623,7 @@
     <string name="scene_settings_center_y">Center Y</string>
     <string name="scene_settings_camera_x">Camera X</string>
     <string name="scene_settings_camera_y">Camera Y</string>
+    <string name="scene_settings_fits_view">Fit the game's view to the bounds</string>
     <string name="scene_settings_music">Music</string>
     <string name="scene_settings_music_none">None</string>
     <string name="action_zoom_out">Zoom out</string>
