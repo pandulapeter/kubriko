@@ -96,12 +96,6 @@ public object SceneSettingsCodeGenerator {
             |    private lateinit var generatedScenes: ${ScenesCodeGenerator.SCENES_NAME}
             |
             |    /**
-            |     * The viewport and the aspect ratio it had before the Scene fitted it, which it gets back when the Scene ends.
-            |     */
-            |    private var viewportManager: ViewportManager? = null
-            |    private var previousAspectRatioMode: ViewportManager.AspectRatioMode? = null
-            |
-            |    /**
             |     * The top left corner of the Scene's bounds.
             |     */
             |    val topLeft get() = body.axisAlignedBoundingBox.min
@@ -115,20 +109,19 @@ public object SceneSettingsCodeGenerator {
             |        generatedScenes = kubriko.get()
             |        generatedScenes.settings = this
             |        if (generatedScenes.isInSceneEditor) return
-            |        val viewportManager = kubriko.get<ViewportManager>()
             |        if ($FITS_VIEW_KEY) {
-            |            this.viewportManager = viewportManager
-            |            previousAspectRatioMode = viewportManager.aspectRatioMode.value
-            |            viewportManager.setAspectRatioMode(ViewportManager.AspectRatioMode.Fixed(ratio = body.size.width.raw / body.size.height.raw, width = body.size.width))
-            |            viewportManager.setCameraPosition(body.position)
+            |            generatedScenes.fitView(body.size, body.position)
             |        } else {
-            |            viewportManager.setCameraPosition($CAMERA_START_KEY)
+            |            generatedScenes.unfitView()
+            |            kubriko.get<ViewportManager>().setCameraPosition($CAMERA_START_KEY)
             |        }
             |    }
             |
             |    override fun onRemoved() {
-            |        if (generatedScenes.settings === this) generatedScenes.settings = null
-            |        previousAspectRatioMode?.let { viewportManager?.setAspectRatioMode(it) }
+            |        // The next Scene's settings may be added first, and then they decide how the view is fitted.
+            |        if (generatedScenes.settings !== this) return
+            |        generatedScenes.settings = null
+            |        generatedScenes.unfitView()
             |    }
             |
             |    override fun DrawScope.draw() = drawRect(

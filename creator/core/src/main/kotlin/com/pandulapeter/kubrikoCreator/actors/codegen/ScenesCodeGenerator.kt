@@ -75,27 +75,61 @@ public object ScenesCodeGenerator {
     """.trimMargin()
 
     /**
+     * How a Scene fits the game's view to its bounds while it plays ([SceneSettingsCodeGenerator.FITS_VIEW_KEY]). Its
+     * settings may be added before the last Scene's are removed, so the aspect ratio from before any fit is kept here.
+     */
+    private fun viewFitMembers() = """
+            |
+            |    /**
+            |     * The aspect ratio the game's view had before a Scene fitted it to its bounds, or null while none does.
+            |     */
+            |    private var aspectRatioModeBeforeFit: ViewportManager.AspectRatioMode? = null
+            |
+            |    /**
+            |     * Makes the game's view show a Scene's bounds, of [size] around [center], as wide as they are, keeping the
+            |     * aspect ratio it had before the first Scene that fitted it.
+            |     */
+            |    internal fun fitView(size: SceneSize, center: SceneOffset) {
+            |        if (aspectRatioModeBeforeFit == null) aspectRatioModeBeforeFit = viewportManager.aspectRatioMode.value
+            |        viewportManager.setAspectRatioMode(ViewportManager.AspectRatioMode.Fixed(ratio = size.width.raw / size.height.raw, width = size.width))
+            |        viewportManager.setCameraPosition(center)
+            |    }
+            |
+            |    /**
+            |     * Gives the game's view back the aspect ratio it had before a Scene fitted it, if one did.
+            |     */
+            |    internal fun unfitView() {
+            |        aspectRatioModeBeforeFit?.let(viewportManager::setAspectRatioMode)
+            |        aspectRatioModeBeforeFit = null
+            |    }
+    """.trimMargin()
+
+    private fun importsOf(packageName: String) = listOf(
+        "com.pandulapeter.kubriko.Kubriko",
+        "com.pandulapeter.kubriko.actor.Actor",
+        "com.pandulapeter.kubriko.logger.Logger",
+        "com.pandulapeter.kubriko.manager.ActorManager",
+        "com.pandulapeter.kubriko.manager.Manager",
+        "com.pandulapeter.kubriko.manager.ViewportManager",
+        "com.pandulapeter.kubriko.sceneEditor.Editable",
+        "com.pandulapeter.kubriko.sceneEditor.EditableMetadata",
+        "com.pandulapeter.kubriko.serialization.SerializationManager",
+        "com.pandulapeter.kubriko.types.SceneOffset",
+        "com.pandulapeter.kubriko.types.SceneSize",
+        "kotlin.concurrent.Volatile",
+        "kotlinx.coroutines.CancellationException",
+        "kotlinx.coroutines.Job",
+        "kotlinx.coroutines.launch",
+        "$packageName.resources.Res",
+    )
+
+    /**
      * @param countedTypes The Actor types the actorCount conditions count ([ActorCountCode]), whose counts it keeps.
      */
     internal fun generate(packageName: String, countedTypes: List<String> = emptyList()) = GeneratedFile.withHeader("", buildString {
         appendLine("package $packageName.${ActorTypeCodeGenerator.GENERATED_PACKAGE}")
         appendLine()
-        listOf(
-            "com.pandulapeter.kubriko.Kubriko",
-            "com.pandulapeter.kubriko.actor.Actor",
-            "com.pandulapeter.kubriko.logger.Logger",
-            "com.pandulapeter.kubriko.manager.ActorManager",
-            "com.pandulapeter.kubriko.manager.Manager",
-            "com.pandulapeter.kubriko.manager.ViewportManager",
-            "com.pandulapeter.kubriko.sceneEditor.Editable",
-            "com.pandulapeter.kubriko.sceneEditor.EditableMetadata",
-            "com.pandulapeter.kubriko.serialization.SerializationManager",
-            "kotlin.concurrent.Volatile",
-            "kotlinx.coroutines.CancellationException",
-            "kotlinx.coroutines.Job",
-            "kotlinx.coroutines.launch",
-            "$packageName.resources.Res",
-        ).forEach { appendLine("import $it") }
+        importsOf(packageName).forEach { appendLine("import $it") }
         appendLine()
         appendLine(
             """
@@ -138,6 +172,7 @@ public object ScenesCodeGenerator {
             """.trimMargin(),
         )
         appendLine(edgeMembers())
+        appendLine(viewFitMembers())
         if (countedTypes.isNotEmpty()) appendScenesMembers(countedTypes)
         appendLine(
             """

@@ -36,17 +36,18 @@ class SceneSettingsCodeGeneratorTest {
     @Test
     fun theCameraMovesOnlyInTheGameAndTheSettingsRegisterWhileTheyAreInTheScene() {
         assertContains(code, "        generatedScenes.settings = this\n        if (generatedScenes.isInSceneEditor) return\n")
-        assertContains(code, "        } else {\n            viewportManager.setCameraPosition(cameraStart)\n        }\n")
-        assertContains(code, "        if (generatedScenes.settings === this) generatedScenes.settings = null\n")
+        assertContains(code, "            kubriko.get<ViewportManager>().setCameraPosition(cameraStart)\n")
     }
 
     @Test
-    fun aSceneFittingTheViewShowsItsBoundsAndGivesTheAspectRatioBackWhenItEnds() {
-        assertContains(code, "            previousAspectRatioMode = viewportManager.aspectRatioMode.value\n")
-        assertContains(code, "            viewportManager.setAspectRatioMode(ViewportManager.AspectRatioMode.Fixed(ratio = body.size.width.raw / body.size.height.raw, width = body.size.width))\n")
-        assertContains(code, "            viewportManager.setCameraPosition(body.position)\n")
-        assertContains(code, "        previousAspectRatioMode?.let { viewportManager?.setAspectRatioMode(it) }\n")
+    fun aSceneFitsTheViewOrGivesBackTheAspectRatioOfTheGameWhenItStarts() {
+        assertContains(code, "        if (fitsView) {\n            generatedScenes.fitView(body.size, body.position)\n        } else {\n            generatedScenes.unfitView()\n")
         assertContains(code, "        @SerialName(\"fitsView\") val fitsView: Boolean = false,\n")
+    }
+
+    @Test
+    fun anEndingSceneLeavesTheViewToTheSceneAddedBeforeItWasRemoved() {
+        assertContains(code, "        if (generatedScenes.settings !== this) return\n        generatedScenes.settings = null\n        generatedScenes.unfitView()\n")
     }
 
     @Test

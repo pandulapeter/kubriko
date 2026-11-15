@@ -46,4 +46,10 @@ class ScenesCodeGeneratorTest {
         assertContains(code, "    val isInSceneEditor: Boolean = false,\n")
         assertContains(code, "    var settings: SceneSettings? = null\n")
     }
+
+    @Test
+    fun theAspectRatioFromBeforeTheFirstFittingSceneIsKeptUntilNoSceneFitsTheView() {
+        assertContains(code, "        if (aspectRatioModeBeforeFit == null) aspectRatioModeBeforeFit = viewportManager.aspectRatioMode.value\n")
+        assertContains(code, "        aspectRatioModeBeforeFit?.let(viewportManager::setAspectRatioMode)\n        aspectRatioModeBeforeFit = null\n")
+    }
 }
