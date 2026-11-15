@@ -84,37 +84,6 @@ internal fun ConditionDefinition.withActorTypeRenamed(oldName: String, newName: 
 }
 
 /**
- * Every number [this] condition takes: the same ones [withNumberValues] replaces.
- */
-public val ConditionDefinition.numberValues: List<NumberValue>
-    get() = when (this) {
-        is ConditionDefinition.Number -> listOf(value)
-        is ConditionDefinition.Velocity -> listOf(value)
-        is ConditionDefinition.ActorCount -> listOf(value)
-        is ConditionDefinition.Chance -> listOf(percent)
-        is ConditionDefinition.Combined -> conditions.flatMap { it.numberValues }
-        is ConditionDefinition.Text, is ConditionDefinition.Toggle, is ConditionDefinition.KeyHeld, is ConditionDefinition.Paused -> emptyList()
-    }
-
-/**
- * The Properties [this] condition reads as numbers ([NumberValue.Property]), with or without a name chosen yet.
- */
-public val ConditionDefinition.numberPropertyReferences: List<PropertyReference>
-    get() = numberValues.mapNotNull { it.propertyReference }
-
-/**
- * [this] condition with each number it takes replaced by what [transform] makes of it.
- */
-public fun ConditionDefinition.withNumberValues(transform: (NumberValue) -> NumberValue): ConditionDefinition = when (this) {
-    is ConditionDefinition.Number -> copy(value = transform(value))
-    is ConditionDefinition.Velocity -> copy(value = transform(value))
-    is ConditionDefinition.ActorCount -> copy(value = transform(value))
-    is ConditionDefinition.Chance -> copy(percent = transform(percent))
-    is ConditionDefinition.Combined -> copy(conditions = conditions.map { it.withNumberValues(transform) })
-    is ConditionDefinition.Text, is ConditionDefinition.Toggle, is ConditionDefinition.KeyHeld, is ConditionDefinition.Paused -> this
-}
-
-/**
  * [this] condition with the Property of [manager] (the type's own one, if null) that it checks or reads as a value
  * renamed from [oldName] to [newName].
  */
@@ -122,7 +91,7 @@ internal fun ConditionDefinition.withPropertyRenamed(oldName: String, newName: S
     this is ConditionDefinition.Combined -> copy(conditions = conditions.map { it.withPropertyRenamed(oldName, newName, manager) })
     propertyReference?.let { it.manager == manager && it.name == oldName } == true -> withPropertyReference(manager, newName)
     else -> this
-}.withNumberValues { it.withPropertyRenamed(oldName, newName, manager) }
+}.withValues(propertyRenaming(oldName, newName, manager))
 
 /**
  * [this] condition with the Properties of the Manager type [oldName] it checks or reads taken from [newName] instead.
@@ -131,4 +100,4 @@ internal fun ConditionDefinition.withManagerRenamed(oldName: String, newName: St
     this is ConditionDefinition.Combined -> copy(conditions = conditions.map { it.withManagerRenamed(oldName, newName) })
     propertyReference?.manager == oldName -> withPropertyReference(newName, propertyReference!!.name)
     else -> this
-}.withNumberValues { it.withManagerRenamed(oldName, newName) }
+}.withValues(managerRenaming(oldName, newName))
