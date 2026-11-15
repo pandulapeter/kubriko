@@ -429,6 +429,7 @@
     <string name="property_kind_toggle">Toggle</string>
     <string name="property_kind_color">Color</string>
     <string name="property_kind_actor_type">Actor type</string>
+    <string name="actor_type_none">None</string>
     <string name="actor_type_value_kind">Kind of Actor type</string>
     <string name="actor_type_value_fixed">An Actor type</string>
     <string name="actor_type_value_property">An Actor type reference Property's type</string>

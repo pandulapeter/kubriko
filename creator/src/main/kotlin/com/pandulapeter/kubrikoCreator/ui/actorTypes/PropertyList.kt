@@ -270,6 +270,7 @@ private fun PropertyRow(
                     actorType = property.initialValue,
                     actorTypeNames = actorTypeNames,
                     onSelected = { onChange(property.copy(initialValue = it)) },
+                    isNoneOffered = true,
                 )
             }
         }

@@ -12,24 +12,28 @@ package com.pandulapeter.kubrikoCreator.ui.actorTypes
 import androidx.compose.runtime.Composable
 import com.pandulapeter.kubrikoCreator.ui.components.SearchableChoiceButton
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.actor_type_none
 import kubriko.creator.generated.resources.event_collision_choose
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Which of the project's Actor types a Block is about.
+ * Which of the project's Actor types a Block is about, or, where [isNoneOffered] (an Actor type reference Property's
+ * value), none: the empty name.
  */
 @Composable
 internal fun ActorTypeChoice(
     actorType: String,
     actorTypeNames: List<String>,
+    isNoneOffered: Boolean = false,
     onSelected: (String) -> Unit,
 ) = SearchableChoiceButton(
     label = when {
         isMissingChoice(actorType, actorTypeNames) -> missingChoiceLabel(actorType)
+        actorType.isEmpty() && isNoneOffered -> stringResource(Res.string.actor_type_none)
         else -> actorType.ifEmpty { stringResource(Res.string.event_collision_choose) }
     },
-    options = actorTypeNames,
-    optionText = { it },
+    options = if (isNoneOffered) listOf("") + actorTypeNames else actorTypeNames,
+    optionText = { it.ifEmpty { stringResource(Res.string.actor_type_none) } },
     onSelected = onSelected,
     isMissing = isMissingChoice(actorType, actorTypeNames),
 )

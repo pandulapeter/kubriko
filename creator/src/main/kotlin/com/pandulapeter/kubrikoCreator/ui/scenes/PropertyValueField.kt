@@ -79,6 +79,7 @@ internal fun PropertyValueField(
             actorType = value?.takeIf { it.isString }?.content ?: property.initialValue,
             actorTypeNames = actorTypeNames,
             onSelected = { onChange(ActorValueChanges.PropertyValue(property.name, actorType = it)) },
+            isNoneOffered = true,
         )
     }
 }
