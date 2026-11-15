@@ -95,11 +95,6 @@ internal suspend fun CommandContext.sceneCounts(types: List<BlockTypeDefinition>
 }
 
 /**
- * The music each Scene of the open project plays, by the Scene's name, leaving out those that play none.
- */
-internal suspend fun CommandContext.sceneMusic(): Map<String, String> = sceneCounts().music
-
-/**
  * The relations between the parts of the open project.
  */
 internal suspend fun CommandContext.projectRelations() = ProjectRelations(types = blockTypes?.types?.value.orEmpty(), scenes = sceneTypeCounts())

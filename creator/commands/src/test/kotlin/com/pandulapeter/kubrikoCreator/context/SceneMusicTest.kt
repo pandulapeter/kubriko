@@ -34,7 +34,7 @@ class SceneMusicTest {
         context.scenes.write("boss", SceneDocument.format(listOf(settings("files/boss.mp3"))))
         context.scenes.write("quiet", SceneDocument.format(listOf(settings(""))))
         context.scenes.write("bare", "[]")
-        assertEquals(mapOf("main" to "files/theme.mp3", "boss" to "files/boss.mp3"), context.sceneMusic())
+        assertEquals(mapOf("main" to "files/theme.mp3", "boss" to "files/boss.mp3"), context.sceneCounts().music)
         assertEquals(
             listOf(HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Scene("boss"), "Scene boss", usage = "files/boss.mp3")),
             context.missingReferences(),

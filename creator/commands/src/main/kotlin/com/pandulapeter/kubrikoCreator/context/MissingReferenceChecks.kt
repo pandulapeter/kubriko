@@ -25,7 +25,7 @@ internal object MissingReferenceChecks {
     /**
      * @param audioFiles The project's sounds and music, or null if they aren't known, which leaves the play Blocks and
      *   the Scenes' music out.
-     * @param sceneMusic The music each Scene plays, by the Scene's name ([sceneMusic]).
+     * @param sceneMusic The music each Scene plays, by the Scene's name ([SceneCounts.music]).
      * @param sceneSavedAudio The sounds and music the Scenes save for sound and music Properties ([SceneCounts.savedAudio]),
      *   each checked against the files of its kind.
      */
