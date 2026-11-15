@@ -115,7 +115,7 @@ internal class ProjectReferences(
             RelationKind.INHERITS_FROM -> usage(UsageEffect.PREVENTS_DELETING)
             RelationKind.STARTS_AS -> usage(UsageEffect.STARTING_TYPE_CLEARED)
             RelationKind.COLLIDES_WITH, RelationKind.REACTS_TO -> usage(UsageEffect.EVENT_REMOVED)
-            RelationKind.COUNTS -> conditionUsage(relation.place, ::usage)
+            RelationKind.COUNTS -> conditionUsage(relation.place, relation.subject, ::usage)
             RelationKind.PLACES -> usage(UsageEffect.ACTORS_REMOVED)
             RelationKind.GIVES_VALUES_TO -> usage(UsageEffect.SCENE_VALUES_REMOVED)
             RelationKind.NAMES_IN_KOTLIN -> usage(UsageEffect.KOTLIN_TO_CHANGE)
@@ -124,8 +124,8 @@ internal class ProjectReferences(
             RelationKind.MENTIONS -> usage(UsageEffect.MENTION_TO_TEXT)
             RelationKind.DRAWN_AS, RelationKind.PLAYS, RelationKind.SHOWS, RelationKind.USES_TIMER, RelationKind.IS_IN, RelationKind.SAVES_REFERENCE_TO -> error("${relation.kind} is found apart from the relations, never among them.")
             RelationKind.READS -> when (val block = blockAt(relation.place)) {
-                is BlockDefinition.If -> conditionUsage(relation.place, ::usage)
-                null, is BlockDefinition.Log -> if ((relation.place as? RelationPlace.Text)?.isCondition == true) conditionUsage(relation.place, ::usage) else usage(UsageEffect.PLACEHOLDER_TO_TEXT)
+                is BlockDefinition.If -> conditionUsage(relation.place, relation.subject, ::usage)
+                null, is BlockDefinition.Log -> if ((relation.place as? RelationPlace.Text)?.isCondition == true) conditionUsage(relation.place, relation.subject, ::usage) else usage(UsageEffect.PLACEHOLDER_TO_TEXT)
                 else -> error("${block::class.simpleName} doesn't read a Property.")
             }
             RelationKind.READS_VALUE -> usage(UsageEffect.VALUE_TO_FIXED)
@@ -133,14 +133,29 @@ internal class ProjectReferences(
     }
 
     /**
-     * What deleting what the condition at [place] checks does: an if Block goes with its section, and a text shown while
+     * What deleting [subject], which the condition at [place] checks, does: an or that still means something without it
+     * drops it ([ReferenceCleanup.conditionWithout]), otherwise an if Block goes with its section, and a text shown while
      * it holds goes too.
      */
-    private fun conditionUsage(place: RelationPlace, usage: (UsageEffect, Int) -> Usage) = when (place) {
-        is RelationPlace.Type -> usage(UsageEffect.SECTION_REMOVED, sectionOf(place).count() - 1)
-        is RelationPlace.Text -> usage(UsageEffect.TEXT_REMOVED, 0)
-        is RelationPlace.KotlinUi, is RelationPlace.Scene -> error("$place checks no condition.")
+    private fun conditionUsage(place: RelationPlace, subject: RelationSubject, usage: (UsageEffect, Int) -> Usage): Usage {
+        val deletedProperties = setOfNotNull(subject as? RelationSubject.Property)
+        val deletedTypes = setOfNotNull((subject as? RelationSubject.Type)?.name)
+        return when (place) {
+            is RelationPlace.Type -> if (relations.conditionWithout((blockAt(place) as BlockDefinition.If).condition, place.name, deletedProperties, deletedTypes) != null) {
+                usage(UsageEffect.CONDITION_DROPPED, 0)
+            } else {
+                usage(UsageEffect.SECTION_REMOVED, sectionOf(place).count() - 1)
+            }
+            is RelationPlace.Text -> if (relations.conditionWithout(checkNotNull(textAt(place).shownWhen), place.manager, deletedProperties, deletedTypes) != null) {
+                usage(UsageEffect.CONDITION_DROPPED, 0)
+            } else {
+                usage(UsageEffect.TEXT_REMOVED, 0)
+            }
+            is RelationPlace.KotlinUi, is RelationPlace.Scene -> error("$place checks no condition.")
+        }
     }
+
+    private fun textAt(place: RelationPlace.Text) = (types.first { it.name == place.manager } as ManagerTypeDefinition).texts[place.textIndex]
 
     /**
      * Blocks and text conditions that have the Manager type [subject] chosen but none of its Properties yet, which
@@ -161,7 +176,7 @@ internal class ProjectReferences(
                     val place = RelationPlace.Type(type.name, eventIndex, blockIndex)
                     addChoiceUsages(place, (block as? BlockDefinition.If)?.condition?.propertyReferences ?: listOfNotNull(block.propertyReference), block.valuePropertyReferences) {
                         if (block is BlockDefinition.If) {
-                            Usage(UsagePlace.InModel(place), RelationKind.READS, subject, UsageEffect.SECTION_REMOVED, blocksInside = sectionOf(place).count() - 1)
+                            conditionUsage(place, subject) { effect, blocksInside -> Usage(UsagePlace.InModel(place), RelationKind.READS, subject, effect, blocksInside = blocksInside) }
                         } else {
                             Usage(UsagePlace.InModel(place), RelationKind.CHANGES, subject, UsageEffect.BLOCK_REMOVED)
                         }
@@ -172,7 +187,7 @@ internal class ProjectReferences(
                 val condition = text.shownWhen ?: return@forEachIndexed
                 val place = RelationPlace.Text(type.name, index, isCondition = true)
                 addChoiceUsages(place, condition.propertyReferences, condition.numberPropertyReferences) {
-                    Usage(UsagePlace.InModel(place), RelationKind.READS, subject, UsageEffect.TEXT_REMOVED)
+                    conditionUsage(place, subject) { effect, blocksInside -> Usage(UsagePlace.InModel(place), RelationKind.READS, subject, effect, blocksInside = blocksInside) }
                 }
             }
         }

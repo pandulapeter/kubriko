@@ -1257,6 +1257,7 @@
     <string name="usage_place_page">Page %1$s</string>
     <string name="usage_effect_block_removed">The Block is removed</string>
     <string name="usage_effect_section_removed">The if Block is removed with the Blocks inside it</string>
+    <string name="usage_effect_condition_dropped">The condition checking it is dropped from the or combining it</string>
     <string name="usage_effect_event_removed">The Event is removed with its Blocks</string>
     <string name="usage_effect_actors_removed">Its Actors are removed</string>
     <string name="usage_effect_starting_type_cleared">The Property starts as no Actor type</string>

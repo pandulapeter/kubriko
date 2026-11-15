@@ -28,6 +28,7 @@ import kubriko.creator.generated.resources.document_delete_title
 import kubriko.creator.generated.resources.page_delete_title
 import kubriko.creator.generated.resources.usage_effect_actors_removed
 import kubriko.creator.generated.resources.usage_effect_block_removed
+import kubriko.creator.generated.resources.usage_effect_condition_dropped
 import kubriko.creator.generated.resources.usage_effect_deleted_with_folder
 import kubriko.creator.generated.resources.usage_effect_event_removed
 import kubriko.creator.generated.resources.usage_effect_image_copied
@@ -110,6 +111,7 @@ internal fun UsageEffect.text() = stringResource(
     when (this) {
         UsageEffect.BLOCK_REMOVED -> Res.string.usage_effect_block_removed
         UsageEffect.SECTION_REMOVED -> Res.string.usage_effect_section_removed
+        UsageEffect.CONDITION_DROPPED -> Res.string.usage_effect_condition_dropped
         UsageEffect.EVENT_REMOVED -> Res.string.usage_effect_event_removed
         UsageEffect.TEXT_REMOVED -> Res.string.usage_effect_text_removed
         UsageEffect.SCENE_VALUES_REMOVED -> Res.string.usage_effect_scene_values_removed

@@ -22,12 +22,14 @@ import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveProperty
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
 import com.pandulapeter.kubrikoCreator.context.BlockNotation
 import com.pandulapeter.kubrikoCreator.context.HealthChecks
 import com.pandulapeter.kubrikoCreator.context.HealthFinding
 import com.pandulapeter.kubrikoCreator.context.ProjectRelations
 import com.pandulapeter.kubrikoCreator.context.RelationKind
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
+import com.pandulapeter.kubrikoCreator.context.UsageEffect
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -108,5 +110,34 @@ class CombinedConditionsTest {
             listOf(HealthFinding(HealthFinding.Kind.TEXT_NEVER_SHOWN, RelationSubject.Type("Hud"), "1")),
             HealthChecks.of(listOf(hud), ProjectRelations(listOf(hud), emptyMap()), emptyList()).filter { it.kind == HealthFinding.Kind.TEXT_NEVER_SHOWN },
         )
+    }
+
+    @Test
+    fun deletingWhatOnePartOfAnOrChecksDropsThatPartAndKeepsTheSection() = runTest {
+        val or = ConditionDefinition.Combined(listOf(ConditionDefinition.KeyHeld(), ConditionDefinition.Number("lives", manager = "Game")), isAll = false)
+        val hud = ManagerTypeDefinition(
+            name = "Hud",
+            properties = listOf(PropertyDefinition.Toggle("isOver")),
+            texts = listOf(ScreenTextDefinition("Careful", shownWhen = ConditionDefinition.Combined(listOf(ConditionDefinition.Toggle("isOver"), ConditionDefinition.Number("lives", manager = "Game")), isAll = false))),
+        )
+        val paddle = ActorTypeDefinition(name = "Paddle", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.If(or), BlockDefinition.Stop, BlockDefinition.End))))
+        val context = commandContext(paddle, game, hud)
+        val usages = context.usagesOf(RelationSubject.Property("Game", "lives"))
+        assertEquals(setOf(UsageEffect.CONDITION_DROPPED), usages.mapTo(HashSet()) { it.effect })
+        val after = context.assertRoundTrip(Invocation(RemoveProperty, RemoveProperty.Input("Game", "lives"))) { context.blockTypes!!.types.value }
+        assertEquals(
+            listOf(BlockDefinition.If(ConditionDefinition.Combined(listOf(ConditionDefinition.KeyHeld()), isAll = false)), BlockDefinition.Stop, BlockDefinition.End),
+            after.single { it.name == "Paddle" }.events.single().blocks,
+        )
+        assertEquals(ConditionDefinition.Combined(listOf(ConditionDefinition.Toggle("isOver")), isAll = false), (after.single { it.name == "Hud" } as ManagerTypeDefinition).texts.single().shownWhen)
+    }
+
+    @Test
+    fun deletingEverythingAnOrChecksRemovesTheSection() = runTest {
+        val or = ConditionDefinition.Combined(listOf(ConditionDefinition.Toggle("isOver", manager = "Game"), ConditionDefinition.Number("lives", manager = "Game")), isAll = false)
+        val paddle = ActorTypeDefinition(name = "Paddle", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.If(or), BlockDefinition.Stop, BlockDefinition.End))))
+        val context = commandContext(paddle, game)
+        val after = context.assertRoundTrip(Invocation(DeleteManagerType, DeleteManagerType.Input("Game"))) { context.blockTypes!!.types.value }
+        assertEquals(emptyList<BlockDefinition>(), after.single { it.name == "Paddle" }.events.single().blocks)
     }
 }

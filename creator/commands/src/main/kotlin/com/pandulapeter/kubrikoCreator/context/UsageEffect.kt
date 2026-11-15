@@ -21,6 +21,11 @@ public enum class UsageEffect(
      * An if Block whose condition reads what is deleted, removed with every Block up to its end Block, else Blocks included.
      */
     SECTION_REMOVED("the if Block is removed with the Blocks inside it"),
+
+    /**
+     * A condition combined with or (in an if Block or a text), which keeps the conditions that still mean something.
+     */
+    CONDITION_DROPPED("the condition checking it is dropped from the or combining it"),
     EVENT_REMOVED("the Event is removed with its Blocks"),
 
     /**

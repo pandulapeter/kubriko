@@ -29,6 +29,21 @@ public val ConditionDefinition.leaves: List<ConditionDefinition>
     get() = if (this is ConditionDefinition.Combined) conditions.flatMap { it.leaves } else listOf(this)
 
 /**
+ * [this] condition without the conditions [isGone] picks among it and those it combines, or null when it then means
+ * nothing: a picked condition means nothing, and so does an and combining one, while an or still holds whenever another of
+ * its conditions does, so it only loses that one (and means nothing once it has none left).
+ */
+public fun ConditionDefinition.without(isGone: (ConditionDefinition) -> Boolean): ConditionDefinition? {
+    if (this !is ConditionDefinition.Combined) return takeUnless(isGone)
+    val parts = conditions.map { it.without(isGone) }
+    return when {
+        isAll -> if (parts.any { it == null }) null else copy(conditions = parts.filterNotNull())
+        parts.all { it == null } && conditions.isNotEmpty() -> null
+        else -> copy(conditions = parts.filterNotNull())
+    }
+}
+
+/**
  * Every Property [this] condition, or a condition it combines, checks.
  */
 public val ConditionDefinition.propertyReferences: List<PropertyReference>

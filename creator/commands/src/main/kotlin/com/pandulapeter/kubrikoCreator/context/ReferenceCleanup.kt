@@ -14,14 +14,18 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeValue
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ColorValue
+import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
+import com.pandulapeter.kubrikoCreator.actors.actorTypeReference
 import com.pandulapeter.kubrikoCreator.actors.fixedArgb
+import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.withActorTypeValues
 import com.pandulapeter.kubrikoCreator.actors.withColorValues
 import com.pandulapeter.kubrikoCreator.actors.withNumberValues
+import com.pandulapeter.kubrikoCreator.actors.without
 import com.pandulapeter.kubrikoCreator.foundation.ColorHex
 
 /**
@@ -39,10 +43,7 @@ internal class ReferenceCleanup(
 ) {
 
     fun typesAfter(usages: List<Usage>): List<BlockTypeDefinition> {
-        val deleted = Deleted(
-            properties = usages.mapNotNullTo(HashSet()) { it.subject as? RelationSubject.Property },
-            types = usages.mapNotNullTo(HashSet()) { (it.subject as? RelationSubject.Type)?.name },
-        )
+        val deleted = deletedBy(usages)
         val removals = removalsOf(usages)
         return types.mapNotNull { type ->
             val removal = removals[type.name] ?: return@mapNotNull null
@@ -74,6 +75,7 @@ internal class ReferenceCleanup(
      * and the texts shown only while a condition on it holds.
      */
     private fun removalsOf(usages: List<Usage>): Map<String, Removal> {
+        val deleted = deletedBy(usages)
         val removals = HashMap<String, Removal>()
         usages.forEach { usage ->
             val place = (usage.place as? UsagePlace.InModel)?.place ?: return@forEach
@@ -87,9 +89,12 @@ internal class ReferenceCleanup(
                     when (usage.effect) {
                         UsageEffect.EVENT_REMOVED -> removal.events += eventIndex
                         UsageEffect.BLOCK_REMOVED -> removal.blocks.getOrPut(eventIndex, ::HashSet) += checkNotNull(blockIndex)
-                        UsageEffect.SECTION_REMOVED -> {
-                            val blocks = types.first { it.name == place.name }.events[eventIndex].blocks
-                            removal.blocks.getOrPut(eventIndex, ::HashSet) += ProjectReferences.sectionOf(blocks, checkNotNull(blockIndex))
+                        UsageEffect.SECTION_REMOVED -> removal.removeSection(place.name, eventIndex, checkNotNull(blockIndex))
+                        UsageEffect.CONDITION_DROPPED -> {
+                            // What is left of the or with everything deleted, which one subject's usage can't know.
+                            val block = types.first { it.name == place.name }.events[eventIndex].blocks[checkNotNull(blockIndex)] as BlockDefinition.If
+                            val condition = relations.conditionWithout(block.condition, place.name, deleted.properties, deleted.types)
+                            if (condition == null) removal.removeSection(place.name, eventIndex, blockIndex) else removal.conditions[eventIndex to blockIndex] = condition
                         }
                         UsageEffect.PLACEHOLDER_TO_TEXT, UsageEffect.VALUE_TO_FIXED, UsageEffect.ACTORS_REMOVED, UsageEffect.SCENE_VALUES_REMOVED, UsageEffect.STARTING_TYPE_CLEARED, UsageEffect.SAVED_REFERENCE_CLEARED, UsageEffect.TEXT_REMOVED, UsageEffect.KOTLIN_TO_CHANGE, UsageEffect.PREVENTS_DELETING, UsageEffect.MENTION_TO_TEXT,
                         UsageEffect.SPRITE_CLEARED, UsageEffect.MUSIC_CLEARED, UsageEffect.IMAGE_COPIED, UsageEffect.DELETED_WITH_FOLDER,
@@ -99,6 +104,11 @@ internal class ReferenceCleanup(
                 is RelationPlace.Text -> when (usage.effect) {
                     UsageEffect.PLACEHOLDER_TO_TEXT -> removal.texts += place.textIndex
                     UsageEffect.TEXT_REMOVED -> removal.removedTexts += place.textIndex
+                    UsageEffect.CONDITION_DROPPED -> {
+                        val text = (types.first { it.name == place.manager } as ManagerTypeDefinition).texts[place.textIndex]
+                        val condition = relations.conditionWithout(checkNotNull(text.shownWhen), place.manager, deleted.properties, deleted.types)
+                        if (condition == null) removal.removedTexts += place.textIndex else removal.textConditions[place.textIndex] = condition
+                    }
                     else -> Unit
                 }
                 is RelationPlace.KotlinUi, is RelationPlace.Scene -> Unit
@@ -119,6 +129,7 @@ internal class ReferenceCleanup(
                 blocks = event.blocks.mapIndexedNotNull { blockIndex, block ->
                     when {
                         blockIndex in removed -> null
+                        block is BlockDefinition.If && (eventIndex to blockIndex) in removal.conditions -> block.copy(condition = removal.conditions.getValue(eventIndex to blockIndex).withNumberValues(::fixedIfDeleted))
                         block is BlockDefinition.Log -> block.copy(message = PropertyPlaceholders.withPlaceholdersAsText(block.message, ::isDeleted))
                         else -> block.withNumberValues(::fixedIfDeleted).withColorValues { color ->
                             fixedIfDeleted(color).let { fixed -> if (fixed != color && block.takesOnlyOpaqueColors) ColorValue.Fixed(ColorHex.opaque(checkNotNull(fixed.fixedArgb))) else fixed }
@@ -140,7 +151,7 @@ internal class ReferenceCleanup(
                     if (index in removal.removedTexts) return@mapIndexedNotNull null
                     text.copy(
                         text = if (index in removal.texts) PropertyPlaceholders.withPlaceholdersAsText(text.text, ::isDeleted) else text.text,
-                        shownWhen = text.shownWhen?.withNumberValues(::fixedIfDeleted),
+                        shownWhen = (removal.textConditions[index] ?: text.shownWhen)?.withNumberValues(::fixedIfDeleted),
                     )
                 },
             )
@@ -195,12 +206,42 @@ internal class ReferenceCleanup(
         val types: Set<String>,
     )
 
+    private fun deletedBy(usages: List<Usage>) = Deleted(
+        properties = usages.mapNotNullTo(HashSet()) { it.subject as? RelationSubject.Property },
+        types = usages.mapNotNullTo(HashSet()) { (it.subject as? RelationSubject.Type)?.name },
+    )
+
+    private fun Removal.removeSection(typeName: String, eventIndex: Int, blockIndex: Int) {
+        val blocks = types.first { it.name == typeName }.events[eventIndex].blocks
+        this.blocks.getOrPut(eventIndex, ::HashSet) += ProjectReferences.sectionOf(blocks, blockIndex)
+    }
+
     private class Removal {
         val events = HashSet<Int>()
         val blocks = HashMap<Int, MutableSet<Int>>()
+
+        /**
+         * The conditions of if Blocks, by Event and Block, that lose what deleting drops from them.
+         */
+        val conditions = HashMap<Pair<Int, Int>, ConditionDefinition>()
         val texts = HashSet<Int>()
         val removedTexts = HashSet<Int>()
+        val textConditions = HashMap<Int, ConditionDefinition>()
         var clearsSprite = false
         var clearsStartingTypes = false
     }
+}
+
+/**
+ * [condition] of the type [typeName] without the conditions that check what is deleted ([ConditionDefinition.without]): a
+ * Property of [properties] or of a Manager type of [types], or the count of an Actor type of [types].
+ */
+internal fun ProjectRelations.conditionWithout(
+    condition: ConditionDefinition,
+    typeName: String,
+    properties: Set<RelationSubject.Property>,
+    types: Set<String>,
+) = condition.without { part ->
+    val reference = part.propertyReference
+    (reference != null && (reference.manager in types || propertyOf(typeName, reference.manager, reference.name) in properties)) || part.actorTypeReference in types
 }
