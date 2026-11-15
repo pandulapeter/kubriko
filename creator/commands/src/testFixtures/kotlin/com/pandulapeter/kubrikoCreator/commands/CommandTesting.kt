@@ -73,6 +73,7 @@ public fun TestScope.commandContext(
     console: List<ConsoleEntry> = emptyList(),
     runner: ProjectRunner = FakeProjectRunner(),
     audioFiles: AudioFiles? = null,
+    scannedAudioFiles: () -> AudioFiles? = { audioFiles },
     spriteFiles: SpriteFiles? = null,
     resources: Map<ResourceGroup, List<ProjectResource>>? = null,
     documents: List<String> = emptyList(),
@@ -94,7 +95,7 @@ public fun TestScope.commandContext(
     scenes = SceneStore(rootDirectory, writeText = sceneWriteText, readText = sceneReadText, homeDirectory = sceneHomeDirectory, sceneResources = sceneResources),
     runner = runner,
     ioDispatcher = ioDispatcher,
-    scannedFiles = ScannedFiles(audioFiles = { audioFiles }, spriteFiles = { spriteFiles }, resources = { resources }),
+    scannedFiles = ScannedFiles(audioFiles = scannedAudioFiles, spriteFiles = { spriteFiles }, resources = { resources }),
     report = report,
     buildFiles = object : ProjectBuildFiles {
         override fun current() = projectUpgrade()

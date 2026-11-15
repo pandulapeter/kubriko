@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands.scenes
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
@@ -103,5 +104,16 @@ class SetSceneValuesTest {
         RenameManagerType.apply(context, RenameManagerType.Input("Game", "Match"))
         assertEquals("Match", context.level()[1].typeId)
         assertEquals(listOf(wall), context.assertRoundTrip(Invocation(DeleteManagerType, DeleteManagerType.Input("Match"))) { context.level() })
+    }
+
+    @Test
+    fun theSoundsAndMusicAreLookedUpOnlyForValuesNamingThem() = runTest {
+        var lookups = 0
+        val properties = listOf(PropertyDefinition.Number("lives"), PropertyDefinition.Sound("cry"))
+        val context = commandContext(scannedAudioFiles = { lookups++; AudioFiles(sounds = listOf("files/sounds/hit.wav")) })
+        assertEquals(null, context.validatePropertyValues(listOf(ActorValueChanges.PropertyValue("lives", number = 2f)), properties, "Game"))
+        assertEquals(0, lookups)
+        assertEquals(null, context.validatePropertyValues(listOf(ActorValueChanges.PropertyValue("cry", sound = "files/sounds/hit.wav")), properties, "Game"))
+        assertEquals(1, lookups)
     }
 }

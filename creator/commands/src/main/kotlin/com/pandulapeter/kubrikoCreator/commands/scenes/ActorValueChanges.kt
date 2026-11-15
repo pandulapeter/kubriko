@@ -138,8 +138,8 @@ internal fun CommandContext.validatePropertyValues(
         if (value.kind == PropertyKind.of(property)) null else Rejection(CommandProblem.PROPERTY_VALUE_INVALID, value.name)
     }
     ?: values.firstNotNullOfOrNull { value -> value.actorType?.let(::validateActorTypeName) }
-    ?: audioFiles()?.let { files ->
-        values.firstNotNullOfOrNull { value -> value.sound?.ifEmpty { null }?.let(files::missingSound) ?: value.music?.ifEmpty { null }?.let(files::missingMusic) }
+    ?: values.filter { !it.sound.isNullOrEmpty() || !it.music.isNullOrEmpty() }.takeIf { it.isNotEmpty() }?.let { audioValues ->
+        audioFiles()?.let { files -> audioValues.firstNotNullOfOrNull { value -> value.sound?.ifEmpty { null }?.let(files::missingSound) ?: value.music?.ifEmpty { null }?.let(files::missingMusic) } }
     }
 
 /**
