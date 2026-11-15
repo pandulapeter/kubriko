@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.context
 
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeValue
 import com.pandulapeter.kubrikoCreator.actors.AnimatedValue
 import com.pandulapeter.kubrikoCreator.actors.AnimationEasing
 import com.pandulapeter.kubrikoCreator.actors.Axis
@@ -85,12 +86,12 @@ internal object BlockNotation {
         is BlockDefinition.SetText -> "Set ${property(block.property, block.manager)} to ${text(block.value)}"
         is BlockDefinition.SetToggle -> "Turn ${property(block.property, block.manager)} ${if (block.value) "on" else "off"}"
         is BlockDefinition.SetColorProperty -> "Set ${property(block.property, block.manager)} to ${color(block.value)}"
-        is BlockDefinition.AddActor -> "Add an Actor of ${name(block.actorType)} at ${point(block.x, block.y)} " + when {
+        is BlockDefinition.AddActor -> "Add an Actor of ${actorType(block.actorType)} at ${point(block.x, block.y)} " + when {
             !block.isRelative -> "from the center"
             block.x.readsEdges || block.y.readsEdges -> "from this Actor (an edge is the Scene's own)"
             else -> "from this Actor"
         }
-        is BlockDefinition.MoveTowardsNearest -> "Move towards the nearest ${name(block.actorType)} at speed ${value(block.speed)}"
+        is BlockDefinition.MoveTowardsNearest -> "Move towards the nearest ${actorType(block.actorType)} at speed ${value(block.speed)}"
         is BlockDefinition.StartTimer -> "Start Timer ${block.timer} for ${value(block.seconds)} s" + if (block.isRepeating) ", repeating" else ""
         is BlockDefinition.StopTimer -> "Stop Timer ${block.timer}"
         is BlockDefinition.GoToScene -> "Go to Scene ${name(block.scene)}"
@@ -162,6 +163,14 @@ internal object BlockNotation {
         Comparison.NOT_EQUAL -> "isn't"
         Comparison.GREATER_OR_EQUAL -> "is at least"
         Comparison.GREATER -> "is more than"
+    }
+
+    /**
+     * An Actor type a Block takes: `Ball`, or `the Actor type in enemyType of Game`.
+     */
+    private fun actorType(value: ActorTypeValue) = when (value) {
+        is ActorTypeValue.Fixed -> name(value.name)
+        is ActorTypeValue.Property -> "the Actor type in ${property(value.property, value.manager)}"
     }
 
     /**

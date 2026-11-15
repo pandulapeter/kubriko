@@ -276,7 +276,7 @@ public object ManagerTypeCodeGenerator {
             appendLine("            $backingField.longValue = value.value.toLong()")
             appendLine("        }")
         }
-        is PropertyDefinition.Text, is PropertyDefinition.Toggle -> appendLine("    var ${property.name} by mutableStateOf(${initialValueLiteral(property)})")
+        is PropertyDefinition.Text, is PropertyDefinition.Toggle, is PropertyDefinition.ActorType -> appendLine("    var ${property.name} by mutableStateOf(${initialValueLiteral(property)})")
     }
 
     private fun StringBuilder.appendKeyDispatch(callsByKey: Map<KeyChoice, String?>) {

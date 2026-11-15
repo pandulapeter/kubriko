@@ -45,6 +45,7 @@ internal val PropertyKind.missingProblem: PlacementProblem
         PropertyKind.TEXT -> PlacementProblem.TEXT_PROPERTY_MISSING
         PropertyKind.TOGGLE -> PlacementProblem.TOGGLE_PROPERTY_MISSING
         PropertyKind.COLOR -> PlacementProblem.COLOR_PROPERTY_MISSING
+        PropertyKind.ACTOR_TYPE -> PlacementProblem.ACTOR_TYPE_PROPERTY_MISSING
     }
 
 /**
@@ -57,6 +58,7 @@ internal val PropertyKind.missingSimilarProblem: PlacementProblem
         PropertyKind.TEXT -> PlacementProblem.TEXT_PROPERTY_MISSING_SIMILAR
         PropertyKind.TOGGLE -> PlacementProblem.TOGGLE_PROPERTY_MISSING_SIMILAR
         PropertyKind.COLOR -> PlacementProblem.COLOR_PROPERTY_MISSING_SIMILAR
+        PropertyKind.ACTOR_TYPE -> PlacementProblem.ACTOR_TYPE_PROPERTY_MISSING_SIMILAR
     }
 
 /**
@@ -68,4 +70,5 @@ internal val PropertyKind.otherKindProblem: PlacementProblem
         PropertyKind.TEXT -> PlacementProblem.TEXT_PROPERTY_OF_OTHER_KIND
         PropertyKind.TOGGLE -> PlacementProblem.TOGGLE_PROPERTY_OF_OTHER_KIND
         PropertyKind.COLOR -> PlacementProblem.COLOR_PROPERTY_OF_OTHER_KIND
+        PropertyKind.ACTOR_TYPE -> PlacementProblem.ACTOR_TYPE_PROPERTY_OF_OTHER_KIND
     }

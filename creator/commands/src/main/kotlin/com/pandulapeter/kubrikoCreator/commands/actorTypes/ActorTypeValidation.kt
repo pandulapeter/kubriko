@@ -229,11 +229,30 @@ internal fun unknownKey(key: KeyChoice) =
     SimilarNames.rejection(LookupProblem.GAME_KEY_UNKNOWN, LookupProblem.GAME_KEY_UNKNOWN_SIMILAR, key.composeKeyName, KeyChoice.all.map { it.composeKeyName }, key.composeKeyName)
 
 /**
- * Why [property] can't be one of [properties] of a type of [kind] (which it replaces, if [replacedName] names one of them).
+ * Why [property] can't be one of [properties] of a type of [kind] (which it replaces, if [replacedName] names one of them)
+ * in a project with [actorTypeNames] and [managerTypeNames], which an Actor type reference Property's starting value
+ * names one of, if any.
  */
-internal fun validateProperty(property: PropertyDefinition, properties: List<PropertyDefinition>, kind: BlockTypeKind, replacedName: String? = null): Rejection? =
-    PropertyNaming.validate(property.name, properties.map { it.name }.filter { it != replacedName }, kind)?.let(::Rejection)
-        ?: if (property is PropertyDefinition.Number && !property.initialValue.isFinite()) Rejection(CommandProblem.NUMBER_INVALID) else null
+internal fun validateProperty(
+    property: PropertyDefinition,
+    properties: List<PropertyDefinition>,
+    kind: BlockTypeKind,
+    actorTypeNames: List<String>,
+    managerTypeNames: List<String>,
+    replacedName: String? = null,
+): Rejection? = PropertyNaming.validate(property.name, properties.map { it.name }.filter { it != replacedName }, kind)?.let(::Rejection)
+    ?: when {
+        property is PropertyDefinition.Number && !property.initialValue.isFinite() -> Rejection(CommandProblem.NUMBER_INVALID)
+        property is PropertyDefinition.ActorType && property.initialValue.isNotEmpty() && property.initialValue !in actorTypeNames ->
+            missingActorType(property.initialValue, actorTypeNames, managerTypeNames)
+        else -> null
+    }
+
+/**
+ * Why [property] can't be one of [properties] of a type of [kind] in this project.
+ */
+internal fun CommandContext.validateProperty(property: PropertyDefinition, properties: List<PropertyDefinition>, kind: BlockTypeKind, replacedName: String? = null) =
+    validateProperty(property, properties, kind, requireBlockTypes.actorTypes.value.map { it.name }, requireBlockTypes.managerTypes.value.map { it.name }, replacedName)
 
 /**
  * Why the new type [definition] can't be part of the project: its Blocks are checked against the project with it, so
@@ -246,7 +265,9 @@ internal fun CommandContext.validateContents(definition: BlockTypeDefinition): R
     return actorType?.let { validateSize(it.width, it.height) }
         ?: actorType?.parent?.let { parent -> validateNewParent(definition.name, parent, actorType.properties) }
         ?: actorType?.sprite?.ifEmpty { null }?.let { validateSprite(it) }
-        ?: definition.properties.indices.firstNotNullOfOrNull { index -> validateProperty(definition.properties[index], definition.properties.take(index), definition.kind) }
+        ?: definition.properties.indices.firstNotNullOfOrNull { index ->
+            validateProperty(definition.properties[index], definition.properties.take(index), definition.kind, scope.actorTypeNames, scope.managerTypes.map { it.name })
+        }
         ?: definition.events.firstNotNullOfOrNull { validateEvent(it, scope) }
         ?: (definition as? ManagerTypeDefinition)?.texts?.firstNotNullOfOrNull { validateText(it, scope) }
 }

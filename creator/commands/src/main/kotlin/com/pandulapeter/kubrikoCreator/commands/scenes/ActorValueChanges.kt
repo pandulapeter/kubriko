@@ -20,6 +20,8 @@ import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.fits
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.missingActorType
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireBlockTypes
 import com.pandulapeter.kubrikoCreator.scenes.ActorStateEdits
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
@@ -69,6 +71,8 @@ public data class ActorValueChanges(
         @SerialName("toggle") val toggle: Boolean? = null,
         @Description("The value of a color Property, as #RRGGBB, or #AARRGGBB when it isn't opaque.")
         @SerialName("color") @Serializable(with = HexColorSerializer::class) val color: Long? = null,
+        @Description("The value of an Actor type reference Property.")
+        @SerialName("actorType") val actorType: String? = null,
     ) {
         /**
          * The kind of Property the value is given for, by which of its fields is set, or null unless exactly one is.
@@ -79,6 +83,7 @@ public data class ActorValueChanges(
                 text?.let { PropertyKind.TEXT },
                 toggle?.let { PropertyKind.TOGGLE },
                 color?.let { PropertyKind.COLOR },
+                actorType?.let { PropertyKind.ACTOR_TYPE },
             ).singleOrNull()
 
         /**
@@ -89,6 +94,7 @@ public data class ActorValueChanges(
             text?.let(::JsonPrimitive),
             toggle?.let(::JsonPrimitive),
             color?.let { JsonPrimitive(SceneSettingsState.packedColorOf(it)) },
+            actorType?.let(::JsonPrimitive),
         ).singleOrNull()
     }
 }
@@ -109,10 +115,10 @@ internal fun CommandContext.validateActorValues(actor: SceneActorEntry, changes:
 }
 
 /**
- * Why [values] can't be given to the Properties of [owner] ([properties]): one names a Property it doesn't have, or doesn't
- * fit its kind. [isKnown] lets a name through that [properties] lacks.
+ * Why [values] can't be given to the Properties of [owner] ([properties]): one names a Property it doesn't have, doesn't
+ * fit its kind, or names an Actor type the project doesn't have. [isKnown] lets a name through that [properties] lacks.
  */
-internal fun validatePropertyValues(
+internal fun CommandContext.validatePropertyValues(
     values: List<ActorValueChanges.PropertyValue>,
     properties: List<PropertyDefinition>,
     owner: String,
@@ -121,6 +127,10 @@ internal fun validatePropertyValues(
     ?: values.firstNotNullOfOrNull { value ->
         val property = properties.firstOrNull { it.name == value.name } ?: return@firstNotNullOfOrNull null
         if (value.kind == PropertyKind.of(property)) null else Rejection(CommandProblem.PROPERTY_VALUE_INVALID, value.name)
+    }
+    ?: values.firstNotNullOfOrNull { value ->
+        val actorTypeNames = requireBlockTypes.actorTypes.value.map { it.name }
+        value.actorType?.takeIf { it.isNotEmpty() && it !in actorTypeNames }?.let { missingActorType(it, actorTypeNames, requireBlockTypes.managerTypes.value.map { type -> type.name }) }
     }
 
 /**

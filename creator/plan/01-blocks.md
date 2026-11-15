@@ -31,7 +31,6 @@ needed twelve Kotlin Blocks, all for simple behavior. Each item replaces some of
 
 ## Next additions
 
-- **More Properties:** color and Actor type reference Properties.
 - **More flow:** combining conditions (and, or), comparing two Properties, and a Palette button that adds an If with its End. Sections
   live in the flat Block list (`BlockNesting`), so drag-and-drop stays a reorder.
 - **More audio:** volume, and sounds and music as Properties (so one Block plays the sound an Actor keeps).

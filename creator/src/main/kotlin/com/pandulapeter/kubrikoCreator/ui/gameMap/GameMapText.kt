@@ -31,6 +31,7 @@ import kubriko.creator.generated.resources.game_map_reacts_to
 import kubriko.creator.generated.resources.game_map_reads
 import kubriko.creator.generated.resources.game_map_reads_value
 import kubriko.creator.generated.resources.game_map_shows
+import kubriko.creator.generated.resources.game_map_starts_as
 import kubriko.creator.generated.resources.game_map_starts_with
 import kubriko.creator.generated.resources.game_map_uses_timer
 
@@ -45,6 +46,7 @@ internal fun referencesByOwner(digest: ProjectDigest): Map<RelationSubject, List
 internal val RelationKind.label
     get() = when (this) {
         RelationKind.INHERITS_FROM -> Res.string.game_map_inherits_from
+        RelationKind.STARTS_AS -> Res.string.game_map_starts_as
         RelationKind.COLLIDES_WITH -> Res.string.game_map_collides_with
         RelationKind.REACTS_TO -> Res.string.game_map_reacts_to
         RelationKind.COUNTS -> Res.string.game_map_counts

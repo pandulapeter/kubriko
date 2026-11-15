@@ -104,6 +104,7 @@ internal class ProjectReferences(
         fun usage(effect: UsageEffect, blocksInside: Int = 0) = Usage(place, relation.kind, relation.subject, effect, relation.count, blocksInside)
         return when (relation.kind) {
             RelationKind.INHERITS_FROM -> usage(UsageEffect.PREVENTS_DELETING)
+            RelationKind.STARTS_AS -> usage(UsageEffect.STARTING_TYPE_CLEARED)
             RelationKind.COLLIDES_WITH, RelationKind.REACTS_TO -> usage(UsageEffect.EVENT_REMOVED)
             RelationKind.COUNTS -> conditionUsage(relation.place, ::usage)
             RelationKind.PLACES -> usage(UsageEffect.ACTORS_REMOVED)

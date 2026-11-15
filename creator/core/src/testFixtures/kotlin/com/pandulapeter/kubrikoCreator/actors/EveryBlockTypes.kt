@@ -22,11 +22,17 @@ public object EveryBlockTypes {
      */
     val colorProperty: PropertyDefinition = PropertyDefinition.Color("tint", 0x803366CC)
 
+    /**
+     * The Actor type reference Property every type has, which format version 15 added.
+     */
+    val actorTypeProperty: PropertyDefinition = PropertyDefinition.ActorType("enemyType", "EveryParent")
+
     private val properties = listOf(
         PropertyDefinition.Number("score", 2.5f),
         PropertyDefinition.Text("title", "Say \"\$hi\" \\ to\neveryone"),
         PropertyDefinition.Toggle("isShielded", true),
         colorProperty,
+        actorTypeProperty,
     )
 
     val everyBlock = listOf(
@@ -48,11 +54,11 @@ public object EveryBlockTypes {
         BlockDefinition.ChangeNumber(property = "missing"),
         BlockDefinition.Log(message = "{title}: {score} ({isShielded}) {missing}"),
         BlockDefinition.Kotlin(code = "import kotlin.math.sin\n\nif (isShielded) score += 1f + sin(0f)"),
-        BlockDefinition.AddActor("EveryBlock", x = NumberValue.Fixed(10f), y = NumberValue.Fixed(-5f)),
-        BlockDefinition.AddActor("Ball", isRelative = false),
-        BlockDefinition.AddActor("Missing"),
-        BlockDefinition.MoveTowardsNearest("Ball", speed = NumberValue.Fixed(120f)),
-        BlockDefinition.MoveTowardsNearest("EveryBlock"),
+        BlockDefinition.AddActor(ActorTypeValue.Fixed("EveryBlock"), x = NumberValue.Fixed(10f), y = NumberValue.Fixed(-5f)),
+        BlockDefinition.AddActor(ActorTypeValue.Fixed("Ball"), isRelative = false),
+        BlockDefinition.AddActor(ActorTypeValue.Fixed("Missing")),
+        BlockDefinition.MoveTowardsNearest(ActorTypeValue.Fixed("Ball"), speed = NumberValue.Fixed(120f)),
+        BlockDefinition.MoveTowardsNearest(ActorTypeValue.Fixed("EveryBlock")),
         BlockDefinition.MoveTowardsNearest(),
         BlockDefinition.StartTimer(timer = "timer1", seconds = NumberValue.Fixed(0.25f)),
         BlockDefinition.StartTimer(timer = "spawnEnemy", seconds = NumberValue.Fixed(2f), isRepeating = true),
@@ -99,7 +105,7 @@ public object EveryBlockTypes {
         BlockDefinition.StopMusic,
         BlockDefinition.SetFrame(frame = NumberValue.Fixed(2f)),
         BlockDefinition.SetAnimation(speed = NumberValue.Fixed(-0.5f), isLooping = false),
-    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks + steeringBlocks + actorCountBlocks + colorPropertyBlocks
+    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks + steeringBlocks + actorCountBlocks + colorPropertyBlocks + actorTypeValueBlocks
 
     /**
      * Blocks taking random numbers and Properties' values, which format version 5 added.
@@ -128,12 +134,25 @@ public object EveryBlockTypes {
      */
     val edgeValueBlocks: List<BlockDefinition>
         get() = listOf(
-            BlockDefinition.AddActor("EveryBlock", x = NumberValue.Edge(SceneEdge.RIGHT, offset = 50f), y = NumberValue.BetweenEdges(SceneEdge.TOP, 10f, SceneEdge.BOTTOM, -10f), isRelative = false),
+            BlockDefinition.AddActor(ActorTypeValue.Fixed("EveryBlock"), x = NumberValue.Edge(SceneEdge.RIGHT, offset = 50f), y = NumberValue.BetweenEdges(SceneEdge.TOP, 10f, SceneEdge.BOTTOM, -10f), isRelative = false),
             BlockDefinition.JumpTo(x = NumberValue.Edge(SceneEdge.LEFT), y = NumberValue.Edge(SceneEdge.BOTTOM, offset = -2.5f)),
             BlockDefinition.ChangeNumber(property = "score", by = NumberValue.Edge(SceneEdge.TOP)),
-            BlockDefinition.AddActor("Ball", x = NumberValue.BetweenEdges(SceneEdge.RIGHT, -5f, SceneEdge.LEFT, 5f), y = NumberValue.Edge(SceneEdge.TOP, 1f)),
+            BlockDefinition.AddActor(ActorTypeValue.Fixed("Ball"), x = NumberValue.BetweenEdges(SceneEdge.RIGHT, -5f, SceneEdge.LEFT, 5f), y = NumberValue.Edge(SceneEdge.TOP, 1f)),
             BlockDefinition.If(ConditionDefinition.Number("score", Comparison.LESS, NumberValue.BetweenEdges(SceneEdge.TOP, to = SceneEdge.BOTTOM))),
             BlockDefinition.End,
+        )
+
+    /**
+     * Blocks adding and moving towards the Actor type an Actor type reference Property names, which format version 15
+     * added.
+     */
+    val actorTypeValueBlocks: List<BlockDefinition>
+        get() = listOf(
+            BlockDefinition.AddActor(ActorTypeValue.Property("enemyType"), x = NumberValue.Fixed(10f)),
+            BlockDefinition.AddActor(ActorTypeValue.Property("enemyType", manager = "EveryManager")),
+            BlockDefinition.AddActor(ActorTypeValue.Property("missing")),
+            BlockDefinition.MoveTowardsNearest(ActorTypeValue.Property("enemyType"), speed = NumberValue.Property("score")),
+            BlockDefinition.MoveTowardsNearest(ActorTypeValue.Property()),
         )
 
     /**
@@ -270,7 +289,7 @@ public object EveryBlockTypes {
             shape = ActorShape.RECTANGLE,
             staysInsideScene = true,
             properties = listOf(properties.first(), PropertyDefinition.Number("extra", initialValue = 2f)),
-            events = everyEvent(listOf(BlockDefinition.RunParentEvent) + everyBlock + BlockDefinition.MoveTowardsNearest("EveryParent", speed = NumberValue.Fixed(10f))) +
+            events = everyEvent(listOf(BlockDefinition.RunParentEvent) + everyBlock + BlockDefinition.MoveTowardsNearest(ActorTypeValue.Fixed("EveryParent"), speed = NumberValue.Fixed(10f))) +
                 EventDefinition(EventType.COLLISION, otherActorType = "EveryParent", blocks = listOf(BlockDefinition.RunParentEvent, BlockDefinition.RemoveOther)),
         ),
         ActorTypeDefinition(

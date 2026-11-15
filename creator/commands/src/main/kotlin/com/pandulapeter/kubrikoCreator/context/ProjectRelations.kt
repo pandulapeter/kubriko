@@ -16,9 +16,11 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
 import com.pandulapeter.kubrikoCreator.actors.actorTypeReference
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.fixedName
 import com.pandulapeter.kubrikoCreator.actors.numberValues
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.valuePropertyReferences
@@ -71,6 +73,9 @@ internal class ProjectRelations(
 
     private fun MutableList<Relation>.addRelationsOf(type: BlockTypeDefinition) {
         if (type is ActorTypeDefinition) type.parent?.let { add(Relation(RelationPlace.Type(type.name), RelationKind.INHERITS_FROM, RelationSubject.Type(it))) }
+        type.properties.forEach { property ->
+            (property as? PropertyDefinition.ActorType)?.initialValue?.ifEmpty { null }?.let { add(Relation(RelationPlace.Type(type.name), RelationKind.STARTS_AS, RelationSubject.Type(it))) }
+        }
         type.events.forEachIndexed { eventIndex, event ->
             // The trigger leaves out a field the Event's type doesn't use, which a file edited by hand may still have.
             event.trigger.otherActorType?.let {
@@ -90,8 +95,8 @@ internal class ProjectRelations(
 
     private fun MutableList<Relation>.addRelationsOf(typeName: String, place: RelationPlace, block: BlockDefinition) {
         when (block) {
-            is BlockDefinition.AddActor -> block.actorType.ifEmpty { null }?.let { add(Relation(place, RelationKind.ADDS, RelationSubject.Type(it))) }
-            is BlockDefinition.MoveTowardsNearest -> block.actorType.ifEmpty { null }?.let { add(Relation(place, RelationKind.MOVES_TOWARDS, RelationSubject.Type(it))) }
+            is BlockDefinition.AddActor -> block.actorType.fixedName?.let { add(Relation(place, RelationKind.ADDS, RelationSubject.Type(it))) }
+            is BlockDefinition.MoveTowardsNearest -> block.actorType.fixedName?.let { add(Relation(place, RelationKind.MOVES_TOWARDS, RelationSubject.Type(it))) }
             is BlockDefinition.If -> addCheckedBy(typeName, place, block.condition)
             is BlockDefinition.GoToScene -> block.scene.ifEmpty { null }?.let { add(Relation(place, RelationKind.GOES_TO, RelationSubject.Scene(it))) }
             is BlockDefinition.Log -> addPlaceholders(typeName, place, block.message)

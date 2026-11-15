@@ -18,6 +18,7 @@ import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeValue
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockNesting
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
@@ -97,7 +98,7 @@ class NumberValueFieldTest {
 
     @Test
     fun theKindMenuPlacesANumberAtAnEdgeAndThenBetweenTwo() = uiTest(width = 900, height = 360) {
-        var block by mutableStateOf<BlockDefinition>(BlockDefinition.AddActor("Ball", x = NumberValue.Fixed(10f), isRelative = false))
+        var block by mutableStateOf<BlockDefinition>(BlockDefinition.AddActor(ActorTypeValue.Fixed("Ball"), x = NumberValue.Fixed(10f), isRelative = false))
         showing {
             BlockRow(
                 block = block,
@@ -112,11 +113,11 @@ class NumberValueFieldTest {
         onAllNodesWithContentDescription("Kind of number")[0].performClick()
         onNodeWithText("An edge of the Scene").performClick()
         waitForIdle()
-        assertEquals(BlockDefinition.AddActor("Ball", x = NumberValue.Edge(), isRelative = false), block)
+        assertEquals(BlockDefinition.AddActor(ActorTypeValue.Fixed("Ball"), x = NumberValue.Edge(), isRelative = false), block)
         onNodeWithText("Left edge").performClick()
         onNodeWithText("Right edge").performClick()
         waitForIdle()
-        assertEquals(BlockDefinition.AddActor("Ball", x = NumberValue.Edge(SceneEdge.RIGHT), isRelative = false), block)
+        assertEquals(BlockDefinition.AddActor(ActorTypeValue.Fixed("Ball"), x = NumberValue.Edge(SceneEdge.RIGHT), isRelative = false), block)
         onAllNodesWithContentDescription("Kind of number")[1].performClick()
         onNodeWithText("An edge of the Scene").performClick()
         waitForIdle()
@@ -126,13 +127,13 @@ class NumberValueFieldTest {
         onNodeWithText("Left edge").assertDoesNotExist()
         onNodeWithText("Bottom edge").performClick()
         waitForIdle()
-        assertEquals(BlockDefinition.AddActor("Ball", x = NumberValue.Edge(SceneEdge.RIGHT), y = NumberValue.Edge(SceneEdge.BOTTOM), isRelative = false), block)
+        assertEquals(BlockDefinition.AddActor(ActorTypeValue.Fixed("Ball"), x = NumberValue.Edge(SceneEdge.RIGHT), y = NumberValue.Edge(SceneEdge.BOTTOM), isRelative = false), block)
         saveSnapshot("number-value-edge")
         onAllNodesWithContentDescription("Kind of number")[0].performClick()
         onNodeWithText("A random number between edges").performClick()
         waitForIdle()
         assertEquals(
-            BlockDefinition.AddActor("Ball", x = NumberValue.BetweenEdges(SceneEdge.RIGHT, to = SceneEdge.LEFT), y = NumberValue.Edge(SceneEdge.BOTTOM), isRelative = false),
+            BlockDefinition.AddActor(ActorTypeValue.Fixed("Ball"), x = NumberValue.BetweenEdges(SceneEdge.RIGHT, to = SceneEdge.LEFT), y = NumberValue.Edge(SceneEdge.BOTTOM), isRelative = false),
             block,
         )
         saveSnapshot("number-value-between-edges")

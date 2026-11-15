@@ -24,6 +24,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeValue
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockNesting
@@ -68,11 +69,11 @@ class BlockRowTest {
         val game = ManagerTypeDefinition(name = "Game", properties = listOf(PropertyDefinition.Number("score")))
         val scope = BlockScope.of(ball, listOf(ball, game), sceneNames = listOf("level"), audioFiles = AudioFiles(sounds = listOf("files/sounds/hit.wav")))
         val blocks = listOf(
-            BlockDefinition.AddActor("Brick"),
+            BlockDefinition.AddActor(ActorTypeValue.Fixed("Brick")),
             BlockDefinition.GoToScene("cave"),
             BlockDefinition.PlaySound("files/sounds/gone.wav"),
             BlockDefinition.SetNumber("lives", manager = "Game"),
-            BlockDefinition.AddActor("Ball"),
+            BlockDefinition.AddActor(ActorTypeValue.Fixed("Ball")),
             BlockDefinition.GoToScene("level"),
             BlockDefinition.SetNumber("score", manager = "Game"),
         )

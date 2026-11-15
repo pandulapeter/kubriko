@@ -64,7 +64,7 @@ public data class ScreenTextDefinition(
                 is PropertyDefinition.Toggle -> ConditionDefinition.Toggle(property.name)
                 is PropertyDefinition.Number -> ConditionDefinition.Number(property.name)
                 is PropertyDefinition.Text -> ConditionDefinition.Text(property.name)
-                is PropertyDefinition.Color, null -> ConditionDefinition.Toggle()
+                is PropertyDefinition.Color, is PropertyDefinition.ActorType, null -> ConditionDefinition.Toggle()
             }
         }
 

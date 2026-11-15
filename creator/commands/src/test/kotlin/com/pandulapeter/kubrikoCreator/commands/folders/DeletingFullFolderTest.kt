@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands.folders
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeValue
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
@@ -50,14 +51,14 @@ class DeletingFullFolderTest {
         name = "Bat",
         parent = "Monster",
         folder = "enemies/flying",
-        events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.AddActor("Monster")))),
+        events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.AddActor(ActorTypeValue.Fixed("Monster"))))),
     )
     private val ball = ActorTypeDefinition(
         name = "Ball",
         events = listOf(
             EventDefinition(
                 EventType.EVERY_FRAME,
-                blocks = listOf(BlockDefinition.AddActor("Bat"), BlockDefinition.Stop, BlockDefinition.Kotlin("println(Bat::class)"), BlockDefinition.GoToScene("levels/1")),
+                blocks = listOf(BlockDefinition.AddActor(ActorTypeValue.Fixed("Bat")), BlockDefinition.Stop, BlockDefinition.Kotlin("println(Bat::class)"), BlockDefinition.GoToScene("levels/1")),
             ),
             EventDefinition(EventType.COLLISION, otherActorType = "Monster"),
         ),

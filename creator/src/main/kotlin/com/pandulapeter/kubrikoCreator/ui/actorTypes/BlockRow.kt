@@ -182,7 +182,7 @@ private fun InlineParameters(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         itemVerticalAlignment = Alignment.CenterVertically,
     ) {
-        ActorTypeChoice(block.actorType, scope.actorTypeNames) { onBlockChange(block.copy(actorType = it)) }
+        ActorTypeValueField(block.actorType, scope) { onBlockChange(block.copy(actorType = it)) }
         OffsetParameters(block.x, block.y, scope, isVelocity = false) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
         if (scope.kind == BlockTypeKind.ACTOR) {
             LabeledSwitch(
@@ -199,7 +199,7 @@ private fun InlineParameters(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         itemVerticalAlignment = Alignment.CenterVertically,
     ) {
-        ActorTypeChoice(block.actorType, scope.actorTypeNames) { onBlockChange(block.copy(actorType = it)) }
+        ActorTypeValueField(block.actorType, scope) { onBlockChange(block.copy(actorType = it)) }
         NumberValueField(
             label = Res.string.block_parameter_speed,
             value = block.speed,

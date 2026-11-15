@@ -97,13 +97,13 @@ internal fun SceneInspector(
             ) {
                 Text(stringResource(Res.string.scene_settings_title))
             }
-            if (valueTakingManagerTypes.isNotEmpty()) SceneValues(valueTakingManagerTypes, sceneValues, sceneName, onCommand)
+            if (valueTakingManagerTypes.isNotEmpty()) SceneValues(valueTakingManagerTypes, sceneValues, sceneName, actorTypes, onCommand)
         }
         selectedManager != null -> {
             PanelHeader(icon = Res.drawable.ic_manager_type, title = stringResource(Res.string.scene_values_actor, selectedManager.name), accent = Accent.CREW) {
                 IconActionButton(icon = Res.drawable.ic_delete, label = Res.string.action_remove_actor, onClick = { onRemove(checkNotNull(selectedId)) })
             }
-            SceneValues(listOf(selectedManager), sceneValues, sceneName, onCommand)
+            SceneValues(listOf(selectedManager), sceneValues, sceneName, actorTypes, onCommand)
         }
         else -> {
             PanelHeader(icon = Res.drawable.ic_actor_type, title = entry.typeId, accent = Accent.CAST) {
@@ -129,6 +129,7 @@ internal fun SceneInspector(
                         body = ActorBodyValues.of(actor.body),
                         state = entry.state,
                         definition = actorTypes.firstOrNull { it.name == entry.typeId },
+                        actorTypeNames = actorTypes.map { it.name },
                         onChange = { change -> onCommand(Invocation(SetActorValues, SetActorValues.Input(sceneName, selectedId).change())) },
                     )
                 }
@@ -149,10 +150,12 @@ private fun SceneValues(
     managerTypes: List<ManagerTypeDefinition>,
     values: Map<String, Map<String, JsonPrimitive>>,
     sceneName: String,
+    actorTypes: List<ActorTypeDefinition>,
     onCommand: (Invocation<*>) -> Unit,
 ) = ManagerSceneValuesSection(
     managerTypes = managerTypes,
     values = values,
+    actorTypeNames = actorTypes.map { it.name },
     onSet = { managerType, value -> onCommand(Invocation(SetSceneValues, SetSceneValues.Input(sceneName, managerType, values = listOf(value)))) },
     onClear = { managerType, property -> onCommand(Invocation(SetSceneValues, SetSceneValues.Input(sceneName, managerType, cleared = listOf(property)))) },
 )

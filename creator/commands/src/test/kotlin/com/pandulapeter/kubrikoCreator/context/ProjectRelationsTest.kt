@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.context
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeValue
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
@@ -44,7 +45,7 @@ class ProjectRelationsTest {
                     BlockDefinition.GoToScene("won"),
                     BlockDefinition.End,
                     BlockDefinition.Log("Score: {Game.score}"),
-                    BlockDefinition.AddActor("Ball"),
+                    BlockDefinition.AddActor(ActorTypeValue.Fixed("Ball")),
                 ),
             ),
         ),

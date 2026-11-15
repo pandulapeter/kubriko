@@ -250,7 +250,8 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   `@SummarizedSchema` (`BlockDefinition`) lists only its subclasses' names, which `get_block_catalog` describes once.
 - **Addressing:** types and Scenes by name, Events, Blocks, and texts by index, Scene Actors by ID. The Event, Block, and Property
   commands take either kind of type (`actorType` names an Actor type or a Manager type).
-- **Renames follow everywhere:** Blocks, collision Events, placeholders, texts, Kotlin Blocks and Kotlin UI (`KotlinIdentifiers`,
+- **Renames follow everywhere:** Blocks, collision Events, placeholders, texts, Actor type reference Properties (their
+  starting values and the values Scenes keep, which a deleted type's starting values stop naming), Kotlin Blocks and Kotlin UI (`KotlinIdentifiers`,
   which knows no grammar, so a local variable of the same name is renamed too; the import lines a Kotlin Block or Kotlin UI
   starts with are left alone), the Actors of every Scene, a Property's saved values in Scenes, and the screenplay's mentions
   and images of every file a rename or move moves (`withMentionsFollowed`, which also writes a moved page's or document's own

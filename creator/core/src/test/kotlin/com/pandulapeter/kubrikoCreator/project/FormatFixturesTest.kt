@@ -152,9 +152,12 @@ class FormatFixturesTest {
      * up to the current format doesn't make up.
      */
     private fun BlockTypeDefinition.asOf(version: Int): BlockTypeDefinition {
-        if (version >= 14) return this
-        val withoutColorProperties = withProperties(properties - EveryBlockTypes.colorProperty)
-            .withEvents(events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.colorPropertyBlocks)) })
+        if (version >= 15) return this
+        val withoutActorTypeReferences = withProperties(properties - EveryBlockTypes.actorTypeProperty)
+            .withEvents(events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.actorTypeValueBlocks)) })
+        if (version == 14) return withoutActorTypeReferences
+        val withoutColorProperties = withoutActorTypeReferences.withProperties(withoutActorTypeReferences.properties - EveryBlockTypes.colorProperty)
+            .withEvents(withoutActorTypeReferences.events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.colorPropertyBlocks)) })
         if (version == 13) return withoutColorProperties
         val withoutTextOptions = if (withoutColorProperties is ManagerTypeDefinition) withoutColorProperties.copy(texts = withoutColorProperties.texts - EveryBlockTypes.textOptionTexts.toSet()) else withoutColorProperties
         if (version == 12) return withoutTextOptions

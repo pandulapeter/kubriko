@@ -428,6 +428,10 @@
     <string name="property_kind_text">Text</string>
     <string name="property_kind_toggle">Toggle</string>
     <string name="property_kind_color">Color</string>
+    <string name="property_kind_actor_type">Actor type</string>
+    <string name="actor_type_value_kind">Kind of Actor type</string>
+    <string name="actor_type_value_fixed">An Actor type</string>
+    <string name="actor_type_value_property">An Actor type reference Property's type</string>
     <string name="error_property_name_reserved">That name is already used by the generated code. Try another one.</string>
     <string name="error_property_name_taken">This type already has a Property with that name, or one differing only in capital letters.</string>
     <string name="error_command_property_unknown">%1$s has no Property called %2$s.</string>
@@ -441,6 +445,9 @@
     <string name="error_placement_toggle_property_missing_similar">%2$s has no toggle Property called %1$s. Close matches: %3$s.</string>
     <string name="error_placement_number_property_of_other_kind">%2$s has a Property called %1$s, but it isn't a number Property, so this Block can't use it. Use a Block for its kind, or another Property.</string>
     <string name="error_placement_text_property_of_other_kind">%2$s has a Property called %1$s, but it isn't a text Property, so this Block can't use it. Use a Block for its kind, or another Property.</string>
+    <string name="error_placement_actor_type_property_missing">%2$s has no Actor type reference Property called %1$s.</string>
+    <string name="error_placement_actor_type_property_missing_similar">%2$s has no Actor type reference Property called %1$s. Close matches: %3$s.</string>
+    <string name="error_placement_actor_type_property_of_other_kind">%2$s has a Property called %1$s, but it isn't an Actor type reference Property, so this Block can't use it. Use a Block for its kind, or another Property.</string>
     <string name="error_placement_color_property_missing">%2$s has no color Property called %1$s.</string>
     <string name="error_placement_color_property_missing_similar">%2$s has no color Property called %1$s. Close matches: %3$s.</string>
     <string name="error_placement_color_property_of_other_kind">%2$s has a Property called %1$s, but it isn't a color Property, so this Block can't use it. Use a Block for its kind, or another Property.</string>
@@ -1200,6 +1207,7 @@
     <string name="game_map_page_title">%1$s: %2$s</string>
     <string name="game_map_scenes">Scenes</string>
     <string name="game_map_places">Places %1$s</string>
+    <string name="game_map_starts_as">Has a Property starting as %1$s</string>
     <string name="game_map_gives_values_to">Gives values to %1$s</string>
     <string name="game_map_inherits_from">Based on %1$s</string>
     <string name="game_map_collides_with">Collides with %1$s</string>
@@ -1244,6 +1252,7 @@
     <string name="usage_effect_section_removed">The if Block is removed with the Blocks inside it</string>
     <string name="usage_effect_event_removed">The Event is removed with its Blocks</string>
     <string name="usage_effect_actors_removed">Its Actors are removed</string>
+    <string name="usage_effect_starting_type_cleared">The Property starts as no Actor type</string>
     <string name="usage_effect_scene_values_removed">The Scene no longer gives it values</string>
     <string name="usage_effect_placeholder_to_text">The placeholder becomes plain text</string>
     <string name="usage_effect_text_removed">The text is removed</string>

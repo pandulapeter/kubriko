@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.actors.codegen
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeValue
 import com.pandulapeter.kubrikoCreator.actors.AnimatedValue
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
@@ -114,10 +115,10 @@ class BlockCodeTest {
             BlockDefinition.PlaySound("hit.wav") to Expected(setOf(AUDIO)),
             BlockDefinition.PlayMusic("level.mp3") to Expected(setOf(AUDIO)),
             BlockDefinition.GoToScene("Level") to Expected(setOf(SCENES)),
-            BlockDefinition.AddActor("Ball") to Expected(setOf(ACTOR_MANAGER), setOf(sceneOffset)),
-            BlockDefinition.AddActor("Missing") to Expected(),
-            BlockDefinition.MoveTowardsNearest("Ball") to Expected(setOf(MOVEMENT, ACTOR_MANAGER), setOf("com.pandulapeter.kubriko.helpers.extensions.normalized", sceneOffset)),
-            BlockDefinition.MoveTowardsNearest("Missing") to Expected(),
+            BlockDefinition.AddActor(ActorTypeValue.Fixed("Ball")) to Expected(setOf(ACTOR_MANAGER), setOf(sceneOffset)),
+            BlockDefinition.AddActor(ActorTypeValue.Fixed("Missing")) to Expected(),
+            BlockDefinition.MoveTowardsNearest(ActorTypeValue.Fixed("Ball")) to Expected(setOf(MOVEMENT, ACTOR_MANAGER), setOf("com.pandulapeter.kubriko.helpers.extensions.normalized", sceneOffset)),
+            BlockDefinition.MoveTowardsNearest(ActorTypeValue.Fixed("Missing")) to Expected(),
             BlockDefinition.SetNumber("speed", NumberValue.Fixed(1f)) to Expected(),
             BlockDefinition.SetNumber("score", NumberValue.Fixed(1f), manager = "Game") to Expected(managers = setOf("Game")),
             BlockDefinition.If(ConditionDefinition.Number("speed")) to Expected(),
@@ -187,7 +188,7 @@ class BlockCodeTest {
     @Test
     fun aManagersActorOnlyBlocksNeedNothing() {
         val managerScope = BlockScope("Game", BlockTypeKind.MANAGER, game.properties, listOf("Ball"), listOf(game))
-        listOf(BlockDefinition.RemoveOther, BlockDefinition.RemoveSelf, BlockDefinition.MoveTowardsNearest("Ball")).forEach { block ->
+        listOf(BlockDefinition.RemoveOther, BlockDefinition.RemoveSelf, BlockDefinition.MoveTowardsNearest(ActorTypeValue.Fixed("Ball"))).forEach { block ->
             assertEquals(BlockCode(listOf("// This Block only works in an Actor type.")), BlockCodeGenerator.blockCode(block, EventType.EVERY_FRAME, managerScope), block.toString())
         }
     }

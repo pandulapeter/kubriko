@@ -16,6 +16,11 @@ public enum class RelationKind(
     public val verb: String,
 ) {
     INHERITS_FROM("inherits from"),
+
+    /**
+     * An Actor type reference Property of a type starting as an Actor type.
+     */
+    STARTS_AS("has a Property starting as"),
     COLLIDES_WITH("collides with"),
 
     /**

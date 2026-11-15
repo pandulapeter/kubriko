@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeValue
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
@@ -53,9 +54,9 @@ class DeletingWithUsagesTest {
             EventDefinition(
                 EventType.EVERY_FRAME,
                 blocks = listOf(
-                    BlockDefinition.AddActor("Brick"),
+                    BlockDefinition.AddActor(ActorTypeValue.Fixed("Brick")),
                     BlockDefinition.Stop,
-                    BlockDefinition.MoveTowardsNearest("Brick"),
+                    BlockDefinition.MoveTowardsNearest(ActorTypeValue.Fixed("Brick")),
                     BlockDefinition.Kotlin("println(Brick::class)"),
                 ),
             ),
@@ -189,6 +190,19 @@ class DeletingWithUsagesTest {
         val hudAfterDeleting = afterDeleting.single { it.name == "Hud" } as ManagerTypeDefinition
         assertEquals(listOf("Last life", "Always"), hudAfterDeleting.texts.map { it.text })
         assertEquals(listOf(ConditionDefinition.Number("shown", value = NumberValue.Fixed(3f)), null), hudAfterDeleting.texts.map { it.shownWhen })
+    }
+
+    @Test
+    fun deletingAnActorTypeAPropertyStartsAsLeavesItStartingAsNone() = runTest {
+        val enemy = ActorTypeDefinition(name = "Enemy")
+        val spawner = ActorTypeDefinition(name = "Spawner", properties = listOf(PropertyDefinition.ActorType("spawned", "Enemy"), PropertyDefinition.ActorType("other", "Spawner")))
+        val context = commandContext(enemy, spawner)
+        assertEquals(
+            listOf(Usage(UsagePlace.InModel(RelationPlace.Type("Spawner")), RelationKind.STARTS_AS, RelationSubject.Type("Enemy"), UsageEffect.STARTING_TYPE_CLEARED)),
+            context.usagesOf(RelationSubject.Type("Enemy")),
+        )
+        val after = context.assertRoundTrip(Invocation(DeleteActorType, DeleteActorType.Input("Enemy"))) { context.snapshot() }.first
+        assertEquals(listOf(PropertyDefinition.ActorType("spawned"), PropertyDefinition.ActorType("other", "Spawner")), after.single().properties)
     }
 
     @Test

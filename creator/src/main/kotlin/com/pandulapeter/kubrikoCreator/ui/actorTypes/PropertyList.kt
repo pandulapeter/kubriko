@@ -101,6 +101,7 @@ internal fun LazyListScope.propertyListItems(
     inheritedProperties: List<PropertyDefinition> = emptyList(),
     flashedProperty: Pair<Any, String>? = null,
     onFindUsages: ((name: String) -> Unit)? = null,
+    actorTypeNames: List<String> = emptyList(),
 ) {
     item {
         PanelHeader(
@@ -144,6 +145,7 @@ internal fun LazyListScope.propertyListItems(
             property = property,
             otherNames = names - property.name,
             typeKind = typeKind,
+            actorTypeNames = actorTypeNames,
             onChange = { onChanged(property.name, it) },
             onRename = { onRenamed(property.name, property.withName(it)) },
             onRemove = { onRemoved(property.name) },
@@ -191,6 +193,7 @@ private fun PropertyRow(
     property: PropertyDefinition,
     otherNames: List<String>,
     typeKind: BlockTypeKind,
+    actorTypeNames: List<String>,
     onChange: (PropertyDefinition) -> Unit,
     onRename: (String) -> Rejection?,
     onRemove: () -> Unit,
@@ -262,6 +265,11 @@ private fun PropertyRow(
                     modifier = Modifier.fillMaxWidth(),
                     color = property.initialValue,
                     onColorChange = { onChange(property.copy(initialValue = it)) },
+                )
+                is PropertyDefinition.ActorType -> ActorTypeChoice(
+                    actorType = property.initialValue,
+                    actorTypeNames = actorTypeNames,
+                    onSelected = { onChange(property.copy(initialValue = it)) },
                 )
             }
         }

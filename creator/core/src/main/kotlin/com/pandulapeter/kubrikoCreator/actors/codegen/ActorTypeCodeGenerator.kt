@@ -236,12 +236,20 @@ public object ActorTypeCodeGenerator {
      * The registry of the Scene metadata of every block-built Actor type, of the Scene settings ([SceneSettingsCodeGenerator]),
      * and of the values Scenes give the Properties of [managerTypes] ([ManagerSceneValuesCode]).
      */
-    internal fun generateRegistry(actorTypeNames: List<String>, packageName: String, managerTypes: List<ManagerTypeDefinition> = emptyList()) = GeneratedFile.withHeader("", buildString {
+    internal fun generateRegistry(
+        actorTypeNames: List<String>,
+        packageName: String,
+        managerTypes: List<ManagerTypeDefinition> = emptyList(),
+        baseClassNames: Set<String> = emptySet(),
+    ) = GeneratedFile.withHeader("", buildString {
         val sceneValues = ManagerSceneValuesCode.typesWithValues(managerTypes)
         appendLine("package $packageName.$GENERATED_PACKAGE")
         appendLine()
-        (listOf("com.pandulapeter.kubriko.sceneEditor.EditableMetadata") + if (sceneValues.isEmpty()) emptyList() else ManagerSceneValuesCode.importsOf(sceneValues)).sorted()
-            .forEach { appendLine("import $it") }
+        buildSet {
+            add("com.pandulapeter.kubriko.sceneEditor.EditableMetadata")
+            if (actorTypeNames.isNotEmpty()) add("com.pandulapeter.kubriko.actor.Actor")
+            if (sceneValues.isNotEmpty()) addAll(ManagerSceneValuesCode.importsOf(sceneValues))
+        }.sorted().forEach { appendLine("import $it") }
         appendLine()
         appendLine("/**")
         appendLine(" * The Scene metadata of every Actor type built in Kubriko Creator, of the Scene settings, and of what Scenes give the")
@@ -251,6 +259,7 @@ public object ActorTypeCodeGenerator {
         appendLine("    val metadata: List<EditableMetadata<*>> = listOf(")
         (actorTypeNames + SceneSettingsCodeGenerator.SETTINGS_NAME + sceneValues.map { it.name }).sorted().forEach { appendLine("        $it.metadata,") }
         appendLine("    )")
+        if (actorTypeNames.isNotEmpty()) with(ActorTypeValueCode) { appendLookups(actorTypeNames, baseClassNames) }
         sceneValues.forEach { with(ManagerSceneValuesCode) { appendSceneValues(it, packageName) } }
         appendLine("}")
     })

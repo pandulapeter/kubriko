@@ -35,8 +35,8 @@ public val BlockDefinition.propertyReference: PropertyReference?
  */
 public val BlockDefinition.actorTypeReference: String?
     get() = when (this) {
-        is BlockDefinition.AddActor -> actorType
-        is BlockDefinition.MoveTowardsNearest -> actorType
+        is BlockDefinition.AddActor -> actorType.fixedName
+        is BlockDefinition.MoveTowardsNearest -> actorType.fixedName
         is BlockDefinition.If -> condition.actorTypeReference
         is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
         is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
@@ -52,8 +52,8 @@ public val BlockDefinition.actorTypeReference: String?
  * [this] Block with the Actor type it adds, moves towards, or counts renamed from [oldName] to [newName], if it is that one.
  */
 internal fun BlockDefinition.withActorTypeRenamed(oldName: String, newName: String) = when (this) {
-    is BlockDefinition.AddActor -> if (actorType == oldName) copy(actorType = newName) else this
-    is BlockDefinition.MoveTowardsNearest -> if (actorType == oldName) copy(actorType = newName) else this
+    is BlockDefinition.AddActor -> copy(actorType = actorType.withActorTypeRenamed(oldName, newName))
+    is BlockDefinition.MoveTowardsNearest -> copy(actorType = actorType.withActorTypeRenamed(oldName, newName))
     is BlockDefinition.If -> copy(condition = condition.withActorTypeRenamed(oldName, newName))
     is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
     is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
@@ -107,6 +107,7 @@ internal fun BlockDefinition.withPropertyRenamed(oldName: String, newName: Strin
     this is BlockDefinition.Log -> copy(message = PropertyPlaceholders.withPropertyRenamed(message, manager, oldName, newName))
     else -> this
 }.withNumberValues { it.withPropertyRenamed(oldName, newName, manager) }.withColorValues { it.withPropertyRenamed(oldName, newName, manager) }
+    .withActorTypeValues { it.withPropertyRenamed(oldName, newName, manager) }
 
 /**
  * [this] Block with the Properties of the Manager type [oldName] it uses (or shows, in a Log Block) taken from [newName]
@@ -117,6 +118,7 @@ internal fun BlockDefinition.withManagerRenamed(oldName: String, newName: String
     this is BlockDefinition.Log -> copy(message = PropertyPlaceholders.withManagerRenamed(message, oldName, newName))
     else -> this
 }.withNumberValues { it.withManagerRenamed(oldName, newName) }.withColorValues { it.withManagerRenamed(oldName, newName) }
+    .withActorTypeValues { it.withManagerRenamed(oldName, newName) }
 
 /**
  * [this] Block using the Property called [name] of [manager] (the type's own one, if null) instead, if it is one that
@@ -285,8 +287,45 @@ public val BlockDefinition.colorPropertyReferences: List<PropertyReference>
     get() = colorValues.mapNotNull { it.propertyReference }
 
 /**
- * The Properties [this] Block reads as values ([NumberValue.Property] and [ColorValue.Property]), with or without a name
- * chosen yet.
+ * The Actor type [this] Block adds or moves towards, if it is one of those.
+ */
+public val BlockDefinition.actorTypeValue: ActorTypeValue?
+    get() = when (this) {
+        is BlockDefinition.AddActor -> actorType
+        is BlockDefinition.MoveTowardsNearest -> actorType
+        is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection,
+        is BlockDefinition.MoveWithKeys, BlockDefinition.Stop, BlockDefinition.RunParentEvent, is BlockDefinition.JumpTo,
+        BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
+        is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText, is BlockDefinition.SetToggle,
+        is BlockDefinition.SetColorProperty, is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene,
+        BlockDefinition.RestartScene, is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic,
+        BlockDefinition.StopMusic, is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, is BlockDefinition.SetColor,
+        is BlockDefinition.SetOpacity, is BlockDefinition.ChangeOpacity, is BlockDefinition.Animate, is BlockDefinition.If,
+        BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End, is BlockDefinition.Log, is BlockDefinition.Kotlin,
+        -> null
+    }
+
+/**
+ * [this] Block with the Actor type it adds or moves towards replaced by what [transform] makes of it.
+ */
+public fun BlockDefinition.withActorTypeValues(transform: (ActorTypeValue) -> ActorTypeValue): BlockDefinition = when (this) {
+    is BlockDefinition.AddActor -> copy(actorType = transform(actorType))
+    is BlockDefinition.MoveTowardsNearest -> copy(actorType = transform(actorType))
+    is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, is BlockDefinition.MoveInDirection, is BlockDefinition.MoveWithKeys,
+    BlockDefinition.Stop, BlockDefinition.RunParentEvent, is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge,
+    BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther, is BlockDefinition.SetNumber,
+    is BlockDefinition.ChangeNumber, is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.SetColorProperty,
+    is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene, BlockDefinition.RestartScene,
+    is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic,
+    is BlockDefinition.SetFrame, is BlockDefinition.SetAnimation, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity,
+    is BlockDefinition.ChangeOpacity, is BlockDefinition.Animate, is BlockDefinition.If, BlockDefinition.Else, is BlockDefinition.Repeat,
+    BlockDefinition.End, is BlockDefinition.Log, is BlockDefinition.Kotlin,
+    -> this
+}
+
+/**
+ * The Properties [this] Block reads as values ([NumberValue.Property], [ColorValue.Property], and
+ * [ActorTypeValue.Property]), with or without a name chosen yet.
  */
 public val BlockDefinition.valuePropertyReferences: List<PropertyReference>
-    get() = numberPropertyReferences + colorPropertyReferences
+    get() = numberPropertyReferences + colorPropertyReferences + listOfNotNull(actorTypeValue?.propertyReference)

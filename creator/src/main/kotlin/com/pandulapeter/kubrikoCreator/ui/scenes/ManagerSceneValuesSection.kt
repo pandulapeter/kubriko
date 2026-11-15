@@ -47,6 +47,7 @@ internal fun ManagerSceneValuesSection(
     onSet: (managerType: String, ActorValueChanges.PropertyValue) -> Unit,
     onClear: (managerType: String, property: String) -> Unit,
     modifier: Modifier = Modifier,
+    actorTypeNames: List<String> = emptyList(),
 ) = Column(
     modifier = modifier,
 ) {
@@ -65,6 +66,7 @@ internal fun ManagerSceneValuesSection(
             managerType.properties.forEach { property ->
                 SceneValueRow(
                     property = property,
+                    actorTypeNames = actorTypeNames,
                     value = values[managerType.name]?.get(property.name),
                     onSet = { onSet(managerType.name, it) },
                     onClear = { onClear(managerType.name, property.name) },
@@ -77,6 +79,7 @@ internal fun ManagerSceneValuesSection(
 @Composable
 private fun SceneValueRow(
     property: PropertyDefinition,
+    actorTypeNames: List<String>,
     value: JsonPrimitive?,
     onSet: (ActorValueChanges.PropertyValue) -> Unit,
     onClear: () -> Unit,
@@ -90,6 +93,7 @@ private fun SceneValueRow(
         value = value,
         label = if (value == null) stringResource(Res.string.scene_value_kept, property.name) else property.name,
         onChange = onSet,
+        actorTypeNames = actorTypeNames,
     )
     if (value != null) {
         IconActionButton(icon = Res.drawable.ic_close, label = Res.string.action_clear_scene_value, onClick = onClear)

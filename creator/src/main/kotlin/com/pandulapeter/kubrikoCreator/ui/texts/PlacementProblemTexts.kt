@@ -11,6 +11,9 @@ package com.pandulapeter.kubrikoCreator.ui.texts
 
 import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.error_placement_actor_type_property_missing
+import kubriko.creator.generated.resources.error_placement_actor_type_property_missing_similar
+import kubriko.creator.generated.resources.error_placement_actor_type_property_of_other_kind
 import kubriko.creator.generated.resources.error_placement_block_animate_in_manager_type
 import kubriko.creator.generated.resources.error_placement_block_animation_in_manager_type
 import kubriko.creator.generated.resources.error_placement_block_appearance_in_manager_type
@@ -85,4 +88,7 @@ internal fun PlacementProblem.toResource(): StringResource = when (this) {
     PlacementProblem.COLOR_PROPERTY_MISSING -> Res.string.error_placement_color_property_missing
     PlacementProblem.COLOR_PROPERTY_MISSING_SIMILAR -> Res.string.error_placement_color_property_missing_similar
     PlacementProblem.COLOR_PROPERTY_OF_OTHER_KIND -> Res.string.error_placement_color_property_of_other_kind
+    PlacementProblem.ACTOR_TYPE_PROPERTY_MISSING -> Res.string.error_placement_actor_type_property_missing
+    PlacementProblem.ACTOR_TYPE_PROPERTY_MISSING_SIMILAR -> Res.string.error_placement_actor_type_property_missing_similar
+    PlacementProblem.ACTOR_TYPE_PROPERTY_OF_OTHER_KIND -> Res.string.error_placement_actor_type_property_of_other_kind
 }

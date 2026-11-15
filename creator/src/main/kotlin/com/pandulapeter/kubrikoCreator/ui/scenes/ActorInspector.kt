@@ -49,6 +49,7 @@ internal fun ActorInspector(
     definition: ActorTypeDefinition?,
     onChange: (SetActorValues.Input.() -> SetActorValues.Input) -> Unit,
     modifier: Modifier = Modifier,
+    actorTypeNames: List<String> = emptyList(),
 ) = Column(
     modifier = modifier,
     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -97,6 +98,7 @@ internal fun ActorInspector(
                 property = property,
                 value = ActorStateEdits.propertyOf(state, property.name),
                 onChange = { value -> onChange { copy(properties = listOf(value)) } },
+                actorTypeNames = actorTypeNames,
             )
         }
     }

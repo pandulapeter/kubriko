@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeValue
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
@@ -103,7 +104,7 @@ class RestoringChangesTest {
     fun aNewChangeStillNeedsWhatItRefersToToExist() = runTest {
         val context = commandContext(ActorTypeDefinition(name = "Player", events = listOf(EventDefinition(EventType.EVERY_FRAME))))
         val executor = executor(context)
-        val rejected = assertIs<CommandOutcome.Rejected>(executor.execute(Invocation(AddBlock, AddBlock.Input("Player", 0, BlockDefinition.AddActor("Bat", NumberValue.Fixed(0f), NumberValue.Fixed(0f))))))
+        val rejected = assertIs<CommandOutcome.Rejected>(executor.execute(Invocation(AddBlock, AddBlock.Input("Player", 0, BlockDefinition.AddActor(ActorTypeValue.Fixed("Bat"), NumberValue.Fixed(0f), NumberValue.Fixed(0f))))))
         assertEquals(LookupProblem.ACTOR_TYPE_MISSING, rejected.rejection.reason)
         assertEquals(LookupProblem.ACTOR_TYPE_MISSING, executor.validate(Invocation(CreateActorType, player.copy(name = "Enemy", events = listOf(player.events.first()))))?.reason)
     }

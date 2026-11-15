@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.project
 
+import com.pandulapeter.kubrikoCreator.actors.store.ActorTypeReferencesMigration
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.store.ColorPropertiesMigration
 import com.pandulapeter.kubrikoCreator.actors.store.EdgeValuesMigration
@@ -104,6 +105,7 @@ public class ProjectFormat(
             ReservedPropertyMigration.ACTOR_WATCHING,
             TextOptionsMigration,
             ColorPropertiesMigration,
+            ActorTypeReferencesMigration,
         )
 
         /**

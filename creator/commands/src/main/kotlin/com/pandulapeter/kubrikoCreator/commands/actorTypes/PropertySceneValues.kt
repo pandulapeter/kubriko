@@ -45,5 +45,6 @@ internal fun JsonElement.fits(kind: PropertyKind) = this is JsonPrimitive && whe
     PropertyKind.NUMBER -> !isString && floatOrNull != null && longOrNull.let { it == null || it in Int.MIN_VALUE..Int.MAX_VALUE }
     PropertyKind.TEXT -> isString
     PropertyKind.TOGGLE -> !isString && booleanOrNull != null
+    PropertyKind.ACTOR_TYPE -> isString
     PropertyKind.COLOR -> !isString && longOrNull.let { it != null && (it == 0L || it !in Int.MIN_VALUE..Int.MAX_VALUE) }
 }

@@ -9,15 +9,20 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.scenes
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.scenes.ActorValueChanges
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
+import com.pandulapeter.kubrikoCreator.ui.actorTypes.ActorTypeChoice
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
 import com.pandulapeter.kubrikoCreator.ui.components.ColorField
 import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
@@ -37,6 +42,7 @@ internal fun PropertyValueField(
     onChange: (ActorValueChanges.PropertyValue) -> Unit,
     modifier: Modifier = Modifier,
     label: String = property.name,
+    actorTypeNames: List<String> = emptyList(),
 ) = when (property) {
     is PropertyDefinition.Number -> NumberField(
         modifier = modifier.fillMaxWidth(),
@@ -63,4 +69,16 @@ internal fun PropertyValueField(
         onColorChange = { onChange(ActorValueChanges.PropertyValue(property.name, color = it)) },
         label = label,
     )
+    is PropertyDefinition.ActorType -> Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text = label, style = MaterialTheme.typography.bodyMedium)
+        ActorTypeChoice(
+            actorType = value?.takeIf { it.isString }?.content ?: property.initialValue,
+            actorTypeNames = actorTypeNames,
+            onSelected = { onChange(ActorValueChanges.PropertyValue(property.name, actorType = it)) },
+        )
+    }
 }

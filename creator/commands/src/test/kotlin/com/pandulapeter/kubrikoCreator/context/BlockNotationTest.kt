@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.context
 
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeValue
 import com.pandulapeter.kubrikoCreator.actors.AnimatedValue
 import com.pandulapeter.kubrikoCreator.actors.AnimationEasing
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
@@ -74,12 +75,12 @@ class BlockNotationTest {
         assertEquals("If by chance ((none)%)", BlockNotation.of(BlockDefinition.If(ConditionDefinition.Chance(NumberValue.Property()))))
         assertEquals(
             "Add an Actor of Drifter at (the right edge + 50, 10) from this Actor (an edge is the Scene's own)",
-            BlockNotation.of(BlockDefinition.AddActor("Drifter", NumberValue.Edge(SceneEdge.RIGHT, 50f), NumberValue.Fixed(10f))),
+            BlockNotation.of(BlockDefinition.AddActor(ActorTypeValue.Fixed("Drifter"), NumberValue.Edge(SceneEdge.RIGHT, 50f), NumberValue.Fixed(10f))),
         )
         assertEquals(
             "Add an Actor of Drifter at (the right edge + 50, a random number from the top edge - 0.5 to the bottom edge) from the center",
             BlockNotation.of(
-                BlockDefinition.AddActor("Drifter", NumberValue.Edge(SceneEdge.RIGHT, 50f), NumberValue.BetweenEdges(SceneEdge.TOP, -0.5f, SceneEdge.BOTTOM), isRelative = false),
+                BlockDefinition.AddActor(ActorTypeValue.Fixed("Drifter"), NumberValue.Edge(SceneEdge.RIGHT, 50f), NumberValue.BetweenEdges(SceneEdge.TOP, -0.5f, SceneEdge.BOTTOM), isRelative = false),
             ),
         )
     }

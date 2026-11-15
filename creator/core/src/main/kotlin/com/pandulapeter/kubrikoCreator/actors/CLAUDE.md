@@ -36,6 +36,12 @@
   allocates), and a deleted Property's becomes its starting color. Kubriko saves a `Color` through `SerializableColor`,
   so a Property kind's saved type can differ from its Kotlin type (`PropertyKind.savedType`). A color has no words, so a
   text's or Log Block's placeholder of one stays as written.
+- The Actor type the Blocks adding an Actor and moving towards the nearest one take is an `ActorTypeValue` (a type by its
+  name, still a bare name, or an Actor type reference Property's), so a spawner can keep what it spawns. A Property's
+  type is known only while the game runs, so `GeneratedActorTypes` looks it up by name with a `when` over every type
+  (`ActorTypeValueCode`), which allocates nothing; the counting condition and collision Events stay fixed, since what
+  they need is generated per type. Generated locals that sit beside a Block's values start with an underscore, which no
+  Property's name can, so the values still read the Properties without reserving another name.
 - An edge is the Scene settings' bounds, or the screen's while there are none, as the edge Event decides. Values read it
   through `GeneratedScenes.edge` and `randomBetweenEdges`, which read the settings once per call, so a Scene that finishes
   loading meanwhile can't mix its bounds with the screen's; the edge Event takes one snapshot in the Actor's own code, so a

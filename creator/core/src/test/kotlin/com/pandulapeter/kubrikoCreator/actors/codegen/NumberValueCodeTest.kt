@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.actors.codegen
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeValue
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
@@ -134,15 +135,15 @@ class NumberValueCodeTest {
         fun line(block: BlockDefinition.AddActor) = BlockCodeGenerator.blockCode(block, EventType.EVERY_FRAME, scope).lines.single()
         assertEquals(
             "actorManager.add(Ball.metadata.instantiate(SceneOffset((generatedScenes.edge(GeneratedScenes.RIGHT) + 50f).sceneUnit, body.position.y + 10f.sceneUnit)).restore())",
-            line(BlockDefinition.AddActor("Ball", x = NumberValue.Edge(SceneEdge.RIGHT, 50f), y = NumberValue.Fixed(10f))),
+            line(BlockDefinition.AddActor(ActorTypeValue.Fixed("Ball"), x = NumberValue.Edge(SceneEdge.RIGHT, 50f), y = NumberValue.Fixed(10f))),
         )
         assertEquals(
             "actorManager.add(Ball.metadata.instantiate(body.position + SceneOffset(5f.sceneUnit, 10f.sceneUnit)).restore())",
-            line(BlockDefinition.AddActor("Ball", x = NumberValue.Fixed(5f), y = NumberValue.Fixed(10f))),
+            line(BlockDefinition.AddActor(ActorTypeValue.Fixed("Ball"), x = NumberValue.Fixed(5f), y = NumberValue.Fixed(10f))),
         )
         assertEquals(
             "actorManager.add(Ball.metadata.instantiate(SceneOffset(5f.sceneUnit, generatedScenes.edge(GeneratedScenes.TOP).sceneUnit)).restore())",
-            line(BlockDefinition.AddActor("Ball", x = NumberValue.Fixed(5f), y = NumberValue.Edge(SceneEdge.TOP), isRelative = false)),
+            line(BlockDefinition.AddActor(ActorTypeValue.Fixed("Ball"), x = NumberValue.Fixed(5f), y = NumberValue.Edge(SceneEdge.TOP), isRelative = false)),
         )
     }
 }

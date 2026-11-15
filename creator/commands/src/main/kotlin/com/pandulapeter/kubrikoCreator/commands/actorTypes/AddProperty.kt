@@ -39,7 +39,7 @@ public object AddProperty : WriteCommand<AddProperty.Input> {
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.BlockType(input.actorType)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateType(input.actorType)
-        ?: context.requireType(input.actorType).let { type -> validateProperty(input.property, type.properties, type.kind) }
+        ?: context.requireType(input.actorType).let { type -> context.validateProperty(input.property, type.properties, type.kind) }
         ?: context.validateInheritedKind(input.actorType, input.property)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {

@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.actors.codegen
 
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeValue
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.ColorValue
 import com.pandulapeter.kubrikoCreator.actors.Comparison
@@ -124,7 +125,7 @@ class ManagerTypeCodeGeneratorTest {
 
     @Test
     fun actorsAreAddedRelativeToTheScene() {
-        val code = generate(game.copy(events = listOf(EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.AddActor("Ball", NumberValue.Fixed(10f), NumberValue.Fixed(20f), isRelative = true))))), actorTypeNames = listOf("Ball"))
+        val code = generate(game.copy(events = listOf(EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.AddActor(ActorTypeValue.Fixed("Ball"), NumberValue.Fixed(10f), NumberValue.Fixed(20f), isRelative = true))))), actorTypeNames = listOf("Ball"))
         assertContains(code, "        actorManager.add(Ball.metadata.instantiate(SceneOffset(10f.sceneUnit, 20f.sceneUnit)).restore())\n")
         assertContains(code, "import com.pandulapeter.kubriko.types.SceneOffset\n")
     }

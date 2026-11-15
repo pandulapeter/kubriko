@@ -112,7 +112,8 @@ public fun BlockTypeDefinition.withBlockMoved(eventIndex: Int, blockIndex: Int, 
 }
 
 /**
- * Every collision Event, Block, text condition, and Kotlin code that names [oldName] names [newName] instead.
+ * Every collision Event, Block, text condition, Actor type reference Property's starting value, and Kotlin code that names
+ * [oldName] names [newName] instead.
  */
 internal fun BlockTypeDefinition.withOtherActorTypeRenamed(oldName: String, newName: String) = withEvents(
     events.map { event ->
@@ -121,7 +122,9 @@ internal fun BlockTypeDefinition.withOtherActorTypeRenamed(oldName: String, newN
             blocks = event.blocks.map { it.withActorTypeRenamed(oldName, newName) },
         )
     },
-).withTexts { it.copy(shownWhen = it.shownWhen?.withActorTypeRenamed(oldName, newName)) }.withKotlinCode { KotlinIdentifiers.withRenamed(it, oldName, newName) }.let { renamed ->
+).withTexts { it.copy(shownWhen = it.shownWhen?.withActorTypeRenamed(oldName, newName)) }
+    .withProperties(properties.map { if (it is PropertyDefinition.ActorType && it.initialValue == oldName) it.copy(initialValue = newName) else it })
+    .withKotlinCode { KotlinIdentifiers.withRenamed(it, oldName, newName) }.let { renamed ->
     if (renamed is ActorTypeDefinition && renamed.parent == oldName) renamed.copy(parent = newName) else renamed
 }
 

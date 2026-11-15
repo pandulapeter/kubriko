@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.context
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeValue
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.Comparison
@@ -123,7 +124,7 @@ class HealthChecksTest {
                 EventDefinition(
                     EventType.EVERY_FRAME,
                     blocks = listOf(
-                        BlockDefinition.AddActor("Brick"),
+                        BlockDefinition.AddActor(ActorTypeValue.Fixed("Brick")),
                         BlockDefinition.GoToScene("cave"),
                         BlockDefinition.SetNumber("gold", manager = "Game"),
                         BlockDefinition.Log("{hp} {mana}"),

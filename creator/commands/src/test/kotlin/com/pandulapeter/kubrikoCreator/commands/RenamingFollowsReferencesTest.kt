@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeValue
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
@@ -30,6 +31,7 @@ import com.pandulapeter.kubrikoCreator.context.RelationKind
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.context.Usage
 import com.pandulapeter.kubrikoCreator.context.UsagePlace
+import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import kotlinx.coroutines.test.runTest
 import java.io.File
 import kotlin.test.Test
@@ -52,6 +54,7 @@ class RenamingFollowsReferencesTest {
         RelationKind.COUNTS,
         RelationKind.PLACES,
         RelationKind.INHERITS_FROM,
+        RelationKind.STARTS_AS,
         RelationKind.MENTIONS,
     )
     private val managerTypeKinds = setOf(RelationKind.CHANGES, RelationKind.READS, RelationKind.READS_VALUE, RelationKind.GIVES_VALUES_TO, RelationKind.MENTIONS)
@@ -95,7 +98,7 @@ class RenamingFollowsReferencesTest {
         val ball = ActorTypeDefinition(
             name = "Ball",
             events = listOf(
-                EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.AddActor("Brick"), BlockDefinition.MoveTowardsNearest("Brick"), BlockDefinition.Kotlin("println(Brick::class)"))),
+                EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.AddActor(ActorTypeValue.Fixed("Brick")), BlockDefinition.MoveTowardsNearest(ActorTypeValue.Fixed("Brick")), BlockDefinition.Kotlin("println(Brick::class)"))),
                 EventDefinition(EventType.COLLISION, otherActorType = "Brick"),
             ),
         )
@@ -105,14 +108,17 @@ class RenamingFollowsReferencesTest {
                 EventDefinition(EventType.ACTOR_REMOVED, otherActorType = "Brick", blocks = listOf(BlockDefinition.If(ConditionDefinition.ActorCount("Brick")), BlockDefinition.End)),
             ),
         )
-        val context = commandContext(ball, brick, bigBrick, game)
-        context.writeFile("src/commonMain/composeResources/files/scenes/level.json", """[{"typeId":"Brick","state":"{}"}]""")
+        val spawner = ActorTypeDefinition(name = "Spawner", properties = listOf(PropertyDefinition.ActorType("spawned", "Brick")))
+        val context = commandContext(ball, brick, bigBrick, game, spawner)
+        context.writeFile("src/commonMain/composeResources/files/scenes/level.json", """[{"typeId":"Brick","state":"{}"},{"typeId":"Spawner","state":"{\"spawned\":\"Brick\"}"}]""")
         context.scenes.refresh()
         context.writeFile("src/commonMain/kotlin/Game.kt", "val first = Brick()")
         CreatePage.apply(context, CreatePage.Input("README", "# Breakout\n\nThe ball breaks each [brick](../.kubriko/actors/Brick.json).\n"))
         context.assertFollowed(RelationSubject.Type("Brick"), RelationSubject.Type("Stone"), actorTypeKinds) {
             RenameActorType.apply(context, RenameActorType.Input("Brick", "Stone"))
         }
+        val spawnerState = SceneDocument.parse(checkNotNull(context.scenes.read("level"))).single { it.typeId == "Spawner" }.state
+        assertEquals("""{"spawned":"Stone"}""", spawnerState, "A saved Actor type reference follows the rename too.")
     }
 
     @Test

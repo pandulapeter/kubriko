@@ -79,6 +79,7 @@ internal class ReferenceCleanup(
             when (place) {
                 is RelationPlace.Type -> {
                     if (usage.effect == UsageEffect.SPRITE_CLEARED) removal.clearsSprite = true
+                    if (usage.effect == UsageEffect.STARTING_TYPE_CLEARED) removal.clearsStartingTypes = true
                     val eventIndex = place.eventIndex ?: return@forEach
                     val blockIndex = place.blockIndex
                     when (usage.effect) {
@@ -88,7 +89,7 @@ internal class ReferenceCleanup(
                             val blocks = types.first { it.name == place.name }.events[eventIndex].blocks
                             removal.blocks.getOrPut(eventIndex, ::HashSet) += ProjectReferences.sectionOf(blocks, checkNotNull(blockIndex))
                         }
-                        UsageEffect.PLACEHOLDER_TO_TEXT, UsageEffect.VALUE_TO_FIXED, UsageEffect.ACTORS_REMOVED, UsageEffect.SCENE_VALUES_REMOVED, UsageEffect.TEXT_REMOVED, UsageEffect.KOTLIN_TO_CHANGE, UsageEffect.PREVENTS_DELETING, UsageEffect.MENTION_TO_TEXT,
+                        UsageEffect.PLACEHOLDER_TO_TEXT, UsageEffect.VALUE_TO_FIXED, UsageEffect.ACTORS_REMOVED, UsageEffect.SCENE_VALUES_REMOVED, UsageEffect.STARTING_TYPE_CLEARED, UsageEffect.TEXT_REMOVED, UsageEffect.KOTLIN_TO_CHANGE, UsageEffect.PREVENTS_DELETING, UsageEffect.MENTION_TO_TEXT,
                         UsageEffect.SPRITE_CLEARED, UsageEffect.MUSIC_CLEARED, UsageEffect.IMAGE_COPIED, UsageEffect.DELETED_WITH_FOLDER,
                         -> Unit
                     }
@@ -123,7 +124,13 @@ internal class ReferenceCleanup(
                 },
             )
         }
-        val withEvents = type.withEvents(events).let { if (removal.clearsSprite && it is ActorTypeDefinition) it.copy(sprite = null) else it }
+        val withEvents = type.withEvents(events).let { if (removal.clearsSprite && it is ActorTypeDefinition) it.copy(sprite = null) else it }.let { changed ->
+            if (!removal.clearsStartingTypes) {
+                changed
+            } else {
+                changed.withProperties(changed.properties.map { if (it is PropertyDefinition.ActorType && it.initialValue in deleted.types) it.copy(initialValue = "") else it })
+            }
+        }
         return if (withEvents is ManagerTypeDefinition && withEvents.texts.isNotEmpty()) {
             withEvents.copy(
                 texts = withEvents.texts.mapIndexedNotNull { index, text ->
@@ -184,5 +191,6 @@ internal class ReferenceCleanup(
         val texts = HashSet<Int>()
         val removedTexts = HashSet<Int>()
         var clearsSprite = false
+        var clearsStartingTypes = false
     }
 }

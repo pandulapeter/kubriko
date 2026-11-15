@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.actors.codegen
 
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeValue
 import com.pandulapeter.kubrikoCreator.actors.Axis
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
@@ -403,6 +404,29 @@ class ActorTypeCodeGeneratorTest {
     }
 
     @Test
+    fun theRegistryLooksTypesUpByNameForBlocksTakingATypeAPropertyNamesAndFindsChildrenThroughTheirBase() {
+        val registry = ActorTypeCodeGenerator.generateRegistry(listOf("Enemy", "Ball"), packageName, baseClassNames = setOf("Enemy"))
+        assertContains(registry, "    fun metadataOf(name: String): EditableMetadata<*>? = when (name) {\n        \"Ball\" -> Ball.metadata\n        \"Enemy\" -> Enemy.metadata\n        else -> null\n    }\n")
+        assertContains(registry, "        \"Enemy\" -> actor is EnemyBase && !actor.isRemoved\n")
+        assertContains(registry, "        \"Ball\" -> actor is Ball && !actor.isRemoved\n")
+        assertContains(registry, "    fun nearestActiveOf(actors: List<Actor>, name: String, from: com.pandulapeter.kubriko.actor.traits.Positionable): com.pandulapeter.kubriko.actor.traits.Positionable? {\n")
+        assertFalse("metadataOf" in ActorTypeCodeGenerator.generateRegistry(emptyList(), packageName))
+    }
+
+    @Test
+    fun blocksTakingTheTypeAPropertyNamesLookItUpWhileTheGameRuns() {
+        val scope = BlockScope("Spawner", BlockTypeKind.ACTOR, listOf(PropertyDefinition.ActorType("enemyType")), actorTypeNames = listOf("Spawner", "Enemy"))
+        fun lines(block: BlockDefinition) = BlockCodeGenerator.blockCode(block, EventType.EVERY_FRAME, scope).lines
+        assertEquals(
+            listOf("GeneratedActorTypes.metadataOf(enemyType)?.let { _metadata -> actorManager.add(_metadata.instantiate(body.position + SceneOffset(0f.sceneUnit, 0f.sceneUnit)).restore()) }"),
+            lines(BlockDefinition.AddActor(ActorTypeValue.Property("enemyType"))),
+        )
+        assertEquals(listOf("// Choose an Actor type for this Block."), lines(BlockDefinition.AddActor(ActorTypeValue.Property("missing"))))
+        assertContains(lines(BlockDefinition.MoveTowardsNearest(ActorTypeValue.Property("enemyType"))), "    val _nearest = GeneratedActorTypes.nearestActiveOf(actorManager.allActors.value, enemyType, this)")
+        assertEquals(listOf("// Choose an Actor type for this Block."), lines(BlockDefinition.MoveTowardsNearest(ActorTypeValue.Property())))
+    }
+
+    @Test
     fun aProjectWithoutActorTypesStillHasSceneSettings() {
         assertContains(ActorTypeCodeGenerator.generateRegistry(emptyList(), packageName), "    val metadata: List<EditableMetadata<*>> = listOf(\n        SceneSettings.metadata,\n    )\n")
     }
@@ -675,9 +699,9 @@ class ActorTypeCodeGeneratorTest {
     @Test
     fun actorsAreAddedWithTheirTypesDefaultsRelativeToThisActorOrTheScene() {
         fun lines(block: BlockDefinition) = BlockCodeGenerator.blockCode(block, EventType.EVERY_FRAME, BlockScope("Player", actorTypeNames = listOf("Player", "Bullet"))).lines
-        assertEquals(listOf("actorManager.add(Bullet.metadata.instantiate(body.position + SceneOffset(0f.sceneUnit, -20f.sceneUnit)).restore())"), lines(BlockDefinition.AddActor("Bullet", NumberValue.Fixed(0f), NumberValue.Fixed(-20f))))
-        assertEquals(listOf("actorManager.add(Player.metadata.instantiate(SceneOffset(5f.sceneUnit, 0f.sceneUnit)).restore())"), lines(BlockDefinition.AddActor("Player", NumberValue.Fixed(5f), isRelative = false)))
-        assertEquals(listOf("// Choose an Actor type for this Block."), lines(BlockDefinition.AddActor("Deleted")))
+        assertEquals(listOf("actorManager.add(Bullet.metadata.instantiate(body.position + SceneOffset(0f.sceneUnit, -20f.sceneUnit)).restore())"), lines(BlockDefinition.AddActor(ActorTypeValue.Fixed("Bullet"), NumberValue.Fixed(0f), NumberValue.Fixed(-20f))))
+        assertEquals(listOf("actorManager.add(Player.metadata.instantiate(SceneOffset(5f.sceneUnit, 0f.sceneUnit)).restore())"), lines(BlockDefinition.AddActor(ActorTypeValue.Fixed("Player"), NumberValue.Fixed(5f), isRelative = false)))
+        assertEquals(listOf("// Choose an Actor type for this Block."), lines(BlockDefinition.AddActor(ActorTypeValue.Fixed("Deleted"))))
         assertEquals(listOf("// Choose an Actor type for this Block."), lines(BlockDefinition.MoveTowardsNearest()))
     }
 
@@ -685,7 +709,7 @@ class ActorTypeCodeGeneratorTest {
     fun movingTowardsTheNearestLooksAtEveryOtherActorOfTheTypeWithoutAllocating() {
         assertFalse("distanceTo" in generate())
         val code = ActorTypeCodeGenerator.generateActorType(
-            ActorTypeDefinition(name = "Player", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.MoveTowardsNearest("Coin", NumberValue.Fixed(150f)))))),
+            ActorTypeDefinition(name = "Player", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.MoveTowardsNearest(ActorTypeValue.Fixed("Coin"), NumberValue.Fixed(150f)))))),
             packageName,
             knownActorTypeNames = listOf("Player", "Coin"),
         )
@@ -695,7 +719,7 @@ class ActorTypeCodeGeneratorTest {
         assertContains(code, "                val distanceSquared = offset.x.raw * offset.x.raw + offset.y.raw * offset.y.raw\n                if (distanceSquared < nearestDistanceSquared) {\n")
         assertContains(code, "        run {\n            val speed = 150f\n            val actors = actorManager.allActors.value\n")
         assertContains(code, "            if (nearest != null) velocity = (nearest.body.position - body.position).normalized() * speed\n")
-        val towardsItsOwnType = BlockCodeGenerator.blockCode(BlockDefinition.MoveTowardsNearest("Player"), EventType.EVERY_FRAME, BlockScope("Player")).lines
+        val towardsItsOwnType = BlockCodeGenerator.blockCode(BlockDefinition.MoveTowardsNearest(ActorTypeValue.Fixed("Player")), EventType.EVERY_FRAME, BlockScope("Player")).lines
         assertTrue(towardsItsOwnType.any { "if (candidate === this || candidate.isRemoved) continue" in it })
     }
 
@@ -754,7 +778,7 @@ class ActorTypeCodeGeneratorTest {
     @Test
     fun aSpeedPropertyNamedLikeALocalOfMovingTowardsTheNearestIsReadBeforeTheLocalsExist() {
         val scope = BlockScope("Player", actorTypeNames = listOf("Player", "Coin"), properties = listOf(PropertyDefinition.Number("nearest")))
-        val lines = BlockCodeGenerator.blockCode(BlockDefinition.MoveTowardsNearest("Coin", NumberValue.Property("nearest")), EventType.EVERY_FRAME, scope).lines
+        val lines = BlockCodeGenerator.blockCode(BlockDefinition.MoveTowardsNearest(ActorTypeValue.Fixed("Coin"), NumberValue.Property("nearest")), EventType.EVERY_FRAME, scope).lines
         assertEquals(listOf("run {", "    val speed = nearest", "    val actors = actorManager.allActors.value"), lines.take(3))
     }
 
@@ -899,7 +923,7 @@ class ActorTypeCodeGeneratorTest {
     fun aBlockThatBecomesACommentNeedsNothing() {
         val player = ActorTypeDefinition(
             name = "Player",
-            events = listOf(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.MoveTowardsNearest("Missing"), BlockDefinition.RemoveOther))),
+            events = listOf(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.MoveTowardsNearest(ActorTypeValue.Fixed("Missing")), BlockDefinition.RemoveOther))),
         )
         val code = ActorTypeCodeGenerator.generateActorType(player, "com.example.game")
         assertFalse("Dynamic" in code)

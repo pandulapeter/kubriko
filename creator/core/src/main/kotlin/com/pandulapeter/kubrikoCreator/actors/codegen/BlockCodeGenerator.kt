@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.actors.codegen
 
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeValue
 import com.pandulapeter.kubrikoCreator.actors.Axis
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
@@ -217,16 +218,21 @@ public object BlockCodeGenerator {
 
     private fun movementCode(line: String) = BlockCode(listOf(line), needs = setOf(BlockNeed.MOVEMENT), imports = setOf(SCENE_OFFSET_IMPORT))
 
-    private fun addActorCode(block: BlockDefinition.AddActor, scope: BlockScope) = if (block.actorType in scope.actorTypeNames) {
+    private fun addActorCode(block: BlockDefinition.AddActor, scope: BlockScope): BlockCode {
         val isActor = scope.kind == BlockTypeKind.ACTOR
         val position = if (isActor) placementCode(block.x, block.y, block.isRelative, scope) else offsetCode(block.x, block.y, scope)
-        BlockCode(
-            lines = listOf("actorManager.add(${block.actorType}.metadata.instantiate($position).restore())"),
+        val line = when (val type = block.actorType) {
+            is ActorTypeValue.Fixed -> type.name.takeIf { it in scope.actorTypeNames }?.let { "actorManager.add($it.metadata.instantiate($position).restore())" }
+            // The lambda's parameter starts with an underscore, which no Property's name does, so the position still reads the Properties.
+            is ActorTypeValue.Property -> ActorTypeValueCode.nameExpression(type, scope)?.let { name ->
+                "${ActorTypeValueCode.metadataCall(name)}?.let { _metadata -> actorManager.add(_metadata.instantiate($position).restore()) }"
+            }
+        } ?: return BlockCode(listOf("// Choose an Actor type for this Block."))
+        return BlockCode(
+            lines = listOf(line),
             needs = setOf(BlockNeed.ACTOR_MANAGER),
             imports = if (isActor) setOf(SCENE_OFFSET_IMPORT) else setOf(SCENE_OFFSET_IMPORT, SCENE_UNIT_EXTENSION_IMPORT),
         )
-    } else {
-        BlockCode(listOf("// Choose an Actor type for this Block."))
     }
 
     /**
@@ -266,13 +272,36 @@ public object BlockCodeGenerator {
     }
 
     /**
+     * Moving towards the nearest Actor of the type an Actor type reference Property names, which the registry finds while
+     * the game runs. Its locals start with an underscore, which no Property's name does, so the values still read the
+     * Properties.
+     */
+    private fun moveTowardsNearestOfPropertyCode(block: BlockDefinition.MoveTowardsNearest, type: ActorTypeValue.Property, scope: BlockScope): BlockCode {
+        val name = ActorTypeValueCode.nameExpression(type, scope) ?: return BlockCode(listOf("// Choose an Actor type for this Block."))
+        return BlockCode(
+            lines = listOf(
+                "run {",
+                "    val _speed = ${NumberValueCode.float(block.speed, scope)}",
+                "    val _nearest = ${ActorTypeValueCode.nearestCall("actorManager.allActors.value", name, "this")}",
+                "    if (_nearest != null) velocity = (_nearest.body.position - body.position).normalized() * _speed",
+                "}",
+            ),
+            needs = setOf(BlockNeed.MOVEMENT, BlockNeed.ACTOR_MANAGER),
+            imports = setOf(NORMALIZED_IMPORT, SCENE_OFFSET_IMPORT),
+        )
+    }
+
+    /**
      * The speed is read first, while no local of the Block is in scope yet, so a Property named like one of them is
      * still the Property.
      */
     private fun moveTowardsNearestCode(block: BlockDefinition.MoveTowardsNearest, scope: BlockScope): BlockCode {
-        if (block.actorType !in scope.actorTypeNames) return BlockCode(listOf("// Choose an Actor type for this Block."))
-        val actorClass = scope.classOf(block.actorType)
-        val isOwnType = block.actorType == scope.typeName || block.actorType in scope.ancestorNames
+        val actorType = when (val type = block.actorType) {
+            is ActorTypeValue.Fixed -> type.name.takeIf { it in scope.actorTypeNames }
+            is ActorTypeValue.Property -> return moveTowardsNearestOfPropertyCode(block, type, scope)
+        } ?: return BlockCode(listOf("// Choose an Actor type for this Block."))
+        val actorClass = scope.classOf(actorType)
+        val isOwnType = actorType == scope.typeName || actorType in scope.ancestorNames
         return BlockCode(
             lines = listOf(
                 "run {",
@@ -441,6 +470,7 @@ public object BlockCodeGenerator {
         is PropertyDefinition.Text -> stringLiteral(property.initialValue)
         is PropertyDefinition.Toggle -> property.initialValue.toString()
         is PropertyDefinition.Color -> "Color(${colorLiteral(property.initialValue)})"
+        is PropertyDefinition.ActorType -> stringLiteral(property.initialValue)
     }
 
     private fun offsetCode(x: NumberValue, y: NumberValue, scope: BlockScope) = "SceneOffset(${NumberValueCode.sceneUnit(x, scope)}, ${NumberValueCode.sceneUnit(y, scope)})"

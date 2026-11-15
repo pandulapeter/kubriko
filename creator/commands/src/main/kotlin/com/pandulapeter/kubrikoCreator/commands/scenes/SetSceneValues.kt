@@ -53,7 +53,7 @@ public object SetSceneValues : WriteCommand<SetSceneValues.Input> {
         val state = context.readScene(input.scene).let { actors -> actors.getOrNull(ManagerSceneValues.indexIn(actors, input.managerType)) }?.state
         if (state != null && SceneDocument.stateObject(state) == null) return Rejection(CommandProblem.SCENE_CONTENT_INVALID)
         val savedNames = state?.let(ManagerSceneValues::valuesOf)?.keys.orEmpty()
-        return validatePropertyValues(input.values, properties, input.managerType)
+        return context.validatePropertyValues(input.values, properties, input.managerType)
             ?: input.cleared.firstNotNullOfOrNull { name -> validatePropertyName(name, properties, input.managerType) { it in savedNames } }
     }
 

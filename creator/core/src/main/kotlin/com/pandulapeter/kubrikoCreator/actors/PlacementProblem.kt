@@ -50,4 +50,7 @@ public enum class PlacementProblem(override val english: String) : DomainText {
     COLOR_PROPERTY_MISSING("%2\$s has no color Property called %1\$s."),
     COLOR_PROPERTY_MISSING_SIMILAR("%2\$s has no color Property called %1\$s. Close matches: %3\$s."),
     COLOR_PROPERTY_OF_OTHER_KIND("%2\$s has a Property called %1\$s, but it isn't a color Property, so this Block can't use it. Use a Block for its kind, or another Property."),
+    ACTOR_TYPE_PROPERTY_MISSING("%2\$s has no actorType Property called %1\$s."),
+    ACTOR_TYPE_PROPERTY_MISSING_SIMILAR("%2\$s has no actorType Property called %1\$s. Close matches: %3\$s."),
+    ACTOR_TYPE_PROPERTY_OF_OTHER_KIND("%2\$s has a Property called %1\$s, but it isn't an actorType Property, so this Block can't use it. Use a Block for its kind, or another Property."),
 }

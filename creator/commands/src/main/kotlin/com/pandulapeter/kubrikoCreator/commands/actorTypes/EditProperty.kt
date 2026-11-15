@@ -53,7 +53,7 @@ public object EditProperty : WriteCommand<EditProperty.Input> {
             if (PropertyKind.of(definition.properties.first { it.name == input.property }) != PropertyKind.of(input.newProperty)) {
                 Rejection(CommandProblem.PROPERTY_KIND_CHANGED)
             } else {
-                validateProperty(input.newProperty, definition.properties, definition.kind, replacedName = input.property)
+                context.validateProperty(input.newProperty, definition.properties, definition.kind, replacedName = input.property)
                     ?: if (definition is ActorTypeDefinition && input.newProperty.name != input.property) context.validateFamilyRename(definition.name, input.property, input.newProperty.name) else null
             }
         }

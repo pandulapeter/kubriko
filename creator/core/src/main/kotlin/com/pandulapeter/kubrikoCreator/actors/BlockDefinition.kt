@@ -171,8 +171,8 @@ public sealed interface BlockDefinition {
     @SerialName("addActor")
     @Description("Adds a new Actor of a block-built Actor type to the Scene, with that type's size and Property values, like one placed in the Scene editor. In a Manager type, the position is always relative to the center of the Scene.")
     public data class AddActor(
-        @Description("The name of the Actor type.")
-        @SerialName("actorType") val actorType: String = "",
+        @Description("The Actor type.")
+        @SerialName("actorType") val actorType: ActorTypeValue = ActorTypeValue.Fixed(""),
         @Description("The horizontal position, positive to the right.")
         @SerialName("x") val x: NumberValue = NumberValue.Fixed(0f),
         @Description("The vertical position, positive downwards.")
@@ -185,8 +185,8 @@ public sealed interface BlockDefinition {
     @SerialName("moveTowardsNearest")
     @Description("Sets the velocity of the Actor towards the nearest other Actor of an Actor type, at a speed. Does nothing if there is none.")
     public data class MoveTowardsNearest(
-        @Description("The name of the Actor type.")
-        @SerialName("actorType") val actorType: String = "",
+        @Description("The name of the Actor type, or a property Actor type value.")
+        @SerialName("actorType") val actorType: ActorTypeValue = ActorTypeValue.Fixed(""),
         @Description("The speed, in scene units per second. Not an edge.")
         @SerialName("speed") val speed: NumberValue = NumberValue.Fixed(200f),
     ) : BlockDefinition

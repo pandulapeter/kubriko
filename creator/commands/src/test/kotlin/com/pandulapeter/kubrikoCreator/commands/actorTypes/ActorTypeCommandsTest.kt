@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeValue
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
@@ -291,12 +292,12 @@ class ActorTypeCommandsTest {
     fun blocksThatNameAnActorTypeNeedOneThatExistsAndFollowItsRename() = runTest {
         val context = commandContext(ball, wall)
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor())))
-        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.MoveTowardsNearest("Wall"))))
-        assertEquals(Rejection(LookupProblem.ACTOR_TYPE_MISSING, "Brick"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor("Brick"))))
-        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor("Wall", x = NumberValue.Fixed(Float.NaN)))))
-        Invocation(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor("Wall", NumberValue.Fixed(1f), NumberValue.Fixed(2f)))).apply(context)
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.MoveTowardsNearest(ActorTypeValue.Fixed("Wall")))))
+        assertEquals(Rejection(LookupProblem.ACTOR_TYPE_MISSING, "Brick"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor(ActorTypeValue.Fixed("Brick")))))
+        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor(ActorTypeValue.Fixed("Wall"), x = NumberValue.Fixed(Float.NaN)))))
+        Invocation(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor(ActorTypeValue.Fixed("Wall"), NumberValue.Fixed(1f), NumberValue.Fixed(2f)))).apply(context)
         Invocation(RenameActorType, RenameActorType.Input("Wall", "Brick")).apply(context)
-        assertEquals(BlockDefinition.AddActor("Brick", NumberValue.Fixed(1f), NumberValue.Fixed(2f)), context.ball()!!.events[0].blocks.last())
+        assertEquals(BlockDefinition.AddActor(ActorTypeValue.Fixed("Brick"), NumberValue.Fixed(1f), NumberValue.Fixed(2f)), context.ball()!!.events[0].blocks.last())
     }
 
     @Test

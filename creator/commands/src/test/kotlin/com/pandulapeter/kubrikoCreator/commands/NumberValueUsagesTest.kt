@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeValue
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.Comparison
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
@@ -87,11 +88,11 @@ class NumberValueUsagesTest {
     @Test
     fun anXTakesOnlyHorizontalEdgesAndAYOnlyVerticalOnes() = runTest {
         val context = commandContext(enemy)
-        assertNull(context.rejection(AddBlock, AddBlock.Input("Enemy", 0, BlockDefinition.AddActor("Enemy", NumberValue.Edge(SceneEdge.RIGHT, 50f), NumberValue.BetweenEdges(SceneEdge.TOP, to = SceneEdge.BOTTOM)))))
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Enemy", 0, BlockDefinition.AddActor(ActorTypeValue.Fixed("Enemy"), NumberValue.Edge(SceneEdge.RIGHT, 50f), NumberValue.BetweenEdges(SceneEdge.TOP, to = SceneEdge.BOTTOM)))))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Enemy", 0, BlockDefinition.SetNumber("hp", NumberValue.BetweenEdges(SceneEdge.BOTTOM, to = SceneEdge.TOP)))))
         listOf(
             BlockDefinition.JumpTo(x = NumberValue.Edge(SceneEdge.TOP)),
-            BlockDefinition.AddActor("Enemy", y = NumberValue.BetweenEdges(SceneEdge.LEFT, to = SceneEdge.RIGHT)),
+            BlockDefinition.AddActor(ActorTypeValue.Fixed("Enemy"), y = NumberValue.BetweenEdges(SceneEdge.LEFT, to = SceneEdge.RIGHT)),
             BlockDefinition.SetVelocity(y = NumberValue.Edge(SceneEdge.LEFT)),
             BlockDefinition.SetNumber("hp", NumberValue.BetweenEdges(SceneEdge.LEFT, to = SceneEdge.BOTTOM)),
         ).forEach { block ->
@@ -106,7 +107,7 @@ class NumberValueUsagesTest {
         listOf(
             BlockDefinition.MoveInDirection(direction = NumberValue.Edge(SceneEdge.RIGHT)),
             BlockDefinition.MoveInDirection(speed = NumberValue.BetweenEdges(SceneEdge.TOP, to = SceneEdge.BOTTOM)),
-            BlockDefinition.MoveTowardsNearest("Enemy", NumberValue.Edge(SceneEdge.LEFT)),
+            BlockDefinition.MoveTowardsNearest(ActorTypeValue.Fixed("Enemy"), NumberValue.Edge(SceneEdge.LEFT)),
         ).forEach { block ->
             assertEquals(Rejection(CommandProblem.NUMBER_EDGE_NOT_TAKEN), context.rejection(AddBlock, AddBlock.Input("Enemy", 0, block)), block.toString())
         }
