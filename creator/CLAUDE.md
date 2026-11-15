@@ -64,7 +64,8 @@ model and code generators (`core/src/main/kotlin/com/pandulapeter/kubrikoCreator
     `EvalSetLiveTest` has the agent answer every request of the eval set (`EvalSet`), each on a fresh fixture; with
     `KUBRIKO_CREATOR_EVAL_RECORD=true` it writes the calls of each request that passed as its recording (`EvalRecordings`,
     in `:creator:commands`' test fixtures' resources), which `EvalSetTest` replays for free. Record again after a tool's input
-    changes, rather than editing a recording by hand.
+    changes, rather than editing a recording by hand. `KUBRIKO_CREATOR_EVAL_REQUESTS` (request IDs, separated by commas)
+    asks only those, so recording one doesn't spend requests on the rest.
 - Controllers are tested against fakes in `testing/` (`FakeProjectBuild`, `FakeSessionChannel`, `FakeBlockTypeRepository`, `FakeGitRepository`),
   file code against real temporary folders, git against real temporary repositories (JGit needs no installed git), and sockets,
   the MCP server, and shell commands for real on localhost. Tests on real threads use `testing/blockingTest`, and assert that

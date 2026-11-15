@@ -1,0 +1,4 @@
+[
+  {"tool":"get_project_digest","arguments":{}},
+  {"tool":"set_scene_values","arguments":{"scene":"level-1","managerType":"Game","values":[{"name":"lives","number":5}]}}
+]

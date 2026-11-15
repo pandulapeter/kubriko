@@ -1,0 +1,5 @@
+[
+  {"tool":"read_manager_type","arguments":{"managerType":"Game"}},
+  {"tool":"add_property","arguments":{"actorType":"Game","property":{"type":"toggle","name":"isOver","initialValue":false}}},
+  {"tool":"add_text","arguments":{"managerType":"Game","text":{"text":"Game over","position":"center","font":"serif","isBold":true,"size":48,"color":"#202020","shownWhen":{"type":"toggle","property":"isOver","isOn":true}}}}
+]

@@ -1,0 +1,7 @@
+[
+  {"tool":"read_actor_type","arguments":{"actorType":"Paddle"}},
+  {"tool":"replace_blocks","arguments":{"actorType":"Paddle","eventIndex":2,"index":0,"count":3,"blocks":[{"type":"moveWithKeys","keys":"arrows","movesDiagonally":false,"speed":400}]}},
+  {"tool":"remove_event","arguments":{"actorType":"Paddle","eventIndex":1}},
+  {"tool":"remove_event","arguments":{"actorType":"Paddle","eventIndex":0}},
+  {"tool":"start_game","arguments":{}}
+]

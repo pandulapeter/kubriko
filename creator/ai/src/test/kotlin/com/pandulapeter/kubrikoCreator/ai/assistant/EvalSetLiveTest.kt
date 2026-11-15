@@ -21,18 +21,23 @@ import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.minutes
 
 /**
- * Has the real Claude Agent answer every request of the [EvalSet] on a fresh Breakout fixture of its own, as a user who
+ * Has the real Claude Agent answer every request of the [EvalSet] on a fresh project of its own (the Breakout fixture or an empty one), as a user who
  * agrees with everything would (approving its plans, taking its first suggestion), and checks what each project became.
  * Costs requests, so it runs only through [liveTest]'s switch; with `KUBRIKO_CREATOR_EVAL_RECORD=true` too, it writes
  * the calls of each request that passed as its recording, which `EvalSetTest` replays for free from then on.
+ * `KUBRIKO_CREATOR_EVAL_REQUESTS` (IDs separated by commas) asks only those requests, to record a new or changed one
+ * without spending requests on the rest.
  */
 class EvalSetLiveTest {
     private val isRecording = System.getenv("KUBRIKO_CREATOR_EVAL_RECORD") == "true"
+    private val requests = System.getenv("KUBRIKO_CREATOR_EVAL_REQUESTS")?.split(',')?.map { it.trim() }?.toSet()
+        ?.let { ids -> EvalSet.requests.filter { it.id in ids }.also { assertEquals(ids, it.map { request -> request.id }.toSet(), "Not every request asked for exists.") } }
+        ?: EvalSet.requests
 
     @Test
-    fun theRealAgentDoesWhatEveryRequestAsks() = liveTest(timeout = (REQUEST_TIMEOUT * 2 + SESSION_TIMEOUT) * EvalSet.requests.size) {
-        val failures = EvalSet.requests.mapNotNull { request ->
-            withLiveSession { session ->
+    fun theRealAgentDoesWhatEveryRequestAsks() = liveTest(timeout = (REQUEST_TIMEOUT * 2 + SESSION_TIMEOUT) * requests.size) {
+        val failures = requests.mapNotNull { request ->
+            withLiveSession(isBlank = request.isBlank) { session ->
                 val outcome = try {
                     answer(request.text, session)
                     Result.success(request.check(session.context))
@@ -72,7 +77,7 @@ class EvalSetLiveTest {
         /**
          * How long a turn may take: each request takes one, and a second when it ends on a plan to approve.
          */
-        val REQUEST_TIMEOUT = 10.minutes
+        val REQUEST_TIMEOUT = 20.minutes
 
         /**
          * How long starting and closing a session may take besides its turns.

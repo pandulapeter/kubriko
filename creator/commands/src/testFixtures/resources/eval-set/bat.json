@@ -2,9 +2,9 @@
   {"tool":"get_project_digest","arguments":{}},
   {"tool":"read_actor_type","arguments":{"actorType":"Paddle"}},
   {"tool":"read_pages","arguments":{}},
-  {"tool":"read_scene","arguments":{"scene":"level-1","summary":true}},
-  {"tool":"create_actor_type","arguments":{"name":"Bat","description":"what the player moves with A and D","shape":"rectangle","width":120,"height":20,"color":"#AA6060","events":[{"type":"keyPressed","key":"A","blocks":[{"type":"setVelocity","x":-400,"y":0}]},{"type":"keyPressed","key":"D","blocks":[{"type":"setVelocity","x":400,"y":0}]},{"type":"everyFrame","blocks":[{"type":"if","condition":{"type":"keyHeld","key":"A","isHeld":false}},{"type":"if","condition":{"type":"keyHeld","key":"D","isHeld":false}},{"type":"stop"},{"type":"end"},{"type":"end"}]},{"type":"edgeTouched","blocks":[{"type":"stop"}]}]}},
-  {"tool":"read_scene","arguments":{"scene":"level-1","actorType":"Paddle"}},
-  {"tool":"place_actor","arguments":{"scene":"level-1","actorType":"Bat","x":0,"y":240,"actorId":"bat"}},
-  {"tool":"start_game","arguments":{"scene":"level-1"}}
+  {"tool":"read_scene","arguments":{"scene":"level-1"}},
+  {"tool":"create_actor_type","arguments":{"name":"Bat","description":"a bat the player moves with A and D","shape":"rectangle","width":120,"height":20,"color":"#E08030","staysInsideScene":true,"events":[{"type":"everyFrame","blocks":[{"type":"if","condition":{"type":"keyHeld","key":"A","isHeld":true}},{"type":"setVelocity","x":-400,"y":0},{"type":"else"},{"type":"if","condition":{"type":"keyHeld","key":"D","isHeld":true}},{"type":"setVelocity","x":400,"y":0},{"type":"else"},{"type":"stop"},{"type":"end"},{"type":"end"}]}]}},
+  {"tool":"place_actor","arguments":{"scene":"level-1","actorType":"Bat","actorId":"bat","x":0,"y":150}},
+  {"tool":"start_game","arguments":{"scene":"level-1"}},
+  {"tool":"read_actor_type","arguments":{"actorType":"Bat"}}
 ]

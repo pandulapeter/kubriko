@@ -26,7 +26,7 @@ import kotlin.test.assertTrue
 
 /**
  * Replays the calls a real agent made for each request of the [EvalSet] ([EvalRecordings]) against the tools on the
- * Breakout fixture: a change to a tool's name, input, or validation that would break what models do shows up here
+ * Breakout fixture (or an empty project): a change to a tool's name, input, or validation that would break what models do shows up here
  * without spending tokens. The live run (`EvalSetLiveTest`) records them again.
  */
 class EvalSetTest {
@@ -36,7 +36,7 @@ class EvalSetTest {
         EvalSet.requests.forEach { request ->
             val calls = EvalRecordings.of(request)
             assertTrue(calls.isNotEmpty(), "\"${request.text}\" has no recording: run EvalSetLiveTest with KUBRIKO_CREATOR_EVAL_RECORD=true.")
-            val (executor, context) = breakout()
+            val (executor, context) = project(isBlank = request.isBlank)
             calls.forEach { call ->
                 val outcome = executor.call(call.tool, call.arguments)
                 assertIs<CommandOutcome.Success>(outcome, "\"${request.text}\": ${call.tool} was rejected with $outcome")
@@ -56,7 +56,8 @@ class EvalSetTest {
     }
 
     @OptIn(EditorMutation::class)
-    private fun TestScope.breakout(): Pair<CommandExecutor, CommandContext> {
+    private fun TestScope.project(isBlank: Boolean): Pair<CommandExecutor, CommandContext> {
+        if (isBlank) return commandContext().let { CommandExecutor(it, testScope()) to it }
         val context = commandContext(*BreakoutFixture.types.toTypedArray())
         context.scenes.write("level-1", BreakoutFixture.level)
         return CommandExecutor(context, testScope()) to context

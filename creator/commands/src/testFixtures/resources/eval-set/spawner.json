@@ -1,0 +1,4 @@
+[
+  {"tool":"get_project_digest","arguments":{}},
+  {"tool":"create_actor_type","arguments":{"name":"Spawner","description":"adds a new Actor of the type it keeps every 2 seconds","properties":[{"type":"actorType","name":"spawnedType","initialValue":"Brick"}],"events":[{"type":"addedToScene","blocks":[{"type":"startTimer","timer":"spawn","seconds":2,"isRepeating":true}]},{"type":"timerFinished","timer":"spawn","blocks":[{"type":"addActor","actorType":{"type":"property","property":"spawnedType"},"x":0,"y":0,"isRelative":true}]}]}}
+]

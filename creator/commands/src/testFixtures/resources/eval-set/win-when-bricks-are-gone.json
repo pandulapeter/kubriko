@@ -1,0 +1,11 @@
+[
+  {"tool":"get_project_digest","arguments":{}},
+  {"tool":"read_manager_type","arguments":{"managerType":"Game"}},
+  {"tool":"read_pages","arguments":{}},
+  {"tool":"create_scene","arguments":{"scene":"win","description":"the screen shown once every brick is broken"}},
+  {"tool":"add_property","arguments":{"actorType":"Game","property":{"type":"toggle","name":"hasWon","initialValue":false}}},
+  {"tool":"add_event","arguments":{"actorType":"Game","type":"actorRemoved","otherActorType":"Brick","blocks":[{"type":"if","condition":{"type":"actorCount","actorType":"Brick","comparison":"equal","value":0}},{"type":"setToggle","property":"hasWon","value":true},{"type":"goToScene","scene":"win"},{"type":"end"}]}},
+  {"tool":"add_text","arguments":{"managerType":"Game","text":{"text":"You win!","position":"center","size":64,"color":"#202020","isBold":true,"shownWhen":{"type":"toggle","property":"hasWon","isOn":true}}}},
+  {"tool":"start_game","arguments":{}},
+  {"tool":"get_health_checks","arguments":{}}
+]

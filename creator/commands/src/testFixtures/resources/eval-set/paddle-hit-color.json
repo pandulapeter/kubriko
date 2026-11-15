@@ -1,0 +1,5 @@
+[
+  {"tool":"read_actor_type","arguments":{"actorType":"Paddle"}},
+  {"tool":"add_property","arguments":{"actorType":"Paddle","property":{"type":"color","name":"hitColor","initialValue":"#FFAA33"}}},
+  {"tool":"add_event","arguments":{"actorType":"Paddle","type":"collision","otherActorType":"Ball","blocks":[{"type":"setColor","colors":[{"type":"property","property":"hitColor"}]}]}}
+]
