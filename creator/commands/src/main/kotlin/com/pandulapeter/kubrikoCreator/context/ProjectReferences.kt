@@ -135,12 +135,12 @@ internal class ProjectReferences(
     /**
      * Blocks and text conditions that have the Manager type [subject] chosen but none of its Properties yet, which
      * [ProjectRelations] leaves out, since they refer to no Property: as the Property they change or check, or as one of
-     * their numbers.
+     * their values.
      */
     private fun managerChoiceUsagesOf(subject: RelationSubject) = buildList {
         if (subject !is RelationSubject.Type) return@buildList
-        fun addChoiceUsages(place: RelationPlace, reference: PropertyReference?, numberReferences: List<PropertyReference>, referenceUsage: () -> Usage) {
-            if (numberReferences.any { it.manager == subject.name && it.name.isEmpty() }) {
+        fun addChoiceUsages(place: RelationPlace, reference: PropertyReference?, valueReferences: List<PropertyReference>, referenceUsage: () -> Usage) {
+            if (valueReferences.any { it.manager == subject.name && it.name.isEmpty() }) {
                 add(Usage(UsagePlace.InModel(place), RelationKind.READS_VALUE, subject, UsageEffect.VALUE_TO_FIXED))
             }
             if (reference != null && reference.manager == subject.name && reference.name.isEmpty()) add(referenceUsage())
