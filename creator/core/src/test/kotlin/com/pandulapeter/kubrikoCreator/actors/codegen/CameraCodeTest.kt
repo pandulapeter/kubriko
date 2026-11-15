@@ -63,4 +63,9 @@ class CameraCodeTest {
     fun noStrengthOrNoTimeStopsTheShake() {
         assertContains(scenes, "            if (strength <= 0f || durationInMilliseconds <= 0f) {\n                shakeRemainingInMilliseconds = 0f\n")
     }
+
+    @Test
+    fun aSceneFittingTheViewShowsItsWholeBoundsWhateverTheZoom() {
+        assertContains(scenes, "width = width.sceneUnit))\n        viewportManager.setScaleFactor(1f)\n")
+    }
 }

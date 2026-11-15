@@ -288,7 +288,7 @@ public sealed interface BlockDefinition {
 
     @Serializable
     @SerialName("zoomCamera")
-    @Description("Zooms the camera until another zoomCamera Block, in every Scene.")
+    @Description("Zooms the camera until another zoomCamera Block or a Scene that fits the view to its bounds.")
     public data class ZoomCamera(
         @Description("In percent, at least 1: 100 is the Scene's size. Kept within 20 to 500 unless the game's code sets other limits.")
         @SerialName("zoom") val zoom: NumberValue = NumberValue.Fixed(FULL_ZOOM),

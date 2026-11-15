@@ -91,8 +91,9 @@ public object ScenesCodeGenerator {
             |    private var aspectRatioModeBeforeFit: ViewportManager.AspectRatioMode? = null
             |
             |    /**
-            |     * Makes the game's view show a Scene's [bounds], as wide as they are, centered on them, keeping the aspect ratio it
-            |     * had before the first Scene that fitted it, or does nothing and returns false if the bounds have no area.
+            |     * Makes the game's view show a Scene's [bounds], as wide as they are, centered on them and unzoomed, keeping the
+            |     * aspect ratio it had before the first Scene that fitted it, or does nothing and returns false if the bounds have
+            |     * no area.
             |     */
             |    internal fun fitView(bounds: com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox): Boolean {
             |        val width = bounds.maxXRaw - bounds.minXRaw
@@ -100,6 +101,7 @@ public object ScenesCodeGenerator {
             |        if (!(width > 0f && height > 0f)) return false
             |        if (aspectRatioModeBeforeFit == null) aspectRatioModeBeforeFit = viewportManager.aspectRatioMode.value
             |        viewportManager.setAspectRatioMode(ViewportManager.AspectRatioMode.Fixed(ratio = width / height, width = width.sceneUnit))
+            |        viewportManager.setScaleFactor(1f)
             |        viewportManager.setCameraPosition(SceneOffset((bounds.minXRaw + width / 2f).sceneUnit, (bounds.minYRaw + height / 2f).sceneUnit))
             |        return true
             |    }

@@ -151,7 +151,7 @@
   following it, so the camera's state changes only under one short lock. A following Actor passes the Scene it was added
   in, so an old Scene's Actor still updating after a new Scene was asked for can't take the camera back. A shake holds
   still while the game isn't running while following goes on (Actors may be told to keep updating then), a shake shakes around wherever something else moved the camera, and the zoom is the viewport's own,
-  kept across Scenes until another Zoom the camera Block. `GeneratedScenes` keeps the view's aspect ratio from before a
+  kept across Scenes until another Zoom the camera Block or a Scene fitting the view, which shows its whole bounds. `GeneratedScenes` keeps the view's aspect ratio from before a
   Scene fitted it (`fitsView`), which a Scene that doesn't fit the view gives back; a Scene's settings may be added before
   the last Scene's are removed, so an ending Scene unfits the view only while its settings are still the current ones.
 - `GeneratedAudio` exists only while the game plays audio. It starts music on the next frame, since the music player exists only
