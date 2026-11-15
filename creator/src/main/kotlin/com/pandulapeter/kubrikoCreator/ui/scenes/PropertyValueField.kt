@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.scenes.ActorValueChanges
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
@@ -89,34 +90,37 @@ internal fun PropertyValueField(
             isNoneOffered = true,
         )
     }
-    is PropertyDefinition.Sound -> Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(text = label, style = MaterialTheme.typography.bodyMedium)
-        AudioFileChoice(
-            path = value?.takeIf { it.isString }?.content ?: property.initialValue,
-            paths = choices.audioFiles?.sounds,
-            placeholder = Res.string.block_sound_choose,
-            noneYet = Res.string.audio_sounds_none_yet,
-            canChooseNone = true,
-            onSelected = { onChange(ActorValueChanges.PropertyValue(property.name, sound = it)) },
-        )
-    }
-    is PropertyDefinition.Music -> Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(text = label, style = MaterialTheme.typography.bodyMedium)
-        AudioFileChoice(
-            path = value?.takeIf { it.isString }?.content ?: property.initialValue,
-            paths = choices.audioFiles?.music,
-            placeholder = Res.string.block_music_choose,
-            noneYet = Res.string.audio_music_none_yet,
-            canChooseNone = true,
-            onSelected = { onChange(ActorValueChanges.PropertyValue(property.name, music = it)) },
-        )
-    }
+    is PropertyDefinition.AudioFile -> AudioPropertyField(
+        property = property,
+        label = label,
+        path = value?.takeIf { it.isString }?.content ?: property.initialValue,
+        audioFiles = choices.audioFiles,
+        onChange = onChange,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun AudioPropertyField(
+    property: PropertyDefinition.AudioFile,
+    label: String,
+    path: String,
+    audioFiles: AudioFiles?,
+    onChange: (ActorValueChanges.PropertyValue) -> Unit,
+    modifier: Modifier = Modifier,
+) = Row(
+    modifier = modifier.fillMaxWidth(),
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
+    verticalAlignment = Alignment.CenterVertically,
+) {
+    val isMusic = property is PropertyDefinition.Music
+    Text(text = label, style = MaterialTheme.typography.bodyMedium)
+    AudioFileChoice(
+        path = path,
+        paths = if (isMusic) audioFiles?.music else audioFiles?.sounds,
+        placeholder = if (isMusic) Res.string.block_music_choose else Res.string.block_sound_choose,
+        noneYet = if (isMusic) Res.string.audio_music_none_yet else Res.string.audio_sounds_none_yet,
+        canChooseNone = true,
+        onSelected = { onChange(if (isMusic) ActorValueChanges.PropertyValue(property.name, music = it) else ActorValueChanges.PropertyValue(property.name, sound = it)) },
+    )
 }
