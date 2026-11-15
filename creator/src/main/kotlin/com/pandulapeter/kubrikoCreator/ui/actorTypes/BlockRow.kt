@@ -223,7 +223,6 @@ private fun InlineParameters(
             scope = scope,
             onValueChange = { onBlockChange(block.copy(seconds = it)) },
             accepts = { it >= 0f },
-            fieldWidth = SECONDS_FIELD_WIDTH,
         )
         LabeledSwitch(
             label = stringResource(Res.string.block_parameter_repeating),

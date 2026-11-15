@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -184,7 +183,7 @@ private fun ScreenTextRow(
                 onSelected = { onChange(text.copy(position = it)) },
             )
             NumberField(
-                modifier = Modifier.width(72.dp),
+                textWidth = 40.dp,
                 label = Res.string.manager_type_text_size,
                 value = text.size,
                 onValueChange = { if (it > 0f) onChange(text.copy(size = it)) },

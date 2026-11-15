@@ -20,6 +20,7 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -30,6 +31,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockNesting
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.SoundValue
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
@@ -37,6 +39,7 @@ import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalTestApi::class)
 class BlockRowTest {
@@ -63,6 +66,25 @@ class BlockRowTest {
         onNodeWithText("Repeating").performClick()
         waitForIdle()
         assertEquals(false, block.isRepeating)
+    }
+
+    @Test
+    fun aShakeTheCameraBlockShowsItsNumbersWhole() = uiTest(width = 520) {
+        showing {
+            BlockRow(
+                block = BlockDefinition.ShakeCamera(durationInMilliseconds = NumberValue.Fixed(1500f)),
+                nesting = BlockNesting(0, BlockNesting.Role.PLAIN),
+                scope = BlockScope.of(ball, listOf(ball)),
+                index = 0,
+                dragState = BlockDragState(onDrop = { _, _ -> }),
+                onBlockChange = {},
+                onRemove = {},
+            )
+        }
+        val duration = onNodeWithText("1500").assertExists().getBoundsInRoot()
+        val text = onNodeWithText("1500", useUnmergedTree = true).getBoundsInRoot()
+        assertTrue(text.right <= duration.right, "The duration's text ends past its field")
+        saveSnapshot("block-row-shake-camera")
     }
 
     @Test

@@ -88,7 +88,6 @@ internal fun ConditionParameters(
                 onValueChange = { onConditionChange(condition.copy(value = it)) },
                 offersEdges = !isForText,
                 offersRandom = !isForText,
-                fieldWidth = 88.dp,
             )
         }
         is ConditionDefinition.Text -> {
@@ -123,7 +122,6 @@ internal fun ConditionParameters(
                 value = condition.value,
                 scope = scope,
                 onValueChange = { onConditionChange(condition.copy(value = it)) },
-                fieldWidth = 88.dp,
             )
         }
         is ConditionDefinition.Distance -> {
@@ -135,7 +133,6 @@ internal fun ConditionParameters(
                 scope = scope,
                 onValueChange = { onConditionChange(condition.copy(value = it)) },
                 offersEdges = false,
-                fieldWidth = 88.dp,
             )
         }
         is ConditionDefinition.ActorCount -> {
@@ -151,7 +148,6 @@ internal fun ConditionParameters(
                 scope = scope,
                 onValueChange = { onConditionChange(condition.copy(value = it)) },
                 offersEdges = false,
-                fieldWidth = 88.dp,
             )
         }
         is ConditionDefinition.Chance -> NumberValueField(
@@ -160,7 +156,6 @@ internal fun ConditionParameters(
             scope = scope,
             onValueChange = { onConditionChange(condition.copy(percent = it)) },
             accepts = { it in 0f..100f },
-            fieldWidth = 88.dp,
         )
         is ConditionDefinition.Combined -> CombinedConditionParameters(condition, scope, isForText, onConditionChange)
         is ConditionDefinition.Paused -> YesNoChoice(condition.isPaused, Res.string.condition_is_paused, Res.string.condition_is_not_paused) { onConditionChange(condition.copy(isPaused = it)) }

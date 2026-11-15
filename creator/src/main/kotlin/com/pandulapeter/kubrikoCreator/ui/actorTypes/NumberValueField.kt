@@ -11,12 +11,10 @@ package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.Axis
@@ -60,6 +58,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param offersEdges False for a field that is no position (a direction or a speed), which offers no edges.
  * @param offersRandom False for a field read on every frame, where a random number would change on every frame.
  * @param accepts Which numbers the field takes; a number typed outside them isn't reported.
+ * @param numberWidth How wide each number is, its field growing by its label's width.
  */
 @Composable
 internal fun NumberValueField(
@@ -72,7 +71,7 @@ internal fun NumberValueField(
     offersEdges: Boolean = true,
     offersRandom: Boolean = true,
     accepts: (Float) -> Boolean = { true },
-    fieldWidth: Dp = 96.dp,
+    numberWidth: Dp = NUMBER_WIDTH,
 ) = Row(
     horizontalArrangement = Arrangement.spacedBy(4.dp),
     verticalAlignment = Alignment.CenterVertically,
@@ -89,7 +88,7 @@ internal fun NumberValueField(
     )
     when (value) {
         is NumberValue.Fixed -> NumberField(
-            modifier = Modifier.width(fieldWidth),
+            textWidth = numberWidth,
             label = label,
             value = value.value,
             onValueChange = { if (isAccepted(it)) onValueChange(NumberValue.Fixed(it)) },
@@ -97,13 +96,13 @@ internal fun NumberValueField(
         is NumberValue.Random -> {
             FieldName(label)
             NumberField(
-                modifier = Modifier.width(fieldWidth),
+                textWidth = numberWidth,
                 label = Res.string.number_value_from,
                 value = value.from,
                 onValueChange = { if (isAccepted(it)) onValueChange(value.copy(from = it)) },
             )
             NumberField(
-                modifier = Modifier.width(fieldWidth),
+                textWidth = numberWidth,
                 label = Res.string.number_value_to,
                 value = value.to,
                 onValueChange = { if (isAccepted(it)) onValueChange(value.copy(to = it)) },
@@ -117,16 +116,16 @@ internal fun NumberValueField(
         }
         is NumberValue.Edge -> {
             FieldName(label)
-            EdgeWithOffset(value.edge, value.offset, axis, fieldWidth) { edge, offset -> onValueChange(NumberValue.Edge(edge, offset)) }
+            EdgeWithOffset(value.edge, value.offset, axis, numberWidth) { edge, offset -> onValueChange(NumberValue.Edge(edge, offset)) }
         }
         is NumberValue.BetweenEdges -> {
             FieldName(label)
             FieldName(Res.string.number_value_from)
-            EdgeWithOffset(value.from, value.fromOffset, axis, fieldWidth) { edge, offset ->
+            EdgeWithOffset(value.from, value.fromOffset, axis, numberWidth) { edge, offset ->
                 onValueChange(value.copy(from = edge, fromOffset = offset, to = if (edge.axis == value.to.axis) value.to else edge.opposite))
             }
             FieldName(Res.string.number_value_to)
-            EdgeWithOffset(value.to, value.toOffset, axis ?: value.from.axis, fieldWidth) { edge, offset -> onValueChange(value.copy(to = edge, toOffset = offset)) }
+            EdgeWithOffset(value.to, value.toOffset, axis ?: value.from.axis, numberWidth) { edge, offset -> onValueChange(value.copy(to = edge, toOffset = offset)) }
         }
     }
 }
@@ -139,7 +138,7 @@ private fun EdgeWithOffset(
     edge: SceneEdge,
     offset: Float,
     axis: Axis?,
-    fieldWidth: Dp,
+    numberWidth: Dp,
     onChange: (SceneEdge, Float) -> Unit,
 ) {
     MenuButton(
@@ -149,7 +148,7 @@ private fun EdgeWithOffset(
         onSelected = { onChange(it, offset) },
     )
     NumberField(
-        modifier = Modifier.width(fieldWidth),
+        textWidth = numberWidth,
         label = Res.string.number_value_offset,
         value = offset,
         onValueChange = { onChange(edge, it) },
@@ -190,6 +189,6 @@ private val SceneEdge.title
     }
 
 /**
- * How wide a field of seconds is, so its longer label leaves room for a fraction such as 0.5.
+ * How wide a Block's number is: room for one such as 1000 or 0.25.
  */
-internal val SECONDS_FIELD_WIDTH = 112.dp
+private val NUMBER_WIDTH = 56.dp

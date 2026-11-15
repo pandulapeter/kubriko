@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -101,7 +100,7 @@ public fun ColorField(
         )
     }
     CompactTextField(
-        modifier = Modifier.width(150.dp).onFocusChanged { isFocused = it.isFocused },
+        modifier = Modifier.onFocusChanged { isFocused = it.isFocused },
         value = text,
         onValueChange = { newText ->
             text = newText
@@ -112,5 +111,11 @@ public fun ColorField(
         },
         label = label ?: stringResource(Res.string.actor_type_color),
         isError = parse(text) == null,
+        textWidth = COLOR_CODE_WIDTH,
     )
 }
+
+/**
+ * How wide a [ColorField]'s code is: room for `#AARRGGBB`, whatever its label.
+ */
+private val COLOR_CODE_WIDTH = 84.dp

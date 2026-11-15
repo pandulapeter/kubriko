@@ -17,12 +17,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.unit.Dp
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * A field for a number that keeps whatever is being typed, and reports the value whenever it is a valid number; a value
  * changed elsewhere shows at once, while the field's own reports coming back late leave what is typed alone.
+ *
+ * @param textWidth How wide the number is, for a field as wide as its label and that (see [CompactTextField]).
  */
 @Composable
 public fun NumberField(
@@ -30,11 +33,13 @@ public fun NumberField(
     value: Float,
     onValueChange: (Float) -> Unit,
     modifier: Modifier = Modifier,
+    textWidth: Dp? = null,
 ): Unit = NumberField(
     label = stringResource(label),
     value = value,
     onValueChange = onValueChange,
     modifier = modifier,
+    textWidth = textWidth,
 )
 
 @Composable
@@ -43,6 +48,7 @@ public fun NumberField(
     value: Float,
     onValueChange: (Float) -> Unit,
     modifier: Modifier = Modifier,
+    textWidth: Dp? = null,
 ) {
     var text by remember { mutableStateOf(formatNumber(value)) }
     var isFocused by remember { mutableStateOf(false) }
@@ -68,6 +74,7 @@ public fun NumberField(
         },
         label = label,
         isError = parseNumber(text) == null,
+        textWidth = textWidth,
     )
 }
 

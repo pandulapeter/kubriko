@@ -70,7 +70,6 @@ internal fun AnimateParameters(
         onValueChange = { onBlockChange(block.copy(seconds = it)) },
         offersEdges = false,
         accepts = { it >= 0f },
-        fieldWidth = SECONDS_FIELD_WIDTH,
     )
     MenuButton(
         label = stringResource(block.easing.title),
