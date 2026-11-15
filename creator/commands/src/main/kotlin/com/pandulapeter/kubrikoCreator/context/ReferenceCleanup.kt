@@ -139,23 +139,30 @@ internal class ReferenceCleanup(
      * The starting value of the Property [value] reads, as a fixed number, if that Property, or the Manager type it is
      * chosen from, is deleted.
      */
-    private fun fixedInsteadOf(typeName: String, value: NumberValue.Property, deleted: Deleted): NumberValue.Fixed? {
-        val property = relations.propertyOf(typeName, value.manager, value.property)
-        if (property !in deleted.properties && value.manager !in deleted.types) return null
-        val definition = types.firstOrNull { it.name == property.owner }?.properties?.firstOrNull { it.name == property.name }
-        return NumberValue.Fixed((definition as? PropertyDefinition.Number)?.initialValue ?: 0f)
-    }
+    private fun fixedInsteadOf(typeName: String, value: NumberValue.Property, deleted: Deleted) = deletedPropertyRead(typeName, value.manager, value.property, deleted)
+        ?.let { NumberValue.Fixed((it.definition as? PropertyDefinition.Number)?.initialValue ?: 0f) }
 
     /**
      * The starting color of the Property [value] reads, as a fixed color, if that Property, or the Manager type it is
      * chosen from, is deleted.
      */
-    private fun fixedInsteadOf(typeName: String, value: ColorValue.Property, deleted: Deleted): ColorValue.Fixed? {
-        val property = relations.propertyOf(typeName, value.manager, value.property)
-        if (property !in deleted.properties && value.manager !in deleted.types) return null
-        val definition = types.firstOrNull { it.name == property.owner }?.properties?.firstOrNull { it.name == property.name }
-        return ColorValue.Fixed((definition as? PropertyDefinition.Color)?.initialValue ?: PropertyDefinition.Color(property.name).initialValue)
+    private fun fixedInsteadOf(typeName: String, value: ColorValue.Property, deleted: Deleted) = deletedPropertyRead(typeName, value.manager, value.property, deleted)
+        ?.let { ColorValue.Fixed((it.definition as? PropertyDefinition.Color)?.initialValue ?: PropertyDefinition.Color(value.property).initialValue) }
+
+    /**
+     * The Property [name] of [manager] (the type's own one, if null) that [typeName] reads, if it, or that Manager type,
+     * is deleted.
+     */
+    private fun deletedPropertyRead(typeName: String, manager: String?, name: String, deleted: Deleted): DeletedProperty? {
+        val property = relations.propertyOf(typeName, manager, name)
+        if (property !in deleted.properties && manager !in deleted.types) return null
+        return DeletedProperty(types.firstOrNull { it.name == property.owner }?.properties?.firstOrNull { it.name == property.name })
     }
+
+    /**
+     * @param definition The deleted Property, or null when no type declares it (one named but never made).
+     */
+    private class DeletedProperty(val definition: PropertyDefinition?)
 
     private class Deleted(
         val properties: Set<RelationSubject.Property>,
