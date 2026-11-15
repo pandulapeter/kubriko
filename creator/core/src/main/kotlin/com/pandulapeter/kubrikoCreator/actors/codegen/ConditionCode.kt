@@ -32,8 +32,8 @@ internal object ConditionCode {
 
     /**
      * [condition] as a Kotlin expression (the only line of the result), with what its numbers reach, or `false` if it
-     * needs a Property that doesn't exist (of that kind, the one a text or a toggle is compared with too), an Actor type
-     * that doesn't, or an Actor in a Manager type, so that the generated code always compiles. A combined condition joins its conditions' expressions, each in parentheses.
+     * needs a Property that doesn't exist (of that kind, a value it compares with read from one too), an Actor type that
+     * doesn't, or an Actor in a Manager type, so that the generated code always compiles. A combined condition joins its conditions' expressions, each in parentheses.
      */
     fun of(condition: ConditionDefinition, scope: BlockScope): BlockCode = if (condition is ConditionDefinition.Combined) combinedOf(condition, scope) else expressionOf(condition, scope).let { code ->
         if (code.lines.single() == "false") {
@@ -53,10 +53,8 @@ internal object ConditionCode {
     private fun expressionOf(condition: ConditionDefinition, scope: BlockScope): BlockCode {
         val reference = condition.propertyReference
         if (reference != null && !scope.hasProperty(reference)) return BlockCode(listOf("false"))
-        // A text or a toggle compared with a Property that doesn't exist would otherwise compare with an empty text or off.
-        if (condition is ConditionDefinition.Text || condition is ConditionDefinition.Toggle) {
-            if (condition.valuePropertyReferences.any { !scope.hasProperty(it) }) return BlockCode(listOf("false"))
-        }
+        // A value read from a Property that doesn't exist would otherwise be compared as 0, an empty text, or off.
+        if (condition.valuePropertyReferences.any { !scope.hasProperty(it) }) return BlockCode(listOf("false"))
         if (!ConditionKind.of(condition).isAvailableIn(scope.kind)) return BlockCode(listOf("false"))
         val property = reference?.let { propertyExpression(it, scope) }
         val managers = managersReachedBy(reference?.manager, scope)
