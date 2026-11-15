@@ -24,7 +24,6 @@ import com.pandulapeter.kubrikoCreator.context.projectReferences
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonArray
@@ -88,10 +87,7 @@ private suspend fun CommandContext.scenesWithout(subject: RelationSubject, usage
                     SceneDocument.format(
                         checkNotNull(scenes.actors(scene)).filter { it.typeId != subject.name }.map { actor ->
                             val names = references[actor.typeId] ?: return@map actor
-                            SceneDocument.withStateChanged(actor.state) { state ->
-                                val cleared = names.filter { (state[it] as? JsonPrimitive)?.takeIf { value -> value.isString }?.content == subject.name }
-                                if (cleared.isEmpty()) state else JsonObject(state + cleared.associateWith { JsonPrimitive("") })
-                            }?.let { actor.copy(state = it) } ?: actor
+                            SceneDocument.withReferencesReplaced(actor.state, names, subject.name, "")?.let { actor.copy(state = it) } ?: actor
                         },
                     )
                 }

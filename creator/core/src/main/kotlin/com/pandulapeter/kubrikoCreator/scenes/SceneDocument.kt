@@ -128,6 +128,22 @@ public object SceneDocument {
     }.toString()
 
     /**
+     * The Actor types the Actor type reference values of [state] name, one for each of [names] that saves one.
+     */
+    public fun referencedTypes(state: JsonObject, names: Collection<String>): List<String> = names.mapNotNull { name -> stringAt(state, name)?.ifEmpty { null } }
+
+    /**
+     * [state] with each Actor type reference value among [names] that names [oldType] naming [newType] instead (none when
+     * it is empty), or null if it isn't a JSON object or none does.
+     */
+    public fun withReferencesReplaced(state: String, names: Collection<String>, oldType: String, newType: String): String? = withStateChanged(state) { stateObject ->
+        val replaced = names.filter { stringAt(stateObject, it) == oldType }
+        if (replaced.isEmpty()) stateObject else JsonObject(stateObject + replaced.associateWith { JsonPrimitive(newType) })
+    }
+
+    private fun stringAt(state: JsonObject, key: String) = (state[key] as? JsonPrimitive)?.takeIf { it.isString }?.content
+
+    /**
      * [state] changed by [change], or null if it isn't a JSON object or [change] left it as it was.
      */
     public fun withStateChanged(state: String, change: (JsonObject) -> JsonObject): String? {

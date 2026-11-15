@@ -16,7 +16,6 @@ import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
@@ -289,14 +288,7 @@ public class SceneStore(
     public fun renameTypeId(oldTypeId: String, newTypeId: String, references: Map<String, Set<String>> = emptyMap()): List<String> = changeActors { actor ->
         val typeId = if (actor.typeId == oldTypeId) newTypeId else actor.typeId
         val names = references[typeId].orEmpty()
-        val state = if (names.isEmpty()) {
-            actor.state
-        } else {
-            SceneDocument.withStateChanged(actor.state) { state ->
-                val renamed = names.filter { (state[it] as? JsonPrimitive)?.takeIf { value -> value.isString }?.content == oldTypeId }
-                if (renamed.isEmpty()) state else JsonObject(state + renamed.associateWith { JsonPrimitive(newTypeId) })
-            } ?: actor.state
-        }
+        val state = if (names.isEmpty()) actor.state else SceneDocument.withReferencesReplaced(actor.state, names, oldTypeId, newTypeId) ?: actor.state
         if (typeId == actor.typeId && state == actor.state) actor else actor.copy(typeId = typeId, state = state)
     }.keys.toList()
 
