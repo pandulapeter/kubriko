@@ -102,9 +102,11 @@ public object BlockCodeGenerator {
             kind.onlyIn != null && kind.onlyIn != eventType -> BlockCode(listOfNotNull(kind.misplacedComment))
             else -> emittedCode(block, scope).let { code ->
                 val numberValues = block.numberValues
+                val colorValues = block.colorValues
                 code.copy(
                     needs = code.needs + NumberValueCode.needsOf(numberValues),
-                    managers = code.managers + NumberValueCode.managersReadBy(numberValues, scope) + ColorValueCode.managersReadBy(block.colorValues, scope),
+                    imports = if (colorValues.isEmpty()) code.imports else code.imports + ColorValueCode.IMPORT,
+                    managers = code.managers + NumberValueCode.managersReadBy(numberValues, scope) + ColorValueCode.managersReadBy(colorValues, scope),
                 )
             }
         }

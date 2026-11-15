@@ -20,6 +20,11 @@ import com.pandulapeter.kubrikoCreator.actors.propertyReference
 internal object ColorValueCode {
 
     /**
+     * What every color value's code names, which a Block taking one imports, since a Manager type may have no color of its own.
+     */
+    const val IMPORT = "androidx.compose.ui.graphics.Color"
+
+    /**
      * What a color Property that doesn't exist (renamed, deleted, or not chosen yet) reads as, so the code still
      * compiles.
      */

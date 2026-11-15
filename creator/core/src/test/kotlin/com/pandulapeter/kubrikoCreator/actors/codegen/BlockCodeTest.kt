@@ -62,6 +62,7 @@ class BlockCodeTest {
         val sceneOffset = "com.pandulapeter.kubriko.types.SceneOffset"
         val absoluteValue = "kotlin.math.absoluteValue"
         val logger = "com.pandulapeter.kubriko.logger.Logger"
+        val color = "androidx.compose.ui.graphics.Color"
         val defaults = mapOf(
             BlockKind.SET_VELOCITY to Expected(setOf(MOVEMENT), setOf(sceneOffset)),
             BlockKind.ADD_TO_VELOCITY to Expected(setOf(MOVEMENT), setOf(sceneOffset)),
@@ -78,7 +79,7 @@ class BlockCodeTest {
             BlockKind.CHANGE_NUMBER to Expected(),
             BlockKind.SET_TEXT to Expected(),
             BlockKind.SET_TOGGLE to Expected(),
-            BlockKind.SET_COLOR_PROPERTY to Expected(),
+            BlockKind.SET_COLOR_PROPERTY to Expected(imports = setOf(color)),
             BlockKind.ADD_ACTOR to Expected(),
             BlockKind.MOVE_TOWARDS_NEAREST to Expected(),
             BlockKind.START_TIMER to Expected(),
@@ -91,7 +92,7 @@ class BlockCodeTest {
             BlockKind.STOP_MUSIC to Expected(setOf(AUDIO)),
             BlockKind.SET_FRAME to Expected(),
             BlockKind.SET_ANIMATION to Expected(),
-            BlockKind.SET_COLOR to Expected(),
+            BlockKind.SET_COLOR to Expected(imports = setOf(color)),
             BlockKind.SET_OPACITY to Expected(),
             BlockKind.CHANGE_OPACITY to Expected(),
             BlockKind.ANIMATE to Expected(setOf(MOVEMENT, ACTOR_MANAGER, SCALE_TWEEN)),
@@ -133,7 +134,7 @@ class BlockCodeTest {
             BlockDefinition.SetVelocity(x = NumberValue.Property("speed")) to Expected(setOf(MOVEMENT), setOf(sceneOffset)),
             BlockDefinition.StartTimer(seconds = NumberValue.Random()) to Expected(),
             BlockDefinition.Animate(AnimatedValue.Opacity()) to Expected(setOf(MOVEMENT, ACTOR_MANAGER, OPACITY_TWEEN)),
-            BlockDefinition.Animate(AnimatedValue.Color()) to Expected(setOf(MOVEMENT, ACTOR_MANAGER, COLOR_TWEEN)),
+            BlockDefinition.Animate(AnimatedValue.Color()) to Expected(setOf(MOVEMENT, ACTOR_MANAGER, COLOR_TWEEN), setOf(color)),
             BlockDefinition.Animate(AnimatedValue.Position()) to Expected(setOf(MOVEMENT, ACTOR_MANAGER, POSITION_TWEEN), setOf(sceneOffset)),
             BlockDefinition.Animate(AnimatedValue.Position(x = NumberValue.Edge(SceneEdge.LEFT))) to Expected(setOf(MOVEMENT, ACTOR_MANAGER, POSITION_TWEEN, SCENES), setOf(sceneOffset)),
             BlockDefinition.Animate(seconds = NumberValue.Property("score", manager = "Game")) to Expected(setOf(MOVEMENT, ACTOR_MANAGER, SCALE_TWEEN), managers = setOf("Game")),

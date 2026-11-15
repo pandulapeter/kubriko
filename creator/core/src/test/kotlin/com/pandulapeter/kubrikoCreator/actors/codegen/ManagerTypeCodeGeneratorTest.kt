@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.actors.codegen
 
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.ColorValue
 import com.pandulapeter.kubrikoCreator.actors.Comparison
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
@@ -384,6 +385,19 @@ class ManagerTypeCodeGeneratorTest {
         val withTitle = game.copy(properties = game.properties + PropertyDefinition.Text("title"))
         assertContains(generate(withTitle.copy(texts = listOf(ScreenTextDefinition("{score}")))), "    private fun Float.asText() = ")
         assertFalse("asText" in generate(withTitle.copy(texts = listOf(ScreenTextDefinition("{title}")))))
+    }
+
+    @Test
+    fun aManagerWithoutColorsOfItsOwnStillImportsColorForABlockSettingAnothersColor() {
+        val colored = ManagerTypeDefinition("Palette", properties = listOf(PropertyDefinition.Color("tint")))
+        val hud = ManagerTypeDefinition(
+            name = "Hud",
+            properties = listOf(PropertyDefinition.Number("score")),
+            events = listOf(EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.SetColorProperty("tint", ColorValue.Fixed(0xFF20C060), manager = "Palette")))),
+        )
+        val code = generate(hud, managerTypes = listOf(hud, colored))
+        assertContains(code, "paletteManager.tint = Color(0xFF20C060)")
+        assertContains(code, "import androidx.compose.ui.graphics.Color\n")
     }
 
     @Test
