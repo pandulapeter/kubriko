@@ -251,7 +251,7 @@ public class BlockTypeStore private constructor(
         writeUnlessChangedByHand(ManagerTypeCodeGenerator.WIRING_NAME, ManagerTypeCodeGenerator.generateWiring(managerTypes.map { it.name }, settings.packageName, pluginManagers))
         writeUnlessChangedByHand(
             AudioCodeGenerator.AUDIO_NAME,
-            if (pluginManagers.usesAudio) AudioCodeGenerator.generate(settings.packageName, pluginManagers.sounds, pluginManagers.music) else null,
+            if (pluginManagers.usesAudio) AudioCodeGenerator.generate(settings.packageName, pluginManagers.sounds, pluginManagers.music, pluginManagers.usesSoundVolume) else null,
         )
         writeUnlessChangedByHand(
             SpritesCodeGenerator.SPRITES_NAME,

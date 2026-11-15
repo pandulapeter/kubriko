@@ -24,8 +24,11 @@ internal object AudioCodeGenerator {
     /**
      * @param sounds The sound files the game plays, by their path from `composeResources`.
      * @param music The music files the game plays, by their path from `composeResources`.
+     * @param usesSoundVolume Whether a Block plays a sound at less than full volume, the only case that calls
+     *   `SoundManager.play` with a volume, which only Kubriko releases after 0.8.0 have, so a game that doesn't builds with
+     *   older ones too.
      */
-    fun generate(packageName: String, sounds: Collection<String>, music: Collection<String>) = GeneratedFile.withHeader("", buildString {
+    fun generate(packageName: String, sounds: Collection<String>, music: Collection<String>, usesSoundVolume: Boolean = false) = GeneratedFile.withHeader("", buildString {
         appendLine("package $packageName.${ActorTypeCodeGenerator.GENERATED_PACKAGE}")
         appendLine()
         listOf(
@@ -93,13 +96,7 @@ internal object AudioCodeGenerator {
             |        }
             |    }
             |
-            |    /**
-            |     * Plays the sound at [path] (from `composeResources`) once, at [volume] (from 0 to 1), or nothing for an empty
-            |     * path, which a sound Property holds while it names no sound.
-            |     */
-            |    fun playSound(path: String, volume: Float = 1f) {
-            |        if (!isInSceneEditor && path.isNotEmpty()) soundManager.play(uriOf(path), volume)
-            |    }
+            ${playSoundFunction(usesSoundVolume)}
             |
             |    /**
             |     * Plays the music at [path] (from `composeResources`) instead of the music playing now, or goes on with it if it
@@ -135,6 +132,31 @@ internal object AudioCodeGenerator {
         appendLine("    }")
         appendLine("}")
     })
+
+    /**
+     * `playSound`, as lines of the margin-trimmed template, taking a volume only when [usesSoundVolume].
+     */
+    private fun playSoundFunction(usesSoundVolume: Boolean) = if (usesSoundVolume) {
+        listOf(
+            "|    /**",
+            "|     * Plays the sound at [path] (from `composeResources`) once, at [volume] (from 0 to 1), or nothing for an empty",
+            "|     * path, which a sound Property holds while it names no sound.",
+            "|     */",
+            "|    fun playSound(path: String, volume: Float = 1f) {",
+            "|        if (!isInSceneEditor && path.isNotEmpty()) soundManager.play(uriOf(path), volume)",
+            "|    }",
+        )
+    } else {
+        listOf(
+            "|    /**",
+            "|     * Plays the sound at [path] (from `composeResources`) once, or nothing for an empty path, which a sound Property",
+            "|     * holds while it names no sound.",
+            "|     */",
+            "|    fun playSound(path: String) {",
+            "|        if (!isInSceneEditor && path.isNotEmpty()) soundManager.play(uriOf(path))",
+            "|    }",
+        )
+    }.joinToString("\n")
 
     private fun StringBuilder.appendFileList(name: String, paths: Collection<String>) {
         if (paths.isEmpty()) {

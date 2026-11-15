@@ -14,6 +14,8 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.FULL_VOLUME
+import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.audioFile
@@ -28,6 +30,7 @@ import com.pandulapeter.kubrikoCreator.project.KubrikoArtifact
  * @param usesKeyboard Whether any type has an Event reacting to a key or checks whether a key is held.
  * @param usesAudio Whether any type plays a sound or music, or stops the music, or any Scene has music.
  * @param sounds The sound files the Blocks play, by their path from `composeResources`.
+ * @param usesSoundVolume Whether a Block plays a sound at less than full volume ([AudioCodeGenerator.generate]).
  * @param music The music files the Blocks and the Scenes play, by their path from `composeResources`.
  * @param sprites The resource accessors of the sprites the Actor types are drawn as ([SpritesCodeGenerator]); the game uses
  *   the sprites plugin when there are any.
@@ -37,6 +40,7 @@ internal data class PluginManagers(
     val usesKeyboard: Boolean = false,
     val usesAudio: Boolean = false,
     val sounds: Set<String> = emptySet(),
+    val usesSoundVolume: Boolean = false,
     val music: Set<String> = emptySet(),
     val sprites: Set<String> = emptySet(),
 ) {
@@ -74,6 +78,7 @@ internal data class PluginManagers(
                 // A Property's starting file is preloaded too; one set later loads as it first plays.
                 sounds = blocks.mapNotNullTo(sortedSetOf()) { (it as? BlockDefinition.PlaySound)?.audioFile } +
                     properties.mapNotNull { (it as? PropertyDefinition.Sound)?.initialValue?.ifEmpty { null } },
+                usesSoundVolume = blocks.any { it is BlockDefinition.PlaySound && it.volume != NumberValue.Fixed(FULL_VOLUME) },
                 music = blocks.mapNotNullTo(sortedSetOf()) { (it as? BlockDefinition.PlayMusic)?.audioFile } + sceneMusic +
                     properties.mapNotNull { (it as? PropertyDefinition.Music)?.initialValue?.ifEmpty { null } },
                 sprites = actorTypes.mapNotNullTo(sortedSetOf()) { type -> type.sprite?.let(SpriteFiles::accessorOf) },
