@@ -111,7 +111,8 @@ public object ManagerTypeCodeGenerator {
             if (keyEvents.isNotEmpty() || startEvents.any { it.blocks.isNotEmpty() }) add("com.pandulapeter.kubriko.Kubriko")
             if (keyEvents.isNotEmpty()) addAll(listOf("androidx.compose.ui.input.key.Key", "com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware"))
             if (definition.properties.any { it is PropertyDefinition.Number }) add("androidx.compose.runtime.mutableFloatStateOf")
-            if (definition.properties.any { it !is PropertyDefinition.Number }) add("androidx.compose.runtime.mutableStateOf")
+            if (definition.properties.any { it is PropertyDefinition.Color }) add("androidx.compose.runtime.mutableLongStateOf")
+            if (definition.properties.any { it !is PropertyDefinition.Number && it !is PropertyDefinition.Color }) add("androidx.compose.runtime.mutableStateOf")
             if (definition.properties.isNotEmpty()) addAll(listOf("androidx.compose.runtime.getValue", "androidx.compose.runtime.setValue"))
             if (definition.properties.any { it is PropertyDefinition.Color }) add("androidx.compose.ui.graphics.Color")
             needs.forEach { addAll(importsOf(it)) }
@@ -131,7 +132,7 @@ public object ManagerTypeCodeGenerator {
             appendLine("    private val isInSceneEditor: Boolean = false,")
             appendLine(") : Manager()${if (keyEvents.isNotEmpty()) ", KeyboardInputAware" else ""} {")
             definition.properties.forEach { property ->
-                appendLine("    var ${property.name} by ${if (property is PropertyDefinition.Number) "mutableFloatStateOf" else "mutableStateOf"}(${initialValueLiteral(property)})")
+                appendManagerProperty(property)
             }
             if (definition.properties.isNotEmpty()) appendLine()
             BlockNeed.entries.filter { it in needs }.forEach { need -> fieldOf(need)?.let { appendLine("    private val $it") } }
@@ -257,6 +258,26 @@ public object ManagerTypeCodeGenerator {
         appendLine("    }")
         appendLine("}")
     })
+
+    /**
+     * A Property of a Manager type, which is Compose state so the texts showing it follow it: a number in a float state
+     * and a color, an inline class, in a long state of its packed value, behind a property of its own, so that neither
+     * boxes when it changes.
+     */
+    private fun StringBuilder.appendManagerProperty(property: PropertyDefinition) = when (property) {
+        is PropertyDefinition.Number -> appendLine("    var ${property.name} by mutableFloatStateOf(${initialValueLiteral(property)})")
+        is PropertyDefinition.Color -> {
+            // Property names have no underscores, so the backing field can't be another Property's name.
+            val backingField = "_${property.name}"
+            appendLine("    private val $backingField = mutableLongStateOf(${initialValueLiteral(property)}.value.toLong())")
+            appendLine("    var ${property.name}: Color")
+            appendLine("        get() = Color($backingField.longValue.toULong())")
+            appendLine("        set(value) {")
+            appendLine("            $backingField.longValue = value.value.toLong()")
+            appendLine("        }")
+        }
+        is PropertyDefinition.Text, is PropertyDefinition.Toggle -> appendLine("    var ${property.name} by mutableStateOf(${initialValueLiteral(property)})")
+    }
 
     private fun StringBuilder.appendKeyDispatch(callsByKey: Map<KeyChoice, String?>) {
         appendLine()

@@ -404,7 +404,12 @@ class ManagerTypeCodeGeneratorTest {
     fun aColorPropertysPlaceholderStaysAsItIsWritten() {
         val tinted = game.copy(properties = game.properties + PropertyDefinition.Color("tint"), texts = listOf(ScreenTextDefinition("Tint: {tint}, {score}")))
         assertContains(generate(tinted), "text = \"Tint: {tint}, ${'$'}{score.asText()}\",")
-        assertContains(generate(tinted), "    var tint by mutableStateOf(Color(0xFFFFFFFF))\n")
+        assertContains(
+            generate(tinted),
+            "    private val _tint = mutableLongStateOf(Color(0xFFFFFFFF).value.toLong())\n    var tint: Color\n        get() = Color(_tint.longValue.toULong())\n" +
+                "        set(value) {\n            _tint.longValue = value.value.toLong()\n        }\n",
+        )
+        assertFalse("var tint by" in generate(tinted))
     }
 
     @Test
