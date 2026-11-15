@@ -29,6 +29,7 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
@@ -222,7 +223,8 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
      */
     public fun boundsOf(id: String): SceneHitTest.Bounds? = indicesById[id]?.let(::boundsAt)
 
-    private fun boundsAt(index: Int) = actors.getOrNull(index)?.let { boundsOf(index, it, entries[index].typeId == SceneSettingsCodeGenerator.SETTINGS_NAME, drawnRanks[index]) }
+    private fun boundsAt(index: Int) = actors.getOrNull(index)?.takeUnless(::isSceneValues)
+        ?.let { boundsOf(index, it, entries[index].typeId == SceneSettingsCodeGenerator.SETTINGS_NAME, drawnRanks[index]) }
 
     /**
      * Moves and zooms the camera to show the Scene's bounds, or without Scene settings, every Actor.
@@ -313,6 +315,13 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
         }
 
         private const val POINT_SIZE = 8f
+
+        /**
+         * Whether [actor] holds the values its Scene gives a Manager type, which is nowhere in the Scene, so it is neither
+         * drawn, hit, nor framed: the only classes generated inside the registry of Actor types are those
+         * (`ManagerSceneValuesCode`).
+         */
+        internal fun isSceneValues(actor: Editable<*>) = actor.javaClass.enclosingClass?.simpleName == ActorTypeCodeGenerator.REGISTRY_NAME
     }
 }
 
