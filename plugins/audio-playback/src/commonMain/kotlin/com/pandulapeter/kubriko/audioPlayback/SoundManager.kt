@@ -61,7 +61,7 @@ sealed class SoundManager(
 
     /**
      * Plays the sound associated with the given [uri] at [volume], from 0 (silent) to 1 (full volume, as recorded); a
-     * value outside that range is clamped to it.
+     * value outside that range is clamped to it, and NaN plays silently.
      *
      * If the sound is not yet loaded, it will be loaded automatically.
      */

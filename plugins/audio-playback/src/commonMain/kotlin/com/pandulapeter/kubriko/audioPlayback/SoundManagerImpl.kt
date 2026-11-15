@@ -66,7 +66,7 @@ internal class SoundManagerImpl(
     override fun preload(uris: Collection<String>) = uris.forEach(audioCache::preload)
 
     override fun play(uri: String, volume: Float) {
-        val clampedVolume = volume.coerceIn(0f, 1f)
+        val clampedVolume = playableVolume(volume)
         scope.launch {
             if (stateManager.isFocused.value) {
                 soundPlayer?.let { soundPlayer ->
@@ -91,3 +91,8 @@ internal class SoundManagerImpl(
         soundPlayer = null
     }
 }
+
+/**
+ * [volume] within what every platform's player takes, from 0 to 1: NaN, which no player takes, plays silently.
+ */
+internal fun playableVolume(volume: Float) = if (volume.isNaN()) 0f else volume.coerceIn(0f, 1f)

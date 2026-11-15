@@ -39,6 +39,11 @@ class SoundManagerTest {
         assertEquals(1f, runBlocking { soundManager.getLoadingProgress(emptyList()).first() })
     }
 
+    @Test
+    fun aVolumeIsClampedToWhatEveryPlayerTakes() {
+        assertEquals(listOf(0f, 0f, 0.5f, 1f, 0f), listOf(-1f, 0f, 0.5f, 2f, Float.NaN).map(::playableVolume))
+    }
+
     private companion object {
         const val URI = "files/sounds/click.wav"
     }
