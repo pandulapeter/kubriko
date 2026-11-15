@@ -57,7 +57,6 @@ public object SceneSettingsCodeGenerator {
         "com.pandulapeter.kubriko.types.SceneSize",
         "kotlinx.serialization.SerialName",
         "kotlinx.serialization.json.Json",
-
     )
 
     internal fun generate(packageName: String) = GeneratedFile.withHeader("", buildString {
