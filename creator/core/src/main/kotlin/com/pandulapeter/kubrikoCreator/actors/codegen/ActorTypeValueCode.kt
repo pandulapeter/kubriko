@@ -65,11 +65,14 @@ internal object ActorTypeValueCode {
         appendLine("     * Property names.")
         appendLine("     */")
         appendLine("    fun $NEAREST_FUNCTION(actors: List<Actor>, name: String, from: $POSITIONABLE): $POSITIONABLE? {")
+        // The name is matched once, rather than for every candidate.
+        appendLine("        val type = typeIndexOf(name)")
+        appendLine("        if (type < 0) return null")
         appendLine("        var nearest: $POSITIONABLE? = null")
         appendLine("        var nearestDistanceSquared = Float.MAX_VALUE")
         appendLine("        for (index in actors.indices) {")
         appendLine("            val candidate = actors[index]")
-        appendLine("            if (candidate === from || candidate !is $POSITIONABLE || !isActiveOf(candidate, name)) continue")
+        appendLine("            if (candidate === from || candidate !is $POSITIONABLE || !isActiveOf(candidate, type)) continue")
         appendLine("            val offset = candidate.body.position - from.body.position")
         appendLine("            val distanceSquared = offset.x.raw * offset.x.raw + offset.y.raw * offset.y.raw")
         appendLine("            if (distanceSquared < nearestDistanceSquared) {")
@@ -80,10 +83,15 @@ internal object ActorTypeValueCode {
         appendLine("        return nearest")
         appendLine("    }")
         appendLine()
-        appendLine("    private fun isActiveOf(actor: Actor, name: String): Boolean = when (name) {")
-        names.forEach { name ->
+        appendLine("    private fun typeIndexOf(name: String): Int = when (name) {")
+        names.forEachIndexed { index, name -> appendLine("        ${stringLiteral(name)} -> $index") }
+        appendLine("        else -> -1")
+        appendLine("    }")
+        appendLine()
+        appendLine("    private fun isActiveOf(actor: Actor, type: Int): Boolean = when (type) {")
+        names.forEachIndexed { index, name ->
             val actorClass = if (name in baseClassNames) name + BlockTypeNaming.BASE_SUFFIX else name
-            appendLine("        ${stringLiteral(name)} -> actor is $actorClass && !actor.$REMOVED_FIELD")
+            appendLine("        $index -> actor is $actorClass && !actor.$REMOVED_FIELD")
         }
         appendLine("        else -> false")
         appendLine("    }")
