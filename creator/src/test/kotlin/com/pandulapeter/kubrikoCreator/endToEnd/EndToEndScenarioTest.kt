@@ -101,6 +101,16 @@ class EndToEndScenarioTest {
     }
 
     @Test
+    fun waitingForTheGameCanCropToAnActorType() = runTest {
+        val runner = FakeProjectRunner(step = GameStep.Done(console = emptyList(), png = png(RED)))
+        withServedTools(runner) {
+            open()
+            scenario().awaitGame("ship", arguments = mapOf("actorType" to "Ship")) { true }
+            assertEquals(listOf("capture Ship"), runner.calls)
+        }
+    }
+
+    @Test
     fun waitingForTheGameThroughUnreadableFramesEndsWithWhyTheLastFailed() = runTest {
         withServedTools(FakeProjectRunner(step = GameStep.Done(console = emptyList(), png = png(RED).copyOf(40)))) {
             open()

@@ -90,15 +90,20 @@ internal class EndToEndScenario(
     }
 
     /**
-     * What the running game shows once [isReady] accepts it, saved as [imageName], or as it is after [timeout]. Until
-     * then a screenshot that fails, throws, or can't be read counts as not ready, since a game restarting shows nothing
-     * for a while; the last one says why.
+     * What the running game shows (through `take_screenshot` called with [arguments]) once [isReady] accepts it, saved as
+     * [imageName], or as it is after [timeout]. Until then a screenshot that fails, throws, or can't be read counts as not
+     * ready, since a game restarting shows nothing for a while; the last one says why.
      */
-    fun awaitGame(imageName: String, timeout: Duration = GAME_TIMEOUT, isReady: (BufferedImage) -> Boolean): BufferedImage = poll(timeout, CreatorTools.POLLING_INTERVAL) { remaining ->
+    fun awaitGame(
+        imageName: String,
+        timeout: Duration = GAME_TIMEOUT,
+        arguments: Map<String, Any?> = emptyMap(),
+        isReady: (BufferedImage) -> Boolean,
+    ): BufferedImage = poll(timeout, CreatorTools.POLLING_INTERVAL) { remaining ->
         if (!remaining.isPositive()) {
-            captureGame(imageName)
+            captureGame(imageName, arguments)
         } else {
-            callForWait("take_screenshot", emptyMap(), remaining)?.png?.let(::decode)?.takeIf(isReady)?.also { save(imageName, it) }
+            callForWait("take_screenshot", arguments, remaining)?.png?.let(::decode)?.takeIf(isReady)?.also { save(imageName, it) }
         }
     }
 

@@ -30,9 +30,11 @@ import kotlin.time.Duration.Companion.minutes
 
 /**
  * Breakout brought up to the latest template, then changed the way its upgrades make possible (its name, first Scene, aspect
- * ratio, and frame rate) along with a sprite and a Log Block, and played: what each change should do shows in the played
- * game, its console, and its build. Then a hand-written change reaches the running game, a setting broken by hand fails
- * the build, naming it, and the game played on the web draws in a headless browser, its texts too, and takes in a change.
+ * ratio, and frame rate) along with a sprite, a sprite sheet, and a Log Block, and played: what each change should do shows
+ * in the played game, its console, and its build, and screenshots cropped to an Actor type (which the upgraded entry point
+ * makes possible) frame its Actors and show the sheet's frame changing. Then a hand-written change reaches the running game,
+ * a setting broken by hand fails the build, naming it, and the game played on the web draws in a headless browser, its
+ * texts too, and takes in a change.
  */
 class UpgradingAndPlayingTest {
 
@@ -45,12 +47,13 @@ class UpgradingAndPlayingTest {
             assertFalse(upgraded.isError, upgraded.text)
             assertContains(File(project, ".kubriko/project.json").readText(), "\"templateVersion\": ${ProjectUpgrader.CURRENT_VERSION}")
         }
-        step("A Scene of two sprite-drawn Gold Bricks, which log when they are placed, becomes the first one") {
-            writeSprite(File(project, "src/commonMain/composeResources/drawable/$SPRITE_NAME.png"))
+        step("A Scene of two sprite-drawn Gold Bricks, which log when they are placed, and a Blinker drawn as a sprite sheet becomes the first one") {
+            writeSprite(File(project, "src/commonMain/composeResources/drawable/$SPRITE_NAME.png"), SPRITE_COLOR)
             // The resource scan that finds the new image runs within a second of it showing up.
             awaitSuccess("set_appearance", mapOf("actorType" to "GoldBrick", "sprite" to "drawable/$SPRITE_NAME.png", "width" to 60, "height" to 24))
             succeed("add_event", mapOf("actorType" to "GoldBrick", "type" to "addedToScene", "blocks" to listOf(mapOf("type" to "log", "message" to LOGGED_LINE))))
             succeed("create_scene", mapOf("scene" to BONUS_SCENE))
+            addBlinker()
             succeed("place_actors", mapOf("scene" to BONUS_SCENE, "actors" to listOf(mapOf("actorType" to "GoldBrick", "x" to 0, "y" to 0), mapOf("actorType" to "GoldBrick", "x" to 60, "y" to 0))))
             succeed(
                 "set_project_settings",
@@ -78,6 +81,8 @@ class UpgradingAndPlayingTest {
             val viewportLeft = (first.width - VIEWPORT_WIDTH * scale) / 2
             assertTrue(text.x >= viewportLeft - 2, "The texts start at ${text.x}, left of the viewport's edge at $viewportLeft.")
         }
+        step("take_screenshot cropped to the GoldBrick type shows both Gold Bricks in its middle, unscaled, with room around them") { checkGoldBrickCrop(first) }
+        step("The Blinker plays its sprite sheet, its frame changing in screenshots cropped to it") { checkBlinkerFrames() }
         step("A change to Game.kt by hand reaches the running game") {
             val game = File(project, "src/commonMain/kotlin/com/example/breakout/Game.kt")
             val text = game.readText()
@@ -140,12 +145,55 @@ class UpgradingAndPlayingTest {
         }
     }
 
-    private fun writeSprite(file: File) {
+    private fun EndToEndScenario.checkGoldBrickCrop(whole: BufferedImage) {
+        val gems = assertNotNull(whole.boundsOf(SPRITE_COLOR))
+        val crop = captureGame("bonus-scene-cropped", mapOf("actorType" to "GoldBrick"))
+        assertTrue(crop.width < whole.width && crop.height < whole.height, "The crop is ${crop.width}×${crop.height}, as large as the game's ${whole.width}×${whole.height}.")
+        val cropped = assertNotNull(crop.boundsOf(SPRITE_COLOR), "The crop doesn't show the Gold Bricks.")
+        assertTrue(abs(cropped.width - gems.width) <= 2 && abs(cropped.height - gems.height) <= 2, "The crop is scaled: the Gold Bricks are $cropped in it and $gems in the whole game.")
+        assertTrue(cropped.x > 0 && cropped.y > 0 && cropped.maxX < crop.width && cropped.maxY < crop.height, "The crop cuts the Gold Bricks, at $cropped in ${crop.width}×${crop.height}.")
+        assertTrue(
+            abs(cropped.centerX - crop.width / 2.0) <= 3 && abs(cropped.centerY - crop.height / 2.0) <= 3,
+            "The Gold Bricks are at $cropped, not in the middle of ${crop.width}×${crop.height}.",
+        )
+        // Half of their size is left around them on every side, unless a twentieth of the view is more.
+        assertTrue(crop.width >= gems.width * 2 - 2 && crop.height >= gems.height * 2 - 2, "There is too little room around the Gold Bricks, at $cropped in ${crop.width}×${crop.height}.")
+    }
+
+    /**
+     * Adds a Blinker type drawn as a sprite sheet of two frames, each one color, below the bonus Scene's Gold Bricks.
+     */
+    private fun EndToEndScenario.addBlinker() {
+        writeSprite(File(project, "src/commonMain/composeResources/drawable/$SHEET_NAME.png"), *FRAME_COLORS)
+        val sheet = mapOf("frameWidth" to SPRITE_SIZE, "frameHeight" to SPRITE_SIZE, "frameCount" to FRAME_COLORS.size, "framesPerRow" to FRAME_COLORS.size, "framesPerSecond" to 2)
+        awaitSuccess("set_sprite_sheet", mapOf("sprite" to "drawable/$SHEET_NAME.png", "sheet" to sheet))
+        succeed("create_actor_type", mapOf("name" to "Blinker", "shape" to "rectangle", "sprite" to "drawable/$SHEET_NAME.png", "width" to 80, "height" to 80))
+        succeed("place_actors", mapOf("scene" to BONUS_SCENE, "actors" to listOf(mapOf("actorType" to "Blinker", "x" to 0, "y" to 300))))
+    }
+
+    private fun EndToEndScenario.checkBlinkerFrames() {
+        val frames = FRAME_COLORS.mapIndexed { index, color ->
+            fun showsOnlyThisFrame(image: BufferedImage) = image.countOf(color) > 0 && FRAME_COLORS.none { it != color && image.countOf(it) > 0 }
+            val frame = awaitGame("blinker-frame-${index + 1}", arguments = mapOf("actorType" to "Blinker"), isReady = ::showsOnlyThisFrame)
+            assertTrue(showsOnlyThisFrame(frame), "The Blinker never showed only its frame ${index + 1}, #%06X.".format(color))
+            frame
+        }
+        val differing = ImageChecks.differenceBetween(frames[0], frames[1]) * frames[0].width * frames[0].height
+        val blinker = frames[0].countOf(FRAME_COLORS[0])
+        assertTrue(differing >= blinker * 0.9f, "Only $differing pixels differ between the Blinker's two frames, of the $blinker it covers.")
+    }
+
+    /**
+     * Writes a sprite of square frames side by side, each one of [frameColors].
+     */
+    private fun writeSprite(file: File, vararg frameColors: Int) {
         file.parentFile.mkdirs()
-        val image = BufferedImage(SPRITE_SIZE, SPRITE_SIZE, BufferedImage.TYPE_INT_RGB)
+        val image = BufferedImage(SPRITE_SIZE * frameColors.size, SPRITE_SIZE, BufferedImage.TYPE_INT_RGB)
         image.createGraphics().apply {
-            color = java.awt.Color(SPRITE_COLOR)
-            fillRect(0, 0, SPRITE_SIZE, SPRITE_SIZE)
+            frameColors.forEachIndexed { index, frameColor ->
+                color = java.awt.Color(frameColor)
+                fillRect(index * SPRITE_SIZE, 0, SPRITE_SIZE, SPRITE_SIZE)
+            }
             dispose()
         }
         ImageIO.write(image, "png", file)
@@ -157,6 +205,8 @@ class UpgradingAndPlayingTest {
         const val SPRITE_NAME = "gem"
         const val SPRITE_SIZE = 16
         const val SPRITE_COLOR = 0x22AA22
+        const val SHEET_NAME = "blink"
+        val FRAME_COLORS = intArrayOf(0xCC22CC, 0x22CCCC)
         const val VIEWPORT_COLOR = 0xAA2244
         const val WEB_VIEWPORT_COLOR = 0x2244AA
         const val GOLD = 0xFFC857
