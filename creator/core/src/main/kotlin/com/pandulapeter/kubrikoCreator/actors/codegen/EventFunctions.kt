@@ -51,7 +51,8 @@ internal object EventFunctions {
         EventType.EDGE_TOUCHED -> Function("$EDGE($DELTA_TIME_PARAMETER, $EDGE_PARAMETERS)", "$EDGE($DELTA_TIME, $EDGE_ARGUMENTS)")
         EventType.LEFT_SCENE -> Function("$LEFT_SCENE($DELTA_TIME_PARAMETER)", "$LEFT_SCENE($DELTA_TIME)")
         EventType.REMOVED_FROM_SCENE -> Function("$REMOVED_FROM_SCENE()", "$REMOVED_FROM_SCENE()")
-        EventType.KEY_PRESSED, EventType.KEY_RELEASED, EventType.KEY_HELD -> event.trigger.key?.takeIf { it.isKnown }?.let { Function("${key(event.type, it)}()", "${key(event.type, it)}()") }
+        EventType.KEY_PRESSED, EventType.KEY_RELEASED -> event.trigger.key?.takeIf { it.isKnown }?.let { Function("${key(event.type, it)}()", "${key(event.type, it)}()") }
+        EventType.KEY_HELD -> event.trigger.key?.takeIf { it.isKnown }?.let { Function("${key(event.type, it)}($DELTA_TIME_PARAMETER)", "${key(event.type, it)}($DELTA_TIME)") }
         EventType.COLLISION -> event.trigger.otherActorType?.takeIf { it in scope.actorTypeNames }?.let { other ->
             Function("${collision(other)}(other: ${scope.classOf(other)})", "${collision(other)}(other)")
         }

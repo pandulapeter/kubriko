@@ -45,7 +45,7 @@ class KeyAndRemovedEventsCodeTest {
     fun aHeldKeyIsAskedAboutEveryFrameWithoutTheTrait() {
         val code = actor(EventDefinition(EventType.KEY_HELD, key = KeyChoice.A, blocks = log), EventDefinition(EventType.KEY_HELD, key = KeyChoice.SPACE, blocks = log))
         assertFalse("KeyboardInputAware" in code)
-        assertContains(code, "        if (!isRemoved && keyboardInputManager.isKeyPressed(Key.Spacebar)) whileKeyHeldSpacebar()\n        if (!isRemoved && keyboardInputManager.isKeyPressed(Key.A)) whileKeyHeldA()\n")
+        assertContains(code, "        if (!isRemoved && keyboardInputManager.isKeyPressed(Key.Spacebar)) whileKeyHeldSpacebar(deltaTimeInMilliseconds)\n        if (!isRemoved && keyboardInputManager.isKeyPressed(Key.A)) whileKeyHeldA(deltaTimeInMilliseconds)\n")
         assertContains(code, "lateinit var keyboardInputManager: KeyboardInputManager")
     }
 
@@ -54,8 +54,14 @@ class KeyAndRemovedEventsCodeTest {
         val ship = ActorTypeDefinition(name = "Ship", events = listOf(EventDefinition(EventType.KEY_HELD, key = KeyChoice.A), EventDefinition(EventType.EVERY_FRAME, blocks = log)))
         val fighter = ActorTypeDefinition(name = "Fighter", parent = "Ship")
         val code = ActorTypeCodeGenerator.generateActorType(ship, "com.example.game", listOf("Ship", "Fighter"), actorTypes = listOf(ship, fighter))
-        assertContains(code, "if (!isRemoved && keyboardInputManager.isKeyPressed(Key.A)) whileKeyHeldA()")
+        assertContains(code, "if (!isRemoved && keyboardInputManager.isKeyPressed(Key.A)) whileKeyHeldA(deltaTimeInMilliseconds)")
         assertContains(code, "lateinit var keyboardInputManager: KeyboardInputManager")
+    }
+
+    @Test
+    fun aHeldKeysKotlinBlockHasTheFrameTimeAsEveryFrameDoes() {
+        val code = actor(EventDefinition(EventType.KEY_HELD, key = KeyChoice.A, blocks = listOf(BlockDefinition.Kotlin("velocity = velocity * (deltaTimeInMilliseconds / 16f)"))))
+        assertContains(code, "    private fun whileKeyHeldA(deltaTimeInMilliseconds: Int) {\n")
     }
 
     @Test
@@ -83,7 +89,7 @@ class KeyAndRemovedEventsCodeTest {
         val code = manager(EventDefinition(EventType.KEY_RELEASED, key = KeyChoice.SPACE, blocks = log), EventDefinition(EventType.KEY_HELD, key = KeyChoice.A, blocks = log))
         assertContains(code, "    override fun onKeyReleased(key: Key) {\n        when (key) {\n            Key.Spacebar -> onKeyReleasedSpacebar()\n")
         assertContains(code, "        actorManager.add(this)\n")
-        assertContains(code, "        if (isInSceneEditor || !stateManager.isRunning.value) return\n        if (keyboardInputManager.isKeyPressed(Key.A)) whileKeyHeldA()\n")
+        assertContains(code, "        if (isInSceneEditor || !stateManager.isRunning.value) return\n        if (keyboardInputManager.isKeyPressed(Key.A)) whileKeyHeldA(deltaTimeInMilliseconds)\n")
         assertFalse("onRemovedFromScene" in manager(EventDefinition(EventType.REMOVED_FROM_SCENE, blocks = log)))
     }
 
