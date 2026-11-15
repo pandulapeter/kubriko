@@ -85,6 +85,17 @@ public sealed interface NumberValue {
 }
 
 /**
+ * [this] value reading the Property [newName] instead, if it reads [oldName] of [manager] (the type's own one, if null).
+ */
+internal fun NumberValue.withPropertyRenamed(oldName: String, newName: String, manager: String?) =
+    if (this is NumberValue.Property && this.manager == manager && property == oldName) copy(property = newName) else this
+
+/**
+ * [this] value reading its Property from the Manager type [newName] instead, if it reads one of [oldName].
+ */
+internal fun NumberValue.withManagerRenamed(oldName: String, newName: String) = if (this is NumberValue.Property && manager == oldName) copy(manager = newName) else this
+
+/**
  * The Property [this] value reads, if it reads one.
  */
 public val NumberValue.propertyReference: PropertyReference?

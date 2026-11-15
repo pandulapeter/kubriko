@@ -105,9 +105,7 @@ internal fun BlockDefinition.withPropertyRenamed(oldName: String, newName: Strin
     propertyReference?.let { it.manager == manager && it.name == oldName } == true -> withPropertyReference(manager, newName)
     this is BlockDefinition.Log -> copy(message = PropertyPlaceholders.withPropertyRenamed(message, manager, oldName, newName))
     else -> this
-}.withNumberValues { value ->
-    if (value is NumberValue.Property && value.manager == manager && value.property == oldName) value.copy(property = newName) else value
-}
+}.withNumberValues { it.withPropertyRenamed(oldName, newName, manager) }
 
 /**
  * [this] Block with the Properties of the Manager type [oldName] it uses (or shows, in a Log Block) taken from [newName]
@@ -117,7 +115,7 @@ internal fun BlockDefinition.withManagerRenamed(oldName: String, newName: String
     propertyReference?.manager == oldName -> withPropertyReference(newName, propertyReference!!.name)
     this is BlockDefinition.Log -> copy(message = PropertyPlaceholders.withManagerRenamed(message, oldName, newName))
     else -> this
-}.withNumberValues { value -> if (value is NumberValue.Property && value.manager == oldName) value.copy(manager = newName) else value }
+}.withNumberValues { it.withManagerRenamed(oldName, newName) }
 
 /**
  * [this] Block using the Property called [name] of [manager] (the type's own one, if null) instead, if it is one that

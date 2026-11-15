@@ -79,9 +79,7 @@ public fun ConditionDefinition.withNumberValues(transform: (NumberValue) -> Numb
 internal fun ConditionDefinition.withPropertyRenamed(oldName: String, newName: String, manager: String?): ConditionDefinition = when {
     propertyReference?.let { it.manager == manager && it.name == oldName } == true -> withPropertyReference(manager, newName)
     else -> this
-}.withNumberValues { value ->
-    if (value is NumberValue.Property && value.manager == manager && value.property == oldName) value.copy(property = newName) else value
-}
+}.withNumberValues { it.withPropertyRenamed(oldName, newName, manager) }
 
 /**
  * [this] condition with the Properties of the Manager type [oldName] it checks or reads taken from [newName] instead.
@@ -89,4 +87,4 @@ internal fun ConditionDefinition.withPropertyRenamed(oldName: String, newName: S
 internal fun ConditionDefinition.withManagerRenamed(oldName: String, newName: String): ConditionDefinition = when {
     propertyReference?.manager == oldName -> withPropertyReference(newName, propertyReference!!.name)
     else -> this
-}.withNumberValues { value -> if (value is NumberValue.Property && value.manager == oldName) value.copy(manager = newName) else value }
+}.withNumberValues { it.withManagerRenamed(oldName, newName) }
