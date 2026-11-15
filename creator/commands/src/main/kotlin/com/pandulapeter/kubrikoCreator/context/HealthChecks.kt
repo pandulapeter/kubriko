@@ -70,12 +70,11 @@ internal object HealthChecks {
                         add(HealthFinding(kind, RelationSubject.Type(type.name), other))
                     }
                 }
-                listOf(RelationKind.COUNTS to HealthFinding.Kind.COUNT_OF_ABSENT_TYPE, RelationKind.MEASURES to HealthFinding.Kind.DISTANCE_TO_ABSENT_TYPE).forEach { (relationKind, findingKind) ->
-                    relations.from(RelationSubject.Type(type.name)).filter { it.kind == relationKind }.mapNotNull { (it.subject as? RelationSubject.Type)?.name }
-                        .distinct()
-                        .filter { it in actorTypeNames && !isPresent(it) }
-                        .forEach { add(HealthFinding(findingKind, RelationSubject.Type(type.name), it)) }
-                }
+                relations.from(RelationSubject.Type(type.name))
+                    .mapNotNull { relation -> ABSENT_TYPE_FINDINGS[relation.kind]?.let { kind -> (relation.subject as? RelationSubject.Type)?.name?.let { kind to it } } }
+                    .distinct()
+                    .filter { (_, name) -> name in actorTypeNames && !isPresent(name) }
+                    .forEach { (kind, name) -> add(HealthFinding(kind, RelationSubject.Type(type.name), name)) }
                 (type as? ManagerTypeDefinition)?.texts?.forEachIndexed { index, text ->
                     if (text.shownWhen?.let(::isNeverTrue) == true) add(HealthFinding(HealthFinding.Kind.TEXT_NEVER_SHOWN, RelationSubject.Type(type.name), (index + 1).toString()))
                 }
@@ -107,4 +106,12 @@ internal object HealthChecks {
             sceneNames.sorted().filterNot { it in reached || it == knownFirstScene }.forEach { add(HealthFinding(HealthFinding.Kind.UNREACHED_SCENE, RelationSubject.Scene(it), knownFirstScene)) }
         }
     }
+
+    /**
+     * What a condition naming an Actor type that is never there is pointed out as, by how it names it.
+     */
+    private val ABSENT_TYPE_FINDINGS = mapOf(
+        RelationKind.COUNTS to HealthFinding.Kind.COUNT_OF_ABSENT_TYPE,
+        RelationKind.MEASURES to HealthFinding.Kind.DISTANCE_TO_ABSENT_TYPE,
+    )
 }
