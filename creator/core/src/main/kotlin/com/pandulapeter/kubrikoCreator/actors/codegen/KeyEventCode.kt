@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.actors.codegen
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.KEYBOARD_INPUT_MANAGER_FIELD
 
 /**
  * How generated classes run the Events that react to keys: Kubriko tells a `KeyboardInputAware` about each key pressed
@@ -82,6 +83,4 @@ internal object KeyEventCode {
         .groupBy { checkNotNull(it.trigger.key) }
         .toSortedMap()
         .mapNotNull { (key, events) -> callOf(events)?.let { key.composeKeyName to it } }
-
-    const val KEYBOARD_INPUT_MANAGER_FIELD = "keyboardInputManager"
 }

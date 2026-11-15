@@ -46,6 +46,7 @@ public object BlockCodeGenerator {
     internal const val SCENES_FIELD = "generatedScenes"
     internal const val AUDIO_FIELD = "generatedAudio"
     internal const val STATE_MANAGER_FIELD = "stateManager"
+    internal const val KEYBOARD_INPUT_MANAGER_FIELD = "keyboardInputManager"
     internal const val REMOVED_FIELD = "isRemoved"
     internal const val BOUNCE_OFF_FUNCTION = "bounceOff"
     internal const val DIRECTION_FUNCTION = "velocityInDirection"
@@ -254,7 +255,7 @@ public object BlockCodeGenerator {
      */
     private fun moveWithKeysCode(block: BlockDefinition.MoveWithKeys, scope: BlockScope): BlockCode {
         fun held(arrow: String, letter: String) = listOfNotNull(arrow.takeIf { block.keys.usesArrows }, letter.takeIf { block.keys.usesWasd })
-            .joinToString(" || ") { "keyboardInputManager.isKeyPressed(Key.$it)" }
+            .joinToString(" || ") { "$KEYBOARD_INPUT_MANAGER_FIELD.isKeyPressed(Key.$it)" }
         return BlockCode(
             lines = listOf(
                 "velocity = $STEERING_FUNCTION(",

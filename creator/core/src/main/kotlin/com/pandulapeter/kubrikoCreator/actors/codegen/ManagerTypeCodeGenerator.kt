@@ -25,6 +25,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ActorWatchCode.appendCount
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorWatchCode.appendEventCalls
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorWatchCode.appendNotifyFunctions
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.AUDIO_FIELD
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.KEYBOARD_INPUT_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.SCENES_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STATE_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STATE_MANAGER_IMPORT
@@ -286,7 +287,7 @@ public object ManagerTypeCodeGenerator {
     private fun fieldOf(need: BlockNeed) = when (need) {
         BlockNeed.ACTOR_MANAGER -> "$ACTOR_MANAGER_FIELD by manager<ActorManager>()"
         BlockNeed.VIEWPORT_MANAGER -> "$VIEWPORT_MANAGER_FIELD by manager<ViewportManager>()"
-        BlockNeed.KEYBOARD_INPUT_MANAGER -> "keyboardInputManager by manager<KeyboardInputManager>()"
+        BlockNeed.KEYBOARD_INPUT_MANAGER -> "$KEYBOARD_INPUT_MANAGER_FIELD by manager<KeyboardInputManager>()"
         BlockNeed.STATE_MANAGER -> "$STATE_MANAGER_FIELD by manager<StateManager>()"
         BlockNeed.SCENES -> "$SCENES_FIELD by manager<${ScenesCodeGenerator.SCENES_NAME}>()"
         BlockNeed.AUDIO -> "$AUDIO_FIELD by manager<${AudioCodeGenerator.AUDIO_NAME}>()"

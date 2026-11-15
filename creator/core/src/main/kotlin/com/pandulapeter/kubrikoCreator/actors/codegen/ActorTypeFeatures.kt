@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.SPRITE_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.AUDIO_FIELD
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.KEYBOARD_INPUT_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.SCENES_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STATE_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STATE_MANAGER_IMPORT
@@ -169,7 +170,7 @@ internal class ActorTypeFeatures(
         fun lookupOf(need: BlockNeed) = when (need) {
             BlockNeed.ACTOR_MANAGER -> "actorManager: ActorManager"
             BlockNeed.VIEWPORT_MANAGER -> "viewportManager: ViewportManager"
-            BlockNeed.KEYBOARD_INPUT_MANAGER -> "keyboardInputManager: KeyboardInputManager"
+            BlockNeed.KEYBOARD_INPUT_MANAGER -> "$KEYBOARD_INPUT_MANAGER_FIELD: KeyboardInputManager"
             BlockNeed.STATE_MANAGER -> "$STATE_MANAGER_FIELD: StateManager"
             BlockNeed.SCENES -> "$SCENES_FIELD: ${ScenesCodeGenerator.SCENES_NAME}"
             BlockNeed.AUDIO -> "$AUDIO_FIELD: ${AudioCodeGenerator.AUDIO_NAME}"

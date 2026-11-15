@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.Axis
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.ConditionKind
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.KEYBOARD_INPUT_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.KEY_IMPORT
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STATE_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.managersReachedBy
@@ -59,7 +60,7 @@ internal object ConditionCode {
             is ConditionDefinition.Toggle -> BlockCode(listOf(if (condition.isOn) "$property" else "!$property"), managers = managers)
             is ConditionDefinition.KeyHeld -> if (condition.key.isKnown) {
                 BlockCode(
-                    lines = listOf((if (condition.isHeld) "" else "!") + "keyboardInputManager.isKeyPressed(Key.${condition.key.composeKeyName})"),
+                    lines = listOf((if (condition.isHeld) "" else "!") + "$KEYBOARD_INPUT_MANAGER_FIELD.isKeyPressed(Key.${condition.key.composeKeyName})"),
                     needs = setOf(BlockNeed.KEYBOARD_INPUT_MANAGER),
                     imports = setOf(KEY_IMPORT),
                 )
