@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.ReplaceScenes
 import com.pandulapeter.kubrikoCreator.commands.SimilarNames
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.fits
@@ -74,38 +75,26 @@ public object SetSceneValues : WriteCommand<SetSceneValues.Input> {
     }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
+        val previousText = checkNotNull(context.scenes.read(input.scene))
         val actors = context.readScene(input.scene)
         val index = ManagerSceneValues.indexIn(actors, input.managerType)
         val previous = actors.getOrNull(index)
-        val previousValues = previous?.let { ManagerSceneValues.valuesOf(it.state) }.orEmpty()
         val state = ManagerSceneValues.withValues(
             state = previous?.state,
             values = input.values.associate { it.name to checkNotNull(it.toJson()) },
             cleared = input.cleared,
             order = context.requireManagerType(input.managerType).properties.map { it.name },
         )
-        val id = previous?.id ?: input.actorId ?: SceneDocument.newId(actors.map { it.id })
         context.writeScene(
             input.scene,
             when {
                 state == null -> actors.filterIndexed { actorIndex, _ -> actorIndex != index }
-                previous == null -> actors + SceneActorEntry(input.managerType, state, id)
+                previous == null -> actors + SceneActorEntry(input.managerType, state, input.actorId ?: SceneDocument.newId(actors.map { it.id }))
                 else -> actors.mapIndexed { actorIndex, actor -> if (actorIndex == index) actor.copy(state = state) else actor }
             },
         )
-        val touched = input.values.map { it.name } + input.cleared
-        return Applied(
-            inverse = Invocation(
-                command = SetSceneValues,
-                input = Input(
-                    scene = input.scene,
-                    managerType = input.managerType,
-                    values = touched.mapNotNull { name -> previousValues[name]?.let { ActorValueChanges.PropertyValue.of(name, it) } },
-                    cleared = touched.filter { it !in previousValues },
-                    actorId = id,
-                ),
-            ),
-        )
+        // The Scene as it was, byte for byte, which brings back a value even of a Property removed since.
+        return Applied(inverse = Invocation(ReplaceScenes, ReplaceScenes.Input(mapOf(input.scene to previousText))))
     }
 
     override fun mergeKey(input: Input): Any? = listOf(input.scene, input.managerType, input.values.map { it.name }, input.cleared)
