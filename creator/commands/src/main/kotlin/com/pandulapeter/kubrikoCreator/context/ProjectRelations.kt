@@ -23,7 +23,6 @@ import com.pandulapeter.kubrikoCreator.actors.actorTypeReferences
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.fixedName
 import com.pandulapeter.kubrikoCreator.actors.measuredActorTypes
-import com.pandulapeter.kubrikoCreator.actors.numberValues
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.propertyReferences
 import com.pandulapeter.kubrikoCreator.actors.valuePropertyReferences

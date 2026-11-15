@@ -82,9 +82,10 @@ private fun AnimatedValue.withValues(transform: ValueTransform) = when (this) {
 }
 
 /**
- * Every value [withValues] reaches, by kind, in order.
+ * Every value [withValues] reaches in a Block or a condition, by kind, in the order its fields are declared, collected in
+ * one pass, so what reads several kinds of one Block ([BlockDefinition.values]) reads it once.
  */
-private class ValueCollector : ValueTransform {
+internal class CollectedValues : ValueTransform {
     val numbers = ArrayList<NumberValue>()
     val colors = ArrayList<ColorValue>()
     val actorTypes = ArrayList<ActorTypeValue>()
@@ -102,93 +103,57 @@ private class ValueCollector : ValueTransform {
     override fun toggle(value: ToggleValue) = value.also(toggles::add)
 
     /**
-     * The Properties the values read, of every kind, in order by kind.
+     * The Properties the values read, of every kind, with or without a name chosen yet, in order by kind.
      */
     val propertyReferences: List<PropertyReference>
-        get() = numbers.mapNotNull { it.propertyReference } + colors.mapNotNull { it.propertyReference } + actorTypes.mapNotNull { it.propertyReference } +
-            texts.mapNotNull { it.propertyReference } + toggles.mapNotNull { it.propertyReference }
+        get() = buildList {
+            numbers.mapNotNullTo(this) { it.propertyReference }
+            colors.mapNotNullTo(this) { it.propertyReference }
+            actorTypes.mapNotNullTo(this) { it.propertyReference }
+            texts.mapNotNullTo(this) { it.propertyReference }
+            toggles.mapNotNullTo(this) { it.propertyReference }
+        }
 }
 
-private fun BlockDefinition.collectedValues() = ValueCollector().also { withValues(it) }
+/**
+ * Every value [this] Block takes ([withValues]), by kind.
+ */
+internal val BlockDefinition.values: CollectedValues
+    get() = CollectedValues().also { withValues(it) }
+
+private val ConditionDefinition.values: CollectedValues
+    get() = CollectedValues().also { withValues(it) }
 
 /**
- * Every number [this] Block takes, in the order its fields are declared: the same ones [withNumberValues] replaces.
+ * Every number [this] Block takes, in the order its fields are declared.
  */
 public val BlockDefinition.numberValues: List<NumberValue>
-    get() = collectedValues().numbers
-
-public fun BlockDefinition.withNumberValues(transform: (NumberValue) -> NumberValue): BlockDefinition = withValues(
-    object : ValueTransform {
-        override fun number(value: NumberValue) = transform(value)
-    },
-)
+    get() = values.numbers
 
 /**
- * Every number [this] condition takes: the same ones [withNumberValues] replaces.
+ * Every number [this] condition takes, those of the conditions it combines too.
  */
 public val ConditionDefinition.numberValues: List<NumberValue>
-    get() = ValueCollector().also { withValues(it) }.numbers
-
-public fun ConditionDefinition.withNumberValues(transform: (NumberValue) -> NumberValue): ConditionDefinition = withValues(
-    object : ValueTransform {
-        override fun number(value: NumberValue) = transform(value)
-    },
-)
+    get() = values.numbers
 
 /**
  * The numbers of [this] animated value, in the order its fields are declared.
  */
 public val AnimatedValue.numberValues: List<NumberValue>
-    get() = ValueCollector().also { withValues(it) }.numbers
+    get() = CollectedValues().also { withValues(it) }.numbers
 
 /**
- * Every color [this] Block takes, in the order its fields are declared: the same ones [withColorValues] replaces.
+ * The Properties [this] Block reads as values of any kind, with or without a name chosen yet.
  */
-public val BlockDefinition.colorValues: List<ColorValue>
-    get() = collectedValues().colors
-
-public fun BlockDefinition.withColorValues(transform: (ColorValue) -> ColorValue): BlockDefinition = withValues(
-    object : ValueTransform {
-        override fun color(value: ColorValue) = transform(value)
-    },
-)
-
-/**
- * The Actor type [this] Block adds or moves towards, if it is one of those.
- */
-public val BlockDefinition.actorTypeValue: ActorTypeValue?
-    get() = collectedValues().actorTypes.firstOrNull()
-
-public fun BlockDefinition.withActorTypeValues(transform: (ActorTypeValue) -> ActorTypeValue): BlockDefinition = withValues(
-    object : ValueTransform {
-        override fun actorType(value: ActorTypeValue) = transform(value)
-    },
-)
-
-/**
- * The Properties [this] Block reads as numbers ([NumberValue.Property]), with or without a name chosen yet.
- */
-public val BlockDefinition.numberPropertyReferences: List<PropertyReference>
-    get() = numberValues.mapNotNull { it.propertyReference }
+public val BlockDefinition.valuePropertyReferences: List<PropertyReference>
+    get() = values.propertyReferences
 
 /**
  * The Properties [this] condition, or a condition it combines, reads as values of any kind, with or without a name chosen
  * yet: not those it checks ([propertyReferences]).
  */
 public val ConditionDefinition.valuePropertyReferences: List<PropertyReference>
-    get() = ValueCollector().also { withValues(it) }.propertyReferences
-
-/**
- * The color Properties [this] Block reads as colors ([ColorValue.Property]), with or without a name chosen yet.
- */
-public val BlockDefinition.colorPropertyReferences: List<PropertyReference>
-    get() = colorValues.mapNotNull { it.propertyReference }
-
-/**
- * The Properties [this] Block reads as values of any kind, with or without a name chosen yet.
- */
-public val BlockDefinition.valuePropertyReferences: List<PropertyReference>
-    get() = collectedValues().propertyReferences
+    get() = values.propertyReferences
 
 /**
  * What every value a Block or condition takes becomes once the Property [oldName] of [manager] (the type's own one, if

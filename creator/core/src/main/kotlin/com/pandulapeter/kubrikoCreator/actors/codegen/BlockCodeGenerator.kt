@@ -28,11 +28,9 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
 import com.pandulapeter.kubrikoCreator.actors.PropertyReference
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
-import com.pandulapeter.kubrikoCreator.actors.colorValues
-import com.pandulapeter.kubrikoCreator.actors.numberValues
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.readsEdges
-import com.pandulapeter.kubrikoCreator.actors.valuePropertyReferences
+import com.pandulapeter.kubrikoCreator.actors.values
 import kotlin.math.absoluteValue
 import kotlin.math.roundToLong
 
@@ -104,12 +102,11 @@ public object BlockCodeGenerator {
             kind.needsActor && scope.kind != BlockTypeKind.ACTOR -> BlockCode(listOf("// This Block only works in an Actor type."))
             kind.onlyIn != null && kind.onlyIn != eventType -> BlockCode(listOfNotNull(kind.misplacedComment))
             else -> emittedCode(block, scope).let { code ->
-                val numberValues = block.numberValues
-                val colorValues = block.colorValues
+                val values = block.values
                 code.copy(
-                    needs = code.needs + NumberValueCode.needsOf(numberValues),
-                    imports = if (colorValues.isEmpty()) code.imports else code.imports + ColorValueCode.IMPORT,
-                    managers = code.managers + scope.managersReading(block.valuePropertyReferences),
+                    needs = code.needs + NumberValueCode.needsOf(values.numbers),
+                    imports = if (values.colors.isEmpty()) code.imports else code.imports + ColorValueCode.IMPORT,
+                    managers = code.managers + scope.managersReading(values.propertyReferences),
                 )
             }
         }
