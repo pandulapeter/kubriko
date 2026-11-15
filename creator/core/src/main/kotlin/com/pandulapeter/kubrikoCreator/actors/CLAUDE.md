@@ -97,8 +97,9 @@
   conditions on Properties, whose numbers are fixed or Properties too (`ScreenTextDefinition.isShownWhenAllowed`), since
   the `Composable` follows Compose state and nothing else: a random number would change at every recomposition, and an
   edge or a count isn't state. Deleting what such a condition checks removes the text, as it removes an if Block with its
-  section. The font classes are named in full rather than imported, like `Scale`, since reserving their names would need a
-  migration renaming types.
+  section, unless the condition is an or still meaning something without it, which drops only that part
+  (`ConditionDefinition.without`). The font classes are named in full rather than imported, like `Scale`, since reserving
+  their names would need a migration renaming types.
 - What isn't generated needs no plugin: `GeneratedCode` decides which Events and Blocks get code, and both generators,
   `PluginUse`, and `PluginManagers` ask it, so a Block left as a comment (or in an Event left out) adds no plugin.
 - Property names the format raises reserved only for what generated Actor classes declare (`look`, the animation's and
