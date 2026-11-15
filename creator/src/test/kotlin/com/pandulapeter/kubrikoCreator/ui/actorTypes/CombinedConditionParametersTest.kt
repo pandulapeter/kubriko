@@ -13,10 +13,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.assertIsNotFocused
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextReplacement
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
@@ -48,5 +51,21 @@ class CombinedConditionParametersTest {
         onAllNodesWithContentDescription("Remove this condition")[0].performClick()
         waitForIdle()
         assertEquals(ConditionDefinition.Combined(listOf(ConditionDefinition.Toggle(), ConditionDefinition.Toggle()), isAll = false), condition)
+    }
+
+    @Test
+    fun theFieldBeingTypedInGoesWithItsConditionRatherThanTypingIntoTheNextOne() = uiTest(width = 900, height = 400) {
+        val texts = BlockScope("Ball", BlockTypeKind.ACTOR, listOf(PropertyDefinition.Text("title")))
+        var condition by mutableStateOf<ConditionDefinition>(
+            ConditionDefinition.Combined(listOf(ConditionDefinition.Text("title", value = "first"), ConditionDefinition.Text("title", value = "second"))),
+        )
+        showing { ConditionParameters(condition, texts) { condition = it } }
+        onNodeWithText("first").performTextReplacement("firstly")
+        waitForIdle()
+        onNodeWithText("firstly").assertIsFocused()
+        onAllNodesWithContentDescription("Remove this condition")[0].performClick()
+        waitForIdle()
+        assertEquals(ConditionDefinition.Combined(listOf(ConditionDefinition.Text("title", value = "second"))), condition)
+        onNodeWithText("second").assertIsNotFocused()
     }
 }

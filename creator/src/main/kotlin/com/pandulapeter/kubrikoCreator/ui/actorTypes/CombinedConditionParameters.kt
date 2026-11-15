@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
@@ -47,7 +49,10 @@ internal fun CombinedConditionParameters(
         optionText = { stringResource(if (it) Res.string.condition_all else Res.string.condition_any) },
         onSelected = { onConditionChange(condition.copy(isAll = it)) },
     )
+    val itemKeys = remember { ListItemKeys<ConditionDefinition>() }
+    val keys = remember(itemKeys, condition.conditions) { itemKeys.update(condition.conditions) }
     condition.conditions.forEachIndexed { index, part ->
+        key(keys[index]) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -62,6 +67,7 @@ internal fun CombinedConditionParameters(
                     onClick = { onConditionChange(condition.copy(conditions = condition.conditions.filterIndexed { other, _ -> other != index })) },
                 )
             }
+        }
         }
     }
     IconActionButton(
