@@ -196,8 +196,7 @@ private fun validateBlockValues(block: BlockDefinition, scope: BlockScope): Reje
     else -> block.timerName?.let(TimerNaming::validate)?.let(::Rejection) ?: validateBlockReferences(block, scope)
 }
 
-private fun validateBlockReferences(block: BlockDefinition, scope: BlockScope): Rejection? = when {
-    block.actorTypeReferences.any { it !in scope.actorTypeNames } -> missingActorType(block.actorTypeReferences.first { it !in scope.actorTypeNames }, scope)
+private fun validateBlockReferences(block: BlockDefinition, scope: BlockScope): Rejection? = block.actorTypeReferences.firstOrNull { it !in scope.actorTypeNames }?.let { missingActorType(it, scope) } ?: when {
     block is BlockDefinition.GoToScene && block.scene.isNotEmpty() && scope.sceneNames?.contains(block.scene) == false ->
         SimilarNames.rejection(LookupProblem.SCENE_MISSING, LookupProblem.SCENE_MISSING_SIMILAR, block.scene, scope.sceneNames.orEmpty(), block.scene)
     block is BlockDefinition.PlaySound -> block.sound.fixedPath?.let { scope.audioFiles?.missingSound(it) } ?: validateValueReferences(block, scope)
