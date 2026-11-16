@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.collision
 
 import com.pandulapeter.kubriko.collision.extensions.hasCollisionWith
 import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
+import com.pandulapeter.kubriko.collision.mask.EllipseCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.testFixtures.measureAllocatedBytesPerRun
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -18,11 +19,29 @@ import com.pandulapeter.kubriko.types.SceneSize
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class BoxCollisionMaskAllocationTest {
+class ResizableMaskAllocationTest {
 
     @Test
     fun resizingABoxEveryFrameAndCheckingItAllocatesNothing() {
         val mask = BoxCollisionMask(initialSize = SceneSize(10f.sceneUnit, 10f.sceneUnit))
+        val other = BoxCollisionMask(initialPosition = SceneOffset(12f.sceneUnit, 0f.sceneUnit), initialSize = SceneSize(10f.sceneUnit, 10f.sceneUnit))
+        var frame = 0
+        var hits = 0
+
+        val allocated = measureAllocatedBytesPerRun {
+            frame++
+            mask.size = SceneSize((10f + frame % 30).sceneUnit, (10f + frame % 7).sceneUnit)
+            if (mask.hasCollisionWith(other)) hits++
+            mask.axisAlignedBoundingBox
+        }
+
+        assertEquals(0.0, allocated)
+        assert(hits > 0)
+    }
+
+    @Test
+    fun resizingAnEllipseEveryFrameAndCheckingItAllocatesNothing() {
+        val mask = EllipseCollisionMask(initialSize = SceneSize(10f.sceneUnit, 10f.sceneUnit))
         val other = BoxCollisionMask(initialPosition = SceneOffset(12f.sceneUnit, 0f.sceneUnit), initialSize = SceneSize(10f.sceneUnit, 10f.sceneUnit))
         var frame = 0
         var hits = 0

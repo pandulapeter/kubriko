@@ -122,9 +122,23 @@ open class PolygonCollisionMask internal constructor(
     /**
      * Replaces the shape with the convex hull of [points], as the constructor builds it.
      */
-    internal fun replaceShape(points: List<SceneOffset>) {
+    private fun replaceShape(points: List<SceneOffset>) {
         storeShape(generateConvexHull(points))
         onShapeChanged()
+    }
+
+    /**
+     * Replaces the shape with the unit shape [unitXs] and [unitYs] scaled by [scaleX] and [scaleY], the shape every box
+     * and ellipse is made of: in place and without allocating when both are positive and finite, and through the convex
+     * hull otherwise, which a shape without area needs.
+     */
+    internal fun replaceWithScaledShape(unitXs: FloatArray, unitYs: FloatArray, scaleX: Float, scaleY: Float) {
+        if (scaleX > 0f && scaleY > 0f && scaleX.isFinite() && scaleY.isFinite()) {
+            replaceWithScaledVertices(unitXs, unitYs, scaleX, scaleY)
+        } else {
+            // Adding 0 turns the -0 of a side without length into a 0.
+            replaceShape(unitXs.indices.map { i -> SceneOffset((unitXs[i] * scaleX + 0f).sceneUnit, (unitYs[i] * scaleY + 0f).sceneUnit) })
+        }
     }
 
     /**
@@ -132,7 +146,7 @@ open class PolygonCollisionMask internal constructor(
      * [scaleY]: a convex hull centered on the origin, in the order the constructor would put the scaled vertices in,
      * which scaling each axis by a positive number keeps.
      */
-    internal fun replaceWithScaledVertices(unitXs: FloatArray, unitYs: FloatArray, scaleX: Float, scaleY: Float) {
+    private fun replaceWithScaledVertices(unitXs: FloatArray, unitYs: FloatArray, scaleX: Float, scaleY: Float) {
         prepareVertices(unitXs.size)
         for (i in unitXs.indices) {
             vertexXs[i] = unitXs[i] * scaleX

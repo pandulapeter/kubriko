@@ -50,11 +50,7 @@ class BoxCollisionMask(
             if (width.toRawBits() == requestedWidth.toRawBits() && height.toRawBits() == requestedHeight.toRawBits()) return
             requestedWidth = width
             requestedHeight = height
-            if (width > 0f && height > 0f && width.isFinite() && height.isFinite()) {
-                replaceWithScaledVertices(CORNER_SIGNS_X, CORNER_SIGNS_Y, width / 2f, height / 2f)
-            } else {
-                replaceShape(cornersOf(value))
-            }
+            replaceWithScaledShape(CORNER_SIGNS_X, CORNER_SIGNS_Y, width / 2f, height / 2f)
         }
 
     private companion object {

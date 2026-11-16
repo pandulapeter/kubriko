@@ -107,6 +107,7 @@ Several shapes are supported out of the box:
 - `PointCollisionMask`: A single point.
 - `CircleCollisionMask`: A circle with a defined radius.
 - `BoxCollisionMask`: A rectangular box (can be rotated, and resized in place through its `size`).
+- `EllipseCollisionMask`: An oval, which a circle can't be (a 16-sided polygon of the same area; rotated and resized like a box).
 - `PolygonCollisionMask`: A convex polygon.
 
 ## Credits

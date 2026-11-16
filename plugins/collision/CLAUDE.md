@@ -88,7 +88,8 @@ CollisionMask (sealed interface)
 └── PointCollisionMask (open) — position + dirty-flag lazy AABB
     ├── CircleCollisionMask
     └── PolygonCollisionMask (open) — convex hull, centered on centroid
-        └── BoxCollisionMask — 4-vertex convenience wrapper
+        ├── BoxCollisionMask — 4-vertex convenience wrapper
+        └── EllipseCollisionMask — a 16-vertex polygon standing in for an oval
 ```
 
 `ComplexCollisionMask` adds `size: SceneSize` and `isSceneOffsetInside(SceneOffset)`.
@@ -99,8 +100,15 @@ CollisionMask (sealed interface)
 finite size rewrites the four corners in place without allocating (so a box can follow a scaling body every frame), in
 exactly the values and order a box built at that size has (`BoxCollisionMaskResizeTest` holds them equal); a degenerate one
 goes through the convex hull as the constructor does, and setting the size it already has (NaN included) changes nothing.
-Both build from one table of a unit box's corners (`CORNER_SIGNS_X`/`Y`), which `replaceWithScaledVertices` scales per axis,
-the one way to reshape a polygon in place, so the vertices, normals, size, and revision can't fall out of step. Keep the
+Both build from one table of a unit box's corners (`CORNER_SIGNS_X`/`Y`), which `replaceWithScaledShape` scales per axis,
+the one way to reshape a polygon in place, so the vertices, normals, size, and revision can't fall out of step.
+
+`EllipseCollisionMask` is the same: a unit shape (16 points around a circle, built from one mirrored quarter so it is
+centered exactly) scaled per axis, so every narrow phase, raycast, and physics path takes it as a polygon with no code of its
+own. An exact oval would need GJK and a quartic for oval against oval, which isn't worth it. Its vertices sit just outside
+the oval so the polygon has the oval's area (and a physics body its mass); its `size` is the oval's, not the polygon's
+slightly larger extent, and it draws its debug bounds as a true oval. It costs a 16-vertex SAT per pair, so a mask that is
+always round stays a `CircleCollisionMask`. Keep the
 in-place resize a mutation of the same instance: the detection loop's grids and a `PhysicsBody` hold the mask, so a
 replaced one would leave them with the old shape. Like a mask's position and rotation, its size is changed on the thread
 that uses it; the arrays are never smaller than four vertices, so a box never swaps them.

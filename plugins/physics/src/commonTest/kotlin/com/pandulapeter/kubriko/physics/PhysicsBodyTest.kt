@@ -11,10 +11,12 @@ package com.pandulapeter.kubriko.physics
 
 import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
+import com.pandulapeter.kubriko.collision.mask.EllipseCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
+import kotlin.math.PI
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -146,6 +148,18 @@ class PhysicsBodyTest {
         body.followShapeChanges()
 
         assertEquals(offset(50f, 0f), body.velocity)
+    }
+
+    @Test
+    fun anEllipsesBodyWeighsWhatItsAreaDoesAndFollowsItsSize() {
+        val mask = EllipseCollisionMask(initialSize = SceneSize(200f.sceneUnit, 80f.sceneUnit))
+        val body = PhysicsBody(collisionMask = mask, density = 2f)
+        assertEquals((PI * 100 * 40 * 2).toFloat(), body.mass, absoluteTolerance = 2f)
+
+        mask.size = SceneSize(100f.sceneUnit, 80f.sceneUnit)
+        body.followShapeChanges()
+
+        assertEquals((PI * 50 * 40 * 2).toFloat(), body.mass, absoluteTolerance = 2f)
     }
 
     @Test
