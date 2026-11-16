@@ -28,7 +28,7 @@ internal object SizeCode {
     private const val PIVOT_FRACTION_X = "_pivotFractionX"
     private const val PIVOT_FRACTION_Y = "_pivotFractionY"
     private const val TYPES = AnimationNaming.TYPES_PACKAGE
-    private const val RESIZABLE_MASKS_SINCE = "0.8.1"
+    private const val RESIZABLE_MASKS_SINCE = "0.9.0"
 
     /**
      * Whether a project on [kubrikoVersion] (null when its build doesn't say) has box and oval collision masks whose size

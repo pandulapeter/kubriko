@@ -85,7 +85,7 @@ class SizeCodeTest {
     @Test
     fun anOlderKubrikoFollowsTheBoxSizeOnlyForTheSizeAndScaleBlocks() {
         assertFalse(SizeCode.hasResizableMasks("0.8.0"))
-        assertTrue(SizeCode.hasResizableMasks("0.8.1-creator"))
+        assertTrue(SizeCode.hasResizableMasks("0.9.0-creator"))
         assertTrue(SizeCode.hasResizableMasks("0.9.0"))
         assertTrue(SizeCode.hasResizableMasks(null))
         val collision = EventDefinition(EventType.COLLISION, otherActorType = "Balloon")

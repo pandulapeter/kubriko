@@ -160,7 +160,7 @@ class BlockTypeStoreTest {
         val store = BlockTypeStore.open(root)!!
         store.saveAndRegenerate(ball.copy(events = listOf(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.PlaySound(SoundValue.Fixed("files/hit.wav")))))))
         assertContains(File(generated, "GeneratedAudio.kt").readText(), "    fun playSound(path: String) {\n")
-        catalog.writeText("[versions]\nkubriko = \"0.8.1\"\n")
+        catalog.writeText("[versions]\nkubriko = \"0.9.0\"\n")
         store.regenerateAll()
         assertContains(File(generated, "GeneratedAudio.kt").readText(), "    fun playSound(path: String, volume: Float = 1f) {\n")
     }

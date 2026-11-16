@@ -66,7 +66,7 @@ class AudioCodeGeneratorTest {
         assertContains(withoutVolume, "    fun playSound(path: String) {\n        if (!isInSceneEditor && path.isNotEmpty()) soundManager.play(uriOf(path))\n")
         assertFalse(AudioCodeGenerator.takesSoundVolume("0.8.0", usesSoundVolume = false))
         assertTrue(AudioCodeGenerator.takesSoundVolume("0.8.0", usesSoundVolume = true))
-        assertTrue(AudioCodeGenerator.takesSoundVolume("0.8.1-creator", usesSoundVolume = false))
+        assertTrue(AudioCodeGenerator.takesSoundVolume("0.9.0-creator", usesSoundVolume = false))
         assertTrue(AudioCodeGenerator.takesSoundVolume("0.9.0", usesSoundVolume = false))
         assertTrue(AudioCodeGenerator.takesSoundVolume(null, usesSoundVolume = false))
         val loud = ActorTypeDefinition(name = "Ball", events = listOf(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.PlaySound(SoundValue.Fixed("files/sounds/hit.wav"))))))

@@ -143,7 +143,7 @@ internal object AudioCodeGenerator {
     /**
      * The first Kubriko release whose `SoundManager.play` takes a volume.
      */
-    private const val SOUND_VOLUME_SINCE = "0.8.1"
+    private const val SOUND_VOLUME_SINCE = "0.9.0"
 
     /**
      * Whether `playSound` takes a volume in a project on [kubrikoVersion] (null when its build doesn't say): when its Kubriko

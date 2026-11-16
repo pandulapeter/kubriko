@@ -165,7 +165,7 @@
   a box's or an oval's rotation and `size`, a circle's `radius`, all changed in place, since the collision plugin's grids
   hold the mask), so a
   collidable Actor whose Blocks may change either (a Kotlin Block too) is Dynamic even if nothing else makes it so. A box's or
-  oval's size is followed only where it can change (`followsMaskSize`), and on a Kubriko older than 0.8.1, which can't
+  oval's size is followed only where it can change (`followsMaskSize`), and on a Kubriko older than 0.9.0, which can't
   resize a mask in place, only for the size and scale Blocks (`SizeCode.hasResizableMasks`), so such a project still builds.
 - `GeneratedAudio` exists only while the game plays audio. It starts music on the next frame, since the music player exists only
   once the viewport is composed, and resumes it when the game is focused again, since `MusicManager` doesn't. A
@@ -190,7 +190,7 @@
   itself), has an oval mask, and a square one picks the oval per Actor as it is created, only for one placed stretched,
   so most round Actors keep the exact, cheaper circle; one that picked the circle stays one if another type's Kotlin
   stretches it later. The oval
-  is named in full, since an Actor type may be called `EllipseCollisionMask`, and a Kubriko before 0.8.1, which has none,
+  is named in full, since an Actor type may be called `EllipseCollisionMask`, and a Kubriko before 0.9.0, which has none,
   keeps every round Actor a circle as wide as its body unless a Set the size Block needs an oval anyway (the scale Blocks
   keep it round, so they don't). `look` is a reserved Property name (format
   version 3 renamed existing ones), and so are the animation's members (format version 4, through the same

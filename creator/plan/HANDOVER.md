@@ -16,7 +16,8 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 ## Status
 
 - Ask before every push (`git log origin/main..HEAD` shows what would go).
-- `library.version` is 0.8.1, unreleased (0.8.0 is on Maven Central). It holds library changes Creator uses: `Logger.log` building
+- `library.version` is 0.9.0, being released by the user (0.8.0 was the last on Maven Central; 0.8.1 was never released and
+  0.9.0 replaces it). It holds library changes Creator uses: `Logger.log` building
   its list once, the `SpriteManager.newInstance(imageLoader, …)` overload, and session protocol 4 (`PressKeySteps`, `CaptureActors`),
   which `press_keys` steps and `take_screenshot`'s `actorType` use. It also has `KeyboardInputManager.isKeyPressed` no
   longer boxing the `Key` (75aa099c6), which Move with keys calls every frame, a nearest-sampled sprite region no longer
@@ -25,8 +26,8 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
   (`AudioCodeGenerator.takesSoundVolume`), and `BoxCollisionMask.size` resizing a box in place with a physics body's mass
   following any mask's `shapeRevision` (b437b5956, c254ebb80), and `EllipseCollisionMask` (10a7eb60e, b9752253b), which round
   Actors that may not stay round collide as, which the size and scale Blocks need and Animate's scale uses
-  where the Kubriko has it (`SizeCode.hasResizableBoxMasks`). Kubriko has to be released before a Creator release relies
-  on any of them.
+  where the Kubriko has it (`SizeCode.hasResizableBoxMasks`). Kubriko has to be on Maven Central before a Creator
+  release relies on any of them.
 - `README.md` → Roadmap is in dependency order as of 2026-11-09: every file depends only on the ones before it, so work goes
   file by file from `01`. What waits on something outside this repository is under its file's Waiting on others.
 
@@ -131,7 +132,7 @@ never item by item.
 - **Only headless.** The end-to-end checks and anything else that opens Creator's or a game's window never run on the user's Mac,
   where they would take the screen and the focus while the user works. Run them under Xvfb on Linux: publish to Maven Local as
   `:creator:run` does (`./gradlew :publishCreatorLibraries -Pcreator.localKubriko=true`), then `KUBRIKO_CREATOR_E2E=true
-  KUBRIKO_CREATOR_VERSION=0.8.1-creator xvfb-run -a -s "-screen 0 1920x1080x24" ./gradlew :creator:test --tests "*endToEnd*" --rerun`,
+  KUBRIKO_CREATOR_VERSION=0.9.0-creator xvfb-run -a -s "-screen 0 1920x1080x24" ./gradlew :creator:test --tests "*endToEnd*" --rerun`,
   and look at `creator/build/end-to-end/<scenario>`; or dispatch `Tests`, whose `creator-end-to-end` job keeps the images as an
   artifact. On this Mac, a Linux container under Colima works: an `eclipse-temurin:21-jdk` image with `xvfb`, `libgl1`,
   `libfontconfig1`, and the X libraries, the repository copied into a volume (`docker cp`, never the host's build folders), a
@@ -140,6 +141,6 @@ never item by item.
   linux-aarch64 host) with CI's three `publish…ToMavenLocal` tasks, and Playwright's Chromium in `KUBRIKO_CREATOR_CHROME` for
   the web step. Unit tests and offscreen snapshots (`uiTest`) open no window and run anywhere.
 - Never recompile `:creator` while the user has `:creator:run` up.
-- The integration test, which builds but opens no window: `KUBRIKO_CREATOR_INTEGRATION=true KUBRIKO_CREATOR_VERSION=0.8.1-creator
+- The integration test, which builds but opens no window: `KUBRIKO_CREATOR_INTEGRATION=true KUBRIKO_CREATOR_VERSION=0.9.0-creator
   ./gradlew :creator:template:test --tests "*ProjectTemplateIntegrationTest*" --rerun` (after `./gradlew :publishCreatorLibraries
-  -Pcreator.localKubriko=true`, since 0.8.1 isn't released; `everyTargetBuilds` also needs the Android SDK and Xcode).
+  -Pcreator.localKubriko=true`, until 0.9.0 is on Maven Central; `everyTargetBuilds` also needs the Android SDK and Xcode).
