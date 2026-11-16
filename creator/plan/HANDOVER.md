@@ -23,7 +23,8 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
   showing a column of the texture beside it (919d4b60c, `LookEmitter`), and `SoundManager.play(uri, volume)` (b8aac7c97,
   85dc81c4c: a volume per play, NaN silent), which a Creator game's `playSound` calls only on a Kubriko that has it
   (`AudioCodeGenerator.takesSoundVolume`), and `BoxCollisionMask.size` resizing a box in place with a physics body's mass
-  following any mask's `shapeRevision` (b437b5956, c254ebb80), which the size and scale Blocks need and Animate's scale uses
+  following any mask's `shapeRevision` (b437b5956, c254ebb80), and `EllipseCollisionMask` (10a7eb60e, b9752253b), which round
+  Actors that may not stay round collide as, which the size and scale Blocks need and Animate's scale uses
   where the Kubriko has it (`SizeCode.hasResizableBoxMasks`). Kubriko has to be released before a Creator release relies
   on any of them.
 - `README.md` → Roadmap is in dependency order as of 2026-11-09: every file depends only on the ones before it, so work goes
