@@ -160,6 +160,13 @@ calls, with no interpreter, no event bus, and no allocation per send.
 A Traits section in the Actor type editor, each a toggle or a few fields with a sentence about what it does, generated into the
 interfaces and overrides the examples write by hand. The plugins they need come and go with them (`PluginManagers`).
 
+Generated Actors stay `Batched` through all of them, so a Scene of many Actors draws in a few native calls on every platform:
+whatever changes how an Actor looks (drawing order, layer, the visible toggle, tints, particles as an appearance) becomes a
+property of its look, or a new look the library gains for it, never drawing code. The only plain `Visible` is a type that draws
+with Kotlin of its own (a drawing Event, whose Kotlin Block gets a `DrawScope`), which ends the run it sits in: the Event's
+description says so, the Assistant reaches for it only for what no look can show, and the Scene editor's Actor list marks such
+types. `Overlay` HUD pieces draw onto the screen, outside the runs.
+
 | Trait | In Creator |
 |---|---|
 | `Unique` | "Only one at a time": adding another removes the first. The Scene editor warns when a Scene has two. |

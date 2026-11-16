@@ -38,11 +38,11 @@ public object SceneSettingsCodeGenerator {
 
     private val IMPORTS = listOf(
         "androidx.compose.ui.graphics.Color",
-        "androidx.compose.ui.graphics.drawscope.DrawScope",
         "com.pandulapeter.kubriko.Kubriko",
         "com.pandulapeter.kubriko.actor.body.BoxBody",
+        "com.pandulapeter.kubriko.actor.looks.RectangleLook",
+        "com.pandulapeter.kubriko.actor.traits.Batched",
         "com.pandulapeter.kubriko.actor.traits.Unique",
-        "com.pandulapeter.kubriko.actor.traits.Visible",
         "com.pandulapeter.kubriko.helpers.extensions.get",
         "com.pandulapeter.kubriko.helpers.extensions.sceneUnit",
         "com.pandulapeter.kubriko.manager.ViewportManager",
@@ -73,7 +73,7 @@ public object SceneSettingsCodeGenerator {
             | * [$FITS_VIEW_KEY] (and its bounds have an area), the game's view shows its bounds instead, as wide as they are,
             | * centered on them, and gets back the aspect ratio it had once no Scene fits it.
             | */
-            |class $SETTINGS_NAME private constructor(state: State) : Visible, Unique, Editable<$SETTINGS_NAME> {
+            |class $SETTINGS_NAME private constructor(state: State) : Batched, Unique, Editable<$SETTINGS_NAME> {
             |    override val body = state.body
             |    override val drawingOrder = Float.MAX_VALUE
             |
@@ -121,10 +121,14 @@ public object SceneSettingsCodeGenerator {
             |        generatedScenes.unfitView()
             |    }
             |
-            |    override fun DrawScope.draw() = drawRect(
-            |        color = $BACKGROUND_COLOR_KEY,
-            |        size = body.size.raw,
-            |    )
+            |    /**
+            |     * The bounds in the background color, drawn in a run with the Actors after it.
+            |     */
+            |    override val look = RectangleLook($BACKGROUND_COLOR_KEY)
+            |        get() {
+            |            field.color = $BACKGROUND_COLOR_KEY
+            |            return field
+            |        }
             |
             |    override fun save() = State(
             |        body = body,

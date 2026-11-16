@@ -183,8 +183,8 @@
   the opacity Blocks set, reserved by format version 9 and never saved, so each Actor starts opaque) is applied on top of
   its color by the look, to a sprite that isn't tinted too. It isn't the color's alpha, which Compose keeps in 1/255
   steps, so a fade by small steps would be lost, and a translucent color on an untinted sprite would start to show in
-  existing games; Set the color keeps the color's alpha; a type that draws with code of its own (a Kotlin Block
-  in a drawing Event) becomes a plain `Visible`, which ends the run it sits in. A circle fills a body that isn't square as an
+  existing games; Set the color keeps the color's alpha. The Scene settings are `Batched` too (a `RectangleLook` in the
+  background color), so a game draws nothing through a `DrawScope` of its own. A circle fills a body that isn't square as an
   ellipse (`EllipseLook`), as an unevenly scaled one always looked, and collides as one (`CollisionMaskCode`): a round
   type that isn't square, or that its own or inherited size Blocks or Kotlin may stretch (each family member decides for
   itself), has an oval mask, and a square one picks the oval per Actor as it is created, only for one placed stretched,
