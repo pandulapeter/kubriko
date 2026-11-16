@@ -348,7 +348,7 @@ public sealed interface BlockDefinition {
 
     @Serializable
     @SerialName("animate")
-    @Description("Takes the Actor's scale, opacity, color, or position from a start to an end over some seconds, and can remove the Actor at the end. One animation per value: another animate Block of it starts over. It sets the value every frame before the Events run, so Blocks in Events win. A rectangle's collision mask keeps its size when scaled.")
+    @Description("Takes the Actor's scale, opacity, color, or position from a start to an end over some seconds, and can remove the Actor at the end. One animation per value: another animate Block of it starts over. It sets the value every frame before the Events run, so Blocks in Events win. The collision mask scales with the Actor.")
     public data class Animate(
         @Description("What it changes.")
         @SerialName("value") val value: AnimatedValue = AnimatedValue.Scale(),
