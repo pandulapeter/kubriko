@@ -253,7 +253,7 @@ Each plugin requires its Manager to be passed to `Kubriko.newInstance()`. Omitti
 
 **Collision masks**: `PointCollisionMask`, `CircleCollisionMask`, `BoxCollisionMask` (rotatable), `EllipseCollisionMask` (an oval, as a 16-sided polygon), `PolygonCollisionMask`. A circle's `radius` and a box's or ellipse's `size` change in place without allocating, and a physics body's mass follows them.
 
-**Audio formats**: SFX → WAV (max 48k bitrate for Android). Music → MP3 (max 320 kbps). Audio playback only works on Android and Desktop (JVM).
+**Audio formats**: SFX → WAV (max 48k bitrate for Android). Music → MP3 (max 320 kbps). Audio plays on every platform; on the web it starts with the page's first user gesture, which browsers require.
 
 **Gamepads**: up to four controllers, reported through one layout on all four platforms. Face buttons are named by position (`SOUTH`/`EAST`/`WEST`/`NORTH`), sticks use the engine's Y-down convention. Desktop support comes from Jamepad (the libGDX SDL2 binding), the only third-party runtime dependency in `plugins/`.
 

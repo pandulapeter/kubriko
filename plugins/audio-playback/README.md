@@ -15,7 +15,7 @@ The `audio-playback` plugin provides high-level managers for playing sound effec
 
 - **SoundManager**: Optimized for low-latency playback of short sound effects (SFX). Supports preloading and simultaneous playback of multiple instances of the same sound.
 - **MusicManager**: Optimized for streaming larger background music tracks. Supports looping, pausing, and volume control.
-- **Platform Support**: Works on Android and Desktop (JVM).
+- **Platform Support**: Works on Android, Desktop (JVM), iOS, and the web, where audio starts with the page's first user gesture, as browsers require.
 
 ## Usage
 
