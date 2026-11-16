@@ -12,13 +12,18 @@ package com.pandulapeter.kubrikoCreator.ui.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.getBoundsInRoot
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.width
@@ -27,6 +32,7 @@ import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
 import kotlin.math.abs
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalTestApi::class)
@@ -61,6 +67,31 @@ class CompactTextFieldTest {
         val minimumRoom = roomLeftBy("sized", "X")
         assertAbout(minimumRoom, narrowRoom)
         saveSnapshot("compact-text-field-narrow")
+    }
+
+    @Test
+    fun aClearableFieldShowsItsClearButtonOnlyWhileItHoldsTextAndEmptiesItWithoutMovingTheText() = uiTest {
+        var value by mutableStateOf("goblin")
+        showing {
+            CompactTextField(modifier = Modifier.testTag("field").width(200.dp), value = value, onValueChange = { value = it }, isClearable = true)
+        }
+        val textLeft = onNodeWithText("goblin", useUnmergedTree = true).getBoundsInRoot().left
+        saveSnapshot("compact-text-field-clearable")
+        onNodeWithContentDescription("Clear").performClick()
+        waitForIdle()
+        assertEquals("", value)
+        onNodeWithContentDescription("Clear").assertDoesNotExist()
+        value = "orc"
+        waitForIdle()
+        assertAbout(textLeft, onNodeWithText("orc", useUnmergedTree = true).getBoundsInRoot().left)
+    }
+
+    @Test
+    fun aFieldThatIsNotClearableHasNoClearButton() = uiTest {
+        showing {
+            CompactTextField(value = "goblin", onValueChange = {})
+        }
+        onNodeWithContentDescription("Clear").assertDoesNotExist()
     }
 
     private fun ComposeUiTest.widthOf(tag: String) = onNodeWithTag(tag).getBoundsInRoot().width

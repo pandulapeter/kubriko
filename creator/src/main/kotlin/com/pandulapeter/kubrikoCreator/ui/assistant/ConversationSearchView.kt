@@ -139,6 +139,7 @@ private fun ConversationSearchField(
         value = query,
         onValueChange = onQueryChange,
         placeholder = stringResource(Res.string.conversation_search_field),
+        isClearable = true,
     )
     IconActionButton(icon = Res.drawable.ic_close, label = Res.string.action_close_conversation_search, onClick = onClose)
 }

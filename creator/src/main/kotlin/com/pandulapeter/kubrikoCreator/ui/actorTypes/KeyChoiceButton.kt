@@ -129,6 +129,7 @@ private fun KeyChoicePanel(
                     value = query,
                     onValueChange = { query = it },
                     placeholder = stringResource(Res.string.key_search),
+                    isClearable = true,
                 )
             }
             IconActionButton(

@@ -189,5 +189,6 @@ private fun ChoiceSearchField(
         value = query,
         onValueChange = onQueryChange,
         placeholder = stringResource(Res.string.choice_search),
+        isClearable = true,
     )
 }

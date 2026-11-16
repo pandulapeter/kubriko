@@ -22,6 +22,7 @@
     <string name="color_picker_brightness">Brightness</string>
     <string name="color_picker_opacity">Opacity</string>
     <string name="choice_search">Search</string>
+    <string name="action_clear_text">Clear</string>
     <string name="choice_none_found">Nothing matches.</string>
     <string name="panel_resize">Drag to resize, double-click for the default width</string>
     <string name="panel_resize_height">Drag to resize, double-click for the default height</string>

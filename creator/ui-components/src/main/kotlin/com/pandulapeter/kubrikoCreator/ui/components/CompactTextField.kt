@@ -9,19 +9,29 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.components
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
@@ -32,12 +42,20 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.constrainHeight
 import androidx.compose.ui.unit.constrainWidth
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.ui.theme.CreatorMotion
+import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.Res
+import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.action_clear_text
+import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.ic_close
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * A desktop-sized text field: one line high, with an optional [label] inside it on the left and an optional
  * [placeholder] while it is empty. [isError] draws its outline in the error color. Multiple lines wrap, unless
  * [isWrapping] is false, as for code, when they scroll sideways instead. [isSecret] shows the text as dots, as for a key.
  * However narrow the field, the label leaves the text at least [MINIMUM_TEXT_WIDTH], ending in an ellipsis instead.
+ * [isClearable] gives it a button at its end, shown while it holds text, that empties it, as for a search; its room is
+ * kept while it is hidden, so the text never moves when it appears.
  *
  * @param textWidth How wide the text is, for a field as wide as its label and that, which then needs no width of its
  *   own; null for a field whose text takes whatever its width leaves.
@@ -53,6 +71,7 @@ public fun CompactTextField(
     isSingleLine: Boolean = true,
     isWrapping: Boolean = true,
     isSecret: Boolean = false,
+    isClearable: Boolean = false,
     textWidth: Dp? = null,
     textStyle: TextStyle = MaterialTheme.typography.bodyMedium,
 ): Unit = BasicTextField(
@@ -64,7 +83,18 @@ public fun CompactTextField(
     textStyle = textStyle.copy(color = MaterialTheme.colorScheme.onSurface),
     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
     decorationBox = { innerTextField ->
-        Decoration(value.isEmpty(), label, placeholder, isError, isSingleLine, isWrapping, textWidth, textStyle, innerTextField)
+        Decoration(
+            isEmpty = value.isEmpty(),
+            label = label,
+            placeholder = placeholder,
+            isError = isError,
+            isSingleLine = isSingleLine,
+            isWrapping = isWrapping,
+            onClear = if (isClearable) ({ onValueChange("") }) else null,
+            textWidth = textWidth,
+            textStyle = textStyle,
+            innerTextField = innerTextField,
+        )
     },
 )
 
@@ -91,7 +121,18 @@ public fun CompactTextField(
     textStyle = textStyle.copy(color = MaterialTheme.colorScheme.onSurface),
     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
     decorationBox = { innerTextField ->
-        Decoration(value.text.isEmpty(), label, placeholder, isError, isSingleLine, isWrapping, textWidth, textStyle, innerTextField)
+        Decoration(
+            isEmpty = value.text.isEmpty(),
+            label = label,
+            placeholder = placeholder,
+            isError = isError,
+            isSingleLine = isSingleLine,
+            isWrapping = isWrapping,
+            onClear = null,
+            textWidth = textWidth,
+            textStyle = textStyle,
+            innerTextField = innerTextField,
+        )
     },
 )
 
@@ -103,6 +144,7 @@ private fun Decoration(
     isError: Boolean,
     isSingleLine: Boolean,
     isWrapping: Boolean,
+    onClear: (() -> Unit)?,
     textWidth: Dp?,
     textStyle: TextStyle,
     innerTextField: @Composable () -> Unit,
@@ -116,6 +158,7 @@ private fun Decoration(
         content = {
             if (label != null) {
                 Text(
+                    modifier = Modifier.layoutId(LABEL_ID),
                     text = label,
                     style = MaterialTheme.typography.labelMedium,
                     color = colors.onSurfaceVariant,
@@ -123,7 +166,7 @@ private fun Decoration(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            Box(if (isWrapping) Modifier else Modifier.horizontalScroll(rememberScrollState())) {
+            Box(Modifier.layoutId(TEXT_ID).then(if (isWrapping) Modifier else Modifier.horizontalScroll(rememberScrollState()))) {
                 if (isEmpty && placeholder != null) {
                     Text(
                         text = placeholder,
@@ -135,36 +178,75 @@ private fun Decoration(
                 }
                 innerTextField()
             }
+            if (onClear != null) {
+                ClearButton(modifier = Modifier.layoutId(CLEAR_ID), isShown = !isEmpty, onClick = onClear)
+            }
         },
     ) { measurables, constraints ->
         val gap = LABEL_GAP.roundToPx()
+        val clearPlaceable = measurables.firstOrNull { it.layoutId == CLEAR_ID }?.measure(Constraints())
+        val clearSpace = clearPlaceable?.let { it.width + CLEAR_GAP.roundToPx() } ?: 0
         val fixedTextWidth = textWidth?.roundToPx()
         val reservedTextWidth = fixedTextWidth ?: MINIMUM_TEXT_WIDTH.roundToPx()
-        val labelPlaceable = if (measurables.size > 1) {
-            val labelMaxWidth = if (constraints.hasBoundedWidth) (constraints.maxWidth - gap - reservedTextWidth).coerceAtLeast(0) else Constraints.Infinity
-            measurables.first().measure(Constraints(maxWidth = labelMaxWidth, maxHeight = constraints.maxHeight))
-        } else {
-            null
+        val labelPlaceable = measurables.firstOrNull { it.layoutId == LABEL_ID }?.let { label ->
+            val labelMaxWidth = if (constraints.hasBoundedWidth) (constraints.maxWidth - gap - reservedTextWidth - clearSpace).coerceAtLeast(0) else Constraints.Infinity
+            label.measure(Constraints(maxWidth = labelMaxWidth, maxHeight = constraints.maxHeight))
         }
         val labelSpace = labelPlaceable?.let { it.width + gap } ?: 0
-        val textPlaceable = measurables.last().measure(
+        val textPlaceable = measurables.first { it.layoutId == TEXT_ID }.measure(
             when {
                 fixedTextWidth != null -> Constraints.fixedWidth(fixedTextWidth).copy(maxHeight = constraints.maxHeight)
-                constraints.hasBoundedWidth -> Constraints.fixedWidth((constraints.maxWidth - labelSpace).coerceAtLeast(0)).copy(maxHeight = constraints.maxHeight)
+                constraints.hasBoundedWidth -> Constraints.fixedWidth((constraints.maxWidth - labelSpace - clearSpace).coerceAtLeast(0)).copy(maxHeight = constraints.maxHeight)
                 else -> Constraints(maxHeight = constraints.maxHeight)
             },
         )
-        val width = constraints.constrainWidth(labelSpace + textPlaceable.width)
-        val height = constraints.constrainHeight(maxOf(labelPlaceable?.height ?: 0, textPlaceable.height))
+        val width = constraints.constrainWidth(labelSpace + textPlaceable.width + clearSpace)
+        val height = constraints.constrainHeight(maxOf(labelPlaceable?.height ?: 0, textPlaceable.height, clearPlaceable?.height ?: 0))
         layout(width, height) {
             fun top(placeableHeight: Int) = if (isSingleLine) (height - placeableHeight) / 2 else 0
             labelPlaceable?.placeRelative(0, top(labelPlaceable.height))
             textPlaceable.placeRelative(labelSpace, top(textPlaceable.height))
+            clearPlaceable?.placeRelative(width - clearPlaceable.width, (height - clearPlaceable.height) / 2)
         }
     }
 }
 
+/**
+ * The [CompactTextField]'s button that empties it, fading in while [isShown]. It never takes the focus, so the field
+ * keeps it, and a hidden one can't be clicked.
+ */
+@Composable
+private fun ClearButton(
+    isShown: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier,
+) {
+    val alpha by animateFloatAsState(targetValue = if (isShown) 1f else 0f, animationSpec = CreatorMotion.short())
+    val label = stringResource(Res.string.action_clear_text)
+    WithTooltip(label = label, modifier = modifier.alpha(alpha)) {
+        Icon(
+            modifier = Modifier
+                .size(CLEAR_SIZE)
+                .focusProperties { canFocus = false }
+                .then(if (isShown) Modifier.pointerHoverIcon(PointerIcon.Hand).clickable(onClick = onClick) else Modifier),
+            painter = painterResource(Res.drawable.ic_close),
+            contentDescription = if (isShown) label else null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
 private val LABEL_GAP = 8.dp
+
+private val CLEAR_GAP = 4.dp
+
+private val CLEAR_SIZE = 16.dp
+
+private const val LABEL_ID = "label"
+
+private const val TEXT_ID = "text"
+
+private const val CLEAR_ID = "clear"
 
 /**
  * The least room a [CompactTextField]'s label leaves its text, so a long label can't hide what is typed.

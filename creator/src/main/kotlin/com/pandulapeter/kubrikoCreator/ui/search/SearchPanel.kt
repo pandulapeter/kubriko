@@ -104,5 +104,6 @@ private fun SearchField(
         value = query,
         onValueChange = onQueryChange,
         placeholder = stringResource(Res.string.search_field),
+        isClearable = true,
     )
 }

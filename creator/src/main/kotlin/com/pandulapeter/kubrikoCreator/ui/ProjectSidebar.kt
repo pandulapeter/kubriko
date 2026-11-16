@@ -365,4 +365,5 @@ private fun SidebarFilterField(
     value = query,
     onValueChange = onQueryChange,
     placeholder = stringResource(Res.string.sidebar_filter),
+    isClearable = true,
 )

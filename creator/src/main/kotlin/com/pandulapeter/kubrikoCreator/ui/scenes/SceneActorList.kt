@@ -72,6 +72,7 @@ internal fun SceneActorList(
         value = query,
         onValueChange = { query = it },
         placeholder = stringResource(Res.string.scene_actor_search),
+        isClearable = true,
     )
     Text(
         modifier = Modifier.padding(horizontal = 12.dp),

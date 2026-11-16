@@ -145,6 +145,7 @@ private fun QuickOpenField(
         value = query,
         onValueChange = onQueryChange,
         placeholder = stringResource(Res.string.quick_open_placeholder),
+        isClearable = true,
     )
 }
 
