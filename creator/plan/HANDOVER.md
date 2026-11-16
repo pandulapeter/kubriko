@@ -22,17 +22,17 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
   longer boxing the `Key` (75aa099c6), which Move with keys calls every frame, a nearest-sampled sprite region no longer
   showing a column of the texture beside it (919d4b60c, `LookEmitter`), and `SoundManager.play(uri, volume)` (b8aac7c97,
   85dc81c4c: a volume per play, NaN silent), which a Creator game's `playSound` calls only on a Kubriko that has it
-  (`AudioCodeGenerator.takesSoundVolume`). Kubriko has to be released before a Creator release relies on any of them.
+  (`AudioCodeGenerator.takesSoundVolume`), and `BoxCollisionMask.size` resizing a box in place with a physics body's mass
+  following any mask's `shapeRevision` (b437b5956, c254ebb80), which the size and scale Blocks need and Animate's scale uses
+  where the Kubriko has it (`SizeCode.hasResizableBoxMasks`). Kubriko has to be released before a Creator release relies
+  on any of them.
 - `README.md` → Roadmap is in dependency order as of 2026-11-09: every file depends only on the ones before it, so work goes
   file by file from `01`. What waits on something outside this repository is under its file's Waiting on others.
 
 ## Next
 
-Go on with `01-blocks.md`, at Next additions: Size and scale Blocks first. They need a library change: `BoxCollisionMask`
-builds its vertices, normals, and size once (`PolygonCollisionMask`'s `vals`), so a box that resizes in place needs storage
-it updates without allocating, since Animate's scale can resize it every frame; design that against the collision plugin's
-spatial grid (`plugins/collision/CLAUDE.md`) before writing it, and keep `vertices: List<SceneOffset>` as it is, since it is
-public. Then More drag and drop, Simple and Advanced mode, and font files, then Game UI.
+Go on with `01-blocks.md`, at Next additions: More drag and drop first, then Simple and Advanced mode, and font files, then
+Game UI.
 
 Done on 2026-11-15 (after 73d97e438..f179d62e4, listed before), each reviewed with `/code-review` and every finding fixed in
 a commit of its own:
@@ -46,6 +46,10 @@ a commit of its own:
   findings were left as they are, both about the camera Blocks' generated functions and format 22, which no released Creator
   has: their signatures changed without a migration, and a shake of no strength now stops a shake without a format raise.
 - Search and filter fields have a clear button (`CompactTextField`'s `isClearable`, 31e501e5c..0963baa84, reviewed).
+- The size and scale Blocks (format 23): Set the size, Set the scale, and Change the scale, with the collision mask
+  following the size and scale (Animate's too), on a box resizable in place in the collision plugin, whose physics bodies
+  work their mass out again when their shape changes (b437b5956..791c08cf0, each part reviewed at medium and fixed). The
+  user asked for the physics side: Creator users may not know whether a game uses the physics plugin.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
@@ -81,6 +85,9 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
   while a toggle is on and a Scene setting it.
 - A played game with color Properties (Set the color from one, Animate between two) and with an Actor type reference
   Property (a spawner adding the type it keeps); the integration test compiles every case.
+- A played game with the size and scale Blocks: an Actor growing around its middle and its sprite's origin, a collision
+  happening only once a box has grown into another, and Change the scale keeping a placed Actor's proportions; the
+  integration test compiles every case, `SizeCodeTest` pins the code, but nothing plays them.
 - A played game with the camera Blocks: following an Actor across a Scene change, a shake while paused and after a
   Kotlin Block moves the camera, a zoom kept across Scenes, and a Scene that fits the view restarting; the integration test
   compiles them, `CameraCodeTest` pins the generated code, but nothing plays them.
