@@ -14,10 +14,12 @@ package com.pandulapeter.kubrikoCreator.actors.codegen
  * follows and the shake. The zoom is the viewport's own, which a Zoom the camera Block sets until another one does.
  *
  * Blocks run on the game's thread and, in an Actor's added Event, on Kubriko's, and a removed Actor stops the camera
- * following it on Kubriko's too, so every change of the camera's state happens under one short lock. A following Actor
- * passes the Scene it was added in, so one that is still updating after a new Scene was asked for can't take the camera
- * back. Something else moving the camera (a Scene's settings, a Kotlin Block) moves where a shake shakes around. A shake
- * holds still while the game is paused, following goes on, and neither costs anything per frame while it doesn't happen.
+ * following it on Kubriko's too, so every change of the camera's state happens under one short lock. An Actor's camera
+ * Blocks pass the Actor itself (a `CameraFollower`, knowing the Scene it was added in), so one that is still updating after
+ * a new Scene was asked for, or was removed, can't move the camera. Something else moving the camera (a Scene's settings,
+ * a Kotlin Block) moves where a shake shakes around. A shake holds still while the game is paused, and following goes on
+ * only while the followed Actor moves, so the game can move the camera itself during a pause; neither costs anything per
+ * frame while it doesn't happen.
  */
 internal object CameraCode {
     const val FOLLOW_FUNCTION = "followWithCamera"
@@ -87,7 +89,7 @@ internal object CameraCode {
             |    private fun $START_SCENE_FUNCTION() = withCameraLock {
             |        $SCENE_CHANGES_FIELD++
             |        cameraTarget = null
-            |        shakeRemainingInMilliseconds = 0f
+            |        stopShake()
             |        shakenCameraX = Float.NaN
             |        shakenCameraY = Float.NaN
             |    }
@@ -97,7 +99,11 @@ internal object CameraCode {
             |     */
             |    fun $FOLLOW_FUNCTION(actor: $FOLLOWER_INTERFACE) {
             |        if (isInSceneEditor || cameraTarget === actor) return
-            |        withCameraLock { if (isOfSceneShown(actor)) cameraTarget = actor }
+            |        withCameraLock {
+            |            if (!isOfSceneShown(actor)) return@withCameraLock
+            |            cameraTarget = actor
+            |            cameraBaseX = Float.NaN
+            |        }
             |    }
             |
             |    /**
@@ -127,16 +133,17 @@ internal object CameraCode {
             |
             |    /**
             |     * Shakes the camera at most [strength] far, less and less for [durationInMilliseconds], starting over if it shakes;
-            |     * no strength or no time stops the shake.
+            |     * no strength or no time (0 or less) stops the shake, and an infinite one is left out.
             |     */
             |    fun $SHAKE_FUNCTION(strength: Float, durationInMilliseconds: Float, caller: $FOLLOWER_INTERFACE? = null) {
-            |        if (isInSceneEditor || strength.isNaN() || durationInMilliseconds.isNaN()) return
+            |        if (isInSceneEditor || !strength.isFinite() || !durationInMilliseconds.isFinite()) return
             |        withCameraLock {
             |            if (!isOfSceneShown(caller)) return@withCameraLock
             |            if (strength <= 0f || durationInMilliseconds <= 0f) {
-            |                shakeRemainingInMilliseconds = 0f
+            |                stopShake()
             |                return@withCameraLock
             |            }
+            |            if (shakeRemainingInMilliseconds <= 0f) stopShake()
             |            if (cameraTarget == null && shakenCameraX.isNaN()) {
             |                val position = viewportManager.cameraPosition.value
             |                cameraBaseX = position.x.raw
@@ -164,8 +171,12 @@ internal object CameraCode {
             |            val target = cameraTarget
             |            if (target == null && shakenCameraX.isNaN() && shakeRemainingInMilliseconds <= 0f) return
             |            if (target != null) {
-            |                cameraBaseX = target.body.position.x.raw
-            |                cameraBaseY = target.body.position.y.raw
+            |                val x = target.body.position.x.raw
+            |                val y = target.body.position.y.raw
+            |                // While paused, a target that holds still leaves the camera to whatever else moves it.
+            |                if (!isRunning && x == cameraBaseX && y == cameraBaseY && shakenCameraX.isNaN()) return
+            |                cameraBaseX = x
+            |                cameraBaseY = y
             |            } else if (!shakenCameraX.isNaN()) {
             |                val position = viewportManager.cameraPosition.value
             |                if (position.x.raw != shakenCameraX || position.y.raw != shakenCameraY) {
@@ -187,6 +198,15 @@ internal object CameraCode {
             |                viewportManager.setCameraPosition(SceneOffset(cameraBaseX.sceneUnit, cameraBaseY.sceneUnit))
             |            }
             |        }
+            |    }
+            |
+            |    /**
+            |     * Ends the shake, so the next one starts from the camera's place rather than where this one last threw it.
+            |     */
+            |    private fun stopShake() {
+            |        shakeRemainingInMilliseconds = 0f
+            |        shakeOffsetX = 0f
+            |        shakeOffsetY = 0f
             |    }
             |
             |    private fun placeShakenCamera(x: Float, y: Float) {

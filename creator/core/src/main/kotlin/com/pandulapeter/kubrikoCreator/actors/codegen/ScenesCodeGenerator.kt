@@ -231,7 +231,8 @@ public object ScenesCodeGenerator {
             |                actorManager.removeAll()
             |                actorManager.add(managerActors)
             |            }
-            |            actorManager.add(actors)
+            |            // The settings fit the view, so they come first, before an Actor's added Event can zoom the camera.
+            |            actorManager.add(actors.sortedBy { it !is ${SceneSettingsCodeGenerator.SETTINGS_NAME} })
             |        }
             |    }
             |

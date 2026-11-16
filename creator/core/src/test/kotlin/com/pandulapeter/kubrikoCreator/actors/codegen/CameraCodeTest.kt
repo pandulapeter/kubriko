@@ -35,13 +35,13 @@ class CameraCodeTest {
         assertContains(hero, "        sceneChangesWhenAdded = generatedScenes.sceneChanges\n")
         assertContains(hero, "generatedScenes.followWithCamera(this)\n")
         assertContains(hero, "    override fun onRemoved() {\n        sceneChangesWhenAdded = GeneratedScenes.NOT_IN_SCENE\n        generatedScenes.unfollowWithCamera(this)\n    }\n")
-        assertContains(scenes, "        if (isInSceneEditor || cameraTarget === actor) return\n        withCameraLock { if (isOfSceneShown(actor)) cameraTarget = actor }\n")
+        assertContains(scenes, "        if (isInSceneEditor || cameraTarget === actor) return\n        withCameraLock {\n            if (!isOfSceneShown(actor)) return@withCameraLock\n            cameraTarget = actor\n")
         assertContains(scenes, "caller == null || caller.sceneChangesWhenAdded == sceneChanges\n")
     }
 
     @Test
     fun aNewSceneStopsTheFollowingAndTheShakeUnderTheLock() {
-        assertContains(scenes, "    private fun startScene() = withCameraLock {\n        sceneChanges++\n        cameraTarget = null\n        shakeRemainingInMilliseconds = 0f\n")
+        assertContains(scenes, "    private fun startScene() = withCameraLock {\n        sceneChanges++\n        cameraTarget = null\n        stopShake()\n")
         assertContains(scenes, "            if (!isFirst) {\n                startScene()\n")
     }
 
@@ -83,8 +83,21 @@ class CameraCodeTest {
     }
 
     @Test
-    fun noStrengthOrNoTimeStopsTheShake() {
-        assertContains(scenes, "            if (strength <= 0f || durationInMilliseconds <= 0f) {\n                shakeRemainingInMilliseconds = 0f\n")
+    fun noStrengthOrNoTimeStopsTheShakeAndAnInfiniteOneIsLeftOut() {
+        assertContains(scenes, "            if (strength <= 0f || durationInMilliseconds <= 0f) {\n                stopShake()\n")
+        assertContains(scenes, "        if (isInSceneEditor || !strength.isFinite() || !durationInMilliseconds.isFinite()) return\n")
+    }
+
+    @Test
+    fun aStoppedShakeLeavesNoOffsetForTheNextShakeOrMove() {
+        assertContains(scenes, "    private fun stopShake() {\n        shakeRemainingInMilliseconds = 0f\n        shakeOffsetX = 0f\n        shakeOffsetY = 0f\n    }\n")
+        assertContains(scenes, "                return@withCameraLock\n            }\n            if (shakeRemainingInMilliseconds <= 0f) stopShake()\n")
+    }
+
+    @Test
+    fun whilePausedTheCameraFollowsOnlyAnActorThatMovesAndANewFollowAlwaysPlacesIt() {
+        assertContains(scenes, "                if (!isRunning && x == cameraBaseX && y == cameraBaseY && shakenCameraX.isNaN()) return\n")
+        assertContains(scenes, "            cameraTarget = actor\n            cameraBaseX = Float.NaN\n")
     }
 
     @Test
