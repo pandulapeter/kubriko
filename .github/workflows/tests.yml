@@ -121,9 +121,11 @@ jobs:
 
   publish-check:
     name: Build every published artifact
-    # On macOS, like the release, since only it builds the iOS artifacts. desktopTest compiles the desktop target alone,
-    # so this is what catches a module that doesn't build or package for another platform before a release does.
-    runs-on: macOS-latest
+    # On Linux, like the release: Kotlin/Native builds the iOS klibs there too, and macOS runners can queue for long
+    # enough to cancel the job. Only the nightly run needs macOS, whose generated projects' iOS builds need Xcode.
+    # desktopTest compiles the desktop target alone, so this is what catches a module that doesn't build or package for
+    # another platform before a release does.
+    runs-on: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && !inputs.unit_tests_only && 'macos-latest' || 'ubuntu-latest' }}
     timeout-minutes: 120
     steps:
       - name: Check out repository
