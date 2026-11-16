@@ -166,15 +166,15 @@ internal class ActorClassEmitter(
     }
 
     private fun StringBuilder.appendHeader(definition: ActorTypeDefinition, properties: List<PropertyDefinition>) {
-        val traits = listOfNotNull(
+        val importedTraits = listOfNotNull(
             "Batched",
             "Dynamic".takeIf { features.isDynamic },
             if (features.collisionEvents.isNotEmpty()) "CollisionDetector" else "Collidable".takeIf { features.isCollidable },
             "Editable<${definition.name}>".takeIf { role == Role.STANDALONE },
             "KeyboardInputAware".takeIf { features.keys.isKeyboardInputAware },
-            CAMERA_FOLLOWER.takeIf { features.usesCamera },
         )
-        traits.filter { it != CAMERA_FOLLOWER }.forEach { trait -> imports += TRAIT_IMPORTS.getValue(trait.substringBefore('<')) }
+        importedTraits.forEach { trait -> imports += TRAIT_IMPORTS.getValue(trait.substringBefore('<')) }
+        val traits = importedTraits + listOfNotNull(CAMERA_FOLLOWER.takeIf { features.usesCamera })
         imports += "androidx.compose.ui.graphics.Color"
         imports += "com.pandulapeter.kubriko.sceneEditor.Exposed"
         when (role) {
