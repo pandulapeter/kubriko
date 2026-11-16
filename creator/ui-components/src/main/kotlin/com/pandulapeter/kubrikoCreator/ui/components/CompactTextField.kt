@@ -9,9 +9,10 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.components
 
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.heightIn
@@ -19,17 +20,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.text.TextStyle
@@ -46,8 +44,6 @@ import com.pandulapeter.kubrikoCreator.ui.theme.CreatorMotion
 import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.Res
 import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.action_clear_text
 import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.ic_close
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 
 /**
  * A desktop-sized text field: one line high, with an optional [label] inside it on the left and an optional
@@ -74,29 +70,32 @@ public fun CompactTextField(
     isClearable: Boolean = false,
     textWidth: Dp? = null,
     textStyle: TextStyle = MaterialTheme.typography.bodyMedium,
-): Unit = BasicTextField(
-    modifier = modifier,
-    value = value,
-    onValueChange = onValueChange,
-    singleLine = isSingleLine,
-    visualTransformation = if (isSecret) PasswordVisualTransformation() else VisualTransformation.None,
-    textStyle = textStyle.copy(color = MaterialTheme.colorScheme.onSurface),
-    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-    decorationBox = { innerTextField ->
-        Decoration(
-            isEmpty = value.isEmpty(),
-            label = label,
-            placeholder = placeholder,
-            isError = isError,
-            isSingleLine = isSingleLine,
-            isWrapping = isWrapping,
-            onClear = if (isClearable) ({ onValueChange("") }) else null,
-            textWidth = textWidth,
-            textStyle = textStyle,
-            innerTextField = innerTextField,
-        )
-    },
-)
+) {
+    val onClear = rememberOnClear(isClearable) { onValueChange("") }
+    BasicTextField(
+        modifier = modifier,
+        value = value,
+        onValueChange = onValueChange,
+        singleLine = isSingleLine,
+        visualTransformation = if (isSecret) PasswordVisualTransformation() else VisualTransformation.None,
+        textStyle = textStyle.copy(color = MaterialTheme.colorScheme.onSurface),
+        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+        decorationBox = { innerTextField ->
+            Decoration(
+                isEmpty = value.isEmpty(),
+                label = label,
+                placeholder = placeholder,
+                isError = isError,
+                isSingleLine = isSingleLine,
+                isWrapping = isWrapping,
+                onClear = onClear,
+                textWidth = textWidth,
+                textStyle = textStyle,
+                innerTextField = innerTextField,
+            )
+        },
+    )
+}
 
 /**
  * The [CompactTextField] of a [TextFieldValue], for a caller that places the cursor or the selection itself.
@@ -111,30 +110,44 @@ public fun CompactTextField(
     isError: Boolean = false,
     isSingleLine: Boolean = true,
     isWrapping: Boolean = true,
+    isClearable: Boolean = false,
     textWidth: Dp? = null,
     textStyle: TextStyle = MaterialTheme.typography.bodyMedium,
-): Unit = BasicTextField(
-    modifier = modifier,
-    value = value,
-    onValueChange = onValueChange,
-    singleLine = isSingleLine,
-    textStyle = textStyle.copy(color = MaterialTheme.colorScheme.onSurface),
-    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-    decorationBox = { innerTextField ->
-        Decoration(
-            isEmpty = value.text.isEmpty(),
-            label = label,
-            placeholder = placeholder,
-            isError = isError,
-            isSingleLine = isSingleLine,
-            isWrapping = isWrapping,
-            onClear = null,
-            textWidth = textWidth,
-            textStyle = textStyle,
-            innerTextField = innerTextField,
-        )
-    },
-)
+) {
+    val onClear = rememberOnClear(isClearable) { onValueChange(TextFieldValue()) }
+    BasicTextField(
+        modifier = modifier,
+        value = value,
+        onValueChange = onValueChange,
+        singleLine = isSingleLine,
+        textStyle = textStyle.copy(color = MaterialTheme.colorScheme.onSurface),
+        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+        decorationBox = { innerTextField ->
+            Decoration(
+                isEmpty = value.text.isEmpty(),
+                label = label,
+                placeholder = placeholder,
+                isError = isError,
+                isSingleLine = isSingleLine,
+                isWrapping = isWrapping,
+                onClear = onClear,
+                textWidth = textWidth,
+                textStyle = textStyle,
+                innerTextField = innerTextField,
+            )
+        },
+    )
+}
+
+/**
+ * What a clearable [CompactTextField]'s clear button does, the same lambda across recompositions while [clear] reads
+ * the latest callback, so typing doesn't recompose the button; null for a field that isn't clearable.
+ */
+@Composable
+private fun rememberOnClear(isClearable: Boolean, clear: () -> Unit): (() -> Unit)? {
+    val latestClear by rememberUpdatedState(clear)
+    return remember(isClearable) { if (isClearable) ({ latestClear() }) else null }
+}
 
 @Composable
 private fun Decoration(
@@ -206,31 +219,32 @@ private fun Decoration(
             fun top(placeableHeight: Int) = if (isSingleLine) (height - placeableHeight) / 2 else 0
             labelPlaceable?.placeRelative(0, top(labelPlaceable.height))
             textPlaceable.placeRelative(labelSpace, top(textPlaceable.height))
-            clearPlaceable?.placeRelative(width - clearPlaceable.width, (height - clearPlaceable.height) / 2)
+            clearPlaceable?.placeRelative(width - clearPlaceable.width, top(clearPlaceable.height))
         }
     }
 }
 
 /**
- * The [CompactTextField]'s button that empties it, fading in while [isShown]. It never takes the focus, so the field
- * keeps it, and a hidden one can't be clicked.
+ * The [CompactTextField]'s button that empties it, fading in while [isShown] in room kept for it either way. It never
+ * takes the focus, so the field keeps it; a hidden one is gone, so it neither offers its tooltip nor takes a click.
  */
 @Composable
 private fun ClearButton(
     isShown: Boolean,
     onClick: () -> Unit,
     modifier: Modifier,
-) {
-    val alpha by animateFloatAsState(targetValue = if (isShown) 1f else 0f, animationSpec = CreatorMotion.short())
-    val label = stringResource(Res.string.action_clear_text)
-    WithTooltip(label = label, modifier = modifier.alpha(alpha)) {
-        Icon(
-            modifier = Modifier
-                .size(CLEAR_SIZE)
-                .focusProperties { canFocus = false }
-                .then(if (isShown) Modifier.pointerHoverIcon(PointerIcon.Hand).clickable(onClick = onClick) else Modifier),
-            painter = painterResource(Res.drawable.ic_close),
-            contentDescription = if (isShown) label else null,
+) = Box(modifier.size(CLEAR_SIZE)) {
+    AnimatedVisibility(
+        visible = isShown,
+        enter = fadeIn(CreatorMotion.short()),
+        exit = fadeOut(CreatorMotion.short()),
+    ) {
+        IconActionButton(
+            icon = Res.drawable.ic_close,
+            label = Res.string.action_clear_text,
+            onClick = onClick,
+            isSmall = true,
+            isFocusable = false,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
@@ -240,7 +254,7 @@ private val LABEL_GAP = 8.dp
 
 private val CLEAR_GAP = 4.dp
 
-private val CLEAR_SIZE = 16.dp
+private val CLEAR_SIZE = 20.dp
 
 private const val LABEL_ID = "label"
 

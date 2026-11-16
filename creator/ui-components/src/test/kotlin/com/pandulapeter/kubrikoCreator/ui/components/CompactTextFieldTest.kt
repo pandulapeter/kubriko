@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.getBoundsInRoot
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -70,20 +71,33 @@ class CompactTextFieldTest {
     }
 
     @Test
-    fun aClearableFieldShowsItsClearButtonOnlyWhileItHoldsTextAndEmptiesItWithoutMovingTheText() = uiTest {
+    fun aClearableFieldShowsItsClearButtonOnlyWhileItHoldsTextAndEmptiesIt() = uiTest {
         var value by mutableStateOf("goblin")
         showing {
-            CompactTextField(modifier = Modifier.testTag("field").width(200.dp), value = value, onValueChange = { value = it }, isClearable = true)
+            CompactTextField(value = value, onValueChange = { value = it }, modifier = Modifier.width(200.dp), isClearable = true)
         }
-        val textLeft = onNodeWithText("goblin", useUnmergedTree = true).getBoundsInRoot().left
         saveSnapshot("compact-text-field-clearable")
         onNodeWithContentDescription("Clear").performClick()
         waitForIdle()
         assertEquals("", value)
         onNodeWithContentDescription("Clear").assertDoesNotExist()
-        value = "orc"
-        waitForIdle()
-        assertAbout(textLeft, onNodeWithText("orc", useUnmergedTree = true).getBoundsInRoot().left)
+    }
+
+    @Test
+    fun aClearableFieldKeepsTheRoomOfItsHiddenClearButtonSoTheTextNeverRunsUnderIt() = uiTest {
+        val placeholder = "A placeholder far too long to fit in the field"
+        showing {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                CompactTextField(value = "", onValueChange = {}, modifier = Modifier.width(200.dp), placeholder = placeholder, isClearable = true)
+                CompactTextField(value = "goblin", onValueChange = {}, modifier = Modifier.width(200.dp), isClearable = true)
+                CompactTextField(value = "", onValueChange = {}, modifier = Modifier.width(200.dp), placeholder = placeholder)
+            }
+        }
+        val placeholders = onAllNodesWithText(placeholder, useUnmergedTree = true)
+        val clearableRoom = placeholders[0].getBoundsInRoot()
+        val plainRoom = placeholders[1].getBoundsInRoot()
+        assertTrue(plainRoom.width > clearableRoom.width, "The hidden clear button keeps no room")
+        assertTrue(onNodeWithContentDescription("Clear").getBoundsInRoot().left >= clearableRoom.right, "The clear button overlaps the text")
     }
 
     @Test

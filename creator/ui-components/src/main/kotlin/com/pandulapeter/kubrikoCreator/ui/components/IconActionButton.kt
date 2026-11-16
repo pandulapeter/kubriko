@@ -15,6 +15,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.DrawableResource
@@ -23,7 +24,9 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * A compact icon-only button, named by a tooltip and for screen readers by the same [label].
+ * A compact icon-only button, named by a tooltip and for screen readers by the same [label]. [isSmall] makes it fit
+ * inside a one-line field, and [isFocusable] false keeps the focus where it is when it is clicked, as for a field's own
+ * button.
  */
 @Composable
 public fun IconActionButton(
@@ -32,6 +35,8 @@ public fun IconActionButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     isEnabled: Boolean = true,
+    isSmall: Boolean = false,
+    isFocusable: Boolean = true,
     tint: Color = LocalContentColor.current,
 ): Unit = IconActionButton(
     icon = icon,
@@ -39,6 +44,8 @@ public fun IconActionButton(
     onClick = onClick,
     modifier = modifier,
     isEnabled = isEnabled,
+    isSmall = isSmall,
+    isFocusable = isFocusable,
     tint = tint,
 )
 
@@ -52,18 +59,22 @@ public fun IconActionButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     isEnabled: Boolean = true,
+    isSmall: Boolean = false,
+    isFocusable: Boolean = true,
     tint: Color = LocalContentColor.current,
 ): Unit = WithTooltip(
     label = label,
     modifier = modifier,
 ) {
     IconButton(
-        modifier = Modifier.size(36.dp),
+        modifier = Modifier
+            .size(if (isSmall) 20.dp else 36.dp)
+            .then(if (isFocusable) Modifier else Modifier.focusProperties { canFocus = false }),
         enabled = isEnabled,
         onClick = onClick,
     ) {
         Icon(
-            modifier = Modifier.size(20.dp),
+            modifier = Modifier.size(if (isSmall) 16.dp else 20.dp),
             painter = painterResource(icon),
             contentDescription = label,
             tint = if (isEnabled) tint else tint.copy(alpha = 0.38f),
