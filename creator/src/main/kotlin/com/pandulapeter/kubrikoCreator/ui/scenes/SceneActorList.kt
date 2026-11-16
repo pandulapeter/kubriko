@@ -27,6 +27,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
@@ -68,7 +73,12 @@ internal fun SceneActorList(
         if (index >= 0 && listState.layoutInfo.visibleItemsInfo.none { it.index == index }) listState.animateScrollToItem(index)
     }
     CompactTextField(
-        modifier = Modifier.fillMaxWidth().padding(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .onPreviewKeyEvent { event ->
+                (event.type == KeyEventType.KeyDown && event.key == Key.Escape && query.isNotEmpty()).also { if (it) query = "" }
+            },
         value = query,
         onValueChange = { query = it },
         placeholder = stringResource(Res.string.scene_actor_search),
