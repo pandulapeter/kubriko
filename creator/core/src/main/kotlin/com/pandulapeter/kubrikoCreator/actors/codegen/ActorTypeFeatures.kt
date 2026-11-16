@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.actors.codegen
 
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.AnimationTarget
+import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
@@ -57,6 +58,7 @@ internal class ActorTypeFeatures(
     projectWatches: List<ActorWatch> = emptyList(),
     projectCountedTypes: List<String> = emptyList(),
     eventScopes: List<Pair<List<EventDefinition>, BlockScope>> = listOf(events to scope),
+    hasResizableBoxMasks: Boolean = true,
 ) {
     private val knownActorTypeNames = scope.actorTypeNames
     val keys = KeyEventCode.KeyEvents(events.filter { it.type.takesKey && isGenerated(it) }, isFamily)
@@ -115,6 +117,8 @@ internal class ActorTypeFeatures(
      * at after every move, key Events check whether the game is paused, held keys are asked about every frame, and an Actor a Manager hears about the removal of
      * asks GeneratedScenes whether it left with its Scene.
      */
+    private val resizesWithBlocks get() = BlockNeed.SIZE in blockCode.needs || BlockNeed.SCALE in blockCode.needs
+    private val hasKotlinBlocks = eventScopes.any { (scopeEvents, _) -> scopeEvents.any { event -> event.blocks.any { it is BlockDefinition.Kotlin } } }
     private val needs = blockCode.needs + buildSet {
         if (checksSceneBounds) addAll(listOf(BlockNeed.MOVEMENT, BlockNeed.VIEWPORT_MANAGER, BlockNeed.SCENES))
         if (timers.isNotEmpty() || everyFrameEvents.any { it.blocks.isNotEmpty() } || keys.holdsKeys) add(BlockNeed.MOVEMENT)
@@ -122,10 +126,20 @@ internal class ActorTypeFeatures(
         if (keys.isKeyboardInputAware) add(BlockNeed.STATE_MANAGER)
         if (isAnimated) add(BlockNeed.MOVEMENT)
         // The collision mask follows the size and the scale in the update, wherever the Blocks change them.
-        if (isCollidable && (BlockNeed.SIZE in blockCode.needs || BlockNeed.SCALE in blockCode.needs)) add(BlockNeed.MOVEMENT)
+        if (isCollidable && (resizesWithBlocks || hasKotlinBlocks)) add(BlockNeed.MOVEMENT)
         if (watches.any { !it.isAdded } || countedTypes.isNotEmpty()) add(BlockNeed.SCENES)
     }
     val isDynamic = BlockNeed.MOVEMENT in needs
+
+    /**
+     * Whether the update brings a box collision mask's size in line with the body's size and scale: only when they can
+     * change (a size, scale, or Animate Block of the scale, or a Kotlin Block), and on a Kubriko without a resizable box
+     * mask only when the size or scale Blocks need it anyway, so such a project still builds while its Animate Blocks
+     * leave the mask as they always have.
+     */
+    val followsBoxMaskSize = isCollidable && ActorShape.RECTANGLE in shapes &&
+        (resizesWithBlocks || BlockNeed.SCALE_TWEEN in blockCode.needs || hasKotlinBlocks) &&
+        (hasResizableBoxMasks || resizesWithBlocks)
     val usesBounceOff = BlockNeed.BOUNCE_OFF in needs
     val usesDirection = BlockNeed.DIRECTION in needs
     val usesSteering = BlockNeed.STEERING in needs

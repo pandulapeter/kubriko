@@ -87,8 +87,7 @@
   Block of it starts over. The position moves by what its easing added since the frame before, so it adds up with the
   velocity instead of fighting it. A Kubriko class an Actor type may be named after that `BlockTypeNaming` doesn't reserve
   yet, such as `Scale`, is named in full rather than imported, which is why `com` is a reserved Property name: reserving
-  a type name would need a migration that renames Actor types. A box collision mask keeps the size it was built with
-  (a new mask would leave the collision plugin's spatial grid with the old one), so a scale animation doesn't reach it.
+  a type name would need a migration that renames Actor types.
 - Move with keys sets the velocity from the keys held, so it works only every frame (`onlyIn`), and its speed is never
   random, which would change on every frame. Its WASD are the letter keys as Compose names them: on the desktop and
   Android that follows the keyboard layout (on AZERTY, W and A steer where those letters are printed, away from the usual cluster), while the web
@@ -161,10 +160,12 @@
   the last Scene's are removed, so an ending Scene unfits the view only while its settings are still the current ones.
 - The size and scale Blocks call functions of the Actor's class (`SizeCode`) whose names, and the fields they keep, start
   with an underscore, which no Property's can, so they reserve no names. Set the size keeps the pivot at the same fraction
-  of the size, so an Actor grows around its middle or its sprite's origin. The collision mask follows the size and the
-  scale in the update (`appendCollisionMaskUpdate`: a box's `size`, a circle's `radius`, both changed in place, since the
-  collision plugin's grids hold the mask), so a collidable Actor whose Blocks change either is Dynamic even if nothing else
-  makes it so.
+  of the size, so an Actor grows around its middle or its sprite's origin; Change the scale adds to each axis, so a placed
+  Actor keeps its proportions. The collision mask follows the size and the scale in the update (`appendCollisionMaskUpdate`:
+  a box's `size`, a circle's `radius`, both changed in place, since the collision plugin's grids hold the mask), so a
+  collidable Actor whose Blocks may change either (a Kotlin Block too) is Dynamic even if nothing else makes it so. A box's
+  size is followed only where it can change (`followsBoxMaskSize`), and on a Kubriko older than 0.8.1, which can't resize a
+  box in place, only for the size and scale Blocks (`SizeCode.hasResizableBoxMasks`), so such a project still builds.
 - `GeneratedAudio` exists only while the game plays audio. It starts music on the next frame, since the music player exists only
   once the viewport is composed, and resumes it when the game is focused again, since `MusicManager` doesn't. A
   volume is a percent on the Block and a fraction in the call, left out at 100 so games using none generate what they

@@ -91,6 +91,7 @@ public object ActorTypeCodeGenerator {
             isFamily = role.isFamily,
             projectWatches = families.watches,
             projectCountedTypes = families.countedTypes,
+            hasResizableBoxMasks = families.hasResizableBoxMasks,
         )
         val imports = mutableSetOf<String>()
         val code = buildString {

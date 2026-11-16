@@ -48,6 +48,11 @@ public object AnimationNaming {
      */
     internal const val PACKAGE_ROOT: String = "com"
 
+    /**
+     * Kubriko's package of types, named in full from [PACKAGE_ROOT] by the code that can't import them.
+     */
+    internal const val TYPES_PACKAGE: String = "$PACKAGE_ROOT.pandulapeter.kubriko.types"
+
     internal val reservedNames: List<String> = AnimationTarget.entries.flatMap { target ->
         listOf(from(target), to(target), elapsed(target), duration(target), easing(target), removesActor(target), startFunction(target))
     } + PROGRESS_FUNCTION + PACKAGE_ROOT

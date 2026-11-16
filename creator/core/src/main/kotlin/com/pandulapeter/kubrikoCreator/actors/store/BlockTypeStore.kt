@@ -28,6 +28,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ManagerTypeCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.codegen.PluginManagers
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.codegen.ScenesCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.codegen.SizeCode
 import com.pandulapeter.kubrikoCreator.actors.codegen.SpritesCodeGenerator
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
@@ -226,7 +227,14 @@ public class BlockTypeStore private constructor(
         val actorTypeNames = actorTypes.map { it.name }
         val managerTypes = definitions.filterIsInstance<ManagerTypeDefinition>()
         val pluginManagers = PluginManagers.of(definitions, generation.sceneMusic, family)
-        val families = GeneratedFamilies(actorTypes, managerTypes, pluginManagers.collidableActorTypeNames, family, generation.spriteSheets)
+        val families = GeneratedFamilies(
+            actorTypes = actorTypes,
+            managerTypes = managerTypes,
+            collidableActorTypeNames = pluginManagers.collidableActorTypeNames,
+            family = family,
+            spriteSheets = generation.spriteSheets,
+            hasResizableBoxMasks = SizeCode.hasResizableBoxMasks(generation.kubrikoVersion),
+        )
         generatedDirectory.mkdirs()
         definitions.forEach { definition ->
             writeUnlessChangedByHand(

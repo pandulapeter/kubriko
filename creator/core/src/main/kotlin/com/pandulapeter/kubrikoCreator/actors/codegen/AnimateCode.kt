@@ -32,7 +32,7 @@ internal object AnimateCode {
      * Kubriko's `Scale`, named in full rather than imported, since an Actor type may be called `Scale` too (no Property
      * may be called [AnimationNaming.PACKAGE_ROOT]).
      */
-    private const val SCALE_CLASS = "${AnimationNaming.PACKAGE_ROOT}.pandulapeter.kubriko.types.Scale"
+    const val SCALE_CLASS = "${AnimationNaming.TYPES_PACKAGE}.Scale"
     private const val DURATION_LIMIT = "Int.MAX_VALUE / 2"
 
     fun needOf(target: AnimationTarget) = when (target) {

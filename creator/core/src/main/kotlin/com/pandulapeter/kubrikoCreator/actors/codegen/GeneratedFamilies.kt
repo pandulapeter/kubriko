@@ -34,6 +34,7 @@ internal class GeneratedFamilies(
     private val collidableActorTypeNames: Set<String>,
     val family: ActorTypeFamily,
     val spriteSheets: Map<String, SpriteSheet> = emptyMap(),
+    val hasResizableBoxMasks: Boolean = true,
 ) {
     private val byName by lazy(LazyThreadSafetyMode.NONE) { actorTypes.associateBy { it.name } }
     private val types by lazy(LazyThreadSafetyMode.NONE) { actorTypes + managerTypes }
@@ -75,6 +76,7 @@ internal class GeneratedFamilies(
             projectWatches = watches,
             projectCountedTypes = countedTypes,
             eventScopes = members.map { it.events to scopes.getValue(it.name) },
+            hasResizableBoxMasks = hasResizableBoxMasks,
         )
         return GeneratedFamily(root, rootScope, features, scopes)
     }

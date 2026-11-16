@@ -26,13 +26,12 @@ import kubriko.creator.generated.resources.block_parameter_width
 import kubriko.creator.generated.resources.block_units_unit
 
 /**
- * The numbers of the Set the size, Set the scale, and Change the scale Blocks, none of which is an edge: a width and a
- * height in scene units, or a scale, where 1 is the Actor's size.
+ * The width and height a Set the size Block gives the Actor, in scene units, neither of which is an edge.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun SizeBlockParameters(
-    block: BlockDefinition,
+    block: BlockDefinition.SetSize,
     scope: BlockScope,
     onBlockChange: (BlockDefinition) -> Unit,
 ) = FlowRow(
@@ -40,41 +39,54 @@ internal fun SizeBlockParameters(
     verticalArrangement = Arrangement.spacedBy(4.dp),
     itemVerticalAlignment = Alignment.CenterVertically,
 ) {
-    when (block) {
-        is BlockDefinition.SetSize -> {
-            NumberValueField(
-                label = Res.string.block_parameter_width,
-                value = block.width,
-                scope = scope,
-                onValueChange = { onBlockChange(block.copy(width = it)) },
-                offersEdges = false,
-                limits = NumberLimits.NON_NEGATIVE,
-            )
-            NumberValueField(
-                label = Res.string.block_parameter_height,
-                value = block.height,
-                scope = scope,
-                onValueChange = { onBlockChange(block.copy(height = it)) },
-                offersEdges = false,
-                limits = NumberLimits.NON_NEGATIVE,
-            )
-            UnitText(Res.string.block_units_unit)
-        }
-        is BlockDefinition.SetScale -> NumberValueField(
-            label = Res.string.block_parameter_scale,
-            value = block.scale,
-            scope = scope,
-            onValueChange = { onBlockChange(block.copy(scale = it)) },
-            offersEdges = false,
-            limits = NumberLimits.NON_NEGATIVE,
-        )
-        is BlockDefinition.ChangeScale -> NumberValueField(
-            label = Res.string.block_parameter_by,
-            value = block.by,
-            scope = scope,
-            onValueChange = { onBlockChange(block.copy(by = it)) },
-            offersEdges = false,
-        )
-        else -> Unit
-    }
+    NumberValueField(
+        label = Res.string.block_parameter_width,
+        value = block.width,
+        scope = scope,
+        onValueChange = { onBlockChange(block.copy(width = it)) },
+        offersEdges = false,
+        limits = NumberLimits.NON_NEGATIVE,
+    )
+    NumberValueField(
+        label = Res.string.block_parameter_height,
+        value = block.height,
+        scope = scope,
+        onValueChange = { onBlockChange(block.copy(height = it)) },
+        offersEdges = false,
+        limits = NumberLimits.NON_NEGATIVE,
+    )
+    UnitText(Res.string.block_units_unit)
 }
+
+/**
+ * The scale a Set the scale Block gives the Actor, where 1 is its size, which isn't an edge.
+ */
+@Composable
+internal fun SizeBlockParameters(
+    block: BlockDefinition.SetScale,
+    scope: BlockScope,
+    onBlockChange: (BlockDefinition) -> Unit,
+) = NumberValueField(
+    label = Res.string.block_parameter_scale,
+    value = block.scale,
+    scope = scope,
+    onValueChange = { onBlockChange(block.copy(scale = it)) },
+    offersEdges = false,
+    limits = NumberLimits.NON_NEGATIVE,
+)
+
+/**
+ * What a Change the scale Block adds to the Actor's scale, which isn't an edge.
+ */
+@Composable
+internal fun SizeBlockParameters(
+    block: BlockDefinition.ChangeScale,
+    scope: BlockScope,
+    onBlockChange: (BlockDefinition) -> Unit,
+) = NumberValueField(
+    label = Res.string.block_parameter_by,
+    value = block.by,
+    scope = scope,
+    onValueChange = { onBlockChange(block.copy(by = it)) },
+    offersEdges = false,
+)

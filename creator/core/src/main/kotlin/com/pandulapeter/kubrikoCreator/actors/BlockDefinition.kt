@@ -348,7 +348,7 @@ public sealed interface BlockDefinition {
 
     @Serializable
     @SerialName("setSize")
-    @Description("Sets the width and height of the Actor in scene units, which its shape or sprite is drawn at and its collision mask follows. It grows or shrinks around its pivot (its middle, or its sprite's origin), and its scale still applies on top.")
+    @Description("Sets the width and height of the Actor in scene units, which its shape or sprite is drawn at and its collision mask follows (a circle's as a circle as wide as the Actor). It grows or shrinks around its pivot (its middle, or its sprite's origin), and its scale still applies on top.")
     public data class SetSize(
         @Description("The width in scene units, 0 or more. Not an edge.")
         @SerialName("width") val width: NumberValue = NumberValue.Fixed(DEFAULT_SIZE),
@@ -358,7 +358,7 @@ public sealed interface BlockDefinition {
 
     @Serializable
     @SerialName("setScale")
-    @Description("Sets the scale of the Actor, which it is drawn and collides at around its pivot: 1 is its size, 2 twice as large, 0.5 half. Every Actor starts at 1.")
+    @Description("Sets the scale of the Actor, the same across and down, which it is drawn and collides at around its pivot: 1 is its size, 2 twice as large, 0.5 half.")
     public data class SetScale(
         @Description("The scale, 0 or more. Not an edge.")
         @SerialName("scale") val scale: NumberValue = NumberValue.Fixed(2f),
@@ -366,7 +366,7 @@ public sealed interface BlockDefinition {
 
     @Serializable
     @SerialName("changeScale")
-    @Description("Adds to the scale of the Actor, or subtracts from it with a negative amount, kept at 0 or more, so a little every frame grows or shrinks it.")
+    @Description("Adds to the scale of the Actor across and down, or subtracts from it with a negative amount, kept at 0 or more, so a little every frame grows or shrinks it.")
     public data class ChangeScale(
         @Description("What is added to the scale, such as 0.1, or -0.1 to shrink it. Not an edge.")
         @SerialName("by") val by: NumberValue = NumberValue.Fixed(0.1f),

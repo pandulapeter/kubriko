@@ -58,7 +58,7 @@ public object BlockCodeGenerator {
     internal const val ABSOLUTE_VALUE_IMPORT = "kotlin.math.absoluteValue"
     internal const val SCENE_OFFSET_IMPORT = "com.pandulapeter.kubriko.types.SceneOffset"
     private const val ABSOLUTE_VALUE = "absoluteValue"
-    private const val SCENE_UNIT_EXTENSION_IMPORT = "com.pandulapeter.kubriko.helpers.extensions.sceneUnit"
+    internal const val SCENE_UNIT_EXTENSION_IMPORT = "com.pandulapeter.kubriko.helpers.extensions.sceneUnit"
     private const val NORMALIZED_IMPORT = "com.pandulapeter.kubriko.helpers.extensions.normalized"
     private const val LOGGER_IMPORT = "com.pandulapeter.kubriko.logger.Logger"
     internal const val KEY_IMPORT = "androidx.compose.ui.input.key.Key"

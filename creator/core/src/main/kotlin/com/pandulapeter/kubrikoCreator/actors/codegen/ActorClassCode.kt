@@ -160,21 +160,20 @@ internal object ActorClassCode {
     }
 
     /**
-     * Brings the collision mask in line with the body: its position, and, for Actors whose rotation, size, or scale
-     * Blocks may change (an Animate Block, a Kotlin Block), the box's rotation and size or the circle's radius, each of
-     * which the mask changes in place and only when it differs, so following them costs nothing while they hold still.
-     * A mask changed in place is what the collision plugin's grids and a physics body hold, which a new one wouldn't be.
+     * Brings the collision mask in line with the body: its position, the box's rotation or the circle's radius, and, when
+     * [followsBoxSize], the box's size, each of which the mask changes in place and only when it differs. A mask changed in
+     * place is what the collision plugin's grids and a physics body hold, which a new one wouldn't be.
      *
      * @param shapes The shapes the Actors may have: one for a type of its own, any of them for a family's base class.
      */
-    fun StringBuilder.appendCollisionMaskUpdate(shapes: Set<ActorShape>) {
+    fun StringBuilder.appendCollisionMaskUpdate(shapes: Set<ActorShape>, followsBoxSize: Boolean) {
         appendLine("        collisionMask.position = bodyCenter")
         if (shapes.size == 1) {
-            maskUpdate(shapes.single(), "collisionMask").forEach { appendLine("        $it") }
+            maskUpdate(shapes.single(), "collisionMask", followsBoxSize).forEach { appendLine("        $it") }
         } else {
             appendLine("        when (val mask = collisionMask) {")
             shapes.sorted().forEach { shape ->
-                val lines = maskUpdate(shape, "mask")
+                val lines = maskUpdate(shape, "mask", followsBoxSize)
                 if (lines.size == 1) {
                     appendLine("            is ${maskClassOf(shape)} -> ${lines.single()}")
                 } else {
@@ -188,9 +187,9 @@ internal object ActorClassCode {
         }
     }
 
-    private fun maskUpdate(shape: ActorShape, mask: String) = when (shape) {
+    private fun maskUpdate(shape: ActorShape, mask: String, followsBoxSize: Boolean) = when (shape) {
         ActorShape.CIRCLE -> listOf("$mask.radius = body.size.width * body.scale.horizontal / 2")
-        ActorShape.RECTANGLE -> listOf("$mask.rotation = body.rotation", "$mask.size = body.size * body.scale")
+        ActorShape.RECTANGLE -> listOfNotNull("$mask.rotation = body.rotation", "$mask.size = body.size * body.scale".takeIf { followsBoxSize })
     }
 
     fun maskClassOf(shape: ActorShape) = when (shape) {

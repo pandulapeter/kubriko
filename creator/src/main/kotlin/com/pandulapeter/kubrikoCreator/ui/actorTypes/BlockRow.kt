@@ -274,7 +274,9 @@ private fun InlineParameters(
     is BlockDefinition.SetColor -> SetColorParameters(block, scope, onBlockChange)
     is BlockDefinition.SetOpacity -> PercentField(Res.string.block_parameter_opacity, block.percent, scope, { onBlockChange(block.copy(percent = it)) }, limits = NumberLimits.PERCENT)
     is BlockDefinition.ChangeOpacity -> PercentField(Res.string.block_parameter_by, block.by, scope, { onBlockChange(block.copy(by = it)) })
-    is BlockDefinition.SetSize, is BlockDefinition.SetScale, is BlockDefinition.ChangeScale -> SizeBlockParameters(block, scope, onBlockChange)
+    is BlockDefinition.SetSize -> SizeBlockParameters(block, scope, onBlockChange)
+    is BlockDefinition.SetScale -> SizeBlockParameters(block, scope, onBlockChange)
+    is BlockDefinition.ChangeScale -> SizeBlockParameters(block, scope, onBlockChange)
     is BlockDefinition.Animate -> AnimateParameters(block, scope, onBlockChange)
     is BlockDefinition.MoveCamera -> OffsetParameters(block.x, block.y, scope, isVelocity = false) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
     is BlockDefinition.ShakeCamera -> ShakeCameraParameters(block, scope, onBlockChange)
