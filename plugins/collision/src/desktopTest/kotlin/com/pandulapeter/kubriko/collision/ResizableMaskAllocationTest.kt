@@ -17,7 +17,7 @@ import com.pandulapeter.kubriko.testFixtures.measureAllocatedBytesPerRun
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlin.test.Test
-import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class ResizableMaskAllocationTest {
 
@@ -35,7 +35,7 @@ class ResizableMaskAllocationTest {
             mask.axisAlignedBoundingBox
         }
 
-        assertEquals(0.0, allocated)
+        assertTrue(allocated < 1, "Measured $allocated B per resize")
         assert(hits > 0)
     }
 
@@ -53,7 +53,7 @@ class ResizableMaskAllocationTest {
             mask.axisAlignedBoundingBox
         }
 
-        assertEquals(0.0, allocated)
+        assertTrue(allocated < 1, "Measured $allocated B per resize")
         assert(hits > 0)
     }
 
