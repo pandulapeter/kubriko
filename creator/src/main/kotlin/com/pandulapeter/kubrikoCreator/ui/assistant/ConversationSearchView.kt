@@ -54,7 +54,7 @@ import kubriko.creator.generated.resources.conversation_search_hint
 import kubriko.creator.generated.resources.conversation_search_none
 import kubriko.creator.generated.resources.conversation_search_other_agent
 import kubriko.creator.generated.resources.conversation_search_you
-import kubriko.creator.generated.resources.ic_close
+import kubriko.creator.generated.resources.ic_arrow_back
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -141,7 +141,7 @@ private fun ConversationSearchField(
         placeholder = stringResource(Res.string.conversation_search_field),
         isClearable = true,
     )
-    IconActionButton(icon = Res.drawable.ic_close, label = Res.string.action_close_conversation_search, onClick = onClose)
+    IconActionButton(icon = Res.drawable.ic_arrow_back, label = Res.string.action_close_conversation_search, onClick = onClose)
 }
 
 /**
