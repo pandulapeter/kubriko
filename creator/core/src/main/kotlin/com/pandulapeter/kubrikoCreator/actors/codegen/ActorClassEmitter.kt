@@ -21,7 +21,6 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.REMOVED_GUA
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendAlwaysActive
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendBodyCenter
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendBounceOffFunction
-import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendCollisionMaskUpdate
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendDirectionFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendNumberTextFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendPropertyFields
@@ -31,8 +30,6 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendTimer
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendTimerFields
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendVelocityField
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.collisionTargetOrder
-import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.maskClassOf
-import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.maskTypeOf
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorCountCode.appendGuardField
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorCountCode.appendStart
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorCountCode.appendStopFunction
@@ -52,6 +49,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.SCENE_O
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.SET_FRAME_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STATE_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.STEP_ANIMATION_FUNCTION
+import com.pandulapeter.kubrikoCreator.actors.codegen.CollisionMaskCode.appendCollisionMaskUpdate
 import com.pandulapeter.kubrikoCreator.actors.codegen.EventFunctions.appendFunction
 import com.pandulapeter.kubrikoCreator.actors.codegen.KeyEventCode.appendHeldKeyCalls
 import com.pandulapeter.kubrikoCreator.actors.codegen.KeyEventCode.appendPairedKeyDispatches
@@ -127,7 +125,7 @@ internal class ActorClassEmitter(
         appendRemovedField()
         appendRemovedFieldSetter()
         appendProperties(properties)
-        appendCollisionMembers(definition.shape)
+        appendCollisionMembers(MaskBody.of(definition))
         features.lookups.forEach { appendLine("    $visibility lateinit var $it") }
         imports += features.lookupImports
         if (features.keepsSceneChanges) appendSceneChangesField()
@@ -200,8 +198,8 @@ internal class ActorClassEmitter(
                 appendLine("    color: Color,")
                 properties.forEach { appendLine("    ${it.name}: ${PropertyKind.of(it).kotlinType},") }
                 if (features.isCollidable) {
-                    imports += MASK_IMPORT_PREFIX + maskTypeOf(features.shapes)
-                    appendLine("    final override val collisionMask: ${maskTypeOf(features.shapes)},")
+                    imports += CollisionMaskCode.importsOf(features.maskKinds)
+                    appendLine("    final override val collisionMask: ${CollisionMaskCode.typeOf(features.maskKinds)},")
                 }
                 appendLine(") : ${traits.joinToString()} {")
             }
@@ -224,12 +222,13 @@ internal class ActorClassEmitter(
      * The members of a collidable Actor: a type of its own builds its mask around the middle of its body, which a family's
      * base class takes in its constructor and moves there only if it moves.
      */
-    private fun StringBuilder.appendCollisionMembers(shape: ActorShape) {
+    private fun StringBuilder.appendCollisionMembers(body: MaskBody) {
         when (role) {
             Role.STANDALONE -> if (features.isCollidable) {
-                imports += MASK_IMPORT_PREFIX + maskClassOf(shape)
+                val maskKinds = features.maskKindsOf(body)
+                imports += CollisionMaskCode.importsOf(maskKinds)
                 appendBodyCenter()
-                appendLine(collisionMask(shape))
+                appendLine(CollisionMaskCode.declarationOf(maskKinds, center = "bodyCenter"))
             }
             Role.FAMILY_ROOT -> if (features.isCollidable && features.isDynamic) appendBodyCenter()
         }
@@ -345,8 +344,8 @@ internal class ActorClassEmitter(
             )
         }
         if (features.isCollidable) {
-            if (features.shapes.size > 1) imports += features.shapes.map { MASK_IMPORT_PREFIX + maskClassOf(it) }
-            appendCollisionMaskUpdate(features.shapes, followsBoxSize = features.followsBoxMaskSize)
+            imports += CollisionMaskCode.importsOf(features.maskKinds)
+            appendCollisionMaskUpdate(features.maskKinds, followsSize = features.followsMaskSize)
         }
         appendLine("    }")
     }
@@ -411,24 +410,7 @@ internal class ActorClassEmitter(
         appendLine("    }")
     }
 
-    private fun collisionMask(shape: ActorShape) = when (shape) {
-        ActorShape.CIRCLE -> """
-            |    override val collisionMask = CircleCollisionMask(
-            |        initialPosition = bodyCenter,
-            |        initialRadius = body.size.width * body.scale.horizontal / 2,
-            |    )
-        """.trimMargin()
-        ActorShape.RECTANGLE -> """
-            |    override val collisionMask = BoxCollisionMask(
-            |        initialPosition = bodyCenter,
-            |        initialSize = body.size * body.scale,
-            |        initialRotation = body.rotation,
-            |    )
-        """.trimMargin()
-    }
-
     private companion object {
-        const val MASK_IMPORT_PREFIX = "com.pandulapeter.kubriko.collision.mask."
         const val COLLIDABLE_IMPORT = "com.pandulapeter.kubriko.collision.Collidable"
         const val SCENE_UNIT_IMPORT = "com.pandulapeter.kubriko.types.SceneUnit"
         const val KEY_IMPORT = "androidx.compose.ui.input.key.Key"

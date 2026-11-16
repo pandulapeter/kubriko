@@ -28,15 +28,15 @@ internal object SizeCode {
     private const val PIVOT_FRACTION_X = "_pivotFractionX"
     private const val PIVOT_FRACTION_Y = "_pivotFractionY"
     private const val TYPES = AnimationNaming.TYPES_PACKAGE
-    private const val RESIZABLE_BOX_MASKS_SINCE = "0.8.1"
+    private const val RESIZABLE_MASKS_SINCE = "0.8.1"
 
     /**
-     * Whether a project on [kubrikoVersion] (null when its build doesn't say) has box collision masks whose size changes in
-     * place, which Kubriko has had since [RESIZABLE_BOX_MASKS_SINCE]; one that can't be told is taken to, since Creator
-     * raises the projects it opens to its own Kubriko.
+     * Whether a project on [kubrikoVersion] (null when its build doesn't say) has box and oval collision masks whose size
+     * changes in place, which Kubriko has had since [RESIZABLE_MASKS_SINCE]; one that can't be told is taken to, since
+     * Creator raises the projects it opens to its own Kubriko.
      */
-    fun hasResizableBoxMasks(kubrikoVersion: String?) =
-        kubrikoVersion == null || KubrikoBuildFiles.compareVersions(kubrikoVersion, RESIZABLE_BOX_MASKS_SINCE) >= 0
+    fun hasResizableMasks(kubrikoVersion: String?) =
+        kubrikoVersion == null || KubrikoBuildFiles.compareVersions(kubrikoVersion, RESIZABLE_MASKS_SINCE) >= 0
 
     fun setSize(block: BlockDefinition.SetSize, scope: BlockScope) = BlockCode(
         lines = listOf("$SIZE_FUNCTION(${NumberValueCode.float(block.width, scope)}, ${NumberValueCode.float(block.height, scope)})"),

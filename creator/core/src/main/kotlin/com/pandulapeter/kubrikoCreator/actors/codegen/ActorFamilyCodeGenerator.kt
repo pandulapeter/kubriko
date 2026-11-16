@@ -19,8 +19,6 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendPropertyFields
-import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.maskClassOf
-import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.maskTypeOf
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.GENERATED_PACKAGE
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.appendLook
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.appendSavedState
@@ -91,7 +89,7 @@ internal object ActorFamilyCodeGenerator {
         val inherited = family.propertiesOf(checkNotNull(family.parentOf(definition.name)))
         val newProperties = newPropertiesOf(definition.name, family)
         imports += listOf("com.pandulapeter.kubriko.actor.body.BoxBody", "androidx.compose.ui.graphics.Color")
-        if (features.isCollidable) imports += MASK_IMPORT_PREFIX + maskTypeOf(features.shapes)
+        if (features.isCollidable) imports += CollisionMaskCode.importsOf(features.maskKinds)
         if (newProperties.isNotEmpty()) imports += EXPOSED_IMPORT
         appendLine("/**")
         appendLine(" * What every ${definition.name} does, and every Actor type that inherits from it.")
@@ -100,7 +98,7 @@ internal object ActorFamilyCodeGenerator {
         appendLine("    body: BoxBody,")
         appendLine("    color: Color,")
         family.propertiesOf(definition.name).forEach { appendLine("    ${it.name}: ${PropertyKind.of(it).kotlinType},") }
-        if (features.isCollidable) appendLine("    collisionMask: ${maskTypeOf(features.shapes)},")
+        if (features.isCollidable) appendLine("    collisionMask: ${CollisionMaskCode.typeOf(features.maskKinds)},")
         appendLine(") : ${baseNameOf(family.parentOf(definition.name)!!)}(")
         appendLine("    body = body,")
         appendLine("    color = color,")
@@ -130,7 +128,8 @@ internal object ActorFamilyCodeGenerator {
         val hasChildren = family.hasChildren(name)
         val newProperties = if (hasChildren) emptyList() else newPropertiesOf(name, family)
         imports += "com.pandulapeter.kubriko.sceneEditor.Editable"
-        if (features.isCollidable) imports += MASK_IMPORT_PREFIX + maskClassOf(definition.shape)
+        val maskKinds = features.maskKindsOf(MaskBody.of(definition))
+        if (features.isCollidable) imports += CollisionMaskCode.importsOf(maskKinds)
         if (newProperties.isNotEmpty()) imports += EXPOSED_IMPORT
         val superName = baseNameOf(if (hasChildren) name else checkNotNull(family.parentOf(name)))
         val superProperties = family.propertiesOf(if (hasChildren) name else family.parentOf(name)!!)
@@ -138,7 +137,7 @@ internal object ActorFamilyCodeGenerator {
         appendLine("    body = state.body,")
         appendLine("    color = state.color,")
         superProperties.forEach { appendLine("    ${it.name} = state.${it.name},") }
-        if (features.isCollidable) appendLine("    collisionMask = ${collisionMaskOf(definition.shape)},")
+        if (features.isCollidable) appendLine("    collisionMask = ${CollisionMaskCode.expressionOf(maskKinds, body = "state.body", center = "state.body.axisAlignedBoundingBox.let { (it.min + it.max) / 2 }")},")
         appendLine("), Editable<$name> {")
         if (features.containment == SceneContainment.SOME && definition.staysInsideScene) appendLine("    override val ${SceneBoundsCode.STAYS_INSIDE_FIELD} = true")
         if (!hasChildren) {
@@ -169,15 +168,7 @@ internal object ActorFamilyCodeGenerator {
         return family.propertiesOf(name).filter { it.name !in inherited }
     }
 
-    private fun collisionMaskOf(shape: ActorShape) = when (shape) {
-        ActorShape.CIRCLE -> "CircleCollisionMask(initialPosition = state.body.axisAlignedBoundingBox.let { (it.min + it.max) / 2 }, " +
-            "initialRadius = state.body.size.width * state.body.scale.horizontal / 2)"
-        ActorShape.RECTANGLE -> "BoxCollisionMask(initialPosition = state.body.axisAlignedBoundingBox.let { (it.min + it.max) / 2 }, " +
-            "initialSize = state.body.size * state.body.scale, initialRotation = state.body.rotation)"
-    }
-
     fun baseNameOf(name: String) = name + BlockTypeNaming.BASE_SUFFIX
 
-    private const val MASK_IMPORT_PREFIX = "com.pandulapeter.kubriko.collision.mask."
     private const val EXPOSED_IMPORT = "com.pandulapeter.kubriko.sceneEditor.Exposed"
 }

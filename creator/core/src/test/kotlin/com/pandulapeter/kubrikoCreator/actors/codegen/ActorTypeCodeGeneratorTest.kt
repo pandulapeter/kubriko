@@ -444,8 +444,8 @@ class ActorTypeCodeGeneratorTest {
     @Test
     fun aCollidableActorTypeHasAMaskMatchingItsShape() {
         val circle = generate(shape = ActorShape.CIRCLE, isCollidable = true)
-        assertContains(circle, "override val collisionMask = CircleCollisionMask(")
-        assertContains(circle, "initialRadius = body.size.width * body.scale.horizontal / 2,")
+        assertContains(circle, "override val collisionMask = com.pandulapeter.kubriko.collision.mask.EllipseCollisionMask(", message = "A round type that isn't square is an oval")
+        assertContains(circle, "initialSize = body.size * body.scale,")
         val rectangle = generate(shape = ActorShape.RECTANGLE, isCollidable = true)
         assertContains(rectangle, "override val collisionMask = BoxCollisionMask(")
         assertContains(rectangle, "initialSize = body.size * body.scale,\n        initialRotation = body.rotation,")
@@ -453,7 +453,7 @@ class ActorTypeCodeGeneratorTest {
         assertFalse("CircleCollisionMask" in rectangle)
         val moving = generate(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.SetVelocity(NumberValue.Fixed(1f), NumberValue.Fixed(0f)))), isCollidable = true)
         val update = moving.substringAfter("override fun update(").substringBefore("\n    }")
-        assertTrue(update.trimEnd().endsWith("collisionMask.position = bodyCenter\n        collisionMask.radius = body.size.width * body.scale.horizontal / 2"), update)
+        assertTrue(update.trimEnd().endsWith("collisionMask.position = bodyCenter\n        collisionMask.rotation = body.rotation"), update)
         assertContains(circle, "    private val bodyCenter get() = body.axisAlignedBoundingBox.let { (it.min + it.max) / 2 }\n")
         assertContains(circle, "        initialPosition = bodyCenter,\n")
     }
@@ -921,7 +921,7 @@ class ActorTypeCodeGeneratorTest {
         assertContains(code, "import com.pandulapeter.kubriko.sprites.setRegion\n")
         assertFalse("EllipseLook" in code || "DrawScope" in code)
         // The shape is still the collision mask's.
-        assertContains(code, "CircleCollisionMask(")
+        assertContains(code, "EllipseCollisionMask(")
         assertFalse("SpriteManager" in generate(sprite = "drawable/nested/player.png"))
         assertFalse("SpriteManager" in generate())
     }

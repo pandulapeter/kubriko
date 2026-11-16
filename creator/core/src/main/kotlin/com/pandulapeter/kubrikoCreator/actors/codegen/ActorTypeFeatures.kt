@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.actors.codegen
 
-import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.AnimationTarget
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
@@ -32,7 +31,7 @@ import com.pandulapeter.kubrikoCreator.actors.timerName
  * since the family's base class does the work for all of them.
  *
  * @param scope The scope of the type, or of a family's topmost type.
- * @param shapes The shapes the Actors are drawn and collide as.
+ * @param bodies The shapes the Actors are drawn and collide as, and whether each type is square.
  * @param hasSprite Whether any of them is drawn as a sprite.
  * @param isAnimated Whether any of them is drawn as a sprite cut into frames, which update plays.
  * @param isCollidableAnyway Whether a collision Event of another Actor type involves them.
@@ -45,11 +44,13 @@ import com.pandulapeter.kubrikoCreator.actors.timerName
  *   once per regeneration, of which the classes tell those about their own Actors.
  * @param eventScopes The Events whose code the generated classes hold, each with the scope it is generated in: for a
  * family, every Actor type's own Events in its own scope, so that the base class declares what any of them needs.
+ * @param hasResizableMasks Whether the project's Kubriko resizes box and oval masks in place and has ovals
+ *   ([SizeCode.hasResizableMasks]).
  */
 internal class ActorTypeFeatures(
     events: List<EventDefinition>,
     scope: BlockScope,
-    val shapes: Set<ActorShape>,
+    bodies: Set<MaskBody>,
     hasSprite: Boolean,
     val isAnimated: Boolean,
     isCollidableAnyway: Boolean,
@@ -58,7 +59,7 @@ internal class ActorTypeFeatures(
     projectWatches: List<ActorWatch> = emptyList(),
     projectCountedTypes: List<String> = emptyList(),
     eventScopes: List<Pair<List<EventDefinition>, BlockScope>> = listOf(events to scope),
-    hasResizableBoxMasks: Boolean = true,
+    hasResizableMasks: Boolean = true,
 ) {
     private val knownActorTypeNames = scope.actorTypeNames
     val keys = KeyEventCode.KeyEvents(events.filter { it.type.takesKey && isGenerated(it) }, isFamily)
@@ -132,14 +133,32 @@ internal class ActorTypeFeatures(
     val isDynamic = BlockNeed.MOVEMENT in needs
 
     /**
-     * Whether the update brings a box collision mask's size in line with the body's size and scale: only when they can
-     * change (a size, scale, or Animate Block of the scale, or a Kotlin Block), and on a Kubriko without a resizable box
-     * mask only when the size or scale Blocks need it anyway, so such a project still builds while its Animate Blocks
-     * leave the mask as they always have.
+     * Whether the masks this Kubriko can have are its boxes and ovals, resized in place, which one without them has only
+     * when the size or scale Blocks need them anyway, so such a project still builds as it always has otherwise.
      */
-    val followsBoxMaskSize = isCollidable && ActorShape.RECTANGLE in shapes &&
-        (resizesWithBlocks || BlockNeed.SCALE_TWEEN in blockCode.needs || hasKotlinBlocks) &&
-        (hasResizableBoxMasks || resizesWithBlocks)
+    private val usesResizableMasks = hasResizableMasks || resizesWithBlocks
+
+    /**
+     * The mask classes an Actor of [body] may have ([CollisionMaskCode.kindsOf]): only the size Block and Kotlin can make
+     * a round Actor oval, since a scale the same across and down, or added to alike, keeps it round.
+     */
+    fun maskKindsOf(body: MaskBody) = CollisionMaskCode.kindsOf(
+        body = body,
+        hasOvalMasks = usesResizableMasks,
+        mayBecomeOval = BlockNeed.SIZE in blockCode.needs || hasKotlinBlocks,
+    )
+
+    /**
+     * The mask classes the Actors may have, those of every type in a family.
+     */
+    val maskKinds = bodies.flatMapTo(sortedSetOf()) { maskKindsOf(it) }
+
+    /**
+     * Whether the update brings a box's or oval's size in line with the body's size and scale: only when they can change
+     * (a size, scale, or Animate Block of the scale, or a Kotlin Block), and only on a Kubriko that resizes them in place.
+     */
+    val followsMaskSize = isCollidable && (MaskKind.BOX in maskKinds || MaskKind.ELLIPSE in maskKinds) &&
+        (resizesWithBlocks || BlockNeed.SCALE_TWEEN in blockCode.needs || hasKotlinBlocks) && usesResizableMasks
     val usesBounceOff = BlockNeed.BOUNCE_OFF in needs
     val usesDirection = BlockNeed.DIRECTION in needs
     val usesSteering = BlockNeed.STEERING in needs

@@ -163,9 +163,9 @@
   of the size, so an Actor grows around its middle or its sprite's origin; Change the scale adds to each axis, so a placed
   Actor keeps its proportions. The collision mask follows the size and the scale in the update (`appendCollisionMaskUpdate`:
   a box's `size`, a circle's `radius`, both changed in place, since the collision plugin's grids hold the mask), so a
-  collidable Actor whose Blocks may change either (a Kotlin Block too) is Dynamic even if nothing else makes it so. A box's
-  size is followed only where it can change (`followsBoxMaskSize`), and on a Kubriko older than 0.8.1, which can't resize a
-  box in place, only for the size and scale Blocks (`SizeCode.hasResizableBoxMasks`), so such a project still builds.
+  collidable Actor whose Blocks may change either (a Kotlin Block too) is Dynamic even if nothing else makes it so. A box's or
+  oval's size is followed only where it can change (`followsMaskSize`), and on a Kubriko older than 0.8.1, which can't
+  resize a mask in place, only for the size and scale Blocks (`SizeCode.hasResizableMasks`), so such a project still builds.
 - `GeneratedAudio` exists only while the game plays audio. It starts music on the next frame, since the music player exists only
   once the viewport is composed, and resumes it when the game is focused again, since `MusicManager` doesn't. A
   volume is a percent on the Block and a fraction in the call, left out at 100 so games using none generate what they
@@ -184,8 +184,11 @@
   steps, so a fade by small steps would be lost, and a translucent color on an untinted sprite would start to show in
   existing games; Set the color keeps the color's alpha; a type that draws with code of its own (a Kotlin Block
   in a drawing Event) becomes a plain `Visible`, which ends the run it sits in. A circle fills a body that isn't square as an
-  ellipse (`EllipseLook`), as an unevenly scaled one always looked, while its collision mask stays a circle as wide as the
-  body, since Kubriko has no elliptic mask. `look` is a reserved Property name (format
+  ellipse (`EllipseLook`), as an unevenly scaled one always looked, and collides as one (`CollisionMaskCode`): a round
+  type that isn't square, or that the size Block or Kotlin may stretch, has an oval mask, and a square one picks the oval
+  per Actor as it is created, only for one placed stretched, so most round Actors keep the exact, cheaper circle. The oval
+  is named in full, since an Actor type may be called `EllipseCollisionMask`, and a Kubriko before 0.8.1, which has none,
+  keeps every round Actor a circle as wide as its body unless the size Block needs an oval anyway. `look` is a reserved Property name (format
   version 3 renamed existing ones), and so are the animation's members (format version 4, through the same
   `ReservedPropertyMigration`). `PreviewActor` builds the same look classes, so the Scene editor's preview and the game
   match.

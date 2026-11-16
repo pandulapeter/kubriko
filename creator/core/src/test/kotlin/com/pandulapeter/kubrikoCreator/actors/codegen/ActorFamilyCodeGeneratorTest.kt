@@ -124,7 +124,7 @@ class ActorFamilyCodeGeneratorTest {
     @Test
     fun theBaseClassOfAFamilyOfShapesUpdatesWhicheverMaskItsActorHas() {
         val code = generate(enemy)
-        assertContains(code, "        when (val mask = collisionMask) {\n            is CircleCollisionMask -> mask.radius = body.size.width * body.scale.horizontal / 2\n            is BoxCollisionMask -> mask.rotation = body.rotation\n            else -> Unit\n        }\n")
+        assertContains(code, "        when (val mask = collisionMask) {\n            is CircleCollisionMask -> mask.radius = body.size.width * body.scale.horizontal / 2\n            is com.pandulapeter.kubriko.collision.mask.EllipseCollisionMask -> mask.rotation = body.rotation\n            is BoxCollisionMask -> mask.rotation = body.rotation\n            else -> Unit\n        }\n")
         assertContains(code, "    override val isAlwaysActive = true\n")
         assertContains(code, "    var isRemoved = false\n")
     }

@@ -233,7 +233,7 @@ public class BlockTypeStore private constructor(
             collidableActorTypeNames = pluginManagers.collidableActorTypeNames,
             family = family,
             spriteSheets = generation.spriteSheets,
-            hasResizableBoxMasks = SizeCode.hasResizableBoxMasks(generation.kubrikoVersion),
+            hasResizableMasks = SizeCode.hasResizableMasks(generation.kubrikoVersion),
         )
         generatedDirectory.mkdirs()
         definitions.forEach { definition ->

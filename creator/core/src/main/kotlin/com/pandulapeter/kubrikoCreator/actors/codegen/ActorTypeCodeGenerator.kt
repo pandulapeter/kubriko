@@ -83,7 +83,7 @@ public object ActorTypeCodeGenerator {
         val features = ActorTypeFeatures(
             events = definition.events,
             scope = scope,
-            shapes = setOf(definition.shape),
+            bodies = setOf(MaskBody.of(definition)),
             hasSprite = definition.sprite?.let(SpriteFiles::accessorOf) != null,
             isAnimated = scope.isAnimated,
             isCollidableAnyway = name in collidableActorTypeNames,
@@ -91,7 +91,7 @@ public object ActorTypeCodeGenerator {
             isFamily = role.isFamily,
             projectWatches = families.watches,
             projectCountedTypes = families.countedTypes,
-            hasResizableBoxMasks = families.hasResizableBoxMasks,
+            hasResizableMasks = families.hasResizableMasks,
         )
         val imports = mutableSetOf<String>()
         val code = buildString {

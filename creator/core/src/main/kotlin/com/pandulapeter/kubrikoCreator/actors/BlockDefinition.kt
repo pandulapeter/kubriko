@@ -348,7 +348,7 @@ public sealed interface BlockDefinition {
 
     @Serializable
     @SerialName("setSize")
-    @Description("Sets the width and height of the Actor in scene units, which its shape or sprite is drawn at and its collision mask follows (a circle's as a circle as wide as the Actor). It grows or shrinks around its pivot (its middle, or its sprite's origin), and its scale still applies on top.")
+    @Description("Sets the width and height of the Actor in scene units, which its shape or sprite is drawn at and its collision mask follows (a circle's as an oval). It grows or shrinks around its pivot (its middle, or its sprite's origin), and its scale still applies on top.")
     public data class SetSize(
         @Description("The width in scene units, 0 or more. Not an edge.")
         @SerialName("width") val width: NumberValue = NumberValue.Fixed(DEFAULT_SIZE),

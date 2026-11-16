@@ -84,17 +84,17 @@ class SizeCodeTest {
 
     @Test
     fun anOlderKubrikoFollowsTheBoxSizeOnlyForTheSizeAndScaleBlocks() {
-        assertFalse(SizeCode.hasResizableBoxMasks("0.8.0"))
-        assertTrue(SizeCode.hasResizableBoxMasks("0.8.1-creator"))
-        assertTrue(SizeCode.hasResizableBoxMasks("0.9.0"))
-        assertTrue(SizeCode.hasResizableBoxMasks(null))
+        assertFalse(SizeCode.hasResizableMasks("0.8.0"))
+        assertTrue(SizeCode.hasResizableMasks("0.8.1-creator"))
+        assertTrue(SizeCode.hasResizableMasks("0.9.0"))
+        assertTrue(SizeCode.hasResizableMasks(null))
         val collision = EventDefinition(EventType.COLLISION, otherActorType = "Balloon")
         fun olderGenerate(vararg blocks: BlockDefinition): String {
             val definition = ActorTypeDefinition(name = "Balloon", shape = ActorShape.RECTANGLE, events = listOf(collision, EventDefinition(EventType.EVERY_FRAME, blocks = blocks.toList())))
             return ActorTypeCodeGenerator.generateActorType(
                 definition = definition,
                 packageName = "com.example.game",
-                families = GeneratedFamilies(listOf(definition), emptyList(), emptySet(), ActorTypeFamily(listOf(definition)), hasResizableBoxMasks = false),
+                families = GeneratedFamilies(listOf(definition), emptyList(), emptySet(), ActorTypeFamily(listOf(definition)), hasResizableMasks = false),
             )
         }
         assertFalse("collisionMask.size" in olderGenerate(BlockDefinition.Animate()), "An Animate Block of the scale doesn't need it")

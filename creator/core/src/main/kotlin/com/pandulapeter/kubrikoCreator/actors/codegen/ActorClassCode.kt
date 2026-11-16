@@ -160,52 +160,6 @@ internal object ActorClassCode {
     }
 
     /**
-     * Brings the collision mask in line with the body: its position, the box's rotation or the circle's radius, and, when
-     * [followsBoxSize], the box's size, each of which the mask changes in place and only when it differs. A mask changed in
-     * place is what the collision plugin's grids and a physics body hold, which a new one wouldn't be.
-     *
-     * @param shapes The shapes the Actors may have: one for a type of its own, any of them for a family's base class.
-     */
-    fun StringBuilder.appendCollisionMaskUpdate(shapes: Set<ActorShape>, followsBoxSize: Boolean) {
-        appendLine("        collisionMask.position = bodyCenter")
-        if (shapes.size == 1) {
-            maskUpdate(shapes.single(), "collisionMask", followsBoxSize).forEach { appendLine("        $it") }
-        } else {
-            appendLine("        when (val mask = collisionMask) {")
-            shapes.sorted().forEach { shape ->
-                val lines = maskUpdate(shape, "mask", followsBoxSize)
-                if (lines.size == 1) {
-                    appendLine("            is ${maskClassOf(shape)} -> ${lines.single()}")
-                } else {
-                    appendLine("            is ${maskClassOf(shape)} -> {")
-                    lines.forEach { appendLine("                $it") }
-                    appendLine("            }")
-                }
-            }
-            appendLine("            else -> Unit")
-            appendLine("        }")
-        }
-    }
-
-    private fun maskUpdate(shape: ActorShape, mask: String, followsBoxSize: Boolean) = when (shape) {
-        ActorShape.CIRCLE -> listOf("$mask.radius = body.size.width * body.scale.horizontal / 2")
-        ActorShape.RECTANGLE -> listOfNotNull("$mask.rotation = body.rotation", "$mask.size = body.size * body.scale".takeIf { followsBoxSize })
-    }
-
-    fun maskClassOf(shape: ActorShape) = when (shape) {
-        ActorShape.CIRCLE -> "CircleCollisionMask"
-        ActorShape.RECTANGLE -> "BoxCollisionMask"
-    }
-
-    /**
-     * The type a family's base classes keep the collision mask as: its shape's own when every Actor type in the family has
-     * one shape, since [appendCollisionMaskUpdate] then sets that shape's members without checking.
-     */
-    fun maskTypeOf(shapes: Set<ActorShape>) = shapes.singleOrNull()?.let(::maskClassOf) ?: COLLISION_MASK
-
-    const val COLLISION_MASK = "CollisionMask"
-
-    /**
      * Turns the velocity away from the other Actor, on the axis they overlap less on, for the Bounce off it Block.
      *
      * @param visibility `private` for a type of its own, `protected` for a family's base class.
