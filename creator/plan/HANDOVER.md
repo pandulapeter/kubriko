@@ -28,7 +28,7 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-First review 6e5359aa5..85d042c60 (see below). Then go on with `01-blocks.md`, at Next additions: Size and scale Blocks first. They need a library change: `BoxCollisionMask`
+Go on with `01-blocks.md`, at Next additions: Size and scale Blocks first. They need a library change: `BoxCollisionMask`
 builds its vertices, normals, and size once (`PolygonCollisionMask`'s `vals`), so a box that resizes in place needs storage
 it updates without allocating, since Animate's scale can resize it every frame; design that against the collision plugin's
 spatial grid (`plugins/collision/CLAUDE.md`) before writing it, and keep `vertices: List<SceneOffset>` as it is, since it is
@@ -42,8 +42,10 @@ a commit of its own:
 - Fitting the game's view to a Scene's bounds (a Scene setting), and the camera Blocks (format 22): follow with the camera,
   move, shake, and zoom it, kept in `GeneratedScenes` (`CameraCode`).
 - The camera was redesigned after its first review and reviewed again at medium effort (7b71a61c7..6ee715dbd); the
-  fixes of that second review (6e5359aa5..85d042c60) haven't been reviewed yet, so the next session starts with a medium
-  `/code-review` of that range, fixing every finding, cosmetic ones too.
+  fixes of that second review (6e5359aa5..85d042c60) were reviewed on 2026-11-16 and fixed (8f8ca6fde, a916daf8a). Two
+  findings were left as they are, both about the camera Blocks' generated functions and format 22, which no released Creator
+  has: their signatures changed without a migration, and a shake of no strength now stops a shake without a format raise.
+- Search and filter fields have a clear button (`CompactTextField`'s `isClearable`, 31e501e5c..0963baa84, reviewed).
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
