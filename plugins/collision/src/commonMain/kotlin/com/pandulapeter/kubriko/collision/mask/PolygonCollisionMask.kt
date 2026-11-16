@@ -133,6 +133,8 @@ open class PolygonCollisionMask internal constructor(
      * hull otherwise, which a shape without area needs.
      */
     internal fun replaceWithScaledShape(unitXs: FloatArray, unitYs: FloatArray, scaleX: Float, scaleY: Float) {
+        // Room for the whole shape even while it has no area, so growing out of that allocates nothing.
+        ensureCapacity(unitXs.size)
         if (scaleX > 0f && scaleY > 0f && scaleX.isFinite() && scaleY.isFinite()) {
             replaceWithScaledVertices(unitXs, unitYs, scaleX, scaleY)
         } else {
@@ -161,6 +163,11 @@ open class PolygonCollisionMask internal constructor(
      * swaps them, which a reader on another thread would otherwise find out of step with [vertexCount].
      */
     private fun prepareVertices(count: Int) {
+        ensureCapacity(count)
+        vertexCount = count
+    }
+
+    private fun ensureCapacity(count: Int) {
         if (vertexXs.size < count) {
             val capacity = maxOf(count, MINIMUM_VERTEX_CAPACITY)
             vertexXs = FloatArray(capacity)
@@ -168,7 +175,6 @@ open class PolygonCollisionMask internal constructor(
             normalXs = FloatArray(capacity)
             normalYs = FloatArray(capacity)
         }
-        vertexCount = count
     }
 
     private fun onShapeChanged() {

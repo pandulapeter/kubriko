@@ -13,7 +13,6 @@ import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
-import kotlin.math.abs
 
 /**
  * A rectangular collision mask.
@@ -31,8 +30,7 @@ class BoxCollisionMask(
     initialPosition = initialPosition,
     initialRotation = initialRotation,
 ) {
-    private var requestedWidth = abs(initialSize.width.raw)
-    private var requestedHeight = abs(initialSize.height.raw)
+    private val requested = RequestedSize(initialSize)
 
     /**
      * The width and height of the box in scene units. Setting it resizes the box around its center in place, exactly
@@ -44,13 +42,7 @@ class BoxCollisionMask(
     override var size: SceneSize
         get() = super.size
         set(value) {
-            val width = abs(value.width.raw)
-            val height = abs(value.height.raw)
-            // Raw bits, so that setting the same NaN again is no change either.
-            if (width.toRawBits() == requestedWidth.toRawBits() && height.toRawBits() == requestedHeight.toRawBits()) return
-            requestedWidth = width
-            requestedHeight = height
-            replaceWithScaledShape(CORNER_SIGNS_X, CORNER_SIGNS_Y, width / 2f, height / 2f)
+            if (requested.update(value)) replaceWithScaledShape(CORNER_SIGNS_X, CORNER_SIGNS_Y, requested.width / 2f, requested.height / 2f)
         }
 
     private companion object {

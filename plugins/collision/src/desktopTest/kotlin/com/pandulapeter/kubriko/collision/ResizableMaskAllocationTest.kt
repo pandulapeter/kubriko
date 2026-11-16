@@ -56,4 +56,15 @@ class ResizableMaskAllocationTest {
         assertEquals(0.0, allocated)
         assert(hits > 0)
     }
+
+    @Test
+    fun anEllipseMadeWithoutAreaGrowsWithoutNewArrays() {
+        val mask = EllipseCollisionMask()
+
+        val allocated = measureAllocatedBytesPerRun(warmUpRuns = 0, measuredRuns = 1) {
+            mask.size = SceneSize(10f.sceneUnit, 20f.sceneUnit)
+        }
+
+        assert(allocated < 128) { "Growing allocated $allocated bytes, as four new arrays of 16 would" }
+    }
 }

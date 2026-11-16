@@ -13,12 +13,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawStyle
-import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlin.math.PI
-import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -44,32 +42,26 @@ class EllipseCollisionMask(
     initialPosition = initialPosition,
     initialRotation = initialRotation,
 ) {
-    private var requestedWidth = Float.NaN
-    private var requestedHeight = Float.NaN
-    private var isSized = false
+    private val requested = RequestedSize(initialSize)
+
+    init {
+        applySize()
+    }
 
     /**
-     * The width and height of the ellipse in scene units. Setting it resizes the ellipse around its center in place and
-     * increments [shapeRevision] if that changes it; a negative width or height is read as its absolute value. A size with
-     * a positive, finite width and height is applied without allocating, so an ellipse can follow a scaling body every
+     * The width and height of the ellipse in scene units: the oval's, which its polygon reaches about 1.3% beyond at its
+     * vertices, as its bounding box shows. Setting it resizes the ellipse around its center in place and increments
+     * [shapeRevision] if that changes it; a negative width or height is read as its absolute value. A size with a
+     * positive, finite width and height is applied without allocating, so an ellipse can follow a scaling body every
      * frame. Like the rest of the mask, it is changed on the thread the mask is used on.
      */
     override var size: SceneSize
-        get() = SceneSize(requestedWidth.sceneUnit, requestedHeight.sceneUnit)
+        get() = requested.size
         set(value) {
-            val width = abs(value.width.raw)
-            val height = abs(value.height.raw)
-            // Raw bits, so that setting the same NaN again is no change either.
-            if (isSized && width.toRawBits() == requestedWidth.toRawBits() && height.toRawBits() == requestedHeight.toRawBits()) return
-            isSized = true
-            requestedWidth = width
-            requestedHeight = height
-            replaceWithScaledShape(UNIT_XS, UNIT_YS, width / 2f, height / 2f)
+            if (requested.update(value)) applySize()
         }
 
-    init {
-        size = initialSize
-    }
+    private fun applySize() = replaceWithScaledShape(UNIT_XS, UNIT_YS, requested.width / 2f, requested.height / 2f)
 
     override fun DrawScope.drawDebugBounds(color: Color, style: DrawStyle) = drawOval(
         color = color,
