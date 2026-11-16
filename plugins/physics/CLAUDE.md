@@ -36,6 +36,8 @@ A body's mass and inertia follow its mask's shape: `syncCollisionMasksWithBodies
 each step, which works them out again from the `density` when `ComplexCollisionMask.shapeRevision` moved (a resized box, a
 circle's new radius), so a body that grows gets heavier without the game knowing physics is involved. Collisions need nothing
 of their own, since the narrow phase reads the mask itself. A body made static (`setStatic`, or `density = 0f`) stays static.
+An impulse follows a shape change first, since a game may apply one right after resizing. The velocity is kept, so a body that
+grows keeps its speed rather than its momentum, which is what a game expects of an object that changes size.
 
 ## Static Bodies
 

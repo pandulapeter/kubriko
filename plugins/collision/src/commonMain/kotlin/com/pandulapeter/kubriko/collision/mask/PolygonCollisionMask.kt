@@ -128,26 +128,36 @@ open class PolygonCollisionMask internal constructor(
     }
 
     /**
-     * Writes a vertex of a shape being replaced in place: [prepareVertices], then every vertex, then
-     * [storeNormalsAndSize] and [onShapeChanged]. The vertices have to be a convex hull centered on the origin, in the
-     * order the constructor would put them in.
+     * Replaces the shape in place, without allocating, with the vertices [unitXs] and [unitYs] scaled by [scaleX] and
+     * [scaleY]: a convex hull centered on the origin, in the order the constructor would put the scaled vertices in,
+     * which scaling each axis by a positive number keeps.
      */
-    internal fun setVertex(index: Int, x: Float, y: Float) {
-        vertexXs[index] = x
-        vertexYs[index] = y
+    internal fun replaceWithScaledVertices(unitXs: FloatArray, unitYs: FloatArray, scaleX: Float, scaleY: Float) {
+        prepareVertices(unitXs.size)
+        for (i in unitXs.indices) {
+            vertexXs[i] = unitXs[i] * scaleX
+            vertexYs[i] = unitYs[i] * scaleY
+        }
+        storeNormalsAndSize()
+        onShapeChanged()
     }
 
-    internal fun prepareVertices(count: Int) {
+    /**
+     * Makes room for [count] vertices. The arrays are never smaller than a box needs, so a box resized in place never
+     * swaps them, which a reader on another thread would otherwise find out of step with [vertexCount].
+     */
+    private fun prepareVertices(count: Int) {
         if (vertexXs.size < count) {
-            vertexXs = FloatArray(count)
-            vertexYs = FloatArray(count)
-            normalXs = FloatArray(count)
-            normalYs = FloatArray(count)
+            val capacity = maxOf(count, MINIMUM_VERTEX_CAPACITY)
+            vertexXs = FloatArray(capacity)
+            vertexYs = FloatArray(capacity)
+            normalXs = FloatArray(capacity)
+            normalYs = FloatArray(capacity)
         }
         vertexCount = count
     }
 
-    internal fun onShapeChanged() {
+    private fun onShapeChanged() {
         shapeRevision++
         isAxisAlignedBoundingBoxDirty = true
     }
@@ -155,12 +165,13 @@ open class PolygonCollisionMask internal constructor(
     private fun storeShape(hull: List<SceneOffset>) {
         prepareVertices(hull.size)
         for (i in hull.indices) {
-            setVertex(i, hull[i].x.raw, hull[i].y.raw)
+            vertexXs[i] = hull[i].x.raw
+            vertexYs[i] = hull[i].y.raw
         }
         storeNormalsAndSize()
     }
 
-    internal fun storeNormalsAndSize() {
+    private fun storeNormalsAndSize() {
         for (i in 0 until vertexCount) {
             val face = vertexAt(if (i + 1 == vertexCount) 0 else i + 1).minus(vertexAt(i))
             val normal = face.normal().normalized().unaryMinus()
@@ -285,6 +296,8 @@ open class PolygonCollisionMask internal constructor(
     }
 
     companion object {
+        private const val MINIMUM_VERTEX_CAPACITY = 4
+
         /**
          * Creates a [PolygonCollisionMask] from the convex hull of [vertices], centered on its centroid.
          *

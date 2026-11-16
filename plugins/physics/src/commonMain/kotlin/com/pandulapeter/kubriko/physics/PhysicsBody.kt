@@ -113,7 +113,8 @@ class PhysicsBody(
     /**
      * The density of the body. Setting this to 0 makes the body static. The mass is worked out from it and the shape of
      * the [collisionMask], again whenever that shape changes (its [ComplexCollisionMask.shapeRevision]), so a body that
-     * grows gets heavier.
+     * grows gets heavier. Its velocity is kept as it is, so a body that grows while moving keeps its speed rather than its
+     * momentum, as a game expects of an object that changes size.
      */
     var density = density
         set(value) {
@@ -184,6 +185,7 @@ class PhysicsBody(
      * @param contactPoint The point to apply the force to relative to the body in object space.
      */
     fun applyLinearImpulse(impulse: SceneOffset, contactPoint: SceneOffset) {
+        followShapeChanges()
         velocity += impulse.scalar(invMass)
         angularVelocity += contactPoint.cross(impulse) * invInertia
     }
@@ -194,6 +196,7 @@ class PhysicsBody(
      * @param impulse Magnitude of impulse vector.
      */
     fun applyLinearImpulse(impulse: SceneOffset) {
+        followShapeChanges()
         if (density > 0f) {
             velocity += impulse.scalar(invMass)
         }
@@ -211,7 +214,8 @@ class PhysicsBody(
     }
 
     /**
-     * Works the mass out again if the shape of the [collisionMask] changed since it last was.
+     * Works the mass out again if the shape of the [collisionMask] changed since it last was: at every step, and before an
+     * impulse, which a game may apply right after resizing the body.
      */
     internal fun followShapeChanges() {
         val revision = collisionMask.shapeRevision

@@ -127,6 +127,28 @@ class PhysicsBodyTest {
     }
 
     @Test
+    fun anImpulseRightAfterAResizeMovesTheBodyAsItsNewMassDoes() {
+        val body = circle(radius = 10f)
+        val grown = circle(radius = 20f)
+
+        (body.collisionMask as CircleCollisionMask).radius = 20f.sceneUnit
+        body.applyLinearImpulse(offset(1_000f, 0f))
+        grown.applyLinearImpulse(offset(1_000f, 0f))
+
+        assertEquals(grown.velocity, body.velocity)
+    }
+
+    @Test
+    fun aBodyThatGrowsKeepsItsSpeed() {
+        val body = circle(radius = 10f).apply { velocity = offset(50f, 0f) }
+
+        (body.collisionMask as CircleCollisionMask).radius = 20f.sceneUnit
+        body.followShapeChanges()
+
+        assertEquals(offset(50f, 0f), body.velocity)
+    }
+
+    @Test
     fun aStaticBodyStaysStaticWhenItsShapeChanges() {
         val madeStatic = circle(radius = 10f).apply { setStatic() }
         val weightless = circle(radius = 10f, density = 0f)

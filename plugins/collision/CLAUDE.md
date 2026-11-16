@@ -98,8 +98,12 @@ CollisionMask (sealed interface)
 `BoxCollisionMask` is centered on `initialPosition` (vertices derived from half-size). Its `size` is settable: a positive,
 finite size rewrites the four corners in place without allocating (so a box can follow a scaling body every frame), in
 exactly the values and order a box built at that size has (`BoxCollisionMaskResizeTest` holds them equal); a degenerate one
-goes through the convex hull as the constructor does. Keep the in-place resize a mutation of the same instance: the
-detection loop's grids and a `PhysicsBody` hold the mask, so a replaced one would leave them with the old shape.
+goes through the convex hull as the constructor does, and setting the size it already has (NaN included) changes nothing.
+Both build from one table of a unit box's corners (`CORNER_SIGNS_X`/`Y`), which `replaceWithScaledVertices` scales per axis,
+the one way to reshape a polygon in place, so the vertices, normals, size, and revision can't fall out of step. Keep the
+in-place resize a mutation of the same instance: the detection loop's grids and a `PhysicsBody` hold the mask, so a
+replaced one would leave them with the old shape. Like a mask's position and rotation, its size is changed on the thread
+that uses it; the arrays are never smaller than four vertices, so a box never swaps them.
 
 A polygon keeps its vertices and inward normals in `FloatArray`s; the narrow phase, raycasts, and physics read them through
 `vertexCount`/`vertexAt` (and the internal `normalAt`), which never allocate. The public `vertices` list is a snapshot,

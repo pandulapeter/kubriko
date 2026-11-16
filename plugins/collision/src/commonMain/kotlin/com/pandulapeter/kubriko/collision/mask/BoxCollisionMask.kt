@@ -9,10 +9,10 @@
  */
 package com.pandulapeter.kubriko.collision.mask
 
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
-import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.abs
 
 /**
@@ -31,46 +31,44 @@ class BoxCollisionMask(
     initialPosition = initialPosition,
     initialRotation = initialRotation,
 ) {
+    private var requestedWidth = abs(initialSize.width.raw)
+    private var requestedHeight = abs(initialSize.height.raw)
+
     /**
      * The width and height of the box in scene units. Setting it resizes the box around its center in place, exactly
-     * as a box made with that size would be, and increments [shapeRevision]; a negative width or height is read as its
-     * absolute value. A size with a positive, finite width and height is applied without allocating, so a box can
-     * follow a scaling body every frame.
+     * as a box made with that size would be, and increments [shapeRevision] if that changes it; a negative width or
+     * height is read as its absolute value. A size with a positive, finite width and height is applied without
+     * allocating, so a box can follow a scaling body every frame. Like the rest of the mask, it is changed on the thread
+     * the mask is used on.
      */
     override var size: SceneSize
         get() = super.size
         set(value) {
             val width = abs(value.width.raw)
             val height = abs(value.height.raw)
-            if (width == super.size.width.raw && height == super.size.height.raw && vertexCount == CORNER_COUNT) return
+            // Raw bits, so that setting the same NaN again is no change either.
+            if (width.toRawBits() == requestedWidth.toRawBits() && height.toRawBits() == requestedHeight.toRawBits()) return
+            requestedWidth = width
+            requestedHeight = height
             if (width > 0f && height > 0f && width.isFinite() && height.isFinite()) {
-                val halfWidth = width / 2f
-                val halfHeight = height / 2f
-                prepareVertices(CORNER_COUNT)
-                for (i in 0 until CORNER_COUNT) {
-                    setVertex(i, CORNER_SIGNS_X[i] * halfWidth, CORNER_SIGNS_Y[i] * halfHeight)
-                }
-                storeNormalsAndSize()
-                onShapeChanged()
+                replaceWithScaledVertices(CORNER_SIGNS_X, CORNER_SIGNS_Y, width / 2f, height / 2f)
             } else {
                 replaceShape(cornersOf(value))
             }
         }
 
     private companion object {
-        const val CORNER_COUNT = 4
 
         /**
-         * The corners in the order the convex hull puts a rectangle's in, which scaling either axis keeps.
+         * The corners of a box two units wide and high, in the order the convex hull puts a rectangle's in, which scaling
+         * either axis keeps: the shape every box is made of, built or resized.
          */
         val CORNER_SIGNS_X = floatArrayOf(-1f, 1f, 1f, -1f)
         val CORNER_SIGNS_Y = floatArrayOf(-1f, -1f, 1f, 1f)
 
-        fun cornersOf(size: SceneSize) = listOf(
-            SceneOffset.Zero - size.center,
-            SceneOffset(size.width, SceneUnit.Zero) - size.center,
-            SceneOffset(size.width, size.height) - size.center,
-            SceneOffset(SceneUnit.Zero, size.height) - size.center,
-        )
+        fun cornersOf(size: SceneSize) = CORNER_SIGNS_X.indices.map { i ->
+            // Adding 0 turns the -0 of a side without length into the 0 a box has always had there.
+            SceneOffset(size.width * (CORNER_SIGNS_X[i] / 2f) + 0f.sceneUnit, size.height * (CORNER_SIGNS_Y[i] / 2f) + 0f.sceneUnit)
+        }
     }
 }

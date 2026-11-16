@@ -76,6 +76,26 @@ class BoxCollisionMaskResizeTest {
     }
 
     @Test
+    fun settingTheSameSizeAgainIsNoChangeEvenWhenTheBoxHasNoArea() {
+        listOf(size(0f, 0f), size(5f, 0f), size(Float.NaN, 3f), size(Float.POSITIVE_INFINITY, 2f)).forEach { degenerate ->
+            val mask = BoxCollisionMask(initialSize = degenerate)
+            val vertices = mask.vertices
+            val revision = mask.shapeRevision
+
+            mask.size = degenerate
+
+            assertEquals(revision, mask.shapeRevision, "Revision at $degenerate")
+            assertSame(vertices, mask.vertices, "Vertices at $degenerate")
+        }
+    }
+
+    @Test
+    fun aBoxWithoutAreaHasTheVerticesItAlwaysHad() {
+        assertEquals(listOf(offset(0f, 0f), offset(0f, 0f)), BoxCollisionMask().vertices)
+        assertEquals(listOf(offset(-2.5f, 0f), offset(2.5f, 0f)), BoxCollisionMask(initialSize = size(5f, 0f)).vertices)
+    }
+
+    @Test
     fun aBoxThatGrowsReachesWhatItDidntBefore() {
         val growing = BoxCollisionMask(initialSize = size(10f, 10f))
         val other = BoxCollisionMask(initialPosition = offset(20f, 0f), initialSize = size(10f, 10f))
