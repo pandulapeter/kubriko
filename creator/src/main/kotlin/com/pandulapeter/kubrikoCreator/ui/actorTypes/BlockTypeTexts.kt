@@ -39,6 +39,7 @@ import kubriko.creator.generated.resources.ic_actor_type
 import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_add_actor
 import kubriko.creator.generated.resources.ic_animation
+import kubriko.creator.generated.resources.ic_aspect_ratio
 import kubriko.creator.generated.resources.ic_bounce
 import kubriko.creator.generated.resources.ic_camera
 import kubriko.creator.generated.resources.ic_camera_follow
@@ -59,6 +60,7 @@ import kubriko.creator.generated.resources.ic_music
 import kubriko.creator.generated.resources.ic_music_off
 import kubriko.creator.generated.resources.ic_number
 import kubriko.creator.generated.resources.ic_opacity
+import kubriko.creator.generated.resources.ic_open_in_full
 import kubriko.creator.generated.resources.ic_open_with
 import kubriko.creator.generated.resources.ic_palette
 import kubriko.creator.generated.resources.ic_pause
@@ -140,6 +142,8 @@ internal val BlockKind.icon: DrawableResource
         BlockKind.MOVE_WITH_KEYS -> Res.drawable.ic_keyboard
         BlockKind.SET_COLOR -> Res.drawable.ic_palette
         BlockKind.SET_OPACITY, BlockKind.CHANGE_OPACITY -> Res.drawable.ic_opacity
+        BlockKind.SET_SIZE -> Res.drawable.ic_aspect_ratio
+        BlockKind.SET_SCALE, BlockKind.CHANGE_SCALE -> Res.drawable.ic_open_in_full
         BlockKind.ANIMATE -> Res.drawable.ic_animation
         BlockKind.STOP -> Res.drawable.ic_stop
         BlockKind.JUMP_TO -> Res.drawable.ic_open_with

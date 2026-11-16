@@ -58,6 +58,8 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.KeyEventCode.appendPairedK
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneBoundsCode.appendBoundsFields
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneBoundsCode.appendBoundsHandling
 import com.pandulapeter.kubrikoCreator.actors.codegen.ScenesCodeGenerator.SCENE_CHANGES_WHEN_ADDED_FIELD
+import com.pandulapeter.kubrikoCreator.actors.codegen.SizeCode.appendScaleFunction
+import com.pandulapeter.kubrikoCreator.actors.codegen.SizeCode.appendSizeFunction
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 
 /**
@@ -160,6 +162,11 @@ internal class ActorClassEmitter(
         }
         if (role == Role.STANDALONE) appendLook(definition, imports, sheet, isFamilyMember = false, usesSetFrame = features.usesSetFrame)
         if (features.usesNumberText) appendNumberTextFunction(visibility)
+        if (features.usesSize) {
+            imports += SizeCode.SCENE_UNIT_IMPORT
+            appendSizeFunction(visibility)
+        }
+        if (features.usesScale) appendScaleFunction(visibility)
         if (features.countedTypes.isNotEmpty()) appendStopFunction(definition.name, features.countedTypes, scope)
         if (role == Role.STANDALONE) appendSavedState(definition, properties, packageName, imports)
         appendLine("}")

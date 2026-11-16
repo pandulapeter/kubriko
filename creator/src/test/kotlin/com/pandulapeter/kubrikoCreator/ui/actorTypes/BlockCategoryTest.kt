@@ -33,4 +33,12 @@ class BlockCategoryTest {
         )
         assertEquals(BlockCategory.CAMERA.kinds, BlockCategory.CAMERA.kinds.filter { it.isAvailableIn(EventType.EVERY_FRAME, BlockTypeKind.ACTOR) })
     }
+
+    @Test
+    fun theSizeAndScaleBlocksAreAnActorsOnly() {
+        val sizeKinds = listOf(BlockKind.SET_SIZE, BlockKind.SET_SCALE, BlockKind.CHANGE_SCALE)
+        assertEquals(sizeKinds, BlockCategory.ACTORS.kinds.filter { it in sizeKinds })
+        assertEquals(sizeKinds, sizeKinds.filter { it.isAvailableIn(EventType.EVERY_FRAME, BlockTypeKind.ACTOR) })
+        assertEquals(emptyList(), sizeKinds.filter { it.isAvailableIn(EventType.GAME_STARTED, BlockTypeKind.MANAGER) })
+    }
 }

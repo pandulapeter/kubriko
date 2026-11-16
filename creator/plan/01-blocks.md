@@ -20,9 +20,6 @@ whose exhaustive `when`s then show every place it needs.
 
 ## Next additions
 
-- **Size and scale Blocks:** a box collision mask keeps the size it was built with, and building a new one would leave the
-  collision plugin's spatial grid with the old mask, so `BoxCollisionMask` gets a size it changes in place (a library change,
-  released before Creator relies on it), which the generated update then follows, for these Blocks and for Animate's scale.
 - **More drag and drop:** dragging a Block into another Event.
 - **Simple and Advanced mode:** Simple hides Kotlin files, Kotlin Blocks, and Gradle output; switching never changes the project.
 

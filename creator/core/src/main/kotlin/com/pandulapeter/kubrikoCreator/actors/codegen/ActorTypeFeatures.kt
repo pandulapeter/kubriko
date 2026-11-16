@@ -121,6 +121,8 @@ internal class ActorTypeFeatures(
         if (keys.holdsKeys) add(BlockNeed.KEYBOARD_INPUT_MANAGER)
         if (keys.isKeyboardInputAware) add(BlockNeed.STATE_MANAGER)
         if (isAnimated) add(BlockNeed.MOVEMENT)
+        // The collision mask follows the size and the scale in the update, wherever the Blocks change them.
+        if (isCollidable && (BlockNeed.SIZE in blockCode.needs || BlockNeed.SCALE in blockCode.needs)) add(BlockNeed.MOVEMENT)
         if (watches.any { !it.isAdded } || countedTypes.isNotEmpty()) add(BlockNeed.SCENES)
     }
     val isDynamic = BlockNeed.MOVEMENT in needs
@@ -128,6 +130,8 @@ internal class ActorTypeFeatures(
     val usesDirection = BlockNeed.DIRECTION in needs
     val usesSteering = BlockNeed.STEERING in needs
     val usesNumberText = BlockNeed.NUMBER_TEXT in needs
+    val usesSize = BlockNeed.SIZE in needs
+    val usesScale = BlockNeed.SCALE in needs
 
     /**
      * Whether a camera Block of the Actor moves the camera, which only the Actors of the Scene shown do, and which stops
@@ -188,7 +192,7 @@ internal class ActorTypeFeatures(
             BlockNeed.SCENES -> "$SCENES_FIELD: ${ScenesCodeGenerator.SCENES_NAME}"
             BlockNeed.AUDIO -> "$AUDIO_FIELD: ${AudioCodeGenerator.AUDIO_NAME}"
             BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.STEERING, BlockNeed.ANIMATION, BlockNeed.FRAME,
-            BlockNeed.CAMERA, BlockNeed.SCALE_TWEEN, BlockNeed.OPACITY_TWEEN, BlockNeed.COLOR_TWEEN, BlockNeed.POSITION_TWEEN,
+            BlockNeed.CAMERA, BlockNeed.SCALE_TWEEN, BlockNeed.OPACITY_TWEEN, BlockNeed.COLOR_TWEEN, BlockNeed.POSITION_TWEEN, BlockNeed.SIZE, BlockNeed.SCALE,
             -> null
         }
 
@@ -198,7 +202,7 @@ internal class ActorTypeFeatures(
             BlockNeed.KEYBOARD_INPUT_MANAGER -> "com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager"
             BlockNeed.STATE_MANAGER -> STATE_MANAGER_IMPORT
             BlockNeed.SCENES, BlockNeed.AUDIO, BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF, BlockNeed.DIRECTION, BlockNeed.STEERING, BlockNeed.ANIMATION, BlockNeed.FRAME,
-            BlockNeed.CAMERA, BlockNeed.SCALE_TWEEN, BlockNeed.OPACITY_TWEEN, BlockNeed.COLOR_TWEEN, BlockNeed.POSITION_TWEEN,
+            BlockNeed.CAMERA, BlockNeed.SCALE_TWEEN, BlockNeed.OPACITY_TWEEN, BlockNeed.COLOR_TWEEN, BlockNeed.POSITION_TWEEN, BlockNeed.SIZE, BlockNeed.SCALE,
             -> null
         }
     }

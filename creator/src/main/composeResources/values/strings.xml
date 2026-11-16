@@ -247,6 +247,12 @@
     <string name="block_set_opacity">Set the opacity</string>
     <string name="block_change_opacity">Change the opacity</string>
     <string name="block_parameter_opacity">Opacity</string>
+    <string name="block_set_size">Set the size</string>
+    <string name="block_set_scale">Set the scale</string>
+    <string name="block_change_scale">Change the scale</string>
+    <string name="block_parameter_width">Width</string>
+    <string name="block_parameter_height">Height</string>
+    <string name="block_parameter_scale">Scale</string>
     <string name="block_percent_unit">percent</string>
     <string name="block_color_add">Add a color, so one is picked at random</string>
     <string name="block_color_remove">Remove this color</string>
@@ -755,10 +761,11 @@
     <string name="error_blocks_nothing_to_replace">Give Blocks to add, a count (0 or more) of Blocks to remove, or both.</string>
     <string name="error_command_index_invalid">%1$s isn't a valid index there. Use one from 0 to %2$s.</string>
     <string name="error_command_size_invalid">The width and height have to be positive numbers.</string>
-    <string name="error_command_number_edge_not_taken">A direction, a speed, an opacity, a volume, a scale, a time, a shake's strength, a zoom, or what a count or a distance is compared with can't be an edge of the Scene, which is a position. Use a number, a random number, or a Property's value.</string>
+    <string name="error_command_number_edge_not_taken">A direction, a speed, an opacity, a volume, a size, a scale, a time, a shake's strength, a zoom, or what a count or a distance is compared with can't be an edge of the Scene, which is a position. Use a number, a random number, or a Property's value.</string>
     <string name="error_command_opacity_out_of_range">An opacity is from 0 (invisible) to 100 percent (opaque), and so is each end of a random one.</string>
     <string name="error_command_volume_out_of_range">A volume is from 0 (silent) to 100 percent (as recorded), and so is each end of a random one.</string>
     <string name="error_command_zoom_out_of_range">A zoom is at least 1 percent, and so is each end of a random one.</string>
+    <string name="error_command_size_negative">A width and a height are 0 or more, and so is each end of a random one.</string>
     <string name="error_command_shake_negative">A shake's strength and duration are at least 0, and so is each end of a random one.</string>
     <string name="block_parameter_volume">Volume</string>
     <string name="error_command_animated_color_not_opaque">Animate takes opaque colors (#RRGGBB) and keeps the Actor's opacity. Animate the opacity with an Animate Block of its own.</string>
@@ -802,6 +809,7 @@
     <string name="error_placement_block_move_with_keys_outside_every_frame">Move with keys works only in an Every frame Event, which checks the keys held on every frame.</string>
     <string name="error_placement_block_movement_in_manager_type">A Manager type isn't in a Scene, so it has nothing for the Movement Blocks to move. They belong in an Actor type.</string>
     <string name="error_placement_block_remove_self_in_manager_type">A Manager type isn't in a Scene, so it can't have a Remove this Actor Block.</string>
+    <string name="error_placement_block_size_in_manager_type">A Manager type isn't in a Scene and isn't drawn, so it has no size or scale for the Set the size, Set the scale, or Change the scale Blocks to change. They belong in an Actor type.</string>
     <string name="error_placement_block_appearance_in_manager_type">A Manager type isn't in a Scene and isn't drawn, so it can't have the Set the color, Set the opacity, or Change the opacity Blocks. They belong in an Actor type.</string>
     <string name="error_placement_block_follow_with_camera_in_manager_type">A Manager type isn't in a Scene, so the camera can't follow it. A Follow with the camera Block belongs in an Actor type.</string>
     <string name="error_placement_block_animate_in_manager_type">A Manager type isn't in a Scene and isn't drawn, so it can't have an Animate Block. It belongs in an Actor type.</string>

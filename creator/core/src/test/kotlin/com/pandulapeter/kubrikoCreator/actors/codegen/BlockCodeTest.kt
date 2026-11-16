@@ -37,8 +37,10 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.MOVEMENT
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.NUMBER_TEXT
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.OPACITY_TWEEN
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.POSITION_TWEEN
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.SCALE
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.SCALE_TWEEN
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.SCENES
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.SIZE
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.STATE_MANAGER
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.STEERING
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockNeed.VIEWPORT_MANAGER
@@ -103,6 +105,9 @@ class BlockCodeTest {
             BlockKind.SET_COLOR to Expected(imports = setOf(color)),
             BlockKind.SET_OPACITY to Expected(),
             BlockKind.CHANGE_OPACITY to Expected(),
+            BlockKind.SET_SIZE to Expected(setOf(SIZE)),
+            BlockKind.SET_SCALE to Expected(setOf(SCALE)),
+            BlockKind.CHANGE_SCALE to Expected(setOf(SCALE)),
             BlockKind.ANIMATE to Expected(setOf(MOVEMENT, ACTOR_MANAGER, SCALE_TWEEN)),
             BlockKind.IF to Expected(),
             BlockKind.ELSE to Expected(),

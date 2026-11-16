@@ -159,6 +159,12 @@
   their added Events. `GeneratedScenes` keeps the view's aspect ratio from before a
   Scene fitted it (`fitsView`), which a Scene that doesn't fit the view gives back; a Scene's settings may be added before
   the last Scene's are removed, so an ending Scene unfits the view only while its settings are still the current ones.
+- The size and scale Blocks call functions of the Actor's class (`SizeCode`) whose names, and the fields they keep, start
+  with an underscore, which no Property's can, so they reserve no names. Set the size keeps the pivot at the same fraction
+  of the size, so an Actor grows around its middle or its sprite's origin. The collision mask follows the size and the
+  scale in the update (`appendCollisionMaskUpdate`: a box's `size`, a circle's `radius`, both changed in place, since the
+  collision plugin's grids hold the mask), so a collidable Actor whose Blocks change either is Dynamic even if nothing else
+  makes it so.
 - `GeneratedAudio` exists only while the game plays audio. It starts music on the next frame, since the music player exists only
   once the viewport is composed, and resumes it when the game is focused again, since `MusicManager` doesn't. A
   volume is a percent on the Block and a fraction in the call, left out at 100 so games using none generate what they

@@ -25,6 +25,7 @@ import com.pandulapeter.kubrikoCreator.actors.store.NumberValuesMigration
 import com.pandulapeter.kubrikoCreator.actors.store.ProjectSettingsReader
 import com.pandulapeter.kubrikoCreator.actors.store.ReservedPropertyMigration
 import com.pandulapeter.kubrikoCreator.actors.store.SceneLeavingMigration
+import com.pandulapeter.kubrikoCreator.actors.store.SizeAndScaleMigration
 import com.pandulapeter.kubrikoCreator.actors.store.TextAndToggleValuesMigration
 import com.pandulapeter.kubrikoCreator.actors.store.TextOptionsMigration
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
@@ -120,6 +121,7 @@ public class ProjectFormat(
             AudioVolumeMigration,
             AudioPropertiesMigration,
             CameraMigration,
+            SizeAndScaleMigration,
         )
 
         /**

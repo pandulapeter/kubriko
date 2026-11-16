@@ -175,6 +175,9 @@ public object BlockCodeGenerator {
         is BlockDefinition.SetColor -> AppearanceCode.setColor(block, scope)
         is BlockDefinition.SetOpacity -> AppearanceCode.setOpacity(block, scope)
         is BlockDefinition.ChangeOpacity -> AppearanceCode.changeOpacity(block, scope)
+        is BlockDefinition.SetSize -> SizeCode.setSize(block, scope)
+        is BlockDefinition.SetScale -> SizeCode.setScale(block, scope)
+        is BlockDefinition.ChangeScale -> SizeCode.changeScale(block, scope)
         is BlockDefinition.Animate -> AnimateCode.animate(block, scope)
         is BlockDefinition.If -> ConditionCode.of(block.condition, scope).let { condition -> condition.copy(lines = listOf("if (${condition.lines.single()}) {")) }
         is BlockDefinition.Repeat -> BlockCode(listOf("repeat(${NumberValueCode.whole(block.times, scope)}) {"))

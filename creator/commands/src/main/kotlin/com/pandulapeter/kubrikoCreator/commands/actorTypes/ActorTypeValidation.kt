@@ -181,6 +181,8 @@ private fun validateBlockValues(block: BlockDefinition, scope: BlockScope): Reje
     !block.areEdgesAlongTheirAxes -> Rejection(CommandProblem.NUMBER_EDGE_ACROSS)
     block.edgelessNumberValues.any { it.readsEdges } -> Rejection(CommandProblem.NUMBER_EDGE_NOT_TAKEN)
     block is BlockDefinition.SetOpacity && block.percent !in NumberLimits.PERCENT -> Rejection(CommandProblem.OPACITY_OUT_OF_RANGE)
+    block is BlockDefinition.SetSize && !(block.width in NumberLimits.NON_NEGATIVE && block.height in NumberLimits.NON_NEGATIVE) -> Rejection(CommandProblem.SIZE_NEGATIVE)
+    block is BlockDefinition.SetScale && block.scale !in NumberLimits.NON_NEGATIVE -> Rejection(CommandProblem.SCALE_NEGATIVE)
     block is BlockDefinition.PlaySound && block.volume !in NumberLimits.VOLUME -> Rejection(CommandProblem.VOLUME_OUT_OF_RANGE)
     block is BlockDefinition.PlayMusic && block.volume !in NumberLimits.VOLUME -> Rejection(CommandProblem.VOLUME_OUT_OF_RANGE)
     block is BlockDefinition.ZoomCamera && block.zoom !in NumberLimits.ZOOM -> Rejection(CommandProblem.ZOOM_OUT_OF_RANGE)
@@ -379,6 +381,7 @@ private val BlockDefinition.areNumbersValid
         is BlockDefinition.Log, is BlockDefinition.Kotlin, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
         is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity,
         is BlockDefinition.ChangeOpacity, BlockDefinition.FollowWithCamera, is BlockDefinition.MoveCamera, is BlockDefinition.ShakeCamera, is BlockDefinition.ZoomCamera,
+        is BlockDefinition.SetSize, is BlockDefinition.SetScale, is BlockDefinition.ChangeScale,
         -> true
     }
 
@@ -397,12 +400,13 @@ private val BlockDefinition.areEdgesAlongTheirAxes
         is BlockDefinition.Log, is BlockDefinition.Kotlin, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
         is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, is BlockDefinition.SetColor, is BlockDefinition.SetOpacity,
         is BlockDefinition.ChangeOpacity, BlockDefinition.FollowWithCamera, is BlockDefinition.ShakeCamera, is BlockDefinition.ZoomCamera,
+        is BlockDefinition.SetSize, is BlockDefinition.SetScale, is BlockDefinition.ChangeScale,
         -> numberValues.none { it is NumberValue.BetweenEdges && it.from.axis != it.to.axis }
     }
 
 /**
- * The numbers of [this] Block that are a direction, a speed, an opacity, a volume, a scale, a time, a shake's strength, a
- * zoom, or what a count or a distance is compared with, which an edge, a position, means nothing as.
+ * The numbers of [this] Block that are a direction, a speed, an opacity, a volume, a size, a scale, a time, a shake's
+ * strength, a zoom, or what a count or a distance is compared with, which an edge, a position, means nothing as.
  */
 private val BlockDefinition.edgelessNumberValues
     get() = when (this) {
@@ -413,6 +417,9 @@ private val BlockDefinition.edgelessNumberValues
         is BlockDefinition.PlaySound -> listOf(volume)
         is BlockDefinition.PlayMusic -> listOf(volume)
         is BlockDefinition.ChangeOpacity -> listOf(by)
+        is BlockDefinition.SetSize -> listOf(width, height)
+        is BlockDefinition.SetScale -> listOf(scale)
+        is BlockDefinition.ChangeScale -> listOf(by)
         is BlockDefinition.ShakeCamera -> listOf(strength, durationInMilliseconds)
         is BlockDefinition.ZoomCamera -> listOf(zoom)
         is BlockDefinition.Animate -> if (value is AnimatedValue.Position) listOf(seconds) else value.numberValues + seconds

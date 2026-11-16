@@ -97,6 +97,7 @@ import kubriko.creator.generated.resources.error_command_screenplay_style
 import kubriko.creator.generated.resources.error_command_search_query_blank
 import kubriko.creator.generated.resources.error_command_shake_negative
 import kubriko.creator.generated.resources.error_command_size_invalid
+import kubriko.creator.generated.resources.error_command_size_negative
 import kubriko.creator.generated.resources.error_command_speed_random_every_frame
 import kubriko.creator.generated.resources.error_command_summary_invalid
 import kubriko.creator.generated.resources.error_command_text_condition_not_allowed
@@ -137,7 +138,7 @@ import org.jetbrains.compose.resources.StringResource
  * The string the user is shown for this [CommandProblem].
  */
 internal fun CommandProblem.toResource(): StringResource = when (this) {
-    CommandProblem.NUMBER_EDGE_ACROSS, CommandProblem.NUMBER_EDGE_NOT_TAKEN, CommandProblem.OPACITY_OUT_OF_RANGE, CommandProblem.VOLUME_OUT_OF_RANGE, CommandProblem.ZOOM_OUT_OF_RANGE, CommandProblem.SHAKE_NEGATIVE,
+    CommandProblem.NUMBER_EDGE_ACROSS, CommandProblem.NUMBER_EDGE_NOT_TAKEN, CommandProblem.OPACITY_OUT_OF_RANGE, CommandProblem.VOLUME_OUT_OF_RANGE, CommandProblem.ZOOM_OUT_OF_RANGE, CommandProblem.SHAKE_NEGATIVE, CommandProblem.SIZE_NEGATIVE,
     CommandProblem.ANIMATED_COLOR_NOT_OPAQUE, CommandProblem.SPEED_RANDOM_EVERY_FRAME, CommandProblem.SCALE_NEGATIVE, CommandProblem.COLORS_COUNT, CommandProblem.COLORS_NOT_OPAQUE, CommandProblem.NUMBER_INVALID,
     -> blockValueResource()
     CommandProblem.TURN_CANCELLED -> Res.string.assistant_turn_cancelled
@@ -260,6 +261,7 @@ private fun CommandProblem.blockValueResource(): StringResource = when (this) {
     CommandProblem.VOLUME_OUT_OF_RANGE -> Res.string.error_command_volume_out_of_range
     CommandProblem.ZOOM_OUT_OF_RANGE -> Res.string.error_command_zoom_out_of_range
     CommandProblem.SHAKE_NEGATIVE -> Res.string.error_command_shake_negative
+    CommandProblem.SIZE_NEGATIVE -> Res.string.error_command_size_negative
     CommandProblem.ANIMATED_COLOR_NOT_OPAQUE -> Res.string.error_command_animated_color_not_opaque
     CommandProblem.SPEED_RANDOM_EVERY_FRAME -> Res.string.error_command_speed_random_every_frame
     CommandProblem.SCALE_NEGATIVE -> Res.string.error_command_scale_negative

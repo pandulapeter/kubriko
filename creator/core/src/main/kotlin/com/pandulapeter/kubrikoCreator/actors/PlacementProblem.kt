@@ -33,6 +33,7 @@ public enum class PlacementProblem(override val english: String) : DomainText {
     BLOCK_REMOVE_OTHER_IN_MANAGER_TYPE("A Manager type isn't in a Scene, so it can't have a Remove the other Actor (removeOther) Block."),
     BLOCK_ANIMATION_IN_MANAGER_TYPE("A Manager type isn't in a Scene and has no sprite, so it can't have the Set the frame (setFrame) or Set the animation (setAnimation) Blocks. They belong in an Actor type drawn as a sprite cut into frames."),
     BLOCK_APPEARANCE_IN_MANAGER_TYPE("A Manager type isn't in a Scene and isn't drawn, so it can't have the Set the color (setColor), Set the opacity (setOpacity), or Change the opacity (changeOpacity) Blocks. They belong in an Actor type."),
+    BLOCK_SIZE_IN_MANAGER_TYPE("A Manager type isn't in a Scene and isn't drawn, so it has no size or scale for the Set the size (setSize), Set the scale (setScale), or Change the scale (changeScale) Blocks to change. They belong in an Actor type."),
     BLOCK_ANIMATE_IN_MANAGER_TYPE("A Manager type isn't in a Scene and isn't drawn, so it can't have an Animate (animate) Block. It belongs in an Actor type."),
     BLOCK_FOLLOW_WITH_CAMERA_IN_MANAGER_TYPE("A Manager type isn't in a Scene, so the camera can't follow it (followWithCamera). It belongs in an Actor type."),
     BLOCK_RUN_PARENT_EVENT_IN_MANAGER_TYPE("Only Actor types have parents, so a Manager type can't have a Run the parent's Event (runParentEvent) Block."),

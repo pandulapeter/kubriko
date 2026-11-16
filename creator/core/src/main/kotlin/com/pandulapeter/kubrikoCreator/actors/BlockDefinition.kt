@@ -347,6 +347,32 @@ public sealed interface BlockDefinition {
     ) : BlockDefinition
 
     @Serializable
+    @SerialName("setSize")
+    @Description("Sets the width and height of the Actor in scene units, which its shape or sprite is drawn at and its collision mask follows. It grows or shrinks around its pivot (its middle, or its sprite's origin), and its scale still applies on top.")
+    public data class SetSize(
+        @Description("The width in scene units, 0 or more. Not an edge.")
+        @SerialName("width") val width: NumberValue = NumberValue.Fixed(DEFAULT_SIZE),
+        @Description("The height in scene units, 0 or more. Not an edge.")
+        @SerialName("height") val height: NumberValue = NumberValue.Fixed(DEFAULT_SIZE),
+    ) : BlockDefinition
+
+    @Serializable
+    @SerialName("setScale")
+    @Description("Sets the scale of the Actor, which it is drawn and collides at around its pivot: 1 is its size, 2 twice as large, 0.5 half. Every Actor starts at 1.")
+    public data class SetScale(
+        @Description("The scale, 0 or more. Not an edge.")
+        @SerialName("scale") val scale: NumberValue = NumberValue.Fixed(2f),
+    ) : BlockDefinition
+
+    @Serializable
+    @SerialName("changeScale")
+    @Description("Adds to the scale of the Actor, or subtracts from it with a negative amount, kept at 0 or more, so a little every frame grows or shrinks it.")
+    public data class ChangeScale(
+        @Description("What is added to the scale, such as 0.1, or -0.1 to shrink it. Not an edge.")
+        @SerialName("by") val by: NumberValue = NumberValue.Fixed(0.1f),
+    ) : BlockDefinition
+
+    @Serializable
     @SerialName("animate")
     @Description("Takes the Actor's scale, opacity, color, or position from a start to an end over some seconds, and can remove the Actor at the end. One animation per value: another animate Block of it starts over. It sets the value every frame before the Events run, so Blocks in Events win. The collision mask scales with the Actor.")
     public data class Animate(
@@ -411,6 +437,11 @@ internal const val VOLUME_DESCRIPTION = "How loud, from 0 (silent) to 100 percen
  * The volume an audio Block plays at unless it says otherwise, in percent.
  */
 public const val FULL_VOLUME: Float = 100f
+
+/**
+ * The width and height a Set the size Block starts as, in scene units, those of a new Actor type.
+ */
+public const val DEFAULT_SIZE: Float = 80f
 
 /**
  * The zoom that shows a Scene at its size, in percent: what a Zoom the camera Block starts as.

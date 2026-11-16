@@ -110,7 +110,7 @@ public object EveryBlockTypes {
         BlockDefinition.StopMusic,
         BlockDefinition.SetFrame(frame = NumberValue.Fixed(2f)),
         BlockDefinition.SetAnimation(speed = NumberValue.Fixed(-0.5f), isLooping = false),
-    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks + steeringBlocks + actorCountBlocks + colorPropertyBlocks + actorTypeValueBlocks + combinedConditionBlocks + textAndToggleValueBlocks + distanceBlocks + volumeBlocks + audioValueBlocks + cameraBlocks
+    ) + numberValueBlocks + edgeValueBlocks + directionBlocks + appearanceBlocks + animateBlocks + steeringBlocks + actorCountBlocks + colorPropertyBlocks + actorTypeValueBlocks + combinedConditionBlocks + textAndToggleValueBlocks + distanceBlocks + volumeBlocks + audioValueBlocks + cameraBlocks + sizeBlocks
 
     /**
      * Blocks taking random numbers and Properties' values, which format version 5 added.
@@ -204,6 +204,19 @@ public object EveryBlockTypes {
             BlockDefinition.If(ConditionDefinition.Toggle("isShielded", ToggleValue.Property("isShielded", manager = "EveryManager"))),
             BlockDefinition.End,
             BlockDefinition.End,
+        )
+
+    /**
+     * The size and scale Blocks, which format version 23 added: with fixed values, random ones, and a Property's.
+     */
+    val sizeBlocks: List<BlockDefinition>
+        get() = listOf(
+            BlockDefinition.SetSize(),
+            BlockDefinition.SetSize(width = NumberValue.Random(20f, 40f), height = NumberValue.Property("score", manager = "EveryManager")),
+            BlockDefinition.SetScale(),
+            BlockDefinition.SetScale(scale = NumberValue.Property("score")),
+            BlockDefinition.ChangeScale(),
+            BlockDefinition.ChangeScale(by = NumberValue.Fixed(-0.25f)),
         )
 
     /**

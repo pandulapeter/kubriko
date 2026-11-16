@@ -20,6 +20,7 @@ import kubriko.creator.generated.resources.block_bounce_off_edge
 import kubriko.creator.generated.resources.block_bounce_off_other
 import kubriko.creator.generated.resources.block_change_number
 import kubriko.creator.generated.resources.block_change_opacity
+import kubriko.creator.generated.resources.block_change_scale
 import kubriko.creator.generated.resources.block_else
 import kubriko.creator.generated.resources.block_end
 import kubriko.creator.generated.resources.block_follow_with_camera
@@ -46,6 +47,8 @@ import kubriko.creator.generated.resources.block_set_color_property
 import kubriko.creator.generated.resources.block_set_frame
 import kubriko.creator.generated.resources.block_set_number
 import kubriko.creator.generated.resources.block_set_opacity
+import kubriko.creator.generated.resources.block_set_scale
+import kubriko.creator.generated.resources.block_set_size
 import kubriko.creator.generated.resources.block_set_text
 import kubriko.creator.generated.resources.block_set_toggle
 import kubriko.creator.generated.resources.block_set_velocity
@@ -83,6 +86,9 @@ internal val BlockKind.title: StringResource
         BlockKind.SET_COLOR -> Res.string.block_set_color
         BlockKind.SET_OPACITY -> Res.string.block_set_opacity
         BlockKind.CHANGE_OPACITY -> Res.string.block_change_opacity
+        BlockKind.SET_SIZE -> Res.string.block_set_size
+        BlockKind.SET_SCALE -> Res.string.block_set_scale
+        BlockKind.CHANGE_SCALE -> Res.string.block_change_scale
         BlockKind.ANIMATE -> Res.string.block_animate
         BlockKind.STOP -> Res.string.block_stop
         BlockKind.RUN_PARENT_EVENT -> Res.string.block_run_parent_event

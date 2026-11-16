@@ -81,6 +81,12 @@ internal enum class BlockNeed {
     /** What plays the Animate Blocks of the scale ([AnimateCode]). */
     SCALE_TWEEN,
 
+    /** The function that sets the Actor's size, keeping its pivot in place ([SizeCode]). */
+    SIZE,
+
+    /** The function that sets the Actor's scale ([SizeCode]). */
+    SCALE,
+
     /** What plays the Animate Blocks of the opacity ([AnimateCode]). */
     OPACITY_TWEEN,
 

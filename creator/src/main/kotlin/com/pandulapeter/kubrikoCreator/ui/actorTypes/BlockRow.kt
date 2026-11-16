@@ -274,6 +274,7 @@ private fun InlineParameters(
     is BlockDefinition.SetColor -> SetColorParameters(block, scope, onBlockChange)
     is BlockDefinition.SetOpacity -> PercentField(Res.string.block_parameter_opacity, block.percent, scope, { onBlockChange(block.copy(percent = it)) }, limits = NumberLimits.PERCENT)
     is BlockDefinition.ChangeOpacity -> PercentField(Res.string.block_parameter_by, block.by, scope, { onBlockChange(block.copy(by = it)) })
+    is BlockDefinition.SetSize, is BlockDefinition.SetScale, is BlockDefinition.ChangeScale -> SizeBlockParameters(block, scope, onBlockChange)
     is BlockDefinition.Animate -> AnimateParameters(block, scope, onBlockChange)
     is BlockDefinition.MoveCamera -> OffsetParameters(block.x, block.y, scope, isVelocity = false) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
     is BlockDefinition.ShakeCamera -> ShakeCameraParameters(block, scope, onBlockChange)
@@ -305,6 +306,6 @@ private val BlockKind.hasInlineParameters
         BlockKind.SET_TEXT, BlockKind.SET_TOGGLE, BlockKind.SET_COLOR_PROPERTY, BlockKind.ADD_ACTOR, BlockKind.MOVE_TOWARDS_NEAREST, BlockKind.START_TIMER,
         BlockKind.STOP_TIMER, BlockKind.GO_TO_SCENE, BlockKind.PAUSE_GAME, BlockKind.PLAY_SOUND, BlockKind.PLAY_MUSIC,
         BlockKind.IF, BlockKind.REPEAT, BlockKind.LOG, BlockKind.SET_FRAME, BlockKind.SET_ANIMATION, BlockKind.SET_COLOR,
-        BlockKind.SET_OPACITY, BlockKind.CHANGE_OPACITY, BlockKind.ANIMATE, BlockKind.MOVE_CAMERA, BlockKind.SHAKE_CAMERA, BlockKind.ZOOM_CAMERA,
+        BlockKind.SET_OPACITY, BlockKind.CHANGE_OPACITY, BlockKind.SET_SIZE, BlockKind.SET_SCALE, BlockKind.CHANGE_SCALE, BlockKind.ANIMATE, BlockKind.MOVE_CAMERA, BlockKind.SHAKE_CAMERA, BlockKind.ZOOM_CAMERA,
         -> true
     }

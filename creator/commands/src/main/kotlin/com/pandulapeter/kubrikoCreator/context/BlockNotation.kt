@@ -129,6 +129,9 @@ internal object BlockNotation {
         }
         is BlockDefinition.SetOpacity -> "Set the opacity to ${value(block.percent)} percent"
         is BlockDefinition.ChangeOpacity -> "Change the opacity by ${value(block.by)} percent"
+        is BlockDefinition.SetSize -> "Set the size to ${value(block.width)} by ${value(block.height)}"
+        is BlockDefinition.SetScale -> "Set the scale to ${value(block.scale)}"
+        is BlockDefinition.ChangeScale -> "Change the scale by ${value(block.by)}"
         is BlockDefinition.Animate -> "Animate ${of(block.value)} in ${value(block.seconds)} s, ${of(block.easing)}" + if (block.removesActor) ", then remove this Actor" else ""
         is BlockDefinition.If -> "If ${of(block.condition)}"
         BlockDefinition.Else -> "Else"
