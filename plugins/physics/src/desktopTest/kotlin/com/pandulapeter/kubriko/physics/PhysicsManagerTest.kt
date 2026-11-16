@@ -77,6 +77,21 @@ class PhysicsManagerTest {
     }
 
     @Test
+    fun aBodyThatGrowsIsSimulatedWithTheMassOfItsNewSize() {
+        val kubriko = newPhysicsKubriko(gravity = SceneOffset.Zero)
+        val ball = TestBall(radius = 10f)
+        kubriko.actorManager.add(ball)
+        kubriko.actorManager.awaitProcessed()
+        kubriko.tick(count = 5)
+        val mass = ball.physicsBody.mass
+
+        ball.collisionMask.radius = 20f.sceneUnit
+        kubriko.tick(count = 5)
+
+        assertEquals(mass * 4f, ball.physicsBody.mass, absoluteTolerance = mass * 1e-5f)
+    }
+
+    @Test
     fun removedBodyIsNoLongerSimulated() {
         val kubriko = newPhysicsKubriko(gravity = SceneOffset.Zero)
         val ball = TestBall().apply { physicsBody.velocity = offset(10f, 0f) }

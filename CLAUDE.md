@@ -251,7 +251,7 @@ Each plugin requires its Manager to be passed to `Kubriko.newInstance()`. Omitti
 | `shaders` | `ShaderManager` | `Shader` (SKSL, layer-based), `ContentShader` (reads existing scene as input) | `plugin-shaders` |
 | `sprites` | `SpriteManager` | — | `plugin-sprites` |
 
-**Collision masks**: `PointCollisionMask`, `CircleCollisionMask`, `BoxCollisionMask` (rotatable), `PolygonCollisionMask`.
+**Collision masks**: `PointCollisionMask`, `CircleCollisionMask`, `BoxCollisionMask` (rotatable), `PolygonCollisionMask`. A circle's `radius` and a box's `size` change in place without allocating, and a physics body's mass follows them.
 
 **Audio formats**: SFX → WAV (max 48k bitrate for Android). Music → MP3 (max 320 kbps). Audio playback only works on Android and Desktop (JVM).
 

@@ -125,6 +125,7 @@ internal class PhysicsManagerImpl(
         val bodies = rigidBodies.value
         for (i in bodies.indices) {
             val b = bodies[i]
+            b.followShapeChanges()
             // Static bodies (invMass == 0) never move during the simulation, so their mask is already correct.
             if (b.invMass == 0f) {
                 continue

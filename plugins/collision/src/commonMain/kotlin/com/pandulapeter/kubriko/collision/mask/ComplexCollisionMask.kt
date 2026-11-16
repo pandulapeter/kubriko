@@ -23,6 +23,13 @@ sealed interface ComplexCollisionMask : CollisionMask {
     val size: SceneSize
 
     /**
+     * Incremented every time the shape changes (a circle's radius, a box's size), but not when the mask moves or
+     * rotates, so that whatever depends on the shape, such as a physics body's mass, can tell when to work it out again
+     * by comparing one number.
+     */
+    val shapeRevision: Int
+
+    /**
      * Checks if the given [sceneOffset] is inside the mask.
      */
     fun isSceneOffsetInside(sceneOffset: SceneOffset): Boolean

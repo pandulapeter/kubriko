@@ -106,7 +106,7 @@ Cells size themselves to the masks in the grid, and the result buffer is reused,
 Several shapes are supported out of the box:
 - `PointCollisionMask`: A single point.
 - `CircleCollisionMask`: A circle with a defined radius.
-- `BoxCollisionMask`: A rectangular box (can be rotated).
+- `BoxCollisionMask`: A rectangular box (can be rotated, and resized in place through its `size`).
 - `PolygonCollisionMask`: A convex polygon.
 
 ## Credits

@@ -111,7 +111,9 @@ class PhysicsBody(
         }
 
     /**
-     * The density of the body. Setting this to 0 makes the body static.
+     * The density of the body. Setting this to 0 makes the body static. The mass is worked out from it and the shape of
+     * the [collisionMask], again whenever that shape changes (its [ComplexCollisionMask.shapeRevision]), so a body that
+     * grows gets heavier.
      */
     var density = density
         set(value) {
@@ -133,6 +135,16 @@ class PhysicsBody(
     internal var invInertia = 0f
         private set
     internal var isParticle = false
+
+    /**
+     * The [ComplexCollisionMask.shapeRevision] the mass was last worked out for.
+     */
+    private var shapeRevisionOfMass = collisionMask.shapeRevision
+
+    /**
+     * Whether [setStatic] made the body static, which a change of its shape doesn't undo.
+     */
+    private var isMadeStatic = false
 
     init {
         rotationMatrix.set(rotation)
@@ -191,13 +203,30 @@ class PhysicsBody(
      * Sets all mass and inertia variables to zero. Object cannot be moved.
      */
     fun setStatic() {
+        isMadeStatic = true
         mass = 0f
         invMass = 0f
         inertia = 0f
         invInertia = 0f
     }
 
-    private fun calculateMass(density: Float) = when (collisionMask) {
+    /**
+     * Works the mass out again if the shape of the [collisionMask] changed since it last was.
+     */
+    internal fun followShapeChanges() {
+        val revision = collisionMask.shapeRevision
+        if (revision == shapeRevisionOfMass) return
+        shapeRevisionOfMass = revision
+        if (!isMadeStatic) calculateMass(density)
+    }
+
+    private fun calculateMass(density: Float) {
+        isMadeStatic = false
+        shapeRevisionOfMass = collisionMask.shapeRevision
+        calculateMassOfShape(density)
+    }
+
+    private fun calculateMassOfShape(density: Float) = when (collisionMask) {
         is CircleCollisionMask -> {
             mass = PI.toFloat() * collisionMask.radius.raw * collisionMask.radius.raw * density
             invMass = if (mass != 0f) 1.0f / mass else 0f
@@ -209,9 +238,9 @@ class PhysicsBody(
             var area = SceneUnit.Zero
             var inertia = SceneUnit.Zero
             val k = 1f / 3f
-            for (i in collisionMask.vertices.indices) {
-                val point1 = collisionMask.vertices[i]
-                val point2 = collisionMask.vertices[(i + 1) % collisionMask.vertices.size]
+            for (i in 0 until collisionMask.vertexCount) {
+                val point1 = collisionMask.vertexAt(i)
+                val point2 = collisionMask.vertexAt((i + 1) % collisionMask.vertexCount)
                 val areaOfParallelogram = point1.cross(point2)
                 val triangleArea = areaOfParallelogram * 0.5f
                 area += triangleArea
@@ -270,9 +299,9 @@ class PhysicsBody(
             var closestBody: PhysicsBody? = null
             var maxD = maxDistance
 
-            for (i in collisionMask.vertices.indices) {
-                var startOfPolyEdge = collisionMask.vertices[i]
-                var endOfPolyEdge = collisionMask.vertices[if (i + 1 == collisionMask.vertices.size) 0 else i + 1]
+            for (i in 0 until collisionMask.vertexCount) {
+                var startOfPolyEdge = collisionMask.vertexAt(i)
+                var endOfPolyEdge = collisionMask.vertexAt(if (i + 1 == collisionMask.vertexCount) 0 else i + 1)
                 startOfPolyEdge = rotationMatrix.times(startOfPolyEdge) + position
                 endOfPolyEdge = rotationMatrix.times(endOfPolyEdge) + position
 

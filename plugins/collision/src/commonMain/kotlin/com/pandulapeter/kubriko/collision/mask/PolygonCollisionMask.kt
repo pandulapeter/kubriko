@@ -20,6 +20,7 @@ import com.pandulapeter.kubriko.helpers.extensions.center
 import com.pandulapeter.kubriko.helpers.extensions.dot
 import com.pandulapeter.kubriko.helpers.extensions.normal
 import com.pandulapeter.kubriko.helpers.extensions.normalized
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
@@ -34,8 +35,6 @@ import com.pandulapeter.kubriko.types.SceneUnit
  * @param initialPosition The center position of the mask in scene units.
  * @param initialRotation The initial rotation of the polygon in radians.
  *
- * @property vertices The list of vertices relative to the center of the mask.
- * @property rotation The rotation of the polygon in radians.
  */
 open class PolygonCollisionMask internal constructor(
     unprocessedVertices: List<SceneOffset> = emptyList(),
@@ -44,7 +43,41 @@ open class PolygonCollisionMask internal constructor(
 ) : PointCollisionMask(
     initialPosition = initialPosition,
 ), ComplexCollisionMask {
-    val vertices = generateConvexHull(unprocessedVertices)
+    private var vertexXs = FloatArray(0)
+    private var vertexYs = FloatArray(0)
+    private var normalXs = FloatArray(0)
+    private var normalYs = FloatArray(0)
+    private var shapeSize = SceneSize.Zero
+    private var cachedVertices: List<SceneOffset> = emptyList()
+    private var cachedVerticesRevision = 0
+
+    /**
+     * The number of vertices, which [vertexAt] reads.
+     */
+    var vertexCount = 0
+        private set
+
+    /**
+     * Incremented whenever the vertices change, such as when a [BoxCollisionMask] is resized.
+     */
+    final override var shapeRevision = 0
+        private set
+
+    /**
+     * The vertices relative to the center of the mask, in the order the faces go around it.
+     *
+     * The same list is returned until the shape changes, when the next read builds a new one. Code that runs every
+     * frame reads them through [vertexCount] and [vertexAt] instead, which never allocate.
+     */
+    val vertices: List<SceneOffset>
+        get() {
+            if (cachedVerticesRevision != shapeRevision) {
+                cachedVertices = List(vertexCount) { vertexAt(it) }
+                cachedVerticesRevision = shapeRevision
+            }
+            return cachedVertices
+        }
+
     /**
      * The matrix of the current [rotation], updated in place whenever the rotation changes.
      */
@@ -54,20 +87,16 @@ open class PolygonCollisionMask internal constructor(
 
     init {
         rotationMatrix.transposeInto(transposedRotationMatrix)
+        val hull = generateConvexHull(unprocessedVertices)
+        storeShape(hull)
+        cachedVertices = hull
     }
-    override val size = when {
-        vertices.size < 2 -> SceneSize.Zero
-        else -> {
-            val minX = vertices.minOf { it.x }
-            val maxX = vertices.maxOf { it.x }
-            val minY = vertices.minOf { it.y }
-            val maxY = vertices.maxOf { it.y }
-            SceneSize(
-                width = maxX - minX,
-                height = maxY - minY
-            )
-        }
-    }
+
+    override val size: SceneSize get() = shapeSize
+
+    /**
+     * The rotation of the polygon in radians.
+     */
     var rotation = initialRotation
         set(value) {
             if (field != value) {
@@ -77,9 +106,83 @@ open class PolygonCollisionMask internal constructor(
                 isAxisAlignedBoundingBoxDirty = true
             }
         }
-    internal val normals = (0..vertices.lastIndex).map { i ->
-        val face = vertices[if (i + 1 == vertices.size) 0 else i + 1].minus(vertices[i])
-        face.normal().normalized().unaryMinus()
+
+    /**
+     * Returns the vertex at [index], relative to the center of the mask, without allocating.
+     *
+     * @param index From 0 until [vertexCount].
+     */
+    fun vertexAt(index: Int) = SceneOffset(vertexXs[index].sceneUnit, vertexYs[index].sceneUnit)
+
+    /**
+     * The inward normal of the face that starts at the vertex at [index], in object space.
+     */
+    internal fun normalAt(index: Int) = SceneOffset(normalXs[index].sceneUnit, normalYs[index].sceneUnit)
+
+    /**
+     * Replaces the shape with the convex hull of [points], as the constructor builds it.
+     */
+    internal fun replaceShape(points: List<SceneOffset>) {
+        storeShape(generateConvexHull(points))
+        onShapeChanged()
+    }
+
+    /**
+     * Writes a vertex of a shape being replaced in place: [prepareVertices], then every vertex, then
+     * [storeNormalsAndSize] and [onShapeChanged]. The vertices have to be a convex hull centered on the origin, in the
+     * order the constructor would put them in.
+     */
+    internal fun setVertex(index: Int, x: Float, y: Float) {
+        vertexXs[index] = x
+        vertexYs[index] = y
+    }
+
+    internal fun prepareVertices(count: Int) {
+        if (vertexXs.size < count) {
+            vertexXs = FloatArray(count)
+            vertexYs = FloatArray(count)
+            normalXs = FloatArray(count)
+            normalYs = FloatArray(count)
+        }
+        vertexCount = count
+    }
+
+    internal fun onShapeChanged() {
+        shapeRevision++
+        isAxisAlignedBoundingBoxDirty = true
+    }
+
+    private fun storeShape(hull: List<SceneOffset>) {
+        prepareVertices(hull.size)
+        for (i in hull.indices) {
+            setVertex(i, hull[i].x.raw, hull[i].y.raw)
+        }
+        storeNormalsAndSize()
+    }
+
+    internal fun storeNormalsAndSize() {
+        for (i in 0 until vertexCount) {
+            val face = vertexAt(if (i + 1 == vertexCount) 0 else i + 1).minus(vertexAt(i))
+            val normal = face.normal().normalized().unaryMinus()
+            normalXs[i] = normal.x.raw
+            normalYs[i] = normal.y.raw
+        }
+        shapeSize = if (vertexCount < 2) {
+            SceneSize.Zero
+        } else {
+            var minX = vertexXs[0]
+            var maxX = vertexXs[0]
+            var minY = vertexYs[0]
+            var maxY = vertexYs[0]
+            for (i in 1 until vertexCount) {
+                // compareTo orders NaN as SceneUnit's comparisons do, so a bad vertex sizes the shape as it always has.
+                if (vertexXs[i].compareTo(minX) < 0) minX = vertexXs[i]
+                if (vertexXs[i].compareTo(maxX) > 0) maxX = vertexXs[i]
+                if (vertexYs[i].compareTo(minY) < 0) minY = vertexYs[i]
+                if (vertexYs[i].compareTo(maxY) > 0) maxY = vertexYs[i]
+            }
+            SceneSize(width = (maxX - minX).sceneUnit, height = (maxY - minY).sceneUnit)
+        }
     }
 
     private fun cross(o: SceneOffset, a: SceneOffset, b: SceneOffset) = (a.x - o.x).raw * (b.y - o.y).raw - (a.y - o.y).raw * (b.x - o.x).raw
@@ -129,9 +232,9 @@ open class PolygonCollisionMask internal constructor(
         if (size == SceneSize.Zero) {
             return sceneOffset == position
         }
-        for (i in vertices.indices) {
-            val objectPoint = sceneOffset - (position + rotationMatrix.times(vertices[i]))
-            if (objectPoint.dot(rotationMatrix.times(normals[i])) > SceneUnit.Zero) {
+        for (i in 0 until vertexCount) {
+            val objectPoint = sceneOffset - (position + rotationMatrix.times(vertexAt(i)))
+            if (objectPoint.dot(rotationMatrix.times(normalAt(i))) > SceneUnit.Zero) {
                 return false
             }
         }
@@ -139,17 +242,17 @@ open class PolygonCollisionMask internal constructor(
     }
 
     override fun updateAxisAlignedBoundingBox(target: AxisAlignedBoundingBox) {
-        if (vertices.isEmpty()) {
+        if (vertexCount == 0) {
             super.updateAxisAlignedBoundingBox(target)
             return
         }
-        val firstPoint = rotationMatrix.times(vertices[0])
+        val firstPoint = rotationMatrix.times(vertexAt(0))
         var minX = firstPoint.x
         var maxX = firstPoint.x
         var minY = firstPoint.y
         var maxY = firstPoint.y
-        for (i in 1 until vertices.size) {
-            val point = rotationMatrix.times(vertices[i])
+        for (i in 1 until vertexCount) {
+            val point = rotationMatrix.times(vertexAt(i))
             val px = point.x
             val py = point.y
             if (px < minX) {
@@ -170,11 +273,11 @@ open class PolygonCollisionMask internal constructor(
     }
 
     override fun DrawScope.drawDebugBounds(color: Color, style: DrawStyle) = this@PolygonCollisionMask.size.raw.let { size ->
-        if (vertices.isEmpty()) return@let
+        if (vertexCount == 0) return@let
         val path = Path().apply {
-            moveTo(vertices[0].x.raw + size.center.x, vertices[0].y.raw + size.center.y)
-            for (i in 1 until vertices.size) {
-                lineTo(vertices[i].x.raw + size.center.x, vertices[i].y.raw + size.center.y)
+            moveTo(vertexXs[0] + size.center.x, vertexYs[0] + size.center.y)
+            for (i in 1 until vertexCount) {
+                lineTo(vertexXs[i] + size.center.x, vertexYs[i] + size.center.y)
             }
             close()
         }

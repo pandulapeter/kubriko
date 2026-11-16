@@ -42,9 +42,12 @@ class CircleCollisionMask(
             val newValue = if (value.raw < 0f) SceneUnit.Zero else value
             if (field != newValue) {
                 field = newValue
+                shapeRevision++
                 isAxisAlignedBoundingBoxDirty = true
             }
         }
+    override var shapeRevision = 0
+        private set
     override val size get() = SceneSize(radius * 2 + SceneUnit.Unit, radius * 2 + SceneUnit.Unit)
 
     override fun isSceneOffsetInside(sceneOffset: SceneOffset) = (position - sceneOffset).length() <= radius

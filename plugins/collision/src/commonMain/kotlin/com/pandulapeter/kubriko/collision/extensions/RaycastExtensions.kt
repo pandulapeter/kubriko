@@ -253,11 +253,10 @@ private fun polygonEdgeEntryDistance(
     val row2Y = polygon.rotationMatrix.row2.y.raw
     val positionX = polygon.position.x.raw
     val positionY = polygon.position.y.raw
-    val vertices = polygon.vertices
-    val vertex = vertices[edgeIndex]
+    val vertex = polygon.vertexAt(edgeIndex)
     val startX = row1X * vertex.x.raw + row1Y * vertex.y.raw + positionX
     val startY = row2X * vertex.x.raw + row2Y * vertex.y.raw + positionY
-    val nextVertex = vertices[if (edgeIndex + 1 == vertices.size) 0 else edgeIndex + 1]
+    val nextVertex = polygon.vertexAt(if (edgeIndex + 1 == polygon.vertexCount) 0 else edgeIndex + 1)
     val endX = row1X * nextVertex.x.raw + row1Y * nextVertex.y.raw + positionX
     val endY = row2X * nextVertex.x.raw + row2Y * nextVertex.y.raw + positionY
     val edgeX = endX - startX
@@ -288,13 +287,11 @@ private fun raycastPolygonEntryEdge(
     val row2Y = polygon.rotationMatrix.row2.y.raw
     val positionX = polygon.position.x.raw
     val positionY = polygon.position.y.raw
-    val vertices = polygon.vertices
-    val normals = polygon.normals
-    for (index in vertices.indices) {
-        val vertex = vertices[index]
+    for (index in 0 until polygon.vertexCount) {
+        val vertex = polygon.vertexAt(index)
         val startX = row1X * vertex.x.raw + row1Y * vertex.y.raw + positionX
         val startY = row2X * vertex.x.raw + row2Y * vertex.y.raw + positionY
-        val nextVertex = vertices[if (index + 1 == vertices.size) 0 else index + 1]
+        val nextVertex = polygon.vertexAt(if (index + 1 == polygon.vertexCount) 0 else index + 1)
         val endX = row1X * nextVertex.x.raw + row1Y * nextVertex.y.raw + positionX
         val endY = row2X * nextVertex.x.raw + row2Y * nextVertex.y.raw + positionY
         val edgeX = endX - startX
@@ -314,7 +311,7 @@ private fun raycastPolygonEntryEdge(
         if (edgeFraction < 0f || edgeFraction > 1f) {
             continue
         }
-        val localNormal = normals[index]
+        val localNormal = polygon.normalAt(index)
         val normalX = row1X * localNormal.x.raw + row1Y * localNormal.y.raw
         val normalY = row2X * localNormal.x.raw + row2Y * localNormal.y.raw
         // Skip edges whose outward normal points along the ray: those are exits, not entries.
@@ -388,7 +385,7 @@ private fun raycastPolygonHit(
     }
     val distance = polygonEdgeEntryDistance(polygon, edgeIndex, originX, originY, unitDirectionX, unitDirectionY)
     val rotationMatrix = polygon.rotationMatrix
-    val localNormal = polygon.normals[edgeIndex]
+    val localNormal = polygon.normalAt(edgeIndex)
     val normalX = rotationMatrix.row1.x.raw * localNormal.x.raw + rotationMatrix.row1.y.raw * localNormal.y.raw
     val normalY = rotationMatrix.row2.x.raw * localNormal.x.raw + rotationMatrix.row2.y.raw * localNormal.y.raw
     return RaycastHit(

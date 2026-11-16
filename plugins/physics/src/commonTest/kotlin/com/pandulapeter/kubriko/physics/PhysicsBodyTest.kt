@@ -18,6 +18,7 @@ import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
+import kotlin.test.assertTrue
 
 class PhysicsBodyTest {
 
@@ -97,6 +98,45 @@ class PhysicsBodyTest {
         body.applyForce(offset(0f, 3f))
 
         assertEquals(offset(5f, 3f), body.force)
+    }
+
+    @Test
+    fun aBodyWhoseBoxIsResizedWeighsWhatABodyBuiltAtThatSizeDoes() {
+        val mask = BoxCollisionMask(initialSize = SceneSize(20f.sceneUnit, 20f.sceneUnit))
+        val body = PhysicsBody(collisionMask = mask, density = 2f)
+
+        mask.size = SceneSize(40f.sceneUnit, 10f.sceneUnit)
+        body.followShapeChanges()
+
+        val built = PhysicsBody(collisionMask = BoxCollisionMask(initialSize = SceneSize(40f.sceneUnit, 10f.sceneUnit)), density = 2f)
+        assertEquals(built.mass, body.mass)
+        assertEquals(built.inertia, body.inertia)
+        assertEquals(built.invMass, body.invMass)
+    }
+
+    @Test
+    fun aBodyWhoseCircleGrowsGetsHeavier() {
+        val body = circle(radius = 10f)
+        val mass = body.mass
+
+        (body.collisionMask as CircleCollisionMask).radius = 20f.sceneUnit
+        body.followShapeChanges()
+
+        assertEquals(circle(radius = 20f).mass, body.mass)
+        assertTrue(body.mass > mass)
+    }
+
+    @Test
+    fun aStaticBodyStaysStaticWhenItsShapeChanges() {
+        val madeStatic = circle(radius = 10f).apply { setStatic() }
+        val weightless = circle(radius = 10f, density = 0f)
+
+        listOf(madeStatic, weightless).forEach { body ->
+            (body.collisionMask as CircleCollisionMask).radius = 30f.sceneUnit
+            body.followShapeChanges()
+            assertEquals(0f, body.mass)
+            assertEquals(0f, body.invMass)
+        }
     }
 
     private fun circle(radius: Float, density: Float = 1f) = PhysicsBody(

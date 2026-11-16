@@ -95,7 +95,17 @@ CollisionMask (sealed interface)
 
 `PolygonCollisionMask` silently convexifies input via Andrew's monotone chain algorithm. **Concave polygons are not supported** — shapes are convexified at construction time.
 
-`BoxCollisionMask` is centered on `initialPosition` (vertices derived from half-size).
+`BoxCollisionMask` is centered on `initialPosition` (vertices derived from half-size). Its `size` is settable: a positive,
+finite size rewrites the four corners in place without allocating (so a box can follow a scaling body every frame), in
+exactly the values and order a box built at that size has (`BoxCollisionMaskResizeTest` holds them equal); a degenerate one
+goes through the convex hull as the constructor does. Keep the in-place resize a mutation of the same instance: the
+detection loop's grids and a `PhysicsBody` hold the mask, so a replaced one would leave them with the old shape.
+
+A polygon keeps its vertices and inward normals in `FloatArray`s; the narrow phase, raycasts, and physics read them through
+`vertexCount`/`vertexAt` (and the internal `normalAt`), which never allocate. The public `vertices` list is a snapshot,
+the same instance until the shape changes, built again on the next read after that. Every shape change (a box's size, a
+circle's radius, never a move or a rotation) increments `ComplexCollisionMask.shapeRevision`, which is how what depends on
+the shape (a physics body's mass) learns of it with one comparison; a new way of changing a shape increments it too.
 
 An empty or zero-size polygon (for example the default `PolygonCollisionMask()` or `BoxCollisionMask()`) behaves like a point at its position: point bounding box, `isSceneOffsetInside` true only at `position`, no debug outline. An empty one takes the point branches of the narrow phase.
 

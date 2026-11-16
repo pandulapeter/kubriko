@@ -30,6 +30,13 @@ Impulse-based rigid-body physics via KPhysics/JPhysics. Depends on `plugin-colli
 
 No rectangle shortcut exists for physics; use `PolygonCollisionMask` with four corner vertices or `BoxCollisionMask`.
 
+## Shape Changes
+
+A body's mass and inertia follow its mask's shape: `syncCollisionMasksWithBodies` calls `followShapeChanges` on every body
+each step, which works them out again from the `density` when `ComplexCollisionMask.shapeRevision` moved (a resized box, a
+circle's new radius), so a body that grows gets heavier without the game knowing physics is involved. Collisions need nothing
+of their own, since the narrow phase reads the mask itself. A body made static (`setStatic`, or `density = 0f`) stays static.
+
 ## Static Bodies
 
 Set `density = 0f` to make a body static — `invMass` and `invInertia` become zero, integration is skipped. Two static bodies in contact are also skipped.
