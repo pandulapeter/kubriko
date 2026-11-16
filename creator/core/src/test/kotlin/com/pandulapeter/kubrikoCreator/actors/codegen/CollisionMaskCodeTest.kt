@@ -73,6 +73,19 @@ class CollisionMaskCodeTest {
     }
 
     @Test
+    fun onlyTheFamilyMembersThatTheSizeBlockStretchesAreOvalsFromTheStart() {
+        val parent = ActorTypeDefinition(name = "Ball", shape = ActorShape.CIRCLE, events = listOf(collision))
+        val balloon = ActorTypeDefinition(name = "Balloon", parent = "Ball", shape = ActorShape.CIRCLE, events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetSize()))))
+        val marble = ActorTypeDefinition(name = "Marble", parent = "Ball", shape = ActorShape.CIRCLE)
+        val types = listOf(parent, balloon, marble)
+        val families = GeneratedFamilies(types, emptyList(), emptySet(), ActorTypeFamily(types))
+        fun code(definition: ActorTypeDefinition) = ActorTypeCodeGenerator.generateActorType(definition, "com.example.game", types.map { it.name }, actorTypes = types, families = families)
+        assertContains(code(balloon), "    collisionMask = com.pandulapeter.kubriko.collision.mask.EllipseCollisionMask(initialPosition")
+        assertContains(code(marble), "    collisionMask = if (state.body.size.width * state.body.scale.horizontal == state.body.size.height * state.body.scale.vertical) CircleCollisionMask(")
+        assertFalse("import com.pandulapeter.kubriko.collision.mask.CollisionMask\n" in code(marble), "A final class names no CollisionMask")
+    }
+
+    @Test
     fun aFamilysFinalClassPicksItsOwnMaskAsItIsCreated() {
         val parent = ActorTypeDefinition(name = "Ball", shape = ActorShape.CIRCLE, events = listOf(collision))
         val child = ActorTypeDefinition(name = "Egg", parent = "Ball", shape = ActorShape.CIRCLE, width = 30f, height = 50f)
@@ -87,9 +100,17 @@ class CollisionMaskCodeTest {
 
     @Test
     fun theMaskKindsFollowTheShapeTheSquarenessAndTheBlocks() {
-        assertEquals(setOf(MaskKind.BOX), CollisionMaskCode.kindsOf(MaskBody(ActorShape.RECTANGLE, isSquare = false), hasOvalMasks = true, mayBecomeOval = true))
-        assertEquals(setOf(MaskKind.CIRCLE), CollisionMaskCode.kindsOf(MaskBody(ActorShape.CIRCLE, isSquare = false), hasOvalMasks = false, mayBecomeOval = true))
-        assertEquals(setOf(MaskKind.CIRCLE, MaskKind.ELLIPSE), CollisionMaskCode.kindsOf(MaskBody(ActorShape.CIRCLE, isSquare = true), hasOvalMasks = true, mayBecomeOval = false))
-        assertEquals(setOf(MaskKind.ELLIPSE), CollisionMaskCode.kindsOf(MaskBody(ActorShape.CIRCLE, isSquare = true), hasOvalMasks = true, mayBecomeOval = true))
+        assertEquals(setOf(MaskKind.BOX), CollisionMaskCode.kindsOf(MaskBody(ActorShape.RECTANGLE, isSquare = false, isResizedBySizeBlock = true), hasOvalMasks = true))
+        assertEquals(setOf(MaskKind.CIRCLE), CollisionMaskCode.kindsOf(MaskBody(ActorShape.CIRCLE, isSquare = false, isResizedByKotlin = true), hasOvalMasks = false))
+        assertEquals(setOf(MaskKind.ELLIPSE), CollisionMaskCode.kindsOf(MaskBody(ActorShape.CIRCLE, isSquare = true, isResizedBySizeBlock = true), hasOvalMasks = false))
+        assertEquals(setOf(MaskKind.CIRCLE, MaskKind.ELLIPSE), CollisionMaskCode.kindsOf(MaskBody(ActorShape.CIRCLE, isSquare = true), hasOvalMasks = true))
+        assertEquals(setOf(MaskKind.ELLIPSE), CollisionMaskCode.kindsOf(MaskBody(ActorShape.CIRCLE, isSquare = true, isResizedByKotlin = true), hasOvalMasks = true))
+    }
+
+    @Test
+    fun anOlderKubrikoKeepsARoundActorWithScaleBlocksACircle() {
+        val older = generate(hasResizableMasks = false, blocks = arrayOf(BlockDefinition.SetScale(), BlockDefinition.ChangeScale()))
+        assertContains(older, "    override val collisionMask = CircleCollisionMask(\n")
+        assertFalse("EllipseCollisionMask" in older, older)
     }
 }

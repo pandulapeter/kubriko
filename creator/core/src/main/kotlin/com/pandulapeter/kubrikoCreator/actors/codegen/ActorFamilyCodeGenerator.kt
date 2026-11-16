@@ -89,7 +89,7 @@ internal object ActorFamilyCodeGenerator {
         val inherited = family.propertiesOf(checkNotNull(family.parentOf(definition.name)))
         val newProperties = newPropertiesOf(definition.name, family)
         imports += listOf("com.pandulapeter.kubriko.actor.body.BoxBody", "androidx.compose.ui.graphics.Color")
-        if (features.isCollidable) imports += CollisionMaskCode.importsOf(features.maskKinds)
+        if (features.isCollidable) imports += CollisionMaskCode.typeImportsOf(features.maskKinds)
         if (newProperties.isNotEmpty()) imports += EXPOSED_IMPORT
         appendLine("/**")
         appendLine(" * What every ${definition.name} does, and every Actor type that inherits from it.")
@@ -128,8 +128,8 @@ internal object ActorFamilyCodeGenerator {
         val hasChildren = family.hasChildren(name)
         val newProperties = if (hasChildren) emptyList() else newPropertiesOf(name, family)
         imports += "com.pandulapeter.kubriko.sceneEditor.Editable"
-        val maskKinds = features.maskKindsOf(MaskBody.of(definition))
-        if (features.isCollidable) imports += CollisionMaskCode.importsOf(maskKinds)
+        val maskKinds = features.maskKindsOf(MaskBody.of(definition, family))
+        if (features.isCollidable) imports += CollisionMaskCode.classImportsOf(maskKinds)
         if (newProperties.isNotEmpty()) imports += EXPOSED_IMPORT
         val superName = baseNameOf(if (hasChildren) name else checkNotNull(family.parentOf(name)))
         val superProperties = family.propertiesOf(if (hasChildren) name else family.parentOf(name)!!)

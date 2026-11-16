@@ -59,7 +59,7 @@ internal class ActorTypeFeatures(
     projectWatches: List<ActorWatch> = emptyList(),
     projectCountedTypes: List<String> = emptyList(),
     eventScopes: List<Pair<List<EventDefinition>, BlockScope>> = listOf(events to scope),
-    hasResizableMasks: Boolean = true,
+    private val hasResizableMasks: Boolean = true,
 ) {
     private val knownActorTypeNames = scope.actorTypeNames
     val keys = KeyEventCode.KeyEvents(events.filter { it.type.takesKey && isGenerated(it) }, isFamily)
@@ -139,14 +139,9 @@ internal class ActorTypeFeatures(
     private val usesResizableMasks = hasResizableMasks || resizesWithBlocks
 
     /**
-     * The mask classes an Actor of [body] may have ([CollisionMaskCode.kindsOf]): only the size Block and Kotlin can make
-     * a round Actor oval, since a scale the same across and down, or added to alike, keeps it round.
+     * The mask classes an Actor of [body] may have ([CollisionMaskCode.kindsOf]).
      */
-    fun maskKindsOf(body: MaskBody) = CollisionMaskCode.kindsOf(
-        body = body,
-        hasOvalMasks = usesResizableMasks,
-        mayBecomeOval = BlockNeed.SIZE in blockCode.needs || hasKotlinBlocks,
-    )
+    fun maskKindsOf(body: MaskBody) = CollisionMaskCode.kindsOf(body, hasOvalMasks = hasResizableMasks)
 
     /**
      * The mask classes the Actors may have, those of every type in a family.

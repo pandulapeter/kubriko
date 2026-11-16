@@ -198,7 +198,7 @@ internal class ActorClassEmitter(
                 appendLine("    color: Color,")
                 properties.forEach { appendLine("    ${it.name}: ${PropertyKind.of(it).kotlinType},") }
                 if (features.isCollidable) {
-                    imports += CollisionMaskCode.importsOf(features.maskKinds)
+                    imports += CollisionMaskCode.typeImportsOf(features.maskKinds)
                     appendLine("    final override val collisionMask: ${CollisionMaskCode.typeOf(features.maskKinds)},")
                 }
                 appendLine(") : ${traits.joinToString()} {")
@@ -226,7 +226,7 @@ internal class ActorClassEmitter(
         when (role) {
             Role.STANDALONE -> if (features.isCollidable) {
                 val maskKinds = features.maskKindsOf(body)
-                imports += CollisionMaskCode.importsOf(maskKinds)
+                imports += CollisionMaskCode.typeImportsOf(maskKinds) + CollisionMaskCode.classImportsOf(maskKinds)
                 appendBodyCenter()
                 appendLine(CollisionMaskCode.declarationOf(maskKinds, center = "bodyCenter"))
             }
@@ -344,7 +344,7 @@ internal class ActorClassEmitter(
             )
         }
         if (features.isCollidable) {
-            imports += CollisionMaskCode.importsOf(features.maskKinds)
+            if (features.maskKinds.size > 1) imports += CollisionMaskCode.classImportsOf(features.maskKinds)
             appendCollisionMaskUpdate(features.maskKinds, followsSize = features.followsMaskSize)
         }
         appendLine("    }")

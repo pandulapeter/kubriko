@@ -11,7 +11,9 @@ package com.pandulapeter.kubrikoCreator.actors.codegen
 
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.AnimationNaming
+import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 
 /**
  * A collision mask class the generated code builds, by the name the code uses for it: the oval's is named in full rather
@@ -25,11 +27,31 @@ internal enum class MaskKind(val className: String, val isImported: Boolean = tr
 }
 
 /**
- * An Actor type's body as its collision mask sees it: its shape, and whether it is as wide as it is high.
+ * An Actor type's body as its collision mask sees it: its shape, whether it is as wide as it is high, and whether its
+ * own Blocks or those it inherits may stretch it: a Set the size Block ([isResizedBySizeBlock]), or Kotlin
+ * ([isResizedByKotlin]). A scale the same across and down, or added to alike, keeps a round Actor round.
  */
-internal data class MaskBody(val shape: ActorShape, val isSquare: Boolean) {
+internal data class MaskBody(
+    val shape: ActorShape,
+    val isSquare: Boolean,
+    val isResizedBySizeBlock: Boolean = false,
+    val isResizedByKotlin: Boolean = false,
+) {
     companion object {
-        fun of(definition: ActorTypeDefinition) = MaskBody(definition.shape, definition.width == definition.height)
+        /**
+         * The body of [definition], whose Blocks are its own and, in a [family], its ancestors' too, since a Run the
+         * parent's Event Block runs those.
+         */
+        fun of(definition: ActorTypeDefinition, family: ActorTypeFamily? = null): MaskBody {
+            val events = family?.let { (listOf(definition.name) + it.ancestorsOf(definition.name)).flatMap(it::eventsOf) } ?: definition.events
+            val blocks = events.flatMap { it.blocks }
+            return MaskBody(
+                shape = definition.shape,
+                isSquare = definition.width == definition.height,
+                isResizedBySizeBlock = blocks.any { it is BlockDefinition.SetSize },
+                isResizedByKotlin = blocks.any { it is BlockDefinition.Kotlin },
+            )
+        }
     }
 }
 
@@ -37,22 +59,23 @@ internal data class MaskBody(val shape: ActorShape, val isSquare: Boolean) {
  * The collision masks of the generated Actor classes: which class each one is, how it is built, and how the update keeps
  * it in line with the body. A round Actor collides as a circle, which is exact and cheapest, unless it may not be round:
  * one whose type isn't square, or whose size Blocks or Kotlin may make it so, is an oval ([MaskKind.ELLIPSE]) from the
- * start, and one placed stretched in a Scene picks the oval as it is created. A Kubriko without ovals keeps every round
- * Actor a circle, as an oval wouldn't build there.
+ * start, and one placed stretched in a Scene picks the oval as it is created. One that picked the circle stays a circle
+ * as wide as its body if another type's Kotlin stretches it later, which only its own Blocks are watched for.
  */
 internal object CollisionMaskCode {
     const val IMPORT_PREFIX = "com.pandulapeter.kubriko.collision.mask."
     const val COLLISION_MASK = "CollisionMask"
 
     /**
-     * The mask classes an Actor of [body] may have, given whether the project's Kubriko [hasOvalMasks] and whether the
-     * Blocks may make a round Actor oval ([mayBecomeOval]).
+     * The mask classes an Actor of [body] may have in a project whose Kubriko [hasOvalMasks]. One without them keeps a
+     * round Actor a circle, unless a Set the size Block needs the oval anyway (as it needs a resizable box), since those
+     * Blocks need a Kubriko that has it.
      */
-    fun kindsOf(body: MaskBody, hasOvalMasks: Boolean, mayBecomeOval: Boolean): Set<MaskKind> = when (body.shape) {
+    fun kindsOf(body: MaskBody, hasOvalMasks: Boolean): Set<MaskKind> = when (body.shape) {
         ActorShape.RECTANGLE -> setOf(MaskKind.BOX)
         ActorShape.CIRCLE -> when {
-            !hasOvalMasks -> setOf(MaskKind.CIRCLE)
-            mayBecomeOval || !body.isSquare -> setOf(MaskKind.ELLIPSE)
+            !hasOvalMasks && !body.isResizedBySizeBlock -> setOf(MaskKind.CIRCLE)
+            body.isResizedBySizeBlock || body.isResizedByKotlin || !body.isSquare -> setOf(MaskKind.ELLIPSE)
             else -> setOf(MaskKind.CIRCLE, MaskKind.ELLIPSE)
         }
     }
@@ -63,8 +86,20 @@ internal object CollisionMaskCode {
      */
     fun typeOf(kinds: Set<MaskKind>) = kinds.singleOrNull()?.className ?: COLLISION_MASK
 
-    fun importsOf(kinds: Set<MaskKind>) = kinds.filter { it.isImported }.map { IMPORT_PREFIX + it.className } +
-        listOfNotNull((IMPORT_PREFIX + COLLISION_MASK).takeIf { kinds.size > 1 })
+    /**
+     * The imports of the mask classes [kinds] names, which building a mask or checking which one it is needs.
+     */
+    fun classImportsOf(kinds: Set<MaskKind>) = kinds.filter { it.isImported }.map { IMPORT_PREFIX + it.className }
+
+    /**
+     * The import of [typeOf], which declaring a mask needs.
+     */
+    fun typeImportsOf(kinds: Set<MaskKind>) = listOfNotNull(
+        when (val single = kinds.singleOrNull()) {
+            null -> IMPORT_PREFIX + COLLISION_MASK
+            else -> (IMPORT_PREFIX + single.className).takeIf { single.isImported }
+        },
+    )
 
     /**
      * The mask property of a type of its own, built around [center] from its `body`.

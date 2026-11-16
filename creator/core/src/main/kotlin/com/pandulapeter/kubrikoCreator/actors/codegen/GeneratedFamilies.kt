@@ -67,7 +67,7 @@ internal class GeneratedFamilies(
         val features = ActorTypeFeatures(
             events = members.flatMap { family.eventsOf(it.name) },
             scope = rootScope,
-            bodies = members.mapTo(mutableSetOf(), MaskBody::of),
+            bodies = members.mapTo(mutableSetOf()) { MaskBody.of(it, family) },
             hasSprite = members.any { it.sprite?.let(SpriteFiles::accessorOf) != null },
             isAnimated = isAnimated,
             isCollidableAnyway = members.any { it.name in collidableActorTypeNames },
