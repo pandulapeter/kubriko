@@ -13,23 +13,6 @@ Blocks are the heart of the product. Each addition below lands with its command 
 integration test's every-Block types (an Actor type and two Manager types), and is one entry of the Block descriptor (`BlockKind`),
 whose exhaustive `when`s then show every place it needs.
 
-## More for Manager types
-
-- **Font files:** fonts the game bundles (`composeResources/font`), added and named like sprites, so a text looks alike on
-  every platform; the generic families a text has now are drawn in each platform's own faces, and the web has none.
-  - **Files:** `.ttf` and `.otf` right in the game module's `composeResources/font`, a resource kind of their own
-    (`ResourceKind.FONT`, a Fonts group after Sprites) named like sprites (the name makes `Res.font`'s accessor, so
-    accessors may not clash within `font`), added, renamed, and deleted through the resource commands, dropped from Finder,
-    chosen, and pasted like them, with virtual folders as sprites have (a `VirtualFolderStore` both share, fonts' in
-    `.kubriko/fonts`; sprites keep their sheets on top) and `move_font_to_folder`.
-  - **Texts:** a text keeps its generic family and gains `fontFile` (the font's path), drawn in that file while the game
-    has it and in the family otherwise, so a deleted file breaks no build (`Res.allFontResources[accessor]`, as sprites
-    are found). Format raise with an empty migration. The font's renames follow into texts and its delete clears
-    `fontFile` (a usage of its own), as a sprite's clears an Actor type's.
-  - **Generated code:** `Font(resource)` is `@Composable`, so the Manager's UI makes the family in its Composable and
-    keeps the style's `copy` in a `remember` keyed by the loaded font, allocating nothing per frame.
-  - **Editor:** the text's font menu lists the generic families, then the project's font files.
-
 ## Game UI
 
 A Manager's texts on screen suit a score or a lives counter, and its Kotlin UI is the escape hatch for anything else. Game UI grows
@@ -68,4 +51,4 @@ sounds from the audio Blocks). It doubles as the beginner reference project.
 
 ## Order
 
-Manager types first, then UI elements, the Scene editor, Convert to code, and the Paddle game.
+UI elements first, then the Scene editor, Convert to code, and the Paddle game.

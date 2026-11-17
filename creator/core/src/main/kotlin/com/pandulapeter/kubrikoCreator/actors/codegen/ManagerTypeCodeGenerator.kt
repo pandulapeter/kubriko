@@ -92,7 +92,7 @@ public object ManagerTypeCodeGenerator {
         val generatedEvents = startEvents + frameEvents + keys.held + keys.pressed + keys.released + timerEvents + actorEvents
         val timers = (timerEvents.mapNotNull { it.timer } + generatedEvents.flatMap { event -> event.blocks.mapNotNull { it.timerName } }).filter(TimerNaming::isValid).distinct().sorted()
         val blockCode = generatedEvents.fold(BlockCode.NONE) { code, event -> code + eventCode(event.blocks, event.type, scope) }
-        val ui = ManagerUiCode.of(definition, scope)
+        val ui = ManagerUiCode.of(definition, scope, packageName)
         val usedManagers = (blockCode.managers + ui?.managers.orEmpty()).distinct().sorted()
         val runsEveryFrame = timers.isNotEmpty() || frameEvents.any { it.blocks.isNotEmpty() } || watches.isNotEmpty() || keys.holdsKeys
         // Key Events add the Manager to the Scene as an Actor, and onUpdate returns early while the game is paused.

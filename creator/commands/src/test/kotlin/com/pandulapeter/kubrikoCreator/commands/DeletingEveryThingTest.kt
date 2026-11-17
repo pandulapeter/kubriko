@@ -128,14 +128,14 @@ class DeletingEveryThingTest {
     }
 
     @Test
-    fun noSpriteSoundOrMusicIsUsedOnceDeleted() = runTest {
+    fun noSpriteFontSoundOrMusicIsUsedOnceDeleted() = runTest {
         val types = EveryBlockTypes.all
         val paths = types.flatMap { type ->
-            listOfNotNull((type as? ActorTypeDefinition)?.sprite) + type.events.flatMap { event ->
+            listOfNotNull((type as? ActorTypeDefinition)?.sprite) + (type as? ManagerTypeDefinition)?.texts?.mapNotNull { it.fontFile }.orEmpty() + type.events.flatMap { event ->
                 event.blocks.mapNotNull { (it as? BlockDefinition.PlaySound)?.sound?.fixedPath ?: (it as? BlockDefinition.PlayMusic)?.music?.fixedPath }
             }
         }.filter { ResourceKind.of(it) != null && canBeAFile(it) }.distinct()
-        assertTrue(paths.size >= 3, "EveryBlockTypes uses a sprite, a sound, and music.")
+        assertTrue(paths.size >= 4 && EveryBlockTypes.FONT_FILE in paths, "EveryBlockTypes uses a sprite, a font, a sound, and music.")
         paths.forEach { path ->
             val context = commandContext(*types.toTypedArray())
             File(context.project.rootDirectory, "src/commonMain/composeResources/$path").apply { parentFile.mkdirs() }.writeBytes(byteArrayOf(1))
@@ -144,6 +144,7 @@ class DeletingEveryThingTest {
             assertNull(invocation.apply(context).failure)
             context.blockTypes!!.types.value.forEach { type ->
                 assertTrue((type as? ActorTypeDefinition)?.sprite != path, "${type.name} is still drawn as $path.")
+                assertTrue((type as? ManagerTypeDefinition)?.texts.orEmpty().none { it.fontFile == path }, "${type.name} still writes in $path.")
                 type.events.forEach { event ->
                     event.blocks.forEach { block ->
                         assertTrue((block as? BlockDefinition.PlaySound)?.sound?.fixedPath != path && (block as? BlockDefinition.PlayMusic)?.music?.fixedPath != path, "${type.name} still has $block.")

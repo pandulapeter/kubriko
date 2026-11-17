@@ -87,6 +87,11 @@ public enum class RelationKind(
     PLAYS("plays"),
 
     /**
+     * A Manager type's text drawn in a font file, which only [ProjectReferences] reports.
+     */
+    WRITES_IN("writes in"),
+
+    /**
      * A page's image of a sprite, which only [ProjectReferences] reports.
      */
     SHOWS("shows"),

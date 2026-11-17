@@ -17,6 +17,8 @@ import kotlinx.serialization.Serializable
  * A text a Manager type shows on top of the game, drawn by the generated Manager's `Composable`.
  *
  * @param color The text's color as `0xAARRGGBB`, stored as `"#RRGGBB"` ([HexColorSerializer]).
+ * @param fontFile The font file the text is drawn in (its path from `composeResources`, `font/pixel.ttf`), so it looks
+ *   alike on every platform, or null for [font] alone, which is also what draws it while the game has no such file.
  * @param shownWhen What has to be true for the text to show, or null to show it always. Only conditions on Properties
  *   ([isShownWhenAllowed]), which are Compose state, so the text appears and goes the moment they change.
  */
@@ -33,6 +35,8 @@ public data class ScreenTextDefinition(
     @SerialName("color") @Serializable(with = HexColorSerializer::class) val color: Long = 0xFF202020,
     @Description("Its letters' family.")
     @SerialName("font") val font: TextFont = TextFont.DEFAULT,
+    @Description("A font file to draw it in alike on every platform (font/pixel.ttf), its family meanwhile; left out for the family.")
+    @SerialName("fontFile") val fontFile: String? = null,
     @Description("Whether its letters are bold.")
     @SerialName("isBold") val isBold: Boolean = false,
     @Description("Whether its letters are italic.")

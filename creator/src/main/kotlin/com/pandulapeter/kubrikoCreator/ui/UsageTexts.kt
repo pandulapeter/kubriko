@@ -31,6 +31,7 @@ import kubriko.creator.generated.resources.usage_effect_block_removed
 import kubriko.creator.generated.resources.usage_effect_condition_dropped
 import kubriko.creator.generated.resources.usage_effect_deleted_with_folder
 import kubriko.creator.generated.resources.usage_effect_event_removed
+import kubriko.creator.generated.resources.usage_effect_font_cleared
 import kubriko.creator.generated.resources.usage_effect_image_copied
 import kubriko.creator.generated.resources.usage_effect_kotlin_to_change
 import kubriko.creator.generated.resources.usage_effect_mention_to_text
@@ -124,6 +125,7 @@ internal fun UsageEffect.text() = stringResource(
         UsageEffect.MENTION_TO_TEXT -> Res.string.usage_effect_mention_to_text
         UsageEffect.PREVENTS_DELETING -> Res.string.usage_effect_prevents_deleting
         UsageEffect.SPRITE_CLEARED -> Res.string.usage_effect_sprite_cleared
+        UsageEffect.FONT_CLEARED -> Res.string.usage_effect_font_cleared
         UsageEffect.MUSIC_CLEARED -> Res.string.usage_effect_music_cleared
         UsageEffect.IMAGE_COPIED -> Res.string.usage_effect_image_copied
         UsageEffect.DELETED_WITH_FOLDER -> Res.string.usage_effect_deleted_with_folder

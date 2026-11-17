@@ -72,6 +72,8 @@ class ProjectTemplateIntegrationTest {
                         directory.resolve("src/commonMain/composeResources/drawable/every-block.png").apply { parentFile.mkdirs() }.let { image ->
                             ImageIO.write(BufferedImage(32, 16, BufferedImage.TYPE_INT_ARGB), "png", image)
                         }
+                        // Only built, never drawn, so the font file needs only to be one by its name and signature.
+                        directory.resolve("src/commonMain/composeResources/${EveryBlockTypes.FONT_FILE}").apply { parentFile.mkdirs() }.writeBytes(byteArrayOf(0, 1, 0, 0))
                         val sprites = SpriteFolderStore(directory, OwnWrites())
                         EveryBlockTypes.spriteSheets.forEach { (name, sheet) -> sprites.setSheet(name, sheet) }
                         EveryBlockTypes.all.forEach(store::save)

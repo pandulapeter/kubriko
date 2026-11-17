@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.context
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.FontFiles
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
@@ -19,8 +20,9 @@ import com.pandulapeter.kubrikoCreator.actors.fixedPath
 import com.pandulapeter.kubrikoCreator.screenplay.PageLinks
 
 /**
- * The usages of the sprite, sound, or music file [subject] in Kubriko Creator's model ([ProjectReferences.usagesOf]):
- * the Actor types drawn as it, the types whose sound or music Properties start as it, the Blocks playing it, the Scenes
+ * The usages of the sprite, font, sound, or music file [subject] in Kubriko Creator's model ([ProjectReferences.usagesOf]):
+ * the Actor types drawn as it, the Manager types' texts drawn in it, the types whose sound or music Properties start as
+ * it, the Blocks playing it, the Scenes
  * playing it as their music ([sceneMusic], by the Scene's name), and the Kotlin Blocks and Kotlin UI naming it, which are
  * left as they are.
  */
@@ -43,6 +45,9 @@ internal fun resourceUsagesOf(subject: RelationSubject.Resource, types: List<Blo
                 }
             }
         }
+        (type as? ManagerTypeDefinition)?.texts?.forEachIndexed { textIndex, text ->
+            if (text.fontFile == subject.path) add(Usage(UsagePlace.InModel(RelationPlace.Text(type.name, textIndex)), RelationKind.WRITES_IN, subject, UsageEffect.FONT_CLEARED))
+        }
         if ((type as? ManagerTypeDefinition)?.kotlinUi?.let(isNaming) == true) {
             add(Usage(UsagePlace.InModel(RelationPlace.KotlinUi(type.name)), RelationKind.NAMES_IN_KOTLIN, subject, UsageEffect.KOTLIN_TO_CHANGE))
         }
@@ -53,14 +58,17 @@ internal fun resourceUsagesOf(subject: RelationSubject.Resource, types: List<Blo
 }
 
 /**
- * Whether Kotlin code names the sprite, sound, or music file [subject]: a sprite by its resource accessor
- * (`Res.drawable.ball`), a sound or music by its path in a string (`"files/sounds/hit.wav"`), as the game's code reads them.
+ * Whether Kotlin code names the sprite, font, sound, or music file [subject]: a sprite or a font by its resource accessor
+ * (`Res.drawable.ball`, `Res.font.pixel`), a sound or music by its path in a string (`"files/sounds/hit.wav"`), as the
+ * game's code reads them.
  */
 internal fun resourceNaming(subject: RelationSubject.Resource): (String) -> Boolean {
-    val accessor = SpriteFiles.accessorOf(subject.path)
-    return if (accessor != null) {
-        Regex("\\bdrawable\\s*\\.\\s*" + Regex.escape(accessor) + "\\b")::containsMatchIn
-    } else {
+    val spriteAccessor = SpriteFiles.accessorOf(subject.path)
+    val fontAccessor = FontFiles.accessorOf(subject.path)
+    return when {
+        spriteAccessor != null -> Regex("\\bdrawable\\s*\\.\\s*" + Regex.escape(spriteAccessor) + "\\b")::containsMatchIn
+        fontAccessor != null -> Regex("\\bfont\\s*\\.\\s*" + Regex.escape(fontAccessor) + "\\b")::containsMatchIn
+        else ->
         "\"${subject.path}\"".let { quoted -> { text -> quoted in text } }
     }
 }

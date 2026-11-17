@@ -57,6 +57,7 @@ internal object TypeNotation {
         append(ScreenPosition.serializer().descriptor.getElementName(text.position.ordinal))
         append(", ${BlockNotation.number(text.size)}, ${ColorHex.format(text.color)}")
         if (text.font != TextFont.DEFAULT) append(", ${TextFont.serializer().descriptor.getElementName(text.font.ordinal)}")
+        text.fontFile?.let { append(", in $it") }
         if (text.isBold) append(", bold")
         if (text.isItalic) append(", italic")
         append(")")

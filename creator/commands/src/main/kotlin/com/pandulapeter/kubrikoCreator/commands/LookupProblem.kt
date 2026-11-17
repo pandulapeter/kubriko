@@ -60,6 +60,8 @@ public enum class LookupProblem(override val english: String) : DomainText {
     SOUND_MISSING_SIMILAR("There's no sound at %1\$s. Close matches: %2\$s."),
     SPRITE_MISSING("There's no sprite at %1\$s. Sprites are .png, .jpg, or .webp images right in the drawable folder of composeResources."),
     SPRITE_MISSING_SIMILAR("There's no sprite at %1\$s. Close matches: %2\$s."),
+    FONT_MISSING("There's no font at %1\$s. Fonts are .ttf or .otf files right in the font folder of composeResources."),
+    FONT_MISSING_SIMILAR("There's no font at %1\$s. Close matches: %2\$s."),
     TEXT_MISSING("%1\$s has no text %2\$s. Its texts are numbered 0 to %3\$s."),
     TEXT_MISSING_NONE("%1\$s has no texts yet, so none at index %2\$s."),
     TIMER_UNKNOWN("%1\$s has no Timer called %2\$s."),

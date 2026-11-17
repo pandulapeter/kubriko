@@ -122,7 +122,7 @@ internal class ProjectReferences(
             RelationKind.ADDS, RelationKind.MOVES_TOWARDS, RelationKind.GOES_TO, RelationKind.CHANGES -> usage(UsageEffect.BLOCK_REMOVED)
             RelationKind.STARTS_WITH -> usage(UsageEffect.PREVENTS_DELETING)
             RelationKind.MENTIONS -> usage(UsageEffect.MENTION_TO_TEXT)
-            RelationKind.DRAWN_AS, RelationKind.PLAYS, RelationKind.SHOWS, RelationKind.USES_TIMER, RelationKind.IS_IN, RelationKind.SAVES_REFERENCE_TO -> error("${relation.kind} is found apart from the relations, never among them.")
+            RelationKind.DRAWN_AS, RelationKind.WRITES_IN, RelationKind.PLAYS, RelationKind.SHOWS, RelationKind.USES_TIMER, RelationKind.IS_IN, RelationKind.SAVES_REFERENCE_TO -> error("${relation.kind} is found apart from the relations, never among them.")
             RelationKind.READS -> when (val block = blockAt(relation.place)) {
                 is BlockDefinition.If -> conditionUsage(relation.place, relation.subject, ::usage)
                 null, is BlockDefinition.Log -> if ((relation.place as? RelationPlace.Text)?.isCondition == true) conditionUsage(relation.place, relation.subject, ::usage) else usage(UsageEffect.PLACEHOLDER_TO_TEXT)

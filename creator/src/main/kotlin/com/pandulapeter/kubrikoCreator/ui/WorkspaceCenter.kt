@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.FontFiles
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.commands.ActorsBroughtBack
@@ -138,6 +139,7 @@ internal fun WorkspaceCenter(
             sceneNames = sceneNames,
             audioFiles = audioFiles,
             sprites = remember(resources, sprites.sheets) { SpriteChoices(SpriteFiles.of(resources), sprites.sheets) },
+            fonts = remember(resources) { FontFiles.of(resources).paths },
             isChangedByHand = selectedBlockType.name in changedByHand,
             onCommand = onCommand,
             currentBlockType = currentBlockType,
@@ -256,6 +258,7 @@ private fun TypeEditorOf(
     sceneNames: List<String>,
     audioFiles: AudioFiles?,
     sprites: SpriteChoices,
+    fonts: List<String>,
     isChangedByHand: Boolean,
     onCommand: (Invocation<*>, onSuccess: () -> Unit) -> Unit,
     currentBlockType: (name: String) -> BlockTypeDefinition?,
@@ -271,6 +274,7 @@ private fun TypeEditorOf(
         definition = definition,
         scope = context.scope,
         sprites = sprites,
+        fonts = fonts,
         inheritance = context.inheritance,
         isChangedByHand = isChangedByHand,
         onCommand = onCommand,

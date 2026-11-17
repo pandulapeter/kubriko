@@ -23,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.ConditionKind
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.FontFiles
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.NumberLimits
@@ -312,7 +313,7 @@ internal fun CommandContext.validateContents(definition: BlockTypeDefinition): R
             validateProperty(definition.properties[index], definition.properties.take(index), definition.kind, scope.actorTypeNames, scope.managerTypes.map { it.name }, audioFiles = scope.audioFiles)
         }
         ?: definition.events.firstNotNullOfOrNull { validateEvent(it, scope) }
-        ?: (definition as? ManagerTypeDefinition)?.texts?.firstNotNullOfOrNull { validateText(it, scope) }
+        ?: (definition as? ManagerTypeDefinition)?.texts?.firstNotNullOfOrNull { validateText(it, scope) ?: it.fontFile?.let(::validateFont) }
 }
 
 /**
@@ -345,6 +346,18 @@ internal fun CommandContext.validateSprite(sprite: String): Rejection? {
 }
 
 /**
+ * Why a text can't be drawn in [font]: it isn't a font file of the project.
+ */
+internal fun CommandContext.validateFont(font: String): Rejection? {
+    val files = fontFiles()
+    return if (FontFiles.accessorOf(font) == null || files?.files?.containsKey(font) == false) {
+        SimilarNames.rejection(LookupProblem.FONT_MISSING, LookupProblem.FONT_MISSING_SIMILAR, font, files?.paths.orEmpty(), font)
+    } else {
+        null
+    }
+}
+
+/**
  * Why [text] can't be one of the texts of the Manager type [scope] is about: a size that isn't above 0, or a condition a
  * text can't follow or that names a Property or a Manager type that doesn't exist (one left unchosen is allowed, as in an
  * if Block).
@@ -361,7 +374,7 @@ internal fun validateText(text: ScreenTextDefinition, scope: BlockScope) = when 
  * Why [text] can't be one of the texts of the Manager type [managerType], which exists.
  */
 internal fun CommandContext.validateText(managerType: String, text: ScreenTextDefinition) =
-    validateText(text, BlockScope.of(requireManagerType(managerType), requireBlockTypes.types.value, scenes.names(), audioFiles()))
+    validateText(text, BlockScope.of(requireManagerType(managerType), requireBlockTypes.types.value, scenes.names(), audioFiles())) ?: text.fontFile?.let(::validateFont)
 
 /**
  * Whether every number [this] Block takes is finite and, where a field allows only some, within them. A Property's value

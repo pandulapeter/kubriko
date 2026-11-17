@@ -62,6 +62,7 @@ public enum class UsageEffect(
     KOTLIN_TO_CHANGE("left as it is, so the build fails until it is changed"),
     MENTION_TO_TEXT("the mention becomes plain text"),
     SPRITE_CLEARED("its Actors are drawn as its shape"),
+    FONT_CLEARED("the text is drawn in its family of letters"),
     MUSIC_CLEARED("the Scene plays no music"),
 
     /**

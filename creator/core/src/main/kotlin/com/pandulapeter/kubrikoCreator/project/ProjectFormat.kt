@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.store.ColorPropertiesMigration
 import com.pandulapeter.kubrikoCreator.actors.store.CombinedConditionsMigration
 import com.pandulapeter.kubrikoCreator.actors.store.DistanceConditionMigration
 import com.pandulapeter.kubrikoCreator.actors.store.EdgeValuesMigration
+import com.pandulapeter.kubrikoCreator.actors.store.FontFilesMigration
 import com.pandulapeter.kubrikoCreator.actors.store.KotlinBlockImportsMigration
 import com.pandulapeter.kubrikoCreator.actors.store.ManagerFieldMigration
 import com.pandulapeter.kubrikoCreator.actors.store.MoreEventsMigration
@@ -122,6 +123,7 @@ public class ProjectFormat(
             AudioPropertiesMigration,
             CameraMigration,
             SizeAndScaleMigration,
+            FontFilesMigration,
         )
 
         /**

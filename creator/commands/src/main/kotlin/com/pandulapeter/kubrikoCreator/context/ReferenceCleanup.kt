@@ -101,13 +101,14 @@ internal class ReferenceCleanup(
                             if (condition == null) removal.removeSection(place.name, eventIndex, blockIndex) else removal.conditions[eventIndex to blockIndex] = condition
                         }
                         UsageEffect.PLACEHOLDER_TO_TEXT, UsageEffect.VALUE_TO_FIXED, UsageEffect.ACTORS_REMOVED, UsageEffect.SCENE_VALUES_REMOVED, UsageEffect.STARTING_VALUE_CLEARED, UsageEffect.SAVED_REFERENCE_CLEARED, UsageEffect.TEXT_REMOVED, UsageEffect.KOTLIN_TO_CHANGE, UsageEffect.PREVENTS_DELETING, UsageEffect.MENTION_TO_TEXT,
-                        UsageEffect.SPRITE_CLEARED, UsageEffect.MUSIC_CLEARED, UsageEffect.IMAGE_COPIED, UsageEffect.DELETED_WITH_FOLDER,
+                        UsageEffect.SPRITE_CLEARED, UsageEffect.FONT_CLEARED, UsageEffect.MUSIC_CLEARED, UsageEffect.IMAGE_COPIED, UsageEffect.DELETED_WITH_FOLDER,
                         -> Unit
                     }
                 }
                 is RelationPlace.Text -> when (usage.effect) {
                     UsageEffect.PLACEHOLDER_TO_TEXT -> removal.texts += place.textIndex
                     UsageEffect.TEXT_REMOVED -> removal.removedTexts += place.textIndex
+                    UsageEffect.FONT_CLEARED -> removal.clearedFonts += place.textIndex
                     UsageEffect.CONDITION_DROPPED -> {
                         val text = (types.first { it.name == place.manager } as ManagerTypeDefinition).texts[place.textIndex]
                         val condition = relations.conditionWithout(checkNotNull(text.shownWhen), place.manager, deleted.properties, deleted.types)
@@ -161,6 +162,7 @@ internal class ReferenceCleanup(
                     text.copy(
                         text = if (index in removal.texts) PropertyPlaceholders.withPlaceholdersAsText(text.text, ::isDeleted) else text.text,
                         shownWhen = (removal.textConditions[index] ?: text.shownWhen)?.withValues(fixing),
+                        fontFile = text.fontFile.takeIf { index !in removal.clearedFonts },
                     )
                 },
             )
@@ -247,6 +249,11 @@ internal class ReferenceCleanup(
         val conditions = HashMap<Pair<Int, Int>, ConditionDefinition>()
         val texts = HashSet<Int>()
         val removedTexts = HashSet<Int>()
+
+        /**
+         * The texts whose font file is deleted, which are drawn in their family instead.
+         */
+        val clearedFonts = HashSet<Int>()
         val textConditions = HashMap<Int, ConditionDefinition>()
         var clearsSprite = false
         var clearsStartingValues = false

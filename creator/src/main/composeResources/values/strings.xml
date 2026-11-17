@@ -532,6 +532,7 @@
     <string name="actor_type_inherited_property">%1$s (%2$s, from the parent)</string>
     <string name="action_override_event">Replace with an Event of its own</string>
     <string name="actor_type_sprite_none">None: draw the shape</string>
+    <string name="manager_type_text_fonts_empty">Put .ttf or .otf files right in the font folder of composeResources to draw texts alike on every platform.</string>
     <string name="actor_type_sprites_empty">Put .png images right in the drawable folder of composeResources to draw Actors as sprites.</string>
     <string name="actor_type_collision_shape">Collision shape</string>
     <string name="actor_type_sprite_frames">Frames…</string>
@@ -874,6 +875,8 @@
     <string name="error_command_sound_missing_similar">There's no sound at %1$s. Close matches: %2$s.</string>
     <string name="error_command_sprite_missing">There's no sprite at %1$s. Sprites are .png, .jpg, or .webp images right in the drawable folder of composeResources.</string>
     <string name="error_command_sprite_missing_similar">There's no sprite at %1$s. Close matches: %2$s.</string>
+    <string name="error_command_font_missing">There's no font at %1$s. Fonts are .ttf or .otf files right in the font folder of composeResources.</string>
+    <string name="error_command_font_missing_similar">There's no font at %1$s. Close matches: %2$s.</string>
     <string name="error_command_music_missing">There's no music at %1$s. Music is an .mp3 or .ogg file in the files folder of composeResources.</string>
     <string name="error_command_music_missing_similar">There's no music at %1$s. Close matches: %2$s.</string>
     <string name="error_command_scene_invalid">%1$s isn't a valid Scene file.</string>
@@ -1288,6 +1291,7 @@
     <string name="game_map_mentions">Mentions %1$s</string>
     <string name="game_map_uses_timer">Uses %1$s</string>
     <string name="game_map_drawn_as">Is drawn as %1$s</string>
+    <string name="game_map_writes_in">Writes in %1$s</string>
     <string name="game_map_plays">Plays %1$s</string>
     <string name="game_map_shows">Shows %1$s</string>
     <string name="game_map_is_in">Is in %1$s</string>
@@ -1327,6 +1331,7 @@
     <string name="usage_effect_mention_to_text">The mention becomes plain text</string>
     <string name="usage_effect_prevents_deleting">Keeps it from being deleted</string>
     <string name="usage_effect_sprite_cleared">Its Actors are drawn as its shape</string>
+    <string name="usage_effect_font_cleared">The text is drawn in its family of letters</string>
     <string name="usage_effect_music_cleared">The Scene plays no music</string>
     <string name="usage_effect_image_copied">The page shows a copy of the image, kept next to it</string>
     <string name="usage_effect_deleted_with_folder">Deleted with the folder</string>

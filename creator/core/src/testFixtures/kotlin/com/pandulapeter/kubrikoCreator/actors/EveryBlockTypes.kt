@@ -18,6 +18,12 @@ import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 public object EveryBlockTypes {
 
     /**
+     * The font file a text of the Manager types is drawn in, which every project using these types needs for it to look
+     * as meant (the game still builds and draws the text without it).
+     */
+    const val FONT_FILE = "font/every-block.ttf"
+
+    /**
      * The color Property every type has, which format version 14 added.
      */
     val colorProperty: PropertyDefinition = PropertyDefinition.Color("tint", 0x803366CC)
@@ -442,6 +448,11 @@ public object EveryBlockTypes {
     )
 
     /**
+     * A text drawn in a font file of the game, falling back on a generic family while the game has no such file.
+     */
+    val fontFileText = ScreenTextDefinition("Pixel", ScreenPosition.TOP, size = 32f, font = TextFont.MONOSPACE, isBold = true, fontFile = FONT_FILE)
+
+    /**
      * Uses its own Properties both by themselves and by its own name.
      */
     val everyManager = ManagerTypeDefinition(
@@ -455,7 +466,7 @@ public object EveryBlockTypes {
         name = "Hud",
         properties = properties,
         events = everyEvent(everyManagerBlock),
-        texts = listOf(ScreenTextDefinition("{EveryManager.score} / {score}"), ScreenTextDefinition()) + textOptionTexts + combinedConditionText + textAndToggleValueText,
+        texts = listOf(ScreenTextDefinition("{EveryManager.score} / {score}"), ScreenTextDefinition()) + textOptionTexts + combinedConditionText + textAndToggleValueText + fontFileText,
         kotlinUi = """
             import androidx.compose.foundation.layout.Column
             import androidx.compose.foundation.layout.windowInsetsPadding

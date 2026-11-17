@@ -36,6 +36,7 @@ import kubriko.creator.generated.resources.game_map_shows
 import kubriko.creator.generated.resources.game_map_starts_as
 import kubriko.creator.generated.resources.game_map_starts_with
 import kubriko.creator.generated.resources.game_map_uses_timer
+import kubriko.creator.generated.resources.game_map_writes_in
 
 /**
  * The lines of the digest about each type, by the type.
@@ -67,6 +68,7 @@ internal val RelationKind.label
         RelationKind.MENTIONS -> Res.string.game_map_mentions
         RelationKind.USES_TIMER -> Res.string.game_map_uses_timer
         RelationKind.DRAWN_AS -> Res.string.game_map_drawn_as
+        RelationKind.WRITES_IN -> Res.string.game_map_writes_in
         RelationKind.PLAYS -> Res.string.game_map_plays
         RelationKind.SHOWS -> Res.string.game_map_shows
         RelationKind.IS_IN -> Res.string.game_map_is_in

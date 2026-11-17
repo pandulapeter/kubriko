@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.FontFiles
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
@@ -35,12 +36,14 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
+import com.pandulapeter.kubrikoCreator.commands.resources.DeleteResource
 import com.pandulapeter.kubrikoCreator.context.ReadDetail
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -158,5 +161,20 @@ class ManagerTypeCommandsTest {
         assertNull(read["isChangedByHand"])
         val json = assertIs<CommandOutcome.Success>(ReadManagerType.read(context, ReadManagerType.Input("Game", detail = ReadDetail.JSON))).result as JsonObject
         assertEquals("Score: {score}", (json.getValue("texts") as JsonArray).single().jsonObject.getValue("text").jsonPrimitive.content)
+    }
+
+    @Test
+    fun aTextIsDrawnOnlyInAFontFileOfTheProjectWhichItLosesWithTheFile() = runTest {
+        val context = commandContext(brick, game, fontFiles = FontFiles(mapOf("font/pixel.ttf" to File("pixel.ttf"))))
+        val pixel = ScreenTextDefinition("Lives", fontFile = "font/pixel.ttf")
+        assertNull(Invocation(AddText, AddText.Input("Game", pixel)).validate(context))
+        assertEquals(Rejection(LookupProblem.FONT_MISSING_SIMILAR, "font/pixels.ttf", "font/pixel.ttf"), Invocation(AddText, AddText.Input("Game", pixel.copy(fontFile = "font/pixels.ttf"))).validate(context))
+        assertEquals(Rejection(LookupProblem.FONT_MISSING, "drawable/ball.png"), Invocation(AddText, AddText.Input("Game", pixel.copy(fontFile = "drawable/ball.png"))).validate(context))
+        AddText.apply(context, AddText.Input("Game", pixel))
+        val read = assertIs<CommandOutcome.Success>(ReadManagerType.read(context, ReadManagerType.Input("Game"))).result as JsonObject
+        assertEquals("1 \"Lives\" (topLeft, 24, #202020, in font/pixel.ttf)", (read.getValue("texts") as JsonArray).last().jsonPrimitive.content)
+        File(context.project.rootDirectory, "src/commonMain/composeResources/font/pixel.ttf").apply { parentFile.mkdirs() }.writeBytes(byteArrayOf(0, 1, 0, 0))
+        val deleted = context.assertRoundTrip(Invocation(DeleteResource, DeleteResource.Input("font/pixel.ttf"))) { context.game()!!.texts }
+        assertEquals(listOf(null, null), deleted.map { it.fontFile })
     }
 }

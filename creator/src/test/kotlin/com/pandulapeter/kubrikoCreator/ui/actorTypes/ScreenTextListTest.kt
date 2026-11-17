@@ -45,6 +45,7 @@ class ScreenTextListTest {
             ScreenTextList(
                 texts = listOf(text),
                 scope = scope,
+                fonts = emptyList(),
                 onAdded = {},
                 onChanged = { _, changed -> text = changed },
                 onRemoved = {},
@@ -77,6 +78,7 @@ class ScreenTextListTest {
             ScreenTextList(
                 texts = texts,
                 scope = scope,
+                fonts = emptyList(),
                 onAdded = {},
                 onChanged = { index, text -> texts = texts.toMutableList().also { it[index] = text } },
                 onRemoved = { index -> texts = texts.filterIndexed { other, _ -> other != index } },
@@ -96,5 +98,33 @@ class ScreenTextListTest {
         typedField.performTextReplacement("B3")
         waitForIdle()
         assertEquals(listOf("B3", "C"), texts.map { it.text })
+    }
+
+    @Test
+    fun aTextIsDrawnInAFontFileKeepingItsFamilyAndOneTheGameLostShowsAsMissing() = uiTest {
+        var text by mutableStateOf(ScreenTextDefinition(text = "Lives", font = TextFont.SERIF))
+        var fonts by mutableStateOf(listOf("font/pixel.ttf"))
+        showing {
+            ScreenTextList(
+                texts = listOf(text),
+                scope = scope,
+                fonts = fonts,
+                onAdded = {},
+                onChanged = { _, changed -> text = changed },
+                onRemoved = {},
+            )
+        }
+        onNodeWithText("Serif").performClick()
+        onNodeWithText("pixel").performClick()
+        waitForIdle()
+        assertEquals(ScreenTextDefinition(text = "Lives", font = TextFont.SERIF, fontFile = "font/pixel.ttf"), text)
+        saveSnapshot("screen-text-font-file")
+        fonts = emptyList()
+        waitForIdle()
+        onNodeWithText("pixel", substring = true).assertExists()
+        onNodeWithText("pixel", substring = true).performClick()
+        onNodeWithText("Monospace").performClick()
+        waitForIdle()
+        assertEquals(ScreenTextDefinition(text = "Lives", font = TextFont.MONOSPACE), text)
     }
 }

@@ -29,7 +29,6 @@ import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
-import com.pandulapeter.kubrikoCreator.actors.TextFont
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
 import com.pandulapeter.kubrikoCreator.ui.components.ColorField
@@ -39,6 +38,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
+import com.pandulapeter.kubrikoCreator.ui.components.SearchableChoiceButton
 import com.pandulapeter.kubrikoCreator.ui.components.hoverReveal
 import com.pandulapeter.kubrikoCreator.ui.components.rememberHoverRevealState
 import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
@@ -51,6 +51,7 @@ import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_text
 import kubriko.creator.generated.resources.manager_type_text
+import kubriko.creator.generated.resources.manager_type_text_fonts_empty
 import kubriko.creator.generated.resources.manager_type_text_shown_always
 import kubriko.creator.generated.resources.manager_type_text_shown_while
 import kubriko.creator.generated.resources.manager_type_text_size
@@ -60,12 +61,13 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * The texts a Manager type shows on top of the game, each with its words (which may show Properties), place, size,
- * and color.
+ * font (a family, or one of the game's [fonts], by their paths from `composeResources`), and color.
  */
 @Composable
 internal fun ScreenTextList(
     texts: List<ScreenTextDefinition>,
     scope: BlockScope,
+    fonts: List<String>,
     onAdded: () -> Unit,
     onChanged: (index: Int, ScreenTextDefinition) -> Unit,
     onRemoved: (index: Int) -> Unit,
@@ -102,6 +104,7 @@ internal fun ScreenTextList(
                 ScreenTextRow(
                     text = text,
                     scope = scope,
+                    fonts = fonts,
                     onChange = { onChanged(index, it) },
                     onRemove = { onRemoved(index) },
                 )
@@ -142,11 +145,34 @@ private fun ScreenTextVisibility(
     }
 }
 
+/**
+ * The font [text] is drawn in, chosen among the families and the game's [fonts]; a font file the game no longer has
+ * shows as missing.
+ */
+@Composable
+private fun TextFontChoice(
+    text: ScreenTextDefinition,
+    fonts: List<String>,
+    onChange: (ScreenTextDefinition) -> Unit,
+) {
+    val isMissing = text.fontFile?.let { it !in fonts } == true
+    val choice = FontChoice.of(text)
+    SearchableChoiceButton(
+        label = if (isMissing) missingChoiceLabel(choice.title()) else choice.title(),
+        options = FontChoice.choicesOf(fonts),
+        optionText = { it.title() },
+        onSelected = { onChange(text.withFont(it)) },
+        isMissing = isMissing,
+        hint = stringResource(Res.string.manager_type_text_fonts_empty).takeIf { fonts.isEmpty() },
+    )
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ScreenTextRow(
     text: ScreenTextDefinition,
     scope: BlockScope,
+    fonts: List<String>,
     onChange: (ScreenTextDefinition) -> Unit,
     onRemove: () -> Unit,
 ) {
@@ -188,12 +214,7 @@ private fun ScreenTextRow(
                 value = text.size,
                 onValueChange = { if (it > 0f) onChange(text.copy(size = it)) },
             )
-            MenuButton(
-                label = stringResource(text.font.title),
-                options = TextFont.entries,
-                optionText = { stringResource(it.title) },
-                onSelected = { onChange(text.copy(font = it)) },
-            )
+            TextFontChoice(text = text, fonts = fonts, onChange = onChange)
             MenuButton(
                 label = stringResource(TextStyleChoice.of(text).title),
                 options = TextStyleChoice.entries,

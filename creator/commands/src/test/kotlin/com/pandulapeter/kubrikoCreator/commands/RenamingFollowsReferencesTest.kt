@@ -65,6 +65,7 @@ class RenamingFollowsReferencesTest {
     private val propertyKinds = setOf(RelationKind.READS, RelationKind.READS_VALUE, RelationKind.CHANGES)
     private val pageKinds = setOf(RelationKind.MENTIONS)
     private val spriteKinds = setOf(RelationKind.DRAWN_AS, RelationKind.SHOWS, RelationKind.NAMES_IN_KOTLIN, RelationKind.MENTIONS)
+    private val fontKinds = setOf(RelationKind.WRITES_IN, RelationKind.NAMES_IN_KOTLIN, RelationKind.MENTIONS)
     private val audioKinds = setOf(RelationKind.PLAYS, RelationKind.STARTS_AS, RelationKind.SAVES_REFERENCE_TO, RelationKind.NAMES_IN_KOTLIN, RelationKind.MENTIONS)
     private val timerKinds = setOf(RelationKind.USES_TIMER, RelationKind.NAMES_IN_KOTLIN)
 
@@ -76,7 +77,7 @@ class RenamingFollowsReferencesTest {
 
     @Test
     fun everyKindOfReferenceIsCoveredByARename() {
-        assertEquals(RelationKind.entries.toSet(), actorTypeKinds + managerTypeKinds + sceneKinds + propertyKinds + pageKinds + spriteKinds + audioKinds + timerKinds + folderKinds)
+        assertEquals(RelationKind.entries.toSet(), actorTypeKinds + managerTypeKinds + sceneKinds + propertyKinds + pageKinds + spriteKinds + fontKinds + audioKinds + timerKinds + folderKinds)
     }
 
     private fun CommandContext.writeFile(path: String, text: String) = File(project.rootDirectory, path).apply { parentFile.mkdirs() }.writeText(text)
@@ -218,6 +219,18 @@ class RenamingFollowsReferencesTest {
         CreatePage.apply(context, CreatePage.Input("README", "# Game\n\n![The ball](../src/commonMain/composeResources/drawable/ball.png)\n\nA [ball](../src/commonMain/composeResources/drawable/ball.png).\n"))
         context.assertFollowed(RelationSubject.Resource("drawable/ball.png"), RelationSubject.Resource("drawable/orb.png"), spriteKinds) {
             RenameResource.apply(context, RenameResource.Input("drawable/ball.png", "drawable/orb.png"))
+        }
+    }
+
+    @Test
+    fun renamingAFontFollowsEveryReferenceToIt() = runTest {
+        val hud = ManagerTypeDefinition(name = "Hud", texts = listOf(ScreenTextDefinition("Score"), ScreenTextDefinition("Lives", fontFile = "font/pixel.ttf")))
+        val context = commandContext(hud)
+        File(context.project.rootDirectory, "src/commonMain/composeResources/font/pixel.ttf").apply { parentFile.mkdirs() }.writeBytes(byteArrayOf(0, 1, 0, 0))
+        context.writeFile("src/commonMain/kotlin/Game.kt", "val pixel = Res.font.pixel")
+        CreatePage.apply(context, CreatePage.Input("README", "# Game\n\nThe score is in [pixel](../src/commonMain/composeResources/font/pixel.ttf).\n"))
+        context.assertFollowed(RelationSubject.Resource("font/pixel.ttf"), RelationSubject.Resource("font/blocky.ttf"), fontKinds) {
+            RenameResource.apply(context, RenameResource.Input("font/pixel.ttf", "font/blocky.ttf"))
         }
     }
 

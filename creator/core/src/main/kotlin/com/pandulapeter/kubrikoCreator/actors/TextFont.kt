@@ -16,8 +16,8 @@ import kotlinx.serialization.Serializable
 /**
  * The family of letters a Manager type's text is drawn in, with the Compose `FontFamily` it becomes: Compose's generic
  * families, which each platform maps to faces of its own, so they look different from one platform to the next, and the
- * web, which has no system fonts, may draw them all in its default one. Font files the game bundles are planned for a text
- * that has to look alike everywhere.
+ * web, which has no system fonts, may draw them all in its default one. A text that has to look alike everywhere is drawn
+ * in a font file the game bundles ([ScreenTextDefinition.fontFile]) instead.
  */
 @Serializable
 @Description("A generic family of letters, which each platform draws in a face of its own.")

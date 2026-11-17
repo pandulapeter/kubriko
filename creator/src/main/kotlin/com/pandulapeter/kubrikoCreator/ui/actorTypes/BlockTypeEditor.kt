@@ -61,6 +61,7 @@ import org.jetbrains.compose.resources.stringResource
  *
  * @param scope What its Blocks can refer to.
  * @param sprites The images an Actor type can be drawn as.
+ * @param fonts The font files a Manager type's texts can be drawn in, by their paths from `composeResources`.
  * @param inheritance What an Actor type gets from its parent, and the parents it can have.
  * @param onCommandIfValid Applies a command unless it is rejected, returning why it was: how renames are made.
  * @param currentDefinition The type as it is now, which an add that succeeded reads to find the Event it made, since
@@ -74,6 +75,7 @@ internal fun BlockTypeEditor(
     scope: BlockScope,
     sprites: SpriteChoices,
     inheritance: Inheritance,
+    fonts: List<String> = emptyList(),
     isChangedByHand: Boolean,
     onCommand: (Invocation<*>, onSuccess: () -> Unit) -> Unit,
     currentDefinition: () -> BlockTypeDefinition?,
@@ -124,6 +126,7 @@ internal fun BlockTypeEditor(
                         definition = definition,
                         scope = scope,
                         sprites = sprites,
+                        fonts = fonts,
                         propertyKeys = propertyKeys,
                         inheritedProperties = inheritance.properties,
                         inheritedPropertyOwners = inheritance.propertyOwners,
@@ -290,6 +293,7 @@ private fun PropertiesColumn(
     definition: BlockTypeDefinition,
     scope: BlockScope,
     sprites: SpriteChoices,
+    fonts: List<String>,
     propertyKeys: List<Long>,
     inheritedProperties: List<PropertyDefinition>,
     inheritedPropertyOwners: Map<String, String>,
@@ -339,6 +343,7 @@ private fun PropertiesColumn(
                 ScreenTextList(
                     texts = definition.texts,
                     scope = scope,
+                    fonts = fonts,
                     onAdded = actions::addText,
                     onChanged = actions::editText,
                     onRemoved = actions::removeText,

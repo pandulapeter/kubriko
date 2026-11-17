@@ -111,7 +111,10 @@
   edge or a count isn't state. Deleting what such a condition checks removes the text, as it removes an if Block with its
   section, unless the condition is an or still meaning something without it, which drops only that part
   (`ConditionDefinition.without`). The font classes are named in full rather than imported, like `Scale`, since reserving
-  their names would need a migration renaming types.
+  their names would need a migration renaming types. A text drawn in a font file keeps its family too, which draws it while the game has
+  no such file (looked up through `Res.allFontResources`, as sprites are, so a deleted file breaks no build); since loading
+  a font resource is `@Composable`, the Composable makes that style itself, in a `remember` keyed by the loaded font, with
+  locals starting with an underscore, which no Property's name can.
 - Keys reach a type in two ways (`KeyEventCode`): Kubriko tells a `KeyboardInputAware` about each key pressed and let go,
   which the pressed and released Events dispatch by key, while a held key is asked about in `update` (or a Manager's
   `onUpdate`), so a type with only held keys needs no Trait and, like every frame, never runs while paused. The removed

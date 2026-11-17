@@ -149,8 +149,8 @@ public fun BlockTypeDefinition.withScenesRenamed(renamed: Map<String, String>): 
 }
 
 /**
- * The type drawn as, its Blocks playing, and its sound and music Properties starting as, the sprite, sound, or music at
- * [newPath] (from `composeResources`) wherever they did the one at [oldPath].
+ * The type drawn as, its texts drawn in, its Blocks playing, and its sound and music Properties starting as, the sprite,
+ * font, sound, or music at [newPath] (from `composeResources`) wherever they did the one at [oldPath].
  */
 public fun BlockTypeDefinition.withResourceRenamed(oldPath: String, newPath: String): BlockTypeDefinition {
     val renaming = object : ValueTransform {
@@ -168,7 +168,11 @@ public fun BlockTypeDefinition.withResourceRenamed(oldPath: String, newPath: Str
             },
         )
     }
-    return if (withBlocks is ActorTypeDefinition && withBlocks.sprite == oldPath) withBlocks.copy(sprite = newPath) else withBlocks
+    return when {
+        withBlocks is ActorTypeDefinition && withBlocks.sprite == oldPath -> withBlocks.copy(sprite = newPath)
+        withBlocks is ManagerTypeDefinition -> withBlocks.withTexts { if (it.fontFile == oldPath) it.copy(fontFile = newPath) else it }
+        else -> withBlocks
+    }
 }
 
 /**

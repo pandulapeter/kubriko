@@ -26,6 +26,8 @@ import kubriko.creator.generated.resources.error_command_document_missing_simila
 import kubriko.creator.generated.resources.error_command_event_missing
 import kubriko.creator.generated.resources.error_command_event_missing_none
 import kubriko.creator.generated.resources.error_command_folder_missing_similar
+import kubriko.creator.generated.resources.error_command_font_missing
+import kubriko.creator.generated.resources.error_command_font_missing_similar
 import kubriko.creator.generated.resources.error_command_game_key_unknown_similar
 import kubriko.creator.generated.resources.error_command_index_invalid
 import kubriko.creator.generated.resources.error_command_manager_type_is_actor_type
@@ -111,6 +113,8 @@ internal fun LookupProblem.toResource(): StringResource = when (this) {
     LookupProblem.SOUND_MISSING_SIMILAR -> Res.string.error_command_sound_missing_similar
     LookupProblem.SPRITE_MISSING -> Res.string.error_command_sprite_missing
     LookupProblem.SPRITE_MISSING_SIMILAR -> Res.string.error_command_sprite_missing_similar
+    LookupProblem.FONT_MISSING -> Res.string.error_command_font_missing
+    LookupProblem.FONT_MISSING_SIMILAR -> Res.string.error_command_font_missing_similar
     LookupProblem.TEXT_MISSING -> Res.string.error_command_text_missing
     LookupProblem.TEXT_MISSING_NONE -> Res.string.error_command_text_missing_none
     LookupProblem.TIMER_UNKNOWN -> Res.string.error_command_timer_unknown
