@@ -25,7 +25,7 @@ class ComposableOpeningTest {
     )
     private val files = texts.keys.map { ProjectResource(ResourceGroup.KOTLIN, File(it), it) }
 
-    private fun find(name: String) = composableFileOf(name, files) { texts[it.path] }?.path
+    private fun find(name: String) = composableFileOf(name, files) { texts[it.invariantSeparatorsPath] }?.invariantSeparatorsPath
 
     @Test
     fun theFileDeclaringTheComposableInItsPackageIsFoundTheOneNamedAfterItFirst() {
