@@ -35,6 +35,7 @@ class BlockEventDropTest {
     private val successes = mutableListOf<() -> Unit>()
     private val dropsInList = mutableListOf<Pair<DraggedBlock, Int>>()
     private var shownEventIndex: Int? = 0
+    private var now = 0L
     private val drop = BlockEventDrop(
         typeKind = { BlockTypeKind.ACTOR },
         events = { events },
@@ -45,6 +46,7 @@ class BlockEventDropTest {
             dropsInto += block to index
             successes += onSuccess
         },
+        clock = { now },
     ).apply {
         place(10L, Rect(0f, 0f, 100f, 40f))
         place(11L, Rect(0f, 40f, 100f, 80f))
@@ -68,14 +70,23 @@ class BlockEventDropTest {
         assertEquals(BlockDropLook.NONE, drop.lookOf(10L, 0))
         drop.dragState.end()
         assertEquals(listOf<Pair<DraggedBlock, Int>>(stop to 2), dropsInto)
-        assertNull(drop.dropped)
+        assertNull(drop.flashKeyOf(12L))
         successes.single().invoke()
-        val first = assertNotNull(drop.dropped)
-        assertEquals(12L, first.key)
+        val first = assertNotNull(drop.flashKeyOf(12L))
+        assertNull(drop.flashKeyOf(11L))
         successes.single().invoke()
-        assertNotSame(first, drop.dropped)
+        assertNotSame(first, drop.flashKeyOf(12L))
         assertNull(drop.hoveredKey)
         assertEquals(BlockDropLook.NONE, drop.lookOf(12L, 2))
+        now += 2_000_000_000L
+        assertNull(drop.flashKeyOf(12L))
+    }
+
+    @Test
+    fun aBlockNoLongerWhereItWasDraggedFromGoesNowhere() {
+        events = listOf(events[0].copy(blocks = listOf(BlockDefinition.RemoveSelf) + events[0].blocks)) + events.drop(1)
+        dropAt(stop, Offset(50f, 100f))
+        assertTrue(dropsInto.isEmpty())
     }
 
     @Test
@@ -139,10 +150,16 @@ class BlockEventDropTest {
     @Test
     fun whatAnEventMakesOfADraggedBlock() {
         val shown = events[0].blocks
-        assertEquals(BlockDrop.SOURCE, blockDropOf(stop, 0, shown, 0, events[0], BlockTypeKind.ACTOR))
-        assertEquals(BlockDrop.ACCEPTED, blockDropOf(stop, 0, shown, 1, events[1], BlockTypeKind.ACTOR))
-        assertEquals(BlockDrop.REFUSED, blockDropOf(stop, 0, shown, 5, null, BlockTypeKind.ACTOR))
-        assertEquals(BlockDrop.REFUSED, blockDropOf(DraggedBlock.Existing(9, BlockDefinition.Stop), 0, shown, 1, events[1], BlockTypeKind.ACTOR))
-        assertEquals(BlockDrop.REFUSED, blockDropOf(DraggedBlock.New(BlockKind.STOP), null, emptyList(), 0, events[0], BlockTypeKind.MANAGER))
+        val stopKinds = draggedKindsOf(stop, shown)
+        assertEquals(listOf(BlockKind.STOP), stopKinds)
+        assertEquals(listOf(BlockKind.IF, BlockKind.REMOVE_SELF, BlockKind.ELSE, BlockKind.END), draggedKindsOf(DraggedBlock.Existing(1, ifBlock), shown))
+        assertNull(draggedKindsOf(DraggedBlock.Existing(3, BlockDefinition.Else), shown))
+        assertNull(draggedKindsOf(DraggedBlock.Existing(9, BlockDefinition.Stop), shown))
+        assertNull(draggedKindsOf(DraggedBlock.Existing(2, BlockDefinition.Stop), shown))
+        assertEquals(BlockDrop.SOURCE, blockDropOf(stop, 0, stopKinds, 0, events[0], BlockTypeKind.ACTOR))
+        assertEquals(BlockDrop.ACCEPTED, blockDropOf(stop, 0, stopKinds, 1, events[1], BlockTypeKind.ACTOR))
+        assertEquals(BlockDrop.REFUSED, blockDropOf(stop, 0, stopKinds, 5, null, BlockTypeKind.ACTOR))
+        assertEquals(BlockDrop.REFUSED, blockDropOf(stop, 0, null, 1, events[1], BlockTypeKind.ACTOR))
+        assertEquals(BlockDrop.REFUSED, blockDropOf(DraggedBlock.New(BlockKind.STOP), null, listOf(BlockKind.STOP), 0, events[0], BlockTypeKind.MANAGER))
     }
 }

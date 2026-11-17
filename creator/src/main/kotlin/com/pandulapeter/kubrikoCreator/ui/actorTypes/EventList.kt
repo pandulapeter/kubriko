@@ -128,7 +128,7 @@ internal fun EventList(
                         onClick = { onSelected(index) },
                         onRemove = { onRemoved(index) },
                         flashKey = highlight?.key?.takeIf { highlight.eventIndex == index && highlight.blockIndex == null }
-                            ?: blockDrop?.dropped?.takeIf { it.key == eventKey }
+                            ?: blockDrop?.flashKeyOf(eventKey)
                             ?: eventKey.takeIf(isRecentlyAdded),
                         blockDropLook = blockDrop?.lookOf(eventKey, index) ?: BlockDropLook.NONE,
                     )

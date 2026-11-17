@@ -215,7 +215,9 @@ private fun rememberBlockEventDrop(
                 currentEventIndex?.let { index ->
                     when (block) {
                         is DraggedBlock.New -> currentActions.addBlock(index, block.kind, gap)
-                        is DraggedBlock.Existing -> currentActions.moveBlock(index, block.index, gap)
+                        is DraggedBlock.Existing -> if (currentDefinition.events.getOrNull(index)?.blocks?.getOrNull(block.index) == block.block) {
+                            currentActions.moveBlock(index, block.index, gap)
+                        }
                     }
                 }
             },
