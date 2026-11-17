@@ -96,7 +96,7 @@ class TokenBudgetTest {
          * taking a text, set_scene_values sets what a Scene gives the Manager types, and color, Actor type reference,
          * sound, and music Properties are in every tool taking a Property or a Property's value.
          */
-        const val TOOL_LIST_BUDGET = 27_400
+        const val TOOL_LIST_BUDGET = 27_430
 
         /**
          * Color, Actor type reference, sound, and music Properties are in add_property's schema.

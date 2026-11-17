@@ -48,13 +48,14 @@ class BlockNestingTest {
     @Test
     fun anIfOrRepeatBlockMovesBetweenEventsWithItsSectionAndAnElseOrEndBlockDoesNot() {
         val blocks = listOf(ifBlock, repeat, stop, BlockDefinition.End, BlockDefinition.Else, stop, BlockDefinition.End, stop, repeat, stop)
-        assertEquals(0..6, BlockNesting.movingBetweenEvents(blocks, 0))
-        assertEquals(1..3, BlockNesting.movingBetweenEvents(blocks, 1))
-        assertEquals(2..2, BlockNesting.movingBetweenEvents(blocks, 2))
+        assertEquals(MovingBlocks(0..6, isUnendedSection = false), BlockNesting.movingBetweenEvents(blocks, 0))
+        assertEquals(MovingBlocks(1..3, isUnendedSection = false), BlockNesting.movingBetweenEvents(blocks, 1))
+        assertEquals(MovingBlocks(2..2, isUnendedSection = false), BlockNesting.movingBetweenEvents(blocks, 2))
         assertEquals(null, BlockNesting.movingBetweenEvents(blocks, 3))
         assertEquals(null, BlockNesting.movingBetweenEvents(blocks, 4))
-        assertEquals(8..9, BlockNesting.movingBetweenEvents(blocks, 8))
+        assertEquals(MovingBlocks(8..9, isUnendedSection = true), BlockNesting.movingBetweenEvents(blocks, 8))
         assertEquals(6, BlockNesting.endOf(blocks, 0))
         assertEquals(null, BlockNesting.endOf(blocks, 8))
+        assertEquals(null, BlockNesting.movingBetweenEvents(listOf(stop, BlockDefinition.End), 1))
     }
 }

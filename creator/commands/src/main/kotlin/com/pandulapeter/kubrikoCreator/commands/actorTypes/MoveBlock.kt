@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
-import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockNesting
 import com.pandulapeter.kubrikoCreator.actors.withBlockMoved
 import com.pandulapeter.kubrikoCreator.actors.withBlocksMovedToEvent
@@ -49,18 +48,16 @@ public object MoveBlock : WriteCommand<MoveBlock.Input> {
         val blocks = definition.events[input.eventIndex].blocks
         val target = definition.events[input.targetEvent]
         val moving = BlockNesting.movingBetweenEvents(blocks, input.blockIndex) ?: return Rejection(CommandProblem.BLOCK_SECTION_MARKER_BETWEEN_EVENTS)
-        if (blocks[input.blockIndex].opensSection && BlockNesting.endOf(blocks, input.blockIndex) == null && input.targetIndex != target.blocks.size) {
-            return Rejection(CommandProblem.BLOCK_SECTION_UNENDED_NOT_LAST)
-        }
+        if (moving.isUnendedSection && input.targetIndex != target.blocks.size) return Rejection(CommandProblem.BLOCK_SECTION_UNENDED_NOT_LAST)
         val scope = context.scopeOf(definition)
-        return moving.firstNotNullOfOrNull { validateBlock(blocks[it], target.type, scope) }
+        return moving.indexes.firstNotNullOfOrNull { validateBlock(blocks[it], target.type, scope) }
     }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val definition = context.requireType(input.actorType)
         val moved = if (input.isBetweenEvents) {
             val moving = checkNotNull(BlockNesting.movingBetweenEvents(definition.events[input.eventIndex].blocks, input.blockIndex))
-            definition.withBlocksMovedToEvent(input.eventIndex, moving, input.targetEvent, input.targetIndex)
+            definition.withBlocksMovedToEvent(input.eventIndex, moving.indexes, input.targetEvent, input.targetIndex)
         } else {
             definition.withBlockMoved(input.eventIndex, input.blockIndex, input.targetIndex)
         }
@@ -68,8 +65,6 @@ public object MoveBlock : WriteCommand<MoveBlock.Input> {
         val inverse = Input(input.actorType, input.targetEvent, input.targetIndex, input.blockIndex, targetEventIndex = input.eventIndex.takeIf { input.isBetweenEvents })
         return Applied(inverse = Invocation(MoveBlock, inverse))
     }
-
-    private val BlockDefinition.opensSection get() = this is BlockDefinition.If || this is BlockDefinition.Repeat
 
     @Serializable
     public data class Input(
@@ -79,7 +74,7 @@ public object MoveBlock : WriteCommand<MoveBlock.Input> {
         @SerialName("eventIndex") val eventIndex: Int,
         @Description(Descriptions.BLOCK_INDEX)
         @SerialName("blockIndex") val blockIndex: Int,
-        @Description("The index the Block ends up at.")
+        @Description("The index the Block ends up at; into another Event, up to its Block count, and only that for a section without an end Block.")
         @SerialName("targetIndex") val targetIndex: Int,
         @Description("Another Event to move it into.")
         @SerialName("targetEventIndex") val targetEventIndex: Int? = null,

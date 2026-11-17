@@ -25,7 +25,7 @@ public enum class CommandProblem(override val english: String) : DomainText {
     ACTORS_EMPTY("Name at least one Actor."),
     ALREADY_UNDER_VERSION_CONTROL("The project is already under version control."),
     AUDIO_FOLDER_RESERVED("%1\$s can't hold sounds or music: files/scenes holds the Scenes."),
-    BLOCK_SECTION_MARKER_BETWEEN_EVENTS("An else or end Block belongs to the if or repeat Block before it, so it moves only within its Event. Move that if or repeat Block to take its whole section."),
+    BLOCK_SECTION_MARKER_BETWEEN_EVENTS("An else or end Block moves only within its Event, since in another one it would end or split a section. Move the if or repeat Block before it to take its whole section."),
     BLOCK_SECTION_UNENDED_NOT_LAST("An if or repeat Block without an end Block runs to the end of its Event, so it goes into another Event only after that Event's last Block."),
     BLOCKS_NOTHING_TO_REPLACE("Give Blocks to add, a count (0 or more) of Blocks to remove, or both."),
     CHANGE_MISSING("%1\$s hasn't changed since the last commit."),

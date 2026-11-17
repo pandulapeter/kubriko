@@ -84,14 +84,25 @@ public data class BlockNesting(
         }
 
         /**
-         * The indexes of the Blocks that go into another Event with the one at [index] of [blocks]: an if or repeat Block
-         * takes its section, any other Block goes alone, and an else or end Block, which belongs to the Block before it,
-         * goes nowhere (null).
+         * The Blocks that go into another Event with the one at [index] of [blocks]: an if or repeat Block takes its
+         * section, any other Block goes alone, and an else or end Block goes nowhere (null), since in another Event it
+         * would end or split a section it doesn't belong to.
          */
-        public fun movingBetweenEvents(blocks: List<BlockDefinition>, index: Int): IntRange? = when (blocks[index]) {
-            is BlockDefinition.If, is BlockDefinition.Repeat -> sectionOf(blocks, index)
+        public fun movingBetweenEvents(blocks: List<BlockDefinition>, index: Int): MovingBlocks? = when (blocks[index]) {
+            is BlockDefinition.If, is BlockDefinition.Repeat -> endOf(blocks, index).let { end -> MovingBlocks(index..(end ?: blocks.lastIndex), isUnendedSection = end == null) }
             BlockDefinition.Else, BlockDefinition.End -> null
-            else -> index..index
+            else -> MovingBlocks(index..index, isUnendedSection = false)
         }
     }
 }
+
+/**
+ * The Blocks at [indexes] of an Event that go into another one together ([BlockNesting.movingBetweenEvents]).
+ *
+ * @param isUnendedSection Whether they are an if or repeat Block's section without an end Block, which runs to the end of
+ *   whichever Event it is in, so it goes only after another Event's last Block.
+ */
+public data class MovingBlocks(
+    val indexes: IntRange,
+    val isUnendedSection: Boolean,
+)
