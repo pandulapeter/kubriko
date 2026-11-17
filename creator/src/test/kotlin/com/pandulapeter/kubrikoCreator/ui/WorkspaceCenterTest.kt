@@ -48,6 +48,7 @@ class WorkspaceCenterTest {
                     sceneEditing = sceneEditing,
                     blockTypes = emptyList(),
                     resources = emptyMap(),
+                    fonts = emptyList(),
                     sceneNames = emptyList(),
                     sceneDescriptions = emptyMap(),
                     changedByHand = emptySet(),

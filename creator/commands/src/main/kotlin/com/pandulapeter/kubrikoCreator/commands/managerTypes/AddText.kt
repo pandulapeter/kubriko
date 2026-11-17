@@ -38,6 +38,8 @@ public object AddText : WriteCommand<AddText.Input> {
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateManagerType(input.managerType) ?: context.validateText(input.managerType, input.text)
 
+    override fun validateRestoring(context: CommandContext, input: Input): Rejection? = context.validateManagerType(input.managerType)
+
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val definition = context.requireManagerType(input.managerType)
         val index = input.index?.coerceIn(0, definition.texts.size) ?: definition.texts.size

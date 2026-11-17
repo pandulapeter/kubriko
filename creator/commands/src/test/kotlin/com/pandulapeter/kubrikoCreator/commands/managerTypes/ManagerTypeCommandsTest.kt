@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands.managerTypes
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
@@ -22,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
+import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.TextFont
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
@@ -37,7 +39,11 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.resources.DeleteResource
+import com.pandulapeter.kubrikoCreator.commands.resources.gameFontPaths
 import com.pandulapeter.kubrikoCreator.context.ReadDetail
+import com.pandulapeter.kubrikoCreator.project.ProjectResource
+import com.pandulapeter.kubrikoCreator.project.ResourceGroup
+import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -165,7 +171,7 @@ class ManagerTypeCommandsTest {
 
     @Test
     fun aTextIsDrawnOnlyInAFontFileOfTheProjectWhichItLosesWithTheFile() = runTest {
-        val context = commandContext(brick, game, fontFiles = FontFiles(mapOf("font/pixel.ttf" to File("pixel.ttf"))))
+        val context = commandContext(brick, game, spriteFiles = SpriteFiles(), audioFiles = AudioFiles(), fontFiles = FontFiles(mapOf("font/pixel.ttf" to File("pixel.ttf"))))
         val pixel = ScreenTextDefinition("Lives", fontFile = "font/pixel.ttf")
         assertNull(Invocation(AddText, AddText.Input("Game", pixel)).validate(context))
         assertEquals(Rejection(LookupProblem.FONT_MISSING_SIMILAR, "font/pixels.ttf", "font/pixel.ttf"), Invocation(AddText, AddText.Input("Game", pixel.copy(fontFile = "font/pixels.ttf"))).validate(context))
@@ -176,5 +182,27 @@ class ManagerTypeCommandsTest {
         File(context.project.rootDirectory, "src/commonMain/composeResources/font/pixel.ttf").apply { parentFile.mkdirs() }.writeBytes(byteArrayOf(0, 1, 0, 0))
         val deleted = context.assertRoundTrip(Invocation(DeleteResource, DeleteResource.Input("font/pixel.ttf"))) { context.game()!!.texts }
         assertEquals(listOf(null, null), deleted.map { it.fontFile })
+    }
+
+    @Test
+    fun aTextWhoseFontTheGameLostCanStillBeChangedAndUndoneButNotGivenAnotherMissingOne() = runTest {
+        val lives = ScreenTextDefinition("Lives", fontFile = "font/gone.ttf")
+        val context = commandContext(brick, game.copy(texts = listOf(lives)), spriteFiles = SpriteFiles(), audioFiles = AudioFiles(), fontFiles = FontFiles())
+        val edited = context.assertRoundTrip(Invocation(EditText, EditText.Input("Game", 0, lives.copy(size = 32f)))) { context.game()!!.texts }
+        assertEquals(listOf(lives.copy(size = 32f)), edited)
+        assertEquals(Rejection(LookupProblem.FONT_MISSING, "font/other.ttf"), Invocation(EditText, EditText.Input("Game", 0, lives.copy(fontFile = "font/other.ttf"))).validate(context))
+        assertEquals(Rejection(LookupProblem.FONT_MISSING, "font/gone.ttf"), Invocation(AddText, AddText.Input("Game", lives)).validate(context))
+        assertNull(Invocation(AddText, AddText.Input("Game", lives), isRestoring = true).validate(context))
+    }
+
+    @Test
+    fun onlyTheGameModulesOwnFontsCanDrawATextAsTheGeneratedCodeLooksThemUpThere() = runTest {
+        val root = testDirectory()
+        fun font(path: String) = File(root, path).let { ProjectResource(ResourceGroup.FONTS, it, path) }
+        val resources = mapOf(ResourceGroup.FONTS to listOf(font("src/commonMain/composeResources/font/pixel.ttf"), font("tools/src/commonMain/composeResources/font/title.ttf")))
+        val context = commandContext(brick, game, rootDirectory = root, resources = resources)
+        assertEquals(listOf("font/pixel.ttf"), context.gameFontPaths())
+        assertNull(Invocation(AddText, AddText.Input("Game", ScreenTextDefinition(fontFile = "font/pixel.ttf"))).validate(context))
+        assertEquals(Rejection(LookupProblem.FONT_MISSING, "font/title.ttf"), Invocation(AddText, AddText.Input("Game", ScreenTextDefinition(fontFile = "font/title.ttf"))).validate(context))
     }
 }

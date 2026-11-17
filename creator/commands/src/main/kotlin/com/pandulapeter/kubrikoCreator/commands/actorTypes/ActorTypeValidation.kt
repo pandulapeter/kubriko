@@ -33,6 +33,7 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyNaming
 import com.pandulapeter.kubrikoCreator.actors.PropertyReference
+import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
@@ -54,6 +55,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.SimilarNames
+import com.pandulapeter.kubrikoCreator.commands.resources.knownResourcePaths
 import com.pandulapeter.kubrikoCreator.foundation.ColorHex
 
 /**
@@ -346,12 +348,13 @@ internal fun CommandContext.validateSprite(sprite: String): Rejection? {
 }
 
 /**
- * Why a text can't be drawn in [font]: it isn't a font file of the project.
+ * Why a text can't be drawn in [font]: it isn't a font file of the game's own resources, where the generated code looks
+ * it up.
  */
 internal fun CommandContext.validateFont(font: String): Rejection? {
-    val files = fontFiles()
-    return if (FontFiles.accessorOf(font) == null || files?.files?.containsKey(font) == false) {
-        SimilarNames.rejection(LookupProblem.FONT_MISSING, LookupProblem.FONT_MISSING_SIMILAR, font, files?.paths.orEmpty(), font)
+    val fonts = knownResourcePaths()?.filter { ResourceKind.of(it) == ResourceKind.FONT }
+    return if (FontFiles.accessorOf(font) == null || fonts?.contains(font) == false) {
+        SimilarNames.rejection(LookupProblem.FONT_MISSING, LookupProblem.FONT_MISSING_SIMILAR, font, fonts.orEmpty(), font)
     } else {
         null
     }
@@ -372,9 +375,13 @@ internal fun validateText(text: ScreenTextDefinition, scope: BlockScope) = when 
 
 /**
  * Why [text] can't be one of the texts of the Manager type [managerType], which exists.
+ *
+ * @param previousFont The font file the text is drawn in before the change, which it may keep even after the game lost it,
+ *   so the rest of the text can still be changed.
  */
-internal fun CommandContext.validateText(managerType: String, text: ScreenTextDefinition) =
-    validateText(text, BlockScope.of(requireManagerType(managerType), requireBlockTypes.types.value, scenes.names(), audioFiles())) ?: text.fontFile?.let(::validateFont)
+internal fun CommandContext.validateText(managerType: String, text: ScreenTextDefinition, previousFont: String? = null) =
+    validateText(text, BlockScope.of(requireManagerType(managerType), requireBlockTypes.types.value, scenes.names(), audioFiles()))
+        ?: text.fontFile?.takeIf { it != previousFont }?.let(::validateFont)
 
 /**
  * Whether every number [this] Block takes is finite and, where a field allows only some, within them. A Property's value

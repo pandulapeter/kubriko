@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.FontFiles
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.commands.ActorsBroughtBack
@@ -71,6 +70,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param markdownLinks What the links of the page or document shown point at.
  * @param onAddPageImage Puts an image on the page shown, or null if a document is shown.
  * @param markdownIdentity What tells the page or document shown apart from the one before ([MarkdownIdentity]).
+ * @param fonts The game's own fonts, by their paths from `composeResources`, which texts can be drawn in.
  * @param sprites What the sprite editor needs of the workspace.
  */
 @Composable
@@ -80,6 +80,7 @@ internal fun WorkspaceCenter(
     sceneEditing: SceneEditingState,
     blockTypes: List<BlockTypeDefinition>,
     resources: Map<ResourceGroup, List<ProjectResource>>,
+    fonts: List<String>,
     sceneNames: List<String>,
     sceneDescriptions: Map<String, String>,
     changedByHand: Set<String>,
@@ -139,7 +140,7 @@ internal fun WorkspaceCenter(
             sceneNames = sceneNames,
             audioFiles = audioFiles,
             sprites = remember(resources, sprites.sheets) { SpriteChoices(SpriteFiles.of(resources), sprites.sheets) },
-            fonts = remember(resources) { FontFiles.of(resources).paths },
+            fonts = fonts,
             isChangedByHand = selectedBlockType.name in changedByHand,
             onCommand = onCommand,
             currentBlockType = currentBlockType,

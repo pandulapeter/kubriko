@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.resources
 
+import com.pandulapeter.kubrikoCreator.actors.ResourceAccessors
 import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
@@ -44,6 +45,12 @@ private fun CommandContext.fallbackResourcePaths(): List<String>? {
     val audio = audioFiles() ?: return null
     return sprites + fontFiles()?.paths.orEmpty() + audio.sounds + audio.music
 }
+
+/**
+ * The fonts of the game's own resources ([isGameResource]), by their paths from `composeResources`, as the last resource
+ * scan found them: the ones its texts can be drawn in, since the generated code looks a font up there.
+ */
+public fun CommandContext.gameFontPaths(): List<String> = knownResourcePaths().orEmpty().filter { ResourceKind.of(it) == ResourceKind.FONT }.sorted()
 
 /**
  * Why there's no sprite, font, sound, or music file at [path] to change, or null if there is one, or the files aren't known.
@@ -83,11 +90,7 @@ internal fun areMixedUp(first: String, second: String): Boolean {
  * The folder and accessor of the file at [path] right in `drawable` or `font`, whose names Compose resources make
  * accessors of, so that only two files of the same folder clash, or null for any other.
  */
-private fun accessorKeyOf(path: String): String? {
-    val segments = path.split('/')
-    if (segments.size != 2 || segments[0] !in ACCESSOR_FOLDERS) return null
-    return segments[0] + "/" + segments[1].substringBeforeLast('.').replace('-', '_')
-}
+private fun accessorKeyOf(path: String): String? = ACCESSOR_FOLDERS.firstNotNullOfOrNull { folder -> ResourceAccessors.accessorOf(path, folder)?.let { "$folder/$it" } }
 
 /**
  * The game's own resource files on disk ([isGameResource]) with their paths from `composeResources`: sprites, fonts,
@@ -161,5 +164,5 @@ private fun pathFromComposeResources(resource: ProjectResource) = pathFromCompos
 private fun pathFromComposeResources(path: String): String? =
     ResourceKind.pathFromComposeResources(path)?.takeIf { ResourceKind.of(it) != null || accessorKeyOf(it) != null }
 
-private val ACCESSOR_FOLDERS = setOf("drawable", "font")
+private val ACCESSOR_FOLDERS = listOf(ResourceKind.DRAWABLE, ResourceKind.FONT_FOLDER)
 private const val SOURCES = "src"
