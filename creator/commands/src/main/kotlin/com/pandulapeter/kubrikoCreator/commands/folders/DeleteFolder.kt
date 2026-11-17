@@ -74,7 +74,7 @@ public object DeleteFolder : DeletingCommand<DeleteFolder.Input> {
             if (input.group.isAudio && withContext(context.ioDispatcher) { context.holdsAudioOnDisk(input.path) }) {
                 return Applied.failed(Rejection(CommandProblem.FOLDER_NOT_EMPTY, input.path))
             }
-            if (input.group == FolderGroup.SPRITES || input.group == FolderGroup.FONTS) {
+            if (input.group.hasVirtualFolders) {
                 context.orphanEntriesDelete(input.group, input.path)?.let { orphans -> return CompositeCommand.apply(context, CompositeCommand.Input(listOf(orphans, Invocation(DeleteFolder, input)))) }
             }
             context.deleteFolder(input.group, input.path)

@@ -52,11 +52,7 @@ public object DeleteResource : DeletingCommand<DeleteResource.Input> {
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         if (!input.keepsUsages) return context.deleteWithUsages(subject(input), Invocation(DeleteResource, input.copy(keepsUsages = true)))
         val (paths, folderEntries) = withContext(context.ioDispatcher) {
-            val folderEntries = when (ResourceKind.of(input.path)) {
-                ResourceKind.SPRITE -> context.spriteFolders.filesOf(ResourceKind.nameOf(input.path))
-                ResourceKind.FONT -> context.fontFolders.filesOf(ResourceKind.nameOf(input.path))
-                else -> emptyList()
-            }
+            val folderEntries = context.virtualFoldersOf(ResourceKind.of(input.path))?.filesOf(ResourceKind.nameOf(input.path)).orEmpty()
             context.resourceFilesAt(input.path).map(context::projectPathOf) to folderEntries.map(context::projectPathOf)
         }
         if (paths.isEmpty()) return Applied.failed(Rejection(LookupProblem.RESOURCE_MISSING, input.path))

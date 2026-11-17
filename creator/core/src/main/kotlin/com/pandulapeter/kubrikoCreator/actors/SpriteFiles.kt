@@ -33,18 +33,13 @@ public data class SpriteFiles(
 
     public companion object {
 
-        public fun of(resources: Map<ResourceGroup, List<ProjectResource>>): SpriteFiles = SpriteFiles(
-            files = resources[ResourceGroup.SPRITES].orEmpty()
-                .mapNotNull { resource -> pathOf(resource)?.let { it to resource.file } }
-                .distinctBy { (path, _) -> accessorOf(path) }
-                .toMap(),
-        )
+        public fun of(resources: Map<ResourceGroup, List<ProjectResource>>): SpriteFiles = SpriteFiles(ResourceAccessors.filesOf(resources[ResourceGroup.SPRITES].orEmpty(), ::accessorOf))
 
         /**
          * The name of the Compose resource accessor of the image at [path], as its Gradle plugin makes it (`ball-1`
          * becomes `ball_1`), or null if [path] isn't a sprite file's.
          */
-        public fun accessorOf(path: String): String? = ResourceAccessors.accessorOf(path, DRAWABLE, EXTENSIONS)
+        public fun accessorOf(path: String): String? = ResourceAccessors.accessorOf(path, ResourceKind.DRAWABLE, ResourceKind.SPRITE.extensions)
 
         /**
          * The width and height of the image in [file] in pixels, or null if it can't be read.
@@ -63,10 +58,5 @@ public data class SpriteFiles(
         } catch (_: Exception) {
             null
         }
-
-        private fun pathOf(resource: ProjectResource) = ResourceKind.pathFromComposeResources(resource.relativePath)?.takeIf { accessorOf(it) != null }
-
-        private const val DRAWABLE = "drawable"
-        private val EXTENSIONS = setOf("png", "jpg", "jpeg", "webp")
     }
 }

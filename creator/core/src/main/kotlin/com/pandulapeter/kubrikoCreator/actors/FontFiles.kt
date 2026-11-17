@@ -26,19 +26,12 @@ public data class FontFiles(
 
     public companion object {
 
-        public fun of(resources: Map<ResourceGroup, List<ProjectResource>>): FontFiles = FontFiles(
-            files = resources[ResourceGroup.FONTS].orEmpty()
-                .mapNotNull { resource -> ResourceKind.pathFromComposeResources(resource.relativePath)?.takeIf { accessorOf(it) != null }?.let { it to resource.file } }
-                .distinctBy { (path, _) -> accessorOf(path) }
-                .toMap(),
-        )
+        public fun of(resources: Map<ResourceGroup, List<ProjectResource>>): FontFiles = FontFiles(ResourceAccessors.filesOf(resources[ResourceGroup.FONTS].orEmpty(), ::accessorOf))
 
         /**
          * The name of the Compose resource accessor of the font at [path] (`pixel-1` becomes `pixel_1`), or null if
          * [path] isn't a font file's.
          */
-        public fun accessorOf(path: String): String? = ResourceAccessors.accessorOf(path, FOLDER, ResourceKind.FONT.extensions)
-
-        private const val FOLDER = "font"
+        public fun accessorOf(path: String): String? = ResourceAccessors.accessorOf(path, ResourceKind.FONT_FOLDER, ResourceKind.FONT.extensions)
     }
 }

@@ -117,13 +117,19 @@ public class CommandContext(
     }
 
     /**
-     * The store of [group]'s virtual folders: the sprites' or the fonts'.
+     * The store of the virtual folders of files of [kind] (the sprites' or the fonts'), or null for a kind whose folders
+     * are real ones.
      */
-    internal fun virtualFoldersOf(group: FolderGroup): VirtualFolderStore<*> = when (group.resourceKind) {
+    internal fun virtualFoldersOf(kind: ResourceKind?): VirtualFolderStore<*>? = when (kind) {
         ResourceKind.SPRITE -> spriteFolders
         ResourceKind.FONT -> fontFolders
-        else -> error("$group has no virtual folders.")
+        ResourceKind.SOUND, ResourceKind.MUSIC, null -> null
     }
+
+    /**
+     * The store of [group]'s virtual folders ([FolderGroup.hasVirtualFolders]).
+     */
+    internal fun virtualFoldersOf(group: FolderGroup): VirtualFolderStore<*> = checkNotNull(virtualFoldersOf(group.resourceKind)) { "$group has no virtual folders." }
 
     /**
      * The colors the project keeps for drawing its sprites, whose writes are recorded as Kubriko Creator's own with the Scenes'.

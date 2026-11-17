@@ -58,6 +58,11 @@ public enum class FolderGroup(
      */
     public val isAudio: Boolean get() = resourceKind == ResourceKind.SOUND || resourceKind == ResourceKind.MUSIC
 
+    /**
+     * Whether its folders are virtual, Kubriko Creator's own, holding sprites or fonts.
+     */
+    public val hasVirtualFolders: Boolean get() = resourceKind == ResourceKind.SPRITE || resourceKind == ResourceKind.FONT
+
     public companion object {
         internal fun of(kind: BlockTypeKind) = entries.first { it.kind == kind }
 

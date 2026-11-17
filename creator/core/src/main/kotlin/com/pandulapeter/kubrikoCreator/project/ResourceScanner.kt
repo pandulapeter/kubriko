@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.project
 
+import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import java.io.File
 
@@ -20,7 +21,6 @@ public object ResourceScanner {
 
     private const val CREATOR_DIRECTORY = ".kubriko"
     private val spriteExtensions = setOf("png", "webp", "jpg", "jpeg", "svg")
-    private val fontExtensions = setOf("ttf", "otf")
     private val soundExtensions = setOf("wav")
     private val musicExtensions = setOf("mp3", "ogg")
     private val buildFileNames = setOf("build.gradle.kts", "build.gradle")
@@ -96,7 +96,7 @@ public object ResourceScanner {
             !isComposeResource -> null
             extension == "json" && "scenes" in segments -> ResourceGroup.SCENES
             extension in spriteExtensions -> ResourceGroup.SPRITES
-            extension in fontExtensions -> ResourceGroup.FONTS
+            extension in ResourceKind.FONT.extensions -> ResourceGroup.FONTS
             extension in soundExtensions -> ResourceGroup.SOUNDS
             extension in musicExtensions -> ResourceGroup.MUSIC
             else -> null

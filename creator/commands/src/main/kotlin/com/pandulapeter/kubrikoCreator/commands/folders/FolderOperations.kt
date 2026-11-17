@@ -54,7 +54,7 @@ internal suspend fun CommandContext.deleteFolder(group: FolderGroup, path: Strin
  */
 @EditorMutation
 internal suspend fun CommandContext.moveFolder(group: FolderGroup, path: String, newPath: String, sceneNames: List<String>? = null): Rejection? {
-    if (group == FolderGroup.SPRITES || group == FolderGroup.FONTS) {
+    if (group.hasVirtualFolders) {
         return if (withContext(ioDispatcher) { virtualFoldersOf(group).moveFolder(path, newPath) }) null else Rejection(CommandProblem.RESOURCE_FOLDER_NOT_MOVED, path)
     }
     if (group.isAudio) {

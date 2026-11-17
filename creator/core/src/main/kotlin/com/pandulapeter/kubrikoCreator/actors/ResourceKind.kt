@@ -151,8 +151,8 @@ public enum class ResourceKind(
                 "wav" -> startsWith(0, "RIFF") && startsWith(8, "WAVE")
                 "mp3" -> startsWith(0, "ID3") || (bytes.size >= 2 && bytes[0].toInt() and 0xFF == 0xFF && bytes[1].toInt() and 0xE0 == 0xE0)
                 "ogg" -> startsWith(0, "OggS")
-                "ttf" -> startsWith(0, 0x00, 0x01, 0x00, 0x00) || startsWith(0, "true")
-                "otf" -> startsWith(0, "OTTO")
+                // Either outline flavor under either extension: an .otf may hold TrueType outlines, and a .ttf CFF ones.
+                "ttf", "otf" -> startsWith(0, 0x00, 0x01, 0x00, 0x00) || startsWith(0, "true") || startsWith(0, "OTTO")
                 else -> false
             }
         }
@@ -171,8 +171,15 @@ public enum class ResourceKind(
          * The name of the folder of every `composeResources` path.
          */
         public const val COMPOSE_RESOURCES: String = "composeResources"
-        private const val DRAWABLE = "drawable"
-        private const val FONT_FOLDER = "font"
+        /**
+         * The folder of `composeResources` sprites are right in.
+         */
+        public const val DRAWABLE: String = "drawable"
+
+        /**
+         * The folder of `composeResources` fonts are right in.
+         */
+        public const val FONT_FOLDER: String = "font"
         private const val FILES = "files"
         private const val SCENES = "scenes"
     }
