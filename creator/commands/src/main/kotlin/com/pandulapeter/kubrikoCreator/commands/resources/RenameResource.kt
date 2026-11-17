@@ -35,7 +35,7 @@ import java.io.File
 @OptIn(EditorMutation::class)
 public object RenameResource : WriteCommand<RenameResource.Input> {
     override val name: String = "rename_resource"
-    override val description: String = "Renames a sprite, sound, or music file (moving audio between folders of files too). What uses it follows, " +
+    override val description: String = "Renames a sprite, font, sound, or music file (moving audio between folders of files too). What uses it follows, " +
         "but hand-written Kotlin."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
@@ -68,6 +68,9 @@ public object RenameResource : WriteCommand<RenameResource.Input> {
         if (ResourceKind.of(input.path) == ResourceKind.SPRITE) {
             withContext(context.ioDispatcher) { context.spriteFolders.rename(ResourceKind.nameOf(input.path), ResourceKind.nameOf(input.newPath)) }
             context.onSpriteImagesChanged()
+        }
+        if (ResourceKind.of(input.path) == ResourceKind.FONT) {
+            withContext(context.ioDispatcher) { context.fontFolders.rename(ResourceKind.nameOf(input.path), ResourceKind.nameOf(input.newPath)) }
         }
         context.onFilesChanged()
         // Restoring, since the resource scan that knows the new name may come after the undo.

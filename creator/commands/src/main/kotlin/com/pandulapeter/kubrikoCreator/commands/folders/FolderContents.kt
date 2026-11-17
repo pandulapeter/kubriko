@@ -59,25 +59,26 @@ internal fun CommandContext.contentDeletesOf(folder: RelationSubject.Folder): Li
         FolderGroup.MANAGER_TYPES -> blockTypes?.managerTypes?.value.orEmpty()
             .filter { isIn(it.folder) }
             .map { Invocation(DeleteManagerType, DeleteManagerType.Input(it.name)) }
-        FolderGroup.SPRITES -> itemsOf(FolderGroup.SPRITES)
+        FolderGroup.SPRITES, FolderGroup.FONTS -> itemsOf(folder.group)
             .filter { (_, itemFolder) -> isIn(itemFolder) }
             .map { (path, _) -> Invocation(DeleteResource, DeleteResource.Input(path)) } +
-            listOfNotNull(orphanSpriteFilesDelete(folder.path))
+            listOfNotNull(orphanEntriesDelete(folder.group, folder.path))
         FolderGroup.SOUNDS, FolderGroup.MUSIC -> knownAudioFilesWithin(folder.path)
             .map { Invocation(DeleteResource, DeleteResource.Input(it)) }
     }
 }
 
 /**
- * The delete of the files in the sprite folder at [path] and the folders in it that are left for images no longer in
- * the project (deleted or renamed outside Kubriko Creator), which would otherwise keep the folder, or null if there are
- * none. Reads nothing.
+ * The delete of the entries in the virtual folder at [path] of [group] (sprites' or fonts') and the folders in it that
+ * are left for files no longer in the project (deleted or renamed outside Kubriko Creator), which would otherwise keep
+ * the folder, or null if there are none. Reads nothing.
  */
-internal fun CommandContext.orphanSpriteFilesDelete(path: String): Invocation<*>? {
-    val sprites = itemsOf(FolderGroup.SPRITES).mapTo(HashSet()) { (sprite, _) -> ResourceKind.nameOf(sprite) }
-    val files = spriteFolders.state.value.folderOf
-        .filter { (name, folder) -> name !in sprites && FolderPaths.isWithin(folder, path) }
-        .keys.flatMap { spriteFolders.filesOf(it) }
+internal fun CommandContext.orphanEntriesDelete(group: FolderGroup, path: String): Invocation<*>? {
+    val names = itemsOf(group).mapTo(HashSet()) { (item, _) -> ResourceKind.nameOf(item) }
+    val store = virtualFoldersOf(group)
+    val files = store.state.value.folderOf
+        .filter { (name, folder) -> name !in names && FolderPaths.isWithin(folder, path) }
+        .keys.flatMap { store.filesOf(it) }
         .map(::projectPathOf)
     return if (files.isEmpty()) null else Invocation(ReplaceFiles, ReplaceFiles.Input(files.associateWith { null }))
 }

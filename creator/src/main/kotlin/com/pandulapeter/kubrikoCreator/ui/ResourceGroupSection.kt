@@ -31,6 +31,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
 import com.pandulapeter.kubrikoCreator.ui.components.revealedWhen
 import com.pandulapeter.kubrikoCreator.ui.components.rightClickMenu
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.action_add_font
 import kubriko.creator.generated.resources.action_add_music
 import kubriko.creator.generated.resources.action_add_sound
 import kubriko.creator.generated.resources.action_add_sprite
@@ -41,6 +42,7 @@ import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_code
 import kubriko.creator.generated.resources.ic_create_new_folder
 import kubriko.creator.generated.resources.ic_file
+import kubriko.creator.generated.resources.ic_font
 import kubriko.creator.generated.resources.ic_music
 import kubriko.creator.generated.resources.ic_paste
 import kubriko.creator.generated.resources.ic_scene
@@ -189,6 +191,7 @@ private fun resourceGroupActions(kind: ResourceKind, actions: ResourceActions) =
 internal val ResourceKind.icon
     get() = when (this) {
         ResourceKind.SPRITE -> Res.drawable.ic_sprite
+        ResourceKind.FONT -> Res.drawable.ic_font
         ResourceKind.SOUND -> Res.drawable.ic_sound
         ResourceKind.MUSIC -> Res.drawable.ic_music
     }
@@ -199,6 +202,7 @@ internal val ResourceKind.icon
 internal val ResourceKind.addLabel
     get() = when (this) {
         ResourceKind.SPRITE -> Res.string.action_add_sprite
+        ResourceKind.FONT -> Res.string.action_add_font
         ResourceKind.SOUND -> Res.string.action_add_sound
         ResourceKind.MUSIC -> Res.string.action_add_music
     }
@@ -208,6 +212,7 @@ private val ResourceGroup.icon
         ResourceGroup.SCENES -> Res.drawable.ic_scene
         ResourceGroup.DOCUMENTS -> Res.drawable.ic_file
         ResourceGroup.SPRITES -> Res.drawable.ic_sprite
+        ResourceGroup.FONTS -> Res.drawable.ic_font
         ResourceGroup.SOUNDS -> Res.drawable.ic_sound
         ResourceGroup.MUSIC -> Res.drawable.ic_music
         ResourceGroup.KOTLIN -> Res.drawable.ic_code

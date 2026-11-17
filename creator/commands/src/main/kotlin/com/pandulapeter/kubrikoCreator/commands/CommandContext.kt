@@ -10,8 +10,11 @@
 package com.pandulapeter.kubrikoCreator.commands
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.AudioFolderIndex
+import com.pandulapeter.kubrikoCreator.actors.FontFiles
+import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypes
+import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderMoves
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.console.ConsoleLines
@@ -19,14 +22,17 @@ import com.pandulapeter.kubrikoCreator.context.KeyedCache
 import com.pandulapeter.kubrikoCreator.context.ScreenplayTexts
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
+import com.pandulapeter.kubrikoCreator.project.FontFolderStore
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
+import com.pandulapeter.kubrikoCreator.project.VirtualFolderStore
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.screenplay.DocumentStore
 import com.pandulapeter.kubrikoCreator.screenplay.MovedFiles
 import com.pandulapeter.kubrikoCreator.screenplay.ScreenplayStore
 import com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore
 import com.pandulapeter.kubrikoCreator.sprites.SpritePalette
+import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -95,6 +101,31 @@ public class CommandContext(
     public val spriteFolders: SpriteFolderStore = SpriteFolderStore(project.rootDirectory, scenes.ownWrites)
 
     /**
+     * The sidebar's folders of fonts, whose writes are recorded as Kubriko Creator's own with the Scenes'.
+     */
+    public val fontFolders: FontFolderStore = FontFolderStore(project.rootDirectory, scenes.ownWrites)
+
+    /**
+     * Reads again what the context keeps about the project's files besides the resource scan (the audio folders, the
+     * palette, and the sprites' and fonts' folders), returning how the sprites are cut into frames. Blocks.
+     */
+    public fun refreshKeptFiles(): Map<String, SpriteSheet> {
+        audioFolders.refresh()
+        palette.refresh()
+        fontFolders.refresh()
+        return spriteFolders.refresh().sheets
+    }
+
+    /**
+     * The store of [group]'s virtual folders: the sprites' or the fonts'.
+     */
+    internal fun virtualFoldersOf(group: FolderGroup): VirtualFolderStore<*> = when (group.resourceKind) {
+        ResourceKind.SPRITE -> spriteFolders
+        ResourceKind.FONT -> fontFolders
+        else -> error("$group has no virtual folders.")
+    }
+
+    /**
      * The colors the project keeps for drawing its sprites, whose writes are recorded as Kubriko Creator's own with the Scenes'.
      */
     public val palette: SpritePalette = SpritePalette(project.rootDirectory, scenes.ownWrites)
@@ -115,6 +146,11 @@ public class CommandContext(
     public val spriteFiles: () -> SpriteFiles? = scannedFiles.spriteFiles
 
     /**
+     * The fonts texts can be drawn in, or null if they aren't known, so they aren't checked.
+     */
+    public val fontFiles: () -> FontFiles? = scannedFiles.fontFiles
+
+    /**
      * Every file the last resource scan found, by group, or null before the first scan.
      */
     internal val scannedResources: () -> Map<ResourceGroup, List<ProjectResource>>? = scannedFiles.resources
@@ -122,7 +158,7 @@ public class CommandContext(
     private val _filesRevision = MutableStateFlow(0)
 
     /**
-     * Raised whenever a command created, deleted, or moved a file no store reports on its own (a sprite, a sound, music,
+     * Raised whenever a command created, deleted, or moved a file no store reports on its own (a sprite, a font, a sound, music,
      * or a page's image), which the watcher never reports either, being Kubriko Creator's own write, so that the
      * resource tree is scanned again.
      */

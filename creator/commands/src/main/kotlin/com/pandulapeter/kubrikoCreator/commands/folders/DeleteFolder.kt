@@ -38,7 +38,7 @@ import kotlinx.serialization.json.jsonPrimitive
 @OptIn(EditorMutation::class)
 public object DeleteFolder : DeletingCommand<DeleteFolder.Input> {
     override val name: String = "delete_folder"
-    override val description: String = "Deletes a folder of Actor types, Manager types, Scenes, pages, sprites, sounds, or music with everything in it, its folders too, each thing as its own " +
+    override val description: String = "Deletes a folder of Actor types, Manager types, Scenes, pages, sprites, fonts, sounds, or music with everything in it, its folders too, each thing as its own " +
         "delete tool would, cleaning up what refers to it, all as one step. check_change lists what it deletes and changes."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
@@ -74,8 +74,8 @@ public object DeleteFolder : DeletingCommand<DeleteFolder.Input> {
             if (input.group.isAudio && withContext(context.ioDispatcher) { context.holdsAudioOnDisk(input.path) }) {
                 return Applied.failed(Rejection(CommandProblem.FOLDER_NOT_EMPTY, input.path))
             }
-            if (input.group == FolderGroup.SPRITES) {
-                context.orphanSpriteFilesDelete(input.path)?.let { orphans -> return CompositeCommand.apply(context, CompositeCommand.Input(listOf(orphans, Invocation(DeleteFolder, input)))) }
+            if (input.group == FolderGroup.SPRITES || input.group == FolderGroup.FONTS) {
+                context.orphanEntriesDelete(input.group, input.path)?.let { orphans -> return CompositeCommand.apply(context, CompositeCommand.Input(listOf(orphans, Invocation(DeleteFolder, input)))) }
             }
             context.deleteFolder(input.group, input.path)
             return Applied(inverse = Invocation(CreateFolder, CreateFolder.Input(input.group, input.path)))

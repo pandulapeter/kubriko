@@ -37,7 +37,7 @@ import kotlinx.serialization.json.putJsonArray
 
 public object FindUsages : ReadCommand<FindUsages.Input> {
     override val name: String = "find_usages"
-    override val description: String = "Lists every place that refers to one thing (a type, a Property, a Scene, a page, or a sprite, sound, or music file): " +
+    override val description: String = "Lists every place that refers to one thing (a type, a Property, a Scene, a page, or a sprite, font, sound, or music file): " +
         "Creator's model, the first Scene, hand-written Kotlin, and the pages mentioning or showing it, as a delete reads them. Places are written " +
         "Type#event.block, indexes from 0; a count in brackets is how many times a place refers to it."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
@@ -97,7 +97,7 @@ public object FindUsages : ReadCommand<FindUsages.Input> {
         @SerialName("scene") val scene: String? = null,
         @Description("The name of a page of the screenplay, instead of a type: its path in the screenplay folder without .md.")
         @SerialName("page") val page: String? = null,
-        @Description("A sprite, sound, or music file, instead of a type: its path from composeResources, like drawable/ball.png or files/sounds/hit.wav.")
+        @Description("A sprite, font, sound, or music file, instead of a type: its path from composeResources, like drawable/ball.png or files/sounds/hit.wav.")
         @SerialName("resource") val resource: String? = null,
     )
 }

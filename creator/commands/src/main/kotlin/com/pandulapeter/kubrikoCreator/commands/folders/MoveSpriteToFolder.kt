@@ -35,21 +35,10 @@ public object MoveSpriteToFolder : WriteCommand<MoveSpriteToFolder.Input> {
 
     override fun target(context: CommandContext, input: Input): CommandTarget = CommandTarget.Project
 
-    override fun validate(context: CommandContext, input: Input): Rejection? = when {
-        ResourceKind.of(input.sprite) != ResourceKind.SPRITE -> Rejection(LookupProblem.RESOURCE_MISSING, input.sprite)
-        else -> context.validateExistingResource(input.sprite) ?: context.validateFolder(FolderGroup.SPRITES, input.folder)
-    }
+    override fun validate(context: CommandContext, input: Input): Rejection? = context.validatePutInVirtualFolder(FolderGroup.SPRITES, input.sprite, input.folder)
 
-    override suspend fun apply(context: CommandContext, input: Input): Applied {
-        val name = ResourceKind.nameOf(input.sprite)
-        val folder = context.spriteFolders.state.value.folderOf[name].orEmpty()
-        try {
-            withContext(context.ioDispatcher) { context.spriteFolders.move(name, input.folder) }
-        } catch (exception: IOException) {
-            return Applied.failed(Rejection(CommandProblem.SPRITE_NOT_MOVED, input.sprite, exception.message ?: exception.toString()))
-        }
-        return Applied(inverse = Invocation(MoveSpriteToFolder, input.copy(folder = folder)))
-    }
+    override suspend fun apply(context: CommandContext, input: Input): Applied =
+        context.putInVirtualFolder(FolderGroup.SPRITES, input.sprite, input.folder) { folder -> Invocation(MoveSpriteToFolder, input.copy(folder = folder)) }
 
     @Serializable
     public data class Input(

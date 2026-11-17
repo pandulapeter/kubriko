@@ -38,6 +38,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetParent
 import com.pandulapeter.kubrikoCreator.commands.folders.CreateFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.DeleteFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.MoveFolder
+import com.pandulapeter.kubrikoCreator.commands.folders.MoveFontToFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.MoveSpriteToFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.MoveToFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.RenameFolder
@@ -261,6 +262,7 @@ public class CommandRegistry(
                 DeleteFolder,
                 MoveToFolder,
                 MoveSpriteToFolder,
+                MoveFontToFolder,
                 CreateScene,
                 DeleteScene,
                 RenameScene,

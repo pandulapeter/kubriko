@@ -20,6 +20,7 @@ public enum class ResourceGroup {
      */
     DOCUMENTS,
     SPRITES,
+    FONTS,
     SOUNDS,
     MUSIC,
     KOTLIN,

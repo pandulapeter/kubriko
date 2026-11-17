@@ -10,8 +10,9 @@
 package com.pandulapeter.kubrikoCreator.actors
 
 /**
- * What a file Kubriko Creator adds, renames, and deletes for the game is: a sprite, a sound, or music, each named by its
- * path from `composeResources` (`drawable/ball.png`, `files/sounds/hit.wav`), which is how the game and its types name it.
+ * What a file Kubriko Creator adds, renames, and deletes for the game is: a sprite, a font, a sound, or music, each named
+ * by its path from `composeResources` (`drawable/ball.png`, `font/pixel.ttf`, `files/sounds/hit.wav`), which is how the
+ * game and its types name it.
  *
  * @param extensions The extensions its files can have, lowercase.
  */
@@ -22,6 +23,11 @@ public enum class ResourceKind(
      * An image right in the `drawable` folder, whose name makes a resource accessor ([SpriteFiles.accessorOf]).
      */
     SPRITE(setOf("png", "jpg", "jpeg", "webp")),
+
+    /**
+     * A font right in the `font` folder, whose name makes a resource accessor ([FontFiles.accessorOf]).
+     */
+    FONT(setOf("ttf", "otf")),
 
     /**
      * A sound effect anywhere in the `files` folder but its Scenes.
@@ -45,6 +51,7 @@ public enum class ResourceKind(
             val segments = path.split('/')
             return when {
                 segments.size == 2 && segments[0] == DRAWABLE -> SPRITE.takeIf { extension in it.extensions }
+                segments.size == 2 && segments[0] == FONT_FOLDER -> FONT.takeIf { extension in it.extensions }
                 segments.size < 2 || segments[0] != FILES || segments[1] == SCENES -> null
                 extension in SOUND.extensions -> SOUND
                 extension in MUSIC.extensions -> MUSIC
@@ -88,19 +95,21 @@ public enum class ResourceKind(
 
         /**
          * The path from `composeResources` a new file of [kind] called [name] (without extension) gets, with [extension]:
-         * a sprite right in `drawable`, a sound in `files/sounds`, and music in `files/music`, as the templates keep them.
+         * a sprite right in `drawable`, a font right in `font`, a sound in `files/sounds`, and music in `files/music`, as
+         * the templates keep them.
          */
         public fun pathOf(kind: ResourceKind, name: String, extension: String): String = when (kind) {
             SPRITE -> "$DRAWABLE/$name.$extension"
+            FONT -> "$FONT_FOLDER/$name.$extension"
             SOUND, MUSIC -> "$FILES/${checkNotNull(defaultAudioFolderOf(kind))}/$name.$extension"
         }
 
         /**
-         * The folder new files of [kind] go to, from `composeResources/files` (`sounds`), or null for sprites, which
-         * have no folders there.
+         * The folder new files of [kind] go to, from `composeResources/files` (`sounds`), or null for sprites and fonts,
+         * which have no folders there.
          */
         public fun defaultAudioFolderOf(kind: ResourceKind): String? = when (kind) {
-            SPRITE -> null
+            SPRITE, FONT -> null
             SOUND -> "sounds"
             MUSIC -> "music"
         }
@@ -142,6 +151,8 @@ public enum class ResourceKind(
                 "wav" -> startsWith(0, "RIFF") && startsWith(8, "WAVE")
                 "mp3" -> startsWith(0, "ID3") || (bytes.size >= 2 && bytes[0].toInt() and 0xFF == 0xFF && bytes[1].toInt() and 0xE0 == 0xE0)
                 "ogg" -> startsWith(0, "OggS")
+                "ttf" -> startsWith(0, 0x00, 0x01, 0x00, 0x00) || startsWith(0, "true")
+                "otf" -> startsWith(0, "OTTO")
                 else -> false
             }
         }
@@ -161,6 +172,7 @@ public enum class ResourceKind(
          */
         public const val COMPOSE_RESOURCES: String = "composeResources"
         private const val DRAWABLE = "drawable"
+        private const val FONT_FOLDER = "font"
         private const val FILES = "files"
         private const val SCENES = "scenes"
     }

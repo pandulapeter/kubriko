@@ -21,6 +21,7 @@ import com.pandulapeter.kubrikoCreator.ui.actorTypes.icon
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.action_add_font
 import kubriko.creator.generated.resources.action_add_music
 import kubriko.creator.generated.resources.action_add_sound
 import kubriko.creator.generated.resources.action_add_sprite
@@ -37,6 +38,7 @@ import kubriko.creator.generated.resources.action_new_scene
 import kubriko.creator.generated.resources.action_rename
 import kubriko.creator.generated.resources.ic_delete
 import kubriko.creator.generated.resources.ic_edit
+import kubriko.creator.generated.resources.ic_font
 import kubriko.creator.generated.resources.ic_music
 import kubriko.creator.generated.resources.ic_page
 import kubriko.creator.generated.resources.ic_scene
@@ -49,6 +51,7 @@ import kubriko.creator.generated.resources.new_page_hint
 import kubriko.creator.generated.resources.new_resource_hint
 import kubriko.creator.generated.resources.new_scene_hint
 import kubriko.creator.generated.resources.resource_group_actor_types
+import kubriko.creator.generated.resources.resource_group_fonts
 import kubriko.creator.generated.resources.resource_group_manager_types
 import kubriko.creator.generated.resources.resource_group_music
 import kubriko.creator.generated.resources.resource_group_scenes
@@ -281,6 +284,7 @@ internal val FolderGroup.icon
         FolderGroup.SCENES -> Res.drawable.ic_scene
         FolderGroup.PAGES -> Res.drawable.ic_page
         FolderGroup.SPRITES -> Res.drawable.ic_sprite
+        FolderGroup.FONTS -> Res.drawable.ic_font
         FolderGroup.SOUNDS -> Res.drawable.ic_sound
         FolderGroup.MUSIC -> Res.drawable.ic_music
     }
@@ -290,7 +294,7 @@ internal val FolderGroup.accent
         FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> checkNotNull(kind).accent
         FolderGroup.SCENES -> Accent.SCENE
         FolderGroup.PAGES -> Accent.SCREENPLAY
-        FolderGroup.SPRITES, FolderGroup.SOUNDS, FolderGroup.MUSIC -> Accent.CODE
+        FolderGroup.SPRITES, FolderGroup.FONTS, FolderGroup.SOUNDS, FolderGroup.MUSIC -> Accent.CODE
     }
 
 internal val FolderGroup.title
@@ -300,6 +304,7 @@ internal val FolderGroup.title
         FolderGroup.SCENES -> Res.string.resource_group_scenes
         FolderGroup.PAGES -> Res.string.resource_group_screenplay
         FolderGroup.SPRITES -> Res.string.resource_group_sprites
+        FolderGroup.FONTS -> Res.string.resource_group_fonts
         FolderGroup.SOUNDS -> Res.string.resource_group_sounds
         FolderGroup.MUSIC -> Res.string.resource_group_music
     }
@@ -311,6 +316,7 @@ internal val FolderGroup.newItemLabel
         FolderGroup.SCENES -> Res.string.action_new_scene
         FolderGroup.PAGES -> Res.string.action_new_page
         FolderGroup.SPRITES -> Res.string.action_add_sprite
+        FolderGroup.FONTS -> Res.string.action_add_font
         FolderGroup.SOUNDS -> Res.string.action_add_sound
         FolderGroup.MUSIC -> Res.string.action_add_music
     }
@@ -321,7 +327,7 @@ internal val FolderGroup.deleteItemLabel
         FolderGroup.MANAGER_TYPES -> Res.string.action_delete_manager_type
         FolderGroup.SCENES -> Res.string.action_delete_scene
         FolderGroup.PAGES -> Res.string.action_delete_page
-        FolderGroup.SPRITES, FolderGroup.SOUNDS, FolderGroup.MUSIC -> Res.string.action_delete_resource
+        FolderGroup.SPRITES, FolderGroup.FONTS, FolderGroup.SOUNDS, FolderGroup.MUSIC -> Res.string.action_delete_resource
     }
 
 internal val FolderGroup.newItemHint
@@ -330,5 +336,5 @@ internal val FolderGroup.newItemHint
         FolderGroup.MANAGER_TYPES -> Res.string.new_manager_type_hint
         FolderGroup.SCENES -> Res.string.new_scene_hint
         FolderGroup.PAGES -> Res.string.new_page_hint
-        FolderGroup.SPRITES, FolderGroup.SOUNDS, FolderGroup.MUSIC -> Res.string.new_resource_hint
+        FolderGroup.SPRITES, FolderGroup.FONTS, FolderGroup.SOUNDS, FolderGroup.MUSIC -> Res.string.new_resource_hint
     }

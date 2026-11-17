@@ -27,7 +27,7 @@ import kotlinx.serialization.Transient
 @OptIn(EditorMutation::class)
 public object RenameFolder : WriteCommand<RenameFolder.Input> {
     override val name: String = "rename_folder"
-    override val description: String = "Renames a folder of Actor types, Manager types, Scenes, pages, sprites, sounds, or music, keeping everything in it where it is in it. A Scene's " +
+    override val description: String = "Renames a folder of Actor types, Manager types, Scenes, pages, sprites, fonts, sounds, or music, keeping everything in it where it is in it. A Scene's " +
         "or audio file's name is its path, so it changes too, and what uses it follows (but hand-written Kotlin), as do the screenplay's mentions of everything in it."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 

@@ -22,6 +22,7 @@ import com.pandulapeter.kubrikoCreator.commands.folders.CreateFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.DeleteFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.commands.folders.MoveFolder
+import com.pandulapeter.kubrikoCreator.commands.folders.MoveFontToFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.MoveSpriteToFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.MoveToFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.RenameFolder
@@ -62,6 +63,7 @@ internal fun rememberSidebarDragState(commands: CommandExecutor, creation: Works
                 FolderGroup.PAGES -> commands.dispatch(Invocation(MovePage, MovePage.Input(name, FolderPaths.child(folder, FolderPaths.nameOf(name)))))
                 FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> commands.dispatch(Invocation(MoveToFolder, MoveToFolder.Input(name, folder)))
                 FolderGroup.SPRITES -> commands.dispatch(Invocation(MoveSpriteToFolder, MoveSpriteToFolder.Input(name, folder)))
+                FolderGroup.FONTS -> commands.dispatch(Invocation(MoveFontToFolder, MoveFontToFolder.Input(name, folder)))
                 FolderGroup.SOUNDS, FolderGroup.MUSIC -> commands.dispatch(Invocation(RenameResource, RenameResource.Input(name, ResourceKind.inAudioFolder(name, folder))))
                 null -> creation.moveDocument(name, DocumentNaming.pathOf(folder, name.substringAfterLast('/')))
             }
@@ -88,7 +90,7 @@ internal fun rememberFolderTreeActions(
                 FolderGroup.PAGES -> selection.openPage(name)
                 FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> selection.selectType(name)
                 FolderGroup.SPRITES -> if (ResourceKind.of(name) == ResourceKind.SPRITE) selection.openSprite(name)
-                FolderGroup.SOUNDS, FolderGroup.MUSIC -> Unit
+                FolderGroup.FONTS, FolderGroup.SOUNDS, FolderGroup.MUSIC -> Unit
             }
         },
         onSelectionCleared = selection::clear,
@@ -98,7 +100,7 @@ internal fun rememberFolderTreeActions(
                 FolderGroup.MANAGER_TYPES -> creation.createManagerType(name)
                 FolderGroup.SCENES -> creation.createScene(name)
                 FolderGroup.PAGES -> creation.createPage(name)
-                FolderGroup.SPRITES, FolderGroup.SOUNDS, FolderGroup.MUSIC -> null
+                FolderGroup.SPRITES, FolderGroup.FONTS, FolderGroup.SOUNDS, FolderGroup.MUSIC -> null
             }
         },
         onCreateFolder = { group, path -> commands.dispatchIfValid(Invocation(CreateFolder, CreateFolder.Input(group, path))) },
@@ -113,7 +115,7 @@ internal fun rememberFolderTreeActions(
                 FolderGroup.MANAGER_TYPES -> Invocation(RenameManagerType, RenameManagerType.Input(name, newName))
                 FolderGroup.SCENES -> Invocation(RenameScene, RenameScene.Input(name, FolderPaths.child(FolderPaths.parentOf(name), newName)))
                 FolderGroup.PAGES -> Invocation(MovePage, MovePage.Input(name, FolderPaths.child(FolderPaths.parentOf(name), newName)))
-                FolderGroup.SPRITES, FolderGroup.SOUNDS, FolderGroup.MUSIC -> resourceRenameOf(name, newName)
+                FolderGroup.SPRITES, FolderGroup.FONTS, FolderGroup.SOUNDS, FolderGroup.MUSIC -> resourceRenameOf(name, newName)
             }?.let(commands::dispatchIfValid)
         },
         onDeleteItem = { group, name ->
@@ -123,7 +125,7 @@ internal fun rememberFolderTreeActions(
                     FolderGroup.MANAGER_TYPES -> Invocation(DeleteManagerType, DeleteManagerType.Input(name))
                     FolderGroup.SCENES -> Invocation(DeleteScene, DeleteScene.Input(name))
                     FolderGroup.PAGES -> Invocation(DeletePage, DeletePage.Input(name))
-                    FolderGroup.SPRITES, FolderGroup.SOUNDS, FolderGroup.MUSIC -> Invocation(DeleteResource, DeleteResource.Input(name))
+                    FolderGroup.SPRITES, FolderGroup.FONTS, FolderGroup.SOUNDS, FolderGroup.MUSIC -> Invocation(DeleteResource, DeleteResource.Input(name))
                 },
                 onSuccess = {},
                 dispatch = commands::dispatch,

@@ -18,9 +18,9 @@ import kotlinx.serialization.Serializable
  * A group of the sidebar that has folders, in the order the sidebar lists them.
  *
  * @param kind The kind of type its folders hold, or null for the other groups.
- * @param resourceKind The kind of file its folders hold, for sprites, sounds, and music: a sound's or music's folders are
- *   the real ones of `composeResources/files` ([com.pandulapeter.kubrikoCreator.actors.AudioFolders]), named by their
- *   path from it ([isAudio]), and a sprite's are virtual ([com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore]).
+ * @param resourceKind The kind of file its folders hold, for sprites, fonts, sounds, and music: a sound's or music's
+ *   folders are the real ones of `composeResources/files` ([com.pandulapeter.kubrikoCreator.actors.AudioFolders]), named by
+ *   their path from it ([isAudio]), and a sprite's or font's are virtual ([com.pandulapeter.kubrikoCreator.project.VirtualFolderStore]).
  */
 @Serializable
 public enum class FolderGroup(
@@ -41,6 +41,9 @@ public enum class FolderGroup(
 
     @SerialName("sprites")
     SPRITES(null, ResourceKind.SPRITE),
+
+    @SerialName("fonts")
+    FONTS(null, ResourceKind.FONT),
 
     @SerialName("sounds")
     SOUNDS(null, ResourceKind.SOUND),

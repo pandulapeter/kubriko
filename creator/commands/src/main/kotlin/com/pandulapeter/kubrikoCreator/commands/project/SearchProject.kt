@@ -27,7 +27,7 @@ import kotlinx.serialization.json.putJsonArray
 
 public object SearchProject : ReadCommand<SearchProject.Input> {
     override val name: String = "search_project"
-    override val description: String = "Finds text in the project: names (types, Properties, Scenes, pages, documents, sprites, sounds, music; letters in order match), " +
+    override val description: String = "Finds text in the project: names (types, Properties, Scenes, pages, documents, sprites, fonts, sounds, music; letters in order match), " +
         "and lines of descriptions, Log and Set text Blocks, Kotlin Blocks and Kotlin UI, screen texts, pages, and documents containing it. Hits are " +
         "place (kind): text, places written Type#event.block or a path, with :line for code and Markdown."
     override val inputSerializer: KSerializer<Input> = Input.serializer()

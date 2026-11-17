@@ -29,7 +29,7 @@ import kotlinx.serialization.json.put
 
 public object ListResources : ReadCommand<ListResources.Input> {
     override val name: String = "list_resources"
-    override val description: String = "Lists the sprites, sounds, or music (by path from composeResources) a page at a time with the folder each is in, " +
+    override val description: String = "Lists the sprites, fonts, sounds, or music (by path from composeResources) a page at a time with the folder each is in, " +
         "and how a sprite is cut into frames (set_sprite_sheet), as list_actor_types does."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
@@ -54,7 +54,7 @@ public object ListResources : ReadCommand<ListResources.Input> {
 
     @Serializable
     public data class Input(
-        @Description("sprites, sounds, or music.")
+        @Description("sprites, fonts, sounds, or music.")
         @SerialName("group") val group: FolderGroup,
         @Description("Only this folder and its folders. Left out, all.")
         @SerialName("folder") val folder: String? = null,

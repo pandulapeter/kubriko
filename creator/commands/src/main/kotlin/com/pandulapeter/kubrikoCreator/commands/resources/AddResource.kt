@@ -31,7 +31,7 @@ import java.io.IOException
 @OptIn(EditorMutation::class)
 public object AddResource : WriteCommand<AddResource.Input> {
     override val name: String = "add_resource"
-    override val description: String = "Copies a sprite, sound, or music file from this computer into composeResources, for the game to use by its path."
+    override val description: String = "Copies a sprite, font, sound, or music file from this computer into composeResources, for the game to use by its path."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override fun target(context: CommandContext, input: Input): CommandTarget = CommandTarget.Project
@@ -64,7 +64,7 @@ public object AddResource : WriteCommand<AddResource.Input> {
     public data class Input(
         @Description("The file to copy, by its full path on this computer.")
         @SerialName("file") val file: String,
-        @Description("Its path from composeResources, with the file's extension: drawable/ball.png for a sprite, files/sounds/hit.wav or files/music/theme.mp3.")
+        @Description("Its path from composeResources, with the file's extension: drawable/ball.png for a sprite, font/pixel.ttf for a font, files/sounds/hit.wav or files/music/theme.mp3.")
         @SerialName("path") val path: String,
     )
 }

@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.ui
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.resource_group_documents
+import kubriko.creator.generated.resources.resource_group_fonts
 import kubriko.creator.generated.resources.resource_group_kotlin
 import kubriko.creator.generated.resources.resource_group_music
 import kubriko.creator.generated.resources.resource_group_scenes
@@ -24,6 +25,7 @@ internal val ResourceGroup.title: StringResource
         ResourceGroup.SCENES -> Res.string.resource_group_scenes
         ResourceGroup.DOCUMENTS -> Res.string.resource_group_documents
         ResourceGroup.SPRITES -> Res.string.resource_group_sprites
+        ResourceGroup.FONTS -> Res.string.resource_group_fonts
         ResourceGroup.SOUNDS -> Res.string.resource_group_sounds
         ResourceGroup.MUSIC -> Res.string.resource_group_music
         ResourceGroup.KOTLIN -> Res.string.resource_group_kotlin

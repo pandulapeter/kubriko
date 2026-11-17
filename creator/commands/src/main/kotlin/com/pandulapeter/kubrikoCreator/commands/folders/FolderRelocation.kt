@@ -82,7 +82,7 @@ internal suspend fun CommandContext.relocateFolder(
         FolderGroup.SCENES -> withContext(ioDispatcher) {
             scenesBefore.map { (scene, file) -> PathMove(file, projectPathOf(scenes.fileOf(newPath + scene.removePrefix(path)))) }
         }
-        FolderGroup.SPRITES -> emptyList()
+        FolderGroup.SPRITES, FolderGroup.FONTS -> emptyList()
         FolderGroup.SOUNDS, FolderGroup.MUSIC -> audioMoves
     }
     return withMentionsFollowed(moves, Applied(inverse = inverse))

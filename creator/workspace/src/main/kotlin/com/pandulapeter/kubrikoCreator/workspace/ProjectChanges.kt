@@ -195,7 +195,7 @@ internal class ProjectChanges(
         if (ProjectChange.SCENES in changes || ProjectChange.SOURCES in changes) {
             resourceRefreshes.trySend(ResourceRefresh(snapshot))
             following(onCodeChanged)
-        } else if (ProjectChange.MODULES in changes || ProjectChange.DOCUMENTS in changes || ProjectChange.SPRITE_FOLDERS in changes) {
+        } else if (ProjectChange.MODULES in changes || ProjectChange.DOCUMENTS in changes || ProjectChange.SPRITE_FOLDERS in changes || ProjectChange.FONT_FOLDERS in changes) {
             resourceRefreshes.trySend(ResourceRefresh(snapshot))
         }
         following(refreshGit)

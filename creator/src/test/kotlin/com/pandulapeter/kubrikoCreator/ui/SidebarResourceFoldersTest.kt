@@ -26,6 +26,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.rightClick
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
+import com.pandulapeter.kubrikoCreator.project.FontFolderStore
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore
@@ -96,7 +97,7 @@ class SidebarResourceFoldersTest {
                 folderActions = FolderTreeActions({ _, _ -> }, {}, { _, _ -> null }, { group, path -> null.also { created += group to path } }, { _, _, _ -> null }, { _, _, _ -> }, { _, _, _ -> null }, { _, _ -> }),
                 dragState = SidebarDragState(),
                 documentActions = DocumentActions(onOpen = {}, onCreate = { _, _ -> null }, onRename = { _, _ -> null }, onDelete = {}, onAddToScreenplay = {}),
-                spriteFolders = SpriteFolderStore.State(setOf("enemies", "empty"), mapOf("bat" to "enemies")),
+                virtualFolders = VirtualFolderStates(sprites = SpriteFolderStore.State(setOf("enemies", "empty"), mapOf("bat" to "enemies"))),
             )
         }
         saveSnapshot("sidebar-sprite-folders")
@@ -107,6 +108,35 @@ class SidebarResourceFoldersTest {
         onNode(hasSetTextAction() and isFocused()).performTextInput("items")
         onNode(hasSetTextAction() and isFocused()).performKeyInput { pressKey(Key.Enter) }
         assertEquals(listOf(FolderGroup.SPRITES to "items"), created)
+    }
+
+    @Test
+    fun fontsAreShownInTheirOwnFoldersApartFromTheSprites() = uiTest(width = 300, height = 600) {
+        val created = mutableListOf<Pair<FolderGroup, String>>()
+        val resource = { group: ResourceGroup, path: String -> "src/commonMain/composeResources/$path".let { ProjectResource(group, File(it), it) } }
+        showing {
+            ProjectSidebar(
+                modifier = Modifier.fillMaxSize(),
+                resources = mapOf(
+                    ResourceGroup.SPRITES to listOf(resource(ResourceGroup.SPRITES, "drawable/ball.png")),
+                    ResourceGroup.FONTS to listOf(resource(ResourceGroup.FONTS, "font/pixel.ttf"), resource(ResourceGroup.FONTS, "font/serif.otf")),
+                ),
+                folderGroups = folderTreeGroups(types = null, typeFolders = emptyMap(), selectedTypeName = null, sceneNames = emptyList(), sceneFolders = emptySet(), openSceneName = null),
+                folderActions = FolderTreeActions({ _, _ -> }, {}, { _, _ -> null }, { group, path -> null.also { created += group to path } }, { _, _, _ -> null }, { _, _, _ -> }, { _, _, _ -> null }, { _, _ -> }),
+                dragState = SidebarDragState(),
+                documentActions = DocumentActions(onOpen = {}, onCreate = { _, _ -> null }, onRename = { _, _ -> null }, onDelete = {}, onAddToScreenplay = {}),
+                virtualFolders = VirtualFolderStates(fonts = FontFolderStore.State(setOf("titles"), mapOf("pixel" to "titles"))),
+            )
+        }
+        saveSnapshot("sidebar-font-folders")
+        onNodeWithText("Fonts").assertExists()
+        onNodeWithText("titles").assertExists()
+        onNodeWithText("serif.otf").assertExists()
+        onNodeWithText("Fonts").performMouseInput { rightClick() }
+        onNodeWithText("New folder").performClick()
+        onNode(hasSetTextAction() and isFocused()).performTextInput("menus")
+        onNode(hasSetTextAction() and isFocused()).performKeyInput { pressKey(Key.Enter) }
+        assertEquals(listOf(FolderGroup.FONTS to "menus"), created)
     }
 
     @Test

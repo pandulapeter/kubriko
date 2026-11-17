@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands
 import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.foundation.writeBytesAtomically
+import com.pandulapeter.kubrikoCreator.project.FontFolderStore
 import com.pandulapeter.kubrikoCreator.sprites.SpriteFolderStore
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
@@ -46,6 +47,7 @@ internal object ReplaceFiles : WriteCommand<ReplaceFiles.Input> {
             throw exception
         }
         if (input.contents.keys.any { it.startsWith(SpriteFolderStore.DIRECTORY + "/") }) context.spriteFolders.refresh()
+        if (input.contents.keys.any { it.startsWith(FontFolderStore.DIRECTORY + "/") }) context.fontFolders.refresh()
         Applied(inverse = Invocation(ReplaceFiles, Input(previous)))
     }
 

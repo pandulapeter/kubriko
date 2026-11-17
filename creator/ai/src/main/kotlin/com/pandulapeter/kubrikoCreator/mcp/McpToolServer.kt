@@ -320,11 +320,11 @@ public class McpToolServer(
             Block offers, a Kotlin Block can run a short snippet inside an Event; when even that isn't enough, do what the
             tools allow and tell the user what is missing, rather than writing Kotlin files. Keep the project organized as it
             grows, as part of every change rather than something to be asked for, so the user never inherits a mess: Actor
-            types, Manager types, Scenes, pages, sprites, sounds, and music go in folders named for what they are for in the
+            types, Manager types, Scenes, pages, sprites, fonts, sounds, and music go in folders named for what they are for in the
             game (enemies, levels/world-1, ui) once a group holds more than a handful (list_resources shows the sprites',
-            sounds', and music's). Put each new thing in its folder,
+            fonts', sounds', and music's). Put each new thing in its folder,
             making the folder first (create_folder); split a folder that grows past a dozen or so; move what is misplaced
-            (move_to_folder, move_sprite_to_folder, rename_scene, move_page, and, for audio, rename_resource; a whole folder with move_folder),
+            (move_to_folder, move_sprite_to_folder, move_font_to_folder, rename_scene, move_page, and, for audio, rename_resource; a whole folder with move_folder),
             which changes no type's name, while what refers to a moved Scene or file follows it; and name things like their
             neighbors. When a group you work in is cluttered, tidy it in the same plan, saying what moves where.
         """.trimIndent().replace("\n", " ")

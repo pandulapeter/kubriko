@@ -52,7 +52,7 @@ internal fun mentionCandidatesOf(
     blockTypes.sortedBy { it.name.lowercase() }.forEach { type -> add(MentionCandidate(type.name, null, Mention.of(DefinitionPaths.definitionPath(type)))) }
     resources[ResourceGroup.SCENES].orEmpty().sortedBy { it.relativePath }.forEach { add(MentionCandidate(SceneStore.nameOf(it.file), null, Mention.of(it.relativePath))) }
     pageNames.filter { PageNaming.pathOf(it) != pagePath }.forEach { page -> add(MentionCandidate(page, null, Mention.of(PageNaming.pathOf(page)))) }
-    listOf(ResourceGroup.DOCUMENTS, ResourceGroup.SPRITES, ResourceGroup.SOUNDS, ResourceGroup.MUSIC, ResourceGroup.KOTLIN).forEach { group ->
+    listOf(ResourceGroup.DOCUMENTS, ResourceGroup.SPRITES, ResourceGroup.FONTS, ResourceGroup.SOUNDS, ResourceGroup.MUSIC, ResourceGroup.KOTLIN).forEach { group ->
         resources[group].orEmpty().filter { it.relativePath != pagePath }.sortedBy { it.relativePath }.forEach { resource ->
             add(MentionCandidate(resource.name, resource.relativePath.substringBeforeLast('/', "").ifEmpty { null }, Mention.of(resource.relativePath)))
         }

@@ -12,6 +12,7 @@
 package com.pandulapeter.kubrikoCreator.commands
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.FontFiles
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeRepository
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypes
@@ -75,6 +76,7 @@ public fun TestScope.commandContext(
     audioFiles: AudioFiles? = null,
     scannedAudioFiles: () -> AudioFiles? = { audioFiles },
     spriteFiles: SpriteFiles? = null,
+    fontFiles: FontFiles? = null,
     resources: Map<ResourceGroup, List<ProjectResource>>? = null,
     documents: List<String> = emptyList(),
     report: (ConsoleEntry) -> Unit = {},
@@ -95,7 +97,7 @@ public fun TestScope.commandContext(
     scenes = SceneStore(rootDirectory, writeText = sceneWriteText, readText = sceneReadText, homeDirectory = sceneHomeDirectory, sceneResources = sceneResources),
     runner = runner,
     ioDispatcher = ioDispatcher,
-    scannedFiles = ScannedFiles(audioFiles = scannedAudioFiles, spriteFiles = { spriteFiles }, resources = { resources }),
+    scannedFiles = ScannedFiles(audioFiles = scannedAudioFiles, spriteFiles = { spriteFiles }, fontFiles = { fontFiles }, resources = { resources }),
     report = report,
     buildFiles = object : ProjectBuildFiles {
         override fun current() = projectUpgrade()

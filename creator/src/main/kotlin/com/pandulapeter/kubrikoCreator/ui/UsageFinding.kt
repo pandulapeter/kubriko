@@ -20,12 +20,12 @@ import com.pandulapeter.kubrikoCreator.context.RelationSubject
 internal val LocalUsageFinder = staticCompositionLocalOf<((RelationSubject) -> Unit)?> { null }
 
 /**
- * What the sidebar's item [name] of [group] is, as find usages names it: a sprite, sound, or music file by its path from
+ * What the sidebar's item [name] of [group] is, as find usages names it: a sprite, font, sound, or music file by its path from
  * `composeResources`, as the sidebar names those.
  */
 internal fun usageSubjectOf(group: FolderGroup, name: String): RelationSubject = when (group) {
     FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> RelationSubject.Type(name)
     FolderGroup.SCENES -> RelationSubject.Scene(name)
     FolderGroup.PAGES -> RelationSubject.Page(name)
-    FolderGroup.SPRITES, FolderGroup.SOUNDS, FolderGroup.MUSIC -> RelationSubject.Resource(name)
+    FolderGroup.SPRITES, FolderGroup.FONTS, FolderGroup.SOUNDS, FolderGroup.MUSIC -> RelationSubject.Resource(name)
 }

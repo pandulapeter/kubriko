@@ -39,6 +39,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetParent
 import com.pandulapeter.kubrikoCreator.commands.folders.CreateFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.DeleteFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.MoveFolder
+import com.pandulapeter.kubrikoCreator.commands.folders.MoveFontToFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.MoveSpriteToFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.MoveToFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.RenameFolder
@@ -192,6 +193,7 @@ import kubriko.creator.generated.resources.command_move_block
 import kubriko.creator.generated.resources.command_move_document
 import kubriko.creator.generated.resources.command_move_event
 import kubriko.creator.generated.resources.command_move_folder
+import kubriko.creator.generated.resources.command_move_font_to_folder
 import kubriko.creator.generated.resources.command_move_page
 import kubriko.creator.generated.resources.command_move_sprite_to_folder
 import kubriko.creator.generated.resources.command_move_to_folder
@@ -308,6 +310,7 @@ private val commandTitles = mapOf(
     DeleteFolder.name to Res.string.command_delete_folder,
     MoveToFolder.name to Res.string.command_move_to_folder,
     MoveSpriteToFolder.name to Res.string.command_move_sprite_to_folder,
+    MoveFontToFolder.name to Res.string.command_move_font_to_folder,
     SetSpriteSheet.name to Res.string.command_set_sprite_sheet,
     CreateSprite.name to Res.string.command_create_sprite,
     DrawPixels.name to Res.string.command_draw_pixels,

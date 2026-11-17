@@ -133,7 +133,7 @@ internal fun CommandContext.holdsAudioOnDisk(path: String): Boolean = resourceFi
 
 private fun isAudioWithin(resourcePath: String, folder: String): Boolean {
     val kind = ResourceKind.of(resourcePath)
-    return kind != null && kind != ResourceKind.SPRITE && FolderPaths.isWithin(ResourceKind.audioFolderOf(resourcePath), folder)
+    return (kind == ResourceKind.SOUND || kind == ResourceKind.MUSIC) && FolderPaths.isWithin(ResourceKind.audioFolderOf(resourcePath), folder)
 }
 
 /**

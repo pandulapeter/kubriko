@@ -27,6 +27,8 @@ class ResourceScannerTest {
     @Test
     fun mediaIsClassifiedByExtensionInsideComposeResourcesOnly() {
         assertEquals(ResourceGroup.SPRITES, ResourceScanner.classify("app/src/commonMain/composeResources/drawable/ball.PNG"))
+        assertEquals(ResourceGroup.FONTS, ResourceScanner.classify("src/commonMain/composeResources/font/pixel.ttf"))
+        assertEquals(ResourceGroup.FONTS, ResourceScanner.classify("src/commonMain/composeResources/font/title.OTF"))
         assertEquals(ResourceGroup.SOUNDS, ResourceScanner.classify("src/commonMain/composeResources/files/bounce.wav"))
         assertEquals(ResourceGroup.MUSIC, ResourceScanner.classify("src/commonMain/composeResources/files/theme.mp3"))
         assertNull(ResourceScanner.classify("docs/screenshot.png"))

@@ -34,7 +34,7 @@ import java.io.IOException
 @OptIn(EditorMutation::class)
 public object DeleteResource : DeletingCommand<DeleteResource.Input> {
     override val name: String = "delete_resource"
-    override val description: String = "Deletes a sprite, sound, or music file. What uses it is cleaned up and pages showing it keep a copy; check_change lists what."
+    override val description: String = "Deletes a sprite, font, sound, or music file. What uses it is cleaned up and pages showing it keep a copy; check_change lists what."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override fun subject(input: Input): RelationSubject = RelationSubject.Resource(input.path)
@@ -51,13 +51,17 @@ public object DeleteResource : DeletingCommand<DeleteResource.Input> {
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         if (!input.keepsUsages) return context.deleteWithUsages(subject(input), Invocation(DeleteResource, input.copy(keepsUsages = true)))
-        val (paths, spriteFolderFiles) = withContext(context.ioDispatcher) {
-            val spriteFolderFiles = if (ResourceKind.of(input.path) == ResourceKind.SPRITE) context.spriteFolders.filesOf(ResourceKind.nameOf(input.path)) else emptyList()
-            context.resourceFilesAt(input.path).map(context::projectPathOf) to spriteFolderFiles.map(context::projectPathOf)
+        val (paths, folderEntries) = withContext(context.ioDispatcher) {
+            val folderEntries = when (ResourceKind.of(input.path)) {
+                ResourceKind.SPRITE -> context.spriteFolders.filesOf(ResourceKind.nameOf(input.path))
+                ResourceKind.FONT -> context.fontFolders.filesOf(ResourceKind.nameOf(input.path))
+                else -> emptyList()
+            }
+            context.resourceFilesAt(input.path).map(context::projectPathOf) to folderEntries.map(context::projectPathOf)
         }
         if (paths.isEmpty()) return Applied.failed(Rejection(LookupProblem.RESOURCE_MISSING, input.path))
         return try {
-            ReplaceFiles.apply(context, ReplaceFiles.Input((paths + spriteFolderFiles).associateWith { null }))
+            ReplaceFiles.apply(context, ReplaceFiles.Input((paths + folderEntries).associateWith { null }))
         } catch (_: IOException) {
             Applied.failed(Rejection(CommandProblem.RESOURCE_NOT_DELETED, input.path))
         }

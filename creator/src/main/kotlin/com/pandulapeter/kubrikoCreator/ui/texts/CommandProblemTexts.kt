@@ -110,6 +110,7 @@ import kubriko.creator.generated.resources.error_command_upgrade_not_needed
 import kubriko.creator.generated.resources.error_command_usages_subject
 import kubriko.creator.generated.resources.error_command_volume_out_of_range
 import kubriko.creator.generated.resources.error_command_zoom_out_of_range
+import kubriko.creator.generated.resources.error_file_not_put_in_folder
 import kubriko.creator.generated.resources.error_folder_already_there
 import kubriko.creator.generated.resources.error_folder_exists
 import kubriko.creator.generated.resources.error_folder_into_itself
@@ -130,7 +131,6 @@ import kubriko.creator.generated.resources.error_not_a_resource_group
 import kubriko.creator.generated.resources.error_scene_folder_reserved
 import kubriko.creator.generated.resources.error_scene_name_taken
 import kubriko.creator.generated.resources.error_scene_not_moved
-import kubriko.creator.generated.resources.error_sprite_not_moved
 import kubriko.creator.generated.resources.warning_resource_audio_not_followed
 import kubriko.creator.generated.resources.warning_resource_named_in_code
 import kubriko.creator.generated.resources.warning_scene_named_in_code
@@ -248,7 +248,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.GAME_UNSUPPORTED -> Res.string.error_game_unsupported
     CommandProblem.INTERNAL -> Res.string.error_mcp_internal
     CommandProblem.NOT_A_RESOURCE_GROUP -> Res.string.error_not_a_resource_group
-    CommandProblem.SPRITE_NOT_MOVED -> Res.string.error_sprite_not_moved
+    CommandProblem.FILE_NOT_PUT_IN_FOLDER -> Res.string.error_file_not_put_in_folder
     CommandProblem.SCENE_FOLDER_RESERVED -> Res.string.error_scene_folder_reserved
     CommandProblem.SCENE_NAME_TAKEN -> Res.string.error_scene_name_taken
     CommandProblem.SCENE_NOT_MOVED -> Res.string.error_scene_not_moved

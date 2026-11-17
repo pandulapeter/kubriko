@@ -113,6 +113,7 @@ public class ProjectWatcher(
             path == GradlePropertiesFile.NAME -> ProjectChange.GAME_SETTINGS
             path.startsWith(".kubriko/actors/") || path.startsWith(".kubriko/managers/") -> ProjectChange.BLOCK_TYPE_DEFINITIONS
             path.startsWith(SpriteFolderStore.DIRECTORY + "/") || path == SpritePalette.FILE -> ProjectChange.SPRITE_FOLDERS
+            path.startsWith(FontFolderStore.DIRECTORY + "/") -> ProjectChange.FONT_FOLDERS
             ResourceScanner.classify(path) == ResourceGroup.SCENES -> ProjectChange.SCENES
             path.startsWith(PageNaming.FOLDER + "/") || path == ScreenplaySettings.FILE -> ProjectChange.SCREENPLAY
             ResourceScanner.isDocument(path) -> ProjectChange.DOCUMENTS

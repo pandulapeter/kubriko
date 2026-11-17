@@ -54,6 +54,7 @@ internal data class ResourceSource(
 internal val ResourceGroup.resourceKind: ResourceKind?
     get() = when (this) {
         ResourceGroup.SPRITES -> ResourceKind.SPRITE
+        ResourceGroup.FONTS -> ResourceKind.FONT
         ResourceGroup.SOUNDS -> ResourceKind.SOUND
         ResourceGroup.MUSIC -> ResourceKind.MUSIC
         ResourceGroup.SCENES, ResourceGroup.DOCUMENTS, ResourceGroup.KOTLIN -> null

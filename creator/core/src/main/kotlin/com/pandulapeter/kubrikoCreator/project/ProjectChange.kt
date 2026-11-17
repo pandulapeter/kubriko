@@ -25,6 +25,11 @@ public enum class ProjectChange {
     SPRITE_FOLDERS,
 
     /**
+     * Files in `.kubriko/fonts`, the fonts' folders.
+     */
+    FONT_FOLDERS,
+
+    /**
      * `.kubriko/project.json`.
      */
     SETTINGS,

@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ic_block
 import kubriko.creator.generated.resources.ic_code
+import kubriko.creator.generated.resources.ic_font
 import kubriko.creator.generated.resources.ic_music
 import kubriko.creator.generated.resources.ic_page
 import kubriko.creator.generated.resources.ic_scene
@@ -38,6 +39,7 @@ internal val UsagePlace.look: Pair<DrawableResource, Accent?>
         is UsagePlace.ResourceFile -> when (ResourceKind.of(path)) {
             ResourceKind.SOUND -> Res.drawable.ic_sound to Accent.AUDIO
             ResourceKind.MUSIC -> Res.drawable.ic_music to Accent.AUDIO
+            ResourceKind.FONT -> Res.drawable.ic_font to Accent.CODE
             ResourceKind.SPRITE, null -> Res.drawable.ic_sprite to Accent.CODE
         }
         UsagePlace.GameSettings -> Res.drawable.ic_settings to null

@@ -32,20 +32,20 @@ internal fun CommandContext.foldersOf(group: FolderGroup): Set<String> = when (g
     FolderGroup.SCENES -> (scenes.folders() + scenes.names().map(FolderPaths::parentOf).filter { it.isNotEmpty() }).withParents()
     FolderGroup.PAGES -> (screenplay.folders() + screenplay.names().map(PageNaming::folderOf).filter { it.isNotEmpty() }).withParents()
     FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> blockTypes?.folders?.value?.get(checkNotNull(group.kind)).orEmpty()
-    FolderGroup.SPRITES -> spriteFolders.state.value.folders
+    FolderGroup.SPRITES, FolderGroup.FONTS -> virtualFoldersOf(group).state.value.folders
     FolderGroup.SOUNDS, FolderGroup.MUSIC -> AudioFolders.ofKind(checkNotNull(group.resourceKind), audioFolders.folders(), knownAudioFiles())
 }
 
 /**
- * The names of the types, Scenes, or pages of [group] and the folders they are in; for sprites, sounds, and music, their
+ * The names of the types, Scenes, or pages of [group] and the folders they are in; for sprites, fonts, sounds, and music, their
  * paths from `composeResources` and their folders (a sound's or music's from `composeResources/files`).
  */
 internal fun CommandContext.itemsOf(group: FolderGroup): List<Pair<String, String>> = when (group) {
     FolderGroup.SCENES -> scenes.names().map { it to FolderPaths.parentOf(it) }
     FolderGroup.PAGES -> screenplay.names().map { it to PageNaming.folderOf(it) }
     FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> blockTypes?.types?.value.orEmpty().filter { it.kind == group.kind }.map { it.name to it.folder }
-    FolderGroup.SPRITES -> spriteFolders.state.value.folderOf.let { folderOf ->
-        knownResourcePaths().orEmpty().filter { ResourceKind.of(it) == ResourceKind.SPRITE }.map { it to folderOf[ResourceKind.nameOf(it)].orEmpty() }
+    FolderGroup.SPRITES, FolderGroup.FONTS -> virtualFoldersOf(group).state.value.folderOf.let { folderOf ->
+        knownResourcePaths().orEmpty().filter { ResourceKind.of(it) == group.resourceKind }.map { it to folderOf[ResourceKind.nameOf(it)].orEmpty() }
     }
     FolderGroup.SOUNDS, FolderGroup.MUSIC -> knownResourcePaths().orEmpty().filter { ResourceKind.of(it) == group.resourceKind }.map { it to ResourceKind.audioFolderOf(it) }
 }
@@ -98,6 +98,6 @@ private fun CommandContext.existingFoldersOf(group: FolderGroup): Set<String> = 
 private fun folderNameRejection(group: FolderGroup, path: String): Rejection? = when (group) {
     FolderGroup.SCENES -> (SceneNaming.validate(path) ?: FolderPaths.validatePath(path))?.let(::Rejection)
     FolderGroup.PAGES -> validatePageName(path)
-    FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES, FolderGroup.SPRITES -> FolderPaths.validatePath(path)?.let(::Rejection)
+    FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES, FolderGroup.SPRITES, FolderGroup.FONTS -> FolderPaths.validatePath(path)?.let(::Rejection)
     FolderGroup.SOUNDS, FolderGroup.MUSIC -> ResourceKind.validateAudioFolder(path)?.let(::Rejection)
 }

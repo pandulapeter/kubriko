@@ -44,13 +44,7 @@ public data class SpriteFiles(
          * The name of the Compose resource accessor of the image at [path], as its Gradle plugin makes it (`ball-1`
          * becomes `ball_1`), or null if [path] isn't a sprite file's.
          */
-        public fun accessorOf(path: String): String? {
-            val segments = path.split('/')
-            if (segments.size != 2 || segments[0] != DRAWABLE) return null
-            val name = segments[1].substringBeforeLast('.', "")
-            if (segments[1].substringAfterLast('.', "").lowercase() !in EXTENSIONS) return null
-            return name.replace('-', '_').let { if (it.firstOrNull()?.isDigit() == true) "_$it" else it }.takeIf(accessorPattern::matches)
-        }
+        public fun accessorOf(path: String): String? = ResourceAccessors.accessorOf(path, DRAWABLE, EXTENSIONS)
 
         /**
          * The width and height of the image in [file] in pixels, or null if it can't be read.
@@ -74,6 +68,5 @@ public data class SpriteFiles(
 
         private const val DRAWABLE = "drawable"
         private val EXTENSIONS = setOf("png", "jpg", "jpeg", "webp")
-        private val accessorPattern = Regex("[A-Za-z_][A-Za-z0-9_]*")
     }
 }

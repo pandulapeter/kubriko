@@ -23,7 +23,7 @@ public object NewResourcePaths {
      * The path from `composeResources` a file called [fileName] is added at, beside the files at [taken]: its kind's
      * folder ([ResourceKind.pathOf]) and its name made one the rules allow (accents dropped, every other sign a dash, so
      * `Hős lövés!.wav` becomes `files/sounds/Hos-loves.wav`), numbered (`ball-2`) while the game would mix it up with one
-     * there; or null if no sprite, sound, or music has its extension.
+     * there; or null if no sprite, font, sound, or music has its extension.
      */
     public fun of(fileName: String, taken: Collection<String>): String? {
         val extension = fileName.substringAfterLast('.', "")
@@ -46,7 +46,7 @@ public object NewResourcePaths {
 }
 
 /**
- * Where each of [fileNames], added together, would go among the sprites, sounds, and music the last resource scan found
+ * Where each of [fileNames], added together, would go among the sprites, fonts, sounds, and music the last resource scan found
  * and those added before it ([NewResourcePaths.of]), or null for one that can't be any.
  */
 public fun CommandContext.newResourcePathsOf(fileNames: List<String>): List<String?> {

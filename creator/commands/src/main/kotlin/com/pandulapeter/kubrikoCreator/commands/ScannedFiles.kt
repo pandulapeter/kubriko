@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
+import com.pandulapeter.kubrikoCreator.actors.FontFiles
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
@@ -19,13 +20,15 @@ import com.pandulapeter.kubrikoCreator.project.ResourceGroup
  *
  * @param audioFiles The sounds and music of the project, or null if they aren't known, so they aren't checked.
  * @param spriteFiles The images Actor types can be drawn as, or null if they aren't known, so they aren't checked.
- * @param resources Every file the scan found, by group, or null before the first scan: what the sprite, sound, and
+ * @param fontFiles The fonts texts can be drawn in, or null if they aren't known, so they aren't checked.
+ * @param resources Every file the scan found, by group, or null before the first scan: what the sprite, font, sound, and
  *   music commands check against, since [spriteFiles] leaves out images whose names make no resource accessor, which
  *   are the ones most in need of a rename.
  */
 public class ScannedFiles(
     public val audioFiles: () -> AudioFiles? = { null },
     public val spriteFiles: () -> SpriteFiles? = { null },
+    public val fontFiles: () -> FontFiles? = { null },
     public val resources: () -> Map<ResourceGroup, List<ProjectResource>>? = { null },
 ) {
     public companion object {
@@ -36,6 +39,7 @@ public class ScannedFiles(
         public fun of(resources: () -> Map<ResourceGroup, List<ProjectResource>>): ScannedFiles = ScannedFiles(
             audioFiles = { AudioFiles.ofScanned(resources()) },
             spriteFiles = { SpriteFiles.of(resources()) },
+            fontFiles = { FontFiles.of(resources()) },
             resources = { resources().takeIf { it.isNotEmpty() } },
         )
     }

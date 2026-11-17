@@ -14,12 +14,13 @@ import java.io.File
 
 /**
  * Finds the files of a project that belong in the resource tree. The tree is a view of plain files, so this is the
- * only place that decides what counts as a Scene, a sprite, or a sound.
+ * only place that decides what counts as a Scene, a sprite, a font, or a sound.
  */
 public object ResourceScanner {
 
     private const val CREATOR_DIRECTORY = ".kubriko"
     private val spriteExtensions = setOf("png", "webp", "jpg", "jpeg", "svg")
+    private val fontExtensions = setOf("ttf", "otf")
     private val soundExtensions = setOf("wav")
     private val musicExtensions = setOf("mp3", "ogg")
     private val buildFileNames = setOf("build.gradle.kts", "build.gradle")
@@ -95,6 +96,7 @@ public object ResourceScanner {
             !isComposeResource -> null
             extension == "json" && "scenes" in segments -> ResourceGroup.SCENES
             extension in spriteExtensions -> ResourceGroup.SPRITES
+            extension in fontExtensions -> ResourceGroup.FONTS
             extension in soundExtensions -> ResourceGroup.SOUNDS
             extension in musicExtensions -> ResourceGroup.MUSIC
             else -> null

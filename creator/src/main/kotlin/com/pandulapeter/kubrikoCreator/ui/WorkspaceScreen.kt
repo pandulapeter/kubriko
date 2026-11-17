@@ -192,7 +192,7 @@ private fun WorkspaceContent(
                         selection = selection,
                         layout = controller.layout.collectAsState().value,
                         gameModule = controller.gameModule.modules.collectAsState().value?.chosen?.let(::moduleFolderOf),
-                        spriteFolders = controller.commands.context.spriteFolders.state.collectAsState().value,
+                        virtualFolders = collectVirtualFoldersOf(controller.commands.context),
                         folderExpansion = controller.sidebarExpansion,
                         flashedName = shownAiStep?.step?.sidebarName(),
                         flashKey = shownAiStep?.flashKey,
