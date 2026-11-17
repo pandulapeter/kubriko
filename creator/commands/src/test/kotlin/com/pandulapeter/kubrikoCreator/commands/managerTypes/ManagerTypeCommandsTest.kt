@@ -21,6 +21,7 @@ import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.actors.NumberValue
 import com.pandulapeter.kubrikoCreator.actors.PlacementProblem
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.actors.ResourceKind
 import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
@@ -39,7 +40,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.resources.DeleteResource
-import com.pandulapeter.kubrikoCreator.commands.resources.gameFontPaths
+import com.pandulapeter.kubrikoCreator.commands.resources.gameResourcePaths
 import com.pandulapeter.kubrikoCreator.context.ReadDetail
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
@@ -201,7 +202,7 @@ class ManagerTypeCommandsTest {
         fun font(path: String) = File(root, path).let { ProjectResource(ResourceGroup.FONTS, it, path) }
         val resources = mapOf(ResourceGroup.FONTS to listOf(font("src/commonMain/composeResources/font/pixel.ttf"), font("tools/src/commonMain/composeResources/font/title.ttf")))
         val context = commandContext(brick, game, rootDirectory = root, resources = resources)
-        assertEquals(listOf("font/pixel.ttf"), context.gameFontPaths())
+        assertEquals(listOf("font/pixel.ttf"), context.gameResourcePaths(ResourceKind.FONT))
         assertNull(Invocation(AddText, AddText.Input("Game", ScreenTextDefinition(fontFile = "font/pixel.ttf"))).validate(context))
         assertEquals(Rejection(LookupProblem.FONT_MISSING, "font/title.ttf"), Invocation(AddText, AddText.Input("Game", ScreenTextDefinition(fontFile = "font/title.ttf"))).validate(context))
     }

@@ -70,7 +70,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param markdownLinks What the links of the page or document shown point at.
  * @param onAddPageImage Puts an image on the page shown, or null if a document is shown.
  * @param markdownIdentity What tells the page or document shown apart from the one before ([MarkdownIdentity]).
- * @param fonts The game's own fonts, by their paths from `composeResources`, which texts can be drawn in.
+ * @param gameResources The sprites and fonts of the game's own module, which its types can use.
  * @param sprites What the sprite editor needs of the workspace.
  */
 @Composable
@@ -80,7 +80,7 @@ internal fun WorkspaceCenter(
     sceneEditing: SceneEditingState,
     blockTypes: List<BlockTypeDefinition>,
     resources: Map<ResourceGroup, List<ProjectResource>>,
-    fonts: List<String>,
+    gameResources: GameResources,
     sceneNames: List<String>,
     sceneDescriptions: Map<String, String>,
     changedByHand: Set<String>,
@@ -139,8 +139,8 @@ internal fun WorkspaceCenter(
             blockTypes = blockTypes,
             sceneNames = sceneNames,
             audioFiles = audioFiles,
-            sprites = remember(resources, sprites.sheets) { SpriteChoices(SpriteFiles.of(resources), sprites.sheets) },
-            fonts = fonts,
+            sprites = remember(resources, gameResources, sprites.sheets) { SpriteChoices(gameResources.spritesAmong(SpriteFiles.of(resources)), sprites.sheets) },
+            fonts = gameResources.fonts,
             isChangedByHand = selectedBlockType.name in changedByHand,
             onCommand = onCommand,
             currentBlockType = currentBlockType,

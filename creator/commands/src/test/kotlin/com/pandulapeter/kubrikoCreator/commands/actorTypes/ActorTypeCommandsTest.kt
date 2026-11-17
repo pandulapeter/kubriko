@@ -41,10 +41,13 @@ import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.testScope
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
+import com.pandulapeter.kubrikoCreator.project.ProjectResource
+import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.sprites.SpriteSheet
 import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
+import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import java.awt.image.BufferedImage
@@ -427,5 +430,15 @@ class ActorTypeCommandsTest {
         assertNull(context.blockTypes!!["Puck"])
         assertEquals(scenes, listOf("one", "two").map { File(context.scenes.fileOf(it).path).readText() })
         assertEquals(0, executor.history.value.undoable.size)
+    }
+
+    @Test
+    fun onlyTheGameModulesOwnImagesCanDrawAnActorTypeAsTheGeneratedCodeLooksThemUpThere() = runTest {
+        val root = testDirectory()
+        fun sprite(path: String) = File(root, path).let { ProjectResource(ResourceGroup.SPRITES, it, path) }
+        val resources = mapOf(ResourceGroup.SPRITES to listOf(sprite("src/commonMain/composeResources/drawable/ball.png"), sprite("tools/src/commonMain/composeResources/drawable/icon.png")))
+        val context = commandContext(ball, wall, rootDirectory = root, resources = resources)
+        assertNull(context.rejection(SetAppearance, SetAppearance.Input("Ball", sprite = "drawable/ball.png")))
+        assertEquals(Rejection(LookupProblem.SPRITE_MISSING, "drawable/icon.png"), context.rejection(SetAppearance, SetAppearance.Input("Ball", sprite = "drawable/icon.png")))
     }
 }

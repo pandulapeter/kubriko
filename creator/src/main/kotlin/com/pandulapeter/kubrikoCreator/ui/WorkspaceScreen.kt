@@ -36,7 +36,6 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
-import com.pandulapeter.kubrikoCreator.commands.resources.gameFontPaths
 import com.pandulapeter.kubrikoCreator.commands.screenplay.unusedImagesOf
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpServerState
@@ -488,6 +487,6 @@ private fun WorkspaceCenterOf(
     markdownIdentity = rememberMarkdownIdentity(selection, controller.commands.context.movedFiles),
     onAddPageImage = rememberPageImageAdder(selection) { controller.commands.dispatch(it) },
     sprites = rememberSpriteEditing(controller.commands, controller.selection, uiState.spriteEditor),
-    fonts = remember(resources) { controller.commands.context.gameFontPaths() },
+    gameResources = remember(resources) { GameResources.of(controller.commands.context) },
     revealed = controller.selection.revealed.collectAsState().value,
 )

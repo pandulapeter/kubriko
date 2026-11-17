@@ -372,7 +372,8 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   Compose resources make accessors only of the files right in `drawable` and `font`: moving one between them
   (`move_sprite_to_folder`, `move_font_to_folder`) or renaming one changes only `.kubriko/sprites` or `.kubriko/fonts`,
   never the file's path, so nothing that uses it follows; two files of the same folder may not share an accessor
-  (`areMixedUp`). A sprite's file goes with its renames and deletes (`delete_resource`
+  (`areMixedUp`). Actor types and texts take only the game module's own sprites and fonts (`gameResourcePaths`,
+  `GameResources`), since the generated code looks them up in that module's `Res`. A sprite's file goes with its renames and deletes (`delete_resource`
   takes it into the same `ReplaceFiles` step, so undo puts it back), and holds how the sprite is cut into frames. A sheet
   that doesn't fit the image is refused when it is set, which reads the image's size off the main thread.
 

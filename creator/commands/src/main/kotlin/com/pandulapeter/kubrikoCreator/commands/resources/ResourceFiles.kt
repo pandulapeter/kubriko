@@ -47,10 +47,21 @@ private fun CommandContext.fallbackResourcePaths(): List<String>? {
 }
 
 /**
- * The fonts of the game's own resources ([isGameResource]), by their paths from `composeResources`, as the last resource
- * scan found them: the ones its texts can be drawn in, since the generated code looks a font up there.
+ * The files of [kind] among the game's own resources ([isGameResource]), by their paths from `composeResources`, as the
+ * last resource scan found them (or, without one, as the files given on their own know them), or null if they aren't
+ * known: the sprites Actor types can be drawn as and the fonts texts
+ * can be drawn in, since the generated code looks them up there.
  */
-public fun CommandContext.gameFontPaths(): List<String> = knownResourcePaths().orEmpty().filter { ResourceKind.of(it) == ResourceKind.FONT }.sorted()
+public fun CommandContext.gameResourcePaths(kind: ResourceKind): List<String>? = if (scannedResources() == null) {
+    when (kind) {
+        ResourceKind.SPRITE -> spriteFiles()?.paths
+        ResourceKind.FONT -> fontFiles()?.paths
+        ResourceKind.SOUND -> audioFiles()?.sounds
+        ResourceKind.MUSIC -> audioFiles()?.music
+    }
+} else {
+    knownResourcePaths()?.filter { ResourceKind.of(it) == kind }?.sorted()
+}
 
 /**
  * Why there's no sprite, font, sound, or music file at [path] to change, or null if there is one, or the files aren't known.

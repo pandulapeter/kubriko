@@ -55,7 +55,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.SimilarNames
-import com.pandulapeter.kubrikoCreator.commands.resources.knownResourcePaths
+import com.pandulapeter.kubrikoCreator.commands.resources.gameResourcePaths
 import com.pandulapeter.kubrikoCreator.foundation.ColorHex
 
 /**
@@ -336,12 +336,13 @@ internal fun CommandContext.validateNewParent(actorType: String, parent: String,
 }
 
 /**
- * Why an Actor type can't be drawn as [sprite]: it isn't an image of the project.
+ * Why an Actor type can't be drawn as [sprite]: it isn't an image of the game's own resources, where the generated code
+ * looks it up.
  */
 internal fun CommandContext.validateSprite(sprite: String): Rejection? {
-    val files = spriteFiles()
-    return if (SpriteFiles.accessorOf(sprite) == null || files?.files?.containsKey(sprite) == false) {
-        SimilarNames.rejection(LookupProblem.SPRITE_MISSING, LookupProblem.SPRITE_MISSING_SIMILAR, sprite, files?.paths.orEmpty(), sprite)
+    val sprites = gameResourcePaths(ResourceKind.SPRITE)?.filter { SpriteFiles.accessorOf(it) != null }
+    return if (SpriteFiles.accessorOf(sprite) == null || sprites?.contains(sprite) == false) {
+        SimilarNames.rejection(LookupProblem.SPRITE_MISSING, LookupProblem.SPRITE_MISSING_SIMILAR, sprite, sprites.orEmpty(), sprite)
     } else {
         null
     }
@@ -352,7 +353,7 @@ internal fun CommandContext.validateSprite(sprite: String): Rejection? {
  * it up.
  */
 internal fun CommandContext.validateFont(font: String): Rejection? {
-    val fonts = knownResourcePaths()?.filter { ResourceKind.of(it) == ResourceKind.FONT }
+    val fonts = gameResourcePaths(ResourceKind.FONT)
     return if (FontFiles.accessorOf(font) == null || fonts?.contains(font) == false) {
         SimilarNames.rejection(LookupProblem.FONT_MISSING, LookupProblem.FONT_MISSING_SIMILAR, font, fonts.orEmpty(), font)
     } else {
