@@ -24,6 +24,12 @@ public object EveryBlockTypes {
     const val FONT_FILE = "font/every-block.ttf"
 
     /**
+     * The hand-written Composable the Hud shows, which every project using these types needs, in a game whose package is
+     * `com.example.integration`, as the integration test makes it.
+     */
+    const val COMPOSABLE = "com.example.integration.ui.HudUi"
+
+    /**
      * The color Property every type has, which format version 14 added.
      */
     val colorProperty: PropertyDefinition = PropertyDefinition.Color("tint", 0x803366CC)
@@ -479,6 +485,7 @@ public object EveryBlockTypes {
                 BasicText("${'$'}{everyManagerManager.score + score} ${'$'}{actorManager.allActors.collectAsState().value.size} ${'$'}{viewportManager.size.collectAsState().value}")
             }
         """.trimIndent(),
+        composable = COMPOSABLE,
     )
 
     /**

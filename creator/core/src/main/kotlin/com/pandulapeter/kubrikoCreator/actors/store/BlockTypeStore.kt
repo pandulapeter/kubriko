@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.CreatorProjectSettings
 import com.pandulapeter.kubrikoCreator.actors.DefinitionPaths.CREATOR_DIRECTORY
 import com.pandulapeter.kubrikoCreator.actors.DefinitionPaths.definitionPath
 import com.pandulapeter.kubrikoCreator.actors.DefinitionPaths.definitionsFolder
+import com.pandulapeter.kubrikoCreator.actors.GeneratedCodeLocation
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyNaming
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator
@@ -54,6 +55,8 @@ public class BlockTypeStore private constructor(
     /**
      * Where the generated classes are written, relative to the project root.
      */
+    override val codeLocation: GeneratedCodeLocation get() = GeneratedCodeLocation(settings.sourceDirectory, settings.packageName)
+
     public val generatedPath: String get() = "${settings.sourceDirectory}/${settings.packageName.replace('.', '/')}/${ActorTypeCodeGenerator.GENERATED_PACKAGE}"
     private val generatedDirectory get() = File(rootDirectory, generatedPath)
 

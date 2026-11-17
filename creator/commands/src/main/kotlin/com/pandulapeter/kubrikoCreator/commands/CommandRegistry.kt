@@ -52,6 +52,7 @@ import com.pandulapeter.kubrikoCreator.commands.git.Commit
 import com.pandulapeter.kubrikoCreator.commands.git.DiscardChanges
 import com.pandulapeter.kubrikoCreator.commands.git.StartVersionControl
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.AddText
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.CreateComposable
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.CreateManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.EditText
@@ -59,6 +60,7 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.ListManagerTypes
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.ReadManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RemoveText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.SetComposable
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.SetKotlinUi
 import com.pandulapeter.kubrikoCreator.commands.project.AskUser
 import com.pandulapeter.kubrikoCreator.commands.project.Build
@@ -239,6 +241,8 @@ public class CommandRegistry(
                 EditText,
                 RemoveText,
                 SetKotlinUi,
+                SetComposable,
+                CreateComposable,
                 AddEvent,
                 RemoveEvent,
                 MoveEvent,

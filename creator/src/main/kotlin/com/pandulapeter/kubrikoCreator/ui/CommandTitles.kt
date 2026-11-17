@@ -53,6 +53,7 @@ import com.pandulapeter.kubrikoCreator.commands.git.Commit
 import com.pandulapeter.kubrikoCreator.commands.git.DiscardChanges
 import com.pandulapeter.kubrikoCreator.commands.git.StartVersionControl
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.AddText
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.CreateComposable
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.CreateManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.EditText
@@ -60,6 +61,7 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.ListManagerTypes
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.ReadManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RemoveText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.SetComposable
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.SetKotlinUi
 import com.pandulapeter.kubrikoCreator.commands.project.AskUser
 import com.pandulapeter.kubrikoCreator.commands.project.Build
@@ -145,6 +147,7 @@ import kubriko.creator.generated.resources.command_build
 import kubriko.creator.generated.resources.command_check_change
 import kubriko.creator.generated.resources.command_commit
 import kubriko.creator.generated.resources.command_create_actor_type
+import kubriko.creator.generated.resources.command_create_composable
 import kubriko.creator.generated.resources.command_create_document
 import kubriko.creator.generated.resources.command_create_folder
 import kubriko.creator.generated.resources.command_create_manager_type
@@ -232,6 +235,7 @@ import kubriko.creator.generated.resources.command_set_actor_values
 import kubriko.creator.generated.resources.command_set_actors_state
 import kubriko.creator.generated.resources.command_set_actors_values
 import kubriko.creator.generated.resources.command_set_appearance
+import kubriko.creator.generated.resources.command_set_composable
 import kubriko.creator.generated.resources.command_set_description
 import kubriko.creator.generated.resources.command_set_event_key
 import kubriko.creator.generated.resources.command_set_event_other_actor_type
@@ -340,6 +344,8 @@ private val commandTitles = mapOf(
     RemoveText.name to Res.string.command_remove_text,
     RenameManagerType.name to Res.string.command_rename_manager_type,
     SetKotlinUi.name to Res.string.command_set_kotlin_ui,
+    SetComposable.name to Res.string.command_set_composable,
+    CreateComposable.name to Res.string.command_create_composable,
     Build.name to Res.string.command_build,
     CheckChange.name to Res.string.command_check_change,
     GetHealthChecks.name to Res.string.command_get_health_checks,

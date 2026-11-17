@@ -68,6 +68,7 @@ private fun notationOf(definition: BlockTypeDefinition, detail: ReadDetail, even
     if (eventIndex == null && definition is ManagerTypeDefinition) {
         if (definition.texts.isNotEmpty()) putJsonArray("texts") { definition.texts.forEachIndexed { index, text -> add(TypeNotation.of(index, text)) } }
         definition.kotlinUi?.let { put("kotlinUi", it) }
+        definition.composable?.let { put("composable", it) }
     }
     if (isChangedByHand) put("isChangedByHand", true)
 }

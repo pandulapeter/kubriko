@@ -443,6 +443,11 @@
     <string name="action_add_text">Add text</string>
     <string name="manager_type_kotlin_ui">Kotlin UI</string>
     <string name="manager_type_kotlin_ui_empty">Compose code drawn on top of the game, for menus, bars, and layouts the texts can't show.</string>
+    <string name="manager_type_composable">Composable</string>
+    <string name="manager_type_composable_empty">Your own Compose code in a file of the game, for a UI the texts can't show, like a pause menu or a settings panel.</string>
+    <string name="action_create_composable">Make a Composable</string>
+    <string name="action_open_composable">Open in your editor</string>
+    <string name="action_remove_composable">Stop showing it (its file stays)</string>
     <string name="manager_type_kotlin_ui_title">Kotlin UI of %1$s</string>
     <string name="manager_type_kotlin_ui_hint">The body of the Manager's Composable, drawn after its texts. Start with import lines for what it uses. In scope: windowInsets, this Manager's Properties (the UI follows them), the other Manager types by name with a lowercase first letter and Manager after it (Lives as livesManager), actorManager, viewportManager, and stateManager (read their StateFlows with collectAsState()).</string>
     <string name="action_edit_kotlin_ui">Edit the Kotlin UI</string>
@@ -777,6 +782,8 @@
     <string name="error_command_colors_not_opaque">Set the color takes opaque colors (#RRGGBB) and keeps the Actor's opacity. Set the opacity with Set the opacity or Change the opacity.</string>
     <string name="error_command_block_section_marker_between_events">An else or end Block moves only within its Event, since in another one it would end or split a section. Move the if or repeat Block before it to take its whole section.</string>
     <string name="error_command_block_section_unended_not_last">An if or repeat Block without an end Block runs to the end of its Event, so it goes into another Event only after that Event's last Block.</string>
+    <string name="error_command_composable_file_taken">There's already a file at %1$s. Show the Composable in it with set_composable, or give the new one another name.</string>
+    <string name="error_command_composable_name_invalid">%1$s can't be a Composable's name: a function's name, in full with its package for set_composable (com.example.game.ui.HudUi), of letters, numbers, and underscores.</string>
     <string name="error_command_number_edge_across">An x takes only the left and right edges, and a y only the top and bottom ones; a random number is drawn between two edges of the same axis.</string>
     <string name="error_command_number_invalid">Every number has to be finite.</string>
     <string name="error_placement_key_not_allowed">Only the key Events (pressed, released, and held) have a key.</string>
@@ -831,6 +838,8 @@
     <string name="command_edit_text">Edit text</string>
     <string name="command_remove_text">Remove text</string>
     <string name="command_set_kotlin_ui">Edit Kotlin UI</string>
+    <string name="command_set_composable">Set the Composable</string>
+    <string name="command_create_composable">Make a Composable</string>
     <string name="command_set_appearance">Change appearance</string>
     <string name="command_set_movement">Change movement</string>
     <string name="command_set_parent">Change parent</string>

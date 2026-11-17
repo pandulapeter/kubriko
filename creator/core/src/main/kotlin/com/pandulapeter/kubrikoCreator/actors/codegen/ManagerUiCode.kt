@@ -21,8 +21,8 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.floatLi
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.templateLiteral
 
 /**
- * What a generated Manager draws on top of the game: its texts, then its Kotlin UI, drawn on top of them, in its
- * `Composable`.
+ * What a generated Manager draws on top of the game: its texts, then its Kotlin UI, then its hand-written Composable
+ * ([ManagerComposables]), each drawn on top of the ones before, in its `Composable`.
  *
  * @param members The members the Manager declares for it: the texts' styles and the `Composable` itself.
  * @param needs What the Manager declares for it besides [members].
@@ -44,7 +44,8 @@ internal class ManagerUiCode private constructor(
          */
         fun of(definition: ManagerTypeDefinition, scope: BlockScope, packageName: String): ManagerUiCode? {
             val kotlinUi = KotlinUi.of(definition.kotlinUi)
-            if (definition.texts.isEmpty() && kotlinUi == null) return null
+            val composable = definition.composable?.takeIf(ManagerComposables::isValid)
+            if (definition.texts.isEmpty() && kotlinUi == null && composable == null) return null
             val texts = definition.texts.map { templateLiteral(it.text, scope) }
             val conditions = definition.texts.map { text -> text.shownWhen?.let { ConditionCode.of(it, scope) } }
             val conditionCode = conditions.fold(BlockCode.NONE) { code, condition -> if (condition == null) code else code + condition }
@@ -62,9 +63,10 @@ internal class ManagerUiCode private constructor(
                 addAll(conditionCode.imports)
                 kotlinUi?.imports?.let(::addAll)
                 kotlinUi?.let { ui -> BlockCodeGenerator.randomImportFor(ui.statements.joinToString("\n"), ui.imports)?.let(::add) }
+                composable?.let { add("$it as $COMPOSABLE_ALIAS") }
             }
             return ManagerUiCode(
-                members = buildString { appendComposable(definition.texts, texts.map { it.code }, conditions.map { it?.lines?.single() }, fontAccessors, kotlinUi) },
+                members = buildString { appendComposable(definition.texts, texts.map { it.code }, conditions.map { it?.lines?.single() }, fontAccessors, kotlinUi, composable != null) },
                 needs = needs,
                 imports = imports,
                 managers = texts.flatMapTo(HashSet()) { it.managers } + conditionCode.managers + scope.managersNamedIn(kotlinUi),
@@ -77,6 +79,7 @@ internal class ManagerUiCode private constructor(
          *
          * @param conditions The expression each text is shown while, or null for one shown always.
          * @param fontAccessors The accessor of the font file each text is drawn in, or null for one drawn in its family.
+         * @param showsComposable Whether the Manager shows a hand-written Composable, imported as [COMPOSABLE_ALIAS].
          */
         private fun StringBuilder.appendComposable(
             definitions: List<ScreenTextDefinition>,
@@ -84,6 +87,7 @@ internal class ManagerUiCode private constructor(
             conditions: List<String?>,
             fontAccessors: List<String?>,
             kotlinUi: KotlinUi?,
+            showsComposable: Boolean,
         ) {
             definitions.forEachIndexed { index, definition ->
                 appendLine()
@@ -114,6 +118,7 @@ internal class ManagerUiCode private constructor(
                 appendLine("        }")
             }
             kotlinUi?.statements?.forEach { appendLine(if (it.isEmpty()) it else "        $it") }
+            if (showsComposable) appendLine("        $COMPOSABLE_ALIAS(this, windowInsets)")
             appendLine("    }")
         }
 
@@ -163,6 +168,12 @@ internal class ManagerUiCode private constructor(
          * called like one of them, and reserving those names would need a migration renaming such types.
          */
         private const val FONT_PACKAGE = "androidx.compose.ui.text.font"
+
+        /**
+         * What the Manager's hand-written Composable is imported as: a name starting with an underscore, which no Property
+         * or type can have, so neither hides it nor clashes with it.
+         */
+        private const val COMPOSABLE_ALIAS = "_Composable"
 
         private val COMPOSABLE_IMPORTS = listOf(
             "androidx.compose.foundation.layout.WindowInsets",

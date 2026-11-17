@@ -32,6 +32,8 @@ import kubriko.creator.generated.resources.error_command_colors_count
 import kubriko.creator.generated.resources.error_command_colors_not_opaque
 import kubriko.creator.generated.resources.error_command_commit_conflicts
 import kubriko.creator.generated.resources.error_command_commit_message_empty
+import kubriko.creator.generated.resources.error_command_composable_file_taken
+import kubriko.creator.generated.resources.error_command_composable_name_invalid
 import kubriko.creator.generated.resources.error_command_description_invalid
 import kubriko.creator.generated.resources.error_command_document_not_moved
 import kubriko.creator.generated.resources.error_command_document_taken
@@ -144,6 +146,8 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.ANIMATED_COLOR_NOT_OPAQUE, CommandProblem.SPEED_RANDOM_EVERY_FRAME, CommandProblem.SCALE_NEGATIVE, CommandProblem.COLORS_COUNT, CommandProblem.COLORS_NOT_OPAQUE, CommandProblem.NUMBER_INVALID,
     -> blockValueResource()
     CommandProblem.TURN_CANCELLED -> Res.string.assistant_turn_cancelled
+    CommandProblem.COMPOSABLE_FILE_TAKEN -> Res.string.error_command_composable_file_taken
+    CommandProblem.COMPOSABLE_NAME_INVALID -> Res.string.error_command_composable_name_invalid
     CommandProblem.BLOCK_SECTION_MARKER_BETWEEN_EVENTS -> Res.string.error_command_block_section_marker_between_events
     CommandProblem.BLOCK_SECTION_UNENDED_NOT_LAST -> Res.string.error_command_block_section_unended_not_last
     CommandProblem.ACTOR_ID_EMPTY -> Res.string.error_command_actor_id_empty

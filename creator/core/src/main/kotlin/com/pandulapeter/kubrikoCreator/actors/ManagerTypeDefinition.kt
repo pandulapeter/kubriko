@@ -33,6 +33,8 @@ public data class ManagerTypeDefinition(
     @SerialName("texts") val texts: List<ScreenTextDefinition> = emptyList(),
     @Description("Compose code drawn on top of the game after the texts, for UI the texts can't express. See set_kotlin_ui for what is in scope.")
     @SerialName("kotlinUi") val kotlinUi: String? = null,
+    @Description("The project's @Composable it shows after its texts and Kotlin UI, in full (see create_composable), or none.")
+    @SerialName("composable") val composable: String? = null,
     @Transient override val folder: String = "",
 ) : BlockTypeDefinition {
     override val kind: BlockTypeKind get() = BlockTypeKind.MANAGER

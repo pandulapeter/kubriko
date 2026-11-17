@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.DefinitionPaths
+import com.pandulapeter.kubrikoCreator.actors.GeneratedCodeLocation
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.withManagerRenamed
 import com.pandulapeter.kubrikoCreator.actors.withOtherActorTypeRenamed
@@ -187,6 +188,8 @@ public class BlockTypesController(
     public fun select(name: String?) {
         _selectedName.value = name
     }
+
+    override val codeLocation: GeneratedCodeLocation? get() = repository.codeLocation
 
     override val takenNames: List<String> get() = _types.value.map { it.name } + _unreadableFiles.value.map { it.name }
 

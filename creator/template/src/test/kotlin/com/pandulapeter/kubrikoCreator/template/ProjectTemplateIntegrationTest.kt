@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.ConditionKind
 import com.pandulapeter.kubrikoCreator.actors.EveryBlockTypes
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
+import com.pandulapeter.kubrikoCreator.actors.codegen.ManagerComposables
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
@@ -74,6 +75,9 @@ class ProjectTemplateIntegrationTest {
                         }
                         // Only built, never drawn, so the font file needs only to be one by its name and signature.
                         directory.resolve("src/commonMain/composeResources/${EveryBlockTypes.FONT_FILE}").apply { parentFile.mkdirs() }.writeBytes(byteArrayOf(0, 1, 0, 0))
+                        val code = checkNotNull(store.codeLocation)
+                        val composable = EveryBlockTypes.COMPOSABLE.substringAfterLast('.')
+                        directory.resolve(ManagerComposables.pathOf(code, composable)).apply { parentFile.mkdirs() }.writeText(ManagerComposables.textOf(code, "Hud", composable))
                         val sprites = SpriteFolderStore(directory, OwnWrites())
                         EveryBlockTypes.spriteSheets.forEach { (name, sheet) -> sprites.setSheet(name, sheet) }
                         EveryBlockTypes.all.forEach(store::save)

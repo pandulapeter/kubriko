@@ -70,7 +70,7 @@ class BlockTypeNamingTest {
             val imported = File(root, store.generatedPath).walkTopDown().filter { it.isFile }
                 .flatMap { file -> file.readLines().filter { it.startsWith("import ") }.map { it.removePrefix("import ") } }
                 .filter { it !in written }
-                .map { it.substringAfterLast('.') }
+                .map { it.substringAfter(" as ", missingDelimiterValue = it).substringAfterLast('.') }
                 .filter { it.first().isUpperCase() }
                 .toSortedSet()
             imported.forEach { assertEquals(NameProblem.TYPE_RESERVED, BlockTypeNaming.validate(it, emptyList()), it) }

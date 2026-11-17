@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.store.CameraMigration
 import com.pandulapeter.kubrikoCreator.actors.store.ColorPropertiesMigration
 import com.pandulapeter.kubrikoCreator.actors.store.CombinedConditionsMigration
+import com.pandulapeter.kubrikoCreator.actors.store.ComposableMigration
 import com.pandulapeter.kubrikoCreator.actors.store.DistanceConditionMigration
 import com.pandulapeter.kubrikoCreator.actors.store.EdgeValuesMigration
 import com.pandulapeter.kubrikoCreator.actors.store.FontFilesMigration
@@ -124,6 +125,7 @@ public class ProjectFormat(
             CameraMigration,
             SizeAndScaleMigration,
             FontFilesMigration,
+            ComposableMigration,
         )
 
         /**

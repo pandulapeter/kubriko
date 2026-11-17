@@ -114,7 +114,9 @@
   their names would need a migration renaming types. A text drawn in a font file keeps its family too, which draws it while the game has
   no such file (looked up through `Res.allFontResources`, as sprites are, so a deleted file breaks no build); since loading
   a font resource is `@Composable`, the Composable makes that style itself, in a `remember` keyed by the loaded font, with
-  locals starting with an underscore, which no Property's name can.
+  locals starting with an underscore, which no Property's name can. A Manager type's hand-written Composable (`composable`, `ManagerComposables`)
+  is drawn last, called with the Manager and the insets, and imported under the alias `_Composable`, so neither a Property
+  nor a type of the project hides it or clashes with it.
 - Keys reach a type in two ways (`KeyEventCode`): Kubriko tells a `KeyboardInputAware` about each key pressed and let go,
   which the pressed and released Events dispatch by key, while a held key is asked about in `update` (or a Manager's
   `onUpdate`), so a type with only held keys needs no Trait and, like every frame, never runs while paused. The removed

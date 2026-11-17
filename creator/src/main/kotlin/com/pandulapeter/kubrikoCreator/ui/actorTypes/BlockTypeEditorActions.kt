@@ -44,10 +44,12 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventTimer
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetMovement
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetParent
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.AddText
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.CreateComposable
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.EditText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RemoveText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.SetComposable
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.SetKotlinUi
 import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
 import com.pandulapeter.kubrikoCreator.commands.resources.SetSpriteSheet
@@ -106,6 +108,10 @@ internal class BlockTypeEditorActions(
     fun removeText(index: Int) = dispatch(Invocation(RemoveText, RemoveText.Input(name, index)))
 
     fun setKotlinUi(code: String) = dispatch(Invocation(SetKotlinUi, SetKotlinUi.Input(name, code)))
+
+    fun createComposable() = dispatch(Invocation(CreateComposable, CreateComposable.Input(name)))
+
+    fun removeComposable() = dispatch(Invocation(SetComposable, SetComposable.Input(name, "")))
 
     fun addEvent(type: EventType, onAdded: () -> Unit) = dispatch(Invocation(AddEvent, AddEvent.Input(name, type)), onAdded)
 

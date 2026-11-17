@@ -354,6 +354,12 @@ private fun PropertiesColumn(
                     code = definition.kotlinUi,
                     onCodeChange = actions::setKotlinUi,
                 )
+                HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
+                ComposableSection(
+                    composable = definition.composable,
+                    onCreate = actions::createComposable,
+                    onRemove = actions::removeComposable,
+                )
             }
         }
     }

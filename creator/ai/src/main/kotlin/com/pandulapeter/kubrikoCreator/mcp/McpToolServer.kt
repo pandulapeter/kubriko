@@ -318,7 +318,9 @@ public class McpToolServer(
             every change through these tools, never by editing the project's files in other ways: Kubriko Creator owns the
             generated code, and the user can't see or undo such edits in it. When a request needs something no Event or
             Block offers, a Kotlin Block can run a short snippet inside an Event; when even that isn't enough, do what the
-            tools allow and tell the user what is missing, rather than writing Kotlin files. Keep the project organized as it
+            tools allow and tell the user what is missing, rather than writing Kotlin files. A UI beyond a Manager type's texts is
+            Compose: make its Composable with create_composable and write the UI in that file, the one kind of Kotlin file to
+            edit. Keep the project organized as it
             grows, as part of every change rather than something to be asked for, so the user never inherits a mess: Actor
             types, Manager types, Scenes, pages, sprites, fonts, sounds, and music go in folders named for what they are for in the
             game (enemies, levels/world-1, ui) once a group holds more than a handful (list_resources shows the sprites',

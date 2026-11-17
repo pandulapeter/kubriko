@@ -74,6 +74,6 @@ class ClaudeAgentTest {
          * About 11,550 tokens, which the system prompt costs on every request that misses the prompt cache; the Block
          * catalog it carries grows with every Block, Event, and condition.
          */
-        const val SYSTEM_PROMPT_BUDGET_IN_CHARACTERS = 46_250
+        const val SYSTEM_PROMPT_BUDGET_IN_CHARACTERS = 46_400
     }
 }

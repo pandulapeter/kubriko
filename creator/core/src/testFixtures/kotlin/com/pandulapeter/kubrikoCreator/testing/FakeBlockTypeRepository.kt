@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.testing
 
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
+import com.pandulapeter.kubrikoCreator.actors.GeneratedCodeLocation
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeRepository
 import com.pandulapeter.kubrikoCreator.actors.store.LoadedBlockTypes
 import com.pandulapeter.kubrikoCreator.actors.store.RegeneratedCode
@@ -19,6 +20,7 @@ import java.io.IOException
 
 public class FakeBlockTypeRepository(
     initial: List<BlockTypeDefinition> = emptyList(),
+    override val codeLocation: GeneratedCodeLocation? = null,
 ) : BlockTypeRepository {
     val stored = initial.associateBy { it.name }.toMutableMap()
     val writes = mutableListOf<String>()

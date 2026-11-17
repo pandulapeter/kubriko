@@ -104,6 +104,7 @@ internal fun WorkspaceScreen(
         LocalWritersRoom provides rememberWritersRoom(uiState::showAssistant, assistant::startWritersRoom),
         LocalPageReviews provides rememberPageReviews(assistant.chats, controller.commands.history),
         LocalUsageFinder provides uiState::findUsages,
+        LocalComposableOpener provides rememberComposableOpener(controller.resources.collectAsState().value),
     ) {
         WorkspaceContent(
             controller = controller,

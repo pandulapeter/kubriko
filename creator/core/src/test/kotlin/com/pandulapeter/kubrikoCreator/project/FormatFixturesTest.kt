@@ -152,8 +152,10 @@ class FormatFixturesTest {
      * up to the current format doesn't make up.
      */
     private fun BlockTypeDefinition.asOf(version: Int): BlockTypeDefinition {
-        if (version >= 24) return this
-        val withoutFontFiles = (this as? ManagerTypeDefinition)?.let { it.copy(texts = it.texts - EveryBlockTypes.fontFileText) } ?: this
+        if (version >= 25) return this
+        val withoutComposable = (this as? ManagerTypeDefinition)?.copy(composable = null) ?: this
+        if (version == 24) return withoutComposable
+        val withoutFontFiles = (withoutComposable as? ManagerTypeDefinition)?.let { it.copy(texts = it.texts - EveryBlockTypes.fontFileText) } ?: withoutComposable
         if (version == 23) return withoutFontFiles
         val withoutSize = withoutFontFiles.withEvents(withoutFontFiles.events.map { event -> event.copy(blocks = event.blocks.without(EveryBlockTypes.sizeBlocks)) })
         if (version == 22) return withoutSize

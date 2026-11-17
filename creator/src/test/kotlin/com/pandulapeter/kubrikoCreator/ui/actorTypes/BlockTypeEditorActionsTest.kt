@@ -32,8 +32,10 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventTimer
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.AddText
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.CreateComposable
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.SetComposable
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -144,6 +146,19 @@ class BlockTypeEditorActionsTest {
         assertEquals(0, moved)
         successes.single().invoke()
         assertEquals(1, moved)
+    }
+
+    @Test
+    fun aComposableIsMadeAndNoLongerShownForTheType() {
+        val actions = actionsOf(ManagerTypeDefinition("Hud"))
+
+        actions.createComposable()
+        actions.removeComposable()
+
+        assertEquals<List<Invocation<*>>>(
+            listOf(Invocation(CreateComposable, CreateComposable.Input("Hud")), Invocation(SetComposable, SetComposable.Input("Hud", ""))),
+            dispatched,
+        )
     }
 
     @Test

@@ -11,11 +11,17 @@ package com.pandulapeter.kubrikoCreator.actors.store
 
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
+import com.pandulapeter.kubrikoCreator.actors.GeneratedCodeLocation
 
 /**
  * Where a workspace's block-built Actor types and Manager types are kept.
  */
 public interface BlockTypeRepository {
+
+    /**
+     * Where the project's Kotlin is, or null where it isn't known.
+     */
+    public val codeLocation: GeneratedCodeLocation? get() = null
 
     /**
      * Reads every type, each file on its own, so that one that can't be read leaves the others readable.

@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.actors.store
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
+import com.pandulapeter.kubrikoCreator.actors.GeneratedCodeLocation
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import kotlinx.coroutines.flow.StateFlow
@@ -21,6 +22,11 @@ import kotlinx.coroutines.flow.StateFlow
  * Changes show up immediately and are written in the background.
  */
 public interface BlockTypes {
+
+    /**
+     * Where the project's Kotlin is, or null where it isn't known.
+     */
+    public val codeLocation: GeneratedCodeLocation? get() = null
 
     /**
      * Every Actor type and Manager type, sorted by name.
