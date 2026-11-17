@@ -66,5 +66,16 @@ public data class BlockNesting(
             }
             return nesting to openSections.size
         }
+
+        /**
+         * The indexes of the if or repeat Block at [index] of [blocks] and of every Block of its section: up to its end
+         * Block, or to the end of the Event without one.
+         */
+        public fun sectionOf(blocks: List<BlockDefinition>, index: Int): IntRange {
+            val nesting = of(blocks).first
+            val depth = nesting[index].depth
+            val end = (index + 1 until blocks.size).firstOrNull { nesting[it].depth == depth && nesting[it].role == Role.CLOSES } ?: blocks.lastIndex
+            return index..end
+        }
     }
 }

@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.context
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeValue
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockNesting
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ColorValue
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
@@ -233,7 +234,7 @@ internal class ReferenceCleanup(
 
     private fun Removal.removeSection(typeName: String, eventIndex: Int, blockIndex: Int) {
         val blocks = types.first { it.name == typeName }.events[eventIndex].blocks
-        this.blocks.getOrPut(eventIndex, ::HashSet) += ProjectReferences.sectionOf(blocks, blockIndex)
+        this.blocks.getOrPut(eventIndex, ::HashSet) += BlockNesting.sectionOf(blocks, blockIndex)
     }
 
     private class Removal {

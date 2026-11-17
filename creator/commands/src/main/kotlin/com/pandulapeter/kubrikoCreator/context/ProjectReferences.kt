@@ -272,7 +272,7 @@ internal class ProjectReferences(
 
     private fun sectionOf(place: RelationPlace.Type): IntRange {
         val blocks = types.first { it.name == place.name }.events[checkNotNull(place.eventIndex)].blocks
-        return sectionOf(blocks, checkNotNull(place.blockIndex))
+        return BlockNesting.sectionOf(blocks, checkNotNull(place.blockIndex))
     }
 
     companion object {
@@ -283,16 +283,5 @@ internal class ProjectReferences(
          * is an ordinary word, nor a page or an image, which the game's code doesn't name.
          */
         fun readsKotlinFiles(subject: RelationSubject) = subject is RelationSubject.Type || subject is RelationSubject.Scene || subject is RelationSubject.Resource
-
-        /**
-         * The indexes of the if or repeat Block at [index] of [blocks] and of every Block of its section: up to its end
-         * Block, or to the end of the Event without one.
-         */
-        fun sectionOf(blocks: List<BlockDefinition>, index: Int): IntRange {
-            val nesting = BlockNesting.of(blocks).first
-            val depth = nesting[index].depth
-            val end = (index + 1 until blocks.size).firstOrNull { nesting[it].depth == depth && nesting[it].role == BlockNesting.Role.CLOSES } ?: blocks.lastIndex
-            return index..end
-        }
     }
 }
