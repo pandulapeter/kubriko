@@ -33,7 +33,7 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Go on with `01-blocks.md`, at Game UI: UI elements first.
+Go on with `01-blocks.md`, at Game UI: hand-written Composables (UI elements were dropped, see there).
 
 Font files are done (78b12c74c..57c69224a, reviewed at medium with every finding fixed; the integration test built every
 template with a text in a font file): a Fonts group with virtual folders shared with the sprites (`VirtualFolderStore`),

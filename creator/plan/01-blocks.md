@@ -15,15 +15,18 @@ whose exhaustive `when`s then show every place it needs.
 
 ## Game UI
 
-A Manager's texts on screen suit a score or a lives counter, and its Kotlin UI is the escape hatch for anything else. Game UI grows
-from them in two steps, always generated into ordinary Compose (no runtime interpreter):
+Creator owns Kubriko's side of a game; a UI beyond its Manager types' texts is Compose, which is Kotlin, the user's own code
+(Principle 2). A visual tree of UI elements (columns, rows, buttons, and the like) was dropped on 2026-11-17: a real game's UI,
+such as Tesselar's (over 200 Composables: a Material theme, an animated pause menu, settings panels of sliders and switches,
+platform effects, and focus handling), can't be built from Blocks, so a tree would only be outgrown into code, a dead end.
+What building the demo games shows every small game needs is added to texts instead, one specific thing at a time.
 
-1. **UI elements:** `texts` becomes a sealed `elements` tree (column, row, box, text, image, button, and progress bar) that the editor
-   builds visually, with a text as one kind of element so existing files still load. It lifts the cap on where a text goes (today one
-   of the nine `ScreenPosition`s). Buttons run a new Manager Event, "When a button is clicked", so UI behavior stays Events and Blocks.
-   Done before many projects depend on the flat `texts` list.
-2. **Hand-written Composables:** a Manager shows a `@Composable` from the project's own code, chosen by name, so a project that
-   outgrows Creator's UI keeps it in its own files.
+- **Hand-written Composables:** a Manager type shows a `@Composable fun <Name>(<manager>: <ManagerType>, windowInsets: WindowInsets)`
+  from the project's own code, chosen by its fully qualified name (`composable`, format raise), drawn on top of its texts and
+  Kotlin UI, so its Properties are Compose state the UI follows. Creator makes a new one (`create_composable`: a file of its
+  own in a `ui` package beside the generated one, which is the user's from then on), opens it in the system's editor, and the
+  AI writes Compose in it, the one kind of Kotlin file it edits. A Composable the project no longer has shows where the
+  Manager type is edited, as the build names it too.
 
 ## Scene editor (Creator's own, `ui/scenes`)
 
@@ -51,4 +54,4 @@ sounds from the audio Blocks). It doubles as the beginner reference project.
 
 ## Order
 
-UI elements first, then the Scene editor, Convert to code, and the Paddle game.
+Hand-written Composables first, then the Scene editor, Convert to code, and the Paddle game.
