@@ -33,7 +33,12 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Go on with `01-blocks.md`, at Game UI: hand-written Composables (UI elements were dropped, see there).
+Go on with `01-blocks.md`, at the Scene editor.
+
+Game UI is done (80c4023cf..d5c7fc163, reviewed at medium with every finding fixed; the integration test built every template
+with a Composable): visual UI elements were dropped at the user's word (Principle 7 in `../CLAUDE.md`), and a Manager type
+shows a hand-written Composable (`composable`, format 25), made by `create_composable` in a `ui` package file of the game's
+own, which the AI is now told it may write.
 
 Font files are done (78b12c74c..57c69224a, reviewed at medium with every finding fixed; the integration test built every
 template with a text in a font file): a Fonts group with virtual folders shared with the sprites (`VirtualFolderStore`),
@@ -71,6 +76,7 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
   rows' look are covered offscreen by `BlockTypeEditorBlockDropTest`).
 - A game drawing a text in a font file on each platform, and the web showing the default face for a moment first; and
   adding a font by dropping it from Finder (covered by unit, command, and offscreen tests, and by the integration build).
+- Making, opening, and showing a Composable in the real app, and a played game drawing it on top of the texts.
 - The sprite editor in the real app: drawing with each tool and both mouse buttons, the selection with copy, cut, and
   paste, the Image menu, Save and the question on leaving (switching sprites, closing the project, and quitting), the frame
   strip's dragging, the onion skin, the preview, pinching on a trackpad, and a drawn sprite reaching the playing game; and

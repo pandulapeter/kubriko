@@ -154,6 +154,10 @@ Besides its tests passing, a change:
 5. **The AI can do exactly what the user can, through the same validated commands, and nothing else.**
 6. **Nothing relevant to the project is hidden.** No simplified mode, and no switch that takes Kotlin files, Kotlin Blocks, or build
    output out of reach; making everything intuitive is the job, never hiding it.
+7. **Creator stays on Kubriko's side.** A game's UI beyond its Manager types' texts is Compose, which is Kotlin, the user's own:
+   a Manager type shows a hand-written Composable rather than a UI built from Blocks, since a real game's UI (Tesselar's
+   theme, pause menu, settings panels, and platform effects) can't be built from them and would only be outgrown into
+   code. Texts grow by what the demo games show every small game needs, one specific thing at a time.
 
 ## Files and ownership
 
@@ -172,7 +176,7 @@ Besides its tests passing, a change:
 | Every other Markdown file (the documents, outside build folders) | User | Rescanned within a second; Creator writes one only through the document commands (`DocumentStore`, which knows the paths from the last scan and its own writes), never over a file there, and undoes a delete only with the bytes it read, refusing a file that isn't UTF-8 text. |
 | `AGENTS.md` (the game's notes) and the `CLAUDE.md` importing it | Shared | Read at the start of every conversation; Creator writes `AGENTS.md` through `set_game_notes`, and `CLAUDE.md` only when the project has none. |
 | Hand-written Kotlin and resources | User | Sidebar refreshes; an open Scene is built again. |
-| A Manager type's Composable file (`<package>/ui/<Name>.kt`) | User after creation | Made by `create_composable`, never over a file; undoing that removes it only while it still holds what it was made with (`RemoveCreatedFile`), and redoing writes it back only where no file is (`RestoreCreatedFile`). It is the one kind of Kotlin file the AI is told to write, since a game's UI beyond texts is Compose (`../plan/01-blocks.md` → Game UI). |
+| A Manager type's Composable file (`<package>/ui/<Name>.kt`) | User after creation | Made by `create_composable`, never over a file; undoing that removes it only while it still holds what it was made with (`RemoveCreatedFile`), and redoing writes it back only where no file is (`RestoreCreatedFile`). It is the one kind of Kotlin file the AI is told to write, since a game's UI beyond texts is Compose (Principle 7). |
 | Template files (`Game.kt`, build files) | User after creation | `templateVersion` in `.kubriko/project.json`; upgrades are shown as a diff. |
 | The Kubriko entries of the build files (`kubriko` version, `kubriko-*` libraries, Creator's Maven Local block) | Creator | Brought back in line with the code and Creator's version after every regeneration. |
 | The `game.*` keys of `gradle.properties` (the game's identity and settings) | Creator | Edited line by line by Project settings; a value changed by hand shows there the next time it opens. |
