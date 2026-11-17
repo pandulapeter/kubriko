@@ -18,6 +18,7 @@ import java.io.IOException
 /**
  * Deletes a file a command made for the user to go on with (a hand-written Composable's), as long as it still holds what
  * it was made with: what undoes making it, which never takes what the user wrote since. A changed file is left as it is.
+ * Redoing goes through [RestoreCreatedFile], which never writes over a file either.
  */
 @OptIn(EditorMutation::class)
 internal object RemoveCreatedFile : WriteCommand<RemoveCreatedFile.Input> {
@@ -37,8 +38,8 @@ internal object RemoveCreatedFile : WriteCommand<RemoveCreatedFile.Input> {
                 false
             }
         }
-        if (!isUnchanged) return Applied(inverse = Invocation(RemoveCreatedFile, input))
-        return ReplaceFiles.apply(context, ReplaceFiles.Input(mapOf(input.path to null)))
+        if (isUnchanged) ReplaceFiles.apply(context, ReplaceFiles.Input(mapOf(input.path to null)))
+        return Applied(inverse = Invocation(RestoreCreatedFile, input))
     }
 
     /**

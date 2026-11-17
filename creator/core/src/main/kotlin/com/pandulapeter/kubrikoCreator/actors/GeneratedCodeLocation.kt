@@ -16,4 +16,9 @@ package com.pandulapeter.kubrikoCreator.actors
 public data class GeneratedCodeLocation(
     val sourceDirectory: String,
     val packageName: String,
-)
+) {
+    /**
+     * The folder of [subpackage] of the project's package (`generated`, `ui`), relative to the project root.
+     */
+    public fun directoryOf(subpackage: String): String = "$sourceDirectory/${packageName.replace('.', '/')}/$subpackage"
+}

@@ -30,6 +30,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.io.File
 import java.io.IOException
 
 /**
@@ -47,7 +48,7 @@ public object CreateComposable : WriteCommand<CreateComposable.Input> {
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateManagerType(input.managerType) ?: when {
         context.requireBlockTypes.codeLocation == null -> Rejection(CommandProblem.NO_ACTOR_TYPES)
-        !FUNCTION_NAME.matches(nameOf(input)) -> Rejection(CommandProblem.COMPOSABLE_NAME_INVALID, nameOf(input))
+        !ManagerComposables.isValidFunctionName(nameOf(input), input.managerType) -> Rejection(CommandProblem.COMPOSABLE_NAME_INVALID, nameOf(input))
         else -> null
     }
 
@@ -57,12 +58,18 @@ public object CreateComposable : WriteCommand<CreateComposable.Input> {
         val name = nameOf(input)
         val path = ManagerComposables.pathOf(location, name)
         val bytes = ManagerComposables.textOf(location, definition.name, name).toByteArray()
-        try {
+        if (withContext(context.ioDispatcher) { File(context.project.rootDirectory, path).exists() }) return Applied.failed(Rejection(CommandProblem.COMPOSABLE_FILE_TAKEN, path))
+        val file = try {
             withContext(context.ioDispatcher) { ReplaceFiles.writeNew(context, path, bytes) }
-        } catch (_: IOException) {
-            return Applied.failed(Rejection(CommandProblem.COMPOSABLE_FILE_TAKEN, path))
+        } catch (exception: IOException) {
+            return Applied.failed(Rejection(CommandProblem.COMPOSABLE_NOT_WRITTEN, path, exception.message ?: exception.toString()))
         }
-        context.requireBlockTypes.put(definition.copy(composable = ManagerComposables.qualifiedNameOf(location, name)))
+        try {
+            context.requireBlockTypes.put(definition.copy(composable = ManagerComposables.qualifiedNameOf(location, name)))
+        } catch (exception: Exception) {
+            withContext(context.ioDispatcher) { runCatching { ReplaceFiles.delete(context, file) }.exceptionOrNull()?.let(exception::addSuppressed) }
+            throw exception
+        }
         val inverse = CompositeCommand.Input(
             listOf(
                 Invocation(SetComposable, SetComposable.Input(definition.name, definition.composable.orEmpty())),
@@ -73,8 +80,6 @@ public object CreateComposable : WriteCommand<CreateComposable.Input> {
     }
 
     private fun nameOf(input: Input) = input.name?.ifEmpty { null } ?: ManagerComposables.defaultNameOf(input.managerType)
-
-    private val FUNCTION_NAME = Regex("[A-Za-z_][A-Za-z0-9_]*")
 
     @Serializable
     public data class Input(

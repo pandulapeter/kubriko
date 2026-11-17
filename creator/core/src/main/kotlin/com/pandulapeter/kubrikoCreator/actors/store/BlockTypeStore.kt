@@ -52,12 +52,12 @@ public class BlockTypeStore private constructor(
     private val settings: CreatorProjectSettings,
     private val ownWrites: OwnWrites,
 ) : BlockTypeRepository {
+    override val codeLocation: GeneratedCodeLocation get() = GeneratedCodeLocation(settings.sourceDirectory, settings.packageName)
+
     /**
      * Where the generated classes are written, relative to the project root.
      */
-    override val codeLocation: GeneratedCodeLocation get() = GeneratedCodeLocation(settings.sourceDirectory, settings.packageName)
-
-    public val generatedPath: String get() = "${settings.sourceDirectory}/${settings.packageName.replace('.', '/')}/${ActorTypeCodeGenerator.GENERATED_PACKAGE}"
+    public val generatedPath: String get() = codeLocation.directoryOf(ActorTypeCodeGenerator.GENERATED_PACKAGE)
     private val generatedDirectory get() = File(rootDirectory, generatedPath)
 
     /**

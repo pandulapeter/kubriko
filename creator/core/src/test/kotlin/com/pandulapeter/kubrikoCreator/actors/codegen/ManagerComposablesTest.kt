@@ -26,6 +26,9 @@ class ManagerComposablesTest {
         assertFalse(ManagerComposables.isValid("com.example..HudUi"))
         assertFalse(ManagerComposables.isValid("com.example.Hud Ui"))
         assertFalse(ManagerComposables.isValid("com.example.2Hud"))
+        assertFalse(ManagerComposables.isValid("com.example.fun.HudUi"))
+        assertTrue(ManagerComposables.isValidFunctionName("HudScreen", "Hud"))
+        listOf("fun", "Composable", "WindowInsets", "Hud", "Hud Ui", "").forEach { assertFalse(ManagerComposables.isValidFunctionName(it, "Hud"), it) }
     }
 
     @Test

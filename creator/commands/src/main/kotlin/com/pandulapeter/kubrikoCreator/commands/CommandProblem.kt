@@ -29,6 +29,7 @@ public enum class CommandProblem(override val english: String) : DomainText {
     BLOCK_SECTION_UNENDED_NOT_LAST("An if or repeat Block without an end Block runs to the end of its Event, so it goes into another Event only after that Event's last Block."),
     BLOCKS_NOTHING_TO_REPLACE("Give Blocks to add, a count (0 or more) of Blocks to remove, or both."),
     COMPOSABLE_FILE_TAKEN("There's already a file at %1\$s. Show the Composable in it with set_composable, or give the new one another name."),
+    COMPOSABLE_NOT_WRITTEN("Kubriko Creator couldn't write %1\$s, so nothing changed: %2\$s"),
     COMPOSABLE_NAME_INVALID("%1\$s can't be a Composable's name: a function's name, in full with its package for set_composable (com.example.game.ui.HudUi), of letters, numbers, and underscores."),
     CHANGE_MISSING("%1\$s hasn't changed since the last commit."),
     CHANGED_OUTSIDE("That step can't be undone or redone any more, since %1\$s was changed outside Kubriko Creator."),

@@ -74,4 +74,34 @@ class ComposableCommandsTest {
         assertEquals(Rejection(CommandProblem.NO_ACTOR_TYPES), Invocation(CreateComposable, CreateComposable.Input("Hud")).validate(context(location = null)))
         assertFalse(File(context(location = null).project.rootDirectory, path).exists())
     }
+
+    @Test
+    fun redoingNeverWritesOverAFileNorDeletesOne() = runTest {
+        val context = context()
+        val undo = assertNotNull(Invocation(CreateComposable, CreateComposable.Input("Hud")).apply(context).inverse)
+        val redo = assertNotNull(undo.apply(context).inverse)
+        assertFalse(context.file().exists())
+        context.file().writeText("// Mine\n")
+        val undoAgain = assertNotNull(redo.apply(context).inverse)
+        assertEquals("// Mine\n", context.file().readText())
+        assertEquals("com.example.game.ui.HudUi", context.hud()!!.composable)
+        val redoAgain = assertNotNull(undoAgain.apply(context).inverse)
+        assertEquals("// Mine\n", context.file().readText(), "Undo leaves a file that isn't what it made.")
+        context.file().writeText(ManagerComposables.textOf(location, "Hud", "HudUi"))
+        redoAgain.apply(context)
+        assertTrue(context.file().isFile, "Redo never deletes the file.")
+        assertEquals("com.example.game.ui.HudUi", context.hud()!!.composable)
+    }
+
+    @Test
+    fun aFileThatCantBeWrittenIsToldApartFromATakenOneAndNamesKotlinRefusesAreRefused() = runTest {
+        val context = context()
+        File(context.project.rootDirectory, "src/commonMain/kotlin/com/example/game/ui").apply { parentFile.mkdirs() }.writeText("Not a folder")
+        assertEquals(CommandProblem.COMPOSABLE_NOT_WRITTEN, CreateComposable.apply(context, CreateComposable.Input("Hud")).failure?.reason)
+        assertNull(context.hud()!!.composable)
+        listOf("object", "in", "Composable", "WindowInsets", "Hud").forEach { name ->
+            assertEquals(Rejection(CommandProblem.COMPOSABLE_NAME_INVALID, name), Invocation(CreateComposable, CreateComposable.Input("Hud", name)).validate(context), name)
+        }
+        assertEquals(Rejection(CommandProblem.COMPOSABLE_NAME_INVALID, "com.example.object.HudUi"), Invocation(SetComposable, SetComposable.Input("Hud", "com.example.object.HudUi")).validate(context))
+    }
 }
