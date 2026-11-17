@@ -33,7 +33,14 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Go on with `01-blocks.md`: font files (under More for Manager types) first, then Game UI.
+Go on with `01-blocks.md`, at Game UI: UI elements first.
+
+Font files are done (78b12c74c..57c69224a, reviewed at medium with every finding fixed; the integration test built every
+template with a text in a font file): a Fonts group with virtual folders shared with the sprites (`VirtualFolderStore`),
+`move_font_to_folder`, and a text's `fontFile` (format 24), drawn in its family while the file is missing. One finding
+was answered with documentation: on the web a font-file text shows in Compose's default face until the font has loaded,
+since Compose doesn't tell a loading font apart in common code. Its review also showed sprites from a module other than
+the game's being offered to Actor types, which the generated atlas can't find; both now take only the game's own.
 
 Done on 2026-11-17, reviewed twice at medium with every finding fixed (6a5abef5c..2a97dcafb): Simple and Advanced mode was
 dropped at the user's word (Principle 6 in `../CLAUDE.md`), and a Block dragged onto another Event's row moves to its end
@@ -62,6 +69,8 @@ Not verified in the real app yet (all covered by unit and offscreen tests, none 
 
 - Dragging a Block, and an if Block with its section, onto another Event's row in the real app (the drop and the
   rows' look are covered offscreen by `BlockTypeEditorBlockDropTest`).
+- A game drawing a text in a font file on each platform, and the web showing the default face for a moment first; and
+  adding a font by dropping it from Finder (covered by unit, command, and offscreen tests, and by the integration build).
 - The sprite editor in the real app: drawing with each tool and both mouse buttons, the selection with copy, cut, and
   paste, the Image menu, Save and the question on leaving (switching sprites, closing the project, and quitting), the frame
   strip's dragging, the onion skin, the preview, pinching on a trackpad, and a drawn sprite reaching the playing game; and
