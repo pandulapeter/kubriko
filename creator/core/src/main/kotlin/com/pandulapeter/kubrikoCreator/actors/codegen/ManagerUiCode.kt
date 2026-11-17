@@ -119,9 +119,10 @@ internal class ManagerUiCode private constructor(
 
         /**
          * The style of the text at [index] drawn in the font file of [accessor], made in the `Composable`, since loading
-         * a font resource is `@Composable`: the text's own style while the game has no such file (a deleted one breaks no
-         * build) or the font hasn't loaded, and a copy in its family otherwise, made again only when the font changes.
-         * Its locals start with an underscore, which no Property's name can.
+         * a font resource is `@Composable`: the text's own style (in its family) while the game has no such file, so a
+         * deleted one breaks no build, and a copy drawn in the font otherwise, made again only when the font changes.
+         * Where fonts load in the background (the web), Compose hands out its default face until the file has loaded, so
+         * the text shows in that for its first moments. Its locals start with an underscore, which no Property's name can.
          */
         private fun StringBuilder.appendFontFileStyle(index: Int, accessor: String) {
             val font = "_font${index + 1}"
