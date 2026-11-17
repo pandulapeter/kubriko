@@ -21,7 +21,6 @@ whose exhaustive `when`s then show every place it needs.
 ## Next additions
 
 - **More drag and drop:** dragging a Block into another Event.
-- **Simple and Advanced mode:** Simple hides Kotlin files, Kotlin Blocks, and Gradle output; switching never changes the project.
 
 ## Game UI
 

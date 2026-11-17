@@ -152,6 +152,8 @@ Besides its tests passing, a change:
 3. **Every change outside Creator-owned files is shown as a diff and confirmed.**
 4. **No engine changes for editor convenience**; editor-only runtime needs go into opt-in modules.
 5. **The AI can do exactly what the user can, through the same validated commands, and nothing else.**
+6. **Nothing relevant to the project is hidden.** No simplified mode, and no switch that takes Kotlin files, Kotlin Blocks, or build
+   output out of reach; making everything intuitive is the job, never hiding it.
 
 ## Files and ownership
 

@@ -75,7 +75,7 @@ one per target it turns on and should never show more unless asked to; Tesselar 
 tools; a game with a demo has every target twice. Today Play's web, Android, and iOS targets come only from `GameTargets`, which reads
 the template's layout (one module, `androidApp/`, and `iosApp/` at the root), so a project with an entry point module per platform plays
 only on the desktop, and the toolbar's choice of the game's module (`GameModuleChoice`) mixes up what to play with what the Scene
-editor loads. Three levels, each hidden until it is needed: a beginner sees one entry point per target and the Play menu as it is
+editor loads. Three levels, each appearing once the project has it: a beginner sees one entry point per target and the Play menu as it is
 now; someone who wants a demo adds an edition from Project settings without touching Gradle; and a project laid out by hand in
 IntelliJ is read as it is, its run configurations included, without Creator changing its build.
 

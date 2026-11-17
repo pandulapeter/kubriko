@@ -33,7 +33,7 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Go on with `01-blocks.md`, at Next additions: More drag and drop first, then Simple and Advanced mode, and font files, then
+Go on with `01-blocks.md`, at Next additions: More drag and drop first, then font files, then
 Game UI.
 
 Done on 2026-11-15 (after 73d97e438..f179d62e4, listed before), each reviewed with `/code-review` and every finding fixed in
