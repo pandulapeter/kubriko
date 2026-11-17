@@ -59,6 +59,19 @@ class BlockTypeEditsTest {
     }
 
     @Test
+    fun blocksMoveIntoAnotherEventAtTheGivenPlaceOrTheNearestEnd() {
+        val moved = definition.withBlocksMovedToEvent(0, 1..2, 1, 0)
+        assertEquals(listOf(stop), moved.events[0].blocks)
+        assertEquals(listOf(jump, remove), moved.events[1].blocks)
+        val twice = moved.withBlocksMovedToEvent(0, 0..0, 1, 1)
+        assertEquals(listOf(jump, stop, remove), twice.events[1].blocks)
+        assertEquals(listOf(jump, remove, stop), moved.withBlocksMovedToEvent(0, 0..0, 1, 99).events[1].blocks)
+        assertSame(definition, definition.withBlocksMovedToEvent(0, 2..3, 1, 0))
+        assertSame(definition, definition.withBlocksMovedToEvent(0, 1..1, 5, 0))
+        assertSame(definition, definition.withBlocksMovedToEvent(0, 1..1, 0, 0))
+    }
+
+    @Test
     fun collisionEventsFollowARenamedActorType() {
         val collisions = ActorTypeDefinition(
             name = "Ball",

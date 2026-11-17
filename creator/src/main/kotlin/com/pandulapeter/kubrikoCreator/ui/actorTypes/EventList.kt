@@ -31,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -59,6 +60,7 @@ import org.jetbrains.compose.resources.stringResource
  *
  * @param keys The Events' [ListItemKeys], index by index.
  * @param isRecentlyAdded Whether the Event of a key was just added, so it is pointed out.
+ * @param blockDrop Where the Blocks dragged in the editor are dropped into another Event, or null if they can't be here.
  */
 @Composable
 internal fun EventList(
@@ -76,6 +78,7 @@ internal fun EventList(
     listIdentity: Any? = null,
     inheritedEvents: List<EventDefinition> = emptyList(),
     onOverride: (EventDefinition) -> Unit = {},
+    blockDrop: BlockEventDrop? = null,
 ) = Column(
     modifier = modifier,
 ) {
@@ -113,8 +116,9 @@ internal fun EventList(
                 state = listState,
             ) {
                 items(count = events.size, key = { keys[it] }, contentType = { EVENT_CONTENT_TYPE }) { index ->
+                    val eventKey = keys[index]
                     EventListItem(
-                        modifier = Modifier.animateItem().zIndex(if (keys[index] == draggedKey) 1f else 0f),
+                        modifier = Modifier.animateItem().zIndex(if (eventKey == draggedKey) 1f else 0f).blockDropRow(blockDrop, eventKey),
                         event = events[index],
                         index = index,
                         isSelected = index == selectedIndex,
@@ -123,7 +127,10 @@ internal fun EventList(
                         isDropBelow = gap == events.size && index == events.lastIndex,
                         onClick = { onSelected(index) },
                         onRemove = { onRemoved(index) },
-                        flashKey = highlight?.key?.takeIf { highlight.eventIndex == index && highlight.blockIndex == null } ?: keys[index].takeIf(isRecentlyAdded),
+                        flashKey = highlight?.key?.takeIf { highlight.eventIndex == index && highlight.blockIndex == null }
+                            ?: blockDrop?.dropped?.takeIf { it.key == eventKey }
+                            ?: eventKey.takeIf(isRecentlyAdded),
+                        blockDropLook = blockDrop?.lookOf(eventKey, index) ?: BlockDropLook.NONE,
                     )
                 }
                 if (inheritedEvents.isNotEmpty()) {
@@ -135,7 +142,7 @@ internal fun EventList(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    items(inheritedEvents) { event -> InheritedEventItem(event = event, onOverride = { onOverride(event) }) }
+                    items(inheritedEvents) { event -> InheritedEventItem(event = event, isFaded = blockDrop?.dragState?.dragged != null, onOverride = { onOverride(event) }) }
                 }
             }
             EventDragPreview(dragState, events)
@@ -161,15 +168,18 @@ private fun BoxScope.EventDragPreview(dragState: ListDragState<Int>, events: Lis
 private const val EVENT_CONTENT_TYPE = "event"
 
 /**
- * An Event the Actor type gets from its parent, which it can replace with one of its own.
+ * An Event the Actor type gets from its parent, which it can replace with one of its own. It is [isFaded] while a Block is
+ * dragged, since one can't be dropped into it.
  */
 @Composable
 private fun InheritedEventItem(
     event: EventDefinition,
+    isFaded: Boolean,
     onOverride: () -> Unit,
 ) = Row(
     modifier = Modifier
         .fillMaxWidth()
+        .alpha(if (isFaded) 0.4f else 1f)
         .heightIn(min = 36.dp)
         .padding(start = 12.dp, end = 4.dp),
     horizontalArrangement = Arrangement.spacedBy(8.dp),

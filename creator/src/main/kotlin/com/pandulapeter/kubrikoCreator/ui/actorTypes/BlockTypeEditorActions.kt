@@ -134,18 +134,23 @@ internal class BlockTypeEditorActions(
      * Adds a Block of [kind] at [gap], or last; an if or repeat Block comes with its end Block, as one step, so what is
      * added after it goes inside its section.
      */
-    fun addBlock(eventIndex: Int, kind: BlockKind, gap: Int? = null) {
+    fun addBlock(eventIndex: Int, kind: BlockKind, gap: Int? = null, onSuccess: () -> Unit = {}) {
         val block = kind.createDefault()
         val event = definition.events.getOrNull(eventIndex)
         if (event != null && (block is BlockDefinition.If || block is BlockDefinition.Repeat)) {
-            dispatch(Invocation(ReplaceBlocks, ReplaceBlocks.Input(name, eventIndex, gap ?: event.blocks.size, blocks = listOf(block, BlockDefinition.End))))
+            dispatch(Invocation(ReplaceBlocks, ReplaceBlocks.Input(name, eventIndex, gap ?: event.blocks.size, blocks = listOf(block, BlockDefinition.End))), onSuccess)
         } else {
-            dispatch(Invocation(AddBlock, AddBlock.Input(name, eventIndex, block, index = gap)))
+            dispatch(Invocation(AddBlock, AddBlock.Input(name, eventIndex, block, index = gap)), onSuccess)
         }
     }
 
     fun moveBlock(eventIndex: Int, index: Int, gap: Int) {
         moveTarget(index, gap)?.let { dispatch(Invocation(MoveBlock, MoveBlock.Input(name, eventIndex, index, it))) }
+    }
+
+    fun moveBlockToEvent(eventIndex: Int, index: Int, targetEventIndex: Int, onSuccess: () -> Unit = {}) {
+        val target = definition.events.getOrNull(targetEventIndex) ?: return
+        dispatch(Invocation(MoveBlock, MoveBlock.Input(name, eventIndex, index, target.blocks.size, targetEventIndex)), onSuccess)
     }
 
     fun editBlock(eventIndex: Int, blockIndex: Int, block: BlockDefinition) = dispatch(Invocation(EditBlock, EditBlock.Input(name, eventIndex, blockIndex, block)))

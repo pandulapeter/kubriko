@@ -23,6 +23,8 @@ import kubriko.creator.generated.resources.error_command_actor_type_has_children
 import kubriko.creator.generated.resources.error_command_actors_empty
 import kubriko.creator.generated.resources.error_command_already_under_version_control
 import kubriko.creator.generated.resources.error_command_animated_color_not_opaque
+import kubriko.creator.generated.resources.error_command_block_section_marker_between_events
+import kubriko.creator.generated.resources.error_command_block_section_unended_not_last
 import kubriko.creator.generated.resources.error_command_change_missing
 import kubriko.creator.generated.resources.error_command_changed_outside
 import kubriko.creator.generated.resources.error_command_changes_not_written
@@ -142,6 +144,8 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.ANIMATED_COLOR_NOT_OPAQUE, CommandProblem.SPEED_RANDOM_EVERY_FRAME, CommandProblem.SCALE_NEGATIVE, CommandProblem.COLORS_COUNT, CommandProblem.COLORS_NOT_OPAQUE, CommandProblem.NUMBER_INVALID,
     -> blockValueResource()
     CommandProblem.TURN_CANCELLED -> Res.string.assistant_turn_cancelled
+    CommandProblem.BLOCK_SECTION_MARKER_BETWEEN_EVENTS -> Res.string.error_command_block_section_marker_between_events
+    CommandProblem.BLOCK_SECTION_UNENDED_NOT_LAST -> Res.string.error_command_block_section_unended_not_last
     CommandProblem.ACTOR_ID_EMPTY -> Res.string.error_command_actor_id_empty
     CommandProblem.ACTOR_ID_LETTER_BEYOND_A_TO_Z -> Res.string.error_command_actor_id_letter_beyond_a_to_z
     CommandProblem.ACTOR_ID_INVALID -> Res.string.error_command_actor_id_invalid

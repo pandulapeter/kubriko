@@ -112,6 +112,19 @@ public fun BlockTypeDefinition.withBlockMoved(eventIndex: Int, blockIndex: Int, 
 }
 
 /**
+ * The Blocks at [blockIndexes] of the Event at [eventIndex] moved, in their order, into the Event at [targetEventIndex] at
+ * [targetIndex] (or the nearest end when that is out of range), or the type as it was when either Event or a Block isn't
+ * in it, or both are one Event.
+ */
+public fun BlockTypeDefinition.withBlocksMovedToEvent(eventIndex: Int, blockIndexes: IntRange, targetEventIndex: Int, targetIndex: Int): BlockTypeDefinition {
+    val blocks = events.getOrNull(eventIndex)?.blocks
+    if (blocks == null || targetEventIndex !in events.indices || targetEventIndex == eventIndex || blockIndexes.isEmpty() || blockIndexes.first < 0 || blockIndexes.last > blocks.lastIndex) return this
+    return withBlocksReplaced(eventIndex, blockIndexes.first, blockIndexes.count(), emptyList()).withEvent(targetEventIndex) { event ->
+        event.copy(blocks = event.blocks.toMutableList().apply { addAll(targetIndex.coerceIn(0, size), blocks.slice(blockIndexes)) })
+    }
+}
+
+/**
  * Every collision Event, Block, text condition, Actor type reference Property's starting value, and Kotlin code that names
  * [oldName] names [newName] instead.
  */

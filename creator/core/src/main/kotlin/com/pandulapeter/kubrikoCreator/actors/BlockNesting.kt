@@ -71,11 +71,27 @@ public data class BlockNesting(
          * The indexes of the if or repeat Block at [index] of [blocks] and of every Block of its section: up to its end
          * Block, or to the end of the Event without one.
          */
-        public fun sectionOf(blocks: List<BlockDefinition>, index: Int): IntRange {
+        public fun sectionOf(blocks: List<BlockDefinition>, index: Int): IntRange = index..(endOf(blocks, index) ?: blocks.lastIndex)
+
+        /**
+         * The index of the end Block of the if or repeat Block at [index] of [blocks], or null if its section runs to the
+         * end of the Event.
+         */
+        public fun endOf(blocks: List<BlockDefinition>, index: Int): Int? {
             val nesting = of(blocks).first
             val depth = nesting[index].depth
-            val end = (index + 1 until blocks.size).firstOrNull { nesting[it].depth == depth && nesting[it].role == Role.CLOSES } ?: blocks.lastIndex
-            return index..end
+            return (index + 1 until blocks.size).firstOrNull { nesting[it].depth == depth && nesting[it].role == Role.CLOSES }
+        }
+
+        /**
+         * The indexes of the Blocks that go into another Event with the one at [index] of [blocks]: an if or repeat Block
+         * takes its section, any other Block goes alone, and an else or end Block, which belongs to the Block before it,
+         * goes nowhere (null).
+         */
+        public fun movingBetweenEvents(blocks: List<BlockDefinition>, index: Int): IntRange? = when (blocks[index]) {
+            is BlockDefinition.If, is BlockDefinition.Repeat -> sectionOf(blocks, index)
+            BlockDefinition.Else, BlockDefinition.End -> null
+            else -> index..index
         }
     }
 }

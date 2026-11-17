@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -53,6 +54,8 @@ import org.jetbrains.compose.resources.stringResource
  *
  * @param isDropAbove Whether a dragged Event would land right before this one, which a line above it shows.
  * @param isDropBelow Whether a dragged Event would land right after this one (the last), which a line below it shows.
+ * @param blockDropLook How it shows a Block dragged in the editor: outlined while it would go into this Event, faded while
+ *   this Event can't take it.
  */
 @Composable
 internal fun EventListItem(
@@ -66,6 +69,7 @@ internal fun EventListItem(
     onRemove: () -> Unit,
     flashKey: Any?,
     modifier: Modifier = Modifier,
+    blockDropLook: BlockDropLook = BlockDropLook.NONE,
 ) {
     val hover = rememberHoverRevealState()
     val menu = rememberRightClickMenuState()
@@ -73,8 +77,9 @@ internal fun EventListItem(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 36.dp)
-            .alpha(if (dragState.dragged == index) 0.4f else 1f)
+            .alpha(if (dragState.dragged == index || blockDropLook == BlockDropLook.REFUSED) 0.4f else 1f)
             .then(if (isSelected) Modifier.background(Accent.EVENT.container) else Modifier)
+            .then(if (blockDropLook == BlockDropLook.HOVERED) Modifier.border(DROP_LINE_THICKNESS, MaterialTheme.colorScheme.primary) else Modifier)
             .flashBackground(flashKey, Accent.EVENT.color)
             .dropLines(isDropAbove, isDropBelow)
             .listDragSource(dragState) { index }

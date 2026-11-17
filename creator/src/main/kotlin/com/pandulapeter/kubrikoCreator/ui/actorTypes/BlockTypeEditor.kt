@@ -98,7 +98,8 @@ internal fun BlockTypeEditor(
     var blockListScrollToEndRequest by remember(name) { mutableIntStateOf(0) }
     val propertyItemKeys = remember(name) { ListItemKeys<PropertyDefinition>() }
     val propertyKeys = remember(propertyItemKeys, definition.properties) { propertyItemKeys.update(definition.properties) }
-    val dragState = rememberBlockDragState(name, eventIndex, actions)
+    val blockDrop = rememberBlockEventDrop(name, definition, eventIndex, eventKeys, actions)
+    val dragState = blockDrop.dragState
     Column {
         TypeDetails(
             definition = definition,
@@ -140,6 +141,7 @@ internal fun BlockTypeEditor(
                         listIdentity = name,
                         inheritedEvents = inheritance.events,
                         onOverride = { event -> actions.overrideEvent(event, selectAddedEvent) },
+                        blockDrop = blockDrop,
                         selectedIndex = eventIndex,
                         onSelected = { eventSelection.select(eventKeys[it]) },
                         onAdded = { type -> actions.addEvent(type, selectAddedEvent) },
@@ -187,21 +189,40 @@ internal fun BlockTypeEditor(
 }
 
 /**
- * The drag state of the type [name]'s Blocks, which outlives the definitions it is composed with, so it drops into the
- * latest [eventIndex] through the latest [actions].
+ * The Blocks dragged in the type [name]'s editor, which outlive the definitions they are composed with, so they drop into
+ * the latest [eventIndex] (or the Event of [eventKeys] they are let go over) of the latest [definition] through the latest
+ * [actions].
  */
 @Composable
-private fun rememberBlockDragState(name: String, eventIndex: Int?, actions: BlockTypeEditorActions): BlockDragState {
+private fun rememberBlockEventDrop(
+    name: String,
+    definition: BlockTypeDefinition,
+    eventIndex: Int?,
+    eventKeys: List<Long>,
+    actions: BlockTypeEditorActions,
+): BlockEventDrop {
+    val currentDefinition by rememberUpdatedState(definition)
     val currentEventIndex by rememberUpdatedState(eventIndex)
+    val currentEventKeys by rememberUpdatedState(eventKeys)
     val currentActions by rememberUpdatedState(actions)
     return remember(name) {
-        BlockDragState(
+        BlockEventDrop(
+            typeKind = { currentDefinition.kind },
+            events = { currentDefinition.events },
+            shownEventIndex = { currentEventIndex },
+            eventIndexOf = { key -> currentEventKeys.indexOf(key).takeIf { it >= 0 } },
             onDrop = { block, gap ->
                 currentEventIndex?.let { index ->
                     when (block) {
                         is DraggedBlock.New -> currentActions.addBlock(index, block.kind, gap)
                         is DraggedBlock.Existing -> currentActions.moveBlock(index, block.index, gap)
                     }
+                }
+            },
+            onDropInto = { block, targetIndex, onSuccess ->
+                when (block) {
+                    is DraggedBlock.New -> currentActions.addBlock(targetIndex, block.kind, onSuccess = onSuccess)
+                    is DraggedBlock.Existing -> currentEventIndex?.let { currentActions.moveBlockToEvent(it, block.index, targetIndex, onSuccess) }
                 }
             },
         )

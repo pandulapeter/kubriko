@@ -44,4 +44,17 @@ class BlockNestingTest {
         assertEquals(listOf(0, 0, 0, 1, 1, 1, 2, 2), nesting.map { it.depth })
         assertEquals(2, openSections)
     }
+
+    @Test
+    fun anIfOrRepeatBlockMovesBetweenEventsWithItsSectionAndAnElseOrEndBlockDoesNot() {
+        val blocks = listOf(ifBlock, repeat, stop, BlockDefinition.End, BlockDefinition.Else, stop, BlockDefinition.End, stop, repeat, stop)
+        assertEquals(0..6, BlockNesting.movingBetweenEvents(blocks, 0))
+        assertEquals(1..3, BlockNesting.movingBetweenEvents(blocks, 1))
+        assertEquals(2..2, BlockNesting.movingBetweenEvents(blocks, 2))
+        assertEquals(null, BlockNesting.movingBetweenEvents(blocks, 3))
+        assertEquals(null, BlockNesting.movingBetweenEvents(blocks, 4))
+        assertEquals(8..9, BlockNesting.movingBetweenEvents(blocks, 8))
+        assertEquals(6, BlockNesting.endOf(blocks, 0))
+        assertEquals(null, BlockNesting.endOf(blocks, 8))
+    }
 }

@@ -36,10 +36,12 @@ internal data class LaidOutRows(
  * so that every gap can be reached.
  *
  * @param onDrop Called with the item and the gap it was dropped in (0 is before the first row).
+ * @param onDropOutside Called with the item and where it was let go when that isn't over the list.
  */
 @Stable
 internal class ListDragState<T : Any>(
     private val onDrop: (T, gap: Int) -> Unit,
+    private val onDropOutside: (T, at: Offset) -> Unit = { _, _ -> },
     private val clock: () -> Long = System::nanoTime,
 ) {
     private var lastDragEndedAt = Long.MIN_VALUE / 2
@@ -86,8 +88,9 @@ internal class ListDragState<T : Any>(
     fun end() {
         val item = dragged ?: return
         val gap = gap
+        val at = pointer
         cancel()
-        if (gap != null) onDrop(item, gap)
+        if (gap != null) onDrop(item, gap) else onDropOutside(item, at)
     }
 
     fun cancel() {

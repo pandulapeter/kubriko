@@ -9,7 +9,10 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
+import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockNesting
 import com.pandulapeter.kubrikoCreator.actors.withBlockMoved
+import com.pandulapeter.kubrikoCreator.actors.withBlocksMovedToEvent
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
@@ -28,18 +31,45 @@ import kotlinx.serialization.Serializable
 @OptIn(EditorMutation::class)
 public object MoveBlock : WriteCommand<MoveBlock.Input> {
     override val name: String = "move_block"
-    override val description: String = "Moves a Block to another place in its Event, which changes the order Blocks run in."
+    override val description: String = "Moves a Block within its Event or into another one; an if or repeat Block takes its section."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
-    override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.BlockType(input.actorType, input.eventIndex, input.targetIndex)
+    override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.BlockType(input.actorType, input.targetEvent, input.targetIndex)
 
-    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateBlock(input.actorType, input.eventIndex, input.blockIndex)
-        ?: validateIndex(input.targetIndex, context.requireType(input.actorType).events[input.eventIndex].blocks.lastIndex)
+    override fun validate(context: CommandContext, input: Input): Rejection? = validateStructure(context, input) ?: if (input.isBetweenEvents) validateBetweenEvents(context, input) else null
+
+    override fun validateRestoring(context: CommandContext, input: Input): Rejection? = validateStructure(context, input)
+
+    private fun validateStructure(context: CommandContext, input: Input) = context.validateBlock(input.actorType, input.eventIndex, input.blockIndex)
+        ?: context.validateEvent(input.actorType, input.targetEvent)
+        ?: context.requireType(input.actorType).events[input.targetEvent].blocks.let { validateIndex(input.targetIndex, if (input.isBetweenEvents) it.size else it.lastIndex) }
+
+    private fun validateBetweenEvents(context: CommandContext, input: Input): Rejection? {
+        val definition = context.requireType(input.actorType)
+        val blocks = definition.events[input.eventIndex].blocks
+        val target = definition.events[input.targetEvent]
+        val moving = BlockNesting.movingBetweenEvents(blocks, input.blockIndex) ?: return Rejection(CommandProblem.BLOCK_SECTION_MARKER_BETWEEN_EVENTS)
+        if (blocks[input.blockIndex].opensSection && BlockNesting.endOf(blocks, input.blockIndex) == null && input.targetIndex != target.blocks.size) {
+            return Rejection(CommandProblem.BLOCK_SECTION_UNENDED_NOT_LAST)
+        }
+        val scope = context.scopeOf(definition)
+        return moving.firstNotNullOfOrNull { validateBlock(blocks[it], target.type, scope) }
+    }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        context.requireBlockTypes.put(context.requireType(input.actorType).withBlockMoved(input.eventIndex, input.blockIndex, input.targetIndex))
-        return Applied(inverse = Invocation(MoveBlock, input.copy(blockIndex = input.targetIndex, targetIndex = input.blockIndex)))
+        val definition = context.requireType(input.actorType)
+        val moved = if (input.isBetweenEvents) {
+            val moving = checkNotNull(BlockNesting.movingBetweenEvents(definition.events[input.eventIndex].blocks, input.blockIndex))
+            definition.withBlocksMovedToEvent(input.eventIndex, moving, input.targetEvent, input.targetIndex)
+        } else {
+            definition.withBlockMoved(input.eventIndex, input.blockIndex, input.targetIndex)
+        }
+        context.requireBlockTypes.put(moved)
+        val inverse = Input(input.actorType, input.targetEvent, input.targetIndex, input.blockIndex, targetEventIndex = input.eventIndex.takeIf { input.isBetweenEvents })
+        return Applied(inverse = Invocation(MoveBlock, inverse))
     }
+
+    private val BlockDefinition.opensSection get() = this is BlockDefinition.If || this is BlockDefinition.Repeat
 
     @Serializable
     public data class Input(
@@ -51,5 +81,10 @@ public object MoveBlock : WriteCommand<MoveBlock.Input> {
         @SerialName("blockIndex") val blockIndex: Int,
         @Description("The index the Block ends up at.")
         @SerialName("targetIndex") val targetIndex: Int,
-    )
+        @Description("Another Event to move it into.")
+        @SerialName("targetEventIndex") val targetEventIndex: Int? = null,
+    ) {
+        internal val targetEvent get() = targetEventIndex ?: eventIndex
+        internal val isBetweenEvents get() = targetEvent != eventIndex
+    }
 }

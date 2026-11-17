@@ -18,10 +18,6 @@ whose exhaustive `when`s then show every place it needs.
 - **Font files:** fonts the game bundles (`composeResources/font`), added and named like sprites, so a text looks alike on
   every platform; the generic families a text has now are drawn in each platform's own faces, and the web has none.
 
-## Next additions
-
-- **More drag and drop:** dragging a Block into another Event.
-
 ## Game UI
 
 A Manager's texts on screen suit a score or a lives counter, and its Kotlin UI is the escape hatch for anything else. Game UI grows
@@ -60,4 +56,4 @@ sounds from the audio Blocks). It doubles as the beginner reference project.
 
 ## Order
 
-Manager types first, then the next additions, UI elements, the Scene editor, Convert to code, and the Paddle game.
+Manager types first, then UI elements, the Scene editor, Convert to code, and the Paddle game.

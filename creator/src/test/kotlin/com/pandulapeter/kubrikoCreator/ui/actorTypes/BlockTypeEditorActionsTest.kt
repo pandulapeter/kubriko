@@ -126,6 +126,27 @@ class BlockTypeEditorActionsTest {
     }
 
     @Test
+    fun aBlockDroppedOnAnotherEventGoesToItsEndAndReportsItsSuccess() {
+        val actions = actionsOf(
+            ball.copy(
+                events = listOf(
+                    EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Stop)),
+                    EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.Stop, BlockDefinition.RemoveSelf)),
+                ),
+            ),
+        )
+        var moved = 0
+
+        actions.moveBlockToEvent(0, index = 0, targetEventIndex = 1) { moved++ }
+        actions.moveBlockToEvent(0, index = 0, targetEventIndex = 5)
+
+        assertEquals<List<Invocation<*>>>(listOf(Invocation(MoveBlock, MoveBlock.Input("Ball", 0, 0, 2, targetEventIndex = 1))), dispatched)
+        assertEquals(0, moved)
+        successes.single().invoke()
+        assertEquals(1, moved)
+    }
+
+    @Test
     fun overridingAnEventRunsTheParentsFirst() {
         val inherited = EventDefinition(EventType.COLLISION, otherActorType = "Brick", blocks = listOf(BlockDefinition.Stop))
 

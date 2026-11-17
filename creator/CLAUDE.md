@@ -732,6 +732,10 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
 - The type editor's selected Event is its `ListItemKeys` key, not its index (`EventSelectionState`), so it stays on the same
   Event through undo, redo, and the AI's Event changes; an added Event is selected only once its add succeeded, found
   by its key in the type as it is at that moment (an add may wait behind an AI tool call that changes the Events).
+- A Block dropped on another Event's row goes to that Event's end (`move_block`'s `targetEventIndex`, `BlockEventDrop`, which
+  finds the Event by its key when let go, since the rows' indexes shift under it): an if or repeat Block takes its whole
+  section (`BlockNesting.movingBetweenEvents`), and an else or end Block stays in its Event, since alone it would end or
+  split a section it doesn't belong to.
 
 ## Library side
 

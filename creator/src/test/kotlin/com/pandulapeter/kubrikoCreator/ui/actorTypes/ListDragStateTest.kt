@@ -21,8 +21,9 @@ import kotlin.test.assertTrue
 
 class ListDragStateTest {
     private val drops = mutableListOf<Pair<DraggedBlock, Int>>()
+    private val dropsOutside = mutableListOf<Pair<DraggedBlock, Offset>>()
     private var now = 0L
-    private val state = BlockDragState(onDrop = { block, gap -> drops += block to gap }, clock = { now }).apply {
+    private val state = BlockDragState(onDrop = { block, gap -> drops += block to gap }, onDropOutside = { block, at -> dropsOutside += block to at }, clock = { now }).apply {
         listBounds = Rect(0f, 0f, 100f, 300f)
         laidOutRows = { LaidOutRows(0, listOf(0f..40f, 50f..90f)) }
     }
@@ -44,6 +45,17 @@ class ListDragStateTest {
         assertEquals(0, moveTarget(index = 2, gap = 0))
         assertNull(moveTarget(index = 1, gap = 1))
         assertNull(moveTarget(index = 1, gap = 2))
+    }
+
+    @Test
+    fun aBlockLetGoOutsideTheListIsDroppedOutsideWhereItWasLetGo() {
+        state.start(DraggedBlock.New(BlockKind.STOP), Offset(50f, 60f))
+        state.moveTo(Offset(500f, 20f))
+        state.end()
+        assertEquals(emptyList(), drops)
+        assertEquals(listOf<Pair<DraggedBlock, Offset>>(DraggedBlock.New(BlockKind.STOP) to Offset(500f, 20f)), dropsOutside)
+        state.end()
+        assertEquals(1, dropsOutside.size)
     }
 
     @Test

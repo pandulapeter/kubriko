@@ -236,6 +236,54 @@ class ActorTypeCommandsTest {
     }
 
     @Test
+    fun blocksMoveIntoAnotherEventThatAllowsThemAndBack() = runTest {
+        val context = commandContext(ball, wall)
+        val moved = context.assertRoundTrip(Invocation(MoveBlock, MoveBlock.Input("Ball", 0, 1, 0, targetEventIndex = 1))) { context.ball() }!!
+        assertEquals(listOf(stop), moved.events[0].blocks)
+        assertEquals(listOf(jump), moved.events[1].blocks)
+        assertEquals(listOf(BlockDefinition.RemoveOther, stop), context.assertRoundTrip(Invocation(MoveBlock, MoveBlock.Input("Ball", 0, 0, 1, targetEventIndex = 2))) { context.ball() }!!.events[2].blocks)
+        assertEquals(CommandTarget.BlockType("Ball", 2, 1), MoveBlock.target(context, MoveBlock.Input("Ball", 0, 0, 1, targetEventIndex = 2)))
+        assertNull(context.rejection(MoveBlock, MoveBlock.Input("Ball", 2, 0, 1, targetEventIndex = 2)))
+    }
+
+    @Test
+    fun anIfOrRepeatBlockMovesBetweenEventsWithItsSectionAndAnElseOrEndBlockStaysInItsEvent() = runTest {
+        val ifBlock = BlockDefinition.If()
+        val repeat = BlockDefinition.Repeat()
+        val sections = ActorTypeDefinition(
+            name = "Ball",
+            events = listOf(
+                EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(ifBlock, stop, BlockDefinition.Else, jump, BlockDefinition.End, stop)),
+                EventDefinition(EventType.EVERY_FRAME, blocks = listOf(jump)),
+                EventDefinition(EventType.KEY_PRESSED, KeyChoice.LEFT, blocks = listOf(repeat, stop)),
+                EventDefinition(EventType.COLLISION, otherActorType = "Ball", blocks = listOf(ifBlock, BlockDefinition.RemoveOther, BlockDefinition.End)),
+            ),
+        )
+        val context = commandContext(sections)
+        val moved = context.assertRoundTrip(Invocation(MoveBlock, MoveBlock.Input("Ball", 0, 0, 0, targetEventIndex = 1))) { context.ball() }!!
+        assertEquals(listOf(stop), moved.events[0].blocks)
+        assertEquals(listOf(ifBlock, stop, BlockDefinition.Else, jump, BlockDefinition.End, jump), moved.events[1].blocks)
+        assertEquals(Rejection(CommandProblem.BLOCK_SECTION_UNENDED_NOT_LAST), context.rejection(MoveBlock, MoveBlock.Input("Ball", 2, 0, 0, targetEventIndex = 0)))
+        val unended = context.assertRoundTrip(Invocation(MoveBlock, MoveBlock.Input("Ball", 2, 0, 1, targetEventIndex = 0))) { context.ball() }!!
+        assertEquals(listOf(stop, repeat, stop), unended.events[0].blocks)
+        assertEquals(emptyList(), unended.events[2].blocks)
+        assertEquals(Rejection(CommandProblem.BLOCK_SECTION_MARKER_BETWEEN_EVENTS), context.rejection(MoveBlock, MoveBlock.Input("Ball", 1, 2, 0, targetEventIndex = 0)))
+        assertEquals(Rejection(CommandProblem.BLOCK_SECTION_MARKER_BETWEEN_EVENTS), context.rejection(MoveBlock, MoveBlock.Input("Ball", 1, 4, 0, targetEventIndex = 0)))
+        assertNull(context.rejection(MoveBlock, MoveBlock.Input("Ball", 1, 2, 3)))
+        assertEquals(Rejection(PlacementProblem.BLOCK_REMOVE_OTHER_OUTSIDE_COLLISION), context.rejection(MoveBlock, MoveBlock.Input("Ball", 3, 0, 0, targetEventIndex = 1)))
+    }
+
+    @Test
+    fun aBlockMovesOnlyIntoAnEventThatAllowsItAtAPlaceItHas() = runTest {
+        val context = commandContext(ball, wall)
+        assertEquals(Rejection(PlacementProblem.BLOCK_REMOVE_OTHER_OUTSIDE_COLLISION), context.rejection(MoveBlock, MoveBlock.Input("Ball", 2, 0, 0, targetEventIndex = 0)))
+        assertNull(MoveBlock.validateRestoring(context, MoveBlock.Input("Ball", 2, 0, 0, targetEventIndex = 0)))
+        assertEquals(Rejection(LookupProblem.INDEX_INVALID, "2", "1"), context.rejection(MoveBlock, MoveBlock.Input("Ball", 0, 0, 2, targetEventIndex = 2)))
+        assertNull(context.rejection(MoveBlock, MoveBlock.Input("Ball", 0, 0, 1, targetEventIndex = 2)))
+        assertEquals(Rejection(LookupProblem.EVENT_MISSING, "Ball", "3", "2"), context.rejection(MoveBlock, MoveBlock.Input("Ball", 0, 0, 0, targetEventIndex = 3)))
+    }
+
+    @Test
     fun audioBlocksMayLeaveTheirFileUnchosenButNotNameOneThatDoesNotExist() = runTest {
         val context = commandContext(ball, wall, audioFiles = AudioFiles(sounds = listOf("files/sounds/hit.wav"), music = listOf("files/music/theme.mp3")))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlaySound())))

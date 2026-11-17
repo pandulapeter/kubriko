@@ -773,6 +773,8 @@
     <string name="error_command_scale_negative">A scale is 0 or more (1 is the Actor's own size), and so is each end of a random one.</string>
     <string name="error_command_colors_count">Set the color takes one color, or up to %1$s to pick one of at random.</string>
     <string name="error_command_colors_not_opaque">Set the color takes opaque colors (#RRGGBB) and keeps the Actor's opacity. Set the opacity with Set the opacity or Change the opacity.</string>
+    <string name="error_command_block_section_marker_between_events">An else or end Block belongs to the if or repeat Block before it, so it moves only within its Event. Move that if or repeat Block to take its whole section.</string>
+    <string name="error_command_block_section_unended_not_last">An if or repeat Block without an end Block runs to the end of its Event, so it goes into another Event only after that Event's last Block.</string>
     <string name="error_command_number_edge_across">An x takes only the left and right edges, and a y only the top and bottom ones; a random number is drawn between two edges of the same axis.</string>
     <string name="error_command_number_invalid">Every number has to be finite.</string>
     <string name="error_placement_key_not_allowed">Only the key Events (pressed, released, and held) have a key.</string>
