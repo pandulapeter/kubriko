@@ -33,8 +33,13 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Go on with `01-blocks.md`, at Next additions: More drag and drop first, then font files, then
-Game UI.
+Go on with `01-blocks.md`: font files (under More for Manager types) first, then Game UI.
+
+Done on 2026-11-17, reviewed twice at medium with every finding fixed (6a5abef5c..2a97dcafb): Simple and Advanced mode was
+dropped at the user's word (Principle 6 in `../CLAUDE.md`), and a Block dragged onto another Event's row moves to its end
+(`move_block`'s `targetEventIndex`), an if or repeat Block with its section. Two findings were left by design: a Block
+dropped on an Event whose last if or repeat Block has no end Block joins that section, as a Block clicked in the palette
+does, and the AI may move a Block into the middle of a section on purpose.
 
 Done on 2026-11-15 (after 73d97e438..f179d62e4, listed before), each reviewed with `/code-review` and every finding fixed in
 a commit of its own:
@@ -55,6 +60,8 @@ a commit of its own:
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
+- Dragging a Block, and an if Block with its section, onto another Event's row in the real app (the drop and the
+  rows' look are covered offscreen by `BlockTypeEditorBlockDropTest`).
 - The sprite editor in the real app: drawing with each tool and both mouse buttons, the selection with copy, cut, and
   paste, the Image menu, Save and the question on leaving (switching sprites, closing the project, and quitting), the frame
   strip's dragging, the onion skin, the preview, pinching on a trackpad, and a drawn sprite reaching the playing game; and
