@@ -17,6 +17,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
@@ -36,11 +40,13 @@ import kubriko.creator.generated.resources.ic_code
 import kubriko.creator.generated.resources.ic_open_in_new
 import kubriko.creator.generated.resources.manager_type_composable
 import kubriko.creator.generated.resources.manager_type_composable_empty
+import kubriko.creator.generated.resources.manager_type_composable_not_opened
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * The hand-written Composable a Manager type shows ([composable], by its full name), made by [onCreate] in a file of the
- * project's own, opened in the system's editor ([open]), and no longer shown after [onRemove], which keeps its file.
+ * project's own, opened in the system's editor ([open], which says when it couldn't, as the section then does), and no
+ * longer shown after [onRemove], which keeps its file.
  */
 @Composable
 internal fun ComposableSection(
@@ -48,10 +54,11 @@ internal fun ComposableSection(
     onCreate: () -> Unit,
     onRemove: () -> Unit,
     modifier: Modifier = Modifier,
-    open: ((String) -> Unit)? = LocalComposableOpener.current,
+    open: ((name: String, onFailed: () -> Unit) -> Unit)? = LocalComposableOpener.current,
 ) = Column(
     modifier = modifier,
 ) {
+    var isNotOpened by remember(composable) { mutableStateOf(false) }
     PanelHeader(
         icon = Res.drawable.ic_code,
         accent = Accent.CODE,
@@ -60,7 +67,7 @@ internal fun ComposableSection(
         if (composable == null) {
             IconActionButton(icon = Res.drawable.ic_add, label = Res.string.action_create_composable, onClick = onCreate)
         } else if (open != null) {
-            IconActionButton(icon = Res.drawable.ic_open_in_new, label = Res.string.action_open_composable, onClick = { open(composable) })
+            IconActionButton(icon = Res.drawable.ic_open_in_new, label = Res.string.action_open_composable, onClick = { open(composable) { isNotOpened = true } })
         }
     }
     if (composable == null) {
@@ -85,6 +92,14 @@ internal fun ComposableSection(
                 overflow = TextOverflow.Ellipsis,
             )
             IconActionButton(icon = Res.drawable.ic_close, label = Res.string.action_remove_composable, onClick = onRemove)
+        }
+        if (isNotOpened) {
+            Text(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                text = stringResource(Res.string.manager_type_composable_not_opened),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
         }
     }
 }

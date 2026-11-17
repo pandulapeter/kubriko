@@ -34,7 +34,10 @@ class ComposableSectionTest {
                 composable = composable,
                 onCreate = { events += "create" },
                 onRemove = { events += "remove" },
-                open = { events += "open $it" },
+                open = { name, onFailed ->
+                    events += "open $name"
+                    onFailed()
+                },
             )
         }
         onNodeWithText("Your own Compose code", substring = true).assertExists()
@@ -44,6 +47,7 @@ class ComposableSectionTest {
         saveSnapshot("composable-section")
         onNodeWithText("com.example.game.ui.HudUi").assertExists()
         onNodeWithContentDescription("Open in your editor").performClick()
+        onNodeWithText("No file of the game declares it", substring = true).assertExists()
         onNodeWithContentDescription("Stop showing it (its file stays)").performClick()
         assertEquals(listOf("create", "open com.example.game.ui.HudUi", "remove"), events)
     }

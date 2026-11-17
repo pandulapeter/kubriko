@@ -15,31 +15,48 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.staticCompositionLocalOf
+import com.pandulapeter.kubrikoCreator.actors.GeneratedCodeLocation
+import com.pandulapeter.kubrikoCreator.actors.codegen.ManagerComposables
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.ui.components.openInSystemEditor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
- * Opens the file declaring the hand-written Composable of a fully qualified name in the system's editor, where the
- * workspace provides it.
+ * Opens the file declaring the hand-written Composable of a fully qualified name in the system's editor, calling back on
+ * the main thread when there is no such file or it can't be opened, where the workspace provides it.
  */
-internal val LocalComposableOpener = staticCompositionLocalOf<((String) -> Unit)?> { null }
+internal val LocalComposableOpener = staticCompositionLocalOf<((name: String, onFailed: () -> Unit) -> Unit)?> { null }
 
 /**
- * What opens a Composable's file among [resources]' Kotlin files, reading them off the main thread when asked.
+ * What opens a Composable's file among [resources]' Kotlin files, reading them off the main thread when asked, or the
+ * file `create_composable` makes for it in the project at [rootDirectory] whose code is at [location], which the
+ * resource scan may not know of yet.
  */
 @Composable
-internal fun rememberComposableOpener(resources: Map<ResourceGroup, List<ProjectResource>>): (String) -> Unit {
+internal fun rememberComposableOpener(
+    resources: Map<ResourceGroup, List<ProjectResource>>,
+    rootDirectory: File,
+    location: GeneratedCodeLocation?,
+): (String, () -> Unit) -> Unit {
     val scope = rememberCoroutineScope()
     val currentResources by rememberUpdatedState(resources)
-    return remember {
-        { name ->
-            scope.launch(Dispatchers.IO) {
-                composableFileOf(name, currentResources[ResourceGroup.KOTLIN].orEmpty()) { file -> runCatching { file.readText() }.getOrNull() }
-                    ?.let { file -> runCatching { openInSystemEditor(file) } }
+    val currentLocation by rememberUpdatedState(location)
+    return remember(rootDirectory) {
+        { name, onFailed ->
+            scope.launch {
+                val isOpened = withContext(Dispatchers.IO) {
+                    val madeFile = currentLocation?.let { made ->
+                        File(rootDirectory, ManagerComposables.pathOf(made, name.substringAfterLast('.'))).takeIf { ManagerComposables.qualifiedNameOf(made, name.substringAfterLast('.')) == name }
+                    }
+                    val kotlinFiles = currentResources[ResourceGroup.KOTLIN].orEmpty() + listOfNotNull(madeFile?.let { ProjectResource(ResourceGroup.KOTLIN, it, it.path) })
+                    composableFileOf(name, kotlinFiles) { file -> runCatching { file.readText() }.getOrNull() }
+                        ?.let { file -> runCatching { openInSystemEditor(file) }.isSuccess } == true
+                }
+                if (!isOpened) onFailed()
             }
         }
     }
@@ -53,7 +70,7 @@ internal fun composableFileOf(name: String, kotlinFiles: List<ProjectResource>, 
     val packageName = name.substringBeforeLast('.', "")
     val functionName = name.substringAfterLast('.')
     val declaration = Regex("\\bfun\\s+" + Regex.escape(functionName) + "\\s*\\(")
-    val packageLine = Regex("^\\s*package\\s+" + Regex.escape(packageName) + "\\s*;?\\s*$", RegexOption.MULTILINE)
+    val packageLine = Regex("^\\s*package\\s+" + Regex.escape(packageName) + "\\s*;?\\s*(//.*|/\\*.*)?$", RegexOption.MULTILINE)
     return kotlinFiles.map { it.file }
         .sortedBy { it.nameWithoutExtension != functionName }
         .firstOrNull { file -> readText(file)?.let { packageLine.containsMatchIn(it) && declaration.containsMatchIn(it) } == true }

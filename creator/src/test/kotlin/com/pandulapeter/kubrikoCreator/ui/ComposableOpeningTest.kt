@@ -21,7 +21,7 @@ class ComposableOpeningTest {
         "src/commonMain/kotlin/game/Screens.kt" to "package com.example.game.ui\n\n@Composable\nfun HudUi(hudManager: Hud, windowInsets: WindowInsets) {}\n",
         "src/commonMain/kotlin/game/ui/HudUi.kt" to "package com.example.game.ui\n\nfun HudUi(hudManager: Hud, windowInsets: WindowInsets) {}\n",
         "src/commonMain/kotlin/other/HudUi.kt" to "package com.example.other\n\nfun HudUi() {}\n",
-        "src/commonMain/kotlin/game/Menu.kt" to "package com.example.game.ui\n\nfun Menu() {}\n",
+        "src/commonMain/kotlin/game/Menu.kt" to "package com.example.game.ui // Screens\n\nfun Menu() {}\n",
     )
     private val files = texts.keys.map { ProjectResource(ResourceGroup.KOTLIN, File(it), it) }
 
