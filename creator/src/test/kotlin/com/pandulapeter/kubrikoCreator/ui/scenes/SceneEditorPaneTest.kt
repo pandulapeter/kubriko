@@ -32,6 +32,8 @@ import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performMouseInput
+import androidx.compose.ui.test.pressKey
+import androidx.compose.ui.test.withKeyDown
 import com.pandulapeter.kubriko.creator.CreatorEntryPoint
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
@@ -44,7 +46,10 @@ import com.pandulapeter.kubrikoCreator.commands.ActorsBroughtBack
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
+import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActors
+import com.pandulapeter.kubrikoCreator.commands.scenes.RestoreActors
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
+import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneValues
 import com.pandulapeter.kubrikoCreator.context.HealthFinding
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
@@ -178,6 +183,44 @@ class SceneEditorPaneTest {
         assertEquals(listOf<Invocation<*>>(Invocation(MoveActor, MoveActor.Input("level", "ball", 53f, 19f))), commands)
     }
 
+    @Test
+    fun severalSelectedActorsAreMovedNudgedDuplicatedAndRemovedTogether() = uiTest(width = 900, height = 600) {
+        val commands = mutableListOf<Invocation<*>>()
+        val wall = ball.copy(id = "wall", state = SceneDocument.blockBuiltState(200f, 0f, 60f, 60f))
+        showPane(MutableSharedFlow(), actors = { listOf(bigBall, wall) }, previews = mapOf("Ball" to blue), onCommand = { commands += it })
+        waitUntil(timeoutMillis = 5_000) { ballColor() == Color(blue.color) }
+        onRoot().performMouseInput { click(Offset(BALL_X.toFloat(), BALL_Y.toFloat())) }
+        onRoot().performKeyInput { keyDown(Key.ShiftLeft) }
+        onRoot().performMouseInput { click(Offset(BALL_X + 200f, BALL_Y.toFloat())) }
+        onRoot().performKeyInput { keyUp(Key.ShiftLeft) }
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("2 Actors")).fetchSemanticsNodes().isNotEmpty() }
+        saveSnapshot("scene-editor-several-selected")
+        onRoot().performMouseInput { dragBy(Offset(BALL_X.toFloat(), BALL_Y.toFloat()), Offset(30f, 20f)) }
+        waitForIdle()
+        assertEquals(listOf(30f to 20f, 230f to 20f), (commands.single().input as SetActorsValues.Input).actors.map { it.x!! to it.y!! })
+        commands.clear()
+        onRoot().performKeyInput { pressKey(Key.DirectionRight) }
+        assertEquals(listOf(31f, 231f), (commands.single().input as SetActorsValues.Input).actors.map { it.x!! })
+        commands.clear()
+        onRoot().performKeyInput { withKeyDown(Key.MetaLeft) { pressKey(Key.D) } }
+        val copies = (commands.single().input as RestoreActors.Input).actors
+        assertEquals(listOf(2, 3), copies.map { it.actorIndex })
+        commands.clear()
+        onRoot().performKeyInput { pressKey(Key.Delete) }
+        assertEquals(copies.map { it.actorId }, (commands.single().input as RemoveActors.Input).actorIds)
+    }
+
+    @Test
+    fun draggingWithShiftFromWhereNoActorIsSelectsTheActorsItsBoxTouches() = uiTest(width = 900, height = 600) {
+        val wall = ball.copy(id = "wall", state = SceneDocument.blockBuiltState(200f, 0f, 60f, 60f))
+        showPane(MutableSharedFlow(), actors = { listOf(bigBall, wall) }, previews = mapOf("Ball" to blue))
+        waitUntil(timeoutMillis = 5_000) { ballColor() == Color(blue.color) }
+        onRoot().performKeyInput { keyDown(Key.ShiftLeft) }
+        onRoot().performMouseInput { dragBy(Offset(BALL_X - 120f, BALL_Y - 80f), Offset(360f, 100f)) }
+        onRoot().performKeyInput { keyUp(Key.ShiftLeft) }
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("2 Actors")).fetchSemanticsNodes().isNotEmpty() }
+    }
+
     private fun MouseInjectionScope.dragBy(start: Offset, by: Offset) {
         moveTo(start)
         press()
@@ -196,10 +239,10 @@ class SceneEditorPaneTest {
     }
 
     @Test
-    fun onlyOneActorBroughtBackIntoThisSceneIsSelected() {
-        assertEquals("ball", restoredSelectionOf(ballBack, "level"))
-        assertNull(restoredSelectionOf(ballBack, "other"))
-        assertNull(restoredSelectionOf(ballBack.copy(actors = listOf(ball, ball.copy(id = "wall"))), "level"))
+    fun everyActorBroughtBackIntoThisSceneIsSelected() {
+        assertEquals(listOf("ball"), restoredSelectionOf(ballBack, "level"))
+        assertEquals(emptyList(), restoredSelectionOf(ballBack, "other"))
+        assertEquals(listOf("ball", "wall"), restoredSelectionOf(ballBack.copy(actors = listOf(ball, ball.copy(id = "wall"))), "level"))
     }
 
     @Test
@@ -245,12 +288,17 @@ class SceneEditorPaneTest {
     @Test
     fun selectingAnActorCancelsARestoredOneButClearingTheSelectionDoesnt() {
         val selection = SceneSelection()
-        selection.restore("ball")
+        selection.restore(listOf("ball"))
         selection.select(null)
-        assertEquals("ball", selection.restoredId)
+        assertEquals(listOf("ball"), selection.restoredIds)
         selection.select("wall")
-        assertNull(selection.restoredId)
+        assertEquals(emptyList(), selection.restoredIds)
         assertEquals("wall", selection.selectedId)
+        selection.toggle("ball")
+        assertEquals(listOf("wall", "ball"), selection.selectedIds)
+        assertNull(selection.selectedId)
+        selection.toggle("wall")
+        assertEquals("ball", selection.selectedId)
     }
 
     @Test
@@ -360,7 +408,7 @@ class SceneEditorPaneTest {
         const val DRAG_STEPS = 10
         const val BALL_X = 339
         const val BALL_Y = 335
-        const val INSPECTOR_HINT = "Drag an Actor type from the sidebar into the Scene to place it there, and click an Actor to change it. Drag it to move it, its handles to resize or rotate it (with Shift, in proportion or in steps), or press Delete to remove it."
+        const val INSPECTOR_HINT = "Drag an Actor type from the sidebar into the Scene to place it there, and click an Actor to change it. Drag it to move it, its handles to resize or rotate it (Shift keeps its proportions or turns in steps), or press Delete to remove it. Shift-click or drag with Shift to select several, move them with the arrow keys, and duplicate them with Ctrl or Cmd + D."
         const val REMOVE = "Remove from the Scene"
     }
 }

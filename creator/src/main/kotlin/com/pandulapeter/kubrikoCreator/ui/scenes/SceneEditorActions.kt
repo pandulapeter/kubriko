@@ -10,18 +10,23 @@
 package com.pandulapeter.kubrikoCreator.ui.scenes
 
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.scenes.ActorValueChanges
 import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.PlaceActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
+import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActors
+import com.pandulapeter.kubrikoCreator.commands.scenes.RestoreActors
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
+import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsValues
 import com.pandulapeter.kubrikoCreator.sceneRuntime.ActorFrame
 import com.pandulapeter.kubrikoCreator.sceneRuntime.FrameHandle
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneView
+import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 
 /**
  * The changes the Scene editor makes to the Scene called [sceneName], each as a command through [onCommand], keeping
- * [selection] in step: a placed Actor is selected, and a removed one is no longer.
+ * [selection] in step: placed and duplicated Actors are selected, and removed ones no longer.
  */
 internal class SceneEditorActions(
     private val sceneName: String,
@@ -29,7 +34,16 @@ internal class SceneEditorActions(
     private val selection: SceneSelection,
     private val onCommand: (Invocation<*>) -> Unit,
 ) {
-    fun move(actorId: String, x: Float, y: Float) = onCommand(Invocation(MoveActor, MoveActor.Input(sceneName, actorId, x, y)))
+    /**
+     * Moves each Actor of [moves] to where it says, as one step.
+     */
+    fun move(moves: List<ActorMove>) {
+        val single = moves.singleOrNull()
+        when {
+            single != null -> onCommand(Invocation(MoveActor, MoveActor.Input(sceneName, single.actorId, single.x, single.y)))
+            moves.isNotEmpty() -> onCommand(Invocation(SetActorsValues, SetActorsValues.Input(sceneName, moves.map { ActorValueChanges(it.actorId, x = it.x, y = it.y) })))
+        }
+    }
 
     fun transform(actorId: String, handle: FrameHandle, after: ActorFrame) = onCommand(Invocation(SetActorValues, transformInputOf(sceneName, actorId, handle, after)))
 
@@ -39,8 +53,48 @@ internal class SceneEditorActions(
         onCommand(Invocation(PlaceActor, PlaceActor.Input(sceneName, actorTypeName, x, y, actorId)))
     }
 
-    fun remove(actorId: String) {
+    fun remove(actorId: String) = remove(listOf(actorId))
+
+    /**
+     * Removes the Actors [actorIds], as one step.
+     */
+    fun remove(actorIds: List<String>) {
+        if (actorIds.isEmpty()) return
         selection.select(null)
-        onCommand(Invocation(RemoveActor, RemoveActor.Input(sceneName, actorId)))
+        val single = actorIds.singleOrNull()
+        if (single != null) {
+            onCommand(Invocation(RemoveActor, RemoveActor.Input(sceneName, single)))
+        } else {
+            onCommand(Invocation(RemoveActors, RemoveActors.Input(sceneName, actorIds)))
+        }
+    }
+
+    /**
+     * Copies the Actors [actorIds] the Scene draws to the end of the Scene, as one step, each moved by [offset] scene
+     * units right and down, and selects the copies.
+     */
+    fun duplicate(actorIds: List<String>, offset: Float) {
+        val copies = duplicatesOf(view.entries, actorIds.filter { view.boundsOf(it) != null && !view.isBackground(it) }.toSet(), offset)
+        if (copies.isEmpty()) return
+        selection.select(copies.mapNotNull { it.actorId })
+        onCommand(Invocation(RestoreActors, RestoreActors.Input(sceneName, copies)))
+    }
+}
+
+/**
+ * Where the Scene editor moves an Actor to, in scene units.
+ */
+internal data class ActorMove(val actorId: String, val x: Float, val y: Float)
+
+/**
+ * Copies of the Actors of [entries] whose IDs are among [actorIds], in the Scene's order, to be put in at its end with new
+ * IDs, each moved by [offset] right and down if its state saves a position.
+ */
+internal fun duplicatesOf(entries: List<SceneActorEntry>, actorIds: Set<String>, offset: Float): List<RestoreActors.Restored> {
+    val ids = entries.mapTo(HashSet()) { it.id }
+    return entries.filter { it.id in actorIds }.mapIndexed { index, entry ->
+        val id = SceneDocument.newId(ids).also(ids::add)
+        val state = SceneDocument.positionOf(entry.state)?.let { (x, y) -> SceneDocument.withPosition(entry.state, x + offset, y + offset) } ?: entry.state
+        RestoreActors.Restored(actorIndex = entries.size + index, typeId = entry.typeId, state = state, actorId = id)
     }
 }

@@ -487,10 +487,12 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   `set_actor_values` when let go. Moving, resizing, placing, and nudging snap to a grid (`SceneGrid`) whose size and
   default are Creator settings, since they are the user's habit rather than the project's; the header's switch holds for
   the open Scene only, and Alt turns it the other way while a drag lasts.
-- A placed Actor is selected, and so is one the user's undo or redo brings back (`CommandExecutor.broughtBack`, which an
-  AI turn's undo leaves alone), since the selection is the editor's own state, which no command restores. `SceneSelection`
-  selects it once the Scene shows it, and drops it if the next load doesn't (removed again meanwhile) or it is the Scene
-  settings, so a stale one never takes the selection later.
+- A placed or duplicated Actor is selected, and so are those the user's undo or redo brings back (`CommandExecutor.broughtBack`,
+  which an AI turn's undo leaves alone), since the selection is the editor's own state, which no command restores. `SceneSelection`
+  selects them once the Scene shows them, and drops those the next load doesn't show (removed again meanwhile) and the Scene
+  settings, so a stale one never takes the selection later. Several Actors can be selected; a change to them all (a drag,
+  a nudge, a duplicate, a removal) is one command, a batch one for more than one, so it is one undo step. Duplicates are
+  `restore_actors` with the copied states, which carry hand-written types' values too.
 - Loaded classes are kept across Scenes until a type or a source changes (`markOutdated`), Reload, or the workspace closes. A change
   while a Scene is open builds again in the background, and a change during that build builds once more after it rather than
   cancelling it; the new `SceneView` creates its Actors while the old one is still shown, then takes over its camera. A failed

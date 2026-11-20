@@ -16,7 +16,6 @@ whose exhaustive `when`s then show every place it needs.
 ## Scene editor (Creator's own, `ui/scenes`)
 
 - Editors for hand-written types' other state values (through `set_actor_state`).
-- Keyboard nudging, duplicating, and multi-select.
 - Placing hand-written Actor types (their default state through their metadata).
 - Sprite thumbnails in the sidebar while dragging.
 - Layer filtering and locking.

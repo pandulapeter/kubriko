@@ -37,8 +37,10 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isMetaPressed
+import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
@@ -62,13 +64,12 @@ import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
 import com.pandulapeter.kubrikoCreator.ui.components.FLASH_MAXIMUM_ALPHA
 
 /**
- * The Scene as the game draws it, with the selected Actor outlined along its box. A click selects the Actor on top,
- * dragging it moves it ([onMove] when it is let go, so only one whose position the Scene file saves, [canDragActor]),
- * dragging one of its handles resizes or rotates it ([onTransform]; [SceneCanvasGestures]), dragging elsewhere
- * (or with the middle button, or on an Actor that can't be moved) moves the camera, scrolling moves it
- * too, and with Ctrl or Cmd, zooms. While [isSnapping], the [grid] is drawn, and moving, resizing, and placing snap to
- * it. Delete or Backspace removes the selected Actor, and an Actor type dragged in from the
- * sidebar is placed where it is dropped ([onPlace], in scene units).
+ * The Scene as the game draws it, with the selected Actors outlined along their boxes. The pointer selects, moves
+ * ([onMove] when it is let go, so only Actors whose positions the Scene file saves, [canDragActor]), resizes, and
+ * rotates them ([onTransform]), as [SceneCanvasGestures] says, scrolling moves the camera, and with Ctrl or Cmd,
+ * zooms. While [isSnapping], the [grid] is drawn, and moving, resizing, placing, and the arrow keys' steps snap to it.
+ * The keys remove, duplicate ([onDuplicate]), select, and move the selected Actors ([SceneKeyAction]), and an Actor type
+ * dragged in from the sidebar is placed where it is dropped ([onPlace], in scene units).
  *
  * @param actors The Scene's Actors, which [view] loads again whenever they change.
  * @param previews The looks of the Actor types whose Actors [view] draws itself until they are compiled.
@@ -83,11 +84,12 @@ internal fun SceneCanvas(
     actors: List<SceneActorEntry>,
     previews: Map<String, ActorTypeLook>,
     isSceneReadable: Boolean,
-    selectedId: String?,
-    onSelect: (String?) -> Unit,
-    onMove: (actorId: String, x: Float, y: Float) -> Unit,
+    selectedIds: List<String>,
+    onSelectionChange: (List<String>) -> Unit,
+    onMove: (List<ActorMove>) -> Unit,
     onTransform: (actorId: String, handle: FrameHandle, after: ActorFrame) -> Unit,
-    onRemove: (String) -> Unit,
+    onRemove: (List<String>) -> Unit,
+    onDuplicate: (List<String>) -> Unit,
     dragState: SidebarDragState,
     onPlace: (actorTypeName: String, x: Float, y: Float) -> Unit,
     grid: SceneGrid,
@@ -104,16 +106,20 @@ internal fun SceneCanvas(
     LaunchedEffect(view, actors, previews) { view.load(actors, previews) }
     var dragRevision by remember { mutableIntStateOf(0) }
     val focusRequester = remember { FocusRequester() }
-    val currentSelectedId by rememberUpdatedState(selectedId)
+    val currentSelectedIds by rememberUpdatedState(selectedIds)
+    val currentOnSelectionChange by rememberUpdatedState(onSelectionChange)
+    val currentOnRemove by rememberUpdatedState(onRemove)
+    val currentOnDuplicate by rememberUpdatedState(onDuplicate)
+    val step by rememberUpdatedState(if (isSnapping) grid.size else 1f)
     val handleMetrics = rememberHandleMetrics()
     val callbacks by rememberUpdatedState(
         SceneCanvasGestures.Callbacks(
-            selectedId = selectedId,
+            selectedIds = selectedIds,
             canDrag = { actorId -> canDragActor(view.entryOf(actorId), isSceneReadable) },
             handleMetrics = handleMetrics,
             grid = grid,
             isSnapping = isSnapping,
-            onSelect = onSelect,
+            onSelectionChange = onSelectionChange,
             onMove = onMove,
             onTransform = onTransform,
             onDragged = { dragRevision++ },
@@ -135,13 +141,16 @@ internal fun SceneCanvas(
             .focusRequester(focusRequester)
             .focusable()
             .onKeyEvent { event ->
-                val id = currentSelectedId
-                if (event.type == KeyEventType.KeyDown && (event.key == Key.Delete || event.key == Key.Backspace) && id != null) {
-                    onRemove(id)
-                    true
-                } else {
-                    false
+                if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
+                when (val action = SceneKeyAction.of(event.key, event.isShiftPressed, event.isCtrlPressed || event.isMetaPressed, step)) {
+                    null -> return@onKeyEvent false
+                    SceneKeyAction.Remove -> currentOnRemove(currentSelectedIds)
+                    SceneKeyAction.Duplicate -> currentOnDuplicate(currentSelectedIds)
+                    SceneKeyAction.SelectAll -> currentOnSelectionChange(view.drawnActorIds())
+                    SceneKeyAction.ClearSelection -> currentOnSelectionChange(emptyList())
+                    is SceneKeyAction.Nudge -> gestures.nudge(action.dx, action.dy)
                 }
+                true
             }
             .onPointerEvent(PointerEventType.Scroll) { event ->
                 val delta = event.changes.first().scrollDelta
@@ -154,19 +163,20 @@ internal fun SceneCanvas(
             .then(gestures.modifier),
     ) {
         SceneViewport(view.kubriko, pictureHost, background = MaterialTheme.colorScheme.surfaceContainerLowest)
-        SceneOverlay(gestures = gestures, view = view, selectedId = selectedId, flash = flash, dragRevision = dragRevision, handleMetrics = handleMetrics, grid = grid.takeIf { isSnapping })
+        SceneOverlay(gestures = gestures, view = view, selectedIds = selectedIds, flash = flash, dragRevision = dragRevision, handleMetrics = handleMetrics, grid = grid.takeIf { isSnapping })
     }
 }
 
 /**
- * What the canvas draws over the Scene: the Actors [flash] lights up, and the selected Actor's outline, following the
- * camera, a drag ([dragRevision]), and the Actors created from the Scene's content.
+ * What the canvas draws over the Scene: the grid, the Actors [flash] lights up, the selected Actors' outlines (with
+ * handles while only one is selected), and the box a drag selects in, following the camera, a drag ([dragRevision]),
+ * and the Actors created from the Scene's content.
  */
 @Composable
 private fun SceneOverlay(
     gestures: SceneCanvasGestures,
     view: SceneView,
-    selectedId: String?,
+    selectedIds: List<String>,
     flash: SceneFlash?,
     dragRevision: Int,
     handleMetrics: HandleMetrics,
@@ -199,9 +209,11 @@ private fun SceneOverlay(
             val actorIds = flash?.actorIds.orEmpty()
             for (index in actorIds.indices) drawActorOutline(gestures, view, actorIds[index], color)
         }
-        if (selectedId != null) {
-            drawActorOutline(gestures, view, selectedId, selectionColor, selectionStroke)
-            gestures.transformableFrameOf(selectedId)?.let { frame -> drawFrameHandles(frame, selectionColor, handleFill, handleMetrics, gestures::toScreen) }
+        for (index in selectedIds.indices) drawActorOutline(gestures, view, selectedIds[index], selectionColor, selectionStroke)
+        selectedIds.singleOrNull()?.let(gestures::transformableFrameOf)?.let { frame -> drawFrameHandles(frame, selectionColor, handleFill, handleMetrics, gestures::toScreen) }
+        gestures.marquee?.let { box ->
+            drawRect(color = selectionColor.copy(alpha = MARQUEE_ALPHA), topLeft = box.topLeft, size = box.size)
+            drawRect(color = selectionColor, topLeft = box.topLeft, size = box.size, style = selectionStroke)
         }
     }
 }
@@ -238,6 +250,7 @@ private val SELECTION_STROKE_WIDTH = 2.dp
 private val HANDLE_SIZE = 8.dp
 private val MINIMUM_GRID_SPACING = 8.dp
 private const val GRID_ALPHA = 0.2f
+private const val MARQUEE_ALPHA = 0.12f
 private val HANDLE_REACH = 8.dp
 private val ROTATE_HANDLE_DISTANCE = 24.dp
 private val HANDLE_STROKE_WIDTH = 1.5.dp

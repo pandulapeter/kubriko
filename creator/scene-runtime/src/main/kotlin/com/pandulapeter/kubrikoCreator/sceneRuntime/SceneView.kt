@@ -196,6 +196,20 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
         return currentBoundsGrid().pick(position.x.raw, position.y.raw)?.let { entries[it].id }
     }
 
+    /**
+     * The IDs of the Actors drawn at least partly inside the rectangle from ([left], [top]) to ([right], [bottom]), in
+     * scene units, in the Scene's order, without the Scene settings.
+     */
+    public fun actorIdsWithin(left: Float, top: Float, right: Float, bottom: Float): List<String> = currentBoundsGrid().all()
+        .filter { !it.isBackground && it.left <= right && it.right >= left && it.top <= bottom && it.bottom >= top }
+        .sortedBy { it.index }
+        .map { entries[it.index].id }
+
+    /**
+     * The IDs of the Actors drawn in the Scene, in its order, without the Scene settings and what it gives Manager types.
+     */
+    public fun drawnActorIds(): List<String> = entries.indices.filter { index -> boundsAt(index)?.isBackground == false }.map { entries[it].id }
+
     private fun currentBoundsGrid() = boundsGrid.also {
         if (isBoundsGridOutdated) {
             it.rebuild(actors.indices.mapNotNull(::boundsAt), actors.size)

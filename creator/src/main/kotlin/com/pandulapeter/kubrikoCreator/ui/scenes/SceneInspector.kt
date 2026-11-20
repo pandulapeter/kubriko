@@ -40,22 +40,28 @@ import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import kotlinx.serialization.json.JsonPrimitive
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_bring_actor_to_front
+import kubriko.creator.generated.resources.action_duplicate_actor
+import kubriko.creator.generated.resources.action_duplicate_actors
 import kubriko.creator.generated.resources.action_remove_actor
+import kubriko.creator.generated.resources.action_remove_actors
 import kubriko.creator.generated.resources.action_send_actor_to_back
 import kubriko.creator.generated.resources.ic_actor_type
+import kubriko.creator.generated.resources.ic_copy
 import kubriko.creator.generated.resources.ic_delete
 import kubriko.creator.generated.resources.ic_manager_type
 import kubriko.creator.generated.resources.ic_move_down
 import kubriko.creator.generated.resources.ic_move_up
 import kubriko.creator.generated.resources.scene_actor_not_created_hint
+import kubriko.creator.generated.resources.scene_actors_selected
 import kubriko.creator.generated.resources.scene_inspector_hint
 import kubriko.creator.generated.resources.scene_settings_title
 import kubriko.creator.generated.resources.scene_values_actor
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The column beside the Scene: the selected Actor's values, or with nothing selected, how to place Actors and a way to the
- * Scene settings.
+ * The column beside the Scene: the selected Actor's values, how many are selected while several are, or with nothing
+ * selected, how to place Actors and a way to the Scene settings.
  *
  * @param actorTypes The project's block-built Actor types, whose Properties and colors their Actors show.
  * @param managerTypes The project's block-built Manager types, those with Properties of which the Scene can give values
@@ -66,19 +72,21 @@ import org.jetbrains.compose.resources.stringResource
 internal fun SceneInspector(
     view: SceneView,
     sceneName: String,
-    selectedId: String?,
+    selectedIds: List<String>,
     actorTypes: List<ActorTypeDefinition>,
     managerTypes: List<ManagerTypeDefinition>,
     audioFiles: AudioFiles?,
     onOpenSceneSettings: () -> Unit,
     onCommand: (Invocation<*>) -> Unit,
-    onRemove: (String) -> Unit,
+    onRemove: (List<String>) -> Unit,
+    onDuplicate: (List<String>) -> Unit,
     modifier: Modifier = Modifier,
 ) = Column(
     modifier = modifier.verticalScroll(rememberScrollState()),
 ) {
     // Read so that the inspector follows the Actors created from the Scene's content.
     view.loadRevision.collectAsState().value
+    val selectedId = selectedIds.singleOrNull()
     val entry = selectedId?.let(view::entryOf)
     val actor = selectedId?.let(view::actorOf)
     val entries = view.entries
@@ -86,6 +94,10 @@ internal fun SceneInspector(
     val valueTakingManagerTypes = remember(managerTypes) { managerTypes.filter { it.properties.isNotEmpty() } }
     val selectedManager = entry?.let { selected -> managerTypes.firstOrNull { it.name == selected.typeId } }
     when {
+        selectedIds.size > 1 -> PanelHeader(icon = Res.drawable.ic_actor_type, title = pluralStringResource(Res.plurals.scene_actors_selected, selectedIds.size, selectedIds.size), accent = Accent.CAST) {
+            IconActionButton(icon = Res.drawable.ic_copy, label = Res.string.action_duplicate_actors, onClick = { onDuplicate(selectedIds) })
+            IconActionButton(icon = Res.drawable.ic_delete, label = Res.string.action_remove_actors, onClick = { onRemove(selectedIds) })
+        }
         selectedId == null || entry == null -> {
             Text(
                 modifier = Modifier.padding(12.dp),
@@ -103,7 +115,7 @@ internal fun SceneInspector(
         }
         selectedManager != null -> {
             PanelHeader(icon = Res.drawable.ic_manager_type, title = stringResource(Res.string.scene_values_actor, selectedManager.name), accent = Accent.CREW) {
-                IconActionButton(icon = Res.drawable.ic_delete, label = Res.string.action_remove_actor, onClick = { onRemove(checkNotNull(selectedId)) })
+                IconActionButton(icon = Res.drawable.ic_delete, label = Res.string.action_remove_actor, onClick = { onRemove(selectedIds) })
             }
             SceneValues(listOf(selectedManager), sceneValues, sceneName, actorTypes, audioFiles, onCommand)
         }
@@ -122,7 +134,8 @@ internal fun SceneInspector(
                     onClick = { onCommand(Invocation(MoveActorOrder, MoveActorOrder.Input(sceneName, selectedId, view.entries.lastIndex))) },
                     isEnabled = index < view.entries.lastIndex,
                 )
-                IconActionButton(icon = Res.drawable.ic_delete, label = Res.string.action_remove_actor, onClick = { onRemove(selectedId) })
+                IconActionButton(icon = Res.drawable.ic_copy, label = Res.string.action_duplicate_actor, onClick = { onDuplicate(selectedIds) })
+                IconActionButton(icon = Res.drawable.ic_delete, label = Res.string.action_remove_actor, onClick = { onRemove(selectedIds) })
             }
             if (actor != null) {
                 key(selectedId) {

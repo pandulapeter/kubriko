@@ -22,31 +22,46 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 
 /**
- * The Actor selected in the Scene editor, and the one an undo or redo brought back ([restore]), which is selected once the
- * Scene shows it, as a placed one is. Selecting an Actor cancels a restored one still waiting.
+ * The Actors selected in the Scene editor, and those an undo or redo brought back ([restore]), which are selected once the
+ * Scene shows them, as a placed one is. Selecting cancels Actors restored and still waiting.
  */
 internal class SceneSelection {
-    var selectedId by mutableStateOf<String?>(null)
+    /**
+     * The selected Actors, in the order they were selected.
+     */
+    var selectedIds by mutableStateOf<List<String>>(emptyList())
         private set
-    var restoredId by mutableStateOf<String?>(null)
+    var restoredIds by mutableStateOf<List<String>>(emptyList())
         private set
 
-    fun select(actorId: String?) {
-        selectedId = actorId
-        if (actorId != null) restoredId = null
+    /**
+     * The selected Actor while only one is, which the inspector shows and the handles change.
+     */
+    val selectedId: String? get() = selectedIds.singleOrNull()
+
+    fun select(actorId: String?) = select(listOfNotNull(actorId))
+
+    fun select(actorIds: List<String>) {
+        selectedIds = actorIds.distinct()
+        if (actorIds.isNotEmpty()) restoredIds = emptyList()
     }
 
-    fun restore(actorId: String) {
-        restoredId = actorId
+    /**
+     * Adds [actorId] to the selection, or takes it out if it is in it.
+     */
+    fun toggle(actorId: String) = select(if (actorId in selectedIds) selectedIds - actorId else selectedIds + actorId)
+
+    fun restore(actorIds: List<String>) {
+        restoredIds = actorIds
     }
 
     fun dropRestored() {
-        restoredId = null
+        restoredIds = emptyList()
     }
 
-    fun selectRestored(actorId: String) {
-        selectedId = actorId
-        restoredId = null
+    fun selectRestored(actorIds: List<String>) {
+        selectedIds = actorIds
+        restoredIds = emptyList()
     }
 }
 
@@ -58,37 +73,36 @@ internal class SceneSelection {
 internal fun rememberSceneSelection(state: SceneEditingState.Open, broughtBack: Flow<ActorsBroughtBack>, highlight: SceneHighlight? = null): SceneSelection {
     val selection = remember(state.scene.file) { SceneSelection() }
     LaunchedEffect(selection, broughtBack, state.sceneName) {
-        broughtBack.collect { actors -> restoredSelectionOf(actors, state.sceneName)?.let(selection::restore) }
+        broughtBack.collect { actors -> restoredSelectionOf(actors, state.sceneName).takeIf { it.isNotEmpty() }?.let(selection::restore) }
     }
     LaunchedEffect(selection, highlight?.key) {
-        highlight?.takeIf { it.isSelecting }?.actorIds?.firstOrNull()?.let(selection::restore)
+        highlight?.takeIf { it.isSelecting }?.actorIds?.firstOrNull()?.let { selection.restore(listOf(it)) }
     }
     return selection
 }
 
 /**
- * Selects the Actor brought back into [view] once it shows it, unless it is the Scene settings, which are never selected.
- * One the Scene doesn't show by its next load (removed again meanwhile) is dropped, so it can't take the selection later.
+ * Selects the Actors brought back into [view] once it shows them, apart from the Scene settings, which are never
+ * selected. Those the Scene doesn't show by its next load (removed again meanwhile) are dropped, so they can't take the
+ * selection later.
  */
 @Composable
 internal fun SelectingRestoredActor(selection: SceneSelection, view: SceneView) {
-    val restoredId = selection.restoredId
-    LaunchedEffect(view, restoredId) {
-        if (restoredId == null) return@LaunchedEffect
-        if (view.entryOf(restoredId) == null) {
+    val restoredIds = selection.restoredIds
+    LaunchedEffect(view, restoredIds) {
+        if (restoredIds.isEmpty()) return@LaunchedEffect
+        if (restoredIds.any { view.entryOf(it) == null }) {
             val revision = view.loadRevision.value
             view.loadRevision.first { it != revision }
         }
-        when {
-            view.entryOf(restoredId) == null || view.isBackground(restoredId) -> selection.dropRestored()
-            else -> selection.selectRestored(restoredId)
-        }
+        val shown = restoredIds.filter { view.entryOf(it) != null && !view.isBackground(it) }
+        if (shown.isEmpty()) selection.dropRestored() else selection.selectRestored(shown)
     }
 }
 
 /**
- * The ID of the Actor the Scene editor of the Scene called [sceneName] selects once an undo or redo brought
- * [broughtBack] back: the one Actor brought back into it, or null when the step brought back several, or none into this
- * Scene.
+ * The IDs of the Actors the Scene editor of the Scene called [sceneName] selects once an undo or redo brought
+ * [broughtBack] back: every Actor brought back into it, none when the step brought them back into another Scene.
  */
-internal fun restoredSelectionOf(broughtBack: ActorsBroughtBack, sceneName: String): String? = broughtBack.actors.singleOrNull()?.id?.takeIf { broughtBack.scene == sceneName }
+internal fun restoredSelectionOf(broughtBack: ActorsBroughtBack, sceneName: String): List<String> =
+    if (broughtBack.scene == sceneName) broughtBack.actors.map { it.id } else emptyList()

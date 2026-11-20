@@ -57,7 +57,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun SceneActorList(
     entries: List<SceneActorEntry>,
     uncreatedIds: Set<String>,
-    selectedId: String?,
+    selectedIds: List<String>,
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier,
     flash: SceneFlash? = null,
@@ -68,8 +68,9 @@ internal fun SceneActorList(
     var query by remember { mutableStateOf("") }
     val shown = remember(entries, query) { matchingSceneActors(entries, query) }
     val listState = rememberLazyListState()
-    LaunchedEffect(selectedId, shown) {
-        val index = shown.indexOfFirst { it.id == selectedId }
+    val lastSelectedId = selectedIds.lastOrNull()
+    LaunchedEffect(lastSelectedId, shown) {
+        val index = shown.indexOfFirst { it.id == lastSelectedId }
         if (index >= 0 && listState.layoutInfo.visibleItemsInfo.none { it.index == index }) listState.animateScrollToItem(index)
     }
     CompactTextField(
@@ -108,7 +109,7 @@ internal fun SceneActorList(
                 },
                 id = entry.id,
                 isCreated = entry.id !in uncreatedIds,
-                isSelected = entry.id == selectedId,
+                isSelected = entry.id in selectedIds,
                 flash = flash?.takeIf { entry.id in it.actorIds }?.strength,
                 onClick = { onSelect(entry.id) },
             )

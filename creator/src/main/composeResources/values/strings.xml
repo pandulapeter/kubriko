@@ -624,9 +624,16 @@
     <string name="action_reload_scene">Reload</string>
     <string name="action_zoom_in">Zoom in</string>
     <string name="action_remove_actor">Remove from the Scene</string>
+    <string name="action_remove_actors">Remove them from the Scene</string>
+    <string name="action_duplicate_actor">Duplicate (Ctrl or Cmd + D)</string>
+    <string name="action_duplicate_actors">Duplicate them (Ctrl or Cmd + D)</string>
+    <plurals name="scene_actors_selected">
+        <item quantity="one">%1$d Actor</item>
+        <item quantity="other">%1$d Actors</item>
+    </plurals>
     <string name="action_send_actor_to_back">Add first, behind Actors of the same drawing order</string>
     <string name="action_bring_actor_to_front">Add last, in front of Actors of the same drawing order</string>
-    <string name="scene_inspector_hint">Drag an Actor type from the sidebar into the Scene to place it there, and click an Actor to change it. Drag it to move it, its handles to resize or rotate it (with Shift, in proportion or in steps), or press Delete to remove it.</string>
+    <string name="scene_inspector_hint">Drag an Actor type from the sidebar into the Scene to place it there, and click an Actor to change it. Drag it to move it, its handles to resize or rotate it (Shift keeps its proportions or turns in steps), or press Delete to remove it. Shift-click or drag with Shift to select several, move them with the arrow keys, and duplicate them with Ctrl or Cmd + D.</string>
     <string name="scene_inspector_x">X</string>
     <string name="scene_inspector_y">Y</string>
     <string name="scene_inspector_rotation">Rotation (degrees)</string>
