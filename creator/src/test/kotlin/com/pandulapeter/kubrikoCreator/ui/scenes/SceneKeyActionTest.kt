@@ -31,4 +31,26 @@ class SceneKeyActionTest {
         assertEquals(SceneKeyAction.ClearSelection, SceneKeyAction.of(Key.Escape, isShiftPressed = false, isCommandPressed = false, step = 1f))
         assertNull(SceneKeyAction.of(Key.D, isShiftPressed = false, isCommandPressed = false, step = 1f))
     }
+
+    @Test
+    fun aKeyWithNothingToActOnIsLeftToTheElementsAroundTheCanvas() {
+        val events = mutableListOf<String>()
+        fun perform(action: SceneKeyAction, selectedIds: List<String>, drawnIds: List<String> = emptyList(), moves: Boolean = false) = performSceneKeyAction(
+            action = action,
+            selectedIds = selectedIds,
+            drawnIds = { drawnIds },
+            onRemove = { events += "remove $it" },
+            onDuplicate = { events += "duplicate $it" },
+            onSelectionChange = { events += "select $it" },
+            nudge = { _, _ -> moves },
+        )
+        listOf(SceneKeyAction.Remove, SceneKeyAction.Duplicate, SceneKeyAction.ClearSelection, SceneKeyAction.SelectAll, SceneKeyAction.Nudge(1f, 0f)).forEach {
+            assertEquals(false, perform(it, selectedIds = emptyList()), "$it")
+        }
+        assertEquals(emptyList(), events)
+        assertEquals(true, perform(SceneKeyAction.Remove, selectedIds = listOf("a")))
+        assertEquals(true, perform(SceneKeyAction.SelectAll, selectedIds = emptyList(), drawnIds = listOf("a", "b")))
+        assertEquals(true, perform(SceneKeyAction.Nudge(1f, 0f), selectedIds = listOf("a"), moves = true))
+        assertEquals(listOf("remove [a]", "select [a, b]"), events)
+    }
 }

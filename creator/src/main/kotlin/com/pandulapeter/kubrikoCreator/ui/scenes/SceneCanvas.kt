@@ -148,15 +148,16 @@ internal fun SceneCanvas(
             .onKeyEvent { event ->
                 if (event.type == KeyEventType.KeyUp) return@onKeyEvent gestures.commitNudge()
                 if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
-                when (val action = SceneKeyAction.of(event.key, event.isShiftPressed, event.isCtrlPressed || event.isMetaPressed, step)) {
-                    null -> return@onKeyEvent false
-                    SceneKeyAction.Remove -> currentOnRemove(currentSelectedIds)
-                    SceneKeyAction.Duplicate -> currentOnDuplicate(currentSelectedIds)
-                    SceneKeyAction.SelectAll -> currentOnSelectionChange(view.drawnActorIds())
-                    SceneKeyAction.ClearSelection -> currentOnSelectionChange(emptyList())
-                    is SceneKeyAction.Nudge -> gestures.nudge(action.dx, action.dy)
-                }
-                true
+                val action = SceneKeyAction.of(event.key, event.isShiftPressed, event.isCtrlPressed || event.isMetaPressed, step) ?: return@onKeyEvent false
+                performSceneKeyAction(
+                    action = action,
+                    selectedIds = currentSelectedIds,
+                    drawnIds = view::drawnActorIds,
+                    onRemove = currentOnRemove,
+                    onDuplicate = currentOnDuplicate,
+                    onSelectionChange = currentOnSelectionChange,
+                    nudge = gestures::nudge,
+                )
             }
             .onPointerEvent(PointerEventType.Scroll) { event ->
                 val delta = event.changes.first().scrollDelta

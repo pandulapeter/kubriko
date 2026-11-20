@@ -53,3 +53,26 @@ internal sealed interface SceneKeyAction {
         private const val SHIFT_NUDGE_FACTOR = 10
     }
 }
+
+/**
+ * Does what [action] says to the selected Actors [selectedIds], whether it did anything: one with nothing to act on (no
+ * selection, nothing to select, nothing that moves) leaves the key to the elements around the canvas.
+ *
+ * @param drawnIds The Actors selecting all selects.
+ * @param nudge Moves the selected Actors, whether it moved any.
+ */
+internal fun performSceneKeyAction(
+    action: SceneKeyAction,
+    selectedIds: List<String>,
+    drawnIds: () -> List<String>,
+    onRemove: (List<String>) -> Unit,
+    onDuplicate: (List<String>) -> Unit,
+    onSelectionChange: (List<String>) -> Unit,
+    nudge: (dx: Float, dy: Float) -> Boolean,
+): Boolean = when (action) {
+    SceneKeyAction.Remove -> selectedIds.isNotEmpty().also { if (it) onRemove(selectedIds) }
+    SceneKeyAction.Duplicate -> selectedIds.isNotEmpty().also { if (it) onDuplicate(selectedIds) }
+    SceneKeyAction.ClearSelection -> selectedIds.isNotEmpty().also { if (it) onSelectionChange(emptyList()) }
+    SceneKeyAction.SelectAll -> drawnIds().let { ids -> ids.isNotEmpty().also { if (it) onSelectionChange(ids) } }
+    is SceneKeyAction.Nudge -> nudge(action.dx, action.dy)
+}
