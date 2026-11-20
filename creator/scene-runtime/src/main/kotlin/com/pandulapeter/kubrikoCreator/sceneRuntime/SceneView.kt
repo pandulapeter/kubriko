@@ -268,7 +268,8 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
     public fun boundsOf(id: String): SceneHitTest.Bounds? = indicesById[id]?.let(::boundsAt)
 
     /**
-     * Where the box of the Actor [id] is, following its rotation and scale, if it has a box and is drawn.
+     * Where the box of the Actor [id] is, following its rotation and scale, if it was created with a box and isn't what
+     * the Scene gives a Manager type, which is nowhere in the Scene.
      */
     public fun frameOf(id: String): ActorFrame? = indicesById[id]?.let(actors::get)?.takeUnless(::isSceneValues)?.let { (it.body as? BoxBody)?.let(ActorFrame::of) }
 
