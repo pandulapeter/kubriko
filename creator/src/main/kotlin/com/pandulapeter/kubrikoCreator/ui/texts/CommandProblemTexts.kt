@@ -91,6 +91,7 @@ import kubriko.creator.generated.resources.error_command_resource_taken
 import kubriko.creator.generated.resources.error_command_resource_unchanged
 import kubriko.creator.generated.resources.error_command_scale_negative
 import kubriko.creator.generated.resources.error_command_scene_actor_not_block_built
+import kubriko.creator.generated.resources.error_command_scene_actor_not_created
 import kubriko.creator.generated.resources.error_command_scene_actor_without_position
 import kubriko.creator.generated.resources.error_command_scene_content_invalid
 import kubriko.creator.generated.resources.error_command_scene_invalid
@@ -226,6 +227,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.RESOURCE_UNCHANGED -> Res.string.error_command_resource_unchanged
     CommandProblem.SCENE_ACTOR_NOT_BLOCK_BUILT -> Res.string.error_command_scene_actor_not_block_built
     CommandProblem.SCENE_ACTOR_WITHOUT_POSITION -> Res.string.error_command_scene_actor_without_position
+    CommandProblem.SCENE_ACTOR_NOT_CREATED -> Res.string.error_command_scene_actor_not_created
     CommandProblem.SCENE_CONTENT_INVALID -> Res.string.error_command_scene_content_invalid
     CommandProblem.SCENE_INVALID -> Res.string.error_command_scene_invalid
     CommandProblem.SCENE_IS_FIRST -> Res.string.error_command_scene_is_first

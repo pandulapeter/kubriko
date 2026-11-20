@@ -108,6 +108,7 @@ public enum class CommandProblem(override val english: String) : DomainText {
     USAGES_SUBJECT("Name one thing: a type (with a Property of it, optionally), a Scene, a page, or a sprite, font, sound, or music file."),
     SCENE_ACTOR_NOT_BLOCK_BUILT("%1\$s isn't a block-built Actor type, so it has no color or Properties to set."),
     SCENE_ACTOR_WITHOUT_POSITION("The Actor %1\$s has no position."),
+    SCENE_ACTOR_NOT_CREATED("%1\$s couldn't create a new Actor: its class threw, or changed since the project's classes were loaded."),
     SCENE_CONTENT_INVALID("That isn't valid Scene content."),
     SCENE_INVALID("%1\$s isn't a valid Scene file."),
     SCENE_IS_FIRST("The game starts with %1\$s, so it can't be deleted. Choose another first Scene in Project settings first."),

@@ -50,9 +50,10 @@ internal fun CommandContext.handWrittenActorTypeIds(): Set<String> {
  * Adds the Actors of [placements], which [validatePlacements] accepted, to the end of the Scene [scene]: those of
  * block-built types at the size their types give them, and those of types written by hand as their metadata creates them.
  *
- * @return The placed Actors, each with its ID: the one given, or a new one.
+ * @return The placed Actors, each with its ID (the one given, or a new one), or why they weren't placed: a class written by
+ *   hand that couldn't create one, which leaves the Scene as it was.
  */
-internal suspend fun CommandContext.placeActors(scene: String, placements: List<PlaceActors.Placement>): List<SceneActorEntry> {
+internal suspend fun CommandContext.placeActors(scene: String, placements: List<PlaceActors.Placement>): Placed {
     val actors = readScene(scene)
     val ids = actors.mapTo(HashSet()) { it.id }
     placements.forEach { placement -> placement.actorId?.let(ids::add) }
@@ -64,12 +65,21 @@ internal suspend fun CommandContext.placeActors(scene: String, placements: List<
         } else {
             withContext(ioDispatcher) { handWrittenActorTypes.newState(placement.actorType, placement.x, placement.y) }
                 ?.takeIf { SceneDocument.stateObject(it) != null }
-                ?: error("${placement.actorType} couldn't create a new Actor; its class may have thrown, or changed since it was loaded.")
+                ?: return Placed.Failed(Rejection(CommandProblem.SCENE_ACTOR_NOT_CREATED, placement.actorType))
         }
         SceneActorEntry(placement.actorType, state, id)
     }
     writeScene(scene, actors + placed)
-    return placed
+    return Placed.Done(placed)
+}
+
+/**
+ * What [placeActors] came to.
+ */
+internal sealed interface Placed {
+    data class Done(val actors: List<SceneActorEntry>) : Placed
+
+    data class Failed(val rejection: Rejection) : Placed
 }
 
 /**

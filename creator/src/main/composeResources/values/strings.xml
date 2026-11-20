@@ -906,6 +906,7 @@
     <string name="error_command_actor_id_invalid">%1$s can't be an Actor's ID. Use only letters, numbers, dashes, and underscores, with no spaces or other signs.</string>
     <string name="error_command_actor_id_taken">Another Actor in the Scene has the ID %1$s.</string>
     <string name="error_command_scene_actor_without_position">The Actor %1$s has no position.</string>
+    <string name="error_command_scene_actor_not_created">%1$s couldn't create a new Actor: its class threw, or changed since the project's classes were loaded.</string>
     <string name="error_command_scene_actor_not_block_built">%1$s isn't a block-built Actor type, so it has no color or Properties to set.</string>
     <string name="error_command_actor_property_missing">%1$s has no Property called %2$s.</string>
     <string name="error_command_actor_property_missing_similar">%1$s has no Property called %2$s. Close matches: %3$s.</string>

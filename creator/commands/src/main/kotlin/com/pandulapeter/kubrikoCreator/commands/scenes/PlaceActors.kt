@@ -36,7 +36,10 @@ public object PlaceActors : WriteCommand<PlaceActors.Input> {
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validatePlacements(input.scene, input.actors)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        val placed = context.placeActors(input.scene, input.actors)
+        val placed = when (val result = context.placeActors(input.scene, input.actors)) {
+            is Placed.Done -> result.actors
+            is Placed.Failed -> return Applied.failed(result.rejection)
+        }
         return Applied(
             inverse = Invocation(RemoveActors, RemoveActors.Input(input.scene, placed.map { it.id })),
             result = buildJsonObject { putJsonArray("actorIds") { placed.forEach { add(it.id) } } },

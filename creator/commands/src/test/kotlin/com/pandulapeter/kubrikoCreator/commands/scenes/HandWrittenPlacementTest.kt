@@ -13,7 +13,9 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.testScope
@@ -24,7 +26,6 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -63,7 +64,8 @@ class HandWrittenPlacementTest {
         assertEquals(SceneDocument.blockBuiltState(1f, 2f, 30f, 40f), context.scenes.read("main")?.let(SceneDocument::parse)?.single()?.state)
         assertNotNull(PlaceActor.validate(context, PlaceActor.Input("main", SceneSettingsCodeGenerator.SETTINGS_NAME, 0f, 0f)))
         assertNotNull(PlaceActor.validate(context(HandWrittenActorTypes.None), PlaceActor.Input("main", "Spawner", 0f, 0f)))
-        assertFailsWith<IllegalStateException> { PlaceActor.apply(context, PlaceActor.Input("main", "Broken", 0f, 0f)) }
+        assertEquals(Rejection(CommandProblem.SCENE_ACTOR_NOT_CREATED, "Broken"), PlaceActor.apply(context, PlaceActor.Input("main", "Broken", 0f, 0f)).failure)
+        assertEquals("[]", context.scenes.read("main")?.let(SceneDocument::parse)?.drop(1)?.let(SceneDocument::format))
     }
 
     @Test
