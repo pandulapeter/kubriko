@@ -30,4 +30,11 @@ class SceneGridTest {
         assertEquals(32f, grid.drawnSpacing(pixelsPerUnit = 0.4f, minimumSpacingInPixels = 8f))
         assertEquals(128f, grid.drawnSpacing(pixelsPerUnit = 0.1f, minimumSpacingInPixels = 8f))
     }
+
+    @Test
+    fun theLinesInViewAreCountedEvenFarFromTheOrigin() {
+        assertEquals(-1L..2L, gridLineIndices(-20f, 40f, 16f))
+        val far = gridLineIndices(3e8f, 3e8f + 900f, 16f)
+        assertEquals(true, far.last - far.first in 50L..60L)
+    }
 }

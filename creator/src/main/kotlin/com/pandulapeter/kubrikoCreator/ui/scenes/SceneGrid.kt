@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubrikoCreator.settings.CreatorSettings
 import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.roundToInt
 
 /**
@@ -65,16 +66,18 @@ internal fun DrawScope.drawSceneGrid(grid: SceneGrid, color: Color, minimumSpaci
     if (visibleWidth <= 0f) return
     val pixelsPerUnit = size.width / visibleWidth
     val spacing = grid.drawnSpacing(pixelsPerUnit, minimumSpacingInPixels)
-    var x = ceil(topLeft.x / spacing) * spacing
-    while (x <= bottomRight.x) {
-        val screenX = toScreen(Offset(x, 0f)).x
+    for (index in gridLineIndices(topLeft.x, bottomRight.x, spacing)) {
+        val screenX = toScreen(Offset(index * spacing, 0f)).x
         drawLine(color, Offset(screenX, 0f), Offset(screenX, size.height))
-        x += spacing
     }
-    var y = ceil(topLeft.y / spacing) * spacing
-    while (y <= bottomRight.y) {
-        val screenY = toScreen(Offset(0f, y)).y
+    for (index in gridLineIndices(topLeft.y, bottomRight.y, spacing)) {
+        val screenY = toScreen(Offset(0f, index * spacing)).y
         drawLine(color, Offset(0f, screenY), Offset(size.width, screenY))
-        y += spacing
     }
 }
+
+/**
+ * Which lines of a grid [spacing] apart lie between [start] and [end], by their index from the origin: counted rather
+ * than added up, since far from the origin adding the spacing to a float can leave it as it was.
+ */
+internal fun gridLineIndices(start: Float, end: Float, spacing: Float): LongRange = ceil(start.toDouble() / spacing).toLong()..floor(end.toDouble() / spacing).toLong()
