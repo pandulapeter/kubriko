@@ -87,6 +87,18 @@ public object ActorStateEdits {
      */
     public fun propertyOf(state: String, name: String): JsonPrimitive? = SceneDocument.stateObject(state)?.get(name) as? JsonPrimitive
 
+    /**
+     * The values [state] keeps besides its body, in the order it keeps them: those of an Actor type written by hand, which
+     * only its class knows the meaning of.
+     */
+    public fun otherValuesOf(state: String): List<Pair<String, JsonElement>> = SceneDocument.stateObject(state)?.entries?.filter { it.key != BODY }?.map { it.key to it.value }.orEmpty()
+
+    /**
+     * [state] with the value [key] replaced by [value] and everything else kept in its place, or null if it isn't a JSON
+     * object.
+     */
+    public fun withValue(state: String, key: String, value: JsonElement): String? = SceneDocument.stateObject(state)?.let { JsonObject(it + (key to value)).toString() }
+
     private fun Map<String, JsonElement>.merged(key: String, vararg values: Pair<String, Float?>) = JsonObject(
         ((get(key) as? JsonObject).orEmpty()) + values.mapNotNull { (name, value) -> value?.let { name to JsonPrimitive(it) } },
     )

@@ -25,6 +25,7 @@ import com.pandulapeter.kubrikoCreator.scenes.ActorStateEdits
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.ReferenceChoices
 import com.pandulapeter.kubrikoCreator.ui.components.ColorField
 import com.pandulapeter.kubrikoCreator.ui.components.NumberField
+import kotlinx.serialization.json.JsonElement
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.actor_type_height
 import kubriko.creator.generated.resources.actor_type_width
@@ -37,7 +38,8 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * The values of one Actor of a Scene: where it is, its size, rotation, and scale, and for a block-built Actor type, its
- * color and Property values (with the Actor type's for those it doesn't keep itself).
+ * color and Property values (with the Actor type's for those it doesn't keep itself), or for one written by hand, the
+ * other values its state keeps ([HandWrittenStateFields]).
  *
  * @param state The Actor's saved state.
  * @param definition Its Actor type, if it is block-built.
@@ -49,6 +51,7 @@ internal fun ActorInspector(
     state: String,
     definition: ActorTypeDefinition?,
     onChange: (SetActorValues.Input.() -> SetActorValues.Input) -> Unit,
+    onStateValueChange: (key: String, value: JsonElement) -> Unit,
     modifier: Modifier = Modifier,
     choices: ReferenceChoices = ReferenceChoices(),
 ) = Column(
@@ -102,6 +105,8 @@ internal fun ActorInspector(
                 choices = choices,
             )
         }
+    } else {
+        HandWrittenStateFields(state = state, onValueChange = onStateValueChange)
     }
 }
 

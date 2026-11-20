@@ -30,6 +30,7 @@ import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActorOrder
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneValues
+import com.pandulapeter.kubrikoCreator.commands.scenes.setActorStateValue
 import com.pandulapeter.kubrikoCreator.sceneRuntime.ActorBodyValues
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneView
 import com.pandulapeter.kubrikoCreator.scenes.ManagerSceneValues
@@ -146,6 +147,7 @@ internal fun SceneInspector(
                         definition = actorTypes.firstOrNull { it.name == entry.typeId },
                         choices = ReferenceChoices(actorTypes.map { it.name }, audioFiles),
                         onChange = { change -> onCommand(Invocation(SetActorValues, SetActorValues.Input(sceneName, selectedId).change())) },
+                        onStateValueChange = { key, value -> onCommand(setActorStateValue(sceneName, selectedId, key, value)) },
                     )
                 }
             } else {

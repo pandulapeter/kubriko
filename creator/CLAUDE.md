@@ -500,6 +500,10 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   of drawing by `LayerFilterManager`, an editor-only Manager in the view's Kubriko instance, since a Manager's layer
   Modifier is the one way to do it without an engine change (Principle 4), and hidden or locked layers' Actors are left
   out of picking, box selection, and selecting all, and out of the selection when the filter changes.
+- An Actor of a type written by hand shows the values its state keeps besides its body as fields of their kinds
+  (`HandWrittenStateFields`), each changed through `SetActorStateValue`, which merges what is typed into one field into one
+  undo step; it is internal rather than a tool, since `set_actor_state` already gives the AI the same reach and the tool
+  list has a token budget.
 - Loaded classes are kept across Scenes until a type or a source changes (`markOutdated`), Reload, or the workspace closes. A change
   while a Scene is open builds again in the background, and a change during that build builds once more after it rather than
   cancelling it; the new `SceneView` creates its Actors while the old one is still shown, then takes over its camera. A failed

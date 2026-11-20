@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.commands.project.GetProjectDigest
 import com.pandulapeter.kubrikoCreator.commands.resources.SaveSprite
+import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorStateValue
 import com.pandulapeter.kubrikoCreator.commands.screenplay.KeepPageImages
 import com.pandulapeter.kubrikoCreator.commands.screenplay.MovePageToDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.RemovePage
@@ -45,7 +46,7 @@ class CommandRegistryTest {
             .map { Class.forName(it, false, javaClass.classLoader) }
             .filter { EditorCommand::class.java.isAssignableFrom(it) && !it.isInterface && !Modifier.isAbstract(it.modifiers) }
             // Internal, not tools.
-            .filter { it != CompositeCommand::class.java && it != ReplaceTypes::class.java && it != ReplaceScenes::class.java && it != MovePageToDocument::class.java && it != RestoreMarkdown::class.java && it != ReplaceFiles::class.java && it != RemoveCreatedFile::class.java && it != RestoreCreatedFile::class.java && it != RemovePage::class.java && it != UnlinkMentions::class.java && it != KeepPageImages::class.java && it != SaveSprite::class.java }
+            .filter { it != CompositeCommand::class.java && it != ReplaceTypes::class.java && it != ReplaceScenes::class.java && it != MovePageToDocument::class.java && it != RestoreMarkdown::class.java && it != ReplaceFiles::class.java && it != RemoveCreatedFile::class.java && it != RestoreCreatedFile::class.java && it != RemovePage::class.java && it != UnlinkMentions::class.java && it != KeepPageImages::class.java && it != SaveSprite::class.java && it != SetActorStateValue::class.java }
             .toSet()
         assertTrue(commandClasses.isNotEmpty())
         assertEquals(commandClasses.map { it.name }.sorted(), registry.commands.map { it.javaClass.name }.sorted())
