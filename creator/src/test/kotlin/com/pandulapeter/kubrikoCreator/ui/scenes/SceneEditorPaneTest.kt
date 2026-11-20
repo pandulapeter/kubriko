@@ -404,8 +404,9 @@ class SceneEditorPaneTest {
         highlight: () -> SceneHighlight? = { null },
         managerTypes: List<ManagerTypeDefinition> = emptyList(),
         grid: SceneGrid = SceneGrid(size = 16f, isSnappingByDefault = false),
+        sceneName: () -> String = { "level" },
     ) = showing {
-        CompositionLocalProvider(LocalHealthHints provides hints, LocalSceneGrid provides grid) { ShownPane(broughtBack, entryPoint, actors, onCommand, previews, highlight(), managerTypes) }
+        CompositionLocalProvider(LocalHealthHints provides hints, LocalSceneGrid provides grid) { ShownPane(broughtBack, entryPoint, actors, onCommand, previews, highlight(), managerTypes, sceneName()) }
     }
 
     @Composable
@@ -417,10 +418,11 @@ class SceneEditorPaneTest {
         previews: Map<String, ActorTypeLook>,
         highlight: SceneHighlight?,
         managerTypes: List<ManagerTypeDefinition>,
+        sceneName: String,
     ) {
         SceneEditorPane(
             state = SceneEditingState.Open(
-                scene = ProjectResource(ResourceGroup.SCENES, File("/game/src/commonMain/composeResources/files/scenes/level.json"), "src/commonMain/composeResources/files/scenes/level.json"),
+                scene = ProjectResource(ResourceGroup.SCENES, File("/game/src/commonMain/composeResources/files/scenes/$sceneName.json"), "src/commonMain/composeResources/files/scenes/$sceneName.json"),
                 entryPoint = entryPoint,
                 actors = actors(),
                 revision = 1,

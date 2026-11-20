@@ -189,7 +189,10 @@ internal class SceneCanvasGestures(
      */
     private var nudged: Nudge? = null
 
-    private class Nudge(val actorIds: List<String>) {
+    /**
+     * @param onMove Where the move is reported: the Scene's it started in, even if the canvas shows another by then.
+     */
+    private class Nudge(val actorIds: List<String>, val onMove: (List<ActorMove>) -> Unit) {
         var dx = 0f
         var dy = 0f
     }
@@ -201,7 +204,7 @@ internal class SceneCanvasGestures(
      */
     fun nudge(dx: Float, dy: Float): Boolean {
         val current = callbacks()
-        val nudge = nudged ?: current.selectedIds.filter { !view.isBackground(it) && view.isPickable(it) && current.canDrag(it) }.takeIf { it.isNotEmpty() }?.let(::Nudge) ?: return false
+        val nudge = nudged ?: current.selectedIds.filter { !view.isBackground(it) && view.isPickable(it) && current.canDrag(it) }.takeIf { it.isNotEmpty() }?.let { Nudge(it, current.onMove) } ?: return false
         nudge.dx += dx
         nudge.dy += dy
         nudged = nudge
@@ -225,7 +228,7 @@ internal class SceneCanvasGestures(
         val nudge = nudged ?: return false
         nudged = null
         val moves = movesOf(nudge)
-        if (moves.isNotEmpty()) callbacks().onMove(moves)
+        if (moves.isNotEmpty()) nudge.onMove(moves)
         return true
     }
 
