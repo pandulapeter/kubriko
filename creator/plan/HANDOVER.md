@@ -33,7 +33,18 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Go on with `01-blocks.md`, at the Scene editor.
+Go on with `01-blocks.md`: the Scene editor's last item (a changed Actor keeping its place in its drawing order), then Convert
+to code, and the Paddle game.
+
+The Scene editor's handles and the rest are done (8d6b67c05..e21b26666, reviewed at medium twice, with every finding of both
+reviews fixed in commits of their own (through daa5fa974); one finding, a redo placing again from changed classes, was wrong,
+since redo restores the placed state, and b35dfff7c pins that): resize and rotate handles with an outline following rotation (`ActorFrame`),
+a grid to snap to with its size and default as Creator settings (`SceneGrid`), several Actors selected by Shift-click or a
+box, moved, nudged (a held arrow key is one step), duplicated, and removed together, layers hidden and locked
+(`SceneLayerFilter`, through `LayerFilterManager`), the sprite or shape of what is dragged from the sidebar, hand-written
+Actor types placed by `place_actor` as their metadata creates them (`HandWrittenActorTypes`) from the Add an Actor chooser,
+and their other state values edited as fields (`SetActorStateValue`). `set_actor_values` now keeps a saved pivot in
+proportion to a new size rather than moving it to the middle.
 
 Game UI is done (80c4023cf..d5c7fc163, reviewed at medium with every finding fixed; the integration test built every template
 with a Composable): visual UI elements were dropped at the user's word (Principle 7 in `../CLAUDE.md`), and a Manager type
@@ -71,6 +82,11 @@ a commit of its own:
   user asked for the physics side: Creator users may not know whether a game uses the physics plugin.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
+
+- The Scene editor's handles, grid, multi-select, nudging, duplicating, layers, Add an Actor, and hand-written values in the
+  real app: dragging handles on a rotated and a scaled Actor, Alt flipping snapping mid-drag, a held arrow key's repeats,
+  a hidden layer in a real game's Scene, a hand-written type placed from a real project's classes (and refused while they
+  build), and the drag chip's sprite.
 
 - Dragging a Block, and an if Block with its section, onto another Event's row in the real app (the drop and the
   rows' look are covered offscreen by `BlockTypeEditorBlockDropTest`).
