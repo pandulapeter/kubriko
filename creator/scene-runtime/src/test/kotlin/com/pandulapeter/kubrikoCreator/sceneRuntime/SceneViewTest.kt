@@ -76,18 +76,18 @@ class SceneViewTest {
 
     @Test
     fun hiddenAndLockedLayersCantBePickedSelectedByABoxOrSelectedAll() = runTest {
-        view.load(listOf(box("a", 0f, 0f, layer = 2), box("b", 0f, 0f, layer = 1), box("c", 100f, 0f, layer = null)))
+        view.load(listOf(box("a", 0f, 0f, layer = 2), box("b", 0f, 0f, layer = 1), box("c", 100f, 0f, layer = null), box("d", 300f, 0f)))
         assertEquals(listOf(null, 1, 2), view.layerIndices)
         assertEquals("a", pickAt(0f, 0f))
         view.setLayerFilter(SceneLayerFilter(locked = setOf(2)))
         assertEquals("b", pickAt(0f, 0f))
         assertEquals(listOf("b", "c"), view.actorIdsWithin(-50f, -50f, 150f, 50f))
-        view.setLayerFilter(SceneLayerFilter(hidden = setOf(1), locked = setOf(null, 2)))
+        view.setLayerFilter(SceneLayerFilter(hidden = setOf(0, 1), locked = setOf(null, 0, 2)))
         assertNull(pickAt(0f, 0f))
-        assertEquals(emptyList(), view.drawnActorIds())
+        assertEquals(listOf("d"), view.drawnActorIds(), "An Actor on no layer is left as it is.")
         assertEquals(false, view.isPickable("c"))
         view.setLayerFilter(SceneLayerFilter())
-        assertEquals(listOf("a", "b", "c"), view.drawnActorIds())
+        assertEquals(listOf("a", "b", "c", "d"), view.drawnActorIds())
     }
 
     @Test
@@ -252,7 +252,7 @@ class SceneViewTest {
         id,
     )
 
-    private class Box(position: SceneOffset, size: Float, override val layerIndex: Int? = 0) : Editable<Box>, Disposable, LayerAware {
+    private open class Box(position: SceneOffset, size: Float) : Editable<Box>, Disposable {
         override val body = BoxBody(initialPosition = position, initialSize = SceneSize(size.sceneUnit, size.sceneUnit))
         val isDisposed = CountDownLatch(1)
 
@@ -266,13 +266,17 @@ class SceneViewTest {
         override fun save() = BoxState(SceneDocument.blockBuiltState(body.position.x.raw, body.position.y.raw, body.size.width.raw, body.size.height.raw))
     }
 
+    private class LayeredBox(position: SceneOffset, size: Float, override val layerIndex: Int?) : Box(position, size), LayerAware
+
     private class BoxState(private val json: String) : Serializable.State<Box> {
         override fun restore(): Box {
             val body = Json.parseToJsonElement(json).jsonObject.getValue("body").jsonObject
             val position = body.getValue("position").jsonObject
             val size = body["size"]?.jsonObject?.get("width")?.jsonPrimitive?.float ?: SIZE
             val layer = Json.parseToJsonElement(json).jsonObject["layer"]?.jsonPrimitive?.intOrNull
-            return Box(SceneOffset(position.getValue("x").jsonPrimitive.float.sceneUnit, position.getValue("y").jsonPrimitive.float.sceneUnit), size, layer)
+            val at = SceneOffset(position.getValue("x").jsonPrimitive.float.sceneUnit, position.getValue("y").jsonPrimitive.float.sceneUnit)
+            val hasLayer = Json.parseToJsonElement(json).jsonObject.containsKey("layer")
+            return if (hasLayer) LayeredBox(at, size, layer) else Box(at, size)
         }
 
         override fun serialize() = json

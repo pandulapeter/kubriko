@@ -24,6 +24,8 @@ public object SceneHitTest {
      *   ones), with no layer as [Int.MIN_VALUE], drawn first as Kubriko draws it.
      * @param drawnRank Where the Actor is in the order Kubriko draws Actors of the same drawing order (the order they
      *   were added in), increasing with it; the index by default.
+     * @param isLayered Whether the Actor is on a layer at all, which one that isn't `LayerAware` isn't, so hiding or
+     *   locking layers leaves it as it is.
      */
     public data class Bounds(
         val index: Int,
@@ -35,6 +37,7 @@ public object SceneHitTest {
         val isBackground: Boolean = false,
         val layerIndex: Int = 0,
         val drawnRank: Int = index,
+        val isLayered: Boolean = true,
     ) {
         internal fun contains(x: Float, y: Float) = x in left..right && y in top..bottom
     }

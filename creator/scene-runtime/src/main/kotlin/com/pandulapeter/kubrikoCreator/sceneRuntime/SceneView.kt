@@ -228,7 +228,7 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
      */
     public fun isPickable(id: String): Boolean = boundsOf(id)?.let(::isPickable) ?: true
 
-    private fun isPickable(bounds: SceneHitTest.Bounds) = _layerFilter.value.isPickable(bounds.layerIndex.takeUnless { it == Int.MIN_VALUE })
+    private fun isPickable(bounds: SceneHitTest.Bounds) = !bounds.isLayered || _layerFilter.value.isPickable(bounds.layerIndex.takeUnless { it == Int.MIN_VALUE })
 
     /**
      * The IDs of the Actors drawn at least partly inside the rectangle from ([left], [top]) to ([right], [bottom]), in
@@ -362,10 +362,10 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
             val layerIndex = if (actor is LayerAware) actor.layerIndex ?: Int.MIN_VALUE else 0
             return if (body is BoxBody) {
                 val box = body.axisAlignedBoundingBox
-                SceneHitTest.Bounds(index, box.min.x.raw, box.min.y.raw, box.max.x.raw, box.max.y.raw, drawingOrder, isBackground, layerIndex, drawnRank)
+                SceneHitTest.Bounds(index, box.min.x.raw, box.min.y.raw, box.max.x.raw, box.max.y.raw, drawingOrder, isBackground, layerIndex, drawnRank, actor is LayerAware)
             } else {
                 val (x, y) = body.position.x.raw to body.position.y.raw
-                SceneHitTest.Bounds(index, x - POINT_SIZE, y - POINT_SIZE, x + POINT_SIZE, y + POINT_SIZE, drawingOrder, isBackground, layerIndex, drawnRank)
+                SceneHitTest.Bounds(index, x - POINT_SIZE, y - POINT_SIZE, x + POINT_SIZE, y + POINT_SIZE, drawingOrder, isBackground, layerIndex, drawnRank, actor is LayerAware)
             }
         }
 
