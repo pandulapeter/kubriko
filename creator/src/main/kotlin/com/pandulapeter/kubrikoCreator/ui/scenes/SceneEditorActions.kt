@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.scenes
 
+import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.scenes.ActorValueChanges
 import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActor
@@ -50,6 +51,15 @@ internal class SceneEditorActions(
         val actorId = SceneDocument.newId(view.entries.map { it.id })
         selection.select(actorId)
         onCommand(Invocation(PlaceActor, PlaceActor.Input(sceneName, actorTypeName, x, y, actorId)))
+    }
+
+    /**
+     * Places an Actor of [actorTypeName] where the camera looks, on the nearest crossing of [grid] if there is one.
+     */
+    fun placeInView(actorTypeName: String, grid: SceneGrid?) {
+        val camera = view.viewportManager.cameraPosition.value.let { Offset(it.x.raw, it.y.raw) }
+        val position = grid?.snap(camera) ?: camera
+        place(actorTypeName, position.x, position.y)
     }
 
     fun remove(actorId: String) = remove(listOf(actorId))

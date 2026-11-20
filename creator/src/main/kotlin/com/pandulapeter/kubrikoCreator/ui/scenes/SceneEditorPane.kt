@@ -145,6 +145,9 @@ internal fun SceneEditorPane(
         view.setLayerFilter(layerFilter)
         selection.keepOnly(view::isPickable)
     }
+    val loadRevision by view.loadRevision.collectAsState()
+    val selectedIds = remember(selection.selectedIds, loadRevision) { selection.selectedIds.filter { view.entryOf(it) != null } }
+    val actions = remember(state.sceneName, view, selection, onCommand) { SceneEditorActions(state.sceneName, view, selection, onCommand) }
     SceneHeader(
         sceneName = state.scene.name,
         isOutdated = state.isOutdated,
@@ -156,7 +159,9 @@ internal fun SceneEditorPane(
         onActorListToggled = { isActorListShown = !isActorListShown },
         isSnapping = isSnapping,
         onSnappingToggled = { isSnapping = !isSnapping },
-        layersButton = { SceneLayersOf(view, layerFilter) { layerFilter = it } },
+        sceneTools = {
+            SceneToolsOf(view, actorTypes, managerTypeNames, layerFilter, onLayerFilterChange = { layerFilter = it }) { actions.placeInView(it, grid.takeIf { isSnapping }) }
+        },
         onPlay = onPlay,
         onReload = onReload,
         onDelete = { onCommand(Invocation(DeleteScene, DeleteScene.Input(state.sceneName))) },
@@ -168,9 +173,6 @@ internal fun SceneEditorPane(
         SceneSettingsDialogOf(view = view, sceneName = state.sceneName, music = audioFiles?.music, onCommand = onCommand, onDismiss = { isSettingsShown = false })
     }
     state.problem?.let { problem -> InvalidSceneNotice(problem = problem, onOpenFile = { openInSystemEditor(state.scene.file) }) }
-    val loadRevision by view.loadRevision.collectAsState()
-    val selectedIds = remember(selection.selectedIds, loadRevision) { selection.selectedIds.filter { view.entryOf(it) != null } }
-    val actions = remember(state.sceneName, view, selection, onCommand) { SceneEditorActions(state.sceneName, view, selection, onCommand) }
     val actorListWidth = rememberPanelWidth(Panel.SCENE_ACTORS, panelLayout)
     val inspectorWidth = rememberPanelWidth(Panel.SCENE_INSPECTOR, panelLayout)
     BoxWithConstraints(
@@ -263,16 +265,22 @@ private fun SceneActorListPanel(
 }
 
 /**
- * The menu of the layers [view] draws, following the Scene as it is loaded again, while it draws any.
+ * What the header offers for the Actors of [view]: placing one of any Actor type, and the menu of the layers it draws
+ * (while it draws any), following the Scene as it is loaded again.
  */
 @Composable
-private fun SceneLayersOf(
+private fun SceneToolsOf(
     view: SceneView,
-    filter: SceneLayerFilter,
-    onFilterChange: (SceneLayerFilter) -> Unit,
+    actorTypes: List<ActorTypeDefinition>,
+    managerTypeNames: Set<String>,
+    layerFilter: SceneLayerFilter,
+    onLayerFilterChange: (SceneLayerFilter) -> Unit,
+    onPlace: (actorTypeName: String) -> Unit,
 ) {
     view.loadRevision.collectAsState().value
-    if (view.layerIndices.isNotEmpty()) SceneLayersButton(view.layerIndices, filter, onFilterChange)
+    val placeable = remember(view, actorTypes, managerTypeNames) { placeableActorTypesOf(view.registeredTypeIds, actorTypes.map { it.name }, managerTypeNames) }
+    SceneAddActorButton(placeable, onPlace)
+    if (view.layerIndices.isNotEmpty()) SceneLayersButton(view.layerIndices, layerFilter, onLayerFilterChange)
 }
 
 /**
@@ -308,7 +316,7 @@ private fun SceneHeader(
     onActorListToggled: () -> Unit,
     isSnapping: Boolean,
     onSnappingToggled: () -> Unit,
-    layersButton: @Composable () -> Unit,
+    sceneTools: @Composable () -> Unit,
     onPlay: () -> Unit,
     onReload: () -> Unit,
     onDelete: () -> Unit,
@@ -352,7 +360,7 @@ private fun SceneHeader(
         onClick = onActorListToggled,
         tint = if (isActorListShown) MaterialTheme.colorScheme.primary else LocalContentColor.current,
     )
-    layersButton()
+    sceneTools()
     IconActionButton(
         icon = Res.drawable.ic_grid,
         label = if (isSnapping) Res.string.action_stop_snapping_to_grid else Res.string.action_snap_to_grid,

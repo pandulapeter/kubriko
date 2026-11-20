@@ -26,6 +26,7 @@ import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
+import com.pandulapeter.kubrikoCreator.scenes.HandWrittenActorTypes
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.template.GameTargets
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
@@ -89,6 +90,7 @@ public fun TestScope.commandContext(
     sceneReadText: (File) -> String = { file -> file.readText() },
     sceneHomeDirectory: File? = null,
     sceneResources: () -> List<ProjectResource> = { emptyList() },
+    handWrittenActorTypes: HandWrittenActorTypes = HandWrittenActorTypes.None,
 ) = CommandContext(
     project = CreatorProject(rootDirectory = rootDirectory, name = "game"),
     console = MutableStateFlow(ConsoleLines(entries = console)),
@@ -107,6 +109,7 @@ public fun TestScope.commandContext(
         override val targets = targets
     },
     rejectChanges = rejectChanges,
+    handWrittenActorTypes = handWrittenActorTypes,
 ).also { it.documents.refresh(documents) }
 
 /**

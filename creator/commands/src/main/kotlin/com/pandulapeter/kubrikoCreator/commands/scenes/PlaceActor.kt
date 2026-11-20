@@ -25,8 +25,8 @@ import kotlinx.serialization.json.put
 
 public object PlaceActor : WriteCommand<PlaceActor.Input> {
     override val name: String = "place_actor"
-    override val description: String = "Places an Actor of a block-built Actor type in a Scene, at the size its Actor type gives it. " +
-        "Returns its actorId. Scene coordinates are in scene units, with 0, 0 in the center of the Scene and y growing downwards."
+    override val description: String = "Places an Actor in a Scene: of a block-built Actor type at its size, of one written by hand as its class creates it " +
+        "(once its classes are loaded). Returns its actorId. Scene coordinates are in scene units, with 0, 0 in the center of the Scene and y growing downwards."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Scene(input.scene)
@@ -46,7 +46,7 @@ public object PlaceActor : WriteCommand<PlaceActor.Input> {
     public data class Input(
         @Description(Descriptions.SCENE_NAME)
         @SerialName("scene") val scene: String,
-        @Description("The name of the block-built Actor type.")
+        @Description("The name of the Actor type, block-built or written by hand.")
         @SerialName("actorType") val actorType: String,
         @Description("The horizontal position, in scene units.")
         @SerialName("x") val x: Float,

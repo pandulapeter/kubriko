@@ -57,6 +57,11 @@ public class SceneEditingController(
      * The Scene being edited, if any, and how far it got.
      */
     public val state: StateFlow<SceneEditingState> = _state.asStateFlow()
+
+    /**
+     * The Actor types of the classes loaded last, which placing an Actor of a hand-written type reads.
+     */
+    public val actorTypes: LoadedActorTypes = LoadedActorTypes()
     private var job: Job? = null
     private var updateJob: Job? = null
 
@@ -223,7 +228,9 @@ public class SceneEditingController(
     }
 
     private suspend fun load(classpath: ProjectClasspath, looks: Map<String, ActorTypeLook>) = try {
-        LoadResult.Loaded(createDisposingIfCancelled(ioDispatcher, create = { runtime.entryPointLoader.load(classpath) }, dispose = { it.close() }), looks)
+        val loaded = createDisposingIfCancelled(ioDispatcher, create = { runtime.entryPointLoader.load(classpath) }, dispose = { it.close() })
+        withContext(ioDispatcher) { actorTypes.update(loaded) }
+        LoadResult.Loaded(loaded, looks)
     } catch (exception: EntryPointLoadingException) {
         if (exception.cause != null) classes.requestCleanBuild()
         report(ConsoleEntry.Status(exception.reason, isError = true))
@@ -339,6 +346,7 @@ public class SceneEditingController(
             } ?: return@launch
             // The editor leaves composition on the next frame, and may still load classes while it is torn down.
             delay(RELEASE_DELAY_IN_MILLISECONDS)
+            actorTypes.release(loaded.loaded)
             loaded.loaded.close()
         }
     }

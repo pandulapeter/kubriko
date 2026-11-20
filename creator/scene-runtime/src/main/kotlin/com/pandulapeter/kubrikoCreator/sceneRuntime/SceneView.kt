@@ -54,6 +54,11 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
     private val _layerFilter = MutableStateFlow(SceneLayerFilter())
 
     /**
+     * The type IDs of every Actor type the project's classes register, block-built ones and Creator's own among them.
+     */
+    public val registeredTypeIds: Set<String> = serializationManager.registeredTypeIds.toSet()
+
+    /**
      * Which layers are hidden and locked, the editor's own choice.
      */
     public val layerFilter: StateFlow<SceneLayerFilter> = _layerFilter.asStateFlow()

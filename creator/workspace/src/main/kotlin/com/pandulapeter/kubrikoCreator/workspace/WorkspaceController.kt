@@ -318,6 +318,7 @@ public class WorkspaceController(
                 override val targets = files.targets
             },
             rejectChanges = { (format.status.value as? ProjectFormatStatus.ReadOnly)?.toRejection() },
+            handWrittenActorTypes = sceneEditing.actorTypes,
         ),
         scope = scope,
         onRejected = { appendToConsole(ConsoleEntry.Status(it.reason, isError = true, arguments = it.arguments)) },

@@ -1493,6 +1493,8 @@
     <string name="settings_snapping_to_grid_description">Whether Scenes open with moving, resizing, placing, and nudging Actors snapping to the grid. The grid button above a Scene turns it on and off there, and Alt does while you drag.</string>
     <string name="action_snap_to_grid">Snap to the grid</string>
     <string name="action_scene_layers">Layers</string>
+    <string name="action_add_actor_to_scene">Add an Actor</string>
+    <string name="scene_add_actor_none">The project has no Actor types yet. Make one in the sidebar, or write one in Kotlin.</string>
     <string name="action_show_every_layer">Show and unlock every layer</string>
     <string name="scene_layer">Layer %1$d</string>
     <string name="scene_layer_none">Without a layer</string>

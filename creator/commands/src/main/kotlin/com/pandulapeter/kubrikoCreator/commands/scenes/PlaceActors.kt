@@ -26,8 +26,8 @@ import kotlinx.serialization.json.putJsonArray
 
 public object PlaceActors : WriteCommand<PlaceActors.Input> {
     override val name: String = "place_actors"
-    override val description: String = "Places many Actors of block-built Actor types in a Scene at once, like a grid of bricks, as one step to undo. " +
-        "Each one gets the size its Actor type gives it, and they are added at the end of the Scene in the order given. Returns their actorIds in that order. " +
+    override val description: String = "Places many Actors in a Scene at once, like a grid of bricks, as one step to undo, each as place_actor does, " +
+        "added at the end of the Scene in the order given. Returns their actorIds in that order. " +
         "Scene coordinates are in scene units, with 0, 0 in the center of the Scene and y growing downwards."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
@@ -55,7 +55,7 @@ public object PlaceActors : WriteCommand<PlaceActors.Input> {
     @Serializable
     @Description("One Actor to place.")
     public data class Placement(
-        @Description("The name of the block-built Actor type.")
+        @Description("The name of the Actor type, block-built or written by hand.")
         @SerialName("actorType") val actorType: String,
         @Description("The horizontal position, in scene units.")
         @SerialName("x") val x: Float,

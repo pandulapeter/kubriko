@@ -9,15 +9,16 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.scenes
 
+import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.commands.ActorsBroughtBack
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.LookupProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateActorType
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
+import kotlinx.coroutines.withContext
 
 /**
  * Why [placements] can't be placed in the Scene [scene].
@@ -26,15 +27,28 @@ internal fun CommandContext.validatePlacements(scene: String, placements: List<P
     ?: validateActorList(placements.map { it.actorId })
     ?: run {
         val ids = readScene(scene).mapTo(HashSet()) { it.id }
+        val handWritten = handWrittenActorTypeIds()
         placements.firstNotNullOfOrNull { placement ->
-            validateActorType(placement.actorType)
+            (if (placement.actorType in handWritten) null else validateActorType(placement.actorType))
                 ?: (if (placement.x.isFinite() && placement.y.isFinite()) null else Rejection(CommandProblem.NUMBER_INVALID))
                 ?: placement.actorId?.let { id -> validateNewActorId(id) { it in ids } }
         }
     }
 
 /**
- * Adds the Actors of [placements], which [validatePlacements] accepted, to the end of the Scene [scene].
+ * The Actor types written by hand that the project's loaded classes register, which can be placed like block-built ones:
+ * every type they register but the block-built ones and the Scene settings.
+ */
+internal fun CommandContext.handWrittenActorTypeIds(): Set<String> {
+    val registered = handWrittenActorTypes.typeIds
+    if (registered.isEmpty()) return registered
+    val blockBuilt = blockTypes?.let { types -> (types.actorTypes.value + types.managerTypes.value).mapTo(HashSet()) { it.name } }.orEmpty()
+    return registered.filterTo(HashSet()) { it !in blockBuilt && it != SceneSettingsCodeGenerator.SETTINGS_NAME }
+}
+
+/**
+ * Adds the Actors of [placements], which [validatePlacements] accepted, to the end of the Scene [scene]: those of
+ * block-built types at the size their types give them, and those of types written by hand as their metadata creates them.
  *
  * @return The placed Actors, each with its ID: the one given, or a new one.
  */
@@ -43,9 +57,16 @@ internal suspend fun CommandContext.placeActors(scene: String, placements: List<
     val ids = actors.mapTo(HashSet()) { it.id }
     placements.forEach { placement -> placement.actorId?.let(ids::add) }
     val placed = placements.map { placement ->
-        val definition = requireActorType(placement.actorType)
+        val definition = blockTypes?.actorType(placement.actorType)
         val id = placement.actorId ?: SceneDocument.newId(ids).also(ids::add)
-        SceneActorEntry(placement.actorType, SceneDocument.blockBuiltState(placement.x, placement.y, definition.width, definition.height), id)
+        val state = if (definition != null) {
+            SceneDocument.blockBuiltState(placement.x, placement.y, definition.width, definition.height)
+        } else {
+            withContext(ioDispatcher) { handWrittenActorTypes.newState(placement.actorType, placement.x, placement.y) }
+                ?.takeIf { SceneDocument.stateObject(it) != null }
+                ?: error("${placement.actorType} couldn't create a new Actor; its class may have thrown, or changed since it was loaded.")
+        }
+        SceneActorEntry(placement.actorType, state, id)
     }
     writeScene(scene, actors + placed)
     return placed

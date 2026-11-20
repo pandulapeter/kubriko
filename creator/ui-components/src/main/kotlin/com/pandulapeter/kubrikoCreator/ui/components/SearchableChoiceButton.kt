@@ -52,6 +52,8 @@ import org.jetbrains.compose.resources.stringResource
  * @param isMissing Whether the chosen option no longer exists ([MenuButtonFace]).
  * @param hint Shown below the options, saying why there are none (or none besides choosing nothing) and how to add some,
  *   instead of an empty panel.
+ * @param face What opens the panel when clicked, in place of the outlined button: an icon button, say, for a choice that
+ *   acts rather than shows what is chosen.
  */
 @Composable
 public fun <T> SearchableChoiceButton(
@@ -61,13 +63,18 @@ public fun <T> SearchableChoiceButton(
     onSelected: (T) -> Unit,
     isMissing: Boolean = false,
     hint: String? = null,
+    face: (@Composable (onClick: () -> Unit) -> Unit)? = null,
 ): Unit = Box {
     var isExpanded by remember { mutableStateOf(false) }
-    MenuButtonFace(
-        label = label,
-        onClick = { isExpanded = true },
-        isMissing = isMissing,
-    )
+    if (face != null) {
+        face { isExpanded = true }
+    } else {
+        MenuButtonFace(
+            label = label,
+            onClick = { isExpanded = true },
+            isMissing = isMissing,
+        )
+    }
     if (isExpanded) {
         Popup(
             onDismissRequest = { isExpanded = false },

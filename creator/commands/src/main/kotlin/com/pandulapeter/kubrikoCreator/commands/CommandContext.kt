@@ -26,6 +26,7 @@ import com.pandulapeter.kubrikoCreator.project.FontFolderStore
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.project.VirtualFolderStore
+import com.pandulapeter.kubrikoCreator.scenes.HandWrittenActorTypes
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.screenplay.DocumentStore
 import com.pandulapeter.kubrikoCreator.screenplay.MovedFiles
@@ -50,6 +51,8 @@ import kotlinx.coroutines.withContext
  *   background, so that validating reads no files, who to tell once a command changed them, and the game's targets.
  * @param rejectChanges Why no change may be made to the project at all right now (it was saved by a newer Kubriko
  *   Creator), or null if changes may be made.
+ * @param handWrittenActorTypes The Actor types of the project's loaded classes, which Actors of types written by hand are
+ *   placed from.
  */
 public class CommandContext(
     public val project: CreatorProject,
@@ -63,6 +66,7 @@ public class CommandContext(
     public val report: (ConsoleEntry) -> Unit = {},
     public val buildFiles: ProjectBuildFiles = ProjectBuildFiles.UpToDate,
     public val rejectChanges: () -> Rejection? = { null },
+    public val handWrittenActorTypes: HandWrittenActorTypes = HandWrittenActorTypes.None,
 ) {
     /**
      * The questions an AI asks the user ([com.pandulapeter.kubrikoCreator.commands.project.AskUser]) that wait for an answer.

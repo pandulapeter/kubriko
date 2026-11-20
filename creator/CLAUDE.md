@@ -342,7 +342,10 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
 - **Scenes** (`scenes/SceneStore`) are written with one Actor per line, so they diff and merge. Each entry's `id` is ignored by
   Kubriko's serialization (`ignoreUnknownKeys`), so games load the files unchanged; an Actor without an ID, or with an earlier one's,
   gets one from its index, the same every time, so a Scene changes only when a command writes it. Undoing a removal brings back
-  the same ID. Placing works for block-built Actor types only, whose state is known without loading classes. A Scene's settings
+  the same ID. A block-built Actor type's Actor is placed with a state known without loading classes; one written by hand is placed
+  as its metadata creates it, from the classes the Scene editor loaded last (`HandWrittenActorTypes`, which the workspace
+  hands the commands from `SceneEditingController.actorTypes`), so `place_actor` takes either and the AI places what the
+  user does; until classes are loaded, only block-built types can be placed. A Scene's settings
   (bounds, background, camera start, music, and whether the game's view fits the bounds) are an Actor (`SceneSettings`, `Unique` and `Editable`), not a file of their own, so
   they are placed, edited, and undone like any other; a Scene without one keeps the screen's edges. `SceneStore` knows the Scene
   names from its last `refresh` (each resource scan) and its own writes, so validating on the main thread reads nothing; what
