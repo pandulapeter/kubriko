@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -126,6 +127,9 @@ internal fun SceneCanvas(
         ),
     )
     val gestures = remember(view) { SceneCanvasGestures(view, focusRequester) { callbacks } }
+    DisposableEffect(gestures) {
+        onDispose { gestures.commitNudge() }
+    }
     Box(
         modifier = modifier
             .background(MaterialTheme.colorScheme.surfaceContainerLowest)
@@ -140,7 +144,9 @@ internal fun SceneCanvas(
             .clipToBounds()
             .focusRequester(focusRequester)
             .focusable()
+            .onFocusChanged { if (!it.isFocused) gestures.commitNudge() }
             .onKeyEvent { event ->
+                if (event.type == KeyEventType.KeyUp) return@onKeyEvent gestures.commitNudge()
                 if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
                 when (val action = SceneKeyAction.of(event.key, event.isShiftPressed, event.isCtrlPressed || event.isMetaPressed, step)) {
                     null -> return@onKeyEvent false

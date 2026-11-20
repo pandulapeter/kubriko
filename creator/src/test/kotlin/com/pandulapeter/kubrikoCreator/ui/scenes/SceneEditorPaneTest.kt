@@ -199,7 +199,9 @@ class SceneEditorPaneTest {
         waitForIdle()
         assertEquals(listOf(30f to 20f, 230f to 20f), (commands.single().input as SetActorsValues.Input).actors.map { it.x!! to it.y!! })
         commands.clear()
-        onRoot().performKeyInput { pressKey(Key.DirectionRight) }
+        onRoot().performKeyInput { keyDown(Key.DirectionRight) }
+        assertEquals(emptyList(), commands, "A held arrow key reported its move before it was let go.")
+        onRoot().performKeyInput { keyUp(Key.DirectionRight) }
         assertEquals(listOf(31f, 231f), (commands.single().input as SetActorsValues.Input).actors.map { it.x!! })
         commands.clear()
         onRoot().performKeyInput { withKeyDown(Key.MetaLeft) { pressKey(Key.D) } }

@@ -30,6 +30,7 @@ import androidx.compose.ui.input.pointer.isShiftPressed
 import androidx.compose.ui.input.pointer.pointerInput
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
+import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubrikoCreator.sceneRuntime.ActorFrame
 import com.pandulapeter.kubrikoCreator.sceneRuntime.FrameHandle
@@ -73,6 +74,7 @@ internal class SceneCanvasGestures(
         awaitEachGesture {
             val press = awaitPointerEvent(PointerEventPass.Initial)
             val down = press.changes.firstOrNull { it.pressed && !it.previousPressed } ?: return@awaitEachGesture
+            commitNudge()
             focusRequester.requestFocus()
             val current = callbacks()
             val isPrimary = press.buttons.isPrimaryPressed
@@ -175,16 +177,34 @@ internal class SceneCanvasGestures(
     }
 
     /**
-     * Moves the selected Actors that can be moved by [dx] and [dy] scene units at once, as the arrow keys do.
+     * The Actors the arrow keys are moving, while a key is held, which [commitNudge] reports.
      */
-    fun nudge(dx: Float, dy: Float) {
+    private var nudged: List<Pair<String, Editable<*>>>? = null
+
+    /**
+     * Moves the selected Actors that can be moved by [dx] and [dy] scene units at once, as an arrow key does, every
+     * repeat of a held key moving them further; whether it moved any. They are reported only by [commitNudge], once the
+     * key is let go, so holding one is one undo step.
+     */
+    fun nudge(dx: Float, dy: Float): Boolean {
         val current = callbacks()
-        val moved = current.selectedIds.filter { !view.isBackground(it) && view.isPickable(it) && current.canDrag(it) }.mapNotNull { id -> view.actorOf(id)?.let { id to it } }
-        if (moved.isEmpty()) return
+        val moved = nudged ?: current.selectedIds.filter { !view.isBackground(it) && view.isPickable(it) && current.canDrag(it) }.mapNotNull { id -> view.actorOf(id)?.let { id to it } }
+        if (moved.isEmpty()) return false
         val delta = SceneOffset(dx.sceneUnit, dy.sceneUnit)
         moved.forEach { (_, actor) -> actor.body.position += delta }
+        nudged = moved
         current.onDragged()
-        current.onMove(moved.map { (id, actor) -> ActorMove(id, actor.body.position.x.raw, actor.body.position.y.raw) })
+        return true
+    }
+
+    /**
+     * Reports where the arrow keys moved the Actors, if they moved any since the last time; whether they did.
+     */
+    fun commitNudge(): Boolean {
+        val moved = nudged ?: return false
+        nudged = null
+        callbacks().onMove(moved.map { (id, actor) -> ActorMove(id, actor.body.position.x.raw, actor.body.position.y.raw) })
+        return true
     }
 
     /**
