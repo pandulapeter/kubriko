@@ -186,7 +186,8 @@ class SceneEditorPaneTest {
     fun severalSelectedActorsAreMovedNudgedDuplicatedAndRemovedTogether() = uiTest(width = 900, height = 600) {
         val commands = mutableListOf<Invocation<*>>()
         val wall = ball.copy(id = "wall", state = SceneDocument.blockBuiltState(200f, 0f, 60f, 60f))
-        showPane(MutableSharedFlow(), actors = { listOf(bigBall, wall) }, previews = mapOf("Ball" to blue), onCommand = { commands += it })
+        var actors by mutableStateOf(listOf(bigBall, wall))
+        showPane(MutableSharedFlow(), actors = { actors }, previews = mapOf("Ball" to blue), onCommand = { commands += it })
         waitUntil(timeoutMillis = 5_000) { ballColor() == Color(blue.color) }
         onRoot().performMouseInput { click(Offset(BALL_X.toFloat(), BALL_Y.toFloat())) }
         onRoot().performKeyInput { keyDown(Key.ShiftLeft) }
@@ -204,9 +205,30 @@ class SceneEditorPaneTest {
         onRoot().performKeyInput { withKeyDown(Key.MetaLeft) { pressKey(Key.D) } }
         val copies = (commands.single().input as RestoreActors.Input).actors
         assertEquals(listOf(2, 3), copies.map { it.actorIndex })
+        actors = actors + copies.map { SceneActorEntry(it.typeId, it.state, it.actorId!!) }
+        waitForIdle()
         commands.clear()
         onRoot().performKeyInput { pressKey(Key.Delete) }
         assertEquals(copies.map { it.actorId }, (commands.single().input as RemoveActors.Input).actorIds)
+    }
+
+    @Test
+    fun selectedActorsTheSceneNoLongerHasAreLeftOutOfTheInspectorAndTheRemoval() = uiTest(width = 900, height = 600) {
+        val commands = mutableListOf<Invocation<*>>()
+        val wall = ball.copy(id = "wall", state = SceneDocument.blockBuiltState(200f, 0f, 60f, 60f))
+        var actors by mutableStateOf(listOf(bigBall, wall))
+        showPane(MutableSharedFlow(), actors = { actors }, previews = mapOf("Ball" to blue), onCommand = { commands += it })
+        waitUntil(timeoutMillis = 5_000) { ballColor() == Color(blue.color) }
+        onRoot().performMouseInput { click(Offset(BALL_X.toFloat(), BALL_Y.toFloat())) }
+        onRoot().performKeyInput { keyDown(Key.ShiftLeft) }
+        onRoot().performMouseInput { click(Offset(BALL_X + 200f, BALL_Y.toFloat())) }
+        onRoot().performKeyInput { keyUp(Key.ShiftLeft) }
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("2 Actors")).fetchSemanticsNodes().isNotEmpty() }
+        actors = listOf(wall)
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("2 Actors")).fetchSemanticsNodes().isEmpty() }
+        onNodeWithContentDescription(REMOVE).assertExists()
+        onRoot().performKeyInput { pressKey(Key.Delete) }
+        assertEquals(listOf<Invocation<*>>(Invocation(RemoveActor, RemoveActor.Input("level", "wall"))), commands)
     }
 
     @Test

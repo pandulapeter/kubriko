@@ -168,6 +168,8 @@ internal fun SceneEditorPane(
         SceneSettingsDialogOf(view = view, sceneName = state.sceneName, music = audioFiles?.music, onCommand = onCommand, onDismiss = { isSettingsShown = false })
     }
     state.problem?.let { problem -> InvalidSceneNotice(problem = problem, onOpenFile = { openInSystemEditor(state.scene.file) }) }
+    val loadRevision by view.loadRevision.collectAsState()
+    val selectedIds = remember(selection.selectedIds, loadRevision) { selection.selectedIds.filter { view.entryOf(it) != null } }
     val actions = remember(state.sceneName, view, selection, onCommand) { SceneEditorActions(state.sceneName, view, selection, onCommand) }
     val actorListWidth = rememberPanelWidth(Panel.SCENE_ACTORS, panelLayout)
     val inspectorWidth = rememberPanelWidth(Panel.SCENE_INSPECTOR, panelLayout)
@@ -195,7 +197,7 @@ internal fun SceneEditorPane(
                 actors = state.actors,
                 previews = state.previews,
                 isSceneReadable = state.problem == null,
-                selectedIds = selection.selectedIds,
+                selectedIds = selectedIds,
                 onSelectionChange = selection::select,
                 onMove = actions::move,
                 onTransform = actions::transform,
@@ -213,7 +215,7 @@ internal fun SceneEditorPane(
                 modifier = Modifier.sidePanel(inspectorWidth.widthIn(row)),
                 view = view,
                 sceneName = state.sceneName,
-                selectedIds = selection.selectedIds,
+                selectedIds = selectedIds,
                 actorTypes = actorTypes,
                 managerTypes = managerTypes,
                 audioFiles = audioFiles,

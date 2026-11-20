@@ -55,16 +55,17 @@ internal class SceneEditorActions(
     fun remove(actorId: String) = remove(listOf(actorId))
 
     /**
-     * Removes the Actors [actorIds], as one step.
+     * Removes the Actors [actorIds] the Scene still has, as one step.
      */
     fun remove(actorIds: List<String>) {
-        if (actorIds.isEmpty()) return
+        val existing = actorIds.filter { view.entryOf(it) != null }
+        if (existing.isEmpty()) return
         selection.select(null)
-        val single = actorIds.singleOrNull()
+        val single = existing.singleOrNull()
         if (single != null) {
             onCommand(Invocation(RemoveActor, RemoveActor.Input(sceneName, single)))
         } else {
-            onCommand(Invocation(RemoveActors, RemoveActors.Input(sceneName, actorIds)))
+            onCommand(Invocation(RemoveActors, RemoveActors.Input(sceneName, existing)))
         }
     }
 
