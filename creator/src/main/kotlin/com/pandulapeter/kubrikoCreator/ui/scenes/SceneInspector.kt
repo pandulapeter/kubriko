@@ -147,7 +147,7 @@ internal fun SceneInspector(
                         definition = actorTypes.firstOrNull { it.name == entry.typeId },
                         choices = ReferenceChoices(actorTypes.map { it.name }, audioFiles),
                         onChange = { change -> onCommand(Invocation(SetActorValues, SetActorValues.Input(sceneName, selectedId).change())) },
-                        onStateValueChange = { key, value -> onCommand(setActorStateValue(sceneName, selectedId, key, value)) },
+                        onStateValueChange = { key, value, isTyped -> onCommand(setActorStateValue(sceneName, selectedId, key, value, isTyped)) },
                     )
                 }
             } else {

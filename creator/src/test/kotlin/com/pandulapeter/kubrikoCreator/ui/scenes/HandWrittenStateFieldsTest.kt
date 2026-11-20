@@ -51,7 +51,7 @@ class HandWrittenStateFieldsTest {
             Column {
                 HandWrittenStateFields(
                     state = """{"body":{"position":{"x":1.0,"y":2.0}},"rate":2.5,"isActive":false,"label":"left","path":[1,2]}""",
-                    onValueChange = { key, value -> changes += key to value },
+                    onValueChange = { key, value, isTyped -> if (!isTyped) changes += key to value },
                 )
             }
         }

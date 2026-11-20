@@ -39,12 +39,13 @@ import kotlin.math.roundToLong
 /**
  * The values an Actor of a type written by hand keeps in [state] besides its body, each named as its class names it and
  * changed with a field of its kind: a switch for a toggle, a number field for a number, a text field for a text, and the
- * JSON itself for anything else (applied only while it reads as JSON).
+ * JSON itself for anything else (applied only while it reads as JSON). [onValueChange] says whether the value is typed,
+ * whose changes merge into one undo step.
  */
 @Composable
 internal fun HandWrittenStateFields(
     state: String,
-    onValueChange: (key: String, value: JsonElement) -> Unit,
+    onValueChange: (key: String, value: JsonElement, isTyped: Boolean) -> Unit,
 ) {
     val values = remember(state) { ActorStateEdits.otherValuesOf(state) }
     if (values.isEmpty()) return
@@ -57,20 +58,20 @@ internal fun HandWrittenStateFields(
         key(name) {
             val shownAs = remember { StateValueKind.of(value) }
             when (val kind = StateValueKind.of(value, shownAs)) {
-                is StateValueKind.Toggle -> LabeledSwitch(modifier = Modifier.fillMaxWidth(), label = name, checked = kind.value, onCheckedChange = { onValueChange(name, JsonPrimitive(it)) })
+                is StateValueKind.Toggle -> LabeledSwitch(modifier = Modifier.fillMaxWidth(), label = name, checked = kind.value, onCheckedChange = { onValueChange(name, JsonPrimitive(it), false) })
                 is StateValueKind.Number -> NumberField(
                     modifier = Modifier.fillMaxWidth(),
                     label = name,
                     value = kind.value,
-                    onValueChange = { onValueChange(name, kind.encode(it)) },
+                    onValueChange = { onValueChange(name, kind.encode(it), true) },
                 )
                 is StateValueKind.Text -> BufferedTextField(
                     modifier = Modifier.fillMaxWidth(),
                     label = name,
                     value = kind.value,
-                    onValueChange = { onValueChange(name, JsonPrimitive(it)) },
+                    onValueChange = { onValueChange(name, JsonPrimitive(it), true) },
                 )
-                is StateValueKind.Raw -> RawValueField(name = name, json = kind.json) { onValueChange(name, it) }
+                is StateValueKind.Raw -> RawValueField(name = name, json = kind.json) { onValueChange(name, it, true) }
             }
         }
     }

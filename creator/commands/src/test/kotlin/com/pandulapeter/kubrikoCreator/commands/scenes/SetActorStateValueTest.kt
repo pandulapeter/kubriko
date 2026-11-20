@@ -36,16 +36,17 @@ class SetActorStateValueTest {
     @Test
     fun oneValueOfAHandWrittenActorsStateIsChangedAndUndone() = runTest {
         val context = context()
-        val invocation = setActorStateValue("main", "spawner", "rate", JsonPrimitive(5))
+        val invocation = setActorStateValue("main", "spawner", "rate", JsonPrimitive(5), isTyped = true)
         val state = context.assertRoundTrip(invocation) { context.scenes.read("main")?.let(SceneDocument::parse)?.single()?.state }
         assertEquals("""{"body":{"position":{"x":1.0,"y":2.0}},"rate":5}""", state)
     }
 
     @Test
-    fun typingIntoOneFieldIsOneStepButAnotherFieldIsAnother() {
+    fun typingIntoOneFieldIsOneStepButAnotherFieldOrASwitchIsAnother() {
         val first = SetActorStateValue.Input("main", "spawner", "rate", JsonPrimitive(1))
         assertEquals(SetActorStateValue.mergeKey(first), SetActorStateValue.mergeKey(first.copy(value = JsonPrimitive(12))))
         assertNotEquals(SetActorStateValue.mergeKey(first), SetActorStateValue.mergeKey(first.copy(key = "speed")))
+        assertNull(SetActorStateValue.mergeKey(first.copy(value = JsonPrimitive(true), isTyped = false)), "Each flip of a switch is a step of its own.")
     }
 
     @Test

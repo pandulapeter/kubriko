@@ -44,13 +44,17 @@ internal object SetActorStateValue : WriteCommand<SetActorStateValue.Input> {
         return Applied(inverse = Invocation(SetActorState, SetActorState.Input(input.scene, input.actorId, previous.state)))
     }
 
-    override fun mergeKey(input: Input): Any = listOf(input.scene, input.actorId, input.key)
+    override fun mergeKey(input: Input): Any? = if (input.isTyped) listOf(input.scene, input.actorId, input.key) else null
 
+    /**
+     * @param isTyped Whether the value is being typed, whose changes merge, unlike a switch's, each of which is a step.
+     */
     data class Input(
         val scene: String,
         val actorId: String,
         val key: String,
         val value: JsonElement,
+        val isTyped: Boolean = true,
     )
 
     private const val BODY = "body"
@@ -58,7 +62,7 @@ internal object SetActorStateValue : WriteCommand<SetActorStateValue.Input> {
 
 /**
  * What gives the value [key] of the Actor [actorId] of the Scene [scene] the value [value], as the Scene editor's fields
- * for an Actor type written by hand do.
+ * for an Actor type written by hand do: one typed ([isTyped]) merges with the changes typed into the same field before it.
  */
-public fun setActorStateValue(scene: String, actorId: String, key: String, value: JsonElement): Invocation<*> =
-    Invocation(SetActorStateValue, SetActorStateValue.Input(scene, actorId, key, value))
+public fun setActorStateValue(scene: String, actorId: String, key: String, value: JsonElement, isTyped: Boolean): Invocation<*> =
+    Invocation(SetActorStateValue, SetActorStateValue.Input(scene, actorId, key, value, isTyped))

@@ -51,7 +51,7 @@ internal fun ActorInspector(
     state: String,
     definition: ActorTypeDefinition?,
     onChange: (SetActorValues.Input.() -> SetActorValues.Input) -> Unit,
-    onStateValueChange: (key: String, value: JsonElement) -> Unit,
+    onStateValueChange: (key: String, value: JsonElement, isTyped: Boolean) -> Unit,
     modifier: Modifier = Modifier,
     choices: ReferenceChoices = ReferenceChoices(),
 ) = Column(
