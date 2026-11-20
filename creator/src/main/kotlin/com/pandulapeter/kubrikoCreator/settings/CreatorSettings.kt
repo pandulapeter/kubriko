@@ -26,6 +26,8 @@ import kotlinx.serialization.Serializable
  * @param isTurnReviewShown Whether the assistant ends each turn that changed the project with Keep and Undo.
  * @param interfaceScale How much smaller or larger than Material's own sizes everything is drawn.
  * @param defaultProjectFolder Where New project creates projects unless told otherwise, the home folder when null.
+ * @param sceneGridSize The side of a square of the Scene editor's grid, in scene units.
+ * @param isSnappingToGrid Whether the Scene editor starts with snapping to its grid on.
  * @param panelWidths The sizes in dp the user dragged the panels to (the side panels' widths, the console's height), by
  *   their `PanelWidths.Panel.id`; the others have their default size. Its key predates the console's height.
  */
@@ -39,6 +41,8 @@ internal data class CreatorSettings(
     @SerialName("isFollowingAi") val isFollowingAi: Boolean = true,
     @SerialName("aiFollowDelayInMillis") val aiFollowDelayInMillis: Int = DEFAULT_AI_FOLLOW_DELAY,
     @SerialName("isTurnReviewShown") val isTurnReviewShown: Boolean = false,
+    @SerialName("sceneGridSize") val sceneGridSize: Int = DEFAULT_SCENE_GRID_SIZE,
+    @SerialName("isSnappingToGrid") val isSnappingToGrid: Boolean = true,
 ) {
     companion object {
         /**
@@ -50,7 +54,13 @@ internal data class CreatorSettings(
          * The delays in milliseconds offered for following the AI, the default among them.
          */
         val aiFollowDelays = listOf(0, DEFAULT_AI_FOLLOW_DELAY, 600, 1_000)
+
+        /**
+         * The Scene editor's grid sizes offered, the default among them.
+         */
+        val sceneGridSizes = listOf(4, 8, DEFAULT_SCENE_GRID_SIZE, 32, 64)
     }
 }
 
 private const val DEFAULT_AI_FOLLOW_DELAY = 300
+private const val DEFAULT_SCENE_GRID_SIZE = 16

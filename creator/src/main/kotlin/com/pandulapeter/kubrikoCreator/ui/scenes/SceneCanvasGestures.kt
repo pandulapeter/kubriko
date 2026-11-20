@@ -17,6 +17,8 @@ import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.PointerKeyboardModifiers
+import androidx.compose.ui.input.pointer.isAltPressed
 import androidx.compose.ui.input.pointer.isPrimaryPressed
 import androidx.compose.ui.input.pointer.isShiftPressed
 import androidx.compose.ui.input.pointer.pointerInput
@@ -30,7 +32,7 @@ import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneView
 /**
  * What the Scene canvas does with the pointer: a press on a handle of the selected Actor resizes or rotates it (Shift
  * keeping a corner's proportions, or turning in steps of [ROTATION_STEP_IN_DEGREES]), one on an Actor selects it and
- * dragging moves it, and dragging elsewhere (or with another button, or on an Actor that can't be moved) moves the
+ * dragging moves it (both snapping to the grid while [Callbacks.isSnapping] is on, or with Alt held while it is off), and dragging elsewhere (or with another button, or on an Actor that can't be moved) moves the
  * camera. What changes the Scene is reported only when the pointer is let go.
  */
 internal class SceneCanvasGestures(
@@ -45,6 +47,8 @@ internal class SceneCanvasGestures(
         val selectedId: String?,
         val canDrag: (actorId: String) -> Boolean,
         val handleMetrics: HandleMetrics,
+        val grid: SceneGrid,
+        val isSnapping: Boolean,
         val onSelect: (String?) -> Unit,
         val onMove: (actorId: String, x: Float, y: Float) -> Unit,
         val onTransform: (actorId: String, handle: FrameHandle, after: ActorFrame) -> Unit,
@@ -92,12 +96,12 @@ internal class SceneCanvasGestures(
         val start = ActorFrame.of(body)
         val from = toScene(down.position)
         var after = start
-        val hasMoved = dragging(down.id, down.position) { change, isShiftPressed ->
+        val hasMoved = dragging(down.id, down.position) { change, modifiers ->
             val pointer = toScene(change.position)
             after = if (handle == FrameHandle.ROTATE) {
-                start.rotated(from, pointer, ROTATION_STEP_IN_DEGREES.takeIf { isShiftPressed })
+                start.rotated(from, pointer, ROTATION_STEP_IN_DEGREES.takeIf { modifiers.isShiftPressed })
             } else {
-                start.resized(handle, pointer, keepsProportions = isShiftPressed)
+                start.resized(handle, pointer, keepsProportions = modifiers.isShiftPressed, snap = snapping(current, modifiers))
             }
             after.applyTo(body)
             current.onDragged()
@@ -108,12 +112,22 @@ internal class SceneCanvasGestures(
     private suspend fun AwaitPointerEventScope.move(current: Callbacks, actorId: String, down: PointerInputChange) {
         val actor = view.actorOf(actorId) ?: return pan(down)
         val startPosition = actor.body.position
-        val hasMoved = dragging(down.id, down.position) { change, _ ->
-            actor.body.position = startPosition + (view.toScene(change.position) - view.toScene(down.position))
+        val hasMoved = dragging(down.id, down.position) { change, modifiers ->
+            val moved = startPosition + (view.toScene(change.position) - view.toScene(down.position))
+            val snapped = snapping(current, modifiers)(Offset(moved.x.raw, moved.y.raw))
+            actor.body.position = SceneOffset(snapped.x.sceneUnit, snapped.y.sceneUnit)
             current.onDragged()
         }
         if (hasMoved) current.onMove(actorId, actor.body.position.x.raw, actor.body.position.y.raw)
     }
+
+    /**
+     * Rounds to [Callbacks.grid] while snapping is on, which Alt turns the other way while it is held.
+     */
+    private fun snapping(current: Callbacks, modifiers: PointerKeyboardModifiers): (Float) -> Float =
+        if (current.isSnapping != modifiers.isAltPressed) current.grid::snap else { value -> value }
+
+    private operator fun ((Float) -> Float).invoke(point: Offset) = Offset(this(point.x), this(point.y))
 
     private suspend fun AwaitPointerEventScope.pan(down: PointerInputChange) {
         var lastPosition = down.position
@@ -127,20 +141,23 @@ internal class SceneCanvasGestures(
      * Follows the pointer [pointerId] until it is let go, calling [onDrag] for each move once it went further than the
      * touch slop from [start]; whether it did.
      */
-    private suspend fun AwaitPointerEventScope.dragging(pointerId: PointerId, start: Offset, onDrag: (PointerInputChange, isShiftPressed: Boolean) -> Unit): Boolean {
+    private suspend fun AwaitPointerEventScope.dragging(pointerId: PointerId, start: Offset, onDrag: (PointerInputChange, PointerKeyboardModifiers) -> Unit): Boolean {
         var isDragging = false
         while (true) {
             val event = awaitPointerEvent(PointerEventPass.Initial)
             val change = event.changes.firstOrNull { it.id == pointerId } ?: break
             if (!change.pressed) break
             if (!isDragging && (change.position - start).getDistance() > viewConfiguration.touchSlop) isDragging = true
-            if (isDragging) onDrag(change, event.keyboardModifiers.isShiftPressed)
+            if (isDragging) onDrag(change, event.keyboardModifiers)
             change.consume()
         }
         return isDragging
     }
 
-    private fun toScene(screenOffset: Offset) = view.toScene(screenOffset).let { Offset(it.x.raw, it.y.raw) }
+    /**
+     * Where [screenOffset], in pixels, is in the Scene, in scene units.
+     */
+    fun toScene(screenOffset: Offset): Offset = view.toScene(screenOffset).let { Offset(it.x.raw, it.y.raw) }
 
     /**
      * Where [scenePoint], in scene units, is on the screen.

@@ -91,4 +91,14 @@ class CreatorSettingsStoreTest {
         file.writeText("""{"aiFollowDelayInMillis":-20}""")
         assertEquals(0, store.load().aiFollowDelayInMillis)
     }
+
+    @Test
+    fun theSceneGridSnapsBySixteenUntilChangedAndASizeNotOfferedBecomesTheClosestOne() {
+        assertEquals(16, store.load().sceneGridSize)
+        assertEquals(true, store.load().isSnappingToGrid)
+        file.parentFile.mkdirs()
+        file.writeText("""{"sceneGridSize":30,"isSnappingToGrid":false}""")
+        assertEquals(32, store.load().sceneGridSize)
+        assertEquals(false, store.load().isSnappingToGrid)
+    }
 }

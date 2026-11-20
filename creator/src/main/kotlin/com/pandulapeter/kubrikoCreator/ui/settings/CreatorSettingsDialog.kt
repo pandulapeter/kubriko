@@ -44,9 +44,13 @@ import kubriko.creator.generated.resources.settings_default_project_folder
 import kubriko.creator.generated.resources.settings_follow_ai
 import kubriko.creator.generated.resources.settings_follow_ai_description
 import kubriko.creator.generated.resources.settings_interface_scale
+import kubriko.creator.generated.resources.settings_scene_grid_size
+import kubriko.creator.generated.resources.settings_scene_grid_size_description
 import kubriko.creator.generated.resources.settings_section_ai
 import kubriko.creator.generated.resources.settings_section_appearance
 import kubriko.creator.generated.resources.settings_section_editor
+import kubriko.creator.generated.resources.settings_snapping_to_grid
+import kubriko.creator.generated.resources.settings_snapping_to_grid_description
 import kubriko.creator.generated.resources.settings_theme
 import kubriko.creator.generated.resources.settings_theme_dark
 import kubriko.creator.generated.resources.settings_theme_light
@@ -73,6 +77,8 @@ internal fun CreatorSettingsDialog(
     onFollowingAiChange: (Boolean) -> Unit,
     onAiFollowDelayChange: (Int) -> Unit,
     onTurnReviewShownChange: (Boolean) -> Unit,
+    onSceneGridSizeChange: (Int) -> Unit,
+    onSnappingToGridChange: (Boolean) -> Unit,
     onDismiss: () -> Unit,
     initialPage: CreatorSettingsPage? = null,
     aiPages: List<DialogPage> = emptyList(),
@@ -102,6 +108,10 @@ internal fun CreatorSettingsDialog(
                 defaultProjectFolder = settings.defaultProjectFolder?.let(::File) ?: homeFolder,
                 isHomeFolder = settings.defaultProjectFolder == null,
                 onDefaultProjectFolderChange = onDefaultProjectFolderChange,
+                sceneGridSize = settings.sceneGridSize,
+                onSceneGridSizeChange = onSceneGridSizeChange,
+                isSnappingToGrid = settings.isSnappingToGrid,
+                onSnappingToGridChange = onSnappingToGridChange,
             )
         },
         DialogPage(
@@ -152,6 +162,12 @@ private fun EditorPage(
     defaultProjectFolder: File,
     isHomeFolder: Boolean,
     onDefaultProjectFolderChange: (File?) -> Unit,
+    sceneGridSize: Int,
+    onSceneGridSizeChange: (Int) -> Unit,
+    isSnappingToGrid: Boolean,
+    onSnappingToGridChange: (Boolean) -> Unit,
+) = Column(
+    verticalArrangement = Arrangement.spacedBy(4.dp),
 ) {
     val pickerTitle = stringResource(Res.string.choose_parent_folder)
     SettingsRow(
@@ -169,6 +185,23 @@ private fun EditorPage(
             }
         }
     }
+    SettingsRow(
+        label = stringResource(Res.string.settings_scene_grid_size),
+        description = stringResource(Res.string.settings_scene_grid_size_description),
+    ) {
+        SegmentedChoice(
+            options = CreatorSettings.sceneGridSizes,
+            selected = sceneGridSize,
+            optionText = { it.toString() },
+            onSelected = onSceneGridSizeChange,
+        )
+    }
+    SettingsSwitch(
+        label = stringResource(Res.string.settings_snapping_to_grid),
+        description = stringResource(Res.string.settings_snapping_to_grid_description),
+        checked = isSnappingToGrid,
+        onCheckedChange = onSnappingToGridChange,
+    )
 }
 
 @Composable

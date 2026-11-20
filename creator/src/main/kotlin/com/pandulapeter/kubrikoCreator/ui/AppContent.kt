@@ -35,6 +35,8 @@ import com.pandulapeter.kubrikoCreator.ui.components.DialogPage
 import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
 import com.pandulapeter.kubrikoCreator.ui.components.ProgressScreen
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiConnectionSettings
+import com.pandulapeter.kubrikoCreator.ui.scenes.LocalSceneGrid
+import com.pandulapeter.kubrikoCreator.ui.scenes.SceneGrid
 import com.pandulapeter.kubrikoCreator.ui.settings.AssistantSettingsPage
 import com.pandulapeter.kubrikoCreator.ui.settings.CreatorSettingsDialog
 import com.pandulapeter.kubrikoCreator.ui.settings.CreatorSettingsPage
@@ -96,6 +98,8 @@ internal fun AppContent(
             onFollowingAiChange = creatorSettings::setFollowingAi,
             onAiFollowDelayChange = creatorSettings::setAiFollowDelay,
             onTurnReviewShownChange = creatorSettings::setTurnReviewShown,
+            onSceneGridSizeChange = creatorSettings::setSceneGridSize,
+            onSnappingToGridChange = creatorSettings::setSnappingToGrid,
             onDismiss = { isShowingSettings = false },
             initialPage = settingsPage,
             aiPages = aiSettingsPages(mcp = mcp, aiClients = aiClients, assistant = assistant),
@@ -113,6 +117,7 @@ internal fun AppContent(
             val aiActivitySettings = remember(settings, creatorSettings) { AiActivitySettings.of(settings, creatorSettings::setFollowingAi) }
             CompositionLocalProvider(
                 LocalAiActivitySettings provides aiActivitySettings,
+                LocalSceneGrid provides SceneGrid(settings.sceneGridSize.toFloat(), settings.isSnappingToGrid),
                 LocalOpenCreatorSettings provides openSettings,
             ) {
                 ScreenContent(

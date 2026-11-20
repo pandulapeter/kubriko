@@ -131,6 +131,8 @@ class AiFeaturesOffTest {
                 onFollowingAiChange = { changes += "follow $it" },
                 onAiFollowDelayChange = { changes += it },
                 onTurnReviewShownChange = { changes += "review $it" },
+                onSceneGridSizeChange = {},
+                onSnappingToGridChange = {},
                 onDismiss = {},
             )
         }

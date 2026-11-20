@@ -40,14 +40,10 @@ import com.pandulapeter.kubrikoCreator.commands.ActorsBroughtBack
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
-import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActor
-import com.pandulapeter.kubrikoCreator.commands.scenes.PlaceActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
-import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneView
-import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import com.pandulapeter.kubrikoCreator.ui.HealthFindingPlace
 import com.pandulapeter.kubrikoCreator.ui.HealthHintsList
@@ -75,6 +71,8 @@ import kubriko.creator.generated.resources.action_hide_scene_actors
 import kubriko.creator.generated.resources.action_play_from_scene
 import kubriko.creator.generated.resources.action_reload_scene
 import kubriko.creator.generated.resources.action_show_scene_actors
+import kubriko.creator.generated.resources.action_snap_to_grid
+import kubriko.creator.generated.resources.action_stop_snapping_to_grid
 import kubriko.creator.generated.resources.action_zoom_in
 import kubriko.creator.generated.resources.action_zoom_out
 import kubriko.creator.generated.resources.action_zoom_to_fit
@@ -83,6 +81,7 @@ import kubriko.creator.generated.resources.ic_actor_type
 import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_delete
 import kubriko.creator.generated.resources.ic_fit_screen
+import kubriko.creator.generated.resources.ic_grid
 import kubriko.creator.generated.resources.ic_play
 import kubriko.creator.generated.resources.ic_refresh
 import kubriko.creator.generated.resources.ic_scene
@@ -136,6 +135,8 @@ internal fun SceneEditorPane(
     val view = rememberSceneView(state, onViewFailed) ?: return@Column ProgressScreen(stringResource(Res.string.scene_preparing, state.scene.name))
     SelectingRestoredActor(selection, view)
     var isActorListShown by remember { mutableStateOf(false) }
+    val grid = LocalSceneGrid.current
+    var isSnapping by remember(state.scene.file, grid.isSnappingByDefault) { mutableStateOf(grid.isSnappingByDefault) }
     var isSettingsShown by remember(state.scene.file) { mutableStateOf(false) }
     SceneHeader(
         sceneName = state.scene.name,
@@ -146,6 +147,8 @@ internal fun SceneEditorPane(
         onZoomToFit = view::zoomToFit,
         isActorListShown = isActorListShown,
         onActorListToggled = { isActorListShown = !isActorListShown },
+        isSnapping = isSnapping,
+        onSnappingToggled = { isSnapping = !isSnapping },
         onPlay = onPlay,
         onReload = onReload,
         onDelete = { onCommand(Invocation(DeleteScene, DeleteScene.Input(state.sceneName))) },
@@ -157,10 +160,7 @@ internal fun SceneEditorPane(
         SceneSettingsDialogOf(view = view, sceneName = state.sceneName, music = audioFiles?.music, onCommand = onCommand, onDismiss = { isSettingsShown = false })
     }
     state.problem?.let { problem -> InvalidSceneNotice(problem = problem, onOpenFile = { openInSystemEditor(state.scene.file) }) }
-    val onRemove = { actorId: String ->
-        selection.select(null)
-        onCommand(Invocation(RemoveActor, RemoveActor.Input(state.sceneName, actorId)))
-    }
+    val actions = remember(state.sceneName, view, selection, onCommand) { SceneEditorActions(state.sceneName, view, selection, onCommand) }
     val actorListWidth = rememberPanelWidth(Panel.SCENE_ACTORS, panelLayout)
     val inspectorWidth = rememberPanelWidth(Panel.SCENE_INSPECTOR, panelLayout)
     BoxWithConstraints(
@@ -201,17 +201,15 @@ internal fun SceneEditorPane(
                 isSceneReadable = state.problem == null,
                 selectedId = selection.selectedId,
                 onSelect = { actorId -> selection.select(actorId?.takeUnless(view::isBackground)) },
-                onMove = { actorId, x, y -> onCommand(Invocation(MoveActor, MoveActor.Input(state.sceneName, actorId, x, y))) },
-                onTransform = { actorId, handle, after -> onCommand(Invocation(SetActorValues, transformInputOf(state.sceneName, actorId, handle, after))) },
-                onRemove = onRemove,
+                onMove = actions::move,
+                onTransform = actions::transform,
+                onRemove = actions::remove,
                 dragState = actorTypeDragState,
+                grid = grid,
+                isSnapping = isSnapping,
                 pictureHost = pictureHost,
                 flash = flash,
-                onPlace = { actorTypeName, x, y ->
-                    val actorId = SceneDocument.newId(view.entries.map { it.id })
-                    selection.select(actorId)
-                    onCommand(Invocation(PlaceActor, PlaceActor.Input(state.sceneName, actorTypeName, x, y, actorId)))
-                },
+                onPlace = actions::place,
             )
             PanelSplitter(inspectorWidth, row)
             SceneInspector(
@@ -224,7 +222,7 @@ internal fun SceneEditorPane(
                 audioFiles = audioFiles,
                 onOpenSceneSettings = { isSettingsShown = true },
                 onCommand = onCommand,
-                onRemove = onRemove,
+                onRemove = actions::remove,
             )
         }
     }
@@ -261,6 +259,8 @@ private fun SceneHeader(
     onZoomToFit: () -> Unit,
     isActorListShown: Boolean,
     onActorListToggled: () -> Unit,
+    isSnapping: Boolean,
+    onSnappingToggled: () -> Unit,
     onPlay: () -> Unit,
     onReload: () -> Unit,
     onDelete: () -> Unit,
@@ -303,6 +303,12 @@ private fun SceneHeader(
         label = if (isActorListShown) Res.string.action_hide_scene_actors else Res.string.action_show_scene_actors,
         onClick = onActorListToggled,
         tint = if (isActorListShown) MaterialTheme.colorScheme.primary else LocalContentColor.current,
+    )
+    IconActionButton(
+        icon = Res.drawable.ic_grid,
+        label = if (isSnapping) Res.string.action_stop_snapping_to_grid else Res.string.action_snap_to_grid,
+        onClick = onSnappingToggled,
+        tint = if (isSnapping) MaterialTheme.colorScheme.primary else LocalContentColor.current,
     )
     IconActionButton(icon = Res.drawable.ic_play, label = Res.string.action_play_from_scene, onClick = onPlay)
     IconActionButton(icon = Res.drawable.ic_zoom_out, label = Res.string.action_zoom_out, onClick = onZoomOut)

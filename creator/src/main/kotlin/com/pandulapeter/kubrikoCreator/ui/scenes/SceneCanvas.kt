@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -65,7 +66,8 @@ import com.pandulapeter.kubrikoCreator.ui.components.FLASH_MAXIMUM_ALPHA
  * dragging it moves it ([onMove] when it is let go, so only one whose position the Scene file saves, [canDragActor]),
  * dragging one of its handles resizes or rotates it ([onTransform]; [SceneCanvasGestures]), dragging elsewhere
  * (or with the middle button, or on an Actor that can't be moved) moves the camera, scrolling moves it
- * too, and with Ctrl or Cmd, zooms. Delete or Backspace removes the selected Actor, and an Actor type dragged in from the
+ * too, and with Ctrl or Cmd, zooms. While [isSnapping], the [grid] is drawn, and moving, resizing, and placing snap to
+ * it. Delete or Backspace removes the selected Actor, and an Actor type dragged in from the
  * sidebar is placed where it is dropped ([onPlace], in scene units).
  *
  * @param actors The Scene's Actors, which [view] loads again whenever they change.
@@ -88,11 +90,14 @@ internal fun SceneCanvas(
     onRemove: (String) -> Unit,
     dragState: SidebarDragState,
     onPlace: (actorTypeName: String, x: Float, y: Float) -> Unit,
+    grid: SceneGrid,
+    isSnapping: Boolean,
     modifier: Modifier = Modifier,
     pictureHost: ScenePictureHost? = null,
     flash: SceneFlash? = null,
 ) {
     val currentOnPlace by rememberUpdatedState(onPlace)
+    val placementSnap by rememberUpdatedState<(Offset) -> Offset>(if (isSnapping) grid::snap else { point -> point })
     DisposableEffect(dragState) {
         onDispose { dragState.sceneTarget = null }
     }
@@ -106,6 +111,8 @@ internal fun SceneCanvas(
             selectedId = selectedId,
             canDrag = { actorId -> canDragActor(view.entryOf(actorId), isSceneReadable) },
             handleMetrics = handleMetrics,
+            grid = grid,
+            isSnapping = isSnapping,
             onSelect = onSelect,
             onMove = onMove,
             onTransform = onTransform,
@@ -119,8 +126,8 @@ internal fun SceneCanvas(
             .onGloballyPositioned { coordinates ->
                 val bounds = coordinates.boundsInRoot()
                 dragState.sceneTarget = SidebarDragState.SceneTarget(bounds) { actorTypeName, at ->
-                    val position = view.toScene(at - bounds.topLeft)
-                    currentOnPlace(actorTypeName, position.x.raw, position.y.raw)
+                    val position = placementSnap(gestures.toScene(at - bounds.topLeft))
+                    currentOnPlace(actorTypeName, position.x, position.y)
                 }
             }
             .then(if (dragState.isOverScene) Modifier.border(2.dp, MaterialTheme.colorScheme.primary) else Modifier)
@@ -147,7 +154,7 @@ internal fun SceneCanvas(
             .then(gestures.modifier),
     ) {
         SceneViewport(view.kubriko, pictureHost, background = MaterialTheme.colorScheme.surfaceContainerLowest)
-        SceneOverlay(gestures = gestures, view = view, selectedId = selectedId, flash = flash, dragRevision = dragRevision, handleMetrics = handleMetrics)
+        SceneOverlay(gestures = gestures, view = view, selectedId = selectedId, flash = flash, dragRevision = dragRevision, handleMetrics = handleMetrics, grid = grid.takeIf { isSnapping })
     }
 }
 
@@ -163,6 +170,7 @@ private fun SceneOverlay(
     flash: SceneFlash?,
     dragRevision: Int,
     handleMetrics: HandleMetrics,
+    grid: SceneGrid?,
 ) {
     val loadRevision by view.loadRevision.collectAsState()
     val cameraPosition by view.viewportManager.cameraPosition.collectAsState()
@@ -171,6 +179,8 @@ private fun SceneOverlay(
     val flashColor = MaterialTheme.colorScheme.tertiary
     val selectionColor = MaterialTheme.colorScheme.primary
     val handleFill = MaterialTheme.colorScheme.surface
+    val gridColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = GRID_ALPHA)
+    val minimumGridSpacing = with(LocalDensity.current) { MINIMUM_GRID_SPACING.toPx() }
     val selectionStrokeWidth = with(LocalDensity.current) { SELECTION_STROKE_WIDTH.toPx() }
     val selectionStroke = remember(selectionStrokeWidth) { Stroke(width = selectionStrokeWidth) }
     Canvas(
@@ -182,6 +192,7 @@ private fun SceneOverlay(
         viewportSize
         dragRevision
         loadRevision
+        grid?.let { drawSceneGrid(it, gridColor, minimumGridSpacing, gestures::toScene, gestures::toScreen) }
         val strength = flash?.strength?.value ?: 0f
         if (strength > 0f) {
             val color = flashColor.copy(alpha = FLASH_MAXIMUM_ALPHA * strength)
@@ -225,6 +236,8 @@ private const val ZOOM_PER_SCROLL = 0.05f
 private const val PAN_PER_SCROLL = 20f
 private val SELECTION_STROKE_WIDTH = 2.dp
 private val HANDLE_SIZE = 8.dp
+private val MINIMUM_GRID_SPACING = 8.dp
+private const val GRID_ALPHA = 0.2f
 private val HANDLE_REACH = 8.dp
 private val ROTATE_HANDLE_DISTANCE = 24.dp
 private val HANDLE_STROKE_WIDTH = 1.5.dp

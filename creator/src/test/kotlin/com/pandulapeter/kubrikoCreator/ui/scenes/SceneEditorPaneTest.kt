@@ -17,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.MouseInjectionScope
@@ -29,6 +30,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performMouseInput
 import com.pandulapeter.kubriko.creator.CreatorEntryPoint
 import com.pandulapeter.kubriko.sceneEditor.Editable
@@ -40,6 +42,7 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.commands.ActorsBroughtBack
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneValues
@@ -135,7 +138,7 @@ class SceneEditorPaneTest {
     /**
      * The color at the middle of the Ball, which the Scene's camera centers.
      */
-    private fun ComposeUiTest.ballColor() = onRoot().captureToImage().toPixelMap().let { pixels -> pixels[BALL_X, BALL_Y] }
+    private fun ComposeUiTest.ballColor(offset: Int = 0) = onRoot().captureToImage().toPixelMap().let { pixels -> pixels[BALL_X + offset, BALL_Y + offset] }
 
     @Test
     fun theSelectedActorsHandlesResizeAndRotateIt() = uiTest(width = 900, height = 600) {
@@ -156,6 +159,23 @@ class SceneEditorPaneTest {
         onRoot().performMouseInput { dragBy(Offset(BALL_X + 20f, BALL_Y - 50f - 24f), Offset(74f, 74f)) }
         waitForIdle()
         assertEquals(SetActorValues.Input("level", "ball", rotation = 90f), (commands.single().input as SetActorValues.Input).let { it.copy(rotation = it.rotation?.let(Math::round)?.toFloat()) })
+    }
+
+    @Test
+    fun movingSnapsToTheGridWhileSnappingIsOnAndAltTurnsItOff() = uiTest(width = 900, height = 600) {
+        val commands = mutableListOf<Invocation<*>>()
+        showPane(MutableSharedFlow(), actors = { listOf(bigBall) }, previews = mapOf("Ball" to blue), onCommand = { commands += it }, grid = SceneGrid(16f, isSnappingByDefault = true))
+        waitUntil(timeoutMillis = 5_000) { ballColor(offset = 5) == Color(blue.color) }
+        saveSnapshot("scene-editor-grid")
+        onRoot().performMouseInput { dragBy(Offset(BALL_X.toFloat(), BALL_Y.toFloat()), Offset(37f, 5f)) }
+        waitForIdle()
+        assertEquals(listOf<Invocation<*>>(Invocation(MoveActor, MoveActor.Input("level", "ball", 32f, 0f))), commands)
+        commands.clear()
+        onRoot().performKeyInput { keyDown(Key.AltLeft) }
+        onRoot().performMouseInput { dragBy(Offset(BALL_X + 32f, BALL_Y.toFloat()), Offset(21f, 19f)) }
+        onRoot().performKeyInput { keyUp(Key.AltLeft) }
+        waitForIdle()
+        assertEquals(listOf<Invocation<*>>(Invocation(MoveActor, MoveActor.Input("level", "ball", 53f, 19f))), commands)
     }
 
     private fun MouseInjectionScope.dragBy(start: Offset, by: Offset) {
@@ -284,8 +304,9 @@ class SceneEditorPaneTest {
         previews: Map<String, ActorTypeLook> = emptyMap(),
         highlight: () -> SceneHighlight? = { null },
         managerTypes: List<ManagerTypeDefinition> = emptyList(),
+        grid: SceneGrid = SceneGrid(size = 16f, isSnappingByDefault = false),
     ) = showing {
-        CompositionLocalProvider(LocalHealthHints provides hints) { ShownPane(broughtBack, entryPoint, actors, onCommand, previews, highlight(), managerTypes) }
+        CompositionLocalProvider(LocalHealthHints provides hints, LocalSceneGrid provides grid) { ShownPane(broughtBack, entryPoint, actors, onCommand, previews, highlight(), managerTypes) }
     }
 
     @Composable

@@ -51,6 +51,10 @@ internal class CreatorSettingsController(
 
     fun setTurnReviewShown(isShown: Boolean) = update { it.copy(isTurnReviewShown = isShown) }
 
+    fun setSceneGridSize(size: Int) = update { it.copy(sceneGridSize = CreatorSettingsStore.closestSceneGridSize(size)) }
+
+    fun setSnappingToGrid(isSnapping: Boolean) = update { it.copy(isSnappingToGrid = isSnapping) }
+
     fun setTheme(theme: ThemeChoice) = update { it.copy(theme = theme) }
 
     fun setInterfaceScale(scale: Float) = update { it.copy(interfaceScale = CreatorSettingsStore.closestInterfaceScale(scale)) }

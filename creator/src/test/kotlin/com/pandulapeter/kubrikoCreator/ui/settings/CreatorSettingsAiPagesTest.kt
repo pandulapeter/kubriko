@@ -89,6 +89,8 @@ class CreatorSettingsAiPagesTest {
         onFollowingAiChange = {},
         onAiFollowDelayChange = {},
         onTurnReviewShownChange = {},
+        onSceneGridSizeChange = {},
+        onSnappingToGridChange = {},
         onDismiss = {},
         initialPage = initialPage,
         aiPages = listOf(

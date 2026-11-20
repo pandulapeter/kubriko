@@ -16,7 +16,6 @@ whose exhaustive `when`s then show every place it needs.
 ## Scene editor (Creator's own, `ui/scenes`)
 
 - Editors for hand-written types' other state values (through `set_actor_state`).
-- Snapping to a grid, with the grid's size and whether snapping is on by default as Creator settings (Settings → Editor).
 - Keyboard nudging, duplicating, and multi-select.
 - Placing hand-written Actor types (their default state through their metadata).
 - Sprite thumbnails in the sidebar while dragging.
