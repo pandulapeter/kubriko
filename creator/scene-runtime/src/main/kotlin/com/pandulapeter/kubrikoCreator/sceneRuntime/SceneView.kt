@@ -51,6 +51,12 @@ import java.io.File
  */
 public class SceneView(entryPoint: CreatorEntryPoint) {
     private val serializationManager = entryPoint.createSerializationManager()
+    private val _layerFilter = MutableStateFlow(SceneLayerFilter())
+
+    /**
+     * Which layers are hidden and locked, the editor's own choice.
+     */
+    public val layerFilter: StateFlow<SceneLayerFilter> = _layerFilter.asStateFlow()
     /**
      * The Kubriko instance the Scene's Actors are in, which the viewport shows.
      */
@@ -66,6 +72,7 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
         PointerInputManager.newInstance(),
         serializationManager,
         *entryPoint.createCustomManagers().toTypedArray(),
+        LayerFilterManager(_layerFilter),
         // Actors are only drawn once a tick has culled them, and a Scene swapped in while Creator is in the background
         // (its project edited elsewhere) would stay empty until Creator got the focus back.
         tickSource = TickSource.viewportFrames(shouldPauseOnFocusLoss = false),
@@ -120,6 +127,12 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
     private val boundsGrid = SceneBoundsGrid()
     private var isBoundsGridOutdated = true
 
+    /**
+     * The layers of the Actors drawn in the Scene, increasing, null (Actors without a layer) first.
+     */
+    public var layerIndices: List<Int?> = emptyList()
+        private set
+
     private val _loadRevision = MutableStateFlow(0)
 
     /**
@@ -144,6 +157,7 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
         apply(ScenePatch.between(entries, next, drawnRanks) { entry -> this.previews[entry.typeId] != nextPreviews[entry.typeId] }, next, nextPreviews)
         indicesById = entries.withIndex().associate { (index, entry) -> entry.id to index }
         uncreatedIds = uncreatedIdsOf(entries, actors)
+        layerIndices = actors.mapNotNull { actor -> actor?.takeUnless(::isSceneValues) as? LayerAware }.map { it.layerIndex }.distinct().sortedWith(nullsFirst(naturalOrder()))
         _loadRevision.update { it + 1 }
     }
 
@@ -189,26 +203,42 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
     }
 
     /**
-     * The ID of the Actor drawn on top at [screenOffset], in the viewport's pixels.
+     * Hides and locks the layers [filter] says.
      */
-    public fun actorIdAt(screenOffset: Offset): String? {
-        val position = toScene(screenOffset)
-        return currentBoundsGrid().pick(position.x.raw, position.y.raw)?.let { entries[it].id }
+    public fun setLayerFilter(filter: SceneLayerFilter) {
+        _layerFilter.value = filter
     }
 
     /**
+     * The ID of the Actor drawn on top at [screenOffset], in the viewport's pixels, of those the layer filter lets be picked.
+     */
+    public fun actorIdAt(screenOffset: Offset): String? {
+        val position = toScene(screenOffset)
+        return currentBoundsGrid().pick(position.x.raw, position.y.raw, ::isPickable)?.let { entries[it].id }
+    }
+
+    /**
+     * Whether the layer filter lets the Actor [id] be picked, moved, and changed on the canvas: one that isn't drawn
+     * (what a Scene gives a Manager type) always is.
+     */
+    public fun isPickable(id: String): Boolean = boundsOf(id)?.let(::isPickable) ?: true
+
+    private fun isPickable(bounds: SceneHitTest.Bounds) = _layerFilter.value.isPickable(bounds.layerIndex.takeUnless { it == Int.MIN_VALUE })
+
+    /**
      * The IDs of the Actors drawn at least partly inside the rectangle from ([left], [top]) to ([right], [bottom]), in
-     * scene units, in the Scene's order, without the Scene settings.
+     * scene units, in the Scene's order, without the Scene settings and those the layer filter doesn't let be picked.
      */
     public fun actorIdsWithin(left: Float, top: Float, right: Float, bottom: Float): List<String> = currentBoundsGrid().all()
-        .filter { !it.isBackground && it.left <= right && it.right >= left && it.top <= bottom && it.bottom >= top }
+        .filter { !it.isBackground && isPickable(it) && it.left <= right && it.right >= left && it.top <= bottom && it.bottom >= top }
         .sortedBy { it.index }
         .map { entries[it.index].id }
 
     /**
-     * The IDs of the Actors drawn in the Scene, in its order, without the Scene settings and what it gives Manager types.
+     * The IDs of the Actors drawn in the Scene, in its order, without the Scene settings, what it gives Manager types, and
+     * those the layer filter doesn't let be picked.
      */
-    public fun drawnActorIds(): List<String> = entries.indices.filter { index -> boundsAt(index)?.isBackground == false }.map { entries[it].id }
+    public fun drawnActorIds(): List<String> = entries.indices.filter { index -> boundsAt(index)?.let { !it.isBackground && isPickable(it) } == true }.map { entries[it].id }
 
     private fun currentBoundsGrid() = boundsGrid.also {
         if (isBoundsGridOutdated) {

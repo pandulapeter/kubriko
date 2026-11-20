@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.sceneRuntime
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Disposable
+import com.pandulapeter.kubriko.actor.traits.LayerAware
 import com.pandulapeter.kubriko.creator.CreatorEntryPoint
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.sceneEditor.Editable
@@ -26,7 +27,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.float
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import java.util.Collections
@@ -68,6 +72,22 @@ class SceneViewTest {
         assertEquals("a", pickAt(0f, 0f))
         assertEquals("b", pickAt(100f, 0f))
         assertNull(pickAt(50f, 0f))
+    }
+
+    @Test
+    fun hiddenAndLockedLayersCantBePickedSelectedByABoxOrSelectedAll() = runTest {
+        view.load(listOf(box("a", 0f, 0f, layer = 2), box("b", 0f, 0f, layer = 1), box("c", 100f, 0f, layer = null)))
+        assertEquals(listOf(null, 1, 2), view.layerIndices)
+        assertEquals("a", pickAt(0f, 0f))
+        view.setLayerFilter(SceneLayerFilter(locked = setOf(2)))
+        assertEquals("b", pickAt(0f, 0f))
+        assertEquals(listOf("b", "c"), view.actorIdsWithin(-50f, -50f, 150f, 50f))
+        view.setLayerFilter(SceneLayerFilter(hidden = setOf(1), locked = setOf(null, 2)))
+        assertNull(pickAt(0f, 0f))
+        assertEquals(emptyList(), view.drawnActorIds())
+        assertEquals(false, view.isPickable("c"))
+        view.setLayerFilter(SceneLayerFilter())
+        assertEquals(listOf("a", "b", "c"), view.drawnActorIds())
     }
 
     @Test
@@ -226,7 +246,13 @@ class SceneViewTest {
 
     private fun box(id: String, x: Float, y: Float) = SceneActorEntry(TYPE_ID, SceneDocument.blockBuiltState(x, y, SIZE, SIZE), id)
 
-    private class Box(position: SceneOffset, size: Float) : Editable<Box>, Disposable {
+    private fun box(id: String, x: Float, y: Float, layer: Int?) = SceneActorEntry(
+        TYPE_ID,
+        SceneDocument.withStateChanged(SceneDocument.blockBuiltState(x, y, SIZE, SIZE)) { JsonObject(it + ("layer" to JsonPrimitive(layer))) }!!,
+        id,
+    )
+
+    private class Box(position: SceneOffset, size: Float, override val layerIndex: Int? = 0) : Editable<Box>, Disposable, LayerAware {
         override val body = BoxBody(initialPosition = position, initialSize = SceneSize(size.sceneUnit, size.sceneUnit))
         val isDisposed = CountDownLatch(1)
 
@@ -245,7 +271,8 @@ class SceneViewTest {
             val body = Json.parseToJsonElement(json).jsonObject.getValue("body").jsonObject
             val position = body.getValue("position").jsonObject
             val size = body["size"]?.jsonObject?.get("width")?.jsonPrimitive?.float ?: SIZE
-            return Box(SceneOffset(position.getValue("x").jsonPrimitive.float.sceneUnit, position.getValue("y").jsonPrimitive.float.sceneUnit), size)
+            val layer = Json.parseToJsonElement(json).jsonObject["layer"]?.jsonPrimitive?.intOrNull
+            return Box(SceneOffset(position.getValue("x").jsonPrimitive.float.sceneUnit, position.getValue("y").jsonPrimitive.float.sceneUnit), size, layer)
         }
 
         override fun serialize() = json

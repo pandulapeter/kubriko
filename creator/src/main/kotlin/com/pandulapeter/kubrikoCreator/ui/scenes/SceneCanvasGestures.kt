@@ -131,7 +131,7 @@ internal class SceneCanvasGestures(
      * scaled to nothing.
      */
     fun transformableFrameOf(actorId: String, current: Callbacks = callbacks()): ActorFrame? = actorId
-        .takeIf { !view.isBackground(it) && current.canDrag(it) }
+        .takeIf { !view.isBackground(it) && view.isPickable(it) && current.canDrag(it) }
         ?.let(view::frameOf)
         ?.takeIf { it.isInvertible }
 
@@ -160,7 +160,7 @@ internal class SceneCanvasGestures(
      */
     private suspend fun AwaitPointerEventScope.move(current: Callbacks, actorIds: List<String>, pressedId: String, down: PointerInputChange): Boolean {
         val pressed = view.actorOf(pressedId)?.takeIf { current.canDrag(pressedId) } ?: return pan(down)
-        val moved = actorIds.filter { !view.isBackground(it) && current.canDrag(it) }.mapNotNull { id -> view.actorOf(id)?.let { id to it } }
+        val moved = actorIds.filter { !view.isBackground(it) && view.isPickable(it) && current.canDrag(it) }.mapNotNull { id -> view.actorOf(id)?.let { id to it } }
         val starts = moved.map { (_, actor) -> actor.body.position }
         val pressedStart = pressed.body.position
         val hasMoved = dragging(down.id, down.position) { change, modifiers ->
@@ -179,7 +179,7 @@ internal class SceneCanvasGestures(
      */
     fun nudge(dx: Float, dy: Float) {
         val current = callbacks()
-        val moved = current.selectedIds.filter { !view.isBackground(it) && current.canDrag(it) }.mapNotNull { id -> view.actorOf(id)?.let { id to it } }
+        val moved = current.selectedIds.filter { !view.isBackground(it) && view.isPickable(it) && current.canDrag(it) }.mapNotNull { id -> view.actorOf(id)?.let { id to it } }
         if (moved.isEmpty()) return
         val delta = SceneOffset(dx.sceneUnit, dy.sceneUnit)
         moved.forEach { (_, actor) -> actor.body.position += delta }

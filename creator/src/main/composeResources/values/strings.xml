@@ -1492,6 +1492,14 @@
     <string name="settings_snapping_to_grid">Snap to the grid</string>
     <string name="settings_snapping_to_grid_description">Whether Scenes open with moving, resizing, placing, and nudging Actors snapping to the grid. The grid button above a Scene turns it on and off there, and Alt does while you drag.</string>
     <string name="action_snap_to_grid">Snap to the grid</string>
+    <string name="action_scene_layers">Layers</string>
+    <string name="action_show_every_layer">Show and unlock every layer</string>
+    <string name="scene_layer">Layer %1$d</string>
+    <string name="scene_layer_none">Without a layer</string>
+    <string name="scene_layer_shown">Shown</string>
+    <string name="scene_layer_locked">Locked</string>
+    <string name="scene_layer_hidden_state">Hidden</string>
+    <string name="scene_layer_hidden_and_locked_state">Hidden and locked</string>
     <string name="action_stop_snapping_to_grid">Stop snapping to the grid</string>
     <string name="action_use_home_folder">Use the home folder</string>
     <string name="action_open_project_settings">Project settings</string>

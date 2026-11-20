@@ -25,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +44,7 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
+import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneLayerFilter
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneView
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import com.pandulapeter.kubrikoCreator.ui.HealthFindingPlace
@@ -138,6 +140,11 @@ internal fun SceneEditorPane(
     val grid = LocalSceneGrid.current
     var isSnapping by remember(state.scene.file, grid.isSnappingByDefault) { mutableStateOf(grid.isSnappingByDefault) }
     var isSettingsShown by remember(state.scene.file) { mutableStateOf(false) }
+    var layerFilter by remember(state.scene.file) { mutableStateOf(SceneLayerFilter()) }
+    LaunchedEffect(view, layerFilter) {
+        view.setLayerFilter(layerFilter)
+        selection.keepOnly(view::isPickable)
+    }
     SceneHeader(
         sceneName = state.scene.name,
         isOutdated = state.isOutdated,
@@ -149,6 +156,7 @@ internal fun SceneEditorPane(
         onActorListToggled = { isActorListShown = !isActorListShown },
         isSnapping = isSnapping,
         onSnappingToggled = { isSnapping = !isSnapping },
+        layersButton = { SceneLayersOf(view, layerFilter) { layerFilter = it } },
         onPlay = onPlay,
         onReload = onReload,
         onDelete = { onCommand(Invocation(DeleteScene, DeleteScene.Input(state.sceneName))) },
@@ -171,25 +179,13 @@ internal fun SceneEditorPane(
             modifier = Modifier.fillMaxSize(),
         ) {
             if (isActorListShown) {
-                // Read so that the list follows the Actors created from the Scene's content.
-                view.loadRevision.collectAsState().value
-                SceneActorList(
+                SceneActorListPanel(
                     modifier = Modifier.sidePanel(actorListWidth.widthIn(row)),
-                    entries = view.entries,
-                    uncreatedIds = view.uncreatedIds,
-                    selectedIds = selection.selectedIds,
+                    view = view,
+                    selection = selection,
                     flash = flash,
                     managerTypeNames = managerTypeNames,
-                    onSelect = { actorId ->
-                        when {
-                            view.isBackground(actorId) -> isSettingsShown = true
-                            view.entryOf(actorId)?.typeId in managerTypeNames -> selection.select(actorId)
-                            else -> {
-                                selection.select(actorId)
-                                view.centerOn(actorId)
-                            }
-                        }
-                    },
+                    onOpenSceneSettings = { isSettingsShown = true },
                 )
                 PanelSplitter(actorListWidth, row)
             }
@@ -231,6 +227,53 @@ internal fun SceneEditorPane(
 }
 
 /**
+ * The list of [view]'s Actors beside the Scene, following the Scene as it is loaded again: choosing one selects it and
+ * centers the camera on it, and choosing the Scene settings opens them.
+ */
+@Composable
+private fun SceneActorListPanel(
+    view: SceneView,
+    selection: SceneSelection,
+    flash: SceneFlash?,
+    managerTypeNames: Set<String>,
+    onOpenSceneSettings: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    view.loadRevision.collectAsState().value
+    SceneActorList(
+        modifier = modifier,
+        entries = view.entries,
+        uncreatedIds = view.uncreatedIds,
+        selectedIds = selection.selectedIds,
+        flash = flash,
+        managerTypeNames = managerTypeNames,
+        onSelect = { actorId ->
+            when {
+                view.isBackground(actorId) -> onOpenSceneSettings()
+                view.entryOf(actorId)?.typeId in managerTypeNames -> selection.select(actorId)
+                else -> {
+                    selection.select(actorId)
+                    view.centerOn(actorId)
+                }
+            }
+        },
+    )
+}
+
+/**
+ * The menu of the layers [view] draws, following the Scene as it is loaded again, while it draws any.
+ */
+@Composable
+private fun SceneLayersOf(
+    view: SceneView,
+    filter: SceneLayerFilter,
+    onFilterChange: (SceneLayerFilter) -> Unit,
+) {
+    view.loadRevision.collectAsState().value
+    if (view.layerIndices.isNotEmpty()) SceneLayersButton(view.layerIndices, filter, onFilterChange)
+}
+
+/**
  * The Scene settings of [view]'s Scene in a dialog, following the Scene as it is loaded again.
  */
 @Composable
@@ -263,6 +306,7 @@ private fun SceneHeader(
     onActorListToggled: () -> Unit,
     isSnapping: Boolean,
     onSnappingToggled: () -> Unit,
+    layersButton: @Composable () -> Unit,
     onPlay: () -> Unit,
     onReload: () -> Unit,
     onDelete: () -> Unit,
@@ -306,6 +350,7 @@ private fun SceneHeader(
         onClick = onActorListToggled,
         tint = if (isActorListShown) MaterialTheme.colorScheme.primary else LocalContentColor.current,
     )
+    layersButton()
     IconActionButton(
         icon = Res.drawable.ic_grid,
         label = if (isSnapping) Res.string.action_stop_snapping_to_grid else Res.string.action_snap_to_grid,

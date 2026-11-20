@@ -18,7 +18,6 @@ whose exhaustive `when`s then show every place it needs.
 - Editors for hand-written types' other state values (through `set_actor_state`).
 - Placing hand-written Actor types (their default state through their metadata).
 - Sprite thumbnails in the sidebar while dragging.
-- Layer filtering and locking.
 
 None of it needs a library change. A changed Actor is created again, so it is drawn after the others of its drawing order until the
 Scene is opened again; if that shows, Actor types take a new state in place (an `Editable` reloading itself).

@@ -10,6 +10,7 @@
 
 plugins {
     id("kubriko-creator-module")
+    alias(libs.plugins.compose.compiler)
 }
 
 dependencies {

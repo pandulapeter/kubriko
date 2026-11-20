@@ -493,6 +493,10 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   settings, so a stale one never takes the selection later. Several Actors can be selected; a change to them all (a drag,
   a nudge, a duplicate, a removal) is one command, a batch one for more than one, so it is one undo step. Duplicates are
   `restore_actors` with the copied states, which carry hand-written types' values too.
+- Hiding and locking layers (`SceneLayerFilter`) is the editor's own state, never the Scene's: a hidden layer is left out
+  of drawing by `LayerFilterManager`, an editor-only Manager in the view's Kubriko instance, since a Manager's layer
+  Modifier is the one way to do it without an engine change (Principle 4), and hidden or locked layers' Actors are left
+  out of picking, box selection, and selecting all, and out of the selection when the filter changes.
 - Loaded classes are kept across Scenes until a type or a source changes (`markOutdated`), Reload, or the workspace closes. A change
   while a Scene is open builds again in the background, and a change during that build builds once more after it rather than
   cancelling it; the new `SceneView` creates its Actors while the old one is still shown, then takes over its camera. A failed

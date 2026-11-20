@@ -47,6 +47,13 @@ internal class SceneSelection {
     }
 
     /**
+     * Takes the Actors [isKept] refuses out of the selection.
+     */
+    fun keepOnly(isKept: (String) -> Boolean) {
+        if (selectedIds.any { !isKept(it) }) selectedIds = selectedIds.filter(isKept)
+    }
+
+    /**
      * Adds [actorId] to the selection, or takes it out if it is in it.
      */
     fun toggle(actorId: String) = select(if (actorId in selectedIds) selectedIds - actorId else selectedIds + actorId)

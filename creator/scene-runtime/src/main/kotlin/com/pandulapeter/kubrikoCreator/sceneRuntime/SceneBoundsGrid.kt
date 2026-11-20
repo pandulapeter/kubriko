@@ -49,14 +49,14 @@ internal class SceneBoundsGrid(private val cellSize: Float = DEFAULT_CELL_SIZE) 
     /**
      * The index of the Actor drawn on top at [x], [y], or null if there is none: the lowest drawing order wins, and
      * of equal ones the Actor added later, which Kubriko draws later. Backgrounds are only picked when nothing else
-     * is there.
+     * is there. Only bounds [isPickable] takes count.
      */
-    fun pick(x: Float, y: Float): Int? {
+    fun pick(x: Float, y: Float, isPickable: (SceneHitTest.Bounds) -> Boolean = { true }): Int? {
         var picked: SceneHitTest.Bounds? = null
         fun consider(bucket: IndexBucket) {
             for (position in 0 until bucket.size) {
                 val candidate = bounds[bucket[position]] ?: continue
-                if (!candidate.contains(x, y)) continue
+                if (!candidate.contains(x, y) || !isPickable(candidate)) continue
                 val current = picked
                 if (current == null || candidate.isDrawnAbove(current)) picked = candidate
             }
