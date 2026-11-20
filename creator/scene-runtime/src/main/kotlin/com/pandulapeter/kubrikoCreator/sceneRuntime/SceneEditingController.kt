@@ -228,8 +228,14 @@ public class SceneEditingController(
     }
 
     private suspend fun load(classpath: ProjectClasspath, looks: Map<String, ActorTypeLook>) = try {
-        val loaded = createDisposingIfCancelled(ioDispatcher, create = { runtime.entryPointLoader.load(classpath) }, dispose = { it.close() })
-        withContext(ioDispatcher) { actorTypes.update(loaded) }
+        val loaded = createDisposingIfCancelled(
+            ioDispatcher,
+            create = { runtime.entryPointLoader.load(classpath).also(actorTypes::update) },
+            dispose = { loaded ->
+                actorTypes.release(loaded)
+                loaded.close()
+            },
+        )
         LoadResult.Loaded(loaded, looks)
     } catch (exception: EntryPointLoadingException) {
         if (exception.cause != null) classes.requestCleanBuild()

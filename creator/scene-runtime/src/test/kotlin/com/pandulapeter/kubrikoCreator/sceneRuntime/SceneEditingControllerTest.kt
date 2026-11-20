@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.sceneRuntime
 import com.pandulapeter.kubriko.creator.CreatorEntryPoint
+import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
@@ -23,6 +24,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
@@ -622,6 +624,36 @@ class SceneEditingControllerTest {
         assertEquals(1, closedCount)
         controller.reload()
         assertEquals(3, tasks.size, "reloading always builds again")
+    }
+
+    @Test
+    fun theLoadedActorTypesAreKeptUntilTheirClassesAreReleasedEvenWhenTheLoadIsCancelledAsItEnds() = runTest {
+        val typesEntryPoint = object : CreatorEntryPoint {
+            override fun createSerializationManager() = EditableMetadata.newSerializationManagerInstance(
+                EditableMetadata<PreviewActor>(typeId = "Spawner", deserializeState = { error("Not read.") }, instantiate = { error("Not placed.") }),
+            )
+        }
+        loader = EntryPointLoader { LoadedEntryPoint(entryPoint = typesEntryPoint, close = { closedCount++ }) }
+        val controller = createController()
+        controller.open(scene)
+        assertEquals(setOf("Spawner"), controller.actorTypes.typeIds)
+        controller.dispose()
+        advanceTimeBy(6_000)
+        runCurrent()
+        assertEquals(emptySet(), controller.actorTypes.typeIds)
+        assertEquals(1, closedCount)
+        lateinit var cancelled: SceneEditingController
+        loader = EntryPointLoader {
+            cancelled.dispose()
+            LoadedEntryPoint(entryPoint = typesEntryPoint, close = { closedCount++ })
+        }
+        cancelled = createController(scope = CoroutineScope(backgroundScope.coroutineContext + StandardTestDispatcher(testScheduler)))
+        cancelled.open(scene)
+        runCurrent()
+        advanceTimeBy(6_000)
+        runCurrent()
+        assertEquals(emptySet(), cancelled.actorTypes.typeIds)
+        assertEquals(2, closedCount)
     }
 
     @Test
