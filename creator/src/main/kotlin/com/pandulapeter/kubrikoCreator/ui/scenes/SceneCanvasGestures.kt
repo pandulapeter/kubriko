@@ -39,10 +39,11 @@ import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneView
 /**
  * What the Scene canvas does with the pointer: a press on a handle of the only selected Actor resizes or rotates it
  * (Shift keeping a corner's proportions, or turning in steps of [ROTATION_STEP_IN_DEGREES]); one on an Actor selects it
- * (with Shift, Ctrl, or Cmd, adds it to the selection or takes it out), and dragging moves every selected Actor with it
- * (both snapping to the grid while [Callbacks.isSnapping] is on, or with Alt held while it is off); dragging with Shift
- * from where no Actor is selects those its box touches ([marquee]); and dragging elsewhere (or with another button, or
- * on an Actor that can't be moved) moves the camera. What changes the Scene is reported only when the pointer is let go.
+ * (with Ctrl or Cmd, adds it to the selection or takes it out), and dragging moves every selected Actor with it (both
+ * snapping to the grid while [Callbacks.isSnapping] is on, or with Alt held while it is off); with Shift, a click adds
+ * the Actor under it to the selection or takes it out, and a drag, wherever it starts, selects those its box touches too
+ * ([marquee]), so a big Actor underneath never gets in its way; and dragging elsewhere (or with another button, or on an
+ * Actor that can't be moved) moves the camera. What changes the Scene is reported only when the pointer is let go.
  */
 internal class SceneCanvasGestures(
     private val view: SceneView,
@@ -89,14 +90,13 @@ internal class SceneCanvasGestures(
 
     private suspend fun AwaitPointerEventScope.pick(current: Callbacks, modifiers: PointerKeyboardModifiers, down: PointerInputChange) {
         val pickedId = view.actorIdAt(down.position)?.takeUnless(view::isBackground)
-        val isToggling = modifiers.isShiftPressed || modifiers.isCtrlPressed || modifiers.isMetaPressed
         when {
-            pickedId == null && modifiers.isShiftPressed -> selectWithin(current, down)
+            modifiers.isShiftPressed -> selectWithin(current, down, pickedId)
             pickedId == null -> {
                 current.onSelectionChange(emptyList())
                 pan(down)
             }
-            isToggling -> {
+            modifiers.isCtrlPressed || modifiers.isMetaPressed -> {
                 val toggled = if (pickedId in current.selectedIds) current.selectedIds - pickedId else current.selectedIds + pickedId
                 current.onSelectionChange(toggled)
                 if (pickedId in toggled) move(current, toggled, pickedId, down) else pan(down)
@@ -111,10 +111,18 @@ internal class SceneCanvasGestures(
         }
     }
 
-    private suspend fun AwaitPointerEventScope.selectWithin(current: Callbacks, down: PointerInputChange) {
-        dragging(down.id, down.position) { change, _ -> marquee = Rect(down.position, change.position).normalized() }
-        val box = marquee ?: return
+    /**
+     * Selects the Actors the box dragged from [down] touches too, or for a click, adds [tappedId] to the selection or takes
+     * it out.
+     */
+    private suspend fun AwaitPointerEventScope.selectWithin(current: Callbacks, down: PointerInputChange, tappedId: String?) {
+        val hasDragged = dragging(down.id, down.position) { change, _ -> marquee = Rect(down.position, change.position).normalized() }
+        val box = marquee
         marquee = null
+        if (!hasDragged || box == null) {
+            if (tappedId != null) current.onSelectionChange(if (tappedId in current.selectedIds) current.selectedIds - tappedId else current.selectedIds + tappedId)
+            return
+        }
         val topLeft = toScene(box.topLeft)
         val bottomRight = toScene(box.bottomRight)
         current.onSelectionChange((current.selectedIds + view.actorIdsWithin(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y)).distinct())

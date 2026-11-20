@@ -234,12 +234,18 @@ class SceneEditorPaneTest {
     }
 
     @Test
-    fun draggingWithShiftFromWhereNoActorIsSelectsTheActorsItsBoxTouches() = uiTest(width = 900, height = 600) {
+    fun draggingWithShiftSelectsTheActorsItsBoxTouchesWhereverItStarts() = uiTest(width = 900, height = 600) {
         val wall = ball.copy(id = "wall", state = SceneDocument.blockBuiltState(200f, 0f, 60f, 60f))
         showPane(MutableSharedFlow(), actors = { listOf(bigBall, wall) }, previews = mapOf("Ball" to blue))
         waitUntil(timeoutMillis = 5_000) { ballColor() == Color(blue.color) }
         onRoot().performKeyInput { keyDown(Key.ShiftLeft) }
         onRoot().performMouseInput { dragBy(Offset(BALL_X - 120f, BALL_Y - 80f), Offset(360f, 100f)) }
+        onRoot().performKeyInput { keyUp(Key.ShiftLeft) }
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("2 Actors")).fetchSemanticsNodes().isNotEmpty() }
+        onRoot().performKeyInput { pressKey(Key.Escape) }
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText(INSPECTOR_HINT)).fetchSemanticsNodes().isNotEmpty() }
+        onRoot().performKeyInput { keyDown(Key.ShiftLeft) }
+        onRoot().performMouseInput { dragBy(Offset(BALL_X.toFloat(), BALL_Y.toFloat()), Offset(230f, 10f)) }
         onRoot().performKeyInput { keyUp(Key.ShiftLeft) }
         waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("2 Actors")).fetchSemanticsNodes().isNotEmpty() }
     }
