@@ -80,6 +80,23 @@ class ActorFrameTest {
     }
 
     @Test
+    fun anUnrotatedBoxsDraggedCornerLandsOnTheGridAndKeepsItsProportionsWithShift() {
+        val unrotated = ActorFrame(position = Offset(5f, 5f), size = Offset(10f, 30f), pivot = Offset(5f, 15f))
+        val grid = { value: Float -> Math.round(value / 16f) * 16f }
+        val snapped = unrotated.resized(FrameHandle.BOTTOM_RIGHT, Offset(29f, 35f), snap = grid)
+        assertNear(Offset(32f, 32f), snapped.pointOf(FrameHandle.BOTTOM_RIGHT))
+        val proportional = unrotated.resized(FrameHandle.BOTTOM_RIGHT, Offset(14f, 33f), keepsProportions = true, snap = grid)
+        assertNear(1f / 3f, proportional.size.x / proportional.size.y)
+    }
+
+    @Test
+    fun aRotatedBoxKeepingItsProportionsSnapsOnlyItsLeadingSide() {
+        val tall = frame.copy(size = Offset(10f, 30f), pivot = Offset(5f, 15f))
+        val resized = tall.resized(FrameHandle.BOTTOM_RIGHT, tall.toScene(Offset(13f, 39f)), keepsProportions = true, snap = { Math.round(it / 16f) * 16f })
+        assertNear(Offset(16f, 48f), resized.size)
+    }
+
+    @Test
     fun rotatingTurnsAroundThePivotAndCanGoInSteps() {
         val pivot = frame.position
         val rotated = frame.rotated(pivot + Offset(10f, 0f), pivot + Offset(0f, 10f))

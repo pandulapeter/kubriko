@@ -208,12 +208,12 @@ internal class SceneCanvasGestures(
     }
 
     /**
-     * Rounds to [Callbacks.grid] while snapping is on, which Alt turns the other way while it is held.
+     * Rounds to [Callbacks.grid] while snapping is on, which Alt turns the other way while it is held, or null.
      */
-    private fun snapping(current: Callbacks, modifiers: PointerKeyboardModifiers): (Float) -> Float =
-        if (current.isSnapping != modifiers.isAltPressed) current.grid::snap else { value -> value }
+    private fun snapping(current: Callbacks, modifiers: PointerKeyboardModifiers): ((Float) -> Float)? =
+        if (current.isSnapping != modifiers.isAltPressed) current.grid::snap else null
 
-    private operator fun ((Float) -> Float).invoke(point: Offset) = Offset(this(point.x), this(point.y))
+    private operator fun ((Float) -> Float)?.invoke(point: Offset) = if (this == null) point else Offset(this(point.x), this(point.y))
 
     private suspend fun AwaitPointerEventScope.pan(down: PointerInputChange): Boolean {
         var lastPosition = down.position

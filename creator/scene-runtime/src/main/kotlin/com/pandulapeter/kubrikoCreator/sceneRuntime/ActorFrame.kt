@@ -73,29 +73,37 @@ public data class ActorFrame(
     /**
      * The box resized by dragging [handle] to [pointer] (in the Scene), with the opposite edge or corner staying where it
      * is, every side at least [minimumSize] long, and the pivot where it was in proportion to the size. [keepsProportions]
-     * keeps a corner's width and height in proportion. [snap] rounds the new width and height (to a grid, say).
+     * keeps a corner's width and height in proportion. [snap] rounds to a grid: an unrotated box's dragged edge or corner
+     * lands on its lines, and a rotated box's sides, which can't, are as long as a number of its squares; a box keeping
+     * its proportions snaps only the side that leads, the other following it.
      */
     public fun resized(
         handle: FrameHandle,
         pointer: Offset,
         keepsProportions: Boolean = false,
         minimumSize: Float = MINIMUM_SIZE,
-        snap: (Float) -> Float = { it },
+        snap: ((Float) -> Float)? = null,
     ): ActorFrame {
-        val inBox = toBox(pointer)
+        val isAxisAligned = rotation == 0f
+        val inBox = toBox(if (snap != null && isAxisAligned) Offset(snap(pointer.x), snap(pointer.y)) else pointer)
         var width = edgeLength(handle.fractionX, inBox.x, size.x)
         var height = edgeLength(handle.fractionY, inBox.y, size.y)
+        val lengthSnap = snap.takeUnless { isAxisAligned }
         if (keepsProportions && handle.isCorner) {
-            val factor = max(width / size.x, height / size.y)
+            val isWidthLeading = width / size.x >= height / size.y
+            var factor = if (isWidthLeading) width / size.x else height / size.y
+            if (lengthSnap != null) factor = if (isWidthLeading) lengthSnap(width) / size.x else lengthSnap(height) / size.y
             width = size.x * factor
             height = size.y * factor
+        } else if (lengthSnap != null) {
+            if (handle.fractionX != 0.5f) width = lengthSnap(width)
+            if (handle.fractionY != 0.5f) height = lengthSnap(height)
         }
-        width = max(minimumSize, if (handle.fractionX == 0.5f) width else snap(width))
-        height = max(minimumSize, if (handle.fractionY == 0.5f) height else snap(height))
+        width = max(minimumSize, width)
+        height = max(minimumSize, height)
         val left = if (handle.fractionX == 0f) size.x - width else 0f
         val top = if (handle.fractionY == 0f) size.y - height else 0f
-        val pivotFraction = Offset(pivot.x / size.x, pivot.y / size.y)
-        val nextPivot = Offset(width * pivotFraction.x, height * pivotFraction.y)
+        val nextPivot = Offset(width * pivot.x / size.x, height * pivot.y / size.y)
         return copy(position = toScene(Offset(left + nextPivot.x, top + nextPivot.y)), size = Offset(width, height), pivot = nextPivot)
     }
 
