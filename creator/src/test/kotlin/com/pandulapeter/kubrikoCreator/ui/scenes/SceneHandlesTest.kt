@@ -10,7 +10,8 @@
 package com.pandulapeter.kubrikoCreator.ui.scenes
 
 import androidx.compose.ui.geometry.Offset
-import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
+import com.pandulapeter.kubrikoCreator.commands.scenes.ActorValueChanges
+import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsValues
 import com.pandulapeter.kubrikoCreator.sceneRuntime.ActorFrame
 import com.pandulapeter.kubrikoCreator.sceneRuntime.FrameHandle
 import kotlin.math.PI
@@ -43,7 +44,15 @@ class SceneHandlesTest {
     @Test
     fun resizingSetsThePositionAndSizeAndRotatingOnlyTheRotation() {
         val resized = frame.copy(position = Offset(60f, 50f), size = Offset(120f, 40f))
-        assertEquals(SetActorValues.Input("main", "a", x = 60f, y = 50f, width = 120f, height = 40f), transformInputOf("main", "a", FrameHandle.RIGHT, resized))
-        assertEquals(SetActorValues.Input("main", "a", rotation = 90f), transformInputOf("main", "a", FrameHandle.ROTATE, frame.copy(rotation = (PI / 2).toFloat())))
+        assertEquals(
+            SetActorsValues.Input("main", listOf(ActorValueChanges("a", x = 60f, y = 50f, width = 120f, height = 40f))),
+            transformInputOf("main", "a", FrameHandle.RIGHT, resized),
+        )
+        assertEquals(SetActorsValues.Input("main", listOf(ActorValueChanges("a", rotation = 90f))), transformInputOf("main", "a", FrameHandle.ROTATE, frame.copy(rotation = (PI / 2).toFloat())))
+    }
+
+    @Test
+    fun everyDragOfAHandleIsAnUndoStepOfItsOwn() {
+        assertNull(SetActorsValues.mergeKey(transformInputOf("main", "a", FrameHandle.RIGHT, frame)))
     }
 }

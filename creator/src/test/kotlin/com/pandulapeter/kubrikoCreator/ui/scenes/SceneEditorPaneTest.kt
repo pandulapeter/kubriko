@@ -48,7 +48,6 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActors
 import com.pandulapeter.kubrikoCreator.commands.scenes.RestoreActors
-import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneValues
 import com.pandulapeter.kubrikoCreator.context.HealthFinding
@@ -155,7 +154,7 @@ class SceneEditorPaneTest {
         saveSnapshot("scene-editor-handles")
         onRoot().performMouseInput { dragBy(Offset(BALL_X + 80f, BALL_Y.toFloat()), Offset(40f, 0f)) }
         waitForIdle()
-        val resize = commands.single().input as SetActorValues.Input
+        val resize = (commands.single().input as SetActorsValues.Input).actors.single()
         assertEquals(200f, resize.width!!, absoluteTolerance = 1f)
         assertEquals(100f, resize.height!!, absoluteTolerance = 0.01f)
         assertEquals(20f, resize.x!!, absoluteTolerance = 1f)
@@ -163,7 +162,7 @@ class SceneEditorPaneTest {
         // The commands aren't applied, so the Ball stays as the drag left it: 40 pixels wider, its middle 20 to the right.
         onRoot().performMouseInput { dragBy(Offset(BALL_X + 20f, BALL_Y - 50f - 24f), Offset(74f, 74f)) }
         waitForIdle()
-        assertEquals(SetActorValues.Input("level", "ball", rotation = 90f), (commands.single().input as SetActorValues.Input).let { it.copy(rotation = it.rotation?.let(Math::round)?.toFloat()) })
+        assertEquals(90, (commands.single().input as SetActorsValues.Input).actors.single().rotation?.let(Math::round))
     }
 
     @Test

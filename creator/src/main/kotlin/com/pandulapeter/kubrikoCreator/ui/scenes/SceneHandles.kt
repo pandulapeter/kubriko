@@ -17,7 +17,8 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
-import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
+import com.pandulapeter.kubrikoCreator.commands.scenes.ActorValueChanges
+import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsValues
 import com.pandulapeter.kubrikoCreator.sceneRuntime.ActorFrame
 import com.pandulapeter.kubrikoCreator.sceneRuntime.FrameHandle
 
@@ -59,14 +60,20 @@ internal fun handleAt(frame: ActorFrame, pointer: Offset, metrics: HandleMetrics
     ?.first
 
 /**
- * What `set_actor_values` takes to give the Actor [actorId] of [sceneName] the frame [after], which dragging [handle] made:
- * its position and size for a resizing handle, its rotation for the rotating one.
+ * What `set_actors_values` takes to give the Actor [actorId] of [sceneName] the frame [after], which dragging [handle]
+ * made: its position and size for a resizing handle, its rotation for the rotating one. Unlike `set_actor_values`, which
+ * merges the changes of one field typed in a row into one undo step, it keeps every drag a step of its own.
  */
-internal fun transformInputOf(sceneName: String, actorId: String, handle: FrameHandle, after: ActorFrame): SetActorValues.Input = if (handle == FrameHandle.ROTATE) {
-    SetActorValues.Input(sceneName, actorId, rotation = ActorFrame.degreesOf(after.rotation))
-} else {
-    SetActorValues.Input(sceneName, actorId, x = after.position.x, y = after.position.y, width = after.size.x, height = after.size.y)
-}
+internal fun transformInputOf(sceneName: String, actorId: String, handle: FrameHandle, after: ActorFrame): SetActorsValues.Input = SetActorsValues.Input(
+    sceneName,
+    listOf(
+        if (handle == FrameHandle.ROTATE) {
+            ActorValueChanges(actorId, rotation = ActorFrame.degreesOf(after.rotation))
+        } else {
+            ActorValueChanges(actorId, x = after.position.x, y = after.position.y, width = after.size.x, height = after.size.y)
+        },
+    ),
+)
 
 /**
  * Draws the outline of [frame], following its rotation, filled or in [style].

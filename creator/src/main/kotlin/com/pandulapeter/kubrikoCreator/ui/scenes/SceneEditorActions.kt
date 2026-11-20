@@ -16,7 +16,6 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.PlaceActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActors
 import com.pandulapeter.kubrikoCreator.commands.scenes.RestoreActors
-import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsValues
 import com.pandulapeter.kubrikoCreator.sceneRuntime.ActorFrame
 import com.pandulapeter.kubrikoCreator.sceneRuntime.FrameHandle
@@ -45,7 +44,7 @@ internal class SceneEditorActions(
         }
     }
 
-    fun transform(actorId: String, handle: FrameHandle, after: ActorFrame) = onCommand(Invocation(SetActorValues, transformInputOf(sceneName, actorId, handle, after)))
+    fun transform(actorId: String, handle: FrameHandle, after: ActorFrame) = onCommand(Invocation(SetActorsValues, transformInputOf(sceneName, actorId, handle, after)))
 
     fun place(actorTypeName: String, x: Float, y: Float) {
         val actorId = SceneDocument.newId(view.entries.map { it.id })

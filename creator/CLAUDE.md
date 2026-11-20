@@ -484,7 +484,7 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   and dispatches `move_actor` when let go, only for an Actor whose state saves a position (`canDragActor`); any other press pans.
   Such an Actor with a box has handles (`ActorFrame`, in Kubriko's own transform), resizing it with the opposite edge staying
   and its pivot kept in proportion, as `set_actor_values` keeps a saved one, or rotating it around its pivot, as one
-  `set_actor_values` when let go. Moving, resizing, placing, and nudging snap to a grid (`SceneGrid`) whose size and
+  `set_actors_values` when let go, which never merges, so each drag is an undo step of its own. Moving, resizing, placing, and nudging snap to a grid (`SceneGrid`) whose size and
   default are Creator settings, since they are the user's habit rather than the project's; the header's switch holds for
   the open Scene only, and Alt turns it the other way while a drag lasts.
 - A placed or duplicated Actor is selected, and so are those the user's undo or redo brings back (`CommandExecutor.broughtBack`,
