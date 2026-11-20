@@ -11,9 +11,12 @@ package com.pandulapeter.kubrikoCreator.commands.scenes
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
+import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
+import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
+import com.pandulapeter.kubrikoCreator.commands.testScope
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.scenes.HandWrittenActorTypes
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
@@ -22,6 +25,7 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
@@ -60,5 +64,25 @@ class HandWrittenPlacementTest {
         assertNotNull(PlaceActor.validate(context, PlaceActor.Input("main", SceneSettingsCodeGenerator.SETTINGS_NAME, 0f, 0f)))
         assertNotNull(PlaceActor.validate(context(HandWrittenActorTypes.None), PlaceActor.Input("main", "Spawner", 0f, 0f)))
         assertFailsWith<IllegalStateException> { PlaceActor.apply(context, PlaceActor.Input("main", "Broken", 0f, 0f)) }
+    }
+
+    @Test
+    fun redoingAPlacementBringsBackTheStateItWasPlacedWithEvenOnceTheClassesAreGone() = runTest {
+        var handWritten: HandWrittenActorTypes = loaded
+        val context = commandContext(ball, handWrittenActorTypes = object : HandWrittenActorTypes {
+            override val typeIds get() = handWritten.typeIds
+
+            override fun newState(typeId: String, x: Float, y: Float) = handWritten.newState(typeId, x, y)
+        }).apply {
+            @OptIn(EditorMutation::class)
+            scenes.write("main", "[]")
+        }
+        val executor = CommandExecutor(context, testScope())
+        assertIs<CommandOutcome.Success>(executor.execute(Invocation(PlaceActor, PlaceActor.Input("main", "Spawner", 3f, 4f, actorId = "spawner"))))
+        val placed = context.scenes.read("main")
+        executor.undo()
+        handWritten = HandWrittenActorTypes.None
+        executor.redo()
+        assertEquals(placed, context.scenes.read("main"))
     }
 }
