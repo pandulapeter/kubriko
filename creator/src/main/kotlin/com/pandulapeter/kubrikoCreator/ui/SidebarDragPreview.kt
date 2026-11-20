@@ -71,22 +71,24 @@ internal fun SidebarDragPreview(
  * type's shape in its color.
  */
 internal sealed interface DraggedLook {
-    data class Sprite(val file: File?, val sheet: SpriteSheet?, val tint: Color? = null) : DraggedLook
+    data class Sprite(val file: File, val sheet: SpriteSheet?, val tint: Color? = null) : DraggedLook
 
     data class Shape(val shape: ActorShape, val color: Color) : DraggedLook
 }
 
 /**
  * How [dragged] looks, from [actorTypes] and [sprites]: a sprite as itself, an Actor type as its sprite (tinted if it is)
- * or its shape, and anything else, or a folder, as nothing.
+ * or its shape (also when its sprite's file isn't among [sprites]), and anything else, a folder, or a sprite whose file
+ * isn't there as nothing, which shows its icon.
  */
 internal fun draggedLookOf(dragged: SidebarDragState.Dragged, actorTypes: List<ActorTypeDefinition>, sprites: SpriteChoices): DraggedLook? = when {
     dragged.isFolder -> null
-    dragged.group == FolderGroup.SPRITES -> DraggedLook.Sprite(sprites.fileOf(dragged.name), sprites.sheetOf(dragged.name))
+    dragged.group == FolderGroup.SPRITES -> sprites.fileOf(dragged.name)?.let { DraggedLook.Sprite(it, sprites.sheetOf(dragged.name)) }
     dragged.group == FolderGroup.ACTOR_TYPES -> actorTypes.firstOrNull { it.name == dragged.name }?.let { type ->
         val sprite = type.sprite
-        if (sprite != null) {
-            DraggedLook.Sprite(sprites.fileOf(sprite), sprites.sheetOf(sprite), Color(type.color).takeIf { type.tintsSprite })
+        val file = sprite?.let(sprites::fileOf)
+        if (sprite != null && file != null) {
+            DraggedLook.Sprite(file, sprites.sheetOf(sprite), Color(type.color).takeIf { type.tintsSprite })
         } else {
             DraggedLook.Shape(type.shape, Color(type.color))
         }

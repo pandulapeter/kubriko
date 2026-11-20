@@ -50,6 +50,9 @@ class SidebarDragPreviewTest {
         assertEquals(DraggedLook.Shape(ActorShape.RECTANGLE, Color(0xFF445566)), draggedLookOf(dragged("Ball", FolderGroup.ACTOR_TYPES), listOf(tinted, ball), sprites))
         assertNull(draggedLookOf(dragged("Ball", FolderGroup.ACTOR_TYPES).copy(isFolder = true), listOf(ball), sprites))
         assertNull(draggedLookOf(dragged("level", FolderGroup.SCENES), listOf(ball), sprites))
+        assertNull(draggedLookOf(dragged("drawable/gone.png", FolderGroup.SPRITES), emptyList(), sprites))
+        val gone = tinted.copy(name = "Ghost", sprite = "drawable/gone.png", shape = ActorShape.CIRCLE)
+        assertEquals(DraggedLook.Shape(ActorShape.CIRCLE, Color(0xFF112233)), draggedLookOf(dragged("Ghost", FolderGroup.ACTOR_TYPES), listOf(gone), sprites))
     }
 
     @Test
