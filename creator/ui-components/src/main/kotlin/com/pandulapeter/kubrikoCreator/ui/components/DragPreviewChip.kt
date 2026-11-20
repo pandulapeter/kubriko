@@ -41,6 +41,7 @@ import org.jetbrains.compose.resources.painterResource
  * What is being dragged, as a chip following the pointer over the area [modifier] covers.
  *
  * @param pointer Where the pointer is in the root, read only while placing the chip, so that moving it doesn't recompose.
+ * @param thumbnail What it looks like, drawn in place of [icon] when there is one.
  */
 @Composable
 public fun DragPreviewChip(
@@ -49,6 +50,7 @@ public fun DragPreviewChip(
     tint: Color,
     text: String,
     modifier: Modifier = Modifier.fillMaxSize(),
+    thumbnail: (@Composable () -> Unit)? = null,
 ) {
     var origin by remember { mutableStateOf(Offset.Zero) }
     Box(
@@ -63,12 +65,16 @@ public fun DragPreviewChip(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(
-                modifier = Modifier.size(16.dp),
-                painter = painterResource(icon),
-                contentDescription = null,
-                tint = tint,
-            )
+            if (thumbnail != null) {
+                Box(modifier = Modifier.size(THUMBNAIL_SIZE)) { thumbnail() }
+            } else {
+                Icon(
+                    modifier = Modifier.size(16.dp),
+                    painter = painterResource(icon),
+                    contentDescription = null,
+                    tint = tint,
+                )
+            }
             Text(
                 text = text,
                 style = MaterialTheme.typography.bodyMedium,
@@ -76,3 +82,5 @@ public fun DragPreviewChip(
         }
     }
 }
+
+private val THUMBNAIL_SIZE = 32.dp

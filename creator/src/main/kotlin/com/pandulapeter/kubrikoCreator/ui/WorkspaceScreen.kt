@@ -237,7 +237,7 @@ private fun WorkspaceContent(
                 availableHeight = columnHeight,
             )
         }
-        SidebarDragPreview(sidebarDragState)
+        SidebarDragPreview(sidebarDragState, blockTypes, resources, controller.commands.context)
     }
 }
 
