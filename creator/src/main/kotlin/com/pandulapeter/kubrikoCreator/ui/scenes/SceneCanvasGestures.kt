@@ -30,11 +30,11 @@ import androidx.compose.ui.input.pointer.isShiftPressed
 import androidx.compose.ui.input.pointer.pointerInput
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubrikoCreator.sceneRuntime.ActorFrame
 import com.pandulapeter.kubrikoCreator.sceneRuntime.FrameHandle
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneView
+import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 
 /**
  * What the Scene canvas does with the pointer: a press on a handle of the only selected Actor resizes or rotates it
@@ -185,9 +185,14 @@ internal class SceneCanvasGestures(
     }
 
     /**
-     * The Actors the arrow keys are moving, while a key is held, which [commitNudge] reports.
+     * The Actors the arrow keys are moving, while a key is held, and how far, which [commitNudge] reports.
      */
-    private var nudged: List<Pair<String, Editable<*>>>? = null
+    private var nudged: Nudge? = null
+
+    private class Nudge(val actorIds: List<String>) {
+        var dx = 0f
+        var dy = 0f
+    }
 
     /**
      * Moves the selected Actors that can be moved by [dx] and [dy] scene units at once, as an arrow key does, every
@@ -196,24 +201,42 @@ internal class SceneCanvasGestures(
      */
     fun nudge(dx: Float, dy: Float): Boolean {
         val current = callbacks()
-        val moved = nudged ?: current.selectedIds.filter { !view.isBackground(it) && view.isPickable(it) && current.canDrag(it) }.mapNotNull { id -> view.actorOf(id)?.let { id to it } }
-        if (moved.isEmpty()) return false
-        val delta = SceneOffset(dx.sceneUnit, dy.sceneUnit)
-        moved.forEach { (_, actor) -> actor.body.position += delta }
-        nudged = moved
+        val nudge = nudged ?: current.selectedIds.filter { !view.isBackground(it) && view.isPickable(it) && current.canDrag(it) }.takeIf { it.isNotEmpty() }?.let(::Nudge) ?: return false
+        nudge.dx += dx
+        nudge.dy += dy
+        nudged = nudge
+        place(nudge)
         current.onDragged()
         return true
+    }
+
+    /**
+     * Puts the Actors a held arrow key moves where it moved them again after the Scene was loaded again, which put them
+     * where the Scene file says.
+     */
+    fun onLoaded() {
+        nudged?.let(::place)
     }
 
     /**
      * Reports where the arrow keys moved the Actors, if they moved any since the last time; whether they did.
      */
     fun commitNudge(): Boolean {
-        val moved = nudged ?: return false
+        val nudge = nudged ?: return false
         nudged = null
-        callbacks().onMove(moved.map { (id, actor) -> ActorMove(id, actor.body.position.x.raw, actor.body.position.y.raw) })
+        val moves = movesOf(nudge)
+        if (moves.isNotEmpty()) callbacks().onMove(moves)
         return true
     }
+
+    /**
+     * Where [nudge] moves its Actors that are still in the Scene: from where the Scene file has them, as the reports go.
+     */
+    private fun movesOf(nudge: Nudge) = nudge.actorIds.mapNotNull { id ->
+        view.entryOf(id)?.state?.let(SceneDocument::positionOf)?.let { (x, y) -> ActorMove(id, x + nudge.dx, y + nudge.dy) }
+    }
+
+    private fun place(nudge: Nudge) = movesOf(nudge).forEach { move -> view.actorOf(move.actorId)?.body?.position = SceneOffset(move.x.sceneUnit, move.y.sceneUnit) }
 
     /**
      * Rounds to [Callbacks.grid] while snapping is on, which Alt turns the other way while it is held, or null.

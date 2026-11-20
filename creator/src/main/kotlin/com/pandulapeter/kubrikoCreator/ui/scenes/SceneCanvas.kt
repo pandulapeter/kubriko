@@ -130,6 +130,9 @@ internal fun SceneCanvas(
     DisposableEffect(gestures) {
         onDispose { gestures.commitNudge() }
     }
+    LaunchedEffect(gestures) {
+        view.loadRevision.collect { gestures.onLoaded() }
+    }
     Box(
         modifier = modifier
             .background(MaterialTheme.colorScheme.surfaceContainerLowest)
@@ -149,6 +152,7 @@ internal fun SceneCanvas(
                 if (event.type == KeyEventType.KeyUp) return@onKeyEvent gestures.commitNudge()
                 if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
                 val action = SceneKeyAction.of(event.key, event.isShiftPressed, event.isCtrlPressed || event.isMetaPressed, step) ?: return@onKeyEvent false
+                if (action !is SceneKeyAction.Nudge) gestures.commitNudge()
                 performSceneKeyAction(
                     action = action,
                     selectedIds = currentSelectedIds,

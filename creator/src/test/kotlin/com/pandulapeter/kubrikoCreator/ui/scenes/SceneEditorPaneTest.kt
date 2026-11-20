@@ -198,6 +198,8 @@ class SceneEditorPaneTest {
         onRoot().performMouseInput { dragBy(Offset(BALL_X.toFloat(), BALL_Y.toFloat()), Offset(30f, 20f)) }
         waitForIdle()
         assertEquals(listOf(30f to 20f, 230f to 20f), (commands.single().input as SetActorsValues.Input).actors.map { it.x!! to it.y!! })
+        actors = listOf(bigBall.copy(state = SceneDocument.blockBuiltState(30f, 20f, 160f, 100f)), wall.copy(state = SceneDocument.blockBuiltState(230f, 20f, 60f, 60f)))
+        waitForIdle()
         commands.clear()
         onRoot().performKeyInput { keyDown(Key.DirectionRight) }
         assertEquals(emptyList(), commands, "A held arrow key reported its move before it was let go.")
@@ -212,6 +214,26 @@ class SceneEditorPaneTest {
         commands.clear()
         onRoot().performKeyInput { pressKey(Key.Delete) }
         assertEquals(copies.map { it.actorId }, (commands.single().input as RemoveActors.Input).actorIds)
+    }
+
+    @Test
+    fun aHeldArrowKeysMoveIsReportedBeforeAnotherKeyActsAndFollowsTheSceneLoadedAgain() = uiTest(width = 900, height = 600) {
+        val commands = mutableListOf<Invocation<*>>()
+        var actors by mutableStateOf(listOf(bigBall))
+        showPane(MutableSharedFlow(), actors = { actors }, previews = mapOf("Ball" to blue), onCommand = { commands += it })
+        waitUntil(timeoutMillis = 5_000) { ballColor() == Color(blue.color) }
+        onRoot().performMouseInput { click(Offset(BALL_X.toFloat(), BALL_Y.toFloat())) }
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasContentDescription(REMOVE)).fetchSemanticsNodes().isNotEmpty() }
+        onRoot().performKeyInput { keyDown(Key.DirectionRight) }
+        actors = listOf(ball.copy(state = SceneDocument.blockBuiltState(50f, 7f, 160f, 100f)))
+        waitForIdle()
+        onRoot().performKeyInput { keyUp(Key.DirectionRight) }
+        assertEquals(listOf<Invocation<*>>(Invocation(MoveActor, MoveActor.Input("level", "ball", 51f, 7f))), commands)
+        commands.clear()
+        onRoot().performKeyInput { keyDown(Key.DirectionRight) }
+        onRoot().performKeyInput { pressKey(Key.Delete) }
+        onRoot().performKeyInput { keyUp(Key.DirectionRight) }
+        assertEquals(listOf(MoveActor, RemoveActor), commands.map { it.command })
     }
 
     @Test
