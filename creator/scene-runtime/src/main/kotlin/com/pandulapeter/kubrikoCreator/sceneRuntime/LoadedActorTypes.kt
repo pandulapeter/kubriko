@@ -14,6 +14,7 @@ import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator
 import com.pandulapeter.kubrikoCreator.scenes.HandWrittenActorTypes
 
 /**
@@ -43,7 +44,7 @@ public class LoadedActorTypes : HandWrittenActorTypes {
     internal fun update(loaded: LoadedEntryPoint) {
         current = runProjectCode {
             val serializationManager = loaded.entryPoint.createSerializationManager()
-            Current(loaded, serializationManager, serializationManager.registeredTypeIds.toSet())
+            Current(loaded, serializationManager, handWrittenTypeIdsOf(serializationManager))
         }
     }
 
@@ -63,4 +64,12 @@ public class LoadedActorTypes : HandWrittenActorTypes {
     } catch (_: NotImplementedError) {
         null
     }
+}
+
+/**
+ * The type IDs [serializationManager] registers for classes written by hand: those outside the package Kubriko Creator
+ * generates into, so a block-built type deleted since the classes were built doesn't pass for one.
+ */
+internal fun handWrittenTypeIdsOf(serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>): Set<String> = serializationManager.registeredTypeIds.filterTo(HashSet()) { typeId ->
+    serializationManager.getMetadata(typeId)?.type?.java?.packageName?.let { it == ActorTypeCodeGenerator.GENERATED_PACKAGE || it.endsWith(".${ActorTypeCodeGenerator.GENERATED_PACKAGE}") } == false
 }

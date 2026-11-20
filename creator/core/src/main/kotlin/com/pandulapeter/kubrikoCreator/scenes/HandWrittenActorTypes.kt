@@ -15,8 +15,7 @@ package com.pandulapeter.kubrikoCreator.scenes
  */
 public interface HandWrittenActorTypes {
     /**
-     * The type IDs the loaded classes register (block-built ones and Creator's own among them), none while none are
-     * loaded.
+     * The type IDs of the Actor types written by hand that the loaded classes register, none while none are loaded.
      */
     public val typeIds: Set<String>
 

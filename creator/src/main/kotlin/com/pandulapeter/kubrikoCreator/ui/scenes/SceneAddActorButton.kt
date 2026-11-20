@@ -38,11 +38,11 @@ internal fun SceneAddActorButton(
 
 /**
  * The Actor types an Actor can be placed of: the block-built ones among [blockBuiltActorTypes], then those written by
- * hand, which the project's classes register ([registeredTypeIds]) besides the block-built Actor types and Manager types
- * ([managerTypes]) and the Scene settings, each group in alphabetical order.
+ * hand ([handWrittenTypeIds]) that aren't block-built Actor types or Manager types ([managerTypes]) or the Scene settings
+ * by name, each group in alphabetical order.
  */
-internal fun placeableActorTypesOf(registeredTypeIds: Set<String>, blockBuiltActorTypes: List<String>, managerTypes: Collection<String>): List<String> {
+internal fun placeableActorTypesOf(handWrittenTypeIds: Set<String>, blockBuiltActorTypes: List<String>, managerTypes: Collection<String>): List<String> {
     val blockBuilt = blockBuiltActorTypes.toSet()
-    val handWritten = registeredTypeIds.filter { it !in blockBuilt && it !in managerTypes && it != SceneSettingsCodeGenerator.SETTINGS_NAME }
+    val handWritten = handWrittenTypeIds.filter { it !in blockBuilt && it !in managerTypes && it != SceneSettingsCodeGenerator.SETTINGS_NAME }
     return blockBuiltActorTypes.sorted() + handWritten.sorted()
 }

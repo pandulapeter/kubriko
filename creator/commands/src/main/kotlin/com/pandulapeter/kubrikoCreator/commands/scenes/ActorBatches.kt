@@ -36,8 +36,8 @@ internal fun CommandContext.validatePlacements(scene: String, placements: List<P
     }
 
 /**
- * The Actor types written by hand that the project's loaded classes register, which can be placed like block-built ones:
- * every type they register but the block-built ones and the Scene settings.
+ * The Actor types written by hand that the project's loaded classes register, which can be placed like block-built ones,
+ * without any that share a block-built type's name or the Scene settings'.
  */
 internal fun CommandContext.handWrittenActorTypeIds(): Set<String> {
     val registered = handWrittenActorTypes.typeIds

@@ -278,7 +278,7 @@ private fun SceneToolsOf(
     onPlace: (actorTypeName: String) -> Unit,
 ) {
     view.loadRevision.collectAsState().value
-    val placeable = remember(view, actorTypes, managerTypeNames) { placeableActorTypesOf(view.registeredTypeIds, actorTypes.map { it.name }, managerTypeNames) }
+    val placeable = remember(view, actorTypes, managerTypeNames) { placeableActorTypesOf(view.handWrittenTypeIds, actorTypes.map { it.name }, managerTypeNames) }
     SceneAddActorButton(placeable, onPlace)
     if (view.layerIndices.isNotEmpty()) SceneLayersButton(view.layerIndices, layerFilter, onLayerFilterChange)
 }

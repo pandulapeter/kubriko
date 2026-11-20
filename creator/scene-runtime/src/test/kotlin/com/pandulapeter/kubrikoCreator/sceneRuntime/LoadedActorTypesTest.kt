@@ -15,6 +15,7 @@ import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.Serializable
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubrikoCreator.sceneRuntime.generated.GeneratedBrick
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -22,7 +23,7 @@ import kotlin.test.assertNull
 class LoadedActorTypesTest {
 
     @Test
-    fun theTypesOfTheClassesLoadedLastCreateNewStatesUntilTheyAreReleased() {
+    fun theTypesOfTheClassesLoadedLastCreateNewStatesUntilTheyAreReleasedLeavingOutTheGeneratedOnes() {
         val types = LoadedActorTypes()
         assertEquals(emptySet(), types.typeIds)
         val loaded = LoadedEntryPoint(entryPoint(), close = {})
@@ -51,6 +52,7 @@ class LoadedActorTypesTest {
         override fun createSerializationManager() = EditableMetadata.newSerializationManagerInstance(
             EditableMetadata(typeId = "Spawner", deserializeState = { SpawnerState(it) }, instantiate = { SpawnerState("""{"x":${it.x.raw},"y":${it.y.raw}}""") }),
             EditableMetadata<Spawner>(typeId = "Broken", deserializeState = { SpawnerState(it) }, instantiate = { error("The project's code threw.") }),
+            EditableMetadata(typeId = "Brick", deserializeState = { GeneratedBrick().save() }, instantiate = { GeneratedBrick().save() }),
         )
     }
 
