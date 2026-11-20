@@ -626,7 +626,7 @@
     <string name="action_remove_actor">Remove from the Scene</string>
     <string name="action_send_actor_to_back">Add first, behind Actors of the same drawing order</string>
     <string name="action_bring_actor_to_front">Add last, in front of Actors of the same drawing order</string>
-    <string name="scene_inspector_hint">Drag an Actor type from the sidebar into the Scene to place it there, and click an Actor to change it. Drag it to move it, or press Delete to remove it.</string>
+    <string name="scene_inspector_hint">Drag an Actor type from the sidebar into the Scene to place it there, and click an Actor to change it. Drag it to move it, its handles to resize or rotate it (with Shift, in proportion or in steps), or press Delete to remove it.</string>
     <string name="scene_inspector_x">X</string>
     <string name="scene_inspector_y">Y</string>
     <string name="scene_inspector_rotation">Rotation (degrees)</string>

@@ -223,6 +223,11 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
      */
     public fun boundsOf(id: String): SceneHitTest.Bounds? = indicesById[id]?.let(::boundsAt)
 
+    /**
+     * Where the box of the Actor [id] is, following its rotation and scale, if it has a box and is drawn.
+     */
+    public fun frameOf(id: String): ActorFrame? = indicesById[id]?.let(actors::get)?.takeUnless(::isSceneValues)?.let { (it.body as? BoxBody)?.let(ActorFrame::of) }
+
     private fun boundsAt(index: Int) = actors.getOrNull(index)?.takeUnless(::isSceneValues)
         ?.let { boundsOf(index, it, entries[index].typeId == SceneSettingsCodeGenerator.SETTINGS_NAME, drawnRanks[index]) }
 

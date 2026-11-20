@@ -13,7 +13,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -42,20 +41,19 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.isCtrlPressed
 import androidx.compose.ui.input.pointer.isMetaPressed
-import androidx.compose.ui.input.pointer.isPrimaryPressed
 import androidx.compose.ui.input.pointer.onPointerEvent
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubrikoCreator.sceneRuntime.ActorFrame
 import com.pandulapeter.kubrikoCreator.sceneRuntime.ActorTypeLook
+import com.pandulapeter.kubrikoCreator.sceneRuntime.FrameHandle
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneView
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
@@ -63,8 +61,9 @@ import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
 import com.pandulapeter.kubrikoCreator.ui.components.FLASH_MAXIMUM_ALPHA
 
 /**
- * The Scene as the game draws it, with the selected Actor outlined. A click selects the Actor on top, dragging it moves
- * it ([onMove] when it is let go, so only one whose position the Scene file saves, [canDragActor]), dragging elsewhere
+ * The Scene as the game draws it, with the selected Actor outlined along its box. A click selects the Actor on top,
+ * dragging it moves it ([onMove] when it is let go, so only one whose position the Scene file saves, [canDragActor]),
+ * dragging one of its handles resizes or rotates it ([onTransform]; [SceneCanvasGestures]), dragging elsewhere
  * (or with the middle button, or on an Actor that can't be moved) moves the camera, scrolling moves it
  * too, and with Ctrl or Cmd, zooms. Delete or Backspace removes the selected Actor, and an Actor type dragged in from the
  * sidebar is placed where it is dropped ([onPlace], in scene units).
@@ -85,6 +84,7 @@ internal fun SceneCanvas(
     selectedId: String?,
     onSelect: (String?) -> Unit,
     onMove: (actorId: String, x: Float, y: Float) -> Unit,
+    onTransform: (actorId: String, handle: FrameHandle, after: ActorFrame) -> Unit,
     onRemove: (String) -> Unit,
     dragState: SidebarDragState,
     onPlace: (actorTypeName: String, x: Float, y: Float) -> Unit,
@@ -100,9 +100,19 @@ internal fun SceneCanvas(
     var dragRevision by remember { mutableIntStateOf(0) }
     val focusRequester = remember { FocusRequester() }
     val currentSelectedId by rememberUpdatedState(selectedId)
-    val currentOnSelect by rememberUpdatedState(onSelect)
-    val currentOnMove by rememberUpdatedState(onMove)
-    val currentIsSceneReadable by rememberUpdatedState(isSceneReadable)
+    val handleMetrics = rememberHandleMetrics()
+    val callbacks by rememberUpdatedState(
+        SceneCanvasGestures.Callbacks(
+            selectedId = selectedId,
+            canDrag = { actorId -> canDragActor(view.entryOf(actorId), isSceneReadable) },
+            handleMetrics = handleMetrics,
+            onSelect = onSelect,
+            onMove = onMove,
+            onTransform = onTransform,
+            onDragged = { dragRevision++ },
+        ),
+    )
+    val gestures = remember(view) { SceneCanvasGestures(view, focusRequester) { callbacks } }
     Box(
         modifier = modifier
             .background(MaterialTheme.colorScheme.surfaceContainerLowest)
@@ -134,41 +144,10 @@ internal fun SceneCanvas(
                     view.viewportManager.addToCameraPosition(delta * PAN_PER_SCROLL)
                 }
             }
-            .pointerInput(view) {
-                awaitEachGesture {
-                    val press = awaitPointerEvent(PointerEventPass.Initial)
-                    val down = press.changes.firstOrNull { it.pressed && !it.previousPressed } ?: return@awaitEachGesture
-                    focusRequester.requestFocus()
-                    val isPrimary = press.buttons.isPrimaryPressed
-                    val pickedId = if (isPrimary) view.actorIdAt(down.position) else null
-                    if (isPrimary) currentOnSelect(pickedId)
-                    val actor = pickedId?.takeIf { !view.isBackground(it) && canDragActor(view.entryOf(it), currentIsSceneReadable) }?.let(view::actorOf)
-                    val startPosition = actor?.body?.position ?: SceneOffset.Zero
-                    var lastPosition = down.position
-                    var isDragging = false
-                    while (true) {
-                        val change = awaitPointerEvent(PointerEventPass.Initial).changes.firstOrNull { it.id == down.id } ?: break
-                        if (!change.pressed) break
-                        if (!isDragging && (change.position - down.position).getDistance() > viewConfiguration.touchSlop) isDragging = true
-                        if (isDragging) {
-                            if (actor != null) {
-                                actor.body.position = startPosition + (view.toScene(change.position) - view.toScene(down.position))
-                                dragRevision++
-                            } else {
-                                view.viewportManager.addToCameraPosition(lastPosition - change.position)
-                            }
-                        }
-                        lastPosition = change.position
-                        change.consume()
-                    }
-                    if (actor != null && isDragging) {
-                        currentOnMove(pickedId, actor.body.position.x.raw, actor.body.position.y.raw)
-                    }
-                }
-            },
+            .then(gestures.modifier),
     ) {
         SceneViewport(view.kubriko, pictureHost, background = MaterialTheme.colorScheme.surfaceContainerLowest)
-        SceneOverlay(view = view, selectedId = selectedId, flash = flash, dragRevision = dragRevision)
+        SceneOverlay(gestures = gestures, view = view, selectedId = selectedId, flash = flash, dragRevision = dragRevision, handleMetrics = handleMetrics)
     }
 }
 
@@ -178,10 +157,12 @@ internal fun SceneCanvas(
  */
 @Composable
 private fun SceneOverlay(
+    gestures: SceneCanvasGestures,
     view: SceneView,
     selectedId: String?,
     flash: SceneFlash?,
     dragRevision: Int,
+    handleMetrics: HandleMetrics,
 ) {
     val loadRevision by view.loadRevision.collectAsState()
     val cameraPosition by view.viewportManager.cameraPosition.collectAsState()
@@ -189,6 +170,7 @@ private fun SceneOverlay(
     val viewportSize by view.viewportManager.size.collectAsState()
     val flashColor = MaterialTheme.colorScheme.tertiary
     val selectionColor = MaterialTheme.colorScheme.primary
+    val handleFill = MaterialTheme.colorScheme.surface
     val selectionStrokeWidth = with(LocalDensity.current) { SELECTION_STROKE_WIDTH.toPx() }
     val selectionStroke = remember(selectionStrokeWidth) { Stroke(width = selectionStrokeWidth) }
     Canvas(
@@ -204,16 +186,21 @@ private fun SceneOverlay(
         if (strength > 0f) {
             val color = flashColor.copy(alpha = FLASH_MAXIMUM_ALPHA * strength)
             val actorIds = flash?.actorIds.orEmpty()
-            for (index in actorIds.indices) drawActorBounds(view, actorIds[index], color)
+            for (index in actorIds.indices) drawActorOutline(gestures, view, actorIds[index], color)
         }
-        selectedId?.let { drawActorBounds(view, it, selectionColor, selectionStroke) }
+        if (selectedId != null) {
+            drawActorOutline(gestures, view, selectedId, selectionColor, selectionStroke)
+            gestures.transformableFrameOf(selectedId)?.let { frame -> drawFrameHandles(frame, selectionColor, handleFill, handleMetrics, gestures::toScreen) }
+        }
     }
 }
 
 /**
- * Draws over the Actor called [actorId] where [view] shows it, if it does, in [color], filled or in [style].
+ * Draws over the Actor called [actorId] where [view] shows it, if it does, in [color], filled or in [style]: along its
+ * box, following its rotation, or around where it is for an Actor without one.
  */
-private fun DrawScope.drawActorBounds(view: SceneView, actorId: String, color: Color, style: DrawStyle = Fill) {
+private fun DrawScope.drawActorOutline(gestures: SceneCanvasGestures, view: SceneView, actorId: String, color: Color, style: DrawStyle = Fill) {
+    view.frameOf(actorId)?.let { frame -> return drawFrameOutline(frame, color, gestures::toScreen, style) }
     val bounds = view.boundsOf(actorId) ?: return
     val topLeft = view.toScreen(SceneOffset(bounds.left.sceneUnit, bounds.top.sceneUnit))
     val bottomRight = view.toScreen(SceneOffset(bounds.right.sceneUnit, bounds.bottom.sceneUnit))
@@ -226,6 +213,18 @@ private fun DrawScope.drawActorBounds(view: SceneView, actorId: String, color: C
  */
 internal fun canDragActor(entry: SceneActorEntry?, isSceneReadable: Boolean) = isSceneReadable && entry != null && SceneDocument.positionOf(entry.state) != null
 
+@Composable
+private fun rememberHandleMetrics(): HandleMetrics {
+    val density = LocalDensity.current
+    return remember(density) {
+        with(density) { HandleMetrics(size = HANDLE_SIZE.toPx(), reach = HANDLE_REACH.toPx(), rotateDistance = ROTATE_HANDLE_DISTANCE.toPx(), strokeWidth = HANDLE_STROKE_WIDTH.toPx()) }
+    }
+}
+
 private const val ZOOM_PER_SCROLL = 0.05f
 private const val PAN_PER_SCROLL = 20f
 private val SELECTION_STROKE_WIDTH = 2.dp
+private val HANDLE_SIZE = 8.dp
+private val HANDLE_REACH = 8.dp
+private val ROTATE_HANDLE_DISTANCE = 24.dp
+private val HANDLE_STROKE_WIDTH = 1.5.dp

@@ -42,8 +42,9 @@ public object ActorStateEdits {
     )
 
     /**
-     * [state] with [changes] made and everything else kept, or null if it isn't a JSON object. A new size moves the
-     * pivot to the middle, as a newly placed Actor has it.
+     * [state] with [changes] made and everything else kept, or null if it isn't a JSON object. A new size keeps the
+     * pivot where it was in proportion to the size (as the size Blocks do), or puts it in the middle, as a newly placed
+     * Actor has it, when the state didn't save both.
      */
     public fun withChanges(state: String, changes: Changes): String? {
         val stateObject = SceneDocument.stateObject(state) ?: return null
@@ -53,14 +54,16 @@ public object ActorStateEdits {
             body[POSITION] = body.merged(POSITION, "x" to changes.x, "y" to changes.y)
         }
         if (changes.width != null || changes.height != null) {
+            val previousSize = body[SIZE] as? JsonObject
             val size = body.merged(SIZE, WIDTH to changes.width, HEIGHT to changes.height)
             body[SIZE] = size
-            val width = (size[WIDTH] as? JsonPrimitive)?.content?.toFloatOrNull()
-            val height = (size[HEIGHT] as? JsonPrimitive)?.content?.toFloatOrNull()
+            val width = size.numberAt(WIDTH)
+            val height = size.numberAt(HEIGHT)
             if (width != null && height != null) {
+                val fraction = pivotFractionOf(body[PIVOT] as? JsonObject, previousSize)
                 body[PIVOT] = buildJsonObject {
-                    put("x", width / 2)
-                    put("y", height / 2)
+                    put("x", width * fraction.first)
+                    put("y", height * fraction.second)
                 }
             }
         }
@@ -89,6 +92,20 @@ public object ActorStateEdits {
     )
 
     private fun JsonObject?.orEmpty(): Map<String, JsonElement> = this ?: emptyMap()
+
+    private fun JsonObject.numberAt(key: String) = (get(key) as? JsonPrimitive)?.content?.toFloatOrNull()
+
+    /**
+     * Where [pivot] is in [size], as fractions of its width and height, or the middle when either isn't saved (or the
+     * size is zero), as Kubriko places a pivot that isn't.
+     */
+    private fun pivotFractionOf(pivot: JsonObject?, size: JsonObject?): Pair<Float, Float> {
+        val x = pivot?.numberAt("x")
+        val y = pivot?.numberAt("y")
+        val width = size?.numberAt(WIDTH)
+        val height = size?.numberAt(HEIGHT)
+        return if (x == null || y == null || width == null || height == null || width <= 0f || height <= 0f) 0.5f to 0.5f else x / width to y / height
+    }
 
     private const val BODY = "body"
     private const val POSITION = "position"

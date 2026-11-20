@@ -14,18 +14,22 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.MouseInjectionScope
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performMouseInput
 import com.pandulapeter.kubriko.creator.CreatorEntryPoint
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
@@ -37,6 +41,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.commands.ActorsBroughtBack
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
+import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneValues
 import com.pandulapeter.kubrikoCreator.context.HealthFinding
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
@@ -131,6 +136,34 @@ class SceneEditorPaneTest {
      * The color at the middle of the Ball, which the Scene's camera centers.
      */
     private fun ComposeUiTest.ballColor() = onRoot().captureToImage().toPixelMap().let { pixels -> pixels[BALL_X, BALL_Y] }
+
+    @Test
+    fun theSelectedActorsHandlesResizeAndRotateIt() = uiTest(width = 900, height = 600) {
+        val commands = mutableListOf<Invocation<*>>()
+        showPane(MutableSharedFlow(), actors = { listOf(bigBall) }, previews = mapOf("Ball" to blue), onCommand = { commands += it })
+        waitUntil(timeoutMillis = 5_000) { ballColor() == Color(blue.color) }
+        onRoot().performMouseInput { click(Offset(BALL_X.toFloat(), BALL_Y.toFloat())) }
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasContentDescription(REMOVE)).fetchSemanticsNodes().isNotEmpty() }
+        saveSnapshot("scene-editor-handles")
+        onRoot().performMouseInput { dragBy(Offset(BALL_X + 80f, BALL_Y.toFloat()), Offset(40f, 0f)) }
+        waitForIdle()
+        val resize = commands.single().input as SetActorValues.Input
+        assertEquals(200f, resize.width!!, absoluteTolerance = 1f)
+        assertEquals(100f, resize.height!!, absoluteTolerance = 0.01f)
+        assertEquals(20f, resize.x!!, absoluteTolerance = 1f)
+        commands.clear()
+        // The commands aren't applied, so the Ball stays as the drag left it: 40 pixels wider, its middle 20 to the right.
+        onRoot().performMouseInput { dragBy(Offset(BALL_X + 20f, BALL_Y - 50f - 24f), Offset(74f, 74f)) }
+        waitForIdle()
+        assertEquals(SetActorValues.Input("level", "ball", rotation = 90f), (commands.single().input as SetActorValues.Input).let { it.copy(rotation = it.rotation?.let(Math::round)?.toFloat()) })
+    }
+
+    private fun MouseInjectionScope.dragBy(start: Offset, by: Offset) {
+        moveTo(start)
+        press()
+        repeat(DRAG_STEPS) { step -> moveTo(start + by * ((step + 1f) / DRAG_STEPS)) }
+        release()
+    }
 
     @Test
     fun whatAboutTheSceneIsWorthALookShowsUnderItsHeader() = uiTest(width = 900, height = 600) {
@@ -303,9 +336,10 @@ class SceneEditorPaneTest {
     }
 
     private companion object {
+        const val DRAG_STEPS = 10
         const val BALL_X = 339
         const val BALL_Y = 335
-        const val INSPECTOR_HINT = "Drag an Actor type from the sidebar into the Scene to place it there, and click an Actor to change it. Drag it to move it, or press Delete to remove it."
+        const val INSPECTOR_HINT = "Drag an Actor type from the sidebar into the Scene to place it there, and click an Actor to change it. Drag it to move it, its handles to resize or rotate it (with Shift, in proportion or in steps), or press Delete to remove it."
         const val REMOVE = "Remove from the Scene"
     }
 }

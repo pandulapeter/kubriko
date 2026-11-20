@@ -43,6 +43,7 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.PlaceActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
+import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneView
@@ -201,6 +202,7 @@ internal fun SceneEditorPane(
                 selectedId = selection.selectedId,
                 onSelect = { actorId -> selection.select(actorId?.takeUnless(view::isBackground)) },
                 onMove = { actorId, x, y -> onCommand(Invocation(MoveActor, MoveActor.Input(state.sceneName, actorId, x, y))) },
+                onTransform = { actorId, handle, after -> onCommand(Invocation(SetActorValues, transformInputOf(state.sceneName, actorId, handle, after))) },
                 onRemove = onRemove,
                 dragState = actorTypeDragState,
                 pictureHost = pictureHost,

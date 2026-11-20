@@ -482,6 +482,9 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
 - Every edit is a command. After each, the Scene is read again (`SceneStore` parses it in the background while the project builds,
   so the first command doesn't parse on the main thread) and `ScenePatch` applies only what changed. Dragging moves an Actor live
   and dispatches `move_actor` when let go, only for an Actor whose state saves a position (`canDragActor`); any other press pans.
+  Such an Actor with a box has handles (`ActorFrame`, in Kubriko's own transform), resizing it with the opposite edge staying
+  and its pivot kept in proportion, as `set_actor_values` keeps a saved one, or rotating it around its pivot, as one
+  `set_actor_values` when let go.
 - A placed Actor is selected, and so is one the user's undo or redo brings back (`CommandExecutor.broughtBack`, which an
   AI turn's undo leaves alone), since the selection is the editor's own state, which no command restores. `SceneSelection`
   selects it once the Scene shows it, and drops it if the next load doesn't (removed again meanwhile) or it is the Scene
