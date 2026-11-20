@@ -39,6 +39,12 @@ class HandWrittenStateFieldsTest {
     }
 
     @Test
+    fun aValueFirstShownAsJsonStaysJsonWhateverItBecomes() {
+        assertEquals(StateValueKind.Raw("1"), StateValueKind.of(JsonPrimitive(1), shownAs = StateValueKind.of(JsonNull)))
+        assertEquals(StateValueKind.Number(1f, isWhole = true), StateValueKind.of(JsonPrimitive(1), shownAs = StateValueKind.Number(0f, isWhole = true)))
+    }
+
+    @Test
     fun theFieldsShowTheValuesBesidesTheBodyAndChangeThem() = uiTest(width = 400, height = 400) {
         val changes = mutableListOf<Pair<String, JsonElement>>()
         showing {

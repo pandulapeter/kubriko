@@ -55,7 +55,8 @@ internal fun HandWrittenStateFields(
     )
     values.forEach { (name, value) ->
         key(name) {
-            when (val kind = StateValueKind.of(value)) {
+            val shownAs = remember { StateValueKind.of(value) }
+            when (val kind = StateValueKind.of(value, shownAs)) {
                 is StateValueKind.Toggle -> LabeledSwitch(modifier = Modifier.fillMaxWidth(), label = name, checked = kind.value, onCheckedChange = { onValueChange(name, JsonPrimitive(it)) })
                 is StateValueKind.Number -> NumberField(
                     modifier = Modifier.fillMaxWidth(),
@@ -82,10 +83,13 @@ internal fun HandWrittenStateFields(
 @Composable
 private fun RawValueField(name: String, json: String, onValueChange: (JsonElement) -> Unit) {
     var shown by remember { mutableStateOf(json) }
-    LaunchedEffect(json) {
-        if (StateValueKind.parse(shown) != StateValueKind.parse(json)) shown = json
-    }
     var isValid by remember { mutableStateOf(true) }
+    LaunchedEffect(json) {
+        if (StateValueKind.parse(shown) != StateValueKind.parse(json)) {
+            shown = json
+            isValid = true
+        }
+    }
     BufferedTextField(
         modifier = Modifier.fillMaxWidth(),
         label = name,
@@ -125,6 +129,12 @@ internal sealed interface StateValueKind {
     data class Raw(val json: String) : StateValueKind
 
     companion object {
+        /**
+         * How [value] is edited, as JSON still if it was edited as JSON when its field was first shown ([shownAs]), so
+         * typing a number into a field holding a null doesn't turn the field into another under the caret.
+         */
+        fun of(value: JsonElement, shownAs: StateValueKind): StateValueKind = if (shownAs is Raw) Raw(value.toString()) else of(value)
+
         fun of(value: JsonElement): StateValueKind {
             val primitive = value as? JsonPrimitive ?: return Raw(value.toString())
             if (primitive.isString) return Text(primitive.content)
